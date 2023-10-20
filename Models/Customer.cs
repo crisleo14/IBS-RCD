@@ -20,23 +20,6 @@ namespace Accounting_System.Models
         [Display(Name = "Payment Terms")]
         public string Terms { get; set; }
 
-        public CustomerType CustomerType { get; set; }
-
-        public Customer()
-        {
-            // You can set default values here if needed
-        }
-    }
-
-    public enum CustomerType
-    {
-        [Display(Name = "VATable")]
-        Vatable,
-
-        [Display(Name = "Exempt")]
-        Excempt,
-
-        [Display(Name = "Zero Rated")]
-        ZeroRated
+        public string CustomerType { get; set; }
     }
 }

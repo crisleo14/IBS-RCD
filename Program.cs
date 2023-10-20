@@ -1,6 +1,7 @@
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Accounting_System.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,8 @@ builder.Services.Configure<IdentityOptions>(options =>
 {
     options.Password.RequireUppercase = false;
 });
+
+builder.Services.AddScoped<SalesInvoiceRepo>();
 
 var app = builder.Build();
 

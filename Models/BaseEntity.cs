@@ -10,7 +10,7 @@ namespace Accounting_System.Models
         public int Id { get; set; }
 
         [Display(Name = "Created By")]
-        public string CreatedBy { get; set; }
+        public string CreatedBy { get; set; } = "Azh";
 
         [Display(Name = "Created Date")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;

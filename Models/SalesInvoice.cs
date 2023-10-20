@@ -7,8 +7,9 @@ namespace Accounting_System.Models
         private static int lastSerialNo = 0;
 
         [Display(Name = "Serial No")]
-        public long SerialNo { get; set; } = 0000000;
+        public long SerialNo { get; set; }
 
+        [Display(Name = "Customer No")]
         public int CustomerId { get; set; }
 
         [Display(Name = "Sold To")]
@@ -36,7 +37,7 @@ namespace Accounting_System.Models
         [Display(Name = "Product No")]
         public string ProductNo { get; set; }
 
-        public int Quantity { get; set; }
+        public decimal Quantity { get; set; }
 
         [Display(Name = "Unit Price")]
         public decimal UnitPrice { get; set; }
@@ -45,10 +46,6 @@ namespace Accounting_System.Models
 
         public string Remarks { get; set; }
 
-        public SalesInvoice(int quantity, decimal unitPrice)
-        {
-            SerialNo = ++lastSerialNo;
-            Amount = quantity * unitPrice;
-        }
+        public SalesInvoice() => SerialNo = ++lastSerialNo;
     }
 }
