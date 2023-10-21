@@ -45,5 +45,21 @@ namespace Accounting_System.Repository
                 return 1;
             }
         }
+
+        public async Task<SalesInvoice> FindSalesInvoice(int id)
+        {
+            var invoice = await _dbContext
+                .SalesInvoices
+                .FirstOrDefaultAsync(invoice => invoice.Id == id);
+
+            if (invoice != null)
+            {
+                return invoice;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
+            }
+        }
     }
 }

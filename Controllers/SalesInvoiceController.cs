@@ -13,10 +13,13 @@ namespace Accounting_System.Controllers
 
         private readonly SalesInvoiceRepo _salesInvoiceRepo;
 
-        public SalesInvoiceController(ApplicationDbContext dbContext, SalesInvoiceRepo salesInvoiceRepo)
+        private readonly ILogger<HomeController> _logger;
+
+        public SalesInvoiceController(ILogger<HomeController> logger, ApplicationDbContext dbContext, SalesInvoiceRepo salesInvoiceRepo)
         {
             _dbContext = dbContext;
             _salesInvoiceRepo = salesInvoiceRepo;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index()
@@ -94,6 +97,40 @@ namespace Accounting_System.Controllers
             catch (Exception ex)
             {
                 // Handle other exceptions, log them, and return an error response.
+                _logger.LogError(ex, "An error occurred.");
+                return StatusCode(500, "An error occurred. Please try again later.");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(SalesInvoice model)
+        {
+            try
+            {
+                var existingModel = await _salesInvoiceRepo.FindSalesInvoice(model.Id);
+
+                if (existingModel == null)
+                {
+                    return NotFound(); // Return a "Not Found" response when the entity is not found.
+                }
+
+                existingModel.TransactionDate = model.TransactionDate;
+                existingModel.RefDrNo = model.RefDrNo;
+                existingModel.PoNo = model.PoNo;
+                existingModel.ProductNo = model.ProductNo;
+                existingModel.Quantity = model.Quantity;
+                existingModel.UnitPrice = model.UnitPrice;
+                existingModel.Amount = model.Quantity * model.UnitPrice;
+                existingModel.Remarks = model.Remarks;
+
+                // Save the changes to the database
+                await _dbContext.SaveChangesAsync();
+
+                return RedirectToAction("Index"); // Redirect to a success page or the index page
+            }
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "An error occurred.");
                 return StatusCode(500, "An error occurred. Please try again later.");
             }
