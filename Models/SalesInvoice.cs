@@ -46,6 +46,10 @@ namespace Accounting_System.Models
 
         public string Remarks { get; set; }
 
+        public bool IsVoid { get; set; }
+
+        public bool IsPosted { get; set; }
+
         public SalesInvoice() => SerialNo = ++lastSerialNo;
     }
 }
