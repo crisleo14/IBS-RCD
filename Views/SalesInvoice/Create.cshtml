@@ -16,17 +16,51 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="CustomerId" class="control-label"></label>
-                <input asp-for="CustomerId" class="form-control" />
+                <select asp-for="CustomerId" asp-items="@Model.Customers" class="form-control">
+                    <option value="">Select Customer</option>
+                </select>
                 <span asp-validation-for="CustomerId" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="SoldTo" class="control-label"></label>
-                <input asp-for="SoldTo" class="form-control" />
+                <input asp-for="SoldTo" id="soldTo" class="form-control" readonly/>
                 <span asp-validation-for="SoldTo" class="text-danger"></span>
             </div>
+
+            <div class="form-group">
+                <label asp-for="Address" class="control-label"></label>
+                <input asp-for="Address" id="address" class="form-control" readonly />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="TinNo" class="control-label"></label>
+                <input asp-for="TinNo" id="tinNo" class="form-control" readonly />
+                <span asp-validation-for="TinNo" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="BusinessStyle" class="control-label"></label>
+                <input asp-for="BusinessStyle" id="businessStyle" class="form-control" readonly />
+                <span asp-validation-for="BusinessStyle" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Terms" class="control-label"></label>
+                <input asp-for="Terms" id="terms" class="form-control" readonly />
+                <span asp-validation-for="Terms" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="CustomerType" class="control-label"></label>
+                <input asp-for="CustomerType" id="customerType" class="form-control" readonly />
+                <span asp-validation-for="CustomerType" class="text-danger"></span>
+            </div>
+
             <div class="form-group">
                 <label asp-for="TransactionDate" class="control-label"></label>
-                <input asp-for="TransactionDate" class="form-control" />
+                <input type="date" asp-for="TransactionDate" class="form-control" />
                 <span asp-validation-for="TransactionDate" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -71,5 +105,55 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(function () {
+            $("#CustomerId").change(function () {
+                var customerId = $(this).val();
+                console.log(customerId); // Add this line for debugging
+                if (customerId !== "") {
+                    // Make an AJAX request to get the customer details based on the selected CustomerId
+                    $.ajax({
+                        url: "/SalesInvoice/GetCustomerDetails", // Replace with the actual controller and action names
+                        method: "GET",
+                        data: { customerId: customerId },
+                        success: function (data) {
+                            console.log(data);
+                            if (data) {
+                                $("#soldTo").val(data.soldTo);
+                                $("#address").val(data.address);
+                                $("#tinNo").val(data.tinNo);
+                                $("#businessStyle").val(data.businessStyle);
+                                $("#terms").val(data.terms);
+                                $("#customerType").val(data.customerType);
+                                // Populate other fields as needed
+                            } else {
+                                // Clear the fields if no customer is selected
+                                $("#soldTo").val("");
+                                $("#address").val("");
+                                $("#tinNo").val("");
+                                $("#businessStyle").val("");
+                                $("#terms").val("");
+                                $("#customerType").val("");
+                                // Clear other fields as needed
+                            }
+                        }
+                    });
+                } else {
+                    // Clear the fields if no customer is selected
+                    $("#soldTo").val("");
+                    $("#address").val("");
+                    $("#tinNo").val("");
+                    $("#businessStyle").val("");
+                    $("#terms").val("");
+                    $("#customerType").val("");
+                    // Clear other fields as needed
+                }
+            });
+        });
+    </script>
+
 }

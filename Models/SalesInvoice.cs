@@ -1,16 +1,30 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Accounting_System.Models
 {
     public class SalesInvoice : BaseEntity
     {
-        private static int lastSerialNo = 0;
-
         [Display(Name = "Serial No")]
-        public long SerialNo { get; set; }
+        public int SerialNo { get; set; }
+
+        [NotMapped]
+        public string FormattedSerialNo
+        {
+            get
+            {
+                return SerialNo.ToString("D7"); // Formats with leading zeros, e.g., 0000021
+            }
+        }
 
         [Display(Name = "Customer No")]
         public int CustomerId { get; set; }
+
+        public string CustomerType { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? Customers { get; set; }
 
         [Display(Name = "Sold To")]
         public string SoldTo { get; set; }
@@ -46,6 +60,8 @@ namespace Accounting_System.Models
 
         public string Remarks { get; set; }
 
-        public SalesInvoice() => SerialNo = ++lastSerialNo;
+        public bool IsVoid { get; set; }
+
+        public bool IsPosted { get; set; }
     }
 }
