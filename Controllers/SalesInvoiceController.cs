@@ -135,5 +135,10 @@ namespace Accounting_System.Controllers
                 return StatusCode(500, "An error occurred. Please try again later.");
             }
         }
+
+        public IActionResult PrintInvoice()
+        {
+            return View();
+        }
     }
 }
