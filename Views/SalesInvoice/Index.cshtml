@@ -1,5 +1,5 @@
 ﻿@model IEnumerable<Accounting_System.Models.SalesInvoice>
-
+ 
 <h1>Sales Invoices</h1>
 
 <p>
@@ -55,7 +55,14 @@
                     </td>
                     <td>
                         <a asp-action="Edit" asp-route-id="@invoice.Id" class="btn btn-light">Edit</a> |
-                        <a asp-action="Delete" asp-route-id="@invoice.Id" class="btn btn-light">Generate</a>
+                        @if(invoice.IsPosted == true){
+                        <a asp-action="PrintInvoice" asp-route-id="@invoice.Id" class="btn btn-light">Print Invoice</a>
+                        <a asp-action="Index" asp-route-id="@invoice.Id" class="btn btn-light">Void</a>
+                        }
+                        @if (invoice.IsPosted != true)
+                        {
+                            <a asp-action="Index" asp-route-id="@invoice.Id" class="btn btn-light">Post</a>
+                        }
                     </td>
                 </tr>
             }
