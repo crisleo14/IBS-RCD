@@ -1,7 +1,12 @@
-﻿@{
+﻿@model Accounting_System.Models.SalesInvoice
+
+@{
     ViewData["Title"] = "Sales Invoice";
 }
 <br />
+<div class="text-end">
+    <img src="~/img/Filpride.jpg" height="" width="130px"/>
+</div>
 <div class="text-center">
     <h2><u><b>&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b></u></h2>
     <p style="line-height: 1; margin-top:-7px;">
@@ -11,62 +16,62 @@
     </p>
 
     <h3><span style="display: inline-block;"><b>SALES INVOICE</b></span></h3>
-    <div class="text-end" style="margin-top:-60px;">
-        <h3>A No.0009951</h3>
-    </div>
+    @* <div class="text-end" style="margin-top:-60px;">
+    <h3>A No.0009951</h3>
+    </div> *@
 
 </div>
 
+<div class="table-responsive">
+    <table class="w-100" style="margin-top:20px;">
+        <tbody>
+            <tr>
+                <td>
+                    <span><b>Sold to:</b></span>
+                    &nbsp; @Html.DisplayFor(model => model.SoldTo) &nbsp;<br />
 
-<table class="w-100" style="margin-top:20px;">
-    <tbody>
-        <tr>
-            <td>
-                <span>Sold to:</span>
-                <span style="display: inline-block; width:450px;" class="underline">&nbsp;</span><br />
+                    <span><b>Address:</b></span>
+                    &nbsp; @Html.DisplayFor(model => model.Address) &nbsp;<br />
 
-                <span>Address:</span>
-                <span style="display: inline-block; width:440px;" class="underline">&nbsp;</span><br />
+                    <span><b>TIN:</b></span>
+                    &nbsp; @Html.DisplayFor(model => model.TinNo) &nbsp;<br />
 
-                <span>TIN:</span>
-                <span style="display: inline-block; width:473px;" class="underline">&nbsp;</span><br />
+                    <span><b>Business Style:</b></span>
+                    &nbsp; @Html.DisplayFor(model => model.BusinessStyle) &nbsp;
+                </td>
 
-                <span>Business Style:</span>
-                <span style="display: inline-block; width:395px;" class="underline">&nbsp;</span>
-            </td>
+                <td class="w-25">
+                    <b>Date:</b>
+                            &nbsp; @Html.DisplayFor(model => model.TransactionDate) &nbsp;<br />
 
-            <td>
-                <div style="margin-left:150px;">
-                    Date:<span style="display: inline-block; width:230px;" class="underline">&nbsp;</span><br />
+                    <b>Terms:</b>&nbsp; @Html.DisplayFor(model => model.Terms) &nbsp;<br />
 
-                    Terms:<span style="display: inline-block; width:217px;" class="underline">&nbsp;</span><br />
+                   @*  Ref DR No.:<u>&nbsp; @Html.DisplayFor(model => model.RefDrNo)</u><br /> *@
 
-                    Ref DR No.:<span style="display: inline-block; width:185px;" class="underline">&nbsp;</span><br />
-
-                    P.O. No.:<span style="display: inline-block; width:208px;" class="underline">&nbsp;</span>
-                </div>
-            </td>
-        </tr>
-    </tbody>
-</table>
+                <b>P.O. No.:</b>&nbsp; @Html.DisplayFor(model => model.PoNo) &nbsp;
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 
 <div class="table-responsive" style="margin-top:20px;">
-    <table class="table-bordered w-100">
+    <table class="table-bordered w-100 text-center">
         <tbody>
-            <tr class="text-center bg-secondary">
-                <td>PRODUCT DESCRIPTION</td>
-                <td>UNIT</td>
-                <td>QUANTITY</td>
-                <td>UNIT PRICE</td>
-                <td>AMOUNT</td>
+            <tr>
+                <td><b>PRODUCT DESCRIPTION</b></td>
+                <td><b>UNIT</b></td>
+                <td><b>QUANTITY</b></td>
+                <td><b>UNIT PRICE</b></td>
+                <td><b>AMOUNT</b></td>
             </tr>
 
             <tr style="height:80px;">
                 <td></td>
                 <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td>@Html.DisplayFor(model => model.Quantity)</td>
+                <td>@Html.DisplayFor(model => model.UnitPrice)</td>
+                <td>@Html.DisplayFor(model => model.Amount)</td>
             </tr>
 
         </tbody>
@@ -76,20 +81,20 @@
     <table class="w-100">
         <tbody>
             <tr>
-                <td style="width:33%;">
+                <td style="width:33%">
                     <div class="table-responsive">
                         <table class="table-bordered w-100">
                             <tbody>
 
                                 <tr style="height:140px;">
-                                    <td class="align-text-top">INSTRUCTIONS:</td>
+                                    <td class="align-text-top">INSTRUCTIONS: @Html.DisplayFor(model => model.Remarks)</td>
                                 </tr>
 
                             </tbody>
                         </table>
                     </div>
                 </td>
-                <td style="width:33%;">
+                <td style="width:33%">
                     <div>
                         <table class="table-bordered w-100" style="height:140px;">
                             <tbody>
@@ -97,47 +102,46 @@
                                 <tr class="align-text-top text-center text-nowrap">
                                     <td>
                                         Prepared by
-                                        <br /><br />
-                                        <span style="display: inline-block; width:110px;" class="underline">Leonard Andulan</span>
+                                        <br />
+                                        <p style="margin-top:20px;"><span style="display: inline-block; width:110px;" class="underline">Leonard Andulan</span></p>
                                     </td>
                                     <td>
                                         Approved by
-                                        <br /><br />
-                                        <span style="display: inline-block; width:110px;" class="underline">Azh Adolfo</span>
+                                        <br />
+                                        <p style="margin-top:20px;"><span style="display: inline-block; width:110px;" class="underline">Azh Adolfo</span></p>
                                     </td>
 
                                 </tr>
                                 <tr class="align-text-top">
                                     <td colspan="2">
-                                        <div style="margin-left:20px;">HAULER/DRIVER</div>
-                                        <span style="margin-left:20px; display: inline-block; width:90%;" class="underline">Jumong</span><br />
+                                        <div style="margin-left:20px;">HAULER/DRIVER
+                                        <span style="display: inline-block; width:90%;" class="underline">Jumong</span></div>
                                     </td>
-
                                 </tr>
 
                             </tbody>
                         </table>
                     </div>
                 </td>
-                <td style="width:33%;">
+                <td style="width:33%">
                     <div class="table-responsive">
                         <table class="table-bordered w-100">
                             <tbody>
 
                                 <tr style="height:32px;">
-                                    <td>Vatable Sales</td>
+                                    <td>Vatable Sales :</td>
                                 </tr>
                                 <tr>
-                                    <td>Vat Exempt Sales</td>
+                                    <td>Vat Exempt Sales :</td>
                                 </tr>
                                 <tr>
-                                    <td>Zero-Rated Sales</td>
+                                    <td>Zero-Rated Sales: </td>
                                 </tr>
                                 <tr>
-                                    <td>Vat Amount</td>
+                                    <td>Vat Amount: </td>
                                 </tr>
-                                <tr class="bg-secondary">
-                                    <td>Total Sales</td>
+                                <tr>
+                                    <td><b>Total Sales: </b></td>
                                 </tr>
 
                             </tbody>
@@ -159,21 +163,12 @@
         </tbody>
     </table>
 </div>
-<div style="margin-top:5px;">
-    <table class="w-100">
-        <tbody>
-            <tr class="text-nowrap" style="line-height: 1;">
-                <td class="align-text-top"><p>100 Bkits. (50x5) SN.A0005501-A0010500<br />BIR ATP No. OCN:124AU20210000001456<br />Date Issued: 06-17-2021 * Valid Until: 06-16-2026</p></td>
-                <td class="align-text-top"><p>CURACHA PRINTING<br />VAT REG TIN:937-809-670-000 * Kelvin C. Roque-Prop.<br />PH 1 ROQUE COMPD., # 37 NPC VILLAGE PAsong Tamo 2,<br />Tandang Sora, Quezon City * Tel. #453-3149/09178574324</p></td>
-                <td class="align-text-top"><p>Accreditation No. 028MP20210000000051<br />Accreditation Date: 07-02-2021 * VAlid up to: 07-01-2026</p></td>
-            </tr>
-
-        </tbody>
-    </table>
+<div style="margin-top:20px;">
+    Received by:
+    <br /><br />
+    <span style="display: inline-block; width:110px;" class="underline"></span>
 </div>
-<div class="text-center">
-    <p><u>"THIS SALES INVOICE SHALL BE VALID FOR FIVE(5) YEARS FROM THE DATE OF ATP"</u></p>
-</div>
+<br />
 
 <a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
 <a asp-action="Index" class="btn" id="otherButton">Back</a>

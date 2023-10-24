@@ -22,10 +22,28 @@ namespace Accounting_System.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int id, SalesInvoice columnVoid)
         {
             var salesInvoice = await _salesInvoiceRepo.GetSalesInvoicesAsync();
 
+            var model = await _dbContext.SalesInvoices.FindAsync(id);
+
+            if (model != null)
+            {
+                if (model.IsPosted != true)
+                {
+                    model.IsPosted = true;
+                    await _dbContext.SaveChangesAsync();
+                }
+            }
+            if (columnVoid != null)
+            {
+                if (columnVoid.IsVoid != true)
+                {
+                    columnVoid.IsVoid = true;
+                    await _dbContext.SaveChangesAsync();
+                }
+            }
             return View(salesInvoice);
         }
 
@@ -136,9 +154,12 @@ namespace Accounting_System.Controllers
             }
         }
 
-        public IActionResult PrintInvoice()
+        [HttpGet]
+        public async Task<IActionResult> PrintInvoice(int id)
         {
-            return View();
+            var sales = _dbContext.SalesInvoices.FirstOrDefault(x => x.Id == id);
+            return View(sales);
         }
+
     }
 }
