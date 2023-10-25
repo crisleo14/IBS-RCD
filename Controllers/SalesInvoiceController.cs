@@ -153,13 +153,13 @@ namespace Accounting_System.Controllers
                 return StatusCode(500, "An error occurred. Please try again later.");
             }
         }
-
+        [HttpGet]
         public IActionResult PrintInvoice()
         {
             return View();
         }
 
-        [HttpGet]
+        [HttpPost]
         public async Task<IActionResult> PrintInvoice(int id)
         {
             var sales = _dbContext.SalesInvoices.FirstOrDefault(x => x.Id == id);
