@@ -14,7 +14,7 @@ namespace Accounting_System.Models
         {
             get
             {
-                return SerialNo.ToString("D7"); // Formats with leading zeros, e.g., 0000021
+                return SerialNo.ToString("D8"); // Formats with leading zeros, e.g., 0000021
             }
         }
 
@@ -42,8 +42,8 @@ namespace Accounting_System.Models
 
         public string Terms { get; set; }
 
-        [Display(Name = "Ref Dr No")]
-        public string RefDrNo { get; set; }
+        [Display(Name = "Other Ref No")]
+        public string OtherRefNo { get; set; }
 
         [Display(Name = "P.O No")]
         public string PoNo { get; set; }
@@ -51,11 +51,14 @@ namespace Accounting_System.Models
         [Display(Name = "Product No")]
         public string ProductNo { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Quantity { get; set; }
 
         [Display(Name = "Unit Price")]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal UnitPrice { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Amount { get; set; }
 
         public string Remarks { get; set; }
