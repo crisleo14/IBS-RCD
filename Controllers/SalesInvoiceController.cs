@@ -22,10 +22,9 @@ namespace Accounting_System.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Index(int id, SalesInvoice columnVoid)
+        public async Task<IActionResult> Index(int id)
         {
             var salesInvoice = await _salesInvoiceRepo.GetSalesInvoicesAsync();
-
             var model = await _dbContext.SalesInvoices.FindAsync(id);
 
             if (model != null)
@@ -35,13 +34,14 @@ namespace Accounting_System.Controllers
                     model.IsPosted = true;
                     await _dbContext.SaveChangesAsync();
                 }
-            }
-            if (columnVoid != null)
-            {
-                if (columnVoid.IsVoid != true)
+                else if (model.IsPosted == false || model.IsVoid != true)
                 {
-                    columnVoid.IsVoid = true;
-                    await _dbContext.SaveChangesAsync();
+
+                    if (model.IsVoid != true)
+                    {
+                        model.IsVoid = true;
+                        await _dbContext.SaveChangesAsync();
+                    }
                 }
             }
             return View(salesInvoice);
@@ -153,8 +153,13 @@ namespace Accounting_System.Controllers
                 return StatusCode(500, "An error occurred. Please try again later.");
             }
         }
-
         [HttpGet]
+        public IActionResult PrintInvoice()
+        {
+            return View();
+        }
+
+        [HttpPost]
         public async Task<IActionResult> PrintInvoice(int id)
         {
             var sales = _dbContext.SalesInvoices.FirstOrDefault(x => x.Id == id);
