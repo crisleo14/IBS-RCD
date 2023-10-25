@@ -20,13 +20,6 @@ namespace Accounting_System.Repository
                 .ToListAsync();
         }
 
-        public async Task<List<Customer>> GetCustomersAsync()
-        {
-            return await _dbContext
-                .Customers
-                .ToListAsync();
-        }
-
         public async Task<int> GetLastSerialNo()
         {
             var lastInvoice = await _dbContext

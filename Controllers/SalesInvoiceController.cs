@@ -29,15 +29,14 @@ namespace Accounting_System.Controllers
 
             if (model != null)
             {
-                if (model.IsPosted != true)
+                if (!model.IsPosted)
                 {
                     model.IsPosted = true;
                     await _dbContext.SaveChangesAsync();
                 }
-                else if (model.IsPosted == false || model.IsVoid != true)
+                else if (!model.IsPosted || !model.IsVoid)
                 {
-
-                    if (model.IsVoid != true)
+                    if (!model.IsVoid)
                     {
                         model.IsVoid = true;
                         await _dbContext.SaveChangesAsync();
@@ -56,6 +55,13 @@ namespace Accounting_System.Controllers
                 {
                     Value = c.Id.ToString(),
                     Text = c.Name
+                })
+                .ToList();
+            viewModel.Products = _dbContext.Products
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.Name
                 })
                 .ToList();
 
@@ -102,6 +108,21 @@ namespace Accounting_System.Controllers
                 });
             }
             return Json(null); // Return null if no matching customer is found
+        }
+
+        [HttpGet]
+        public JsonResult GetProductDetails(int productId)
+        {
+            var product = _dbContext.Products.FirstOrDefault(c => c.Id == productId);
+            if (product != null)
+            {
+                return Json(new
+                {
+                    ProductName = product.Name,
+                    ProductUnit = product.Unit
+                });
+            }
+            return Json(null); // Return null if no matching product is found
         }
 
         [HttpGet]
@@ -153,6 +174,7 @@ namespace Accounting_System.Controllers
                 return StatusCode(500, "An error occurred. Please try again later.");
             }
         }
+
         [HttpGet]
         public IActionResult PrintInvoice()
         {
@@ -165,6 +187,5 @@ namespace Accounting_System.Controllers
             var sales = _dbContext.SalesInvoices.FirstOrDefault(x => x.Id == id);
             return View(sales);
         }
-
     }
 }
