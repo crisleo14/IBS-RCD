@@ -58,7 +58,7 @@ namespace Accounting_System.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ChartOfAccounts");
+                    b.ToTable("ChartOfAccounts", (string)null);
                 });
 
             modelBuilder.Entity("Accounting_System.Models.Customer", b =>
@@ -108,7 +108,7 @@ namespace Accounting_System.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customers", (string)null);
                 });
 
             modelBuilder.Entity("Accounting_System.Models.Ledger", b =>
@@ -143,7 +143,7 @@ namespace Accounting_System.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Ledgers");
+                    b.ToTable("Ledgers", (string)null);
                 });
 
             modelBuilder.Entity("Accounting_System.Models.SalesInvoice", b =>
@@ -228,7 +228,7 @@ namespace Accounting_System.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SalesInvoices");
+                    b.ToTable("SalesInvoices", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
