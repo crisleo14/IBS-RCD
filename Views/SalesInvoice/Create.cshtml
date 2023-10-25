@@ -64,9 +64,9 @@
                 <span asp-validation-for="TransactionDate" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="RefDrNo" class="control-label"></label>
-                <input asp-for="RefDrNo" class="form-control" />
-                <span asp-validation-for="RefDrNo" class="text-danger"></span>
+                <label asp-for="OtherRefNo" class="control-label"></label>
+                <input asp-for="OtherRefNo" class="form-control" />
+                <span asp-validation-for="OtherRefNo" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="PoNo" class="control-label"></label>
@@ -80,12 +80,12 @@
             </div>
             <div class="form-group">
                 <label asp-for="Quantity" class="control-label"></label>
-                <input asp-for="Quantity" class="form-control" />
+                <input asp-for="Quantity" class="form-control" id="quantityInput" />
                 <span asp-validation-for="Quantity" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="UnitPrice" class="control-label"></label>
-                <input asp-for="UnitPrice" class="form-control" />
+                <input asp-for="UnitPrice" class="form-control" id="unitPriceInput"/>
                 <span asp-validation-for="UnitPrice" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -155,5 +155,44 @@
             });
         });
     </script>
+
+    <script>
+        $(function () {
+            // Function to format the input with commas and two decimal places
+            function formatInputValue(inputField) {
+                var inputValue = inputField.val().replace(/,/g, ''); // Remove commas
+                var cursorPosition = inputField[0].selectionStart; // Store the current cursor position
+
+                // Check if the input is empty or non-numeric
+                if (inputValue === '' || isNaN(inputValue)) {
+                    inputField.val('0.00');
+                } else {
+                    var formattedValue = parseFloat(inputValue).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); // Format and add commas
+
+                    inputField.val(formattedValue);
+
+                    // Calculate the new cursor position based on the formatted value
+                    if (cursorPosition !== null) {
+                        var diff = formattedValue.length - inputValue.length;
+                        var newCursorPosition = cursorPosition + diff;
+
+                        // Ensure the cursor stays at the same relative position
+                        if (cursorPosition === inputValue.length) {
+                            newCursorPosition = formattedValue.length;
+                        }
+
+                        inputField[0].setSelectionRange(newCursorPosition, newCursorPosition);
+                    }
+                }
+            }
+
+            $("#unitPriceInput, #quantityInput").on('input', function () {
+                formatInputValue($(this));
+            });
+        });
+    </script>
+
+
+
 
 }

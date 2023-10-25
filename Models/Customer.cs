@@ -21,5 +21,11 @@ namespace Accounting_System.Models
         public string Terms { get; set; }
 
         public string CustomerType { get; set; }
+
+        [Display(Name = "Creaditable With Holding VAT 2306 ")]
+        public bool WithHoldingVat { get; set; }
+
+        [Display(Name = "Creditable With Holding Tax 2307")]
+        public bool WithHoldingTax { get; set; }
     }
 }
