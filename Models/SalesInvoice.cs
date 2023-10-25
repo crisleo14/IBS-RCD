@@ -26,6 +26,9 @@ namespace Accounting_System.Models
         [NotMapped]
         public List<SelectListItem>? Customers { get; set; }
 
+        [NotMapped]
+        public List<SelectListItem>? Products { get; set; }
+
         [Display(Name = "Sold To")]
         public string SoldTo { get; set; }
 
@@ -50,6 +53,12 @@ namespace Accounting_System.Models
 
         [Display(Name = "Product No")]
         public string ProductNo { get; set; }
+
+        [Display(Name = "Product Name")]
+        public string ProductName { get; set; }
+
+        [Display(Name = "Unit")]
+        public string ProductUnit { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Quantity { get; set; }
