@@ -53,11 +53,16 @@
                     <td>
                         @Html.DisplayFor(model => invoice.Amount)
                     </td>
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@invoice.Id" class="btn btn-light">Edit</a> |
-                        @if(invoice.IsPosted == true){
-                        <a asp-action="PrintInvoice" asp-route-id="@invoice.Id" class="btn btn-light">Print Invoice</a>
+                    <td class="text-center">
+                        @if (invoice.IsPosted != true)
+                        {
+                            <a asp-action="Edit" asp-route-id="@invoice.Id" class="btn btn-light">Edit</a>
+                        }
+                        @if (invoice.IsPosted == true && invoice.IsVoid != true){
+                        <a asp-action="PrintInvoice" asp-route-id="@invoice.Id" class="btn btn-light">Print Invoice</a> 
                         <a asp-action="Index" asp-route-id="@invoice.Id" class="btn btn-light">Void</a>
+                        }else{
+                            <span class="badge rounded-pill bg-danger w-50">VOIDED</span>
                         }
                         @if (invoice.IsPosted != true)
                         {
