@@ -134,7 +134,7 @@ namespace Accounting_System.Controllers
                 }
 
                 existingModel.TransactionDate = model.TransactionDate;
-                existingModel.RefDrNo = model.RefDrNo;
+                existingModel.OtherRefNo = model.OtherRefNo;
                 existingModel.PoNo = model.PoNo;
                 existingModel.ProductNo = model.ProductNo;
                 existingModel.Quantity = model.Quantity;

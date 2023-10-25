@@ -185,6 +185,10 @@ namespace Accounting_System.Migrations
                     b.Property<bool>("IsVoid")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("OtherRefNo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("PoNo")
                         .IsRequired()
                         .HasColumnType("text");
@@ -195,10 +199,6 @@ namespace Accounting_System.Migrations
 
                     b.Property<decimal>("Quantity")
                         .HasColumnType("numeric");
-
-                    b.Property<string>("RefDrNo")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("Remarks")
                         .IsRequired()
