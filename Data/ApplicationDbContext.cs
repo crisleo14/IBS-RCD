@@ -15,5 +15,6 @@ namespace Accounting_System.Data
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Ledger> Ledgers { get; set; }
         public DbSet<ChartOfAccount> ChartOfAccounts { get; set; }
+        public DbSet<Product> Products { get; set; }
     }
 }
