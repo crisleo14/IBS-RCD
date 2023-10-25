@@ -75,8 +75,21 @@
             </div>
             <div class="form-group">
                 <label asp-for="ProductNo" class="control-label"></label>
-                <input asp-for="ProductNo" class="form-control" />
+                <select asp-for="ProductNo" asp-items="@Model.Products" class="form-control">
+                    <option value="">Select Products</option>
+                </select>
                 <span asp-validation-for="ProductNo" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ProductName" class="control-label"></label>
+                <input asp-for="ProductName" id="productName" class="form-control" readonly />
+                <span asp-validation-for="ProductName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ProductUnit" class="control-label"></label>
+                <input asp-for="ProductUnit" id="productUnit" class="form-control" readonly />
+                <span asp-validation-for="ProductUnit" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Quantity" class="control-label"></label>
@@ -151,6 +164,36 @@
                     $("#terms").val("");
                     $("#customerType").val("");
                     // Clear other fields as needed
+                }
+            });
+            $("#ProductNo").change(function () {
+                var productId = $(this).val();
+                console.log(productId); // Add this line for debugging
+                if (productId !== "") {
+                    // Make an AJAX request to get the customer details based on the selected CustomerId
+                    $.ajax({
+                        url: "/SalesInvoice/GetProductDetails", // Replace with the actual controller and action names
+                        method: "GET",
+                        data: { productId: productId },
+                        success: function (data) {
+                            console.log(data);
+                            if (data) {
+                                $("#productName").val(data.productName);
+                                $("#productUnit").val(data.productUnit);
+                               
+                            } else {
+                                // Clear the fields if no customer is selected
+                                $("#productName").val("");
+                                $("#productUnit").val("");
+                               
+                            }
+                        }
+                    });
+                } else {
+                    // Clear the fields if no customer is selected
+                    $("#productName").val("");
+                    $("#productUnit").val("");
+                    
                 }
             });
         });
