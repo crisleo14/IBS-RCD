@@ -29,14 +29,14 @@ namespace Accounting_System.Controllers
 
             if (model != null)
             {
-                if (model.IsPosted != true)
+                if (!model.IsPosted)
                 {
                     model.IsPosted = true;
                     await _dbContext.SaveChangesAsync();
                 }
-                else if (model.IsPosted == false || model.IsVoid != true)
+                else if (!model.IsPosted || !model.IsVoid)
                 {
-                    if (model.IsVoid != true)
+                    if (!model.IsVoid)
                     {
                         model.IsVoid = true;
                         await _dbContext.SaveChangesAsync();
