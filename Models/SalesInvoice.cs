@@ -18,6 +18,7 @@ namespace Accounting_System.Models
             }
         }
 
+        [Required]
         [Display(Name = "Customer No")]
         public int CustomerId { get; set; }
 
@@ -40,17 +41,21 @@ namespace Accounting_System.Models
         [Display(Name = "Business Style")]
         public string BusinessStyle { get; set; }
 
+        [Required]
         [Display(Name = "Transaction Date")]
         public string TransactionDate { get; set; }
 
         public string Terms { get; set; }
 
+        [Required]
         [Display(Name = "Other Ref No")]
         public string OtherRefNo { get; set; }
 
+        [Required]
         [Display(Name = "P.O No")]
         public string PoNo { get; set; }
 
+        [Required]
         [Display(Name = "Product No")]
         public string ProductNo { get; set; }
 
@@ -60,9 +65,11 @@ namespace Accounting_System.Models
         [Display(Name = "Unit")]
         public string ProductUnit { get; set; }
 
+        [Required]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Quantity { get; set; }
 
+        [Required]
         [Display(Name = "Unit Price")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal UnitPrice { get; set; }
@@ -70,6 +77,7 @@ namespace Accounting_System.Models
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Amount { get; set; }
 
+        [Required]
         public string Remarks { get; set; }
 
         public bool IsVoid { get; set; }
