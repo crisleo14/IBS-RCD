@@ -16,9 +16,9 @@
     </p>
 
     <h3><span style="display: inline-block;"><b>SALES INVOICE</b></span></h3>
-    @* <div class="text-end" style="margin-top:-60px;">
-    <h3>A No.0009951</h3>
-    </div> *@
+    <div class="text-end" style="margin-top:-60px;">
+        <h6><b>Invoice No.&nbsp;@Html.DisplayFor(model => model.FormattedSerialNo)</b></h6>
+    </div>
 
 </div>
 
@@ -40,15 +40,15 @@
                     &nbsp; @Html.DisplayFor(model => model.BusinessStyle) &nbsp;
                 </td>
 
-                <td class="w-25">
-                    <b>Date:</b>
-                            &nbsp; @Html.DisplayFor(model => model.TransactionDate) &nbsp;<br />
+                <td class="w-25 text-nowrap">
+                    <b>Invoice Date:</b>
+                    &nbsp; <span id="invoiceDate">@Html.DisplayFor(model => model.TransactionDate)</span> &nbsp;<br />
 
                     <b>Terms:</b>&nbsp; @Html.DisplayFor(model => model.Terms) &nbsp;<br />
 
-                   @*  Ref DR No.:<u>&nbsp; @Html.DisplayFor(model => model.RefDrNo)</u><br /> *@
+                    <b>Due Date:</b>&nbsp;  &nbsp;<br />
 
-                <b>P.O. No.:</b>&nbsp; @Html.DisplayFor(model => model.PoNo) &nbsp;
+                    <b>Other Ref No.:</b>&nbsp; @Html.DisplayFor(model => model.OtherRefNo) &nbsp;
                 </td>
             </tr>
         </tbody>
@@ -87,7 +87,7 @@
                             <tbody>
 
                                 <tr style="height:140px;">
-                                    <td class="align-text-top">INSTRUCTIONS: @Html.DisplayFor(model => model.Remarks)</td>
+                                    <td class="align-text-top">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Remarks)</td>
                                 </tr>
 
                             </tbody>
@@ -96,14 +96,14 @@
                 </td>
                 <td style="width:33%">
                     <div>
-                        <table class="table-bordered w-100" style="height:140px;">
+                        <table class="table-bordered w-100" style="height:141px;">
                             <tbody>
 
                                 <tr class="align-text-top text-center text-nowrap">
                                     <td>
                                         Prepared by
                                         <br />
-                                        <p style="margin-top:20px;"><span style="display: inline-block; width:110px;" class="underline">Leonard Andulan</span></p>
+                                        <p style="margin-top:20px;"><span style="display: inline-block; width:110px;" class="underline">@Html.DisplayFor(model => model.CreatedBy)</span></p>
                                     </td>
                                     <td>
                                         Approved by
@@ -115,7 +115,7 @@
                                 <tr class="align-text-top">
                                     <td colspan="2">
                                         <div style="margin-left:20px;">HAULER/DRIVER
-                                        <span style="display: inline-block; width:90%;" class="underline">Jumong</span></div>
+                                        <span style="display: inline-block; width:90%;" class="underline"></span></div>
                                     </td>
                                 </tr>
 
@@ -123,25 +123,53 @@
                         </table>
                     </div>
                 </td>
-                <td style="width:33%">
-                    <div class="table-responsive">
-                        <table class="table-bordered w-100">
-                            <tbody>
-
-                                <tr style="height:32px;">
-                                    <td>Vatable Sales :</td>
+                <td style="width:33%;">
+                    <div>
+                        <table class="w-100">
+                            <tbody class="text-nowrap">
+                                @{
+                                    var amount = Model.Amount;
+                                    var vatableSales = amount / (decimal)1.12;
+                                    var formattedVatableSales = String.Format("{0:n}", vatableSales);
+                                    var vatAmount = amount - vatableSales;
+                                    var formattedVatableAmount = String.Format("{0:n}", vatAmount);
+                                    //2307 withholding Tax
+                                    var lessEwtTax = vatableSales * (decimal)0.01;
+                                    var formattedLessEwtTax = String.Format("{0:n}", lessEwtTax);
+                                    //2306 withholding Vat
+                                    var lessEwtVat = vatableSales * (decimal)0.05;
+                                    var formattedLessEwtVat = String.Format("{0:n}", lessEwtVat);
+                                    //net amount due
+                                    var netAmountDue = amount - lessEwtTax;
+                                    var formattedNetAmountDue = String.Format("{0:n}", netAmountDue);
+                                }
+                                <tr>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
+                                    <td class="text-end"><p style="height: 9px;">@formattedVatableSales</p></td>
                                 </tr>
                                 <tr>
-                                    <td>Vat Exempt Sales :</td>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
+                                    <td class="text-end"><p style="height: 9px;">0.00</p></td>
                                 </tr>
                                 <tr>
-                                    <td>Zero-Rated Sales: </td>
+                                    <td style="width:40%; margin-left:8%;"><p style="height: 9px; margin-left:8%;"><b>VAT-exempt Sales: </b></p></td>
+                                    <td class="text-end"><p style="height: 9px;">0.00</p></td>
                                 </tr>
                                 <tr>
-                                    <td>Vat Amount: </td>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
+                                    <td class="text-end"><p style="height: 9px;">@formattedVatableAmount</p></td>
                                 </tr>
                                 <tr>
-                                    <td><b>Total Sales: </b></td>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>TOTAL AMOUNT DUE: </b></p></td>
+                                    <td class="text-end"><p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>Less EWT: </b></p></td>
+                                    <td class="text-end"><p style="height: 9px;">@formattedLessEwtTax</p></td>
+                                </tr>
+                                <tr>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>NET AMOUNT DUE: </b></p></td>
+                                    <td class="text-end"><p style="height: 9px;">@formattedNetAmountDue</p></td>
                                 </tr>
 
                             </tbody>
@@ -164,9 +192,19 @@
     </table>
 </div>
 <div style="margin-top:20px;">
-    Received by:
-    <br /><br />
-    <span style="display: inline-block; width:110px;" class="underline"></span>
+    <p style="line-height: 1;">
+        Creditable Withholding Tax with the amount of <b>@formattedLessEwtTax</b> is computed for this invoice.<br />
+       Please attach BIR Form 2307 to your payment if you deducted Expanded Withholding Tax. 
+    </p>
+    <p>
+        <i>This is a system generated invoice, no signature required.</i>
+    </p>
+</div><br />
+<div class="footer text-center w-100" style="margin-top:20px;">
+    <p style="line-height: 1;">
+        Acknowledgement Certificate No:<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>Date Issued:<u> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u> Series from:<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u><br />
+        Date and Time Created:@Html.DisplayFor(model => model.CreatedDate)
+    </p>
 </div>
 <br />
 
@@ -224,5 +262,12 @@
             document.querySelector("footer").style.display = "";
         }
     </script>
-
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var invoiceDate = new Date(document.getElementById('invoiceDate').innerText);
+            var options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+            var formattedInvoiceDate = invoiceDate.toLocaleDateString('en-US', options);
+            document.getElementById('invoiceDate').innerText = formattedInvoiceDate;
+        });
+    </script>
 }

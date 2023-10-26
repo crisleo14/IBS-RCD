@@ -175,13 +175,6 @@ namespace Accounting_System.Controllers
             }
         }
 
-        [HttpGet]
-        public IActionResult PrintInvoice()
-        {
-            return View();
-        }
-
-        [HttpPost]
         public async Task<IActionResult> PrintInvoice(int id)
         {
             var sales = _dbContext.SalesInvoices.FirstOrDefault(x => x.Id == id);
