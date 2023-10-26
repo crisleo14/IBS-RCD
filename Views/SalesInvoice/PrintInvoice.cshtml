@@ -41,12 +41,12 @@
                 </td>
 
                 <td class="w-25 text-nowrap">
+
                     <b>Invoice Date:</b>
-                    &nbsp; <span id="invoiceDate">@Html.DisplayFor(model => model.TransactionDate)</span> &nbsp;<br />
-
-                    <b>Terms:</b>&nbsp; @Html.DisplayFor(model => model.Terms) &nbsp;<br />
-
-                    <b>Due Date:</b>&nbsp;  &nbsp;<br />
+&nbsp; <span id="invoiceDate">@Html.DisplayFor(model => model.TransactionDate)</span>
+<br />
+<b>Terms:</b>&nbsp;<span id="terms">@Html.DisplayFor(model => model.Terms)</span>&nbsp;<br />
+<b>Due Date:</b>&nbsp; <span id="dueDate"></span><br />
 
                     <b>Other Ref No.:</b>&nbsp; @Html.DisplayFor(model => model.OtherRefNo) &nbsp;
                 </td>
@@ -361,4 +361,26 @@
             document.getElementById('invoiceDate').innerText = formattedInvoiceDate;
         });
     </script>
+    <script>
+    // Get the transaction date value from the HTML element
+    var transactionDate = document.getElementById('invoiceDate').innerText;
+
+    // Convert the transaction date string to a Date object
+    var dateObject = new Date(transactionDate);
+
+    // Get the terms value from the HTML element
+    var terms = document.getElementById('terms').innerText;
+
+    // Convert the terms to an integer
+    var termsInt = parseInt(terms);
+
+    // Add the terms to the transaction date
+    dateObject.setDate(dateObject.getDate() + termsInt);
+
+    // Format the date as required (assuming MM/DD/YYYY format)
+    var formattedDate = (dateObject.getMonth() + 1) + '/' + dateObject.getDate() + '/' + dateObject.getFullYear();
+
+    // Update the HTML to display the computed date as the due date
+    document.getElementById('dueDate').innerText = formattedDate;
+</script>
 }
