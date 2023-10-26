@@ -41,11 +41,8 @@
                 </td>
 
                 <td class="w-25 text-nowrap">
-                    @{
-                        var invoiceDate = Model.TransactionDate.Replace("-", "/");
-                    }
                     <b>Invoice Date:</b>
-                            &nbsp; @invoiceDate &nbsp;<br />
+                    &nbsp; <span id="invoiceDate">@Html.DisplayFor(model => model.TransactionDate)</span> &nbsp;<br />
 
                     <b>Terms:</b>&nbsp; @Html.DisplayFor(model => model.Terms) &nbsp;<br />
 
@@ -106,7 +103,7 @@
                                     <td>
                                         Prepared by
                                         <br />
-                                        <p style="margin-top:20px;"><span style="display: inline-block; width:110px;" class="underline">Leonard Andulan</span></p>
+                                        <p style="margin-top:20px;"><span style="display: inline-block; width:110px;" class="underline">@Html.DisplayFor(model => model.CreatedBy)</span></p>
                                     </td>
                                     <td>
                                         Approved by
@@ -265,5 +262,12 @@
             document.querySelector("footer").style.display = "";
         }
     </script>
-
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var invoiceDate = new Date(document.getElementById('invoiceDate').innerText);
+            var options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+            var formattedInvoiceDate = invoiceDate.toLocaleDateString('en-US', options);
+            document.getElementById('invoiceDate').innerText = formattedInvoiceDate;
+        });
+    </script>
 }
