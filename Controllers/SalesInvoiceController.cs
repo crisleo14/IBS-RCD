@@ -5,9 +5,11 @@ using Accounting_System.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Accounting_System.Controllers
 {
+    [Authorize]
     public class SalesInvoiceController : Controller
     {
         private readonly ApplicationDbContext _dbContext;
