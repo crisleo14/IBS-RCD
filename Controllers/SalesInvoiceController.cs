@@ -4,9 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using Accounting_System.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Accounting_System.Controllers
 {
+    [Authorize]
     public class SalesInvoiceController : Controller
     {
         private readonly ApplicationDbContext _dbContext;
@@ -15,11 +18,14 @@ namespace Accounting_System.Controllers
 
         private readonly ILogger<HomeController> _logger;
 
-        public SalesInvoiceController(ILogger<HomeController> logger, ApplicationDbContext dbContext, SalesInvoiceRepo salesInvoiceRepo)
+        private readonly UserManager<IdentityUser> _userManager;
+
+        public SalesInvoiceController(ILogger<HomeController> logger, ApplicationDbContext dbContext, SalesInvoiceRepo salesInvoiceRepo, UserManager<IdentityUser> userManager)
         {
             _dbContext = dbContext;
             _salesInvoiceRepo = salesInvoiceRepo;
             _logger = logger;
+            this._userManager = userManager;
         }
 
         public async Task<IActionResult> Index(int id)
@@ -76,6 +82,7 @@ namespace Accounting_System.Controllers
             {
                 var lastSerialNo = await _salesInvoiceRepo.GetLastSerialNo();
 
+                sales.CreatedBy = _userManager.GetUserName(this.User);
                 sales.SerialNo = lastSerialNo;
                 sales.Amount = sales.Quantity * sales.UnitPrice;
                 _dbContext.Add(sales);
