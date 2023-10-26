@@ -43,8 +43,11 @@ body {
 }
 
 @media print {
-    table {
-        margin: 0;
+    .footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        text-align:center;
     }
 
     @page {
