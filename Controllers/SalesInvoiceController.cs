@@ -110,7 +110,8 @@ namespace Accounting_System.Controllers
                     TinNo = customer.TinNo,
                     BusinessStyle = customer.BusinessStyle,
                     Terms = customer.Terms,
-                    CustomerType = customer.CustomerType
+                    CustomerType = customer.CustomerType,
+                    WithHoldingTax = customer.WithHoldingTax
                     // Add other properties as needed
                 });
             }
