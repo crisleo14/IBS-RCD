@@ -2,6 +2,7 @@
 using Accounting_System.Models;
 using Accounting_System.Repository;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,10 +15,13 @@ namespace Accounting_System.Controllers
 
         private readonly CustomerRepo _customerRepo;
 
-        public CustomerController(ApplicationDbContext dbContext, CustomerRepo customerRepo)
+        private readonly UserManager<IdentityUser> _userManager;
+
+        public CustomerController(ApplicationDbContext dbContext, CustomerRepo customerRepo, UserManager<IdentityUser> userManager)
         {
             _dbContext = dbContext;
             _customerRepo = customerRepo;
+            this._userManager = userManager;
         }
 
         public async Task<IActionResult> Index()
@@ -42,7 +46,7 @@ namespace Accounting_System.Controllers
                 var customerType = customer.CustomerType;
 
                 customer.CustomerType = customerType.Replace("_", " ");
-
+                customer.CreatedBy = _userManager.GetUserName(this.User);
                 _dbContext.Add(customer);
                 await _dbContext.SaveChangesAsync();
 
@@ -81,6 +85,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
+                    customer.CreatedBy = _userManager.GetUserName(this.User);
                     _dbContext.Update(customer);
                     await _dbContext.SaveChangesAsync();
                 }

@@ -24,6 +24,8 @@ namespace Accounting_System.Models
 
         public string CustomerType { get; set; }
 
+        public bool WithHoldingTax { get; set; }
+
         [NotMapped]
         public List<SelectListItem>? Customers { get; set; }
 
