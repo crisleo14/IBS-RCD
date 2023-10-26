@@ -19,5 +19,26 @@ namespace Accounting_System.Repository
                 .Customers
                 .ToListAsync();
         }
+
+        public async Task<Customer> FindCustomerAsync(int? id)
+        {
+            var customer = await _dbContext
+                .Customers
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (customer != null)
+            {
+                return customer;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
+            }
+        }
+
+        public bool CustomerExist(int id)
+        {
+            return _dbContext.Customers.Any(c => c.Id == id);
+        }
     }
 }

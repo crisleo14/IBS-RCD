@@ -11,7 +11,7 @@ namespace Accounting_System.Models
         Excempt,
 
         [Display(Name = "Zero Rated")]
-        ZeroRated
+        Zero_Rated
     }
 
     public enum CategoryType
