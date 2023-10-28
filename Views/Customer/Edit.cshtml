@@ -35,12 +35,23 @@
             </div>
             <div class="form-group">
                 <label asp-for="Terms" class="control-label"></label>
-                <input asp-for="Terms" class="form-control" />
+                <select asp-for="Terms" class="form-select">
+                    <option value="@Model.Terms" selected disabled></option>
+                    <option value="COD">COD</option>
+                    <option value="7D">7D</option>
+                    <option value="15D">15D</option>
+                    <option value="30D">30D</option>
+                </select>
                 <span asp-validation-for="Terms" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="CustomerType" class="control-label"></label>
-                <input asp-for="CustomerType" class="form-control" />
+                <select asp-for="CustomerType" class="form-select">
+                    <option value="@Model.CustomerType" selected disabled></option>
+                    <option value="Vatable">VATable</option>
+                    <option value="Zero Rated">Zero Rated</option>
+                    <option value="Exempt">Exempt</option>
+                </select>
                 <span asp-validation-for="CustomerType" class="text-danger"></span>
             </div>
             <div class="form-group form-check">
@@ -53,6 +64,8 @@
                     <input class="form-check-input" asp-for="WithHoldingTax" /> @Html.DisplayNameFor(model => model.WithHoldingTax)
                 </label>
             </div>
+
+            <input type="hidden" asp-for="Id" />
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>
