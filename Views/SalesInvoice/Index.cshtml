@@ -4,7 +4,7 @@
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 <h1>Sales Invoices</h1>
-
+<partial name="_Notification">
 <p>
     <a asp-action="Create" class="btn btn-primary rounded-3">Create New</a>
 </p>
@@ -65,8 +65,8 @@
                             }
                             @if (invoice.IsPosted == true && invoice.IsVoid != true)
                             {
-                                <a asp-action="PrintInvoice" asp-route-id="@invoice.Id" class="btn btn-light">Print Invoice</a> 
-                                <a asp-action="Index" asp-route-id="@invoice.Id" class="btn btn-light">Void</a>
+                                <a asp-action="PrintInvoice" asp-route-id="@invoice.Id" class="btn btn-light">Print Invoice</a>
+                                    <a class="btn btn-light" onclick="confirmPost(@invoice.Id)">Void</a>
                             }
                             else if (invoice.IsVoid == true)
                             {
@@ -74,7 +74,7 @@
                             }
                             @if (invoice.IsPosted != true)
                             {
-                                <a asp-action="Index" asp-route-id="@invoice.Id" class="btn btn-light">Post</a>
+                                <a class="btn btn-light" onclick="confirmPost(@invoice.Id)">Post</a>
                             }
                         }
                     </td>
@@ -83,3 +83,45 @@
         </tbody>
     </table>
 </div>
+@section Scripts{
+        <script>
+            function confirmPost(invoiceId) {
+                console.log(invoiceId);
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Post'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Replace with the actual URL that you want to redirect to
+                        var url = `/SalesInvoice/Post?invoiceId=${invoiceId}`;
+                        window.location.href = url;
+                    }
+                })
+            }
+        </script>
+        <script>
+            function confirmVoid(invoiceId) {
+                console.log(invoiceId);
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Void'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Replace with the actual URL that you want to redirect to
+                        var url = `/SalesInvoice/Post?invoiceId=${invoiceId}`;
+                        window.location.href = url;
+                    }
+                })
+            }
+        </script>
+}
