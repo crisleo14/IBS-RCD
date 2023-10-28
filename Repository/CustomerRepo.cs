@@ -17,6 +17,7 @@ namespace Accounting_System.Repository
         {
             return await _dbContext
                 .Customers
+                .OrderByDescending(c => c.Id)
                 .ToListAsync();
         }
 
