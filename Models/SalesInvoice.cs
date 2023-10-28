@@ -22,6 +22,7 @@ namespace Accounting_System.Models
         [Display(Name = "Customer No")]
         public int CustomerId { get; set; }
 
+        [Display(Name = "Customer Type")]
         public string CustomerType { get; set; }
 
         public bool WithHoldingTax { get; set; }
@@ -85,5 +86,7 @@ namespace Accounting_System.Models
         public bool IsVoid { get; set; }
 
         public bool IsPosted { get; set; }
+
+        public bool OriginalCopy { get; set; } = true;
     }
 }
