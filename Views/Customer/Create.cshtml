@@ -36,7 +36,13 @@
             </div>
             <div class="form-group">
                 <label asp-for="Terms" class="control-label"></label>
-                <input asp-for="Terms" class="form-control" />
+                <select asp-for="Terms" class="form-select">
+                <option value="" selected disabled>-- Select the Terms --</option>
+                <option value="COD">COD</option>
+                <option value="7D">7D</option>
+                <option value="15D">15D</option>
+                <option value="30D">30D</option>
+                </select>
                 <span asp-validation-for="Terms" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -44,15 +50,9 @@
                 <div class="col">
                     <select asp-for="CustomerType" class="form-select">
                         <option value="" selected disabled>-- Select the Customer Type --</option>
-                        @foreach (var customerType in Enum.GetValues(typeof(CustomerType)))
-                        {
-                            var enumMember = typeof(CustomerType).GetMember(customerType.ToString())[0];
-                            var displayAttribute = enumMember.GetCustomAttributes(typeof(DisplayAttribute), false).FirstOrDefault() as DisplayAttribute;
-
-                            string displayName = displayAttribute != null ? displayAttribute.Name : customerType.ToString();
-
-                            <option value="@customerType">@displayName</option>
-                        }
+                        <option value="Vatable">VATable</option>
+                        <option value="Zero Rated">Zero Rated</option>
+                        <option value="Exempt">Exempt</option>
                     </select>
                     <span asp-validation-for="CustomerType" class="text-danger"></span>
                 </div>
