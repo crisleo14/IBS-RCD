@@ -28,10 +28,16 @@ namespace Accounting_System.Controllers
             this._userManager = userManager;
         }
 
-        public async Task<IActionResult> Index(int id)
+        public async Task<IActionResult> Index()
         {
             var salesInvoice = await _salesInvoiceRepo.GetSalesInvoicesAsync();
-            var model = await _dbContext.SalesInvoices.FindAsync(id);
+            
+            return View(salesInvoice);
+        }
+
+        public async Task<IActionResult> Post(int invoiceId)
+        {
+            var model = await _dbContext.SalesInvoices.FindAsync(invoiceId);
 
             if (model != null)
             {
@@ -49,10 +55,11 @@ namespace Accounting_System.Controllers
                     }
                 }
             }
-            return View(salesInvoice);
+            TempData["success"] = "Sales Invoice has been Posted.";
+            return Redirect("Index");
         }
 
-        [HttpGet]
+            [HttpGet]
         public IActionResult Create()
         {
             var viewModel = new SalesInvoice();
