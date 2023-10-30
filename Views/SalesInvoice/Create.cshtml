@@ -81,7 +81,7 @@
             @*   column 3 *@
        <div class="col">
                 <label asp-for="TransactionDate" class="control-label"></label>
-                <input type="date" asp-for="TransactionDate" class="form-control" />
+                <input type="date" asp-for="TransactionDate" value="@DateTime.Now.ToShortDateString" class="form-control" />
                 <span asp-validation-for="TransactionDate" class="text-danger"></span>
 
                 <label asp-for="PoNo" class="control-label"></label>
@@ -231,7 +231,13 @@
             });
         });
     </script>
+    <script>
+        // Get the current date in the format "YYYY-MM-DD" (required for the date input)
+        var currentDate = new Date().toISOString().slice(0, 10);
 
+        // Set the default value of the input field
+        document.getElementById("TransactionDate").value = currentDate;
+    </script>
 
 
 
