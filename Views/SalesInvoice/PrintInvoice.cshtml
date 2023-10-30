@@ -387,12 +387,16 @@
     // Add the terms to the transaction date
         if (terms == "COD") {
             dateObject.setDate(dateObject.getDate());
-        } if (terms == "M30") {
-            dateObject.setDate(dateObject.getMonth() + 1);
-        } if (terms == "M15") {
-            dateObject.setDate(dateObject.getMonth() + 1);
-        }
-        else{
+        } else if(terms == "M30") {
+
+            dateObject.setMonth(dateObject.getMonth() + 1);
+            dateObject.setDate(30);
+        } else if (terms == "M15") {
+
+            dateObject.setMonth(dateObject.getMonth() + 1);
+            dateObject.setDate(15);
+        }else
+        {
             dateObject.setDate(dateObject.getDate() + termsInt);
         }
 
