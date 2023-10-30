@@ -298,10 +298,29 @@
 </div>
 <br />
 
-<a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
+    @if (Model.OriginalCopy == true)
+    {
+    <div class="text-end">
+    ORIGINAL COPY
+    </div>
+    }else{
+    <div class="text-end">
+    REPRINT COPY
+    </div>
+    }
+
+    <a asp-action="PrintedInvoice"  class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" id="printButton">Print</a>
 <a asp-action="Index" class="btn" id="otherButton">Back</a>
 
 @section Scripts{
+    <script>
+        function printPage(ModelId) {
+            console.log(ModelId);
+            if (ModelId != null) {
+                var url = `/SalesInvoice/OriginalCopy/invoiceId=${ModelId}`;
+            }
+        }
+    </script>
     <script>
         var originalFontSizes = [];
 

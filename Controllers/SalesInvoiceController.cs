@@ -190,10 +190,25 @@ namespace Accounting_System.Controllers
             }
         }
 
+
         public async Task<IActionResult> PrintInvoice(int id)
         {
-            var sales = _dbContext.SalesInvoices.FirstOrDefault(x => x.Id == id);
+            var sales = await _salesInvoiceRepo.FindSalesInvoice(id);
             return View(sales);
+        }
+
+        public async Task<IActionResult> PrintedInvoice(int id)
+        {
+            var sales = await _salesInvoiceRepo.FindSalesInvoice(id);
+            if (sales != null)
+            {
+                if (sales.OriginalCopy == true)
+                {
+                    sales.OriginalCopy = false;
+                    await _dbContext.SaveChangesAsync();
+                }
+            }
+            return RedirectToAction("PrintInvoice", new {id = id});
         }
     }
 }
