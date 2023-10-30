@@ -43,9 +43,7 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var customerType = customer.CustomerType;
 
-                customer.CustomerType = customerType.Replace("_", " ");
                 customer.CreatedBy = _userManager.GetUserName(this.User);
                 _dbContext.Add(customer);
                 await _dbContext.SaveChangesAsync();
@@ -80,13 +78,22 @@ namespace Accounting_System.Controllers
             {
                 return NotFound();
             }
+            var existingModel = await _customerRepo.FindCustomerAsync(id);
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    customer.CreatedBy = _userManager.GetUserName(this.User);
-                    _dbContext.Update(customer);
+                    existingModel.Name = customer.Name;
+                    existingModel.Address = customer.Address;
+                    existingModel.TinNo = customer.TinNo;
+                    existingModel.BusinessStyle = customer.BusinessStyle;
+                    existingModel.Terms = customer.Terms;
+                    existingModel.CustomerType = customer.CustomerType;
+                    existingModel.WithHoldingTax = customer.WithHoldingTax;
+                    existingModel.WithHoldingVat = customer.WithHoldingVat;
+
+                    _dbContext.Update(existingModel);
                     await _dbContext.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
