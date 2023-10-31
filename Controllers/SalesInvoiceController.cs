@@ -57,7 +57,18 @@ namespace Accounting_System.Controllers
                     }
                 }
             }
-            
+
+            var ledgers = new Ledger[]
+           {
+                new Ledger {AccountNo = 11,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Debit", CreatedBy = _userManager.GetUserName(this.User)},
+                new Ledger {AccountNo = 21,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User)},
+                new Ledger {AccountNo = 41,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User)}
+           };
+
+            _dbContext.Ledgers.AddRange(ledgers);
+            await _dbContext.SaveChangesAsync();
+
+            TempData["success"] = "Sales Invoice has been Posted.";
             return Redirect("Index");
         }
 
