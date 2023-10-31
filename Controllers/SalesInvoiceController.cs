@@ -97,7 +97,7 @@ namespace Accounting_System.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SalesInvoice sales)
-        {
+        {        
             if (ModelState.IsValid)
             {
                 var lastSerialNo = await _salesInvoiceRepo.GetLastSerialNo();
@@ -105,6 +105,8 @@ namespace Accounting_System.Controllers
                 sales.CreatedBy = _userManager.GetUserName(this.User);
                 sales.SerialNo = lastSerialNo;
                 sales.Amount = sales.Quantity * sales.UnitPrice;
+                sales.VatAmount = sales.Amount - sales.VatableSales;
+                sales.VatableSales = sales.Amount / (decimal)1.12;
                 _dbContext.Add(sales);
 
                 //Implementation of Audit trail

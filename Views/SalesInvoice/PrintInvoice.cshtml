@@ -4,26 +4,13 @@
     ViewData["Title"] = "Sales Invoice";
 }
 @{
-    var amount = Model.Amount;
-    var formattedAmount = String.Format("{0:n}", amount);
-
-    var vatableSales = amount / (decimal)1.12;
-    var formattedVatableSales = String.Format("{0:n}", vatableSales);
-
-    var vatAmount = amount - vatableSales;
-    var formattedVatableAmount = String.Format("{0:n}", vatAmount);
-
     //2307 withholding Tax
-    var lessEwtTax = vatableSales * (decimal)0.01;
+    var lessEwtTax = Model.VatableSales * (decimal)0.01;
     var formattedLessEwtTax = String.Format("{0:n}", lessEwtTax);
 
     //2306 withholding Vat
-    var lessEwtVat = vatableSales * (decimal)0.05;
+    var lessEwtVat = Model.VatableSales * (decimal)0.05;
     var formattedLessEwtVat = String.Format("{0:n}", lessEwtVat);
-
-    //net amount due
-    var netAmountDue = amount - lessEwtTax;
-    var formattedNetAmountDue = String.Format("{0:n}", netAmountDue);
 }
 <br />
 <div class="text-end">
@@ -101,7 +88,7 @@
 </div>
     @if (Model.WithHoldingTax)
     {
-        lessEwtTax = amount * (decimal)0.01;
+        lessEwtTax = Model.Amount * (decimal)0.01;
         var lessEwtTaxInAmount = String.Format("{0:n}", lessEwtTax);
 
         if (Model.CustomerType == "Vatable")
@@ -174,7 +161,7 @@
                                     <td><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
                                     @if (Model.CustomerType == "Vatable")
                                     {
-                                        <td class="text-end"><p style="height: 9px;">@formattedVatableSales</p></td>
+                                        <td class="text-end"><p style="height: 9px;">@Html.DisplayFor(model => model.VatableSales)</p></td>
                                     }
                                     else
                                     {
@@ -185,7 +172,7 @@
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
                                     @if(Model.CustomerType == "Zero Rated"){
-                                        <td class="text-end"><p style="height: 9px;">@formattedAmount</p></td>
+                                        <td class="text-end"><p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p></td>
                                     }
                                     else
                                     {
@@ -196,7 +183,7 @@
                                 <tr>
                                     <td style="width:40%; margin-left:8%;"><p style="height: 9px; margin-left:8%;"><b>VAT-exempt Sales: </b></p></td>
                                     @if(Model.CustomerType == "Exempt"){
-                                        <td class="text-end"><p style="height: 9px;">@formattedAmount</p></td>
+                                        <td class="text-end"><p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p></td>
                                     }
                                     else
                                     {
@@ -208,7 +195,7 @@
                                     <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
                                     @if(Model.CustomerType == "Vatable")
                                     {
-                                        <td class="text-end"><p style="height: 9px;">@formattedVatableAmount</p></td>
+                                        <td class="text-end"><p style="height: 9px;">@Html.DisplayFor(model => model.VatAmount)</p></td>
                                     }
                                     else
                                     {
