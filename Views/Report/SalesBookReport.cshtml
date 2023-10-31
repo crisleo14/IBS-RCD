@@ -1,0 +1,54 @@
+﻿@model IEnumerable<Accounting_System.Models.SalesInvoice>
+
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr class="text-nowrap">
+                <th class="text-primary">
+                    @Html.DisplayNameFor(model => model.SerialNo)
+                </th>
+                <th class="text-primary">
+                    @Html.DisplayNameFor(model => model.CustomerId)
+                </th>
+                <th class="text-primary">
+                    @Html.DisplayNameFor(model => model.SoldTo)
+                </th>
+                <th class="text-primary">
+                    @Html.DisplayNameFor(model => model.TransactionDate)
+                </th>
+                <th class="text-primary">
+                    @Html.DisplayNameFor(model => model.Terms)
+                </th>
+                <th class="text-primary">
+                    @Html.DisplayNameFor(model => model.Amount)
+                </th>
+                <th class="text-primary"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var invoice in Model)
+            {
+                <tr class="align-text-bottom">
+                    <td>
+                        @Html.DisplayFor(model => invoice.FormattedSerialNo)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => invoice.CustomerId)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => invoice.SoldTo)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => invoice.TransactionDate)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => invoice.Terms)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => invoice.Amount)
+                    </td>             
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
