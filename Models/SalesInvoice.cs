@@ -88,5 +88,12 @@ namespace Accounting_System.Models
         public bool IsPosted { get; set; }
 
         public bool OriginalCopy { get; set; } = true;
+
+        [Display(Name = "Vatable Sales")]
+        public decimal VatableSales { get; set; }
+
+        [Display(Name = "VAT Amount")]
+        public decimal VatAmount { get; set; }
+
     }
 }

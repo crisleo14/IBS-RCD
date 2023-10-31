@@ -57,8 +57,19 @@ namespace Accounting_System.Controllers
                     }
                 }
             }
-            
-            return Redirect("Index");
+
+            var ledgers = new Ledger[]
+           {
+                new Ledger {AccountNo = 11,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Debit", CreatedBy = _userManager.GetUserName(this.User)},
+                new Ledger {AccountNo = 21,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User)},
+                new Ledger {AccountNo = 41,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User)}
+           };
+
+            _dbContext.Ledgers.AddRange(ledgers);
+            await _dbContext.SaveChangesAsync();
+
+            TempData["success"] = "Sales Invoice has been Posted.";
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
@@ -86,7 +97,7 @@ namespace Accounting_System.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SalesInvoice sales)
-        {
+        {        
             if (ModelState.IsValid)
             {
                 var lastSerialNo = await _salesInvoiceRepo.GetLastSerialNo();
@@ -94,6 +105,8 @@ namespace Accounting_System.Controllers
                 sales.CreatedBy = _userManager.GetUserName(this.User);
                 sales.SerialNo = lastSerialNo;
                 sales.Amount = sales.Quantity * sales.UnitPrice;
+                sales.VatAmount = sales.Amount - sales.VatableSales;
+                sales.VatableSales = sales.Amount / (decimal)1.12;
                 _dbContext.Add(sales);
 
                 //Implementation of Audit trail
