@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231031075208_add new feilds for print invoice computation")]
+    partial class addnewfeildsforprintinvoicecomputation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -287,6 +290,9 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<decimal>("TotalSales")
+                        .HasColumnType("numeric");
+
                     b.Property<string>("TransactionDate")
                         .IsRequired()
                         .HasColumnType("text");
@@ -297,11 +303,17 @@ namespace Accounting_System.Migrations
                     b.Property<decimal>("VatAmount")
                         .HasColumnType("numeric");
 
+                    b.Property<decimal>("VatExemptSales")
+                        .HasColumnType("numeric");
+
                     b.Property<decimal>("VatableSales")
                         .HasColumnType("numeric");
 
                     b.Property<bool>("WithHoldingTax")
                         .HasColumnType("boolean");
+
+                    b.Property<decimal>("ZeroRatedSales")
+                        .HasColumnType("numeric");
 
                     b.HasKey("Id");
 
