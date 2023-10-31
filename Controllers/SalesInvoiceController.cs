@@ -45,6 +45,7 @@ namespace Accounting_System.Controllers
                 {
                     model.IsPosted = true;
                     await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Sales Invoice has been Posted.";
                 }
                 else if (!model.IsPosted || !model.IsVoid)
                 {
@@ -52,6 +53,7 @@ namespace Accounting_System.Controllers
                     {
                         model.IsVoid = true;
                         await _dbContext.SaveChangesAsync();
+                        TempData["success"] = "Sales Invoice has been Voided.";
                     }
                 }
             }
