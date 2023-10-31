@@ -60,9 +60,9 @@ namespace Accounting_System.Controllers
 
             var ledgers = new Ledger[]
            {
-                new Ledger {AccountNo = 11,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Debit", CreatedBy = _userManager.GetUserName(this.User)},
-                new Ledger {AccountNo = 21,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User)},
-                new Ledger {AccountNo = 41,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User)}
+                new Ledger {AccountNo = 11,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Debit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.Amount},
+                new Ledger {AccountNo = 21,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatAmount},
+                new Ledger {AccountNo = 41,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatableSales}
            };
 
             _dbContext.Ledgers.AddRange(ledgers);
@@ -97,7 +97,7 @@ namespace Accounting_System.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SalesInvoice sales)
-        {        
+        {
             if (ModelState.IsValid)
             {
                 var lastSerialNo = await _salesInvoiceRepo.GetLastSerialNo();
