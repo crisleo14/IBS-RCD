@@ -385,7 +385,20 @@
     var termsInt = parseInt(terms);
 
     // Add the terms to the transaction date
-    dateObject.setDate(dateObject.getDate() + termsInt);
+        if (terms == "COD") {
+            dateObject.setDate(dateObject.getDate());
+        } else if(terms == "M30") {
+
+            dateObject.setMonth(dateObject.getMonth() + 1);
+            dateObject.setDate(30);
+        } else if (terms == "M15") {
+
+            dateObject.setMonth(dateObject.getMonth() + 1);
+            dateObject.setDate(15);
+        }else
+        {
+            dateObject.setDate(dateObject.getDate() + termsInt);
+        }
 
     // Format the date as required (assuming MM/DD/YYYY format)
     var formattedDate = (dateObject.getMonth() + 1) + '/' + dateObject.getDate() + '/' + dateObject.getFullYear();

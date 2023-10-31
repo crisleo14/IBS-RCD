@@ -31,7 +31,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Index()
         {
             var salesInvoice = await _salesInvoiceRepo.GetSalesInvoicesAsync();
-            
+
             return View(salesInvoice);
         }
 
@@ -45,6 +45,7 @@ namespace Accounting_System.Controllers
                 {
                     model.IsPosted = true;
                     await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Sales Invoice has been Posted.";
                 }
                 else if (!model.IsPosted || !model.IsVoid)
                 {
@@ -52,14 +53,15 @@ namespace Accounting_System.Controllers
                     {
                         model.IsVoid = true;
                         await _dbContext.SaveChangesAsync();
+                        TempData["success"] = "Sales Invoice has been Voided.";
                     }
                 }
             }
-            TempData["success"] = "Sales Invoice has been Posted.";
+            
             return Redirect("Index");
         }
 
-            [HttpGet]
+        [HttpGet]
         public IActionResult Create()
         {
             var viewModel = new SalesInvoice();
@@ -93,7 +95,12 @@ namespace Accounting_System.Controllers
                 sales.SerialNo = lastSerialNo;
                 sales.Amount = sales.Quantity * sales.UnitPrice;
                 _dbContext.Add(sales);
-                _dbContext.SaveChanges();
+
+                //Implementation of Audit trail
+                //AuditTrail auditTrail = new(sales.CreatedBy, $"Create new invoice#{sales.SerialNo}", "Sales Invoice");
+                //_dbContext.Add(auditTrail);
+
+                await _dbContext.SaveChangesAsync();
 
                 return RedirectToAction("Index");
             }
@@ -190,7 +197,6 @@ namespace Accounting_System.Controllers
             }
         }
 
-
         public async Task<IActionResult> PrintInvoice(int id)
         {
             var sales = await _salesInvoiceRepo.FindSalesInvoice(id);
@@ -208,7 +214,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync();
                 }
             }
-            return RedirectToAction("PrintInvoice", new {id = id});
+            return RedirectToAction("PrintInvoice", new { id = id });
         }
     }
 }
