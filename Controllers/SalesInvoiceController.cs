@@ -67,7 +67,7 @@ namespace Accounting_System.Controllers
             await _dbContext.SaveChangesAsync();
 
             TempData["success"] = "Sales Invoice has been Posted.";
-            return Redirect("Index");
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
