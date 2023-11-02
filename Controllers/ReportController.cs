@@ -23,6 +23,8 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> SalesBookReport(SalesBook model)
         {
+            ViewBag.DateFrom = model.DateFrom;
+            ViewBag.DateTo = model.DateTo;
             if (ModelState.IsValid)
             {
                 try
