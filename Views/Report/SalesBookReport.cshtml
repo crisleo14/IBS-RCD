@@ -1,28 +1,87 @@
 ﻿@model IEnumerable<Accounting_System.Models.SalesInvoice>
 
-<div class="table-responsive">
-    <table class="table table-hover">
+@{
+    ViewData["Title"] = "Sales Invoice";
+    var dateFrom = ViewBag.DateFrom;
+    var dateTo = ViewBag.DateTo;
+
+    // Convert the date strings to DateTime objects
+    DateTime dateFromFormatted;
+    if (DateTime.TryParse(dateFrom, out dateFromFormatted))
+    {
+        // Format the DateTime objects in the desired format
+        dateFrom = dateFromFormatted.ToString("MM/dd/yy");
+    }
+
+    DateTime dateToFormatted;
+    if (DateTime.TryParse(dateTo, out dateToFormatted))
+    {
+        // Format the DateTime objects in the desired format
+        dateTo = dateToFormatted.ToString("MM/dd/yy");
+    }
+    DateTime now = DateTime.Now;
+}
+
+<br />
+<div class="text-end">
+    <img src="~/img/Filpride.jpg" height="" width="130px" />
+</div>
+<div class="text-center">
+    <h2><u><b>&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b></u></h2>
+    <p style="line-height: 1; margin-top:-7px;">
+        57 Westgate Offices, Sampson RO CBD, Subic Bay, Freeport Zone,<br />
+        Kalaklan Olongapo City, 2000 Zambales Philippines<br />
+        VAT Reg. TIN: 000-216-589-00000
+    </p>
+
+    <h3><span style="display: inline-block;"><b>SALES BOOK</b></span></h3>
+
+
+</div>
+@if (dateFrom == dateTo)
+{
+<p style="line-height:1px; margin-top:20px; margin-bottom:-10px;">
+    Period: from @dateFrom
+</p>
+}else{
+    <p style="line-height:1px; margin-top:20px; margin-bottom:-10px;">
+        Period: from @dateFrom to @dateTo
+    </p>
+}
+<div class="table-responsive" style="margin-top:20px;">
+    <table class="table table-hover w-100">
         <thead>
-            <tr class="text-nowrap">
+            <tr class="">
                 <th class="text-primary">
-                    @Html.DisplayNameFor(model => model.SerialNo)
+                    @Html.DisplayNameFor(model => model.TransactionDate)
                 </th>
                 <th class="text-primary">
-                    @Html.DisplayNameFor(model => model.CustomerId)
+                    @Html.DisplayNameFor(model => model.SerialNo)
                 </th>
                 <th class="text-primary">
                     @Html.DisplayNameFor(model => model.SoldTo)
                 </th>
                 <th class="text-primary">
-                    @Html.DisplayNameFor(model => model.TransactionDate)
+                    @Html.DisplayNameFor(model => model.TinNo)
                 </th>
                 <th class="text-primary">
-                    @Html.DisplayNameFor(model => model.Terms)
+                    @Html.DisplayNameFor(model => model.ProductName)
+                </th>
+                <th class="text-primary">
+                    @Html.DisplayNameFor(model => model.Quantity)
                 </th>
                 <th class="text-primary">
                     @Html.DisplayNameFor(model => model.Amount)
                 </th>
-                <th class="text-primary"></th>
+                <th class="text-primary">
+                    @Html.DisplayNameFor(model => model.VatableSales)
+                </th>
+                <th class="text-primary">
+                    @Html.DisplayNameFor(model => model.VatAmount)
+                </th>
+                <th class="text-primary">
+                    @Html.DisplayNameFor(model => model.Remarks)
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -30,25 +89,121 @@
             {
                 <tr class="align-text-bottom">
                     <td>
-                        @Html.DisplayFor(model => invoice.FormattedSerialNo)
+                        @Html.DisplayFor(model => invoice.TransactionDate)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => invoice.CustomerId)
+                        @Html.DisplayFor(model => invoice.FormattedSerialNo)
                     </td>
                     <td>
                         @Html.DisplayFor(model => invoice.SoldTo)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => invoice.TransactionDate)
+                        @Html.DisplayFor(model => invoice.TinNo)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => invoice.Terms)
+                        @Html.DisplayFor(model => invoice.ProductName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => invoice.Quantity)
                     </td>
                     <td>
                         @Html.DisplayFor(model => invoice.Amount)
-                    </td>             
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => invoice.VatableSales)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => invoice.VatAmount)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => invoice.Remarks)
+                    </td>
                 </tr>
             }
         </tbody>
     </table>
 </div>
+
+<div style="margin-top:20px;">
+    <p>
+        <i>This is a system generated invoice, no signature required.</i>
+    </p>
+</div>
+<br />
+<div class="text-center w-100" style="margin-top:20px;">
+    <p style="line-height: 1;">
+        Acknowledgement Certificate No:<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>Date Issued:<u> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u> Series from:<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u><br />
+        Date and Time Printed: @DateTime.Now.ToString("MM/dd/yy hh:mm tt")
+    </p>
+</div>
+
+<div>
+    <a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
+    <a asp-action="SalesBook" class="btn" id="otherButton">Back</a>
+</div>
+@section Scripts{
+    <script>
+        var originalFontSizes = [];
+        function printPage() {
+            var printButton = document.getElementById("printButton");
+            var otherButton = document.getElementById("otherButton");
+
+            // Hide the header and footer
+            document.querySelector("header").style.display = "none";
+            document.querySelector("footer").style.display = "none";
+
+            // Hide the buttons before printing
+            if (printButton) {
+                printButton.style.visibility = "hidden";
+            }
+            if (otherButton) {
+                otherButton.style.visibility = "hidden";
+            }
+
+            // Get all paragraph elements
+            var paragraphs = document.querySelectorAll("p");
+
+            // Store the original font sizes
+            for (var i = 0; i < paragraphs.length; i++) {
+                originalFontSizes[i] = paragraphs[i].style.fontSize;
+                // Set the font size of all paragraph elements to 12px for printing
+                paragraphs[i].style.fontSize = "12px";
+            }
+
+            // Get all table text elements
+            var mytable = document.querySelectorAll("table");
+
+            // Store the original font sizes
+            for (var i = 0; i < mytable.length; i++) {
+                originalFontSizes[i] = mytable[i].style.fontSize;
+                // Set the font size of all paragraph elements to 12px for printing
+                mytable[i].style.fontSize = "12px";
+            }
+
+            // Call the print function
+            window.print();
+
+            // Restore the font sizes
+            for (var i = 0; i < paragraphs.length; i++) {
+                paragraphs[i].style.fontSize = originalFontSizes[i];
+            }
+
+            // Restore the font sizes
+            for (var i = 0; i < mytable.length; i++) {
+                mytable[i].style.fontSize = originalFontSizes[i];
+            }
+
+            // Restore the buttons' visibility after printing (optional)
+            if (printButton) {
+                printButton.style.visibility = "visible";
+            }
+            if (otherButton) {
+                otherButton.style.visibility = "visible";
+            }
+
+            // Restore the header and footer's visibility after printing (optional)
+            document.querySelector("header").style.display = "";
+            document.querySelector("footer").style.display = "";
+        }
+    </script>
+}
