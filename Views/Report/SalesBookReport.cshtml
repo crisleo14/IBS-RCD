@@ -58,7 +58,7 @@
 <div class="table-responsive" style="margin-top:20px;">
     <table class="table-hover w-100">
         <thead>
-            <tr class="table-bordered text-primary" style="border: 1px solid black;" >
+            <tr class="table-bordered text-primary" style="border: 1px solid black;">
                 <th>
                     @Html.DisplayNameFor(model => model.TransactionDate)
                 </th>
@@ -74,17 +74,17 @@
                 <th>
                     @Html.DisplayNameFor(model => model.ProductName)
                 </th>
-                <th>
+                <th class="text-end">
                     @Html.DisplayNameFor(model => model.Quantity)
                 </th>
-                <th>
+                <th class="text-end">
                     @Html.DisplayNameFor(model => model.Amount)
                 </th>
-                <th>
+                <th class="text-end">
                     @Html.DisplayNameFor(model => model.VatableSales)
                 </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.VatAmount)
+                <th class="text-end">
+                    <div style="margin-right:20px;">@Html.DisplayNameFor(model => model.VatAmount)</div>
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.Remarks)
@@ -92,7 +92,7 @@
             </tr>
         </thead>
         <tbody>
-            
+
             @foreach (var invoice in Model)
             {
                 <tr class="align-text-bottom">
@@ -111,17 +111,17 @@
                     <td>
                         @Html.DisplayFor(model => invoice.ProductName)
                     </td>
-                    <td>
+                    <td class="text-end">
                         @Html.DisplayFor(model => invoice.Quantity)
                     </td>
-                    <td>
+                    <td class="text-end">
                         @Html.DisplayFor(model => invoice.Amount)
                     </td>
-                    <td>
+                    <td class="text-end">
                         @Html.DisplayFor(model => invoice.VatableSales)
                     </td>
-                    <td>
-                        @Html.DisplayFor(model => invoice.VatAmount)
+                    <td class="text-end">
+                        <div style="margin-right:20px;">@Html.DisplayFor(model => invoice.VatAmount)</div>
                     </td>
                     <td>
                         @Html.DisplayFor(model => invoice.Remarks)
@@ -132,18 +132,25 @@
                 totalQuantity += invoice.Quantity;
                 totalVatableSales += invoice.VatableSales;
                 totalVatableAmount += invoice.VatAmount;
-            }   
+            }
             <tr class="align-text-bottom" style="border: 1px solid black;">
+                @{
+                    var totalAmounts = String.Format("{0:n}", totalAmount);
+                    var totalQuantities = String.Format("{0:n}", totalQuantity);
+                    var totalVatSales = String.Format("{0:n}", totalVatableSales);
+                    var totalVatAmounts = String.Format("{0:n}", totalVatableAmount);
+
                 <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
                 <td class="text-center"><b>TOTAL:</b></td>
-                <td>@totalQuantity</td>
-                <td>@totalAmount</td>
-                <td>@totalVatableSales</td>
-                <td>@totalVatableAmount</td>
+                <td class="text-end">@totalQuantities</td>
+                <td class="text-end">@totalAmounts</td>
+                <td class="text-end">@totalVatSales</td>
+                <td class="text-end"><div style="margin-right:20px;">@totalVatAmounts</div></td>
                 <td></td>
+                }
             </tr>
         </tbody>
     </table>
