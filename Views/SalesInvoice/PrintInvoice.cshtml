@@ -117,7 +117,7 @@
                             <tbody>
 
                                 <tr style="height:140px;">
-                                    <td class="align-text-top">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Remarks)</td>
+                                    <td class="align-text-top" style="left:8%;">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Remarks)</td>
                                 </tr>
 
                             </tbody>
@@ -181,7 +181,7 @@
                                     
                                 </tr>
                                 <tr>
-                                    <td style="width:40%; margin-left:8%;"><p style="height: 9px; margin-left:8%;"><b>VAT-exempt Sales: </b></p></td>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT-exempt Sales: </b></p></td>
                                     @if(Model.CustomerType == "Exempt"){
                                         <td class="text-end"><p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p></td>
                                     }
@@ -279,7 +279,7 @@
 </div><br />
 <div class="text-center w-100" style="margin-top:20px;">
     <p style="line-height: 1;">
-        Acknowledgement Certificate No:<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>Date Issued:<u> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u> Series from:<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u><br />
+        Acknowledgement Certificate No:<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>Date Issued:<u> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u> Series from: 00000001 - 99999999<br />
         Date and Time Created:@Html.DisplayFor(model => model.CreatedDate)
     </p>
 </div>
@@ -359,38 +359,55 @@
         });
     </script>
     <script>
-    // Get the transaction date value from the HTML element
-    var transactionDate = document.getElementById('invoiceDate').innerText;
+        // Get the transaction date value from the HTML element
+        var transactionDate = document.getElementById('invoiceDate').innerText;
 
-    // Convert the transaction date string to a Date object
-    var dateObject = new Date(transactionDate);
+        // Convert the transaction date string to a Date object
+        var dateObject = new Date(transactionDate);
 
-    // Get the terms value from the HTML element
-    var terms = document.getElementById('terms').innerText;
+        // Get the terms value from the HTML element
+        var terms = document.getElementById('terms').innerText;
 
-    // Convert the terms to an integer
-    var termsInt = parseInt(terms);
+        // Convert the terms to an integer
+        var termsInt = parseInt(terms);
 
-    // Add the terms to the transaction date
+        // Add the terms to the transaction date
         if (terms == "COD") {
             dateObject.setDate(dateObject.getDate());
-        } else if(terms == "M30") {
+        } else if (terms == "M30") {
 
-            dateObject.setMonth(dateObject.getMonth() + 1);
-            dateObject.setDate(30);
+            var nextMonth = dateObject.getMonth() + 1;
+            var nextMonthDays = new Date(dateObject.getFullYear(), nextMonth, 0).getDate();
+
+            if (nextMonthDays === 30) {
+                dateObject.setMonth(nextMonth);
+                dateObject.setDate(30);
+            } else {
+                dateObject.setMonth(nextMonth + 1);
+                dateObject.setDate(0);
+            }
         } else if (terms == "M15") {
 
-            dateObject.setMonth(dateObject.getMonth() + 1);
-            dateObject.setDate(15);
-        }else
-        {
+            var nextMonth = dateObject.getMonth() + 1;
+            var nextMonthDays = new Date(dateObject.getFullYear(), nextMonth, 0).getDate();
+
+            if (nextMonthDays === 30) {
+                dateObject.setMonth(nextMonth);
+                dateObject.setDate(15);
+            } else {
+                dateObject.setMonth(nextMonth + 1);
+                dateObject.setDate(0);
+            }
+        } else {
             dateObject.setDate(dateObject.getDate() + termsInt);
         }
 
-    // Format the date as required (assuming MM/DD/YYYY format)
-    var formattedDate = (dateObject.getMonth() + 1) + '/' + dateObject.getDate() + '/' + dateObject.getFullYear();
+        // Format the date as required
+        var formattedDate = dateObject.toLocaleDateString();
 
-    // Update the HTML to display the computed date as the due date
-    document.getElementById('dueDate').innerText = formattedDate;
-</script>
+        // Update the HTML to display the computed date as the due date
+        document.getElementById('dueDate').innerText = formattedDate;
+    </script>
+
+
 }
