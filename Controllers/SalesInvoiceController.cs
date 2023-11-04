@@ -112,7 +112,7 @@ namespace Accounting_System.Controllers
                     sales.VatableSales = sales.Amount / (decimal)1.12;
                     sales.VatAmount = sales.Amount - sales.VatableSales;
                 }
-                
+
                 _dbContext.Add(sales);
 
                 //Implementation of Audit trail
