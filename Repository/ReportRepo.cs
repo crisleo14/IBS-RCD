@@ -26,7 +26,7 @@ namespace Accounting_System.Repository
             var salesBooks = _dbContext
              .SalesInvoices
              .AsEnumerable()
-             .Where(s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate)
+             .Where(s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate && s.IsPosted == true)
              .OrderBy(s => s.Id)
              .ToList();
 
