@@ -159,49 +159,43 @@
                             <tbody class="text-nowrap">
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
-                                    @if (Model.CustomerType == "Vatable")
-                                    {
-                                        <td class="text-end"><p style="height: 9px;">@Html.DisplayFor(model => model.VatableSales)</p></td>
-                                    }
-                                    else
-                                    {
-                                        <td class="text-end"><p style="height: 9px;">0.00</p></td>
-                                    }
+                                        <td class="text-end">
+                                        @if (Model.CustomerType == "Vatable")
+                                        {
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.VatableSales)</p>
+                                        }
+                                    </td>
 
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
-                                    @if(Model.CustomerType == "Zero Rated"){
-                                        <td class="text-end"><p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p></td>
-                                    }
-                                    else
-                                    {
-                                        <td class="text-end"><p style="height: 9px;">0.00</p></td>
-                                    }
                                     
+                                    <td class="text-end">
+                                        @if (Model.CustomerType == "Zero Rated")
+                                        {
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p>
+                                        }
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>VAT-exempt Sales: </b></p></td>
-                                    @if(Model.CustomerType == "Exempt"){
-                                        <td class="text-end"><p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p></td>
-                                    }
-                                    else
-                                    {
-                                        <td class="text-end"><p style="height: 9px;">0.00</p></td>
-                                    }
                                     
+                                    <td class="text-end">
+                                        @if (Model.CustomerType == "Exempt")
+                                        {
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p>
+                                        }
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
-                                    @if(Model.CustomerType == "Vatable")
-                                    {
-                                        <td class="text-end"><p style="height: 9px;">@Html.DisplayFor(model => model.VatAmount)</p></td>
-                                    }
-                                    else
-                                    {
-                                        <td class="text-end"><p style="height: 9px;">0.00</p></td>
-                                    }
                                     
+                                    <td class="text-end">
+                                        @if (Model.CustomerType == "Vatable")
+                                        {
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.VatAmount)</p>
+                                        }
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
