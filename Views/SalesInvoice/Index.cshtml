@@ -76,6 +76,12 @@
                             {
                                 <a class="btn btn-light" onclick="confirmPost(@invoice.Id)">Post</a>
                             }
+                        }else{
+                            if(invoice.IsVoid == true){
+                                <span class="badge rounded-pill bg-danger ">VOIDED</span>
+                            }else{
+                                    <span class="badge rounded-pill bg-warning ">VALID</span>
+                            }
                         }
                     </td>
                 </tr>
