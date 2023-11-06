@@ -2,7 +2,6 @@ using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Accounting_System.Repository;
-using Accounting_System.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +22,6 @@ builder.Services.Configure<IdentityOptions>(options =>
 
 builder.Services.AddScoped<SalesInvoiceRepo>();
 builder.Services.AddScoped<CustomerRepo>();
-builder.Services.AddScoped<ReportRepo>();
 
 var app = builder.Build();
 

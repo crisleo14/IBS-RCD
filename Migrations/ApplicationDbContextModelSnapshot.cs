@@ -22,36 +22,6 @@ namespace Accounting_System.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Accounting_System.Models.AuditTrail", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Activity")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DocumentType")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("MachineName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AuditTrails");
-                });
-
             modelBuilder.Entity("Accounting_System.Models.ChartOfAccount", b =>
                 {
                     b.Property<int>("Id")
@@ -153,9 +123,6 @@ namespace Accounting_System.Migrations
 
                     b.Property<int>("AccountNo")
                         .HasColumnType("integer");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
 
                     b.Property<string>("Category")
                         .IsRequired()
@@ -295,12 +262,6 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("VatAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("VatableSales")
                         .HasColumnType("numeric");
 
                     b.Property<bool>("WithHoldingTax")
