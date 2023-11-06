@@ -27,6 +27,8 @@
     decimal totalQuantity = 0;
     decimal totalVatableSales = 0;
     decimal totalVatableAmount = 0;
+    decimal totalExempted = 0;
+    decimal totalZeroRated = 0;
 }
 
 <br />
@@ -71,24 +73,30 @@
                 <th>
                     @Html.DisplayNameFor(model => model.TinNo)
                 </th>
-                <th>
+                @* <th>
                     @Html.DisplayNameFor(model => model.ProductName)
                 </th>
                 <th class="text-end">
                     @Html.DisplayNameFor(model => model.Quantity)
-                </th>
+                </th> *@
                 <th class="text-end">
-                    @Html.DisplayNameFor(model => model.Amount)
+                    @Html.DisplayNameFor(model => model.VatAmount)
                 </th>
                 <th class="text-end">
                     @Html.DisplayNameFor(model => model.VatableSales)
                 </th>
                 <th class="text-end">
-                    <div style="margin-right:20px;">@Html.DisplayNameFor(model => model.VatAmount)</div>
+                    VAT Exempt Sales
                 </th>
-                <th>
+                <th class="text-end">
+                    Zero Rated
+                </th>
+                <th class="text-end">
+                    <div style="margin-right:20px;">@Html.DisplayNameFor(model => model.Amount)</div>
+                </th>
+              @*   <th>
                     @Html.DisplayNameFor(model => model.Remarks)
-                </th>
+                </th> *@
             </tr>
         </thead>
         <tbody>
@@ -108,65 +116,98 @@
                     <td>
                         @Html.DisplayFor(model => invoice.TinNo)
                     </td>
-                    <td>
+                   @*  <td>
                         @Html.DisplayFor(model => invoice.ProductName)
                     </td>
                     <td class="text-end">
                         @Html.DisplayFor(model => invoice.Quantity)
-                    </td>
+                    </td> *@
                     <td class="text-end">
-                        @Html.DisplayFor(model => invoice.Amount)
+                        @Html.DisplayFor(model => invoice.VatAmount)
                     </td>
                     <td class="text-end">
                         @Html.DisplayFor(model => invoice.VatableSales)
                     </td>
+                    @if (invoice.CustomerType == "Exempt")
+                    {
+                        <td class="text-end">
+                            @Html.DisplayFor(model => invoice.Amount)
+                            @{
+                                totalExempted += invoice.Amount;
+                            }
+                        </td>
+                    }
+                    else
+                    {
+                        <td class="text-end">
+                            0.00
+                        </td>
+                    }
+                    @if (invoice.CustomerType == "Zero Rated")
+                    {
+                        <td class="text-end">
+                            @Html.DisplayFor(model => invoice.Amount)
+                            @{
+                                totalZeroRated += invoice.Amount;
+                            }
+                        </td>
+                    }
+                    else
+                    {
+                        <td class="text-end">
+                            0.00
+                        </td>
+                    }
                     <td class="text-end">
-                        <div style="margin-right:20px;">@Html.DisplayFor(model => invoice.VatAmount)</div>
+                        <div style="margin-right:20px;">@Html.DisplayFor(model => invoice.Amount)</div>
                     </td>
-                    <td>
+                  @*   <td>
                         @Html.DisplayFor(model => invoice.Remarks)
-                    </td>
+                    </td> *@
                 </tr>
 
                 totalAmount += invoice.Amount;
-                totalQuantity += invoice.Quantity;
+               @*  totalQuantity += invoice.Quantity; *@
                 totalVatableSales += invoice.VatableSales;
                 totalVatableAmount += invoice.VatAmount;
             }
             <tr class="align-text-bottom" style="border: 1px solid black;">
                 @{
-                    var totalAmounts = String.Format("{0:n}", totalAmount);
-                    var totalQuantities = String.Format("{0:n}", totalQuantity);
-                    var totalVatSales = String.Format("{0:n}", totalVatableSales);
-                    var totalVatAmounts = String.Format("{0:n}", totalVatableAmount);
+                    var formattedTotalAmount = String.Format("{0:n}", totalAmount);
+                    var formattedTotalQuantity = String.Format("{0:n}", totalQuantity);
+                    var formattedTotalVatableSales = String.Format("{0:n}", totalVatableSales);
+                    var formattedTotalVatAmount = String.Format("{0:n}", totalVatableAmount);
+                    var formattedTotalExempted = String.Format("{0:n}", totalExempted);
+                    var formattedTotalZeroRated = String.Format("{0:n}", totalZeroRated);
 
                 <td></td>
                 <td></td>
                 <td></td>
-                <td></td>
                 <td class="text-center"><b>TOTAL:</b></td>
-                <td class="text-end">@totalQuantities</td>
-                <td class="text-end">@totalAmounts</td>
-                <td class="text-end">@totalVatSales</td>
-                <td class="text-end"><div style="margin-right:20px;">@totalVatAmounts</div></td>
-                <td></td>
+                // <td class="text-end">@totalQuantities</td>
+                <td class="text-end">@formattedTotalVatAmount</td>
+                <td class="text-end">@formattedTotalVatableSales</td>
+                <td class="text-end">@formattedTotalExempted</td>
+                <td class="text-end">@formattedTotalZeroRated</td>
+                <td class="text-end"><div style="margin-right:20px;">@formattedTotalAmount</div></td>
                 }
             </tr>
         </tbody>
     </table>
 </div>
 
-<div style="margin-top:20px;">
-    <p>
-        <i>This is a system generated invoice, no signature required.</i>
-    </p>
-</div>
-
 <br />
-<div class="text-center w-100" style="margin-top:20px;">
+<div class="text-start w-100 footer" style="margin-top:50px;">
     <p style="line-height: 1;">
-        Acknowledgement Certificate No:<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>Date Issued:<u> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u> Series from: 00000001 - 99999999<br />
-        Date and Time Printed: @DateTime.Now.ToString("MM/dd/yy hh:mm tt")
+        <em>
+        <strong>Software Name :</strong> Undecided
+        <br />
+        <strong>Version :</strong> v1.0
+        <br />
+        <strong>Printed By :</strong> @UserManager.GetUserName(User).ToUpper()
+        <br />
+        <strong>Date & Time Printed :</strong> @DateTime.Now.ToString("MM/dd/yy hh:mm tt")
+        </em>
     </p>
 </div>
 
