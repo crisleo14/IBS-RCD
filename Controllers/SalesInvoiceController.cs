@@ -59,9 +59,9 @@ namespace Accounting_System.Controllers
 
                 var ledgers = new Ledger[]
                {
-                new Ledger {AccountNo = 11,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Debit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.Amount},
-                new Ledger {AccountNo = 21,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatAmount},
-                new Ledger {AccountNo = 41,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatableSales}
+                new Ledger {AccountNo = 1001,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Debit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.Amount},
+                new Ledger {AccountNo = 2001,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatAmount},
+                new Ledger {AccountNo = 4001,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatableSales}
                };
 
                 _dbContext.Ledgers.AddRange(ledgers);
