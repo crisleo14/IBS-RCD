@@ -1,0 +1,132 @@
+﻿
+<br />
+<div class="text-end">
+    <img src="~/img/Filpride.jpg" height="" width="130px" />
+</div>
+<div class="text-center">
+    <h2><u><b>&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b></u></h2>
+    <p style="line-height: 1; margin-top:-7px;">
+        57 Westgate Offices, Sampson RO CBD, Subic Bay, Freeport Zone,<br />
+        Kalaklan Olongapo City, 2000 Zambales Philippines<br />
+        VAT Reg. TIN: 000-216-589-00000
+    </p>
+
+    <h3><span style="display: inline-block;"><b>SALES INVOICE</b></span></h3>
+    <div class="text-end" style="margin-top:-60px;">
+        <h6><b>Invoice No.&nbsp;</b></h6>
+    </div>
+
+</div>
+
+<div class="table-responsive">
+    <table class="w-100" style="margin-top:20px;">
+        <tbody>
+            <tr>
+                <td>
+                    <span><b>Sold to:</b></span>
+                    &nbsp; <br />
+
+                    <span><b>Address:</b></span>
+                    &nbsp;  &nbsp;<br />
+
+                    <span><b>TIN:</b></span>
+                    &nbsp; &nbsp;<br />
+
+                    <span><b>Business Style:</b></span>
+                    &nbsp;  &nbsp;
+                </td>
+
+                <td class="w-25 text-nowrap">
+
+                    <b>Invoice Date:</b>&nbsp; <span id="invoiceDate"></span><br />
+
+                    <b>Terms:</b>&nbsp;<span id="terms"></span>&nbsp;<br />
+
+                    <b>Due Date:</b>&nbsp; <span id="dueDate"></span><br />
+
+                    <b>Other Ref No.:</b>&nbsp;  &nbsp;
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="table-responsive" style="margin-top:20px;">
+    <table class="table-bordered w-100 text-center">
+        <tbody>
+            <tr>
+                <td><b>PRODUCT DESCRIPTION</b></td>
+                <td><b>UNIT</b></td>
+                <td><b>QUANTITY</b></td>
+                <td><b>UNIT PRICE</b></td>
+                <td><b>AMOUNT</b></td>
+            </tr>
+
+            <tr style="height:80px;">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+
+        </tbody>
+    </table>
+</div>
+
+@* <a asp-action="OfficialReceipt" class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" id="printButton">Print</a> *@
+<a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
+<a asp-action="CollectionReceipt" class="btn" id="otherButton">Back</a>
+
+@section Scripts{
+    <script>
+        var originalFontSizes = [];
+
+        function printPage() {
+            var printButton = document.getElementById("printButton");
+            var otherButton = document.getElementById("otherButton");
+
+            // Hide the header and footer
+            document.querySelector("header").style.display = "none";
+            document.querySelector("footer").style.display = "none";
+
+            // Hide the buttons before printing
+            if (printButton) {
+                printButton.style.visibility = "hidden";
+            }
+            if (otherButton) {
+                otherButton.style.visibility = "hidden";
+            }
+
+            // Get all paragraph elements
+            var paragraphs = document.querySelectorAll("p");
+
+            // Store the original font sizes
+            for (var i = 0; i < paragraphs.length; i++) {
+                originalFontSizes[i] = paragraphs[i].style.fontSize;
+                // Set the font size of all paragraph elements to 12px for printing
+                paragraphs[i].style.fontSize = "12px";
+            }
+
+            // Call the print function
+            window.print();
+
+            // Restore the font sizes
+            for (var i = 0; i < paragraphs.length; i++) {
+                paragraphs[i].style.fontSize = originalFontSizes[i];
+            }
+
+            // Restore the buttons' visibility after printing (optional)
+            if (printButton) {
+                printButton.style.visibility = "visible";
+            }
+            if (otherButton) {
+                otherButton.style.visibility = "visible";
+            }
+
+            // Restore the header and footer's visibility after printing (optional)
+            document.querySelector("header").style.display = "";
+            document.querySelector("footer").style.display = "";
+        }
+    </script>
+}
