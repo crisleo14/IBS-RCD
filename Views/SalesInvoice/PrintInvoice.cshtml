@@ -3,6 +3,15 @@
 @{
     ViewData["Title"] = "Sales Invoice";
 }
+@{
+    //2307 withholding Tax
+    var lessEwtTax = Model.VatableSales * (decimal)0.01;
+    var formattedLessEwtTax = String.Format("{0:n}", lessEwtTax);
+
+    //2306 withholding Vat
+    var lessEwtVat = Model.VatableSales * (decimal)0.05;
+    var formattedLessEwtVat = String.Format("{0:n}", lessEwtVat);
+}
 <br />
 <div class="text-end">
     <img src="~/img/Filpride.jpg" height="" width="130px"/>
@@ -77,17 +86,38 @@
         </tbody>
     </table>
 </div>
+    @if (Model.WithHoldingTax)
+    {
+        lessEwtTax = Model.Amount * (decimal)0.01;
+        var lessEwtTaxInAmount = String.Format("{0:n}", lessEwtTax);
+
+        if (Model.CustomerType == "Vatable")
+        {
+        <p style="line-height: 1; margin-top:20px;">
+                Creditable Withholding Tax with the amount of <b>@formattedLessEwtTax</b> is computed for this invoice.<br />
+                Please attach BIR Form 2307 to your payment if you deducted Expanded Withholding Tax.
+            </p>
+        }
+        else
+        {
+        <p style="line-height: 1; margin-top:20px;">
+                Creditable Withholding Tax with the amount of <b>@lessEwtTaxInAmount</b> is computed for this invoice.<br />
+                Please attach BIR Form 2307 to your payment if you deducted Expanded Withholding Tax.
+            </p>
+        }
+
+    }
 <div style="margin-top:20px;">
     <table class="w-100">
         <tbody>
             <tr>
                 <td style="width:33%">
-                    <div class="table-responsive">
+                    <div>
                         <table class="table-bordered w-100">
                             <tbody>
 
                                 <tr style="height:140px;">
-                                    <td class="align-text-top">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Remarks)</td>
+                                    <td style="position:relative; top:-35px; left:4%;">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Remarks)</td>
                                 </tr>
 
                             </tbody>
@@ -125,81 +155,53 @@
                 </td>
                 <td style="width:33%;">
                     <div>
-                        <table class="w-100">
+                        <table class="table-bordered w-100">
                             <tbody class="text-nowrap">
-                                @{
-                                    var amount = Model.Amount;
-                                    var formattedAmount = String.Format("{0:n}", amount);
-
-                                    var vatableSales = amount / (decimal)1.12;
-                                    var formattedVatableSales = String.Format("{0:n}", vatableSales);
-
-                                    var vatAmount = amount - vatableSales;
-                                    var formattedVatableAmount = String.Format("{0:n}", vatAmount);
-
-                                    //2307 withholding Tax
-                                    var lessEwtTax = vatableSales * (decimal)0.01;
-                                    var formattedLessEwtTax = String.Format("{0:n}", lessEwtTax);
-
-                                    //2306 withholding Vat
-                                    var lessEwtVat = vatableSales * (decimal)0.05;
-                                    var formattedLessEwtVat = String.Format("{0:n}", lessEwtVat);
-
-                                    //net amount due
-                                    var netAmountDue = amount - lessEwtTax;
-                                    var formattedNetAmountDue = String.Format("{0:n}", netAmountDue);
-                                }
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
-                                    @if (Model.CustomerType == "Vatable")
-                                    {
-                                        <td class="text-end"><p style="height: 9px;">@formattedVatableSales</p></td>
-                                    }
-                                    else
-                                    {
-                                        <td class="text-end"><p style="height: 9px;">0.00</p></td>
-                                    }
+                                        <td class="text-end">
+                                        @if (Model.CustomerType == "Vatable")
+                                        {
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.VatableSales)</p>
+                                        }
+                                    </td>
 
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
-                                    @if(Model.CustomerType == "Zero Rated"){
-                                        <td class="text-end"><p style="height: 9px;">@formattedAmount</p></td>
-                                    }
-                                    else
-                                    {
-                                        <td class="text-end"><p style="height: 9px;">0.00</p></td>
-                                    }
                                     
+                                    <td class="text-end">
+                                        @if (Model.CustomerType == "Zero Rated")
+                                        {
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p>
+                                        }
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td style="width:40%; margin-left:8%;"><p style="height: 9px; margin-left:8%;"><b>VAT-exempt Sales: </b></p></td>
-                                    @if(Model.CustomerType == "Exempt"){
-                                        <td class="text-end"><p style="height: 9px;">@formattedAmount</p></td>
-                                    }
-                                    else
-                                    {
-                                        <td class="text-end"><p style="height: 9px;">0.00</p></td>
-                                    }
+                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT-exempt Sales: </b></p></td>
                                     
+                                    <td class="text-end">
+                                        @if (Model.CustomerType == "Exempt")
+                                        {
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p>
+                                        }
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
-                                    @if(Model.CustomerType == "Vatable")
-                                    {
-                                        <td class="text-end"><p style="height: 9px;">@formattedVatableAmount</p></td>
-                                    }
-                                    else
-                                    {
-                                        <td class="text-end"><p style="height: 9px;">0.00</p></td>
-                                    }
                                     
+                                    <td class="text-end">
+                                        @if (Model.CustomerType == "Vatable")
+                                        {
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.VatAmount)</p>
+                                        }
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td><p style="height: 9px; margin-left:8%;"><b>TOTAL AMOUNT DUE: </b></p></td>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
                                     <td class="text-end"><p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p></td>
                                 </tr>
-                                <tr>
+                                @* <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>Less EWT: </b></p></td>
                                     @if(Model.WithHoldingTax){
 
@@ -219,8 +221,8 @@
                                     {
                                         <td class="text-end"><p style="height: 9px;">0.00</p></td>
                                     }
-                                </tr>
-                                <tr>
+                                </tr> *@
+                               @*  <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>NET AMOUNT DUE: </b></p></td>
                                     @if(Model.WithHoldingTax){
 
@@ -243,7 +245,7 @@
                                     {
                                         <td class="text-end"><p style="height: 9px;">@formattedAmount</p></td>
                                     }
-                                </tr>
+                                </tr> *@
 
                             </tbody>
                         </table>
@@ -265,41 +267,30 @@
     </table>
 </div>
 <div style="margin-top:20px;">
-    @if (Model.WithHoldingTax)
-    {
-        lessEwtTax = amount * (decimal)0.01;
-        var lessEwtTaxInAmount = String.Format("{0:n}", lessEwtTax);
-
-        if(Model.CustomerType == "Vatable")
-        {
-            <p style="line-height: 1;">
-                Creditable Withholding Tax with the amount of <b>@formattedLessEwtTax</b> is computed for this invoice.<br />
-                Please attach BIR Form 2307 to your payment if you deducted Expanded Withholding Tax.
-            </p>
-        }
-        else
-        {
-            <p style="line-height: 1;">
-                Creditable Withholding Tax with the amount of <b>@lessEwtTaxInAmount</b> is computed for this invoice.<br />
-                Please attach BIR Form 2307 to your payment if you deducted Expanded Withholding Tax.
-            </p>
-        }
-
-    }
-
     <p>
         <i>This is a system generated invoice, no signature required.</i>
     </p>
 </div><br />
-<div class="footer text-center w-100" style="margin-top:20px;">
+<div class="text-center w-100" style="margin-top:20px;">
     <p style="line-height: 1;">
-        Acknowledgement Certificate No:<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>Date Issued:<u> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u> Series from:<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u><br />
+        Acknowledgement Certificate No:<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>Date Issued:<u> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u> Series from: 00000001 - 99999999<br />
         Date and Time Created:@Html.DisplayFor(model => model.CreatedDate)
     </p>
 </div>
 <br />
 
-<a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
+    @if (Model.OriginalCopy == true)
+    {
+    <div class="text-end">
+    ORIGINAL COPY
+    </div>
+    }else{
+    <div class="text-end">
+    REPRINT COPY
+    </div>
+    }
+
+    <a asp-action="PrintedInvoice"  class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" id="printButton">Print</a>
 <a asp-action="Index" class="btn" id="otherButton">Back</a>
 
 @section Scripts{
@@ -362,25 +353,55 @@
         });
     </script>
     <script>
-    // Get the transaction date value from the HTML element
-    var transactionDate = document.getElementById('invoiceDate').innerText;
+        // Get the transaction date value from the HTML element
+        var transactionDate = document.getElementById('invoiceDate').innerText;
 
-    // Convert the transaction date string to a Date object
-    var dateObject = new Date(transactionDate);
+        // Convert the transaction date string to a Date object
+        var dateObject = new Date(transactionDate);
 
-    // Get the terms value from the HTML element
-    var terms = document.getElementById('terms').innerText;
+        // Get the terms value from the HTML element
+        var terms = document.getElementById('terms').innerText;
 
-    // Convert the terms to an integer
-    var termsInt = parseInt(terms);
+        // Convert the terms to an integer
+        var termsInt = parseInt(terms);
 
-    // Add the terms to the transaction date
-    dateObject.setDate(dateObject.getDate() + termsInt);
+        // Add the terms to the transaction date
+        if (terms == "COD") {
+            dateObject.setDate(dateObject.getDate());
+        } else if (terms == "M30") {
 
-    // Format the date as required (assuming MM/DD/YYYY format)
-    var formattedDate = (dateObject.getMonth() + 1) + '/' + dateObject.getDate() + '/' + dateObject.getFullYear();
+            var nextMonth = dateObject.getMonth() + 1;
+            var nextMonthDays = new Date(dateObject.getFullYear(), nextMonth, 0).getDate();
 
-    // Update the HTML to display the computed date as the due date
-    document.getElementById('dueDate').innerText = formattedDate;
-</script>
+            if (nextMonthDays === 30) {
+                dateObject.setMonth(nextMonth);
+                dateObject.setDate(30);
+            } else {
+                dateObject.setMonth(nextMonth + 1);
+                dateObject.setDate(0);
+            }
+        } else if (terms == "M15") {
+
+            var nextMonth = dateObject.getMonth() + 1;
+            var nextMonthDays = new Date(dateObject.getFullYear(), nextMonth, 0).getDate();
+
+            if (nextMonthDays === 30) {
+                dateObject.setMonth(nextMonth);
+                dateObject.setDate(15);
+            } else {
+                dateObject.setMonth(nextMonth + 1);
+                dateObject.setDate(0);
+            }
+        } else {
+            dateObject.setDate(dateObject.getDate() + termsInt);
+        }
+
+        // Format the date as required
+        var formattedDate = dateObject.toLocaleDateString();
+
+        // Update the HTML to display the computed date as the due date
+        document.getElementById('dueDate').innerText = formattedDate;
+    </script>
+
+
 }

@@ -31,7 +31,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Index()
         {
             var salesInvoice = await _salesInvoiceRepo.GetSalesInvoicesAsync();
-            
+
             return View(salesInvoice);
         }
 
@@ -45,6 +45,7 @@ namespace Accounting_System.Controllers
                 {
                     model.IsPosted = true;
                     await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Sales Invoice has been Posted.";
                 }
                 else if (!model.IsPosted || !model.IsVoid)
                 {
@@ -52,14 +53,28 @@ namespace Accounting_System.Controllers
                     {
                         model.IsVoid = true;
                         await _dbContext.SaveChangesAsync();
+                        TempData["success"] = "Sales Invoice has been Voided.";
                     }
                 }
+
+                var ledgers = new Ledger[]
+               {
+                new Ledger {AccountNo = 1001,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Debit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.Amount},
+                new Ledger {AccountNo = 2001,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatAmount},
+                new Ledger {AccountNo = 4001,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatableSales}
+               };
+
+                _dbContext.Ledgers.AddRange(ledgers);
+                await _dbContext.SaveChangesAsync();
+
+                TempData["success"] = "Sales Invoice has been Posted.";
+                return RedirectToAction(nameof(Index));
             }
-            TempData["success"] = "Sales Invoice has been Posted.";
-            return Redirect("Index");
+
+            return NotFound();
         }
 
-            [HttpGet]
+        [HttpGet]
         public IActionResult Create()
         {
             var viewModel = new SalesInvoice();
@@ -92,8 +107,19 @@ namespace Accounting_System.Controllers
                 sales.CreatedBy = _userManager.GetUserName(this.User);
                 sales.SerialNo = lastSerialNo;
                 sales.Amount = sales.Quantity * sales.UnitPrice;
+                if (sales.CustomerType == "Vatable")
+                {
+                    sales.VatableSales = sales.Amount / (decimal)1.12;
+                    sales.VatAmount = sales.Amount - sales.VatableSales;
+                }
+
                 _dbContext.Add(sales);
-                _dbContext.SaveChanges();
+
+                //Implementation of Audit trail
+                //AuditTrail auditTrail = new(sales.CreatedBy, $"Create new invoice#{sales.SerialNo}", "Sales Invoice");
+                //_dbContext.Add(auditTrail);
+
+                await _dbContext.SaveChangesAsync();
 
                 return RedirectToAction("Index");
             }
@@ -192,8 +218,19 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> PrintInvoice(int id)
         {
-            var sales = _dbContext.SalesInvoices.FirstOrDefault(x => x.Id == id);
+            var sales = await _salesInvoiceRepo.FindSalesInvoice(id);
             return View(sales);
+        }
+
+        public async Task<IActionResult> PrintedInvoice(int id)
+        {
+            var sales = await _salesInvoiceRepo.FindSalesInvoice(id);
+            if (sales != null && sales.OriginalCopy)
+            {
+                sales.OriginalCopy = false;
+                await _dbContext.SaveChangesAsync();
+            }
+            return RedirectToAction("PrintInvoice", new { id = id });
         }
     }
 }

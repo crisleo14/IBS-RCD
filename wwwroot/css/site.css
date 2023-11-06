@@ -43,19 +43,28 @@ body {
 }
 
 @media print {
-    .footer {
+/*    .footer {
         position: fixed;
         bottom: 0;
         left: 0;
         text-align:center;
+    }*/
+
+    body {
+        margin: 0 !important;
     }
 
     @page {
-        size: auto; /* auto is the initial value */
-        margin: 24px 0 0 0; /* Sets the top margin to 24px and the others to 0 */
+        margin: 24px 0px 0px 0px !important; /* Sets the top margin to 24px and the others to 0 */
     }
 }
 
 .underline {
     border-bottom: 1px solid black !important;
 }
+
+
+/* Uncomment this code for debugging purposes */
+/**{
+    border: 1px solid red;
+}*/
