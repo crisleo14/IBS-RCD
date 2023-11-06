@@ -14,7 +14,5 @@ namespace Accounting_System.Models
         public string TransactionDate { get; set; }
 
         public string Category { get; set; }
-
-        public decimal Amount { get; set; }
     }
 }
