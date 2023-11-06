@@ -1,0 +1,195 @@
+﻿
+<br />
+<div class="text-end">
+    <img src="~/img/Filpride.jpg" height="" width="130px" />
+</div>
+<div class="text-center">
+    <h2><u><b>&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b></u></h2>
+    <p style="line-height: 1; margin-top:-7px;">
+        57 Westgate Offices, Sampson RO CBD, Subic Bay, Freeport Zone,<br />
+        Kalaklan Olongapo City, 2000 Zambales Philippines<br />
+        VAT Reg. TIN: 000-216-589-00000
+    </p>
+</div>
+
+<h3><span style="display: inline-block;"><b>OFFICIAL RECEIPT</b></span></h3>
+<div class="text-end" style="margin-top:-60px;">
+    <h5><b>Invoice No.&nbsp;</b></h5>
+</div>
+
+<div class="table-responsive">
+    <table class="w-100" style="margin-top:20px;">
+        <tbody>
+            <tr>
+                <td>
+                    <br />
+                    <div class="w-100 text-end">
+                    <span><b>Date:</b></span>
+                    <span class="underline" style="display: inline-block; width: 30%;"></span><br />
+                    </div>
+
+                    <span><b>Received from:</b></span>
+                    <span class="underline" style="display: inline-block; width: 80%;"></span><br />
+
+                    <span><b>with TIN</b></span>
+                    <span class="underline" style="display: inline-block; width: 87%;"></span><br />
+
+                    <span><b>and address at</b></span>
+                    <span class="underline" style="display: inline-block; width: 80%;"></span><br />
+
+                    <span><b>engaged in the business style of</b></span>
+                    <span class="underline" style="display: inline-block; width: 63%;"></span><br />
+
+                    <span><b>the sum of</b></span>
+                    <span class="underline" style="display: inline-block; width: 85%;"></span><br />
+
+                    <span><b>pesos</b></span>
+                    <span class="underline" style="display: inline-block; width: 90%;">($)</span><br />
+
+                    <span><b>In partial/full payment for</b></span>
+                    <span class="underline" style="display: inline-block; width: 70%;"></span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div style="margin-top:20px;">
+    <table class="table-bordered w-100">
+        <tbody>
+            <tr>
+                <td colspan="2">In settlement of the following</td>
+            </tr>
+            <tr>
+                <td class="w-50 text-center">Particulars</td>
+                <td class="w-50 text-center">Amount</td>
+            </tr>
+            <tr>
+                <td class="w-50">&nbsp;</td>
+                <td class="w-50"></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td style="padding-left:10px;">VATables Sales</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td style="padding-left:10px;">VAT-Exempt Sales</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td style="padding-left:10px;">Zero Rated Sales</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td style="padding-left:10px;">VAT Amount</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td style="padding-left:10px;">Total Sales(VAT Inclusive)</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td style="padding-left:10px;">Less: Withholding Tax</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td style="padding-left:10px;">Total Amount Due</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td style="padding-left:10px;">Form of Payment:&nbsp;&nbsp;&nbsp;<input type="checkbox" disabled/>&nbsp;CASH</td>
+                <td style="padding-left:10px;"><input type="checkbox" disabled />&nbsp;CHECK</td>
+            </tr>
+            <tr>
+                <td style="padding-left:10px;">Check no.</td>
+                <td style="padding-left:10px;">Check Date</td>
+            </tr>
+            <tr>
+                <td style="padding-left:10px;">AMOUNT</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<br />
+<div class="w-100 text-end">
+    <span>By:</span>
+    <span class="underline" style="display: inline-block; width: 30%;"></span><br />
+    <h6 style="margin-right:15px;">Authorized Representative</h6>
+    <p style="line-height:1px;">Accreditation No. ___</p>
+    <p style="line-height:1px;">Accreditation Date:___* Valid up to:___</p>
+</div>
+
+<br />
+@* <a asp-action="OfficialReceipt" class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" id="printButton">Print</a> *@
+<a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
+<a asp-action="OfficialReceipt" class="btn" id="otherButton">Back</a>
+
+@section Scripts{
+    <script>
+        var originalFontSizes = [];
+
+        function printPage() {
+            var printButton = document.getElementById("printButton");
+            var otherButton = document.getElementById("otherButton");
+
+            // Hide the header and footer
+            document.querySelector("header").style.display = "none";
+            document.querySelector("footer").style.display = "none";
+
+            // Hide the buttons before printing
+            if (printButton) {
+                printButton.style.visibility = "hidden";
+            }
+            if (otherButton) {
+                otherButton.style.visibility = "hidden";
+            }
+
+            // Get all paragraph elements
+            var paragraphs = document.querySelectorAll("p");
+
+            // Store the original font sizes
+            for (var i = 0; i < paragraphs.length; i++) {
+                originalFontSizes[i] = paragraphs[i].style.fontSize;
+                // Set the font size of all paragraph elements to 12px for printing
+                paragraphs[i].style.fontSize = "12px";
+            }
+
+            // Call the print function
+            window.print();
+
+            // Restore the font sizes
+            for (var i = 0; i < paragraphs.length; i++) {
+                paragraphs[i].style.fontSize = originalFontSizes[i];
+            }
+
+            // Restore the buttons' visibility after printing (optional)
+            if (printButton) {
+                printButton.style.visibility = "visible";
+            }
+            if (otherButton) {
+                otherButton.style.visibility = "visible";
+            }
+
+            // Restore the header and footer's visibility after printing (optional)
+            document.querySelector("header").style.display = "";
+            document.querySelector("footer").style.display = "";
+        }
+    </script>
+}
