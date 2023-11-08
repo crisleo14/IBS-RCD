@@ -17,11 +17,14 @@ namespace Accounting_System.Controllers
 
         private readonly UserManager<IdentityUser> _userManager;
 
-        public CustomerController(ApplicationDbContext dbContext, CustomerRepo customerRepo, UserManager<IdentityUser> userManager)
+        private readonly SalesOrderRepo _salesOrderRepo;
+
+        public CustomerController(ApplicationDbContext dbContext, CustomerRepo customerRepo, UserManager<IdentityUser> userManager, SalesOrderRepo salesOrderRepo)
         {
             _dbContext = dbContext;
             _customerRepo = customerRepo;
             this._userManager = userManager;
+            _salesOrderRepo = salesOrderRepo;
         }
 
         public async Task<IActionResult> Index()
@@ -159,6 +162,44 @@ namespace Accounting_System.Controllers
             }
 
             return View(customer);
+        }
+
+        public async Task<IActionResult> OrderSlip()
+        {
+            var salesOrder = await _salesOrderRepo.GetSalesOrderAsync();
+
+            return View(salesOrder);
+        }
+
+        [HttpGet]
+        public IActionResult CreateCOS()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateCOS(SalesOrder model)
+        {
+            if (ModelState.IsValid)
+            {
+                
+                _dbContext.Add(model);
+                model.Status = "Pending";
+                model.CreatedBy = _userManager.GetUserName(this.User);
+                await _dbContext.SaveChangesAsync();
+                TempData["success"] = "Sales Order created successfully";
+
+                return RedirectToAction("OrderSlip");  
+            }
+            else {
+                    ModelState.AddModelError("", "The information you submitted is not valid!");
+                    return View(model);
+                }
+            }
+
+        public IActionResult PrintOrderSlip()
+        {
+            return View();
         }
     }
 }
