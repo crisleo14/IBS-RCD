@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Accounting_System.Controllers
 {
@@ -174,7 +175,16 @@ namespace Accounting_System.Controllers
         [HttpGet]
         public IActionResult CreateCOS()
         {
-            return View();
+            var viewModel = new SalesOrder();
+            viewModel.PO = _dbContext.Customers
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToList();
+
+            return View(viewModel);
         }
 
         [HttpPost]
