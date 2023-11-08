@@ -37,12 +37,12 @@
             </div>
             <div class="form-group">
                 <label asp-for="DeliveryDate" class="control-label"></label>
-                <input asp-for="DeliveryDate" type="date" class="form-control" />
+                <input asp-for="DeliveryDate" type="date" id="DeliveryDate" class="form-control" />
                 <span asp-validation-for="DeliveryDate" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label class="control-label">Transaction Date</label>
-                <input asp-for="TransactionDate" type="date" class="form-control" />
+                <input asp-for="TransactionDate" type="date" id="TransactionDate" class="form-control" />
                 <span asp-validation-for="TransactionDate" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -65,4 +65,18 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+     // Get the current date in the format "YYYY-MM-DD" (required for the date input)
+     var currentDate = new Date().toISOString().slice(0, 10);
+
+     // Set the default value of the input field
+     document.getElementById("TransactionDate").value = currentDate;
+ </script>
+    <script>
+        // Get the current date in the format "YYYY-MM-DD" (required for the date input)
+        var myDate = new Date().toISOString().slice(0, 10);
+
+        // Set the default value of the input field
+        document.getElementById("DeliveryDate").value = myDate;
+    </script>
 }
