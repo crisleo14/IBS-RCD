@@ -15,10 +15,10 @@
         <form asp-action="CreateCOS">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-            <label class="control-label">Customers</label>
-            <select asp-for="CustomerId" asp-items="@Model.Customers" class="form-control js-select2">
-                <option></option>
-            </select>
+                <label class="control-label">Customers</label>
+                <select asp-for="CustomerId" asp-items="@Model.Customers" class="form-control js-select2">
+                    <option></option>
+                </select>
             </div>
             <div class="form-group">
                 <label asp-for="PO" class="control-label"></label>
@@ -37,12 +37,12 @@
             </div>
             <div class="form-group">
                 <label asp-for="DeliveryDate" class="control-label"></label>
-                <input asp-for="DeliveryDate" type="date" id="DeliveryDate" class="form-control" />
+                <input asp-for="DeliveryDate" type="date" class="form-control" />
                 <span asp-validation-for="DeliveryDate" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label class="control-label">Transaction Date</label>
-                <input asp-for="TransactionDate" type="date" id="TransactionDate" class="form-control" />
+                <input asp-for="TransactionDate" type="date" class="form-control" />
                 <span asp-validation-for="TransactionDate" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -50,7 +50,7 @@
                 <input asp-for="Remarks" class="form-control" />
                 <span asp-validation-for="Remarks" class="text-danger"></span>
             </div>
-            
+
             <br />
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
@@ -65,18 +65,4 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script>
-     // Get the current date in the format "YYYY-MM-DD" (required for the date input)
-     var currentDate = new Date().toISOString().slice(0, 10);
-
-     // Set the default value of the input field
-     document.getElementById("TransactionDate").value = currentDate;
- </script>
-    <script>
-        // Get the current date in the format "YYYY-MM-DD" (required for the date input)
-        var myDate = new Date().toISOString().slice(0, 10);
-
-        // Set the default value of the input field
-        document.getElementById("DeliveryDate").value = myDate;
-    </script>
 }

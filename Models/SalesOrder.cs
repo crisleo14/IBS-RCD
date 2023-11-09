@@ -11,9 +11,8 @@ namespace Accounting_System.Models
         [Display(Name = "COS No.")]
         public string COSNo { get; set; } = "";
 
-        [NotMapped]
         [Display(Name = "PO No.")]
-        public List<SelectListItem>? PO { get; set; }
+        public string PO { get; set; }
 
         [Display(Name = "Date")]
         public string TransactionDate { get; set; }
@@ -43,5 +42,8 @@ namespace Accounting_System.Models
 
         [Display(Name = "Approved Date")]
         public DateTime ApprovedDate { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? Customers { get; set; }
     }
 }

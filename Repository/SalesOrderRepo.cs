@@ -19,5 +19,21 @@ namespace Accounting_System.Repository
                 .OrderByDescending(s => s.Id)
                 .ToListAsync();
         }
+
+        public async Task<SalesOrder> FindSalesOrderAsync(int? id)
+        {
+            var salesOrder = await _dbContext
+                .SalesOrders
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (salesOrder != null)
+            {
+                return salesOrder;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
+            }
+        }
     }
 }

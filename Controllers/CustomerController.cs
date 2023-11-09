@@ -176,7 +176,7 @@ namespace Accounting_System.Controllers
         public IActionResult CreateCOS()
         {
             var viewModel = new SalesOrder();
-            viewModel.PO = _dbContext.Customers
+            viewModel.Customers = _dbContext.Customers
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
@@ -195,6 +195,11 @@ namespace Accounting_System.Controllers
                 
                 _dbContext.Add(model);
                 model.Status = "Pending";
+                model.Balance = model.Quantity;
+                if (model.QuantityServe != 0)
+                {
+                    model.Balance = model.Quantity - model.QuantityServe;
+                }
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 await _dbContext.SaveChangesAsync();
                 TempData["success"] = "Sales Order created successfully";
@@ -210,6 +215,60 @@ namespace Accounting_System.Controllers
         public IActionResult PrintOrderSlip()
         {
             return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditOrderSlip(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var salesOrder = await _salesOrderRepo.FindSalesOrderAsync(id);
+            salesOrder.Customers = _dbContext.Customers
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToList();
+
+            return View(salesOrder);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditOrderSlip(int id, SalesOrder salesOrder)
+        {
+            if (id != salesOrder.Id)
+            {
+                return NotFound();
+            }
+            var existingModel = await _salesOrderRepo.FindSalesOrderAsync(id);
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    existingModel.CustomerId = salesOrder.CustomerId;
+                    existingModel.PO = salesOrder.PO;
+                    existingModel.Quantity = salesOrder.Quantity;
+                    existingModel.OrderAmount = salesOrder.OrderAmount;
+                    existingModel.DeliveryDate = salesOrder.DeliveryDate;
+                    existingModel.TransactionDate = salesOrder.TransactionDate;
+                    existingModel.Remarks = salesOrder.Remarks;
+
+                    _dbContext.Update(existingModel);
+                    TempData["success"] = "Sales Order updated successfully";
+                    await _dbContext.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                        throw;
+                }
+                return RedirectToAction(nameof(OrderSlip));
+            }
+            return View(salesOrder);
         }
     }
 }
