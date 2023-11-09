@@ -20,12 +20,15 @@ namespace Accounting_System.Controllers
 
         private readonly UserManager<IdentityUser> _userManager;
 
-        public SalesInvoiceController(ILogger<HomeController> logger, ApplicationDbContext dbContext, SalesInvoiceRepo salesInvoiceRepo, UserManager<IdentityUser> userManager)
+        private readonly InventoryRepo _inventoryRepo;
+
+        public SalesInvoiceController(ILogger<HomeController> logger, ApplicationDbContext dbContext, SalesInvoiceRepo salesInvoiceRepo, UserManager<IdentityUser> userManager, InventoryRepo inventoryRepo)
         {
             _dbContext = dbContext;
             _salesInvoiceRepo = salesInvoiceRepo;
             _logger = logger;
             this._userManager = userManager;
+            _inventoryRepo = inventoryRepo;
         }
 
         public async Task<IActionResult> Index()
@@ -44,6 +47,7 @@ namespace Accounting_System.Controllers
                 if (!model.IsPosted)
                 {
                     model.IsPosted = true;
+                    await _inventoryRepo.UpdateQuantity(model.Quantity, int.Parse(model.ProductNo));
                     var ledgers = new Ledger[]
                       {
                         new Ledger {AccountNo = 1001,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Debit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.Amount},
