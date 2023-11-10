@@ -270,5 +270,36 @@ namespace Accounting_System.Controllers
             }
             return View(salesOrder);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> DeleteSalesOrder(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var order = await _salesOrderRepo.FindSalesOrderAsync(id);
+
+            return View(order);
+        }
+
+        [HttpPost, ActionName("DeleteSalesOrder")]
+        public async Task<IActionResult> ConfirmDelete(int id)
+        {
+            if (_dbContext.SalesOrders == null)
+            {
+                return Problem("Entity set 'ApplicationDbContext.Customers'  is null.");
+            }
+
+            var order = await _dbContext.SalesOrders.FindAsync(id);
+            if (order != null)
+            {
+                _dbContext.SalesOrders.Remove(order);
+            }
+
+            await _dbContext.SaveChangesAsync();
+            return RedirectToAction(nameof(OrderSlip));
+        }
     }
 }
