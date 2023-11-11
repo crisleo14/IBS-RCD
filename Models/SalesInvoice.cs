@@ -96,5 +96,7 @@ namespace Accounting_System.Models
         [Display(Name = "VAT Amount")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal VatAmount { get; set; }
+
+        public string Status { get; set; }
     }
 }
