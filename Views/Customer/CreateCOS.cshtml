@@ -1,9 +1,13 @@
 ﻿@using System.ComponentModel.DataAnnotations;
 @model Accounting_System.Models.SalesOrder
+@* @using Accounting_System.Data;
+@inject ApplicationDbContext _dbContext; *@
 
 @{
     ViewData["Title"] = "Create";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // var viewModel = _dbContext.SalesOrders.OrderByDescending(s => s.Id).FirstOrDefault();
 }
 
 <h1>Create</h1>
@@ -20,6 +24,13 @@
                 <option></option>
             </select>
             </div>
+
+           @*  <div class="form-group">
+                <label asp-for="COSNo" class="control-label"></label>
+                <input asp-for="COSNo" type="text" class="form-control" value="@viewModel.COSNo" />
+                    <span asp-validation-for="COSNo" class="text-danger"></span>
+            </div> *@
+
             <div class="form-group">
                 <label asp-for="PO" class="control-label"></label>
                 <input asp-for="PO" type="number" class="form-control" />

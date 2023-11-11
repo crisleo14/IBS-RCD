@@ -190,10 +190,13 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateCOS(SalesOrder model)
         {
+           
             if (ModelState.IsValid)
             {
+                var generateCosNo = await _salesOrderRepo.GenerateCOSNo();
                 
-                _dbContext.Add(model);
+                
+                model.COSNo = generateCosNo;
                 model.Status = "Pending";
                 model.Balance = model.Quantity;
                 if (model.QuantityServe != 0)
@@ -201,9 +204,9 @@ namespace Accounting_System.Controllers
                     model.Balance = model.Quantity - model.QuantityServe;
                 }
                 model.CreatedBy = _userManager.GetUserName(this.User);
+                _dbContext.Add(model);
                 await _dbContext.SaveChangesAsync();
                 TempData["success"] = "Sales Order created successfully";
-
                 return RedirectToAction("OrderSlip");  
             }
             else {
