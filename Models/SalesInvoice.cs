@@ -33,6 +33,9 @@ namespace Accounting_System.Models
         [NotMapped]
         public List<SelectListItem>? Products { get; set; }
 
+        [NotMapped]
+        public List<SelectListItem>? COSNo { get; set; }
+
         [Display(Name = "Sold To")]
         public string SoldTo { get; set; }
 
@@ -97,6 +100,6 @@ namespace Accounting_System.Models
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal VatAmount { get; set; }
 
-        public string Status { get; set; }
+        public string Status { get; set; } = "Pending";
     }
 }
