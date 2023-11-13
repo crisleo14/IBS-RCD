@@ -42,5 +42,12 @@ namespace Accounting_System.Controllers
 
             return View(model);
         }
+
+        public async Task<IActionResult> CustomerProfile()
+        {
+            var customers = await _reportRepo.GetCustomersAsync();
+
+            return View(customers);
+        }
     }
 }
