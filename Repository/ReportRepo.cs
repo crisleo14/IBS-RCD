@@ -32,5 +32,19 @@ namespace Accounting_System.Repository
 
             return salesBooks;
         }
+
+        public async Task<List<Customer>> GetCustomersAsync()
+        {
+            return await _dbContext
+                .Customers
+                .ToListAsync();
+        }
+
+        public async Task<List<Product>> GetProductsAsync()
+        {
+            return await _dbContext
+                .Products
+                .ToListAsync();
+        }
     }
 }
