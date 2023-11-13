@@ -123,6 +123,9 @@
                         @Html.DisplayFor(model => invoice.Quantity)
                     </td> *@
                     <td class="text-end">
+                        @Html.DisplayFor(model => invoice.Amount)
+                    </td>
+                    <td class="text-end">
                         @Html.DisplayFor(model => invoice.VatAmount)
                     </td>
                     <td class="text-end">
@@ -146,21 +149,20 @@
                     @if (invoice.CustomerType == "Zero Rated")
                     {
                         <td class="text-end">
-                            @Html.DisplayFor(model => invoice.Amount)
+                            <div style="margin-right:20px;">
+                                @Html.DisplayFor(model => invoice.Amount)
                             @{
                                 totalZeroRated += invoice.Amount;
                             }
+                            </div>
                         </td>
                     }
                     else
                     {
                         <td class="text-end">
-                            0.00
+                            <div style="margin-right:20px;"> 0.00 </div>
                         </td>
                     }
-                    <td class="text-end">
-                        <div style="margin-right:20px;">@Html.DisplayFor(model => invoice.Amount)</div>
-                    </td>
                   @*   <td>
                         @Html.DisplayFor(model => invoice.Remarks)
                     </td> *@
@@ -171,7 +173,7 @@
                 totalVatableSales += invoice.VatableSales;
                 totalVatableAmount += invoice.VatAmount;
             }
-            <tr class="align-text-bottom" style="border: 1px solid black;">
+            <tr class="align-text-bottom" style="border: 2px solid black;">
                 @{
                     var formattedTotalAmount = String.Format("{0:n}", totalAmount);
                     var formattedTotalQuantity = String.Format("{0:n}", totalQuantity);
@@ -186,10 +188,10 @@
                 <td class="text-center"><b>TOTAL:</b></td>
                 // <td class="text-end">@totalQuantities</td>
                 <td class="text-end">@formattedTotalVatAmount</td>
+                <td class="text-end">@formattedTotalAmount</td>
                 <td class="text-end">@formattedTotalVatableSales</td>
                 <td class="text-end">@formattedTotalExempted</td>
-                <td class="text-end">@formattedTotalZeroRated</td>
-                <td class="text-end"><div style="margin-right:20px;">@formattedTotalAmount</div></td>
+                <td class="text-end"><div style="margin-right:20px;">@formattedTotalZeroRated</div></td>
                 }
             </tr>
         </tbody>
@@ -206,7 +208,7 @@
         <br />
         <strong>Printed By :</strong> @UserManager.GetUserName(User).ToUpper()
         <br />
-        <strong>Date & Time Printed :</strong> @DateTime.Now.ToString("MM/dd/yy hh:mm tt")
+        <strong>Date & Time Printed :</strong> @DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")
         </em>
     </p>
 </div>
