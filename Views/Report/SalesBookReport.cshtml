@@ -80,6 +80,9 @@
                     @Html.DisplayNameFor(model => model.Quantity)
                 </th> *@
                 <th class="text-end">
+                    @Html.DisplayNameFor(model => model.Amount)
+                </th>
+                <th class="text-end">
                     @Html.DisplayNameFor(model => model.VatAmount)
                 </th>
                 <th class="text-end">
@@ -89,10 +92,7 @@
                     VAT Exempt Sales
                 </th>
                 <th class="text-end">
-                    Zero Rated
-                </th>
-                <th class="text-end">
-                    <div style="margin-right:20px;">@Html.DisplayNameFor(model => model.Amount)</div>
+                    <div style="margin-right:20px;">Zero Rated</div>
                 </th>
               @*   <th>
                     @Html.DisplayNameFor(model => model.Remarks)
@@ -187,8 +187,8 @@
                 <td></td>
                 <td class="text-center"><b>TOTAL:</b></td>
                 // <td class="text-end">@totalQuantities</td>
-                <td class="text-end">@formattedTotalVatAmount</td>
                 <td class="text-end">@formattedTotalAmount</td>
+                <td class="text-end">@formattedTotalVatAmount</td>
                 <td class="text-end">@formattedTotalVatableSales</td>
                 <td class="text-end">@formattedTotalExempted</td>
                 <td class="text-end"><div style="margin-right:20px;">@formattedTotalZeroRated</div></td>
