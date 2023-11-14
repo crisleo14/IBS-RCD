@@ -47,8 +47,11 @@
             <th>
                 @Html.DisplayNameFor(model => model.CustomerType)
             </th>
-            <th>
-                Tax Type
+            <th class="text-center">
+                2306
+            </th>
+            <th class="text-center">
+                2307
             </th>
         </tr>
     </thead>
@@ -74,19 +77,26 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.CustomerType)
                 </td>
-                @if(item.WithHoldingTax){
-                    <td>
-                    Creditable With Holding Vat 2306
-                    </td>
-                }else if(item.WithHoldingVat){
-                    <td>
-                    Creditable With Holding Tax 2307
-                    </td>
-                }else{
-                    <td>
-                    None
-                    </td>
-                }
+                    @if (item.WithHoldingVat){
+                        <td class="text-center">
+                            Yes
+                        </td>
+                    }
+                    else{
+                        <td class="text-center">
+                            No
+                        </td>
+                    }
+                   @if (item.WithHoldingTax){
+                        <td class="text-center">
+                            Yes
+                        </td>
+                    }
+                    else{
+                        <td class="text-center">
+                            No
+                        </td>
+                    }
             </tr>
         }
     </tbody>
