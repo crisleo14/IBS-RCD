@@ -16,7 +16,7 @@ namespace Accounting_System.Models
 
         public string CheckDate { get; set; }
 
-        public int Check { get; set; }
+        public int CheckNo { get; set; }
 
         public string Bank { get; set; }
 

@@ -117,12 +117,12 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("Check")
-                        .HasColumnType("integer");
-
                     b.Property<string>("CheckDate")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("CheckNo")
+                        .HasColumnType("integer");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
@@ -156,7 +156,7 @@ namespace Accounting_System.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CollectionReceipt");
+                    b.ToTable("CollectionReceipts");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.Customer", b =>
@@ -280,6 +280,67 @@ namespace Accounting_System.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Ledgers");
+                });
+
+            modelBuilder.Entity("Accounting_System.Models.OfficialReceipt", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("CheckDate")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("CheckNo")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Date")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FormOfPayment")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsPrint")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ORNo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ReferenceNo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("SOAAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("SOADate")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SOAId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SOANo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OfficialReceipts");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.Product", b =>
