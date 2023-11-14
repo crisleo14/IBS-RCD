@@ -94,6 +94,71 @@ namespace Accounting_System.Migrations
                     b.ToTable("ChartOfAccounts");
                 });
 
+            modelBuilder.Entity("Accounting_System.Models.CollectionReceipt", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Bank")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Branch")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CRNo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Check")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CheckDate")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Date")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("EWT")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("FormOfPayment")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsPrint")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ReferenceNo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("SalesInvoiceId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CollectionReceipt");
+                });
+
             modelBuilder.Entity("Accounting_System.Models.Customer", b =>
                 {
                     b.Property<int>("Id")
