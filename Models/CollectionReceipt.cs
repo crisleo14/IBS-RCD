@@ -1,5 +1,8 @@
 ﻿
 
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Accounting_System.Models
 {
     public class CollectionReceipt : BaseEntity
@@ -29,5 +32,8 @@ namespace Accounting_System.Models
         public decimal Total { get; set;}
 
         public bool IsPrint { get; set;}
+
+        [NotMapped]
+        public List<SelectListItem>? ReceivedFrom { get; set; }
     }
 }
