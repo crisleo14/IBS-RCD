@@ -5,9 +5,6 @@
 @inject UserManager<IdentityUser> UserManager
 <h1>Sales Invoices</h1>
 <partial name="_Notification">
-<p>
-    <a asp-action="Create" class="btn btn-primary rounded-3">Create New</a>
-</p>
 
 <div class="table-responsive">
         <table class="table table-hover" id="myOwnTable">
@@ -75,6 +72,12 @@
                             @if (invoice.IsPosted != true)
                             {
                                 <a class="btn btn-light" onclick="confirmPost(@invoice.Id)">Post</a>
+                            }
+                        }else{
+                            if(invoice.IsVoid == true){
+                                <span class="badge rounded-pill bg-danger ">VOIDED</span>
+                            }else{
+                                    <span class="badge rounded-pill bg-warning ">VALID</span>
                             }
                         }
                     </td>

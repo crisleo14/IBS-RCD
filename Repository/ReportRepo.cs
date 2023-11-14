@@ -26,11 +26,25 @@ namespace Accounting_System.Repository
             var salesBooks = _dbContext
              .SalesInvoices
              .AsEnumerable()
-             .Where(s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate)
+             .Where(s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate && s.IsPosted)
              .OrderBy(s => s.Id)
              .ToList();
 
             return salesBooks;
+        }
+
+        public async Task<List<Customer>> GetCustomersAsync()
+        {
+            return await _dbContext
+                .Customers
+                .ToListAsync();
+        }
+
+        public async Task<List<Product>> GetProductsAsync()
+        {
+            return await _dbContext
+                .Products
+                .ToListAsync();
         }
     }
 }

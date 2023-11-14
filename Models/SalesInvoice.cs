@@ -14,7 +14,7 @@ namespace Accounting_System.Models
         {
             get
             {
-                return SerialNo.ToString("D8"); // Formats with leading zeros, e.g., 0000021
+                return "SI" + SerialNo.ToString("D8"); 
             }
         }
 
@@ -32,6 +32,9 @@ namespace Accounting_System.Models
 
         [NotMapped]
         public List<SelectListItem>? Products { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? COSNo { get; set; }
 
         [Display(Name = "Sold To")]
         public string SoldTo { get; set; }
@@ -88,5 +91,15 @@ namespace Accounting_System.Models
         public bool IsPosted { get; set; }
 
         public bool OriginalCopy { get; set; } = true;
+
+        [Display(Name = "Vatable Sales")]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal VatableSales { get; set; }
+
+        [Display(Name = "VAT Amount")]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal VatAmount { get; set; }
+
+        public string Status { get; set; } = "Pending";
     }
 }

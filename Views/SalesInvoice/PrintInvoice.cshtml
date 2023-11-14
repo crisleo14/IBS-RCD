@@ -4,26 +4,13 @@
     ViewData["Title"] = "Sales Invoice";
 }
 @{
-    var amount = Model.Amount;
-    var formattedAmount = String.Format("{0:n}", amount);
-
-    var vatableSales = amount / (decimal)1.12;
-    var formattedVatableSales = String.Format("{0:n}", vatableSales);
-
-    var vatAmount = amount - vatableSales;
-    var formattedVatableAmount = String.Format("{0:n}", vatAmount);
-
     //2307 withholding Tax
-    var lessEwtTax = vatableSales * (decimal)0.01;
+    var lessEwtTax = Model.VatableSales * (decimal)0.01;
     var formattedLessEwtTax = String.Format("{0:n}", lessEwtTax);
 
     //2306 withholding Vat
-    var lessEwtVat = vatableSales * (decimal)0.05;
+    var lessEwtVat = Model.VatableSales * (decimal)0.05;
     var formattedLessEwtVat = String.Format("{0:n}", lessEwtVat);
-
-    //net amount due
-    var netAmountDue = amount - lessEwtTax;
-    var formattedNetAmountDue = String.Format("{0:n}", netAmountDue);
 }
 <br />
 <div class="text-end">
@@ -101,7 +88,7 @@
 </div>
     @if (Model.WithHoldingTax)
     {
-        lessEwtTax = amount * (decimal)0.01;
+        lessEwtTax = Model.Amount * (decimal)0.01;
         var lessEwtTaxInAmount = String.Format("{0:n}", lessEwtTax);
 
         if (Model.CustomerType == "Vatable")
@@ -120,17 +107,17 @@
         }
 
     }
-<div>
+<div style="margin-top:20px;">
     <table class="w-100">
         <tbody>
             <tr>
                 <td style="width:33%">
-                    <div class="table-responsive">
+                    <div>
                         <table class="table-bordered w-100">
                             <tbody>
 
                                 <tr style="height:140px;">
-                                    <td class="align-text-top">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Remarks)</td>
+                                    <td style="position:relative; top:-35px; left:4%;">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Remarks)</td>
                                 </tr>
 
                             </tbody>
@@ -172,49 +159,43 @@
                             <tbody class="text-nowrap">
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
-                                    @if (Model.CustomerType == "Vatable")
-                                    {
-                                        <td class="text-end"><p style="height: 9px;">@formattedVatableSales</p></td>
-                                    }
-                                    else
-                                    {
-                                        <td class="text-end"><p style="height: 9px;">0.00</p></td>
-                                    }
+                                        <td class="text-end">
+                                        @if (Model.CustomerType == "Vatable")
+                                        {
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.VatableSales)</p>
+                                        }
+                                    </td>
 
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
-                                    @if(Model.CustomerType == "Zero Rated"){
-                                        <td class="text-end"><p style="height: 9px;">@formattedAmount</p></td>
-                                    }
-                                    else
-                                    {
-                                        <td class="text-end"><p style="height: 9px;">0.00</p></td>
-                                    }
                                     
+                                    <td class="text-end">
+                                        @if (Model.CustomerType == "Zero Rated")
+                                        {
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p>
+                                        }
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td style="width:40%; margin-left:8%;"><p style="height: 9px; margin-left:8%;"><b>VAT-exempt Sales: </b></p></td>
-                                    @if(Model.CustomerType == "Exempt"){
-                                        <td class="text-end"><p style="height: 9px;">@formattedAmount</p></td>
-                                    }
-                                    else
-                                    {
-                                        <td class="text-end"><p style="height: 9px;">0.00</p></td>
-                                    }
+                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT-exempt Sales: </b></p></td>
                                     
+                                    <td class="text-end">
+                                        @if (Model.CustomerType == "Exempt")
+                                        {
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p>
+                                        }
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
-                                    @if(Model.CustomerType == "Vatable")
-                                    {
-                                        <td class="text-end"><p style="height: 9px;">@formattedVatableAmount</p></td>
-                                    }
-                                    else
-                                    {
-                                        <td class="text-end"><p style="height: 9px;">0.00</p></td>
-                                    }
                                     
+                                    <td class="text-end">
+                                        @if (Model.CustomerType == "Vatable")
+                                        {
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.VatAmount)</p>
+                                        }
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
@@ -290,9 +271,29 @@
         <i>This is a system generated invoice, no signature required.</i>
     </p>
 </div><br />
+@if (Model.CustomerType == "Exempt")
+{
+   <div style="margin-top:20px;">
+    <p>
+        <strong style="border:2px solid; padding:10px;">TAX EXEMPT</strong>
+        <br><br>
+        <em>"This document is not valid for claiming input taxes"<br /></em> 
+    </p>
+    </div>
+}
+else if (Model.CustomerType == "Zero Rated")
+{
+    <div style="margin-top:20px;">
+    <p>
+        <strong style="border:2px solid; padding:10px;">ZERO RATED</strong>
+        <br><br>
+        <em>"This document is not valid for claiming input taxes"<br /></em> 
+    </div>
+}
+<br />
 <div class="text-center w-100" style="margin-top:20px;">
     <p style="line-height: 1;">
-        Acknowledgement Certificate No:<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>Date Issued:<u> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u> Series from:<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u><br />
+        Acknowledgement Certificate No:<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>Date Issued:<u> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u> Series from: SI00000001 - SI99999999<br />
         Date and Time Created:@Html.DisplayFor(model => model.CreatedDate)
     </p>
 </div>
@@ -372,38 +373,55 @@
         });
     </script>
     <script>
-    // Get the transaction date value from the HTML element
-    var transactionDate = document.getElementById('invoiceDate').innerText;
+        // Get the transaction date value from the HTML element
+        var transactionDate = document.getElementById('invoiceDate').innerText;
 
-    // Convert the transaction date string to a Date object
-    var dateObject = new Date(transactionDate);
+        // Convert the transaction date string to a Date object
+        var dateObject = new Date(transactionDate);
 
-    // Get the terms value from the HTML element
-    var terms = document.getElementById('terms').innerText;
+        // Get the terms value from the HTML element
+        var terms = document.getElementById('terms').innerText;
 
-    // Convert the terms to an integer
-    var termsInt = parseInt(terms);
+        // Convert the terms to an integer
+        var termsInt = parseInt(terms);
 
-    // Add the terms to the transaction date
+        // Add the terms to the transaction date
         if (terms == "COD") {
             dateObject.setDate(dateObject.getDate());
-        } else if(terms == "M30") {
+        } else if (terms == "M30") {
 
-            dateObject.setMonth(dateObject.getMonth() + 1);
-            dateObject.setDate(30);
+            var nextMonth = dateObject.getMonth() + 1;
+            var nextMonthDays = new Date(dateObject.getFullYear(), nextMonth, 0).getDate();
+
+            if (nextMonthDays === 30) {
+                dateObject.setMonth(nextMonth);
+                dateObject.setDate(30);
+            } else {
+                dateObject.setMonth(nextMonth + 1);
+                dateObject.setDate(0);
+            }
         } else if (terms == "M15") {
 
-            dateObject.setMonth(dateObject.getMonth() + 1);
-            dateObject.setDate(15);
-        }else
-        {
+            var nextMonth = dateObject.getMonth() + 1;
+            var nextMonthDays = new Date(dateObject.getFullYear(), nextMonth, 0).getDate();
+
+            if (nextMonthDays === 30) {
+                dateObject.setMonth(nextMonth);
+                dateObject.setDate(15);
+            } else {
+                dateObject.setMonth(nextMonth + 1);
+                dateObject.setDate(0);
+            }
+        } else {
             dateObject.setDate(dateObject.getDate() + termsInt);
         }
 
-    // Format the date as required (assuming MM/DD/YYYY format)
-    var formattedDate = (dateObject.getMonth() + 1) + '/' + dateObject.getDate() + '/' + dateObject.getFullYear();
+        // Format the date as required
+        var formattedDate = dateObject.toLocaleDateString();
 
-    // Update the HTML to display the computed date as the due date
-    document.getElementById('dueDate').innerText = formattedDate;
-</script>
+        // Update the HTML to display the computed date as the due date
+        document.getElementById('dueDate').innerText = formattedDate;
+    </script>
+
+
 }

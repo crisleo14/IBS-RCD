@@ -15,7 +15,7 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Accounting_System</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Accounting System</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                         aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -25,11 +25,23 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="SalesInvoice" asp-action="Index">Sales Invoice</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Sales Invoice
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="SalesInvoice" asp-action="Index">List</a></li>
+                                <li><a class="dropdown-item" asp-controller="SalesInvoice" asp-action="Create">Create New</a></li>
+                            </ul>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Customer" asp-action="Index">Customer</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Customer
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="Customer" asp-action="Index">List</a></li>
+                                <li><a class="dropdown-item" asp-controller="Customer" asp-action="OrderSlip">OrderSlip</a></li>
+                            </ul>
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -37,6 +49,17 @@
                             </a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="SalesBook">Sales Book</a></li>
+                                <li><a class="dropdown-item" asp-controller="Report" asp-action="CustomerProfile">Customer Profile</a></li>
+                                <li><a class="dropdown-item" asp-controller="Report" asp-action="ProductList">Product List</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Receipt
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="Receipt" asp-action="OfficialReceipt">Offical</a></li>
+                                <li><a class="dropdown-item" asp-controller="Receipt" asp-action="CollectionReceipt">Collection</a></li>
                             </ul>
                         </li>
                     </ul>

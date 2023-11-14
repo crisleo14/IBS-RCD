@@ -23,6 +23,8 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> SalesBookReport(SalesBook model)
         {
+            ViewBag.DateFrom = model.DateFrom;
+            ViewBag.DateTo = model.DateTo;
             if (ModelState.IsValid)
             {
                 try
@@ -39,6 +41,20 @@ namespace Accounting_System.Controllers
             }
 
             return View(model);
+        }
+
+        public async Task<IActionResult> CustomerProfile()
+        {
+            var customers = await _reportRepo.GetCustomersAsync();
+
+            return View(customers);
+        }
+
+        public async Task<IActionResult> ProductList()
+        {
+            var products = await _reportRepo.GetProductsAsync();
+
+            return View(products);
         }
     }
 }

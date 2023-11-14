@@ -20,15 +20,13 @@
 
                   @*   column 1 *@
        <div class="col">
-                <label asp-for="CustomerId" class="control-label"></label>
+                <label class="control-label">Customer Name</label>
                 <select asp-for="CustomerId" asp-items="@Model.Customers" class="form-control js-select2">
                     <option></option>
                 </select>
                 <span asp-validation-for="CustomerId" class="text-danger"></span>
 
-                <label asp-for="SoldTo" class="control-label"></label>
-                <input asp-for="SoldTo" id="soldTo" class="form-control" readonly />
-                <span asp-validation-for="SoldTo" class="text-danger"></span>
+                <input type="hidden" asp-for="SoldTo" id="soldTo" class="form-control" readonly />
 
                 <label asp-for="TinNo" class="control-label"></label>
                 <input asp-for="TinNo" id="tinNo" class="form-control" readonly />
@@ -55,15 +53,13 @@
 
             @*   column 2 *@
        <div class="col">
-                <label asp-for="ProductNo" class="control-label"></label>
+                <label class="control-label">Produuct Name</label>
                 <select asp-for="ProductNo" asp-items="@Model.Products" class="form-control js-select2">
                     <option></option>
                 </select>
                 <span asp-validation-for="ProductNo" class="text-danger"></span>
 
-                <label asp-for="ProductName" class="control-label"></label>
-                <input asp-for="ProductName" id="productName" class="form-control" readonly />
-                <span asp-validation-for="ProductName" class="text-danger"></span>
+                <input type="hidden" asp-for="ProductName" id="productName" class="form-control" readonly />
 
                   <label asp-for="ProductUnit" class="control-label"></label>
                 <input asp-for="ProductUnit" id="productUnit" class="form-control" readonly />
@@ -81,7 +77,7 @@
             @*   column 3 *@
        <div class="col">
                 <label asp-for="TransactionDate" class="control-label"></label>
-                <input type="date" asp-for="TransactionDate" value="@DateTime.Now.ToShortDateString" class="form-control" />
+                <input type="date" asp-for="TransactionDate" class="form-control" />
                 <span asp-validation-for="TransactionDate" class="text-danger"></span>
 
                 <label asp-for="PoNo" class="control-label"></label>
@@ -89,7 +85,9 @@
                 <span asp-validation-for="PoNo" class="text-danger"></span>
 
                 <label asp-for="OtherRefNo" class="control-label"></label>
-                <input asp-for="OtherRefNo" class="form-control" />
+                <select asp-for="OtherRefNo" asp-items="@Model.COSNo" class="form-control js-select2">
+                    <option></option>
+                </select>
                 <span asp-validation-for="OtherRefNo" class="text-danger"></span>
                     </div>
                 </div>
@@ -102,7 +100,7 @@
                 <span asp-validation-for="Remarks" class="text-danger"></span>
             </div>
     <div class="form-group" style="margin-top:50px;">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="submit" value="Save" class="btn btn-primary" />
             </div>
         </form>
 <div>
