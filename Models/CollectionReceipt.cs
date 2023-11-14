@@ -9,7 +9,7 @@ namespace Accounting_System.Models
     {
         public int SalesInvoiceId { get; set; }
 
-        public string CRNo { get; set; }
+        public string? CRNo { get; set; }
 
         public string Date { get; set; }
 
@@ -34,6 +34,6 @@ namespace Accounting_System.Models
         public bool IsPrint { get; set;}
 
         [NotMapped]
-        public List<SelectListItem>? ReceivedFrom { get; set; }
+        public List<SelectListItem>? Customers { get; set; }
     }
 }

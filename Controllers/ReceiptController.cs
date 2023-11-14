@@ -1,10 +1,11 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Accounting_System.Controllers
 {
@@ -14,18 +15,19 @@ namespace Accounting_System.Controllers
 
         private readonly UserManager<IdentityUser> _userManager;
 
-        private readonly CollectionReceiptRepo _collectionReceiptRepo;
+        private readonly ReceiptRepo _receiptRepo;
 
-        public ReceiptController(ApplicationDbContext dbContext)
+        public ReceiptController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, ReceiptRepo receiptRepo)
         {
             _dbContext = dbContext;
+            this._userManager = userManager;
+            _receiptRepo = receiptRepo;
         }
 
-        [HttpGet]
         public IActionResult CreateCollectionReceipt()
         {
             var viewModel = new CollectionReceipt();
-            viewModel.ReceivedFrom = _dbContext.SalesInvoices
+            viewModel.Customers = _dbContext.SalesInvoices
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
@@ -42,7 +44,7 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
-                var generateCRNo = await _collectionReceiptRepo.GenerateCRNo();
+                var generateCRNo = await _receiptRepo.GenerateCRNo();
 
                 model.CRNo = generateCRNo;
                 model.CreatedBy = _userManager.GetUserName(this.User);

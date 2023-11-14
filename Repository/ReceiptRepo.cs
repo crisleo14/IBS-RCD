@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Repository
 {
-    public class CollectionReceiptRepo
+    public class ReceiptRepo
     {
         private readonly ApplicationDbContext _dbContext;
-        public CollectionReceiptRepo(ApplicationDbContext dbContext)
+        public ReceiptRepo(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
         }
@@ -21,11 +21,11 @@ namespace Accounting_System.Repository
             if (collectionReceipt != null)
             {
                 var generatedCR = collectionReceipt.Id + 1;
-                return $"CR{generatedCR.ToString("D8")}";
+                return $"CR{generatedCR.ToString("D10")}";
             }
             else
             {
-                return $"CR{1.ToString("D8")}";
+                return $"CR{1.ToString("D10")}";
             }
 
         }
