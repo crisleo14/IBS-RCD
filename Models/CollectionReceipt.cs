@@ -9,6 +9,9 @@ namespace Accounting_System.Models
     {
         public int SalesInvoiceId { get; set; }
 
+        [ForeignKey("SalesInvoiceId")]
+        public SalesInvoice? SalesInvoice { get; set; }
+
         public string? CRNo { get; set; }
 
         public string Date { get; set; }

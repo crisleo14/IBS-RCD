@@ -1,4 +1,5 @@
-﻿
+﻿@model Accounting_System.Models.CollectionReceipt
+
 <br />
 <div class="text-end">
     <img src="~/img/Filpride.jpg" height="" width="130px" />
@@ -14,20 +15,20 @@
 
 <h3><span style="display: inline-block;"><b>COLLECTION RECEIPT</b></span></h3>
 <div class="text-end" style="margin-top:-50px;">
-    <h5><b>Collection Receipt No.&nbsp;CR00000001</b></h5>
+    <h5><b>Collection Receipt No.&nbsp;@Html.DisplayFor(model => model.CRNo)</b></h5>
 </div>
 <br />
 
 <div class="w-100 text-end">
     <span><b>Date:</b></span>
-    <span class="underline" style="display: inline-block; width: 30%;"></span><br />
+    <span class="underline" style="display: inline-block; width: 30%;">@Html.DisplayFor(model => model.Date)</span><br />
 </div>
 
 <div>
     <table class="table-bordered w-100">
         <tbody>
             <tr>
-                <td colspan="2" style="padding-left:10px;">Received from:</td>
+                <td colspan="2" style="padding-left:10px;">Received from: &nbsp;@Html.DisplayFor(model => model.SalesInvoice.SoldTo)</td>
             </tr>
             <tr>
                 <td colspan="2" class="w-50" style="padding-left:10px;">Address:</td>

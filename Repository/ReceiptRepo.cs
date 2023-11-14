@@ -15,6 +15,7 @@ namespace Accounting_System.Repository
         {
             var collectionReceipt = await _dbContext
                 .CollectionReceipts
+                .Include(s => s.SalesInvoice)
                 .OrderByDescending(s => s.Id)
                 .FirstOrDefaultAsync();
 
