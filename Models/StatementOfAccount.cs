@@ -1,0 +1,49 @@
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Accounting_System.Models
+{
+    public class StatementOfAccount : BaseEntity
+    {
+        public int Number { get; set; }
+
+        [NotMapped]
+        [Display(Name = "SOA No.")]
+        public string FormmatedNumber
+        {
+            get
+            {
+                return Number.ToString("D10");
+            }
+        }
+
+        [Required]
+        [Display(Name = "Customer")]
+        public int CustomerId { get; set; }
+
+        [ForeignKey("CustomerId")]
+        public Customer Customer { get; set; }
+
+        [Required]
+        public string Attention { get; set; }
+
+        [Required]
+        public string Particular { get; set; }
+
+        [Required]
+        [Display(Name = "Account Name")]
+        public string AccountName { get; set; }
+
+        [Required]
+        public string Bank { get; set; }
+
+        [Required]
+        [Display(Name = "Bank Account No.")]
+        public string BankAccountNo { get; set; }
+
+        [Required]
+        [Display(Name = "Bank Branch")]
+        public string BankBranch { get; set; }
+    }
+}
