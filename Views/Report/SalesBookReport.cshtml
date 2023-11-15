@@ -29,6 +29,9 @@
     decimal totalVatableAmount = 0;
     decimal totalExempted = 0;
     decimal totalZeroRated = 0;
+
+    int numberOfRecords = 0;
+    decimal amountFieldControlTotal = 0;
 }
 
 <br />
@@ -47,20 +50,23 @@
 
 
 </div>
-@if (dateFrom == dateTo)
-{
-<p style="line-height:1px; margin-top:20px; margin-bottom:-10px;">
-    Period: @dateFrom
-</p>
-}else{
-    <p style="line-height:1px; margin-top:20px; margin-bottom:-10px;">
-        Period: From @dateFrom To @dateTo
-    </p>
-}
+<div>
+    <pre id ="resultPre">
+Accounting Books File Attributes/Layout Definition
+File Name: Sales Book Report
+File Type: PDF File
+Number of Records:              @numberOfRecords
+Amount Field Control Total:     @amountFieldControlTotal
+Period Covered:                 @dateFrom to @dateTo
+Extracted By:                   @UserManager.GetUserName(User).ToUpper()
+
+</pre>
+</div>
+
 <div class="table-responsive" style="margin-top:20px;">
     <table class="table-hover w-100">
         <thead>
-            <tr class="table-bordered text-primary" style="border: 1px solid black;">
+            <tr class="table-bordered">
                 <th>
                     @Html.DisplayNameFor(model => model.TransactionDate)
                 </th>
@@ -92,7 +98,7 @@
                     VAT Exempt Sales
                 </th>
                 <th class="text-end">
-                    <div style="margin-right:20px;">Zero Rated</div>
+                    <div>Zero Rated</div>
                 </th>
               @*   <th>
                     @Html.DisplayNameFor(model => model.Remarks)
@@ -149,7 +155,7 @@
                     @if (invoice.CustomerType == "Zero Rated")
                     {
                         <td class="text-end">
-                            <div style="margin-right:20px;">
+                            <div>
                                 @Html.DisplayFor(model => invoice.Amount)
                             @{
                                 totalZeroRated += invoice.Amount;
@@ -160,7 +166,7 @@
                     else
                     {
                         <td class="text-end">
-                            <div style="margin-right:20px;"> 0.00 </div>
+                            <div> 0.00 </div>
                         </td>
                     }
                   @*   <td>
@@ -173,7 +179,7 @@
                 totalVatableSales += invoice.VatableSales;
                 totalVatableAmount += invoice.VatAmount;
             }
-            <tr class="align-text-bottom" style="border: 2px solid black;">
+            <tr class="align-text-bottom" style="border-top: 2px solid black;">
                 @{
                     var formattedTotalAmount = String.Format("{0:n}", totalAmount);
                     var formattedTotalQuantity = String.Format("{0:n}", totalQuantity);
@@ -191,15 +197,14 @@
                 <td class="text-end">@formattedTotalVatAmount</td>
                 <td class="text-end">@formattedTotalVatableSales</td>
                 <td class="text-end">@formattedTotalExempted</td>
-                <td class="text-end"><div style="margin-right:20px;">@formattedTotalZeroRated</div></td>
+                <td class="text-end"><div>@formattedTotalZeroRated</div></td>
                 }
             </tr>
         </tbody>
     </table>
 </div>
 
-<br />
-<div class="text-start w-100 footer" style="margin-top:50px;">
+@* <div class="text-start w-100 footer" style="margin-top:50px;">
     <p style="line-height: 1;">
         <em>
         <strong>Software Name :</strong> Accounting Administration System (AAS)
@@ -211,7 +216,7 @@
         <strong>Date & Time Printed :</strong> @DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")
         </em>
     </p>
-</div>
+</div> *@
 
 <div>
     <a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
@@ -283,4 +288,130 @@
             document.querySelector("footer").style.display = "";
         }
     </script>
+    <script>
+        // Get the first row in the table body
+        var firstRow = document.querySelector('tbody tr:first-child');
+
+        // Get all cells in the first row
+        var cells = firstRow.querySelectorAll('td');
+
+        // Initialize total character count
+        var totalCharacters = 0;
+
+        // Get the pre tag element
+        var resultPre = document.getElementById('resultPre');
+
+        // Append the header for the fields
+        resultPre.textContent += 'Field Name          Description         From     To     Length      Example\n';
+
+        // Iterate through each cell in the first row
+        cells.forEach(function (cell, index) {
+            // Calculate the starting and ending character positions for each cell
+            var cellHtml = cell.innerHTML;
+
+            // Exclude spaces from both 'START' and 'END' counts
+            var startChar = totalCharacters + 1;
+            var endChar = startChar + cellHtml.replace(/\s/g, '').length - 1;
+
+            // Update the total character count
+            totalCharacters = endChar + 1; // Add 1 to include the space in the next cell
+
+            // Append the result to the pre tag based on the row index
+            switch (index) {
+                case 0: // Transaction Date
+                    resultPre.textContent += padToLength('TransactionDate', 20) +
+                        padToLength('Transaction Date', 20) +
+                        padToLength(startChar.toString(), 9) +
+                        padToLength(endChar.toString(), 7) +
+                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        '2023-11-13\n';
+                    break;
+                case 1: // Serial No
+                    resultPre.textContent += padToLength('SerialNo', 20) +
+                        padToLength('Serial Number', 20) +
+                        padToLength(startChar.toString(), 9) +
+                        padToLength(endChar.toString(), 7) +
+                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        'SI0000000001\n';
+                    break;
+                case 2: // Sold To
+                    resultPre.textContent += padToLength('SoldTo', 20) +
+                        padToLength('Customer Name', 20) +
+                        padToLength(startChar.toString(), 9) +
+                        padToLength(endChar.toString(), 7) +
+                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        'Customer A Vatable\n';
+                    break;
+                case 3: // Tin#
+                    resultPre.textContent += padToLength('TinNo', 20) +
+                        padToLength('Tin#', 20) +
+                        padToLength(startChar.toString(), 9) +
+                        padToLength(endChar.toString(), 7) +
+                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        '776-123-401-45684\n';
+                    break;
+                case 4: // Amount
+                    resultPre.textContent += padToLength('Amount', 20) +
+                        padToLength('Amount', 20) +
+                        padToLength(startChar.toString(), 9) +
+                        padToLength(endChar.toString(), 7) +
+                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        '481,000.00\n';
+                    break;
+                case 5: // Vat Amount
+                    resultPre.textContent += padToLength('VatAmount', 20) +
+                        padToLength('Vat Amount', 20) +
+                        padToLength(startChar.toString(), 9) +
+                        padToLength(endChar.toString(), 7) +
+                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        '51,535.71\n';
+                    break;
+                case 6: // Vatable Sales
+                    resultPre.textContent += padToLength('VatableSales', 20) +
+                        padToLength('Vatable Sales', 20) +
+                        padToLength(startChar.toString(), 9) +
+                        padToLength(endChar.toString(), 7) +
+                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        '429,464.29\n';
+                    break;
+                case 7: // VAT Exempt Sales
+                    resultPre.textContent += padToLength('VatExemptSales', 20) +
+                        padToLength('VAT Exempt Sales', 20) +
+                        padToLength(startChar.toString(), 9) +
+                        padToLength(endChar.toString(), 7) +
+                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        '0.00\n';
+                    break;
+                case 8: // Zero Rated
+                    resultPre.textContent += padToLength('ZeroRated', 20) +
+                        padToLength('Zero Rated', 20) +
+                        padToLength(startChar.toString(), 9) +
+                        padToLength(endChar.toString(), 7) +
+                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        '0.00\n';
+                    break;
+            }
+        });
+
+        // Function to pad a string to a specific length
+        function padToLength(str, length) {
+            return str + ' '.repeat(Math.max(0, length - str.length));
+        }
+    </script>
+
+    <script>
+        // Get all <tr> elements in the table body (excluding the header row)
+        var allTrElements = document.querySelectorAll('tbody tr');
+
+        // Get the pre tag element
+        var resultPre = document.getElementById('resultPre');
+
+        console.log("@formattedTotalAmount");
+        // Replace the placeholder in the HTML with the actual number of records
+        resultPre.innerHTML = resultPre.innerHTML.replace('@numberOfRecords', (allTrElements.length - 1));
+        resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@formattedTotalAmount");
+
+    </script>
+
+
 }

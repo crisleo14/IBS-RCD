@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231114083800_initial create of statement of account v2")]
+    partial class initialcreateofstatementofaccountv2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -437,8 +440,9 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
+                    b.Property<string>("Attention")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Bank")
                         .IsRequired()
@@ -465,10 +469,6 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Particular")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Period")
                         .IsRequired()
                         .HasColumnType("text");
 
