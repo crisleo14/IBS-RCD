@@ -34,28 +34,28 @@
                     </div>
 
                     <span><b>Received from:</b></span>
-                    <span class="underline" style="display: inline-block; width: 80%;"></span><br />
+                    <span class="underline" style="display: inline-block; width: 83%;">&nbsp;&nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.Name)</span><br />
 
                     <span><b>with TIN</b></span>
-                    <span class="underline" style="display: inline-block; width: 87%;"></span><br />
+                    <span class="underline" style="display: inline-block; width: 90%;">&nbsp;&nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.TinNo)</span><br />
 
                     <span><b>and address at</b></span>
-                    <span class="underline" style="display: inline-block; width: 80%;"></span><br />
+                    <span class="underline" style="display: inline-block; width: 83%;">&nbsp;&nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.Address)</span><br />
 
                     <span><b>engaged in the business style of</b></span>
-                    <span class="underline" style="display: inline-block; width: 63%;"></span><br />
+                    <span class="underline" style="display: inline-block; width: 65%;">&nbsp;&nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.BusinessStyle)</span><br />
 
                     <span><b>the sum of</b></span>
-                    <span class="underline" style="display: inline-block; width: 85%;"></span><br />
+                    <span class="underline" style="display: inline-block; width: 87%;">&nbsp;&nbsp;One Thousand Pesos Only</span><br />
 
                     <span><b>pesos</b></span>
-                    <span class="underline" style="display: inline-block; width: 90%;">(₱)</span><br />
+                    <span class="underline" style="display: inline-block; width: 92%;">(₱ @Model.StatementOfAccount.Amount)</span><br />
 
                     <span><b>In partial/full payment for</b></span>
-                    <span class="underline" style="display: inline-block; width: 70%;"></span><br />
+                    <span class="underline" style="display: inline-block; width: 72%;">&nbsp;&nbsp;Full</span><br />
 
                     <span><b>Reference Receipt No.</b></span>
-                    <span class="underline" style="display: inline-block; width: 73%;">@Html.DisplayFor(model => model.ReferenceNo)</span>
+                    <span class="underline" style="display: inline-block; width: 75%;">&nbsp;&nbsp;@Html.DisplayFor(model => model.ReferenceNo)</span>
                 </td>
             </tr>
         </tbody>
@@ -74,18 +74,33 @@
             </tr> *@
             <tr>
                 <td class="w-25" style="padding-left:10px;">VATables Sales</td>
-                <td class="w-25"></td>
+                <td class="w-25">
+                    @if (Model.StatementOfAccount.Customer.CustomerType == "Vatable")
+                    {
+                        <h6 style="height: 9px; padding-left:10px;">893.00</h6>
+                    }
+                </td>
                 <td colspan="2" class="w-50" style="padding-left:10px;"></td>
             </tr>
             <tr>
                 <td style="padding-left:10px;">VAT-Exempt Sales</td>
-                <td></td>
+                <td>
+                    @if (Model.StatementOfAccount.Customer.CustomerType == "Exempt")
+                    {
+                        <h6 style="height: 9px; padding-left:10px;">@Html.DisplayFor(model => model.Amount)</h6>
+                    }
+                </td>
                 <td style="padding-left:10px;">Form of Payment:</td>
                 <td class="w-25" style="padding-left:10px;">@Html.DisplayFor(model => model.FormOfPayment)</td>
             </tr>
             <tr>
                 <td style="padding-left:10px;">Zero Rated Sales</td>
-                <td></td>
+                <td>
+                    @if (Model.StatementOfAccount.Customer.CustomerType == "Zero Rated")
+                    {
+                        <p style="height: 9px; padding-left:10px;">@Html.DisplayFor(model => model.Amount)</p>
+                    }
+                </td>
                 <td style="padding-left:10px;">Check no.</td>
                 <td style="padding-left:10px;">@Html.DisplayFor(model => model.CheckNo)</td>
             </tr>
@@ -97,7 +112,12 @@
             </tr>
             <tr>
                 <td style="padding-left:10px;">Total Sales(VAT Inclusive)</td>
-                <td></td>
+                <td>
+                    @if (Model.StatementOfAccount.Customer.CustomerType == "Vatable")
+                    {
+                        <h6 style="height: 9px; padding-left:10px;">107.00</h6>
+                    }
+                </td>
                 <td style="padding-left:10px;">AMOUNT</td>
                 <td style="padding-left:10px;">@Html.DisplayFor(model => model.Amount)</td>
             </tr>
@@ -109,7 +129,7 @@
             </tr>
             <tr>
                 <td style="padding-left:10px;">Total Amount Due</td>
-                <td></td>
+                <td style="padding-left:10px;">@Html.DisplayFor(model => model.Amount)</td>
                 <td></td>
                 <td></td>
             </tr>
@@ -159,7 +179,7 @@
         </tbody>
     </table>
 </div>
-<br />
+
 @* <div class="w-100 text-end">
     <span>By:</span>
     <span class="underline" style="display: inline-block; width: 30%;"></span><br />

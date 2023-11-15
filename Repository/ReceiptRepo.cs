@@ -7,6 +7,7 @@ namespace Accounting_System.Repository
     public class ReceiptRepo
     {
         private readonly ApplicationDbContext _dbContext;
+
         public ReceiptRepo(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
@@ -28,7 +29,6 @@ namespace Accounting_System.Repository
             {
                 return $"CR{1.ToString("D10")}";
             }
-
         }
 
         public async Task<string> GenerateORNo()
@@ -41,13 +41,12 @@ namespace Accounting_System.Repository
             if (officialReceipt != null)
             {
                 var generatedCR = officialReceipt.Id + 1;
-                return $"CR{generatedCR.ToString("D10")}";
+                return $"OR{generatedCR.ToString("D10")}";
             }
             else
             {
-                return $"CR{1.ToString("D10")}";
+                return $"OR{1.ToString("D10")}";
             }
-
         }
 
         public async Task<List<CollectionReceipt>> GetCRAsync()
@@ -88,6 +87,7 @@ namespace Accounting_System.Repository
             var officialReceipt = await _dbContext
                 .OfficialReceipts
                 .Include(s => s.StatementOfAccount)
+                .ThenInclude(soa => soa.Customer)
                 .FirstOrDefaultAsync(collectionReceipt => collectionReceipt.Id == id);
 
             if (officialReceipt != null)
