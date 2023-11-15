@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231114112053_implement foreign key collection receipt to sales invoice")]
+    partial class implementforeignkeycollectionreceipttosalesinvoice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -326,12 +329,20 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<decimal>("SOAAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("SOADate")
+                        .HasColumnType("integer");
+
                     b.Property<int>("SOAId")
                         .HasColumnType("integer");
 
-                    b.HasKey("Id");
+                    b.Property<string>("SOANo")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.HasIndex("SOAId");
+                    b.HasKey("Id");
 
                     b.ToTable("OfficialReceipts");
                 });
@@ -556,8 +567,9 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
+                    b.Property<string>("Attention")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Bank")
                         .IsRequired()
@@ -584,10 +596,6 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Particular")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Period")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -841,17 +849,6 @@ namespace Accounting_System.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("Accounting_System.Models.OfficialReceipt", b =>
-                {
-                    b.HasOne("Accounting_System.Models.StatementOfAccount", "StatementOfAccount")
-                        .WithMany()
-                        .HasForeignKey("SOAId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("StatementOfAccount");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.StatementOfAccount", b =>

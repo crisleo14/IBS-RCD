@@ -20,5 +20,7 @@ namespace Accounting_System.Data
         public DbSet<Inventory> Inventories { get; set; }
         public DbSet<SalesOrder> SalesOrders { get; set; }
         public DbSet<StatementOfAccount> StatementOfAccounts { get; set; }
+        public DbSet<CollectionReceipt> CollectionReceipts { get; set; }
+        public DbSet<OfficialReceipt> OfficialReceipts { get; set; }
     }
 }
