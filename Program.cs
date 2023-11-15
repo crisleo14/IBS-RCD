@@ -26,6 +26,7 @@ builder.Services.AddScoped<CustomerRepo>();
 builder.Services.AddScoped<ReportRepo>();
 builder.Services.AddScoped<InventoryRepo>();
 builder.Services.AddScoped<SalesOrderRepo>();
+builder.Services.AddScoped<StatementOfAccountRepo>();
 
 var app = builder.Build();
 
