@@ -26,13 +26,13 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> CollectionReceiptIndex()
         {
-            var viewData = await _receiptRepo.GetCustomersAsync();
+            var viewData = await _receiptRepo.GetCRAsync();
 
             return View(viewData);
         }
         public async Task<IActionResult> OfficialReceiptIndex()
         {
-            var viewData = await _receiptRepo.GetCustomersAsync();
+            var viewData = await _receiptRepo.GetORAsync();
 
             return View(viewData);
         }
@@ -77,7 +77,38 @@ namespace Accounting_System.Controllers
 
         public IActionResult CreateOfficialReceipt()
         {
-            return View();
+            var viewModel = new OfficialReceipt();
+            viewModel.SOANo = _dbContext.StatementOfAccounts
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.FormmatedNumber
+                })
+                .ToList();
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateOfficialReceipt(OfficialReceipt model)
+        {
+
+            if (ModelState.IsValid)
+            {
+                var generateORNo = await _receiptRepo.GenerateORNo();
+
+                model.ORNo = generateORNo;
+                model.CreatedBy = _userManager.GetUserName(this.User);
+                _dbContext.Add(model);
+                await _dbContext.SaveChangesAsync();
+                TempData["success"] = "Sales Order created successfully";
+                return RedirectToAction("OfficialReceiptIndex");
+            }
+            else
+            {
+                ModelState.AddModelError("", "The information you submitted is not valid!");
+                return View(model);
+            }
         }
 
 
@@ -86,9 +117,10 @@ namespace Accounting_System.Controllers
             var cr = await _receiptRepo.FindCR(id);
             return View(cr);
         }
-        public IActionResult OfficialReceipt()
+        public async Task<IActionResult> OfficialReceipt(int id)
         {
-            return View();
+            var or = await _receiptRepo.FindOR(id);
+            return View(or);
         }
 
         public async Task<IActionResult> PrintedCR(int id)
@@ -100,6 +132,17 @@ namespace Accounting_System.Controllers
                 await _dbContext.SaveChangesAsync();
             }
             return RedirectToAction("CollectionReceipt", new { id = id });
+        }
+
+        public async Task<IActionResult> PrintedOR(int id)
+        {
+            var findIdOfOR = await _receiptRepo.FindOR(id);
+            if (findIdOfOR != null && !findIdOfOR.IsPrint)
+            {
+                findIdOfOR.IsPrint = true;
+                await _dbContext.SaveChangesAsync();
+            }
+            return RedirectToAction("OfficialReceipt", new { id = id });
         }
     }
 }

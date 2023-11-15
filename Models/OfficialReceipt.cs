@@ -10,7 +10,7 @@ namespace Accounting_System.Models
         [ForeignKey("SOAId")]
         public StatementOfAccount? StatementOfAccount { get; set; }
 
-        public string ORNo { get; set; }
+        public string? ORNo { get; set; }
 
         public string Date { get; set; }
 
