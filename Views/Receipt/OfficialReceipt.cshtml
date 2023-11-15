@@ -1,4 +1,9 @@
-﻿
+﻿@model Accounting_System.Models.OfficialReceipt
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+
 <br />
 <div class="text-end">
     <img src="~/img/Filpride.jpg" height="" width="130px" />
@@ -14,7 +19,7 @@
 
 <h3><span style="display: inline-block;"><b>OFFICIAL RECEIPT</b></span></h3>
 <div class="text-end" style="margin-top:-70px;"><br />
-    <h5><b>Official Receipt No.&nbsp;OR00000001</b></h5>
+    <h6><b>Official Receipt No.&nbsp;@Html.DisplayFor(model => model.ORNo)</b></h6>
 </div>
 
 <div class="table-responsive">
@@ -25,7 +30,7 @@
                     <br />
                     <div class="w-100 text-end">
                     <span><b>Date:</b></span>
-                    <span class="underline" style="display: inline-block; width: 30%;"></span><br />
+                        <span class="underline" style="display: inline-block; width: 20%; text-align:center">&nbsp;@Html.DisplayFor(model => model.Date)</span><br />
                     </div>
 
                     <span><b>Received from:</b></span>
@@ -47,7 +52,10 @@
                     <span class="underline" style="display: inline-block; width: 90%;">(₱)</span><br />
 
                     <span><b>In partial/full payment for</b></span>
-                    <span class="underline" style="display: inline-block; width: 70%;"></span>
+                    <span class="underline" style="display: inline-block; width: 70%;"></span><br />
+
+                    <span><b>Reference Receipt No.</b></span>
+                    <span class="underline" style="display: inline-block; width: 73%;">@Html.DisplayFor(model => model.ReferenceNo)</span>
                 </td>
             </tr>
         </tbody>
@@ -67,31 +75,31 @@
             <tr>
                 <td class="w-25" style="padding-left:10px;">VATables Sales</td>
                 <td class="w-25"></td>
-                <td colspan="2" class="w-50" style="padding-left:10px;">Form of Payment:</td>
+                <td colspan="2" class="w-50" style="padding-left:10px;"></td>
             </tr>
             <tr>
                 <td style="padding-left:10px;">VAT-Exempt Sales</td>
                 <td></td>
-                <td class="w-25" style="padding-left:10px;"><input type="checkbox" disabled />&nbsp;CASH</td>
-                <td class="w-25" style="padding-left:10px;"><input type="checkbox" disabled />&nbsp;CHECK</td>
+                <td style="padding-left:10px;">Form of Payment:</td>
+                <td class="w-25" style="padding-left:10px;">@Html.DisplayFor(model => model.FormOfPayment)</td>
             </tr>
             <tr>
                 <td style="padding-left:10px;">Zero Rated Sales</td>
                 <td></td>
                 <td style="padding-left:10px;">Check no.</td>
-                <td></td>
+                <td style="padding-left:10px;">@Html.DisplayFor(model => model.CheckNo)</td>
             </tr>
             <tr>
                 <td style="padding-left:10px;">VAT Amount</td>
                 <td></td>
                 <td style="padding-left:10px;">Check Date</td>
-                <td></td>
+                <td style="padding-left:10px;">@Html.DisplayFor(model => model.CheckDate)</td>
             </tr>
             <tr>
                 <td style="padding-left:10px;">Total Sales(VAT Inclusive)</td>
                 <td></td>
                 <td style="padding-left:10px;">AMOUNT</td>
-                <td></td>
+                <td style="padding-left:10px;">@Html.DisplayFor(model => model.Amount)</td>
             </tr>
             <tr>
                 <td style="padding-left:10px;">Less: Withholding Tax</td>
@@ -123,10 +131,10 @@
                 <td class="text-center" style="width:33%">SOA #</td>
                 <td class="text-center" style="width:33%">AMOUNT</td>
             </tr>
-            <tr>
-                <td style="width:33%">&nbsp;</td>
-                <td style="width:33%"></td>
-                <td style="width:33%"></td>
+            <tr class="text-center">
+                <td style="width:33%">@Model.StatementOfAccount.CreatedDate.ToString("yyyy-dd-MM")</td>
+                <td style="width:33%">@Html.DisplayFor(model => model.StatementOfAccount.FormmatedNumber)</td>
+                <td style="width:33%">@Html.DisplayFor(model => model.StatementOfAccount.Amount)</td>
             </tr>
             <tr>
                 <td style="width:33%">&nbsp;</td>
@@ -152,18 +160,54 @@
     </table>
 </div>
 <br />
-<div class="w-100 text-end">
+@* <div class="w-100 text-end">
     <span>By:</span>
     <span class="underline" style="display: inline-block; width: 30%;"></span><br />
     <h6 style="margin-right:15px;">Authorized Representative</h6>
     <p style="line-height:1px;">Accreditation No. ___</p>
     <p style="line-height:1px;">Accreditation Date:___* Valid up to:___</p>
+</div> *@
+
+<div class="text-center w-100" style="margin-top:20px;">
+    <p style="line-height: 1;">
+        @* <em>"This document is not valid for claim of input tax"<br /></em> *@
+        Acknowledgement Certificate No:&nbsp;&nbsp;AC_124_022023_000062&nbsp;&nbsp;Date Issued:&nbsp;&nbsp;02-22-2023 &nbsp;&nbsp;<br />Series from: OR0000000001 - OR9999999999
+        Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
+    </p>
 </div>
 
 <br />
+<div class="text-start w-100 footer" style="margin-top:50px;">
+    <p style="line-height: 1;">
+        <em>
+            <strong>Software Name :</strong> Accounting Administration System (AAS)
+            <br />
+            <strong>Version :</strong> v1.0
+            <br />
+            <strong>Printed By :</strong> @UserManager.GetUserName(User).ToUpper()
+            <br />
+            <strong>Date & Time Printed :</strong> @DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")
+        </em>
+    </p>
+</div>
+
+@if (!Model.IsPrint)
+{
+    <div class="text-end">
+        ORIGINAL COPY
+    </div>
+}
+else
+{
+    <div class="text-end">
+        REPRINT COPY
+    </div>
+}
+
+<br />
 @* <a asp-action="OfficialReceipt" class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" id="printButton">Print</a> *@
-<a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
-<a asp-action="OfficialReceipt" class="btn" id="otherButton">Back</a>
+<a asp-action="PrintedOR" asp-route-id="@Model.Id" class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
+<a asp-action="OfficialReceiptIndex" class="btn" id="otherButton">Back</a>
 
 @section Scripts{
     <script>
