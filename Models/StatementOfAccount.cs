@@ -23,13 +23,19 @@ namespace Accounting_System.Models
         public int CustomerId { get; set; }
 
         [ForeignKey("CustomerId")]
-        public Customer Customer { get; set; }
+        public Customer? Customer { get; set; }
 
-        [Required]
-        public string Attention { get; set; }
+        [NotMapped]
+        public List<SelectListItem>? Customers { get; set; }
 
         [Required]
         public string Particular { get; set; }
+
+        [Required]
+        public string Period { get; set; }
+
+        [Required]
+        public decimal Amount { get; set; }
 
         [Required]
         [Display(Name = "Account Name")]

@@ -31,6 +31,7 @@
     decimal totalZeroRated = 0;
 
     int numberOfRecords = 0;
+    decimal amountFieldControlTotal = 0;
 }
 
 <br />
@@ -55,7 +56,7 @@ Accounting Books File Attributes/Layout Definition
 File Name: Sales Book Report
 File Type: PDF File
 Number of Records:              @numberOfRecords
-Amount Field Control Total:     27,821.90
+Amount Field Control Total:     @amountFieldControlTotal
 Period Covered:                 @dateFrom to @dateTo
 Extracted By:                   @UserManager.GetUserName(User).ToUpper()
 
@@ -405,8 +406,10 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
         // Get the pre tag element
         var resultPre = document.getElementById('resultPre');
 
+        console.log("@formattedTotalAmount");
         // Replace the placeholder in the HTML with the actual number of records
         resultPre.innerHTML = resultPre.innerHTML.replace('@numberOfRecords', (allTrElements.length - 1));
+        resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@formattedTotalAmount");
 
     </script>
 
