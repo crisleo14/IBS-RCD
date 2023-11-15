@@ -24,6 +24,20 @@ namespace Accounting_System.Controllers
             _receiptRepo = receiptRepo;
         }
 
+        public async Task<IActionResult> CollectionReceiptIndex()
+        {
+            var viewData = await _receiptRepo.GetCustomersAsync();
+
+            return View(viewData);
+        }
+        public async Task<IActionResult> OfficialReceiptIndex()
+        {
+            var viewData = await _receiptRepo.GetCustomersAsync();
+
+            return View(viewData);
+        }
+
+
         public IActionResult CreateCollectionReceipt()
         {
             var viewModel = new CollectionReceipt();
@@ -51,7 +65,7 @@ namespace Accounting_System.Controllers
                 _dbContext.Add(model);
                 await _dbContext.SaveChangesAsync();
                 TempData["success"] = "Sales Order created successfully";
-                return RedirectToAction("OrderSlip");
+                return RedirectToAction("CollectionReceiptIndex");
             }
             else
             {
@@ -66,13 +80,26 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public IActionResult CollectionReceipt()
+
+        public async Task<IActionResult> CollectionReceipt(int id)
         {
-            return View();
+            var cr = await _receiptRepo.FindCR(id);
+            return View(cr);
         }
         public IActionResult OfficialReceipt()
         {
             return View();
+        }
+
+        public async Task<IActionResult> PrintedCR(int id)
+        {
+            var findIdOfCR = await _receiptRepo.FindCR(id);
+            if (findIdOfCR != null && !findIdOfCR.IsPrint)
+            {
+                findIdOfCR.IsPrint = true;
+                await _dbContext.SaveChangesAsync();
+            }
+            return RedirectToAction("CollectionReceipt", new { id = id });
         }
     }
 }

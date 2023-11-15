@@ -1,8 +1,14 @@
-﻿namespace Accounting_System.Models
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Accounting_System.Models
 {
     public class OfficialReceipt : BaseEntity
     {
         public int SOAId { get; set; }
+
+        [ForeignKey("SOAId")]
+        public StatementOfAccount? StatementOfAccount { get; set; }
 
         public string ORNo { get; set; }
 
@@ -18,12 +24,9 @@
 
         public decimal Amount { get; set; }
 
-        public int SOADate { get; set; }
-
-        public string SOANo { get; set; }
-
-        public decimal SOAAmount { get; set; }
-
         public bool IsPrint { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? SOANo { get; set; }
     }
 }
