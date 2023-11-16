@@ -21,7 +21,7 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public async Task<IActionResult> SalesBookReport(SalesBook model)
+        public async Task<IActionResult> SalesBookReport(ViewModelBook model)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -37,6 +37,60 @@ namespace Accounting_System.Controllers
                 {
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(SalesBook));
+                }
+            }
+
+            return View(model);
+        }
+
+        public IActionResult CashReceiptBook()
+        {
+            return View();
+        }
+
+        public async Task<IActionResult> CashReceiptBookReport(ViewModelBook model)
+        {
+            ViewBag.DateFrom = model.DateFrom;
+            ViewBag.DateTo = model.DateTo;
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var cashReceiptBooks = await _reportRepo.GetCashReceiptBookAsync(model.DateFrom, model.DateTo);
+
+                    return View(cashReceiptBooks);
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(CashReceiptBook));
+                }
+            }
+
+            return View(model);
+        }
+
+        public IActionResult PurchaseBook()
+        {
+            return View();
+        }
+
+        public async Task<IActionResult> PurchaseBookReport(ViewModelBook model)
+        {
+            ViewBag.DateFrom = model.DateFrom;
+            ViewBag.DateTo = model.DateTo;
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var purchaseOrders = await _reportRepo.GetPurchaseBookAsync(model.DateFrom, model.DateTo);
+
+                    return View(purchaseOrders);
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(PurchaseBook));
                 }
             }
 
