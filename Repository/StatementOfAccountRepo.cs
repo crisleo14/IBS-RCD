@@ -46,6 +46,7 @@ namespace Accounting_System.Repository
             var statementOfAccount = await _dbContext
                 .StatementOfAccounts
                 .Include(s => s.Customer)
+                .Include(s => s.Service)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             if (statementOfAccount != null)

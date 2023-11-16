@@ -64,7 +64,7 @@
             </tr>
 
             <tr style="height:80px;">
-                <td>@Html.DisplayFor(model => model.Particular)</td>
+                <td>@Html.DisplayFor(model => model.Service.Name)</td>
                 <td>@Html.DisplayFor(model => model.Period)</td>
                 <td>@Html.DisplayFor(model => model.Amount)</td>
             </tr>
@@ -72,6 +72,28 @@
         </tbody>
     </table>
 </div>
+
+@{
+    decimal lessEwtTax = 0;
+
+    if(Model.Service.Name == "Hauling")
+    {
+       lessEwtTax = (decimal)892.86 * (decimal)0.02;
+    }
+    else
+    {
+       lessEwtTax = (decimal)892.86 * (decimal)0.05;
+    }
+
+    var formattedLessEwtTax = String.Format("{0:n}", lessEwtTax);
+
+    <p style="line-height: 1; margin-top:20px;">
+        Creditable Withholding Tax with the amount of <b>@formattedLessEwtTax</b> is computed for this invoice.<br />
+        Please attach BIR Form 2307 to your payment if you deducted Expanded Withholding Tax.
+    </p>
+
+}
+
 <div style="margin-top:20px;">
     <table class="w-100">
         <tbody>
@@ -82,7 +104,7 @@
                             <tbody>
 
                                 <tr style="height:140px;">
-                                    <td style="position:relative; top:-35px; left:4%;">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Particular)</td>
+                                    <td style="position:relative; top:-35px; left:4%;">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Service.Name)</td>
                                 </tr>
 
                             </tbody>
@@ -98,7 +120,7 @@
                                     <td class="text-end">
                                         @if (Model.Customer.CustomerType == "Vatable")
                                         {
-                                            <p style="height: 9px;">893.00</p>
+                                            <p style="height: 9px;">892.86</p>
                                         }
                                     </td>
 
@@ -129,7 +151,7 @@
                                     <td class="text-end">
                                         @if (Model.Customer.CustomerType == "Vatable")
                                         {
-                                            <p style="height: 9px;">107.00</p>
+                                            <p style="height: 9px;">107.14</p>
                                         }
                                     </td>
                                 </tr>

@@ -20,7 +20,7 @@
                 @Html.DisplayNameFor(model => model.Customer)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Particular)
+                @Html.DisplayNameFor(model => model.Service.Name)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Period)
@@ -41,7 +41,7 @@
                 @Html.DisplayFor(modelItem => item.Customer.Name)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Particular)
+                @Html.DisplayFor(modelItem => item.Service.Name)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Period)
