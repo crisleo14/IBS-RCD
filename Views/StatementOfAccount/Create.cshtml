@@ -20,14 +20,10 @@
                 </select>
             </div>
             <div class="form-group">
-                <label asp-for="Particular" class="control-label"></label>
-                <select asp-for="Particular" class="form-select">
-                    <option value=""></option>
-                    <option value="Hauling">Hauling</option>
-                    <option value="Rental">Rental</option>
-                    <option value="Others">Others</option>
+                <label asp-for="ServicesId" class="control-label"></label>
+                <select asp-for="ServicesId" class="form-control js-select2" asp-items="@Model.Services">
+                    <option></option>
                 </select>
-                <span asp-validation-for="Particular" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Period" class="control-label"></label>
