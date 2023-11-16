@@ -23,6 +23,7 @@ namespace Accounting_System.Data
         public DbSet<CollectionReceipt> CollectionReceipts { get; set; }
         public DbSet<OfficialReceipt> OfficialReceipts { get; set; }
         public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
+        public DbSet<Services> Services { get; set; }
 
         // Book Context
         public DbSet<CashReceiptBook> CashReceiptBooks { get; set; }
