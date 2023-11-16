@@ -316,6 +316,8 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
             // Update the total character count
             totalCharacters = endChar + 1; // Add 1 to include the space in the next cell
 
+            var content = cellHtml.trim();
+
             // Append the result to the pre tag based on the row index
             switch (index) {
                 case 0: // Transaction Date
@@ -324,7 +326,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
-                        '2023-11-13\n';
+                        content + '\n';
                     break;
                 case 1: // Serial No
                     resultPre.textContent += padToLength('SerialNo', 20) +
@@ -332,7 +334,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
-                        'SI0000000001\n';
+                        content + '\n';
                     break;
                 case 2: // Sold To
                     resultPre.textContent += padToLength('SoldTo', 20) +
@@ -340,7 +342,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
-                        'Customer A Vatable\n';
+                        content + '\n';
                     break;
                 case 3: // Tin#
                     resultPre.textContent += padToLength('TinNo', 20) +
@@ -348,7 +350,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
-                        '776-123-401-45684\n';
+                        content + '\n';
                     break;
                 case 4: // Amount
                     resultPre.textContent += padToLength('Amount', 20) +
@@ -356,7 +358,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
-                        '481,000.00\n';
+                        content + '\n';
                     break;
                 case 5: // Vat Amount
                     resultPre.textContent += padToLength('VatAmount', 20) +
@@ -364,7 +366,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
-                        '51,535.71\n';
+                        content + '\n';
                     break;
                 case 6: // Vatable Sales
                     resultPre.textContent += padToLength('VatableSales', 20) +
@@ -372,7 +374,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
-                        '429,464.29\n';
+                        content + '\n';
                     break;
                 case 7: // VAT Exempt Sales
                     resultPre.textContent += padToLength('VatExemptSales', 20) +
@@ -380,7 +382,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
-                        '0.00\n';
+                        content + '\n';
                     break;
                 case 8: // Zero Rated
                     resultPre.textContent += padToLength('ZeroRated', 20) +
@@ -388,7 +390,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
-                        '0.00\n';
+                        content + '\n';
                     break;
             }
         });

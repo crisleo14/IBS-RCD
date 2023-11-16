@@ -5,10 +5,10 @@ namespace Accounting_System.Models
     public class CashReceiptBook : BaseEntity
     {
         [Display(Name = "OR Date")]
-        public string ORDate { get; set; }
+        public string Date { get; set; }
 
-        [Display(Name = "OR No")]
-        public string ORNo { get; set; }
+        [Display(Name = "Ref No")]
+        public string RefNo { get; set; }
 
         [Display(Name = "Customer Name")]
         public string CustomerName { get; set; }
