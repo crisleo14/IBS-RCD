@@ -64,10 +64,10 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
         <thead>
             <tr class="table-bordered">
                 <th>
-                    @Html.DisplayNameFor(model => model.ORDate)
+                    @Html.DisplayNameFor(model => model.Date)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.ORNo)
+                    @Html.DisplayNameFor(model => model.RefNo)
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.CustomerName)
@@ -98,10 +98,10 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
             {
                 <tr class="align-text-bottom">
                     <td>
-                        @Html.DisplayFor(model => cashReceipt.ORDate)
+                        @Html.DisplayFor(model => cashReceipt.Date)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => cashReceipt.ORNo)
+                        @Html.DisplayFor(model => cashReceipt.RefNo)
                     </td>
                     <td>
                         @Html.DisplayFor(model => cashReceipt.CustomerName)
@@ -149,20 +149,6 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
         </tbody>
     </table>
 </div>
-
-@* <div class="text-start w-100 footer" style="margin-top:50px;">
-    <p style="line-height: 1;">
-        <em>
-        <strong>Software Name :</strong> Accounting Administration System (AAS)
-        <br />
-        <strong>Version :</strong> v1.0
-        <br />
-        <strong>Printed By :</strong> @UserManager.GetUserName(User).ToUpper()
-        <br />
-        <strong>Date & Time Printed :</strong> @DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")
-        </em>
-    </p>
-</div> *@
 
 <div>
     <a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
@@ -262,6 +248,8 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
             // Update the total character count
             totalCharacters = endChar + 1; // Add 1 to include the space in the next cell
 
+            var content = cellHtml.trim();
+
             // Append the result to the pre tag based on the row index
             switch (index) {
                 case 0: // Transaction Date
@@ -270,7 +258,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
-                        '2023-11-15\n';
+                        content + '\n';
                     break;
                 case 1: // Serial No
                     resultPre.textContent += padToLength('ORNo', 20) +
@@ -278,7 +266,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
-                        'OR0000000001\n';
+                        content + '\n';
                     break;
                 case 2: // Sold To
                     resultPre.textContent += padToLength('CustomerName', 20) +
@@ -286,7 +274,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
-                        'Customer A Vatable\n';
+                        content + '\n';
                     break;
                 case 3: // Tin#
                     resultPre.textContent += padToLength('Bank', 20) +
@@ -294,7 +282,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
-                        'N\A\n';
+                        content + '\n';
                     break;
                 case 4: // Amount
                     resultPre.textContent += padToLength('CheckNo', 20) +
@@ -302,7 +290,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
-                        '2130418756\n';
+                        content + '\n';
                     break;
                 case 5: // Vat Amount
                     resultPre.textContent += padToLength('COA', 20) +
@@ -310,7 +298,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
-                        '1-1-1-1\n';
+                        content + '\n';
                     break;
                 case 6: // Vatable Sales
                     resultPre.textContent += padToLength('Particulars', 20) +
@@ -318,7 +306,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
-                        'N\A\n';
+                        content + '\n';
                     break;
                 case 7: // VAT Exempt Sales
                     resultPre.textContent += padToLength('Debit', 20) +
@@ -326,7 +314,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
-                        '1000.00\n';
+                        content + '\n';
                     break;
                 case 8: // Zero Rated
                     resultPre.textContent += padToLength('Credit', 20) +
@@ -334,7 +322,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
-                        '1000.00\n';
+                        content + '\n';
                     break;
             }
         });
