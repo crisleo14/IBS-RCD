@@ -46,7 +46,7 @@ namespace Accounting_System.Repository
             var cashReceiptBooks = _dbContext
              .CashReceiptBooks
              .AsEnumerable()
-             .Where(cr => DateTime.Parse(cr.ORDate) >= fromDate && DateTime.Parse(cr.ORDate) <= toDate)
+             .Where(cr => DateTime.Parse(cr.Date) >= fromDate && DateTime.Parse(cr.Date) <= toDate)
              .OrderBy(s => s.Id)
              .ToList();
 
