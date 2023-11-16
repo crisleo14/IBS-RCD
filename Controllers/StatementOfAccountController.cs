@@ -42,6 +42,13 @@ namespace Accounting_System.Controllers
                     Text = c.Name
                 })
                 .ToListAsync();
+            viewModel.Services = await _dbContext.Services
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name
+                })
+                .ToListAsync();
             return View(viewModel);
         }
 

@@ -14,7 +14,7 @@ namespace Accounting_System.Models
         {
             get
             {
-                return Number.ToString("D10");
+                return "SOA" + Number.ToString("D10");
             }
         }
 
@@ -29,7 +29,14 @@ namespace Accounting_System.Models
         public List<SelectListItem>? Customers { get; set; }
 
         [Required]
-        public string Particular { get; set; }
+        [Display(Name = "Particulars")]
+        public int ServicesId { get; set; }
+
+        [ForeignKey("ServicesId")]
+        public Services? Service { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? Services { get; set; }
 
         [Required]
         public string Period { get; set; }
