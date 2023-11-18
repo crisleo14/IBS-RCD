@@ -25,5 +25,11 @@ namespace Accounting_System.Models
 
         [Display(Name = "Date Cleared")]
         public string DateCleared { get; set; }
+
+        [Display(Name = "Chart Of Account")]
+        public string ChartOfAccount { get; set; }
+
+        public decimal Debit { get; set; }
+        public decimal Credit { get; set; }
     }
 }
