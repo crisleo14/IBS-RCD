@@ -18,7 +18,7 @@
         VAT Reg. TIN: 000-216-589-00000
     </p>
 
-    <h3><span style="display: inline-block;"><b>Journal VOUCHER</b></span></h3>
+    <h3><span style="display: inline-block;"><b>JOURNAL VOUCHER</b></span></h3>
     <div class="text-end" style="margin-top:-60px;">
         <h6><b>No.&nbsp;JV0000000001</b></h6>
     </div>
@@ -29,9 +29,9 @@
     <table class="w-100">
         <tbody>
             <tr>
-                <td style="width:5%;">JV # :</td>
-                <td class="w-55">JV0000000001</td>
-                <td style="width:7%;"></td>
+                <td></td>
+                <td></td>
+                <td></td>
                 <td class="w-25 text-end">Date : 11/17/2023</td>
             </tr>
             <tr>
@@ -47,34 +47,66 @@
                 <td></td>
             </tr>
             <tr>
-                <td style="padding-left:20px;">CV # :</td>
+                <td>CV # :</td>
                 <td>CV0000000002</td>
                 <td>CR # :</td>
                 <td></td>
             </tr>
             <tr>
-                <td style="padding-left:20px;">CHECK # :</td>
+                <td>CHECK # :</td>
                 <td>123456789</td>
                 <td>AMOUNT :</td>
                 <td>-</td>
             </tr>
             <tr>
-                <td style="padding-left:20px;">CV DATE</td>
+                <td>CV DATE</td>
                 <td>11/16/2023</td>
                 <td>DATE :</td>
                 <td></td>
             </tr>
             <tr>
-                <td style="padding-left:20px;">PAYEE</td>
+                <td>PAYEE</td>
                 <td>Supplier ABC</td>
                 <td>JV Reason :</td>
                 <td>Depriciation</td>
             </tr>
             <tr>
-                <td style="padding-left:20px;">PARTICULARS</td>
+                <td>PARTICULARS:</td>
                 <td>Depriciation of storage tank</td>
                 <td></td>
-                <td>100</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="table-responsive" style="margin-top:20px;">
+    <table class="w-100">
+        <thead>
+            <tr style="border: 1px solid black;">
+                <th colspan="4" style="padding-left:20px;">ACCOUNTING ENTRIES</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="padding-left:20px;"><i>Account Name/Title</i></td>
+                <th class="text-end">DEBIT</th>
+                <th class="text-end">CREDIT</th>
+            </tr>
+            <tr>
+                <td style="width:60%; padding-left:20px;">5010105  Depreciation Expense</td>
+                <td class="text-end" style="width:7%;">100.00</td>
+                <td style="width:7%;"></td>
+            </tr>
+            <tr style="border-bottom:double;">
+                <td style="padding-left:20px;">1020202  Accummulated Depreciation-Equipment</td>
+                <td></td>
+                <td class="text-end">100.00</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="text-end">100.00</td>
+                <td class="text-end">100.00</td>
             </tr>
         </tbody>
     </table>
@@ -117,8 +149,8 @@
         <span style="display: inline-block; width: 30%;"></span>
         <span>Date Issued:</span>
         <span style="display: inline-block; width: 15%;"></span><br />
-        Series from: CV0000000001 - CV9999999999
-        Date and Time Created:&nbsp;
+        Series from: JV0000000001 - JV9999999999
+        Date and Time Created:&nbsp; 11/17/2023 12:01:16 PM
     </p>
 </div>
 <br />
@@ -135,6 +167,15 @@
         </em>
     </p>
 </div>
+
+<div class="text-end">
+    ORIGINAL COPY
+</div>
+
+@* <div class="text-end">
+    REPRINT COPY
+</div> *@
+
 <div>
     <a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
     <a asp-action="OrderSlip" class="btn" id="otherButton">Back</a>
