@@ -20,7 +20,7 @@
 
     <h3><span style="display: inline-block;"><b>DISBURSMENT VOUCHER</b></span></h3>
     <div class="text-end" style="margin-top:-60px;">
-        <h6><b>CV No.&nbsp;CV0000000002</b></h6>
+        <h6><b>No.&nbsp;CV0000000002 @*CV0000000001*@</b></h6>
     </div>
 
 </div>
@@ -30,31 +30,19 @@
         <thead>
             <tr style="border: 1px solid black;">
                 <th colspan="2" style="padding-left:20px;">I. ACCOUNTING REFERENCES</th>
-                <td colspan="2"><b>Date : </b>11/16/2023</td>
+                <td colspan="2" class="text-end"><b>Date : </b>11/16/2023</td>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td style="width:5%; padding-left:20px;">CV No.:</td>
-                <td class="w-25">0000000002</td>
-                <td style="width:7%;">Ref # :</td>
+                <td style="width:5%; padding-left:20px;">Ref # :</td>
+                <td class="w-25"></td>
+                <td style="width:7%;">Other References:</td>
                 <td class="w-25"></td>
             </tr>
             <tr>
                 <td style="padding-left:20px;">Check #:</td>
-                <td>0000000002</td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td></td>
-                <td></td>
-                <td>Other References:</td>
-                <td></td>
-            </tr>
-            <tr>
-                <td></td>
-                <td></td>
+                <td>123456789</td>
                 <td>PO # :</td>
                 <td></td>
             </tr>
@@ -83,17 +71,17 @@
         <tbody>
             <tr>
                 <td style="width:15%; padding-left:20px;">Payee :</td>
-                <td style="width:65%;">Supplier ABC</td>
-                <td class="text-end">6,000.00</td>
+                <td style="width:65%;">Supplier ABC @*Insular Oil Corp*@</td>
+                <td class="text-end">6,000.00 @*1,883.04*@</td>
             </tr>
             <tr>
                 <td style="padding-left:20px;">Amount in Words :</td>
-                <td class="w-25">*** Six Thousand Pesos Only ***</td>
+                <td class="w-25">*** Six Thousand Pesos Only *** @**** One Thousand Eight Hundred Eighty Three Pesos Only ****@</td>
                 <td></td>
             </tr>
             <tr>
                 <td style="padding-left:20px;">Particulars :</td>
-                <td>Purchase of Storage Tank</td>
+                <td>Purchase of Storage Tank @*Payment for payable*@</td>
                 <td></td>
             </tr>
         </tbody>
@@ -114,14 +102,19 @@
                 <th class="text-end">CREDIT</th>
             </tr>
             <tr>
-                <td style="width:60%; padding-left:20px;">1020103  Equipment</td>
-                <td class="text-end" style="width:7%;">6,000.00</td>
+                <td style="width:60%; padding-left:20px;">1020103  Equipment @*2010101 AP-Trade Payable*@</td>
+                <td class="text-end" style="width:7%;">6,000.00 @*1,883.04*@</td>
                 <td style="width:7%;"></td>
             </tr>
-            <tr>
+            <tr style="border-bottom:double;">
                 <td style="padding-left:20px;">1010101  Cash In Bank</td>
                 <td></td>
-                <td class="text-end">6,000.00</td>
+                <td class="text-end">6,000.00 @*1,883.04*@</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="text-end">6,000.00 @*1,883.04*@</td>
+                <td class="text-end">6,000.00 @*1,883.04*@</td>
             </tr>
         </tbody>
     </table>
@@ -129,11 +122,6 @@
 
 <div class="table-responsive" style="margin-top:20px;">
     <table class="w-100">
-        <thead>
-            <tr style="border: 1px solid black;">
-                <th colspan="4" style="padding-left:20px;">IV. FOR COMPTROLLER'S OFFICE: DCR ENTRY / NOTES</th>
-            </tr>
-        </thead>
         <tbody class="text-center">
             <tr>
                 <td>Prepared by :</td>
@@ -170,10 +158,11 @@
         <span>Date Issued:</span>
         <span style="display: inline-block; width: 15%;"></span><br />
         Series from: CV0000000001 - CV9999999999
-        Date and Time Created:&nbsp;
+        Date and Time Created:&nbsp; 11/16/2023 3:58:29 PM @* 11/16/2023 2:20:08 PM *@
     </p>
 </div>
 <br />
+
 <div class="text-start w-100 footer" style="margin-top:50px;">
     <p style="line-height: 1;">
         <em>
@@ -187,6 +176,15 @@
         </em>
     </p>
 </div>
+
+<div class="text-end">
+    ORIGINAL COPY
+</div>
+
+@* <div class="text-end">
+    REPRINT COPY
+</div> *@
+
 <div>
     <a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
     <a asp-action="OrderSlip" class="btn" id="otherButton">Back</a>
