@@ -27,20 +27,33 @@
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Sales Invoice
+                                Accounts Receivable
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" asp-controller="SalesInvoice" asp-action="Index">List</a></li>
-                                <li><a class="dropdown-item" asp-controller="SalesInvoice" asp-action="Create">Create New</a></li>
+                                <li><a class="dropdown-item" asp-controller="SalesInvoice" asp-action="Index">Sales Invoice</a></li>
+                                <li><a class="dropdown-item" asp-controller="Receipt" asp-action="CollectionReceiptIndex">Collection</a></li>
+                                <li><a class="dropdown-item" asp-controller="StatementOfAccount" asp-action="Index">Statement Of Account</a></li>
+                                <li><a class="dropdown-item" asp-controller="Receipt" asp-action="OfficialReceiptIndex">Offical</a></li>
+                                <li><a class="dropdown-item" asp-controller="DMCM" asp-action="DebitMemo">Debit Memo</a></li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Customer
+                                Accounts Payable
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" asp-controller="Customer" asp-action="Index">List</a></li>
-                                <li><a class="dropdown-item" asp-controller="Customer" asp-action="OrderSlip">OrderSlip</a></li>
+                                <li><a class="dropdown-item" asp-controller="PurchaseOrder" asp-action="Index">Purchase Order</a></li>
+                                <li><a class="dropdown-item" asp-controller="CheckVoucher" asp-action="Index">Check Voucher</a></li>
+                                <li><a class="dropdown-item" asp-controller="JournalVoucher" asp-action="Index">Journal Voucher</a></li>
+                                <li><a class="dropdown-item" asp-controller="ReceivingReport" asp-action="Index">Receiving Report</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Inventory
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="Inventory" asp-action="Index">List</a></li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
@@ -48,51 +61,16 @@
                                 Report
                             </a>
                             <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="Report" asp-action="AuditTrail">Audit Trail Report</a></li>
                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="DisbursementBook">Cash Disbursement Book</a></li>
                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="CashReceiptBook">Cash Receipt Book</a></li>
                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="GeneralLedgerBook">General Ledger Book</a></li>
-                                <li><a class="dropdown-item" asp-controller="Report" asp-action="AuditTrail">Audit Trail Report</a></li>
-                                <li><a class="dropdown-item" asp-controller="Report" asp-action="JournalBook">Journal Book Report</a></li>
                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="InventoryBook">Inventory Book</a></li>
+                                <li><a class="dropdown-item" asp-controller="Report" asp-action="JournalBook">Journal Book Report</a></li>
                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="PurchaseBook">Purchase Book</a></li>
                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="SalesBook">Sales Book</a></li>
-                                <li><a class="dropdown-item" asp-controller="Report" asp-action="CustomerProfile">Customer Profile</a></li>
-                                <li><a class="dropdown-item" asp-controller="Report" asp-action="ProductList">Product List</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Receipt
-                            </a>
-                            <ul class="dropdown-menu">
-
-                                <li><a class="dropdown-item" asp-controller="Receipt" asp-action="OfficialReceiptIndex">Offical</a></li>
-                                <li><a class="dropdown-item" asp-controller="Receipt" asp-action="CollectionReceiptIndex">Collection</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="StatementOfAccount" asp-action="Index">Statement Of Account</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="ReceivingReport" asp-action="Index">Receiving Report</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="PurchaseOrder" asp-action="Index">Purchase Order</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="CheckVoucher" asp-action="Index">Check Voucher</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="JournalVoucher" asp-action="Index">Journal Voucher</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                DMCM
-                            </a>
-                            <ul class="dropdown-menu">
-
-                                <li><a class="dropdown-item" asp-controller="DMCM" asp-action="DebitMemo">Debit Memo</a></li>
-                                <li><a class="dropdown-item" asp-controller="DMCM" asp-action="CreditMemo">Credit Memo</a></li>
+@*                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="CustomerProfile">Customer Profile</a></li>
+                                <li><a class="dropdown-item" asp-controller="Report" asp-action="ProductList">Product List</a></li> *@
                             </ul>
                         </li>
                     </ul>
