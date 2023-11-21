@@ -30,6 +30,11 @@ namespace Accounting_System.Controllers
                 try
                 {
                     var salesBook = await _reportRepo.GetSalesBooksAsync(model.DateFrom, model.DateTo);
+                    var lastRecord = salesBook.LastOrDefault();
+                    if (lastRecord != null)
+                    {
+                        ViewBag.LastRecord = lastRecord.CreatedDate;
+                    }
 
                     return View(salesBook);
                 }
