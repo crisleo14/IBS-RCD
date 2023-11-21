@@ -81,7 +81,7 @@
                     decimal totalAmountDue = Model.StatementOfAccount.Amount - EWT;
 
                 }
-                <td class="w-25" style="padding-left:10px;">VATables Sales</td>
+                <td class="w-25" style="padding-left:10px;">Vatable Sales</td>
                 <td class="w-25">
                     @if (Model.StatementOfAccount.Customer.CustomerType == "Vatable")
                     {
@@ -117,6 +117,12 @@
                 <td></td>
                 <td style="padding-left:10px;">Amount</td>
                 <td style="padding-left:10px;">@Html.DisplayFor(model => model.StatementOfAccount.Amount)</td>
+            </tr>
+            <tr>
+                <td style="padding-left:10px;">Discount</td>
+                <td></td>
+                <td></td>
+                <td></td>
             </tr>
             <tr>
                 <td style="padding-left:10px;">Total Sales(VAT Inclusive)</td>
@@ -197,7 +203,7 @@
         <span style="display: inline-block; width: 30%;"></span>
         <span>Date Issued:</span>
         <span style="display: inline-block; width: 15%;"></span><br />
-        Series from: OR0000000001 - OR9999999999
+        Series: OR0000000001 - OR9999999999
         Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
     </p>
 </div>
