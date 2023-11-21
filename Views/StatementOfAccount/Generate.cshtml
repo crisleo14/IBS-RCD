@@ -103,7 +103,7 @@
                         <table class="table-bordered w-100">
                             <tbody>
 
-                                <tr style="height:140px;">
+                                <tr style="height:170px;">
                                     <td style="position:relative; top:-35px; left:4%;">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Service.Name)</td>
                                 </tr>
 
@@ -136,7 +136,7 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT-exempt Sales: </b></p></td>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT-Exempt Sales: </b></p></td>
 
                                     <td class="text-end">
                                         @if (Model.Customer.CustomerType == "Exempt")
@@ -154,6 +154,10 @@
                                             <p style="height: 9px;">107.14</p>
                                         }
                                     </td>
+                                </tr>
+                                <tr>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>Discount: </b></p></td>
+                                    <td class="text-end"></td>
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
@@ -200,7 +204,7 @@ else if (Model.Customer.CustomerType == "Zero Rated")
         <span style="display: inline-block; width: 30%;"></span>
         <span>Date Issued:</span>
         <span style="display: inline-block; width: 15%;"></span><br />
-        Series from: SOA0000000001 - SOA9999999999
+        Series: SOA0000000001 - SOA9999999999
         Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
     </p>
 </div>
