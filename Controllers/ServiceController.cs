@@ -27,7 +27,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Index()
         {
             return _context.Services != null ?
-                        View(await _context.Services.ToListAsync()) :
+                        View(await _context.Services.OrderBy(s => s.Id).ToListAsync()) :
                         Problem("Entity set 'ApplicationDbContext.Services'  is null.");
         }
 
