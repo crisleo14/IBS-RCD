@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231121024838_initial create of supplier master file")]
+    partial class initialcreateofsuppliermasterfile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -260,53 +263,6 @@ namespace Accounting_System.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Customers");
-                });
-
-            modelBuilder.Entity("Accounting_System.Models.DebitMemo", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DMCMNo")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsPrint")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("SINo")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("TransactionDate")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("VatAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("VatableSales")
-                        .HasColumnType("numeric");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SINo");
-
-                    b.ToTable("DebitMemos");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.DisbursementBook", b =>
@@ -1263,17 +1219,6 @@ namespace Accounting_System.Migrations
                     b.HasOne("Accounting_System.Models.SalesInvoice", "SalesInvoice")
                         .WithMany()
                         .HasForeignKey("SalesInvoiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("SalesInvoice");
-                });
-
-            modelBuilder.Entity("Accounting_System.Models.DebitMemo", b =>
-                {
-                    b.HasOne("Accounting_System.Models.SalesInvoice", "SalesInvoice")
-                        .WithMany()
-                        .HasForeignKey("SINo")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
