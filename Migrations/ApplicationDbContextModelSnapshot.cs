@@ -1221,7 +1221,7 @@ namespace Accounting_System.Migrations
 
                     b.Navigation("SalesInvoice");
                 });
-
+                
             modelBuilder.Entity("Accounting_System.Models.Inventory", b =>
                 {
                     b.HasOne("Accounting_System.Models.Product", "Product")
