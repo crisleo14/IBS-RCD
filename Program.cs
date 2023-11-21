@@ -28,7 +28,6 @@ builder.Services.AddScoped<InventoryRepo>();
 builder.Services.AddScoped<SalesOrderRepo>();
 builder.Services.AddScoped<ReceiptRepo>();
 builder.Services.AddScoped<StatementOfAccountRepo>();
-builder.Services.AddScoped<DMCMRepo>();
 
 
 var app = builder.Build();
