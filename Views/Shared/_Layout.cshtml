@@ -73,6 +73,17 @@
                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="ProductList">Product List</a></li> *@
                             </ul>
                         </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Master File
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="Customer" asp-action="Index">Customers</a></li>
+                                <li><a class="dropdown-item" asp-controller="Product" asp-action="Index">Products</a></li>
+                                <li><a class="dropdown-item" asp-controller="Report" asp-action="CashReceiptBook">Services</a></li>
+                                <li><a class="dropdown-item" asp-controller="Report" asp-action="GeneralLedgerBook">Suppliers</a></li>
+                            </ul>
+                        </li>
                     </ul>
                 </div>
                 <partial name="_LoginPartial" />
