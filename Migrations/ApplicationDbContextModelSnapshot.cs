@@ -262,53 +262,6 @@ namespace Accounting_System.Migrations
                     b.ToTable("Customers");
                 });
 
-            modelBuilder.Entity("Accounting_System.Models.DebitMemo", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DMCMNo")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsPrint")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("SINo")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("TransactionDate")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("VatAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("VatableSales")
-                        .HasColumnType("numeric");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SINo");
-
-                    b.ToTable("DebitMemos");
-                });
-
             modelBuilder.Entity("Accounting_System.Models.DisbursementBook", b =>
                 {
                     b.Property<int>("Id")
@@ -1268,18 +1221,7 @@ namespace Accounting_System.Migrations
 
                     b.Navigation("SalesInvoice");
                 });
-
-            modelBuilder.Entity("Accounting_System.Models.DebitMemo", b =>
-                {
-                    b.HasOne("Accounting_System.Models.SalesInvoice", "SalesInvoice")
-                        .WithMany()
-                        .HasForeignKey("SINo")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("SalesInvoice");
-                });
-
+                
             modelBuilder.Entity("Accounting_System.Models.Inventory", b =>
                 {
                     b.HasOne("Accounting_System.Models.Product", "Product")
