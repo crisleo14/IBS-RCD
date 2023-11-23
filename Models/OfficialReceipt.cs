@@ -24,7 +24,7 @@ namespace Accounting_System.Models
 
         public decimal Amount { get; set; }
 
-        public bool IsPrint { get; set; }
+        public bool IsPrinted { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? SOANo { get; set; }

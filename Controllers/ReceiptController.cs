@@ -126,9 +126,9 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> PrintedCR(int id)
         {
             var findIdOfCR = await _receiptRepo.FindCR(id);
-            if (findIdOfCR != null && !findIdOfCR.IsPrint)
+            if (findIdOfCR != null && !findIdOfCR.IsPrinted)
             {
-                findIdOfCR.IsPrint = true;
+                findIdOfCR.IsPrinted = true;
                 await _dbContext.SaveChangesAsync();
             }
             return RedirectToAction("CollectionReceipt", new { id = id });
@@ -137,9 +137,9 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> PrintedOR(int id)
         {
             var findIdOfOR = await _receiptRepo.FindOR(id);
-            if (findIdOfOR != null && !findIdOfOR.IsPrint)
+            if (findIdOfOR != null && !findIdOfOR.IsPrinted)
             {
-                findIdOfOR.IsPrint = true;
+                findIdOfOR.IsPrinted = true;
                 await _dbContext.SaveChangesAsync();
             }
             return RedirectToAction("OfficialReceipt", new { id = id });

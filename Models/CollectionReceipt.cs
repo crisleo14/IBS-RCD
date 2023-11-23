@@ -37,7 +37,7 @@ namespace Accounting_System.Models
 
         public decimal Total { get; set; }
 
-        public bool IsPrint { get; set; }
+        public bool IsPrinted { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? Customers { get; set; }
