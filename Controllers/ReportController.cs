@@ -62,6 +62,11 @@ namespace Accounting_System.Controllers
                 try
                 {
                     var cashReceiptBooks = await _reportRepo.GetCashReceiptBookAsync(model.DateFrom, model.DateTo);
+                    var lastRecord = cashReceiptBooks.LastOrDefault();
+                    if (lastRecord != null)
+                    {
+                        ViewBag.LastRecord = lastRecord.CreatedDate;
+                    }
 
                     return View(cashReceiptBooks);
                 }
@@ -89,6 +94,11 @@ namespace Accounting_System.Controllers
                 try
                 {
                     var purchaseOrders = await _reportRepo.GetPurchaseBookAsync(model.DateFrom, model.DateTo);
+                    var lastRecord = purchaseOrders.LastOrDefault();
+                    if (lastRecord != null)
+                    {
+                        ViewBag.LastRecord = lastRecord.CreatedDate;
+                    }
 
                     return View(purchaseOrders);
                 }
@@ -116,6 +126,11 @@ namespace Accounting_System.Controllers
                 try
                 {
                     var inventoryBooks = await _reportRepo.GetInventoryBookAsync(model.DateFrom, model.DateTo);
+                    var lastRecord = inventoryBooks.LastOrDefault();
+                    if (lastRecord != null)
+                    {
+                        ViewBag.LastRecord = lastRecord.CreatedDate;
+                    }
 
                     return View(inventoryBooks);
                 }
@@ -143,6 +158,11 @@ namespace Accounting_System.Controllers
                 try
                 {
                     var inventoryBooks = await _reportRepo.GetGeneralLedgerBookAsync(model.DateFrom, model.DateTo);
+                    var lastRecord = inventoryBooks.LastOrDefault();
+                    if (lastRecord != null)
+                    {
+                        ViewBag.LastRecord = lastRecord.CreatedDate;
+                    }
 
                     return View(inventoryBooks);
                 }
@@ -170,6 +190,11 @@ namespace Accounting_System.Controllers
                 try
                 {
                     var disbursementBooks = await _reportRepo.GetDisbursementBookAsync(model.DateFrom, model.DateTo);
+                    var lastRecord = disbursementBooks.LastOrDefault();
+                    if (lastRecord != null)
+                    {
+                        ViewBag.LastRecord = lastRecord.CreatedDate;
+                    }
 
                     return View(disbursementBooks);
                 }
@@ -197,6 +222,11 @@ namespace Accounting_System.Controllers
                 try
                 {
                     var journalBooks = await _reportRepo.GetJournalBookAsync(model.DateFrom, model.DateTo);
+                    var lastRecord = journalBooks.LastOrDefault();
+                    if (lastRecord != null)
+                    {
+                        ViewBag.LastRecord = lastRecord.CreatedDate;
+                    }
 
                     return View(journalBooks);
                 }
@@ -224,6 +254,11 @@ namespace Accounting_System.Controllers
                 try
                 {
                     var disbursementBooks = await _reportRepo.GetAuditTrailAsync(model.DateFrom, model.DateTo);
+                    var lastRecord = disbursementBooks.LastOrDefault();
+                    if (lastRecord != null)
+                    {
+                        ViewBag.LastRecord = lastRecord.Date;
+                    }
 
                     return View(disbursementBooks);
                 }
