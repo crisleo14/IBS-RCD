@@ -22,9 +22,9 @@ namespace Accounting_System.Data
         public DbSet<StatementOfAccount> StatementOfAccounts { get; set; }
         public DbSet<CollectionReceipt> CollectionReceipts { get; set; }
         public DbSet<OfficialReceipt> OfficialReceipts { get; set; }
-        public DbSet<PurchaseJournalBook> PurchaseJournalBooks { get; set; }
         public DbSet<Services> Services { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
+        public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
 
         // Book Context
         public DbSet<CashReceiptBook> CashReceiptBooks { get; set; }
@@ -33,5 +33,6 @@ namespace Accounting_System.Data
         public DbSet<GeneralLedgerBook> GeneralLedgerBooks { get; set; }
         public DbSet<DisbursementBook> DisbursementBooks { get; set; }
         public DbSet<JournalBook> JournalBooks { get; set; }
+        public DbSet<PurchaseJournalBook> PurchaseJournalBooks { get; set; }
     }
 }
