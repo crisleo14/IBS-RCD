@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20231123092926_change the data type of date in purchase order")]
-    partial class changethedatatypeofdateinpurchaseorder
+    [Migration("20231124082942_Initial Create")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -732,6 +732,69 @@ namespace Accounting_System.Migrations
                     b.HasIndex("SupplierId");
 
                     b.ToTable("PurchaseOrders");
+                });
+
+            modelBuilder.Entity("Accounting_System.Models.SalesBook", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("Discount")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("NetSales")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("SerialNo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SoldTo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TinNo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("VatAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("VatExemptSales")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("VatableSales")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("ZeroRated")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SalesBooks");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.SalesInvoice", b =>
