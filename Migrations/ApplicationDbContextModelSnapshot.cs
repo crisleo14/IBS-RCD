@@ -793,7 +793,7 @@ namespace Accounting_System.Migrations
 
                     b.ToTable("SalesBooks");
                 });
-
+                
             modelBuilder.Entity("Accounting_System.Models.SalesInvoice", b =>
                 {
                     b.Property<int>("Id")
