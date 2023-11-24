@@ -3,7 +3,7 @@
 @inject UserManager<IdentityUser> UserManager
 
 @{
-    ViewData["Title"] = "Credit Memo";
+    ViewData["Title"] = "Debit Memo";
 }
 
 <br />
@@ -31,7 +31,7 @@
             <tr>
                 <td>
                     <span><b>Sold to:</b></span>
-                    &nbsp; Customer A Vatable &nbsp;<br />
+                    &nbsp; Customer D Exempt &nbsp;<br />
 
                     <span><b>Address:</b></span>
                     &nbsp; Quezon City &nbsp;<br />
@@ -40,12 +40,12 @@
                     &nbsp; 776-123-401-45684 &nbsp;<br />
 
                     <span><b>Business Style:</b></span>
-                    &nbsp; CC Trading &nbsp;
+                    &nbsp; High Precise &nbsp;
                 </td>
 
                 <td class="w-25 text-nowrap">
 
-                    <b>DM/CM #: 0000000001</b>
+                    <b>Date :</b> 11/24/2023
                     &nbsp; <span id="invoiceDate"></span>
                     <br />
                     <b>@* Terms: *@</b>&nbsp;<span id="terms"></span>&nbsp;<br />
@@ -71,11 +71,11 @@
         </thead>
         <tbody>
             <tr style="height:80px;">
-                <td>SI0000000001</td>
+                <td>SI0000000002</td>
                 <td>11/16/2023</td>
                 <td>BIODIESEL</td>
-                <td>Price Adjusment from 20.00 to 20.50</td>
-                <td>1,025.00</td>
+                <td>Price Adjusment from 20.00 to 19.00</td>
+                <td>10.00</td>
             </tr>
 
         </tbody>
@@ -94,7 +94,7 @@
                             <tbody class="text-nowrap">
                                 <tr>
                                     <td class="w-50"><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
-                                    <td class="w-50 text-end">892.86</td>
+                                    <td class="w-50 text-end"></td>
 
                                 </tr>
                                 <tr>
@@ -103,18 +103,18 @@
                                     <td class="text-end"></td>
                                 </tr>
                                 <tr>
-                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT-exempt Sales: </b></p></td>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT-Exempt Sales: </b></p></td>
 
-                                    <td class="text-end"></td>
+                                    <td class="text-end">10.00</td>
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
 
-                                    <td class="text-end">107.14</td>
+                                    <td class="text-end"></td>
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
-                                    <td class="text-end">1,000.00</td>
+                                    <td class="text-end">10.00</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -141,10 +141,24 @@
         <span>Date Issued:</span>
         <span style="display: inline-block; width: 15%;"></span><br />
         Series: CM0000000001 - CM9999999999
-        Date and Time Created:&nbsp; 11/17/2023 01:23:08 PM
+        Date and Time Created:&nbsp; 11/24/2023 08:02:10 AM
     </p>
 </div>
 <br />
+
+<div class="text-start w-100 footer" style="margin-top:50px;">
+    <p style="line-height: 1;">
+        <em>
+            <strong>Software Name :</strong> Accounting Administration System (AAS)
+            <br />
+            <strong>Version :</strong> v1.0
+            <br />
+            <strong>Printed By :</strong> @UserManager.GetUserName(User).ToUpper()
+            <br />
+            <strong>Date & Time Printed :</strong> @DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")
+        </em>
+    </p>
+</div>
 
 <div class="text-end">
     ORIGINAL COPY
