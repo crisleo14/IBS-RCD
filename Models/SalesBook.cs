@@ -2,14 +2,48 @@
 
 namespace Accounting_System.Models
 {
-    public class SalesBook
+    public class SalesBook : BaseEntity
     {
-        [Required]
-        [Display(Name = "Date From")]
-        public string DateFrom { get; set; }
+        [Display(Name = "Tran. Date")]
+        public DateTime TransactionDate { get; set; }
 
-        [Required]
-        [Display(Name = "Date To")]
-        public string DateTo { get; set; }
+        [Display(Name = "Serial Number")]
+        public string SerialNo { get; set; }
+
+        [Display(Name = "Customer Name")]
+        public string SoldTo { get; set; }
+
+        [Display(Name = "Tin#")]
+        public string TinNo { get; set; }
+
+        public string Address { get; set; }
+
+        public string Description { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal Amount { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Display(Name = "Vat Amount")]
+        public decimal VatAmount { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Display(Name = "Vatable Sales")]
+        public decimal VatableSales { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Display(Name = "Vat-Exempt Sales")]
+        public decimal VatExemptSales { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Display(Name = "Zero Rated")]
+        public decimal ZeroRated { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal Discount { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Display(Name = "Net Sales")]
+        public decimal NetSales { get; set; }
     }
 }
