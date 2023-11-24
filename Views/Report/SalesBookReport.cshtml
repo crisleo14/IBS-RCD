@@ -66,7 +66,7 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
         <thead>
             <tr class="table-bordered">
                 <th>
-                    @Html.DisplayNameFor(model => model.TransactionDate)
+                    Tran. Date
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.SerialNo)
@@ -173,10 +173,19 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                     <td class="text-end">
                         0.00
                     </td>
-                    <td class="text-end">
-                        @Html.DisplayFor(model => invoice.VatableSales)
-                    </td>
-                  @*   <td>
+                    @if(invoice.CustomerType == "Vatable")
+                    {
+                        <td class="text-end">
+                            @Html.DisplayFor(model => invoice.VatableSales)
+                        </td>
+                    }
+                    else
+                    {
+                        <td class="text-end">
+                            @Html.DisplayFor(model => invoice.Amount)
+                        </td>
+                    }
+                    @*   <td>
                         @Html.DisplayFor(model => invoice.Remarks)
                     </td> *@
                 </tr>
@@ -212,7 +221,7 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                 <td class="text-end">@formattedTotalExempted</td>
                 <td class="text-end"><div>@formattedTotalZeroRated</div></td>
                 <td class="text-end"><div>@formattedTotalDiscount</div></td>
-                <td class="text-end"><div>@formattedTotalNetSales</div></td>
+                <td class="text-end"><div>1,205.18</div></td>
                 }
             </tr>
         </tbody>
