@@ -50,6 +50,15 @@ namespace Accounting_System.Controllers
                 var generateDMNo = await _debitMemoRepo.GenerateDMNo();
 
                 model.DMNo = generateDMNo;
+                //Computation
+                //var multiply = model.DebitAmount * model.SalesInvoice.Quantity;
+                //model.Amount = multiply - model.SalesInvoice.Amount;
+                //if (model.SalesInvoice.CustomerType == "Vatable")
+                //{
+                //    model.VatableSales = model.Amount / (decimal)1.12;
+                //    model.VatAmount = model.Amount - model.VatableSales;
+                //}
+
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 _dbContext.Add(model);
                 await _dbContext.SaveChangesAsync();
@@ -62,9 +71,21 @@ namespace Accounting_System.Controllers
                 return View(model);
             }
         }
-        public IActionResult DebitMemo()
+        public async Task<IActionResult> Print(int id)
         {
-            return View();
+            var cr = await _debitMemoRepo.FindDM(id);
+            return View(cr);
+        }
+
+        public async Task<IActionResult> PrintedDM(int id)
+        {
+            var findIdOfDM = await _debitMemoRepo.FindDM(id);
+            if (findIdOfDM != null && !findIdOfDM.IsPrinted)
+            {
+                findIdOfDM  .IsPrinted = true;
+                await _dbContext.SaveChangesAsync();
+            }
+            return RedirectToAction("Print", new { id = id });
         }
     }
 }

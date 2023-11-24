@@ -15,7 +15,7 @@
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label class="control-label">Customers</label>
+                <label class="control-label">Invoice</label>
                 <select asp-for="SalesInvoiceId" asp-items="@Model.SalesInvoices" class="form-control js-select2">
                     <option></option>
                 </select>
@@ -40,7 +40,7 @@
             <br />
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
-                <a asp-action="CollectionReceiptIndex" class="btn btn-secondary">Back to List</a>
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
     </div>

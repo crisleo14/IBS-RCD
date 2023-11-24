@@ -37,5 +37,21 @@ namespace Accounting_System.Repository
                 return $"DM{1.ToString("D10")}";
             }
         }
+        public async Task<DebitMemo> FindDM(int id)
+        {
+            var debitMemo = await _dbContext
+                .DebitMemos
+                .Include(s => s.SalesInvoice)
+                .FirstOrDefaultAsync(debitMemo => debitMemo.Id == id);
+
+            if (debitMemo != null)
+            {
+                return debitMemo;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
+            }
+        }
     }
 }
