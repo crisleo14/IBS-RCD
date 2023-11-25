@@ -45,7 +45,7 @@
                         @Html.DisplayFor(model => invoice.SoldTo)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => invoice.TransactionDate)
+                        @invoice.TransactionDate.ToShortDateString()
                     </td>
                     <td>
                         @Html.DisplayFor(model => invoice.Terms)

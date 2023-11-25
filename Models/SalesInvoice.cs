@@ -38,10 +38,6 @@ namespace Accounting_System.Models
         [Display(Name = "Business Style")]
         public string BusinessStyle { get; set; }
 
-        [Required]
-        [Display(Name = "Transaction Date")]
-        public string TransactionDate { get; set; }
-
         public string Terms { get; set; }
 
         [Required]
@@ -92,5 +88,9 @@ namespace Accounting_System.Models
         public decimal VatAmount { get; set; }
 
         public string Status { get; set; } = "Pending";
+
+        [Required]
+        [Display(Name = "Transaction Date")]
+        public DateTime TransactionDate { get; set; }
     }
 }
