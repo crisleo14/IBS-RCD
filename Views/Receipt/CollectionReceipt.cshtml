@@ -4,10 +4,6 @@
 @inject UserManager<IdentityUser> UserManager
 
 
-    @{
-    string SI = Model.SalesInvoice.SerialNo.ToString("D10");
-    string formattedSerialNo = "SI" + SI;
-    }
 <br />
 <div class="text-end">
     <img src="~/img/Filpride.jpg" height="" width="130px" />
@@ -62,7 +58,7 @@
                 <td style="padding-left:10px;">(₱&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  @Html.DisplayFor(model => model.SalesInvoice.Amount))</td>
             </tr>
             <tr>
-                <td colspan="2" style="padding-left:10px;">IN FULL/PARTIAL payment of: @Html.DisplayFor(model => model.SalesInvoice.FormattedSerialNo)</td>
+                <td colspan="2" style="padding-left:10px;">IN FULL/PARTIAL payment of: @Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
             </tr>
             <tr>
                 <td colspan="2">&nbsp;</td>
@@ -83,7 +79,7 @@
             </tr>
             <tr class="text-center">
                 <td style="width:33%">@Html.DisplayFor(model => model.SalesInvoice.TransactionDate)</td>
-                <td style="width:33%">@Html.DisplayFor(model => formattedSerialNo)</td>
+                <td style="width:33%">@Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
                 <td style="width:33%">@Html.DisplayFor(model => model.SalesInvoice.Amount)</td>
             </tr>
             <tr>

@@ -6,17 +6,8 @@ namespace Accounting_System.Models
 {
     public class SalesInvoice : BaseEntity
     {
-        [Display(Name = "Serial No")]
-        public int SerialNo { get; set; }
-
-        [NotMapped]
-        public string FormattedSerialNo
-        {
-            get
-            {
-                return "SI" + SerialNo.ToString("D10"); 
-            }
-        }
+        [Display(Name = "SI No")]
+        public string? SINo { get; set; }
 
         [Required]
         [Display(Name = "Customer No")]
