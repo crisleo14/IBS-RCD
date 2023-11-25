@@ -82,7 +82,7 @@ namespace Accounting_System.Controllers
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
-                    Text = s.FormmatedNumber
+                    Text = s.SOANo
                 })
                 .ToList();
 

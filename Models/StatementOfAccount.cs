@@ -6,19 +6,9 @@ namespace Accounting_System.Models
 {
     public class StatementOfAccount : BaseEntity
     {
-        public int Number { get; set; }
+        public string? SOANo { get; set; }
 
-        [NotMapped]
-        [Display(Name = "SOA No.")]
-        public string FormmatedNumber
-        {
-            get
-            {
-                return "SOA" + Number.ToString("D10");
-            }
-        }
-
-        [Required]
+        [Required] 
         [Display(Name = "Customer")]
         public int CustomerId { get; set; }
 

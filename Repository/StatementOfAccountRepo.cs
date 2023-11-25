@@ -22,22 +22,40 @@ namespace Accounting_System.Repository
                 .ToListAsync();
         }
 
-        public async Task<int> GetLastSOA()
+        //public async Task<int> GetLastSOA()
+        //{
+        //    var lastRow = await _dbContext
+        //        .StatementOfAccounts
+        //        .OrderByDescending(s => s.Id)
+        //        .FirstOrDefaultAsync();
+
+        //    if (lastRow != null)
+        //    {
+        //        // Increment the last serial by one and return it
+        //        return lastRow.Number + 1;
+        //    }
+        //    else
+        //    {
+        //        // If there are no existing records, you can start with a default value like 1
+        //        return 1;
+        //    }
+        //}
+
+        public async Task<string> GenerateSOANo()
         {
-            var lastRow = await _dbContext
+            var statementOfAccount = await _dbContext
                 .StatementOfAccounts
                 .OrderByDescending(s => s.Id)
                 .FirstOrDefaultAsync();
 
-            if (lastRow != null)
+            if (statementOfAccount != null)
             {
-                // Increment the last serial by one and return it
-                return lastRow.Number + 1;
+                var generatedSOA = statementOfAccount.Id + 1;
+                return $"SOA{generatedSOA.ToString("D10")}";
             }
             else
             {
-                // If there are no existing records, you can start with a default value like 1
-                return 1;
+                return $"SOA{1.ToString("D10")}";
             }
         }
 
