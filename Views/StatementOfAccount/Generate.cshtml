@@ -65,7 +65,7 @@
 
             <tr style="height:80px;">
                 <td>@Html.DisplayFor(model => model.Service.Name)</td>
-                <td>@Html.DisplayFor(model => model.Period)</td>
+                <td>@Model.Period.ToString("MMMM yyyy")</td>
                 <td>@Html.DisplayFor(model => model.Amount)</td>
             </tr>
 

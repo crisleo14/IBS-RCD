@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20231125024738_Change data type and field name of column number and remove not mapped formattednumber")]
-    partial class Changedatatypeandfieldnameofcolumnnumberandremovenotmappedformattednumber
+    [Migration("20231125054821_Create table statement of account")]
+    partial class Createtablestatementofaccount
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1058,24 +1058,8 @@ namespace Accounting_System.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric");
-
-                    b.Property<string>("Bank")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("BankAccountNo")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("BankBranch")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
@@ -1086,9 +1070,8 @@ namespace Accounting_System.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Period")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<DateTime>("Period")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SOANo")
                         .HasColumnType("text");

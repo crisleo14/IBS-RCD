@@ -29,24 +29,9 @@ namespace Accounting_System.Models
         public List<SelectListItem>? Services { get; set; }
 
         [Required]
-        public string Period { get; set; }
+        public DateTime Period { get; set; }
 
         [Required]
         public decimal Amount { get; set; }
-
-        [Required]
-        [Display(Name = "Account Name")]
-        public string AccountName { get; set; }
-
-        [Required]
-        public string Bank { get; set; }
-
-        [Required]
-        [Display(Name = "Bank Account No.")]
-        public string BankAccountNo { get; set; }
-
-        [Required]
-        [Display(Name = "Bank Branch")]
-        public string BankBranch { get; set; }
     }
 }

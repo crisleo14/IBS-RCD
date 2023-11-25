@@ -44,7 +44,7 @@
                 @Html.DisplayFor(modelItem => item.Service.Name)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Period)
+                @item.Period.ToString("MMMM yyyy")
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Amount)

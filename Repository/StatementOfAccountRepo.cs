@@ -18,7 +18,8 @@ namespace Accounting_System.Repository
         {
             return await _dbContext
                 .StatementOfAccounts
-                .Include(s => s.Customer)
+                .Include(soa => soa.Customer)
+                .Include(soa => soa.Service)
                 .ToListAsync();
         }
 
