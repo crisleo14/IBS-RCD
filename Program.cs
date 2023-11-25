@@ -29,6 +29,7 @@ builder.Services.AddScoped<SalesOrderRepo>();
 builder.Services.AddScoped<ReceiptRepo>();
 builder.Services.AddScoped<StatementOfAccountRepo>();
 builder.Services.AddScoped<PurchaseOrderRepo>();
+builder.Services.AddScoped<ReceivingReportRepo>();
 
 var app = builder.Build();
 
