@@ -12,7 +12,7 @@ namespace Accounting_System.Models
 
         public string? ORNo { get; set; }
 
-        public string Date { get; set; }
+        public DateTime Date { get; set; }
 
         public string ReferenceNo { get; set; }
 
@@ -20,7 +20,7 @@ namespace Accounting_System.Models
 
         public int CheckNo { get; set; }
 
-        public string CheckDate { get; set; }
+        public DateTime CheckDate { get; set; }
 
         public decimal Amount { get; set; }
 
