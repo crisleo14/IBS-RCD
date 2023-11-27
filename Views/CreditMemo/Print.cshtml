@@ -1,8 +1,10 @@
 ﻿@using Microsoft.AspNetCore.Identity
-@model Accounting_System.Models.PurchaseOrder
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
+@{
+    ViewData["Title"] = "Debit Memo";
+}
 
 <br />
 <div class="text-end">
@@ -16,77 +18,133 @@
         VAT Reg. TIN: 000-216-589-00000
     </p>
 
-    <h3><span style="display: inline-block;"><b>Purchase Order</b></span></h3>
+    <h3><span style="display: inline-block;"><b>CREDIT MEMO</b></span></h3>
     <div class="text-end" style="margin-top:-60px;">
-        <h6><b>No.&nbsp;@Html.DisplayFor(model => model.PONo)</b></h6>
+        <h6><b>No.&nbsp; CM0000000001</b></h6>
     </div>
 
 </div>
-
-<div class="table-responsive" style="margin-top:50px;">
-    <table class="w-100">
+<br />
+<div class="table-responsive">
+    <table class="w-100" style="margin-top:20px;">
         <tbody>
-            <tr style="padding-left:10px;">
-                <td class="w-75">Supplier: &nbsp;@Html.DisplayFor(model => model.Supplier.Name)</td>
-                <td class="w-25">@Model.Date.ToShortDateString()</td>
-            </tr>
-            <tr style="padding-left:10px;">
-                <td>Address: &nbsp;@Html.DisplayFor(model => model.Supplier.Address)</td>
-                <td></td>
-            </tr>
-            <tr style="padding-left:10px;">
-                <td>TIN No.: &nbsp;@Html.DisplayFor(model => model.Supplier.TinNo)</td>
-                <td></td>
+            <tr>
+                <td>
+                    <span><b>Sold to:</b></span>
+                    &nbsp; Customer D Exempt &nbsp;<br />
+
+                    <span><b>Address:</b></span>
+                    &nbsp; Quezon City &nbsp;<br />
+
+                    <span><b>TIN:</b></span>
+                    &nbsp; 776-123-401-45684 &nbsp;<br />
+
+                    <span><b>Business Style:</b></span>
+                    &nbsp; High Precise &nbsp;
+                </td>
+
+                <td class="w-25 text-nowrap">
+
+                    <b>Date :</b> 11/24/2023
+                    &nbsp; <span id="invoiceDate"></span>
+                    <br />
+                    <b>@* Terms: *@</b>&nbsp;<span id="terms"></span>&nbsp;<br />
+                    <b>@* Due Date: *@</b>&nbsp; <span id="dueDate"></span><br />
+
+                    <b>@* Other Ref No.: *@</b>&nbsp;&nbsp;
+                </td>
             </tr>
         </tbody>
     </table>
 </div>
 
-<div class="table-responsive" style="margin-top:50px;">
-    <table class="w-100">
+<div class="table-responsive" style="margin-top:20px;">
+    <table class="table-bordered w-100 text-center">
         <thead>
-            <tr style="padding-left:10px;">
-                <th class="w-25">Product Name</th>
-                <th class="w-25">Quantity</th>
-                <th class="w-25">Price</th>
-                <th class="w-25">Amount</th>
+            <tr>
+                <th>INVOICE/SOA NO.</th>
+                <th>INVOICE/SOA DATE</th>
+                <th>PRODUCT</th>
+                <th>DESCRIPTION</th>
+                <th>AMOUNT</th>
             </tr>
         </thead>
         <tbody>
+            <tr style="height:80px;">
+                <td>SI0000000002</td>
+                <td>11/16/2023</td>
+                <td>BIODIESEL</td>
+                <td>Price Adjusment from 20.00 to 19.00</td>
+                <td>10.00</td>
+            </tr>
+
+        </tbody>
+    </table>
+</div>
+
+<div style="margin-top:20px;">
+    <table class="w-100">
+        <tbody>
             <tr>
-                <td class="w-25">@Html.DisplayFor(model => model.ProductName)</td>
-                <td class="w-25">@Html.DisplayFor(model => model.Quantity)</td>
-                <td class="w-25">@Html.DisplayFor(model => model.Price)</td>
-                <td class="w-25">@Html.DisplayFor(model => model.Amount)</td>
+                <td>
+                </td>
+                <td style="width:40%;">
+                    <div>
+                        <table class="w-100">
+                            <tbody class="text-nowrap">
+                                <tr>
+                                    <td class="w-50"><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
+                                    <td class="w-50 text-end"></td>
+
+                                </tr>
+                                <tr>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
+
+                                    <td class="text-end"></td>
+                                </tr>
+                                <tr>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT-Exempt Sales: </b></p></td>
+
+                                    <td class="text-end">10.00</td>
+                                </tr>
+                                <tr>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
+
+                                    <td class="text-end"></td>
+                                </tr>
+                                <tr>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
+                                    <td class="text-end">10.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </td>
             </tr>
         </tbody>
     </table>
 </div>
-<br /><br /><br /><br /><br /><br /><br /><br />
+
+<div style="margin-top:20px;">
+    <p>
+        <i>This is a system generated invoice, no signature required.</i>
+    </p>
+</div>
+
+
+<br />
 <div class="text-center w-100" style="margin-top:20px;">
     <p @* style="line-height: 1;" *@>
-        <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br /><br />
+        <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br />
         <span>Acknowledgement Certificate No:</span>
         <span style="display: inline-block; width: 30%;"></span>
         <span>Date Issued:</span>
         <span style="display: inline-block; width: 15%;"></span><br />
-        Series: PO0000000001 - PO9999999999
-        Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
+        Series: CM0000000001 - CM9999999999
+        Date and Time Created:&nbsp; 11/24/2023 08:02:10 AM
+    </p>
 </div>
-
-@if (!Model.IsPrinted)
-{
-    <div class="text-end footer" style="right:8%; bottom:9%;">
-        ORIGINAL COPY
-    </div>
-}
-else
-{
-    <div class="text-end footer" style="right:8%; bottom:9%;">
-        REPRINT COPY
-    </div>
-}
-
+<br />
 
 <div class="text-start w-100 footer" style="margin-top:50px;">
     <p style="line-height: 1;">
@@ -101,9 +159,18 @@ else
         </em>
     </p>
 </div>
+
+<div class="text-end">
+    ORIGINAL COPY
+</div>
+
+@* <div class="text-end">
+    REPRINT COPY
+</div> *@
+
 <div>
-    <a asp-action="Printed" class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" id="printButton">Print</a>
-    <a class="btn" id="otherButton" asp-action="Index">Back</a>
+    <a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
+    <a asp-action="OrderSlip" class="btn" id="otherButton">Back</a>
 </div>
 
 @section Scripts{
