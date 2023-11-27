@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231127024203_add AdjustedPrice in credit memo")]
+    partial class addAdjustedPriceincreditmemo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -329,9 +332,6 @@ namespace Accounting_System.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("AdjustedPrice")
-                        .HasColumnType("numeric");
-
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric");
 
@@ -344,8 +344,9 @@ namespace Accounting_System.Migrations
                     b.Property<string>("DMNo")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("Date")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<decimal>("DebitAmount")
                         .HasColumnType("numeric");
@@ -357,15 +358,8 @@ namespace Accounting_System.Migrations
                     b.Property<bool>("IsPrinted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("SOAId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("SalesInvoiceId")
                         .HasColumnType("integer");
-
-                    b.Property<string>("Source")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<decimal>("VatAmount")
                         .HasColumnType("numeric");
@@ -374,8 +368,6 @@ namespace Accounting_System.Migrations
                         .HasColumnType("numeric");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("SOAId");
 
                     b.HasIndex("SalesInvoiceId");
 
@@ -657,8 +649,9 @@ namespace Accounting_System.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric");
 
-                    b.Property<DateTime>("CheckDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("CheckDate")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("CheckNo")
                         .HasColumnType("integer");
@@ -669,8 +662,9 @@ namespace Accounting_System.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("Date")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("FormOfPayment")
                         .IsRequired()
@@ -1506,19 +1500,11 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.DebitMemo", b =>
                 {
-                    b.HasOne("Accounting_System.Models.StatementOfAccount", "SOA")
-                        .WithMany()
-                        .HasForeignKey("SOAId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Accounting_System.Models.SalesInvoice", "SalesInvoice")
                         .WithMany()
                         .HasForeignKey("SalesInvoiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("SOA");
 
                     b.Navigation("SalesInvoice");
                 });

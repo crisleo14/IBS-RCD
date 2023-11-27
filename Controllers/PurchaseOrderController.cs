@@ -71,7 +71,7 @@ namespace Accounting_System.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null || _dbContext.Suppliers == null)
+            if (id == null || _dbContext.PurchaseOrders == null)
             {
                 return NotFound();
             }
@@ -89,7 +89,6 @@ namespace Accounting_System.Controllers
                     Text = s.Name
                 })
                 .ToListAsync();
-
 
             return View(purchaseOrder);
         }
@@ -119,14 +118,14 @@ namespace Accounting_System.Controllers
                 TempData["success"] = "Purchase Order updated successfully";
                 return RedirectToAction("Index");
             }
-            
+
             return View(model);
         }
 
         [HttpGet]
         public async Task<IActionResult> Print(int? id)
         {
-            if (id == null || _dbContext.Suppliers == null)
+            if (id == null || _dbContext.ReceivingReports == null)
             {
                 return NotFound();
             }
@@ -140,6 +139,17 @@ namespace Accounting_System.Controllers
             }
 
             return View(purchaseOrder);
+        }
+
+        public async Task<IActionResult> Printed(int id)
+        {
+            var po = await _dbContext.PurchaseOrders.FindAsync(id);
+            if (po != null && !po.IsPrinted)
+            {
+                po.IsPrinted = true;
+                await _dbContext.SaveChangesAsync();
+            }
+            return RedirectToAction("Print", new { id = id });
         }
     }
 }
