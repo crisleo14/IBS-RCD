@@ -64,7 +64,7 @@ namespace Accounting_System.Controllers
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 _dbContext.Add(model);
                 await _dbContext.SaveChangesAsync();
-                TempData["success"] = "Sales Order created successfully";
+                TempData["success"] = "Collection Receipt created successfully";
                 return RedirectToAction("CollectionReceiptIndex");
             }
             else
@@ -101,7 +101,7 @@ namespace Accounting_System.Controllers
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 _dbContext.Add(model);
                 await _dbContext.SaveChangesAsync();
-                TempData["success"] = "Sales Order created successfully";
+                TempData["success"] = "Official Receipt created successfully";
                 return RedirectToAction("OfficialReceiptIndex");
             }
             else
