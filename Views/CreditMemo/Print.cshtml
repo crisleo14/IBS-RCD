@@ -1,9 +1,10 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@model Accounting_System.Models.CreditMemo
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
 @{
-    ViewData["Title"] = "Debit Memo";
+    ViewData["Title"] = "Credit Memo";
 }
 
 <br />
@@ -20,50 +21,46 @@
 
     <h3><span style="display: inline-block;"><b>CREDIT MEMO</b></span></h3>
     <div class="text-end" style="margin-top:-60px;">
-        <h6><b>No.&nbsp; CM0000000001</b></h6>
+        <h6><b>No.&nbsp;@Html.DisplayFor(model => model.CMNo)</b></h6>
     </div>
 
 </div>
 <br />
-<div class="table-responsive">
-    <table class="w-100" style="margin-top:20px;">
-        <tbody>
-            <tr>
-                <td>
-                    <span><b>Sold to:</b></span>
-                    &nbsp; Customer D Exempt &nbsp;<br />
+@if (Model.Source == "Sales Invoice")
+{
+    <div class="table-responsive">
+        <table class="w-100" style="margin-top:20px;">
+            <tbody>
+                <tr>
+                    <td>
+                        <span><b>Sold to:</b></span>
+                        &nbsp;@Html.DisplayFor(model => model.SalesInvoice.SoldTo) &nbsp;<br />
 
-                    <span><b>Address:</b></span>
-                    &nbsp; Quezon City &nbsp;<br />
+                        <span><b>Address:</b></span>
+                        &nbsp;@Html.DisplayFor(model => model.SalesInvoice.Address) &nbsp;<br />
 
-                    <span><b>TIN:</b></span>
-                    &nbsp; 776-123-401-45684 &nbsp;<br />
+                        <span><b>TIN:</b></span>
+                        &nbsp;@Html.DisplayFor(model => model.SalesInvoice.TinNo) &nbsp;<br />
 
-                    <span><b>Business Style:</b></span>
-                    &nbsp; High Precise &nbsp;
-                </td>
+                        <span><b>Business Style:</b></span>
+                        &nbsp;@Html.DisplayFor(model => model.SalesInvoice.BusinessStyle) &nbsp;
+                    </td>
 
-                <td class="w-25 text-nowrap">
+                    <td class="w-25 text-nowrap">
 
-                    <b>Date :</b> 11/24/2023
-                    &nbsp; <span id="invoiceDate"></span>
-                    <br />
-                    <b>@* Terms: *@</b>&nbsp;<span id="terms"></span>&nbsp;<br />
-                    <b>@* Due Date: *@</b>&nbsp; <span id="dueDate"></span><br />
-
-                    <b>@* Other Ref No.: *@</b>&nbsp;&nbsp;
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+                        <b>Date :</b> @Model.Date.ToShortDateString()
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
 <div class="table-responsive" style="margin-top:20px;">
     <table class="table-bordered w-100 text-center">
         <thead>
             <tr>
-                <th>INVOICE/SOA NO.</th>
-                <th>INVOICE/SOA DATE</th>
+                <th>INVOICE NO.</th>
+                <th>INVOICE DATE</th>
                 <th>PRODUCT</th>
                 <th>DESCRIPTION</th>
                 <th>AMOUNT</th>
@@ -71,11 +68,11 @@
         </thead>
         <tbody>
             <tr style="height:80px;">
-                <td>SI0000000002</td>
-                <td>11/16/2023</td>
-                <td>BIODIESEL</td>
-                <td>Price Adjusment from 20.00 to 19.00</td>
-                <td>10.00</td>
+                <td>@Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
+                <td>@Model.SalesInvoice.TransactionDate.ToShortDateString()</td>
+                <td>@Html.DisplayFor(model => model.SalesInvoice.ProductName)</td>
+                <td>@Html.DisplayFor(model => model.Description)</td>
+                <td>@Html.DisplayFor(model => model.CreditAmount)</td>
             </tr>
 
         </tbody>
@@ -94,27 +91,179 @@
                             <tbody class="text-nowrap">
                                 <tr>
                                     <td class="w-50"><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
-                                    <td class="w-50 text-end"></td>
+                                        @if (Model.VatableSales != 0)
+                                        {
+                                            <td class="text-end">@Html.DisplayFor(model => model.VatableSales)</td>
+                                        }
+                                        else
+                                        {
+                                            <td class="text-end"></td>
+                                        }
 
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
-
-                                    <td class="text-end"></td>
+                                        @if (Model.SalesInvoice.CustomerType == "Zero Rated")
+                                        {
+                                            <td class="text-end">@Html.DisplayFor(model => model.CreditAmount)</td>
+                                        }
+                                        else
+                                        {
+                                            <td class="text-end"></td>
+                                        }
+                                        
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>VAT-Exempt Sales: </b></p></td>
 
-                                    <td class="text-end">10.00</td>
+                                        @if (Model.SalesInvoice.CustomerType == "Exempt")
+                                        {
+                                            <td class="text-end">@Html.DisplayFor(model => model.CreditAmount)</td>
+                                        }
+                                        else
+                                        {
+                                            <td class="text-end"></td>
+                                        }
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
 
-                                    <td class="text-end"></td>
+                                        @if (Model.VatAmount != 0)
+                                        {
+                                            <td class="text-end">@Html.DisplayFor(model => model.VatAmount)</td>
+                                        }
+                                        else
+                                        {
+                                            <td class="text-end"></td>
+                                        }
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
-                                    <td class="text-end">10.00</td>
+                                    <td class="text-end">@Html.DisplayFor(model => model.TotalSales)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+} 
+else if (Model.Source == "Statement Of Account")
+{
+    <div class="table-responsive">
+        <table class="w-100" style="margin-top:20px;">
+            <tbody>
+                <tr>
+                    <td>
+                        <span><b>Sold to:</b></span>
+                        &nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.Name) &nbsp;<br />
+
+                        <span><b>Address:</b></span>
+                        &nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.Address) &nbsp;<br />
+
+                        <span><b>TIN:</b></span>
+                        &nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.TinNo) &nbsp;<br />
+
+                        <span><b>Business Style:</b></span>
+                        &nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.BusinessStyle) &nbsp;
+                    </td>
+
+                    <td class="w-25 text-nowrap">
+
+                        <b>Date :</b> @Model.Date.ToShortDateString()
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+<div class="table-responsive" style="margin-top:20px;">
+    <table class="table-bordered w-100 text-center">
+        <thead>
+            <tr>
+                <th>SOA NO.</th>
+                <th>SOA DATE</th>
+                <th>SERVICE</th>
+                <th>DESCRIPTION</th>
+                <th>AMOUNT</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="height:80px;">
+                <td>@Html.DisplayFor(model => model.StatementOfAccount.SOANo)</td>
+                <td>@Model.StatementOfAccount.CreatedDate.ToShortDateString()</td>
+                <td>@Html.DisplayFor(model => model.StatementOfAccount.Service.Name)</td>
+                <td>@Html.DisplayFor(model => model.Description)</td>
+                <td>@Html.DisplayFor(model => model.CreditAmount)</td>
+            </tr>
+
+        </tbody>
+    </table>
+</div>
+
+<div style="margin-top:20px;">
+    <table class="w-100">
+        <tbody>
+            <tr>
+                <td>
+                </td>
+                <td style="width:40%;">
+                    <div>
+                        <table class="w-100">
+                            <tbody class="text-nowrap">
+                                <tr>
+                                    <td class="w-50"><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
+                                        @if (Model.VatableSales != 0)
+                                        {
+                                            <td class="text-end">@Html.DisplayFor(model => model.VatableSales)</td>
+                                        }
+                                        else
+                                        {
+                                            <td class="text-end"></td>
+                                        }
+
+                                </tr>
+                                <tr>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
+                                        @if (Model.StatementOfAccount.Customer.CustomerType == "Zero Rated")
+                                        {
+                                            <td class="text-end">@Html.DisplayFor(model => model.CreditAmount)</td>
+                                        }
+                                        else
+                                        {
+                                            <td class="text-end"></td>
+                                        }
+                                        
+                                </tr>
+                                <tr>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT-Exempt Sales: </b></p></td>
+
+                                        @if (Model.StatementOfAccount.Customer.CustomerType == "Exempt")
+                                        {
+                                            <td class="text-end">@Html.DisplayFor(model => model.CreditAmount)</td>
+                                        }
+                                        else
+                                        {
+                                            <td class="text-end"></td>
+                                        }
+                                </tr>
+                                <tr>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
+
+                                        @if (Model.VatAmount != 0)
+                                        {
+                                            <td class="text-end">@Html.DisplayFor(model => model.VatAmount)</td>
+                                        }
+                                        else
+                                        {
+                                            <td class="text-end"></td>
+                                        }
+                                </tr>
+                                <tr>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
+                                    <td class="text-end">@Html.DisplayFor(model => model.TotalSales)</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -124,6 +273,7 @@
         </tbody>
     </table>
 </div>
+}
 
 <div style="margin-top:20px;">
     <p>
@@ -141,7 +291,7 @@
         <span>Date Issued:</span>
         <span style="display: inline-block; width: 15%;"></span><br />
         Series: CM0000000001 - CM9999999999
-        Date and Time Created:&nbsp; 11/24/2023 08:02:10 AM
+        Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
     </p>
 </div>
 <br />
@@ -160,18 +310,21 @@
     </p>
 </div>
 
-<div class="text-end">
-    ORIGINAL COPY
-</div>
+@if (!Model.IsPrinted)
+{
+    <div class="text-end">
+        ORIGINAL COPY
+    </div>
+}
+else
+{
+    <div class="text-end">
+        REPRINT COPY
+    </div>
+}
 
-@* <div class="text-end">
-    REPRINT COPY
-</div> *@
-
-<div>
-    <a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
-    <a asp-action="OrderSlip" class="btn" id="otherButton">Back</a>
-</div>
+<a asp-action="Printed" class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" id="printButton">Print</a>
+<a asp-action="Index" class="btn" id="otherButton">Back</a>
 
 @section Scripts{
     <script>
