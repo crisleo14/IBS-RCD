@@ -14,7 +14,7 @@ namespace Accounting_System.Models
         public List<SelectListItem>? SalesInvoices { get; set; }
 
         public string? DMNo { get; set; }
-        public string Date {  get; set; }
+        public DateTime Date {  get; set; }
         public decimal DebitAmount {  get; set; }
         public string Description { get; set; }
         public decimal VatableSales {  get; set; }
