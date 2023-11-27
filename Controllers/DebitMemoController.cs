@@ -35,7 +35,14 @@ namespace Accounting_System.Controllers
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
-                    Text = s.SoldTo
+                    Text = s.SINo
+                })
+                .ToList();
+            viewModel.StatementOfAccounts = _dbContext.StatementOfAccounts
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.SOANo  
                 })
                 .ToList();
 
