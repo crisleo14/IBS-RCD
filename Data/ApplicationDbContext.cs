@@ -26,6 +26,7 @@ namespace Accounting_System.Data
         public DbSet<Supplier> Suppliers { get; set; }
         public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
         public DbSet<ReceivingReport> ReceivingReports { get; set; }
+        public DbSet<CreditMemo> CreditMemos { get; set; }
 
         // Book Context
         public DbSet<CashReceiptBook> CashReceiptBooks { get; set; }
