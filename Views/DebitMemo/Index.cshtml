@@ -5,7 +5,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Collection Receipt</h1>
+<h1>Debit Memo</h1>
 
 <p>
     <a asp-action="Create" class="btn btn-primary rounded-3">Create New</a>
@@ -45,7 +45,7 @@
                     @Html.DisplayFor(modelItem => item.DMNo)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Date)
+                    @item.Date.ToShortDateString()
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.DebitAmount)

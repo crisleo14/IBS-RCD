@@ -46,7 +46,7 @@
 
                 <td class="w-25 text-nowrap">
 
-                    <b>Date :</b> @Html.DisplayFor(model => model.Date)
+                    <b>Date :</b> @Model.Date.ToShortDateString()
                     &nbsp; <span id="invoiceDate"></span>
                     <br />
                     <b>@* Terms: *@</b>&nbsp;<span id="terms"></span>&nbsp;<br />
@@ -73,7 +73,7 @@
         <tbody>
             <tr style="height:80px;">
                 <td>@Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
-                <td>@Html.DisplayFor(model => model.SalesInvoice.TransactionDate)</td>
+                <td>@Model.SalesInvoice.TransactionDate.ToShortDateString()</td>
                 <td>@Html.DisplayFor(model => model.SalesInvoice.ProductName)</td>
                 <td>@Html.DisplayFor(model => model.Description)</td>
                 <td>@Html.DisplayFor(model => model.Amount)</td>
