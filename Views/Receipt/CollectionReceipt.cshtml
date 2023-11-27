@@ -4,10 +4,6 @@
 @inject UserManager<IdentityUser> UserManager
 
 
-    @{
-    string SI = Model.SalesInvoice.SerialNo.ToString("D10");
-    string formattedSerialNo = "SI" + SI;
-    }
 <br />
 <div class="text-end">
     <img src="~/img/Filpride.jpg" height="" width="130px" />
@@ -29,7 +25,7 @@
 
 <div class="w-100 text-end" style="margin-top:-20px; padding-bottom:10px;">
     <span><b>Date:</b></span>
-    <span class="underline" style="display: inline-block; width: 20%; text-align:center;">@Html.DisplayFor(model => model.Date)</span><br />
+    <span class="underline" style="display: inline-block; width: 20%; text-align:center;">@Model.Date.ToShortDateString()</span><br />
 </div>
 
 <div>
@@ -62,7 +58,7 @@
                 <td style="padding-left:10px;">(₱&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  @Html.DisplayFor(model => model.SalesInvoice.Amount))</td>
             </tr>
             <tr>
-                <td colspan="2" style="padding-left:10px;">IN FULL/PARTIAL payment of: @Html.DisplayFor(model => model.SalesInvoice.FormattedSerialNo)</td>
+                <td colspan="2" style="padding-left:10px;">IN FULL/PARTIAL payment of: @Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
             </tr>
             <tr>
                 <td colspan="2">&nbsp;</td>
@@ -82,8 +78,8 @@
                 <td class="text-center" style="width:33%">AMOUNT</td>
             </tr>
             <tr class="text-center">
-                <td style="width:33%">@Html.DisplayFor(model => model.SalesInvoice.TransactionDate)</td>
-                <td style="width:33%">@Html.DisplayFor(model => formattedSerialNo)</td>
+                <td style="width:33%">@Model.SalesInvoice.TransactionDate.ToShortDateString()</td>
+                <td style="width:33%">@Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
                 <td style="width:33%">@Html.DisplayFor(model => model.SalesInvoice.Amount)</td>
             </tr>
             <tr>
@@ -139,7 +135,7 @@
                     decimal total = EWT + amount;
                 }
                 <td style="padding-left:20px;">Check</td>
-                <td class="text-center">@Html.DisplayFor(model => model.CheckDate)</td>
+                <td class="text-center">@Model.CheckDate.ToShortDateString()</td>
                 <td class="text-center">@Html.DisplayFor(model => model.CheckNo)</td>
                 <td class="text-center">@Html.DisplayFor(model => model.Bank)</td>
                 <td class="text-center">@Html.DisplayFor(model => model.Branch)</td>
@@ -200,7 +196,7 @@
     </p>
 </div>
 
-@if (!Model.IsPrint)
+@if (!Model.IsPrinted)
 {
     <div class="text-end">
         ORIGINAL COPY

@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231125082131_change data type of transaction date from string to DateTime")]
+    partial class changedatatypeoftransactiondatefromstringtoDateTime
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -169,8 +172,9 @@ namespace Accounting_System.Migrations
                     b.Property<string>("CRNo")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("CheckDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("CheckDate")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("CheckNo")
                         .HasColumnType("integer");
@@ -181,8 +185,9 @@ namespace Accounting_System.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("Date")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<decimal>("EWT")
                         .HasColumnType("numeric");

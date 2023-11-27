@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231123045034_Rename table field named IsPrint to IsPrinted in ORCR")]
+    partial class RenametablefieldnamedIsPrinttoIsPrintedinORCR
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -169,8 +172,9 @@ namespace Accounting_System.Migrations
                     b.Property<string>("CRNo")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("CheckDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("CheckDate")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("CheckNo")
                         .HasColumnType("integer");
@@ -181,8 +185,9 @@ namespace Accounting_System.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("Date")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<decimal>("EWT")
                         .HasColumnType("numeric");
@@ -733,115 +738,6 @@ namespace Accounting_System.Migrations
                     b.ToTable("PurchaseJournalBooks");
                 });
 
-            modelBuilder.Entity("Accounting_System.Models.PurchaseOrder", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsPrinted")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("PONo")
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("ProductName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("Quantity")
-                        .HasColumnType("numeric");
-
-                    b.Property<int>("SupplierId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SupplierId");
-
-                    b.ToTable("PurchaseOrders");
-                });
-
-            modelBuilder.Entity("Accounting_System.Models.SalesBook", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("Discount")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("NetSales")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("SerialNo")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("SoldTo")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("TinNo")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("TransactionDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal>("VatAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("VatExemptSales")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("VatableSales")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("ZeroRated")
-                        .HasColumnType("numeric");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("SalesBooks");
-                });
-
             modelBuilder.Entity("Accounting_System.Models.SalesInvoice", b =>
                 {
                     b.Property<int>("Id")
@@ -910,8 +806,8 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("SINo")
-                        .HasColumnType("text");
+                    b.Property<int>("SerialNo")
+                        .HasColumnType("integer");
 
                     b.Property<string>("SoldTo")
                         .IsRequired()
@@ -929,8 +825,9 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("TransactionDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("TransactionDate")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("numeric");
@@ -1052,8 +949,24 @@ namespace Accounting_System.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AccountName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric");
+
+                    b.Property<string>("Bank")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("BankAccountNo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("BankBranch")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
@@ -1064,10 +977,11 @@ namespace Accounting_System.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("Period")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<int>("Number")
+                        .HasColumnType("integer");
 
-                    b.Property<string>("SOANo")
+                    b.Property<string>("Period")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("ServicesId")
@@ -1392,17 +1306,6 @@ namespace Accounting_System.Migrations
                         .IsRequired();
 
                     b.Navigation("StatementOfAccount");
-                });
-
-            modelBuilder.Entity("Accounting_System.Models.PurchaseOrder", b =>
-                {
-                    b.HasOne("Accounting_System.Models.Supplier", "Supplier")
-                        .WithMany()
-                        .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Supplier");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.StatementOfAccount", b =>
