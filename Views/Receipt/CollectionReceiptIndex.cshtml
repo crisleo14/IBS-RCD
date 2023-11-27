@@ -48,13 +48,13 @@
                     @Html.DisplayFor(modelItem => item.CRNo)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Date)
+                    @item.Date.ToShortDateString()
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.FormOfPayment)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.CheckDate)
+                    @item.CheckDate.ToShortDateString()
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.CheckNo)

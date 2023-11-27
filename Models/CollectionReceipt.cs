@@ -13,7 +13,7 @@ namespace Accounting_System.Models
 
         public string? CRNo { get; set; }
 
-        public string Date { get; set; }
+        public DateTime Date { get; set; }
 
         [Display(Name = "Reference No")]
         public string ReferenceNo { get; set; }
@@ -22,7 +22,7 @@ namespace Accounting_System.Models
         public string FormOfPayment { get; set; }
 
         [Display(Name = "Check Date")]
-        public string CheckDate { get; set; }
+        public DateTime CheckDate { get; set; }
 
         [Display(Name = "Check No")]
         public int CheckNo { get; set; }
