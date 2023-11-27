@@ -52,7 +52,7 @@
                     <span class="underline" style="display: inline-block; width: 92%;">(₱ @Model.StatementOfAccount.Amount)</span><br />
 
                     <span><b>In partial/full payment for</b></span>
-                    <span class="underline" style="display: inline-block; width: 72%;">&nbsp;&nbsp;@Model.StatementOfAccount.FormmatedNumber</span><br />
+                    <span class="underline" style="display: inline-block; width: 72%;">&nbsp;&nbsp;@Model.StatementOfAccount.SOANo</span><br />
 
                     <span><b>Reference Receipt No.</b></span>
                     <span class="underline" style="display: inline-block; width: 75%;">&nbsp;&nbsp;@Html.DisplayFor(model => model.ReferenceNo)</span>
@@ -110,7 +110,7 @@
                     }
                 </td>
                 <td style="padding-left:10px;">SOA #.</td>
-                <td style="padding-left:10px;">@Html.DisplayFor(model => model.StatementOfAccount.FormmatedNumber)</td>
+                <td style="padding-left:10px;">@Html.DisplayFor(model => model.StatementOfAccount.SOANo)</td>
             </tr>
             <tr>
                 <td style="padding-left:10px;">VAT Amount</td>
@@ -223,7 +223,7 @@
     </p>
 </div>
 
-@if (!Model.IsPrint)
+@if (!Model.IsPrinted)
 {
     <div class="text-end">
         ORIGINAL COPY

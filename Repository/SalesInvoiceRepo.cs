@@ -21,22 +21,40 @@ namespace Accounting_System.Repository
                 .ToListAsync();
         }
 
-        public async Task<int> GetLastSerialNo()
+        //public async Task<int> GetLastSerialNo()
+        //{
+        //    var lastInvoice = await _dbContext
+        //        .SalesInvoices
+        //        .OrderByDescending(s => s.Id)
+        //        .FirstOrDefaultAsync();
+
+        //    if (lastInvoice != null)
+        //    {
+        //        // Increment the last serial by one and return it
+        //        return lastInvoice.SerialNo + 1;
+        //    }
+        //    else
+        //    {
+        //        // If there are no existing records, you can start with a default value like 1
+        //        return 1;
+        //    }
+        //}
+
+        public async Task<string> GenerateSINo()
         {
-            var lastInvoice = await _dbContext
+            var salesInvoice = await _dbContext
                 .SalesInvoices
                 .OrderByDescending(s => s.Id)
                 .FirstOrDefaultAsync();
 
-            if (lastInvoice != null)
+            if (salesInvoice != null)
             {
-                // Increment the last serial by one and return it
-                return lastInvoice.SerialNo + 1;
+                var generatedSI = salesInvoice.Id + 1;
+                return $"SI{generatedSI.ToString("D10")}";
             }
             else
             {
-                // If there are no existing records, you can start with a default value like 1
-                return 1;
+                return $"SI{1.ToString("D10")}";
             }
         }
 
