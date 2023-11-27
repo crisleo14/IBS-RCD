@@ -224,7 +224,9 @@ namespace Accounting_System.Controllers
             var creditMemo = await _dbContext.CreditMemos
                 .Include(cm => cm.SalesInvoice)
                 .Include(cm => cm.StatementOfAccount)
-                .ThenInclude(cm => cm.Customer)
+                .ThenInclude(soa => soa.Customer)
+                .Include(cm => cm.StatementOfAccount)
+                .ThenInclude(soa => soa.Service)
                 .FirstOrDefaultAsync(r => r.Id == id);
             if (creditMemo == null)
             {
@@ -232,6 +234,17 @@ namespace Accounting_System.Controllers
             }
 
             return View(creditMemo);
+        }
+
+        public async Task<IActionResult> Printed(int id)
+        {
+            var cm = await _dbContext.ReceivingReports.FindAsync(id);
+            if (cm != null && !cm.IsPrinted)
+            {
+                cm.IsPrinted = true;
+                await _dbContext.SaveChangesAsync();
+            }
+            return RedirectToAction("Print", new { id = id });
         }
     }
 }
