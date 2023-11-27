@@ -29,6 +29,8 @@ builder.Services.AddScoped<SalesOrderRepo>();
 builder.Services.AddScoped<ReceiptRepo>();
 builder.Services.AddScoped<StatementOfAccountRepo>();
 builder.Services.AddScoped<PurchaseOrderRepo>();
+builder.Services.AddScoped<DebitMemoRepo>();
+
 builder.Services.AddScoped<ReceivingReportRepo>();
 builder.Services.AddScoped<CreditMemoRepo>();
 

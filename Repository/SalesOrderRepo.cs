@@ -50,11 +50,11 @@ namespace Accounting_System.Repository
             if (salesOrder != null)
             {
                 var generatedCOS = salesOrder.Id + 1;
-                return $"TNSMLA-{dateToday}-{generatedCOS.ToString("D8")}";
+                return $"TNSMLA-{dateToday}-{generatedCOS.ToString("D10")}";
             }
             else
             {
-                return $"TNSMLA-{dateToday}-{1}";
+                return $"TNSMLA-{dateToday}-{1.ToString("D10")}";
             }
 
         }

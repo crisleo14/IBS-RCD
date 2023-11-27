@@ -6,17 +6,8 @@ namespace Accounting_System.Models
 {
     public class SalesInvoice : BaseEntity
     {
-        [Display(Name = "Serial No")]
-        public int SerialNo { get; set; }
-
-        [NotMapped]
-        public string FormattedSerialNo
-        {
-            get
-            {
-                return "SI" + SerialNo.ToString("D10"); 
-            }
-        }
+        [Display(Name = "SI No")]
+        public string? SINo { get; set; }
 
         [Required]
         [Display(Name = "Customer No")]
@@ -46,10 +37,6 @@ namespace Accounting_System.Models
 
         [Display(Name = "Business Style")]
         public string BusinessStyle { get; set; }
-
-        [Required]
-        [Display(Name = "Transaction Date")]
-        public string TransactionDate { get; set; }
 
         public string Terms { get; set; }
 
@@ -101,5 +88,9 @@ namespace Accounting_System.Models
         public decimal VatAmount { get; set; }
 
         public string Status { get; set; } = "Pending";
+
+        [Required]
+        [Display(Name = "Transaction Date")]
+        public DateTime TransactionDate { get; set; }
     }
 }

@@ -64,7 +64,7 @@ namespace Accounting_System.Controllers
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 _dbContext.Add(model);
                 await _dbContext.SaveChangesAsync();
-                TempData["success"] = "Sales Order created successfully";
+                TempData["success"] = "Collection Receipt created successfully";
                 return RedirectToAction("CollectionReceiptIndex");
             }
             else
@@ -82,7 +82,7 @@ namespace Accounting_System.Controllers
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
-                    Text = s.FormmatedNumber
+                    Text = s.SOANo
                 })
                 .ToList();
 
@@ -101,7 +101,7 @@ namespace Accounting_System.Controllers
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 _dbContext.Add(model);
                 await _dbContext.SaveChangesAsync();
-                TempData["success"] = "Sales Order created successfully";
+                TempData["success"] = "Official Receipt created successfully";
                 return RedirectToAction("OfficialReceiptIndex");
             }
             else
@@ -126,9 +126,9 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> PrintedCR(int id)
         {
             var findIdOfCR = await _receiptRepo.FindCR(id);
-            if (findIdOfCR != null && !findIdOfCR.IsPrint)
+            if (findIdOfCR != null && !findIdOfCR.IsPrinted)
             {
-                findIdOfCR.IsPrint = true;
+                findIdOfCR.IsPrinted = true;
                 await _dbContext.SaveChangesAsync();
             }
             return RedirectToAction("CollectionReceipt", new { id = id });
@@ -137,9 +137,9 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> PrintedOR(int id)
         {
             var findIdOfOR = await _receiptRepo.FindOR(id);
-            if (findIdOfOR != null && !findIdOfOR.IsPrint)
+            if (findIdOfOR != null && !findIdOfOR.IsPrinted)
             {
-                findIdOfOR.IsPrint = true;
+                findIdOfOR.IsPrinted = true;
                 await _dbContext.SaveChangesAsync();
             }
             return RedirectToAction("OfficialReceipt", new { id = id });

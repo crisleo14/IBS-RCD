@@ -48,13 +48,13 @@ namespace Accounting_System.Controllers
                 {
                     model.IsPosted = true;
                     await _inventoryRepo.UpdateQuantity(model.Quantity, int.Parse(model.ProductNo));
-                    var ledgers = new Ledger[]
-                      {
-                        new Ledger {AccountNo = 1001,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Debit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.Amount},
-                        new Ledger {AccountNo = 2001,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatAmount},
-                        new Ledger {AccountNo = 4001,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatableSales}
-                      };
-                    _dbContext.Ledgers.AddRange(ledgers);
+                    //var ledgers = new Ledger[]
+                    //  {
+                    //    new Ledger {AccountNo = 1001,TransactionNo = model.SINo, TransactionDate = model.TransactionDate, Category = "Debit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.Amount},
+                    //    new Ledger {AccountNo = 2001,TransactionNo = model.SINo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatAmount},
+                    //    new Ledger {AccountNo = 4001,TransactionNo = model.SINo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatableSales}
+                    //  };
+                    //_dbContext.Ledgers.AddRange(ledgers);
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Sales Invoice has been Posted.";
                 }
@@ -106,10 +106,10 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var lastSerialNo = await _salesInvoiceRepo.GetLastSerialNo();
+                var generateCRNo = await _salesInvoiceRepo.GenerateSINo();
 
                 sales.CreatedBy = _userManager.GetUserName(this.User);
-                sales.SerialNo = lastSerialNo;
+                sales.SINo = generateCRNo;
                 sales.Amount = sales.Quantity * sales.UnitPrice;
                 if (sales.CustomerType == "Vatable")
                 {
