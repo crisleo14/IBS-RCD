@@ -30,7 +30,7 @@
                     <br />
                     <div class="w-100 text-end">
                     <span><b>Date:</b></span>
-                        <span class="underline" style="display: inline-block; width: 20%; text-align:center">&nbsp;@Html.DisplayFor(model => model.Date)</span><br />
+                        <span class="underline" style="display: inline-block; width: 20%; text-align:center">&nbsp;@Model.Date.ToShortDateString()</span><br />
                     </div>
 
                     <span><b>Received from:</b></span>
@@ -99,7 +99,7 @@
                     }
                 </td>
                 <td style="padding-left:10px;">SOA Date</td>
-                <td class="w-25" style="padding-left:10px;">@Model.StatementOfAccount.CreatedDate.ToString("yyyy-dd-MM")</td>
+                <td class="w-25" style="padding-left:10px;">@Model.StatementOfAccount.CreatedDate.ToShortDateString()</td>
             </tr>
             <tr>
                 <td style="padding-left:10px;">Zero Rated Sales</td>
@@ -169,7 +169,7 @@
             </tr>
             <tr class="text-center">
                 <td>@Html.DisplayFor(model => model.FormOfPayment)</td>
-                <td>@Html.DisplayFor(model => model.CheckDate)</td>
+                <td>@Model.CheckDate.ToShortDateString()</td>
                 <td>@Html.DisplayFor(model => model.CheckNo)</td>
                 <td>@Html.DisplayFor(model => totalAmountDue)</td>
             </tr>
