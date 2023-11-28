@@ -55,21 +55,37 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateCollectionReceipt(CollectionReceipt model)
         {
-
+            model.Customers = _dbContext.SalesInvoices
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.SoldTo
+                })
+                .ToList();
             if (ModelState.IsValid)
             {
-                var generateCRNo = await _receiptRepo.GenerateCRNo();
+                var existingSalesInvoice = _dbContext.SalesInvoices
+                                               .FirstOrDefault(si => si.Id == model.SalesInvoiceId);
 
-                model.CRNo = generateCRNo;
-                model.CreatedBy = _userManager.GetUserName(this.User);
-                _dbContext.Add(model);
-                await _dbContext.SaveChangesAsync();
-                TempData["success"] = "Collection Receipt created successfully";
-                return RedirectToAction("CollectionReceiptIndex");
+                if (existingSalesInvoice.Amount >= model.Amount)
+                {
+                    var generateCRNo = await _receiptRepo.GenerateCRNo();
+                    model.CRNo = generateCRNo;
+                    model.CreatedBy = _userManager.GetUserName(this.User);
+                    _dbContext.Add(model);
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Collection Receipt created successfully";
+                    return RedirectToAction("CollectionReceiptIndex");
+                }
+                else
+                {
+                    TempData["error"] = "Please input below or exact amount based on the Sales Invoice";
+                    return View(model);
+                }
             }
             else
             {
-                ModelState.AddModelError("", "The information you submitted is not valid!");
+                TempData["error"] = "The information you submitted is not valid!";
                 return View(model);
             }
         }

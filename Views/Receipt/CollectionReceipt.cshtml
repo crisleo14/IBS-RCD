@@ -2,8 +2,13 @@
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
+@using Humanizer
 
-
+@{
+    decimal EWT = Model.SalesInvoice.VatableSales * (decimal)0.01;
+    decimal amount = Model.Amount - EWT;
+    decimal total = EWT + amount;
+}
 <br />
 <div class="text-end">
     <img src="~/img/Filpride.jpg" height="" width="130px" />
@@ -45,8 +50,16 @@
                 <td>&nbsp;</td>
                 <td></td>
             </tr>
+            @{
+                decimal convertToWords = Model.Amount;
+                int integerPart = Convert.ToInt32(Math.Floor(convertToWords));
+                string words = integerPart.ToWords() + " pesos only";
+
+                // Capitalize the first letter of each word
+                words = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(words.ToLower());
+            }
             <tr>
-                <td style="padding-left:10px;">The sum of Pesos:&nbsp; One Thousand Pesos Only</td>
+                <td style="padding-left:10px;">The sum of Pesos: @words</td>
                 <td></td>
             </tr>
             <tr>
@@ -120,43 +133,105 @@
                 <td class="text-center" style="width:15%">BRANCH</td>
                 <td class="text-center" style="width:15%">AMOUNT</td>
             </tr>
-            <tr>
-                <td style="padding-left:20px;">Cash</td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                @{
-                    decimal EWT = Model.SalesInvoice.VatableSales * (decimal)0.01;
-                    decimal amount = Model.Amount - EWT;
-                    decimal total = EWT + amount;
-                }
-                <td style="padding-left:20px;">Check</td>
+
+            @if (Model.FormOfPayment == "Cash") {
+                <tr>
+                    <td style="padding-left:20px;">Cash</td>
+                <td class="text-center"></td>
+                <td class="text-center"></td>
+                <td class="text-center"></td>
+                <td class="text-center"></td>
+                    @if (Model.SalesInvoice.WithHoldingTax)
+                    {
+                        <td class="text-center">@Html.DisplayFor(model => amount)</td>
+                    }
+                    else
+                    {
+                        <td class="text-center">@Model.Amount</td>
+                    }
+                </tr>
+            }
+            else
+            {
+                <tr>
+                    <td style="padding-left:20px;">Cash</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            }
+            @if (Model.FormOfPayment == "Check")
+            {
+                <tr>
+                    <td style="padding-left:20px;">Check</td>
                 <td class="text-center">@Model.CheckDate.ToShortDateString()</td>
                 <td class="text-center">@Html.DisplayFor(model => model.CheckNo)</td>
                 <td class="text-center">@Html.DisplayFor(model => model.Bank)</td>
                 <td class="text-center">@Html.DisplayFor(model => model.Branch)</td>
-                <td class="text-center">@Html.DisplayFor(model => amount)</td>
-            </tr>
-            <tr>
-                <td style="padding-left:20px;">Manager's Check</td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
+                    @if (Model.SalesInvoice.WithHoldingTax)
+                    {
+                        <td class="text-center">@Html.DisplayFor(model => amount)</td>
+                    }
+                    else
+                    {
+                        <td class="text-center">@Model.Amount</td>
+                    }
+                </tr>
+            }
+            else
+            {
+                <tr>
+                    <td style="padding-left:20px;">Check</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            }
+            @if (Model.FormOfPayment == "Manager's Check")
+            {
+                <tr>
+                    <td style="padding-left:20px;">Manager's Check</td>
+                <td class="text-center">@Model.CheckDate.ToShortDateString()</td>
+                <td class="text-center">@Html.DisplayFor(model => model.CheckNo)</td>
+                <td class="text-center">@Html.DisplayFor(model => model.Bank)</td>
+                <td class="text-center">@Html.DisplayFor(model => model.Branch)</td>
+                    @if (Model.SalesInvoice.WithHoldingTax)
+                    {
+                        <td class="text-center">@Html.DisplayFor(model => amount)</td>
+                    }
+                    else{
+                        <td class="text-center">@Model.Amount</td>
+                        }
+                    </tr>
+            }
+            else
+            {
+                <tr>
+                    <td style="padding-left:20px;">Manager's Check</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            }
             <tr>
                 <td style="padding-left:20px;">EWT</td>
                 <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
-                <td class="text-center">@Html.DisplayFor(model => EWT)</td>
-            </tr>
+                @if (Model.SalesInvoice.WithHoldingTax) {
+                    <td class="text-center">@Html.DisplayFor(model => EWT)</td>
+                }
+                else{
+                    <td></td>
+                    }
+                </tr>
             <tr>
                 <td style="padding-left:20px;">TOTAL</td>
                 <td></td>
