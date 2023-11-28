@@ -32,7 +32,7 @@
                 @Html.DisplayNameFor(model => model.VatAmount)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Amount)
+                @Html.DisplayNameFor(model => model.DebitAmount)
             </th>
             <th></th>
         </tr>
@@ -53,14 +53,23 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.Description)
                 </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.VatableSales)
-                </td>
+                @if (item.Source == "Sales Invoice")
+                {
+                    <td>
+                        @Html.DisplayFor(modelItem => item.SalesInvoice.SINo)
+                    </td>
+                }
+                else
+                {
+                    <td>
+                        @Html.DisplayFor(modelItem => item.SOA.SOANo)
+                    </td>
+                }
                 <td>
                     @Html.DisplayFor(modelItem => item.VatAmount)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Amount)
+                    @Html.DisplayFor(modelItem => item.DebitAmount)
                 </td>
                 <td>
                    @*  <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-light">Edit</a> | *@
