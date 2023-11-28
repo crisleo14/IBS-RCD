@@ -9,6 +9,8 @@ namespace Accounting_System.Models
         [Display(Name = "SI No")]
         public string? SINo { get; set; }
 
+        public int SeriesNumber { get; set; }
+
         [Required]
         [Display(Name = "Customer No")]
         public int CustomerId { get; set; }
