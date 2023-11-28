@@ -238,7 +238,7 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Printed(int id)
         {
-            var cm = await _dbContext.ReceivingReports.FindAsync(id);
+            var cm = await _dbContext.CreditMemos.FindAsync(id);
             if (cm != null && !cm.IsPrinted)
             {
                 cm.IsPrinted = true;
