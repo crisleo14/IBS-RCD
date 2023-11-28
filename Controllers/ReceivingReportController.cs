@@ -38,6 +38,7 @@ namespace Accounting_System.Controllers
         {
             var viewModel = new ReceivingReport();
             viewModel.PurchaseOrders = await _dbContext.PurchaseOrders
+                .Where(po => !po.IsReceived)
                 .Select(po => new SelectListItem
                 {
                     Value = po.Id.ToString(),
@@ -59,9 +60,27 @@ namespace Accounting_System.Controllers
                 model.RRNo = generatedRR;
                 model.CreatedBy = _userManager.GetUserName(this.User);
 
-                model.GainOrLoss = model.QuantityServed * model.QuantityReceived;
+                model.GainOrLoss = model.QuantityDelivered - model.QuantityReceived;
 
                 _dbContext.Add(model);
+
+                // Purchase Order process
+                var po = await _dbContext.PurchaseOrders
+                    .FirstOrDefaultAsync(po => po.Id == model.POId);
+
+                if (po == null)
+                {
+                    return NotFound();
+                }
+
+                po.QuantityReceived += model.QuantityReceived;
+
+                if (po.QuantityReceived >= po.Quantity)
+                {
+                    po.IsReceived = true;
+                    po.ReceivedDate = DateTime.Now;
+                }
+
                 await _dbContext.SaveChangesAsync();
                 TempData["success"] = "Receiving Report created successfully";
                 return RedirectToAction("Index");
@@ -111,7 +130,7 @@ namespace Accounting_System.Controllers
                 existingModel.Date = model.Date;
                 existingModel.POId = model.POId;
                 existingModel.TruckOrVessels = model.TruckOrVessels;
-                existingModel.QuantityServed = model.QuantityServed;
+                existingModel.QuantityDelivered = model.QuantityDelivered;
                 existingModel.QuantityReceived = model.QuantityReceived;
                 existingModel.OtherRef = model.OtherRef;
                 existingModel.Remarks = model.Remarks;

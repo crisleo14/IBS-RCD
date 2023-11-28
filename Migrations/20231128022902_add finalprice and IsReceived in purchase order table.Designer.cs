@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231128022902_add finalprice and IsReceived in purchase order table")]
+    partial class addfinalpriceandIsReceivedinpurchaseordertable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -836,12 +839,6 @@ namespace Accounting_System.Migrations
                     b.Property<decimal>("Quantity")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("QuantityReceived")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTime>("ReceivedDate")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<int>("SupplierId")
                         .HasColumnType("integer");
 
@@ -860,9 +857,6 @@ namespace Accounting_System.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("AmountPaid")
-                        .HasColumnType("numeric");
-
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
@@ -875,9 +869,6 @@ namespace Accounting_System.Migrations
                     b.Property<decimal?>("GainOrLoss")
                         .HasColumnType("numeric");
 
-                    b.Property<bool>("IsPaid")
-                        .HasColumnType("boolean");
-
                     b.Property<bool>("IsPrinted")
                         .HasColumnType("boolean");
 
@@ -888,13 +879,10 @@ namespace Accounting_System.Migrations
                     b.Property<int>("POId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("PaidDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal>("QuantityDelivered")
+                    b.Property<decimal>("QuantityReceived")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("QuantityReceived")
+                    b.Property<decimal>("QuantityServed")
                         .HasColumnType("numeric");
 
                     b.Property<string>("RRNo")
