@@ -47,7 +47,7 @@ namespace Accounting_System.Controllers
                 if (!model.IsPosted)
                 {
                     model.IsPosted = true;
-                    await _inventoryRepo.UpdateQuantity(model.Quantity, int.Parse(model.ProductNo));
+                    //await _inventoryRepo.UpdateQuantity(model.Quantity, int.Parse(model.ProductNo));
                     //var ledgers = new Ledger[]
                     //  {
                     //    new Ledger {AccountNo = 1001,TransactionNo = model.SINo, TransactionDate = model.TransactionDate, Category = "Debit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.Amount},
@@ -75,6 +75,7 @@ namespace Accounting_System.Controllers
         {
             var viewModel = new SalesInvoice();
             viewModel.Customers = await _dbContext.Customers
+                .OrderBy(c => c.Id)
                 .Select(c => new SelectListItem
                 {
                     Value = c.Id.ToString(),
@@ -82,18 +83,11 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync();
             viewModel.Products = await _dbContext.Products
+                .OrderBy(p => p.Id)
                 .Select(p => new SelectListItem
                 {
                     Value = p.Id.ToString(),
                     Text = p.Name
-                })
-                .ToListAsync();
-            viewModel.COSNo = await _dbContext.SalesOrders
-                .Where(order => order.Status == "Approved")
-                .Select(c => new SelectListItem
-                {
-                    Value = c.COSNo,
-                    Text = c.COSNo
                 })
                 .ToListAsync();
 
@@ -108,6 +102,7 @@ namespace Accounting_System.Controllers
             {
                 var generateCRNo = await _salesInvoiceRepo.GenerateSINo();
 
+                sales.SeriesNumber = await _salesInvoiceRepo.GetLastSeriesNumber();
                 sales.CreatedBy = _userManager.GetUserName(this.User);
                 sales.SINo = generateCRNo;
                 sales.Amount = sales.Quantity * sales.UnitPrice;

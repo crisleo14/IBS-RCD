@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231128032112_add fields for tracking how much the received or paid")]
+    partial class addfieldsfortrackinghowmuchthereceivedorpaid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -145,48 +148,6 @@ namespace Accounting_System.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ChartOfAccounts");
-                });
-
-            modelBuilder.Entity("Accounting_System.Models.CheckVoucherHeader", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Bank")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CVNo")
-                        .HasColumnType("text");
-
-                    b.Property<string>("CheckNo")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Particulars")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("RRId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RRId");
-
-                    b.ToTable("CheckVoucherHeaders");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.CollectionReceipt", b =>
@@ -1091,9 +1052,6 @@ namespace Accounting_System.Migrations
                     b.Property<string>("SINo")
                         .HasColumnType("text");
 
-                    b.Property<int>("SeriesNumber")
-                        .HasColumnType("integer");
-
                     b.Property<string>("SoldTo")
                         .IsRequired()
                         .HasColumnType("text");
@@ -1529,17 +1487,6 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text");
 
                     b.HasDiscriminator().HasValue("ApplicationUser");
-                });
-
-            modelBuilder.Entity("Accounting_System.Models.CheckVoucherHeader", b =>
-                {
-                    b.HasOne("Accounting_System.Models.ReceivingReport", "ReceivingReport")
-                        .WithMany()
-                        .HasForeignKey("RRId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ReceivingReport");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.CollectionReceipt", b =>
