@@ -23,9 +23,9 @@ namespace Accounting_System.Models
         [Display(Name = "Truck/Vessels")]
         public string TruckOrVessels { get; set; }
 
-        [Display(Name = "Qty Served")]
+        [Display(Name = "Qty Delivered")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal QuantityServed { get; set; }
+        public decimal QuantityDelivered { get; set; }
 
         [Display(Name = "Qty Received")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
@@ -39,6 +39,12 @@ namespace Accounting_System.Models
         public string OtherRef { get; set; }
 
         public string Remarks { get; set; }
+
+        public decimal AmountPaid { get; set; }
+
+        public bool IsPaid { get; set; }
+
+        public DateTime PaidDate { get; set; }
 
         public bool IsPrinted { get; set; }
     }

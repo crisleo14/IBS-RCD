@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231128024929_add IsPaid and PaidDate in receiving report")]
+    partial class addIsPaidandPaidDateinreceivingreport
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -836,9 +839,6 @@ namespace Accounting_System.Migrations
                     b.Property<decimal>("Quantity")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("QuantityReceived")
-                        .HasColumnType("numeric");
-
                     b.Property<DateTime>("ReceivedDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -859,9 +859,6 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("AmountPaid")
-                        .HasColumnType("numeric");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
@@ -891,10 +888,10 @@ namespace Accounting_System.Migrations
                     b.Property<DateTime>("PaidDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal>("QuantityDelivered")
+                    b.Property<decimal>("QuantityReceived")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("QuantityReceived")
+                    b.Property<decimal>("QuantityServed")
                         .HasColumnType("numeric");
 
                     b.Property<string>("RRNo")
