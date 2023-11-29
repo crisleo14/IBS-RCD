@@ -90,7 +90,7 @@ namespace Accounting_System.Controllers
             }
         }
 
-
+        [HttpGet]
         public IActionResult CreateOfficialReceipt()
         {
             var viewModel = new OfficialReceipt();
@@ -108,10 +108,22 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateOfficialReceipt(OfficialReceipt model)
         {
-
+            var viewModel = new OfficialReceipt();
+            viewModel.SOANo = _dbContext.StatementOfAccounts
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.SOANo
+                })
+                .ToList();
             if (ModelState.IsValid)
             {
-                var generateORNo = await _receiptRepo.GenerateORNo();
+                var existingSOA = _dbContext.StatementOfAccounts
+                                               .FirstOrDefault(si => si.Id == model.SOAId);
+
+                if (existingSOA.Amount >= model.Amount)
+                {
+                    var generateORNo = await _receiptRepo.GenerateORNo();
 
                 model.ORNo = generateORNo;
                 model.CreatedBy = _userManager.GetUserName(this.User);
@@ -119,6 +131,12 @@ namespace Accounting_System.Controllers
                 await _dbContext.SaveChangesAsync();
                 TempData["success"] = "Official Receipt created successfully";
                 return RedirectToAction("OfficialReceiptIndex");
+                }
+                else
+                {
+                    TempData["error"] = "Please input below or exact amount based on Statment of Account";
+                    return View(model);
+                }
             }
             else
             {

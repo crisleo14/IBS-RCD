@@ -2,7 +2,7 @@
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
-
+@using Humanizer
 
 <br />
 <div class="text-end">
@@ -45,8 +45,13 @@
                     <span><b>engaged in the business style of</b></span>
                     <span class="underline" style="display: inline-block; width: 65%;">&nbsp;&nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.BusinessStyle)</span><br />
 
+                    @{
+                        decimal convertToWords = Model.StatementOfAccount.Amount;
+                        int integerPart = Convert.ToInt32(Math.Floor(convertToWords));
+                        string words = integerPart.ToWords() + " pesos only";
+                    }
                     <span><b>the sum of</b></span>
-                    <span class="underline" style="display: inline-block; width: 87%;">&nbsp;&nbsp;One Thousand Pesos Only</span><br />
+                    <span class="underline" style="display: inline-block; width: 87%;">&nbsp;&nbsp;@words</span><br />
 
                     <span><b>pesos</b></span>
                     <span class="underline" style="display: inline-block; width: 92%;">(₱ @Model.StatementOfAccount.Amount)</span><br />
@@ -114,7 +119,9 @@
             </tr>
             <tr>
                 <td style="padding-left:10px;">VAT Amount</td>
-                <td></td>
+                <td>
+                   <h6 style="height: 9px; padding-left:10px;">@Html.DisplayFor(model => totalSalesVatInclusive)</h6>
+                </td>
                 <td style="padding-left:10px;">Amount</td>
                 <td style="padding-left:10px;">@Html.DisplayFor(model => model.StatementOfAccount.Amount)</td>
             </tr>
@@ -129,7 +136,7 @@
                 <td>
                     @if (Model.StatementOfAccount.Customer.CustomerType == "Vatable")
                     {
-                        <h6 style="height: 9px; padding-left:10px;">@Html.DisplayFor(model => totalSalesVatInclusive)</h6>
+                        <h6 style="height: 9px; padding-left:10px;">@Html.DisplayFor(model => model.StatementOfAccount.Amount)</h6>
                     }
                 </td>
                 
@@ -144,7 +151,12 @@
             </tr>
             <tr>
                 <td style="padding-left:10px;">Total Amount Due</td>
-                <td style="padding-left:10px;">@Html.DisplayFor(model => totalAmountDue)</td>
+                @if (Model.StatementOfAccount.Customer.WithHoldingTax)
+                {
+                    <td style="padding-left:10px;">@Html.DisplayFor(model => totalAmountDue)</td>
+                }else{
+                    <td>@Html.DisplayFor(model => model.StatementOfAccount.Amount)</td>
+                }
                 <td></td>
                 <td></td>
             </tr>
@@ -169,16 +181,32 @@
             </tr>
             <tr class="text-center">
                 <td>@Html.DisplayFor(model => model.FormOfPayment)</td>
-                <td>@Model.CheckDate.ToShortDateString()</td>
-                <td>@Html.DisplayFor(model => model.CheckNo)</td>
-                <td>@Html.DisplayFor(model => totalAmountDue)</td>
+                @if (Model.FormOfPayment != "Cash") {
+                    <td>@Model.CheckDate.ToShortDateString()</td>
+                    <td>@Html.DisplayFor(model => model.CheckNo)</td>
+                }
+                else{
+                    <td></td>
+                    <td></td>
+                    }
+                @if (Model.StatementOfAccount.Customer.WithHoldingTax)
+                {
+                    <td>@Html.DisplayFor(model => totalAmountDue)</td>
+                }else{
+                    <td>@Html.DisplayFor(model => model.StatementOfAccount.Amount)</td>
+                }
             </tr>
             <tr class="text-center">
                 <td>&nbsp;EWT</td>
                 <td></td>
                 <td></td>
-                <td>@Html.DisplayFor(model => EWT)</td>
-            </tr>
+                @if (Model.StatementOfAccount.Customer.WithHoldingTax) {
+                    <td>@Html.DisplayFor(model => EWT)</td>
+                }
+                else{
+                    <td></td>
+                    }
+                </tr>
             <tr class="text-center">
                 <td>&nbsp;TOTAL</td>
                 <td></td>
