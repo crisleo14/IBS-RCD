@@ -8,7 +8,7 @@ namespace Accounting_System.Models
     {
         public string? SOANo { get; set; }
 
-        [Required] 
+        [Required]
         [Display(Name = "Customer")]
         public int CustomerId { get; set; }
 
@@ -32,6 +32,9 @@ namespace Accounting_System.Models
         public DateTime Period { get; set; }
 
         [Required]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Amount { get; set; }
+
+        public bool IsPrinted { get; set; }
     }
 }

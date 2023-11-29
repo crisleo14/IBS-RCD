@@ -78,5 +78,16 @@ namespace Accounting_System.Controllers
 
             return View(soa);
         }
+
+        public async Task<IActionResult> PrintedSOA(int id)
+        {
+            var findIdOfSOA = await _statementOfAccountRepo.FindSOA(id);
+            if (findIdOfSOA != null && !findIdOfSOA.IsPrinted)
+            {
+                findIdOfSOA.IsPrinted = true;
+                await _dbContext.SaveChangesAsync();
+            }
+            return RedirectToAction("Generate", new { id = id });
+        }
     }
 }
