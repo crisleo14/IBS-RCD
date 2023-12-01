@@ -47,7 +47,15 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
+                var tinExist = await _customerRepo.CheckIfTinNoExist(customer.TinNo);
 
+                if (tinExist != null)
+                {
+                    ModelState.AddModelError("","Tin# already exist!");
+                    return View(customer);
+                }
+
+                customer.Number = await _customerRepo.GetLastNumber();
                 customer.CreatedBy = _userManager.GetUserName(this.User);
                 _dbContext.Add(customer);
                 await _dbContext.SaveChangesAsync();
@@ -114,38 +122,6 @@ namespace Accounting_System.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return View(customer);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var customer = await _customerRepo.FindCustomerAsync(id);
-
-            return View(customer);
-        }
-
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            if (_dbContext.Customers == null)
-            {
-                return Problem("Entity set 'ApplicationDbContext.Customers'  is null.");
-            }
-
-            var customer = await _dbContext.Customers.FindAsync(id);
-            if (customer != null)
-            {
-                _dbContext.Customers.Remove(customer);
-            }
-
-            await _dbContext.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Details(int? id)
