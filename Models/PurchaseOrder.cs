@@ -36,7 +36,6 @@ namespace Accounting_System.Models
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal FinalPrice { get; set; }
 
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal QuantityReceived { get; set; }
 
         public bool IsReceived { get; set; }
