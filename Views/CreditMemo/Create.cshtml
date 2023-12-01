@@ -1,0 +1,94 @@
+﻿@model Accounting_System.Models.CreditMemo
+
+@{
+    ViewData["Title"] = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Create</h1>
+
+<h4>Credit Memo</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <fieldset class="form-group">
+                <legend>Select Source</legend>
+
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" asp-for="Source" id="inlineRadio1" value="Sales Invoice" aria-labelledby="labelInlineRadio1" onclick="toggleSelect('siList')">
+                    <label class="form-check-label" for="inlineRadio1" id="labelInlineRadio1">Sales Invoice</label>
+                </div>
+
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" asp-for="Source" id="inlineRadio2" value="Statement Of Account" aria-labelledby="labelInlineRadio2" onclick="toggleSelect('soaList')">
+                    <label class="form-check-label" for="inlineRadio2" id="labelInlineRadio2">Statement Of Account</label>
+                </div>
+                <br />
+                <span asp-validation-for="Source" class="text-danger"></span>
+            </fieldset>
+
+            <div class="form-group">
+                <label asp-for="Date" class="control-label"></label>
+                <input type="date" asp-for="Date" class="form-control" />
+                <span asp-validation-for="Date" class="text-danger"></span>
+            </div>
+            <div class="form-group" id="siList" style="display:none;">
+                <label asp-for="SIId" class="control-label"></label>
+                <select asp-for="SIId" class ="form-control js-select2" asp-items="@Model.Invoices">
+                    <option></option>
+                </select>
+            </div>
+            <div class="form-group" id="soaList" style="display:none;">
+                <label asp-for="SOAId" class="control-label"></label>
+                <select asp-for="SOAId" class="form-control js-select2" asp-items="@Model.Soa">
+                    <option></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AdjustedPrice" class="control-label"></label>
+                <input asp-for="AdjustedPrice" class="form-control" />
+                <span asp-validation-for="AdjustedPrice" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        document.getElementById('Date').value = new Date().toISOString().substring(0, 10);
+    </script>
+
+    <script>
+        function toggleSelect(id) {
+            var siList = document.getElementById('siList');
+            var soaList = document.getElementById('soaList');
+
+            console.log(id)
+
+            if (id === 'siList') {
+                siList.style.display = 'block';
+                soaList.style.display = 'none';
+            } else if (id === 'soaList') {
+                siList.style.display = 'none';
+                soaList.style.display = 'block';
+            }
+        }
+    </script>
+
+}

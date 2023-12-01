@@ -1,0 +1,82 @@
+﻿@model IEnumerable<Accounting_System.Models.DebitMemo>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Debit Memo</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary rounded-3">Create New</a>
+</p>
+<table class="table table-hover" id="myTable">
+    <thead>
+        <tr class="text-primary">
+            <th>
+                @Html.DisplayNameFor(model => model.DMNo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Date)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DebitAmount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.VatableSales)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.VatAmount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DebitAmount)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DMNo)
+                </td>
+                <td>
+                    @item.Date.ToShortDateString()
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DebitAmount)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                @if (item.Source == "Sales Invoice")
+                {
+                    <td>
+                        @Html.DisplayFor(modelItem => item.SalesInvoice.SINo)
+                    </td>
+                }
+                else
+                {
+                    <td>
+                        @Html.DisplayFor(modelItem => item.SOA.SOANo)
+                    </td>
+                }
+                <td>
+                    @Html.DisplayFor(modelItem => item.VatAmount)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DebitAmount)
+                </td>
+                <td>
+                   @*  <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-light">Edit</a> | *@
+                    <a asp-action="Print" asp-route-id="@item.Id" class="btn btn-light">Print</a> @* |
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-light">Delete</a> *@
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

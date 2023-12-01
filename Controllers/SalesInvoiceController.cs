@@ -47,14 +47,14 @@ namespace Accounting_System.Controllers
                 if (!model.IsPosted)
                 {
                     model.IsPosted = true;
-                    await _inventoryRepo.UpdateQuantity(model.Quantity, int.Parse(model.ProductNo));
-                    var ledgers = new Ledger[]
-                      {
-                        new Ledger {AccountNo = 1001,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Debit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.Amount},
-                        new Ledger {AccountNo = 2001,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatAmount},
-                        new Ledger {AccountNo = 4001,TransactionNo = model.FormattedSerialNo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatableSales}
-                      };
-                    _dbContext.Ledgers.AddRange(ledgers);
+                    //await _inventoryRepo.UpdateQuantity(model.Quantity, int.Parse(model.ProductNo));
+                    //var ledgers = new Ledger[]
+                    //  {
+                    //    new Ledger {AccountNo = 1001,TransactionNo = model.SINo, TransactionDate = model.TransactionDate, Category = "Debit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.Amount},
+                    //    new Ledger {AccountNo = 2001,TransactionNo = model.SINo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatAmount},
+                    //    new Ledger {AccountNo = 4001,TransactionNo = model.SINo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatableSales}
+                    //  };
+                    //_dbContext.Ledgers.AddRange(ledgers);
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Sales Invoice has been Posted.";
                 }
@@ -75,6 +75,7 @@ namespace Accounting_System.Controllers
         {
             var viewModel = new SalesInvoice();
             viewModel.Customers = await _dbContext.Customers
+                .OrderBy(c => c.Id)
                 .Select(c => new SelectListItem
                 {
                     Value = c.Id.ToString(),
@@ -82,18 +83,11 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync();
             viewModel.Products = await _dbContext.Products
+                .OrderBy(p => p.Id)
                 .Select(p => new SelectListItem
                 {
                     Value = p.Id.ToString(),
                     Text = p.Name
-                })
-                .ToListAsync();
-            viewModel.COSNo = await _dbContext.SalesOrders
-                .Where(order => order.Status == "Approved")
-                .Select(c => new SelectListItem
-                {
-                    Value = c.COSNo,
-                    Text = c.COSNo
                 })
                 .ToListAsync();
 
@@ -106,15 +100,19 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var lastSerialNo = await _salesInvoiceRepo.GetLastSerialNo();
+                var generateCRNo = await _salesInvoiceRepo.GenerateSINo();
 
+                sales.SeriesNumber = await _salesInvoiceRepo.GetLastSeriesNumber();
                 sales.CreatedBy = _userManager.GetUserName(this.User);
-                sales.SerialNo = lastSerialNo;
+                sales.SINo = generateCRNo;
                 sales.Amount = sales.Quantity * sales.UnitPrice;
                 if (sales.CustomerType == "Vatable")
                 {
-                    sales.VatableSales = sales.Amount / (decimal)1.12;
-                    sales.VatAmount = sales.Amount - sales.VatableSales;
+                    decimal netDiscount = (decimal)(sales.Amount - sales.Discount);
+
+                    sales.NetDiscount = netDiscount;
+                    sales.VatableSales = netDiscount / (decimal)1.12;
+                    sales.VatAmount = netDiscount - sales.VatableSales;
                 }
 
                 _dbContext.Add(sales);

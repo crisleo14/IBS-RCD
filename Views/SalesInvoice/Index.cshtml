@@ -1,17 +1,19 @@
 ﻿@model IEnumerable<Accounting_System.Models.SalesInvoice>
 @using Microsoft.AspNetCore.Identity
-
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
-<h1>Sales Invoices</h1>
 <partial name="_Notification">
+<h1>Sales Invoices</h1>
+<p>
+    <a asp-action="Create" class="btn btn-primary rounded-3">Create New</a>
+</p>
 
 <div class="table-responsive">
         <table class="table table-hover" id="myOwnTable">
         <thead>
             <tr class="text-nowrap">
                 <th class="text-primary">
-                    @Html.DisplayNameFor(model => model.SerialNo)
+                        @Html.DisplayNameFor(model => model.SINo)
                 </th>
                 <th class="text-primary">
                     @Html.DisplayNameFor(model => model.CustomerId)
@@ -36,7 +38,7 @@
             {
                 <tr class="align-text-bottom">
                     <td>
-                        @Html.DisplayFor(model => invoice.FormattedSerialNo)
+                            @Html.DisplayFor(model => invoice.SINo)
                     </td>
                     <td>
                         @Html.DisplayFor(model => invoice.CustomerId)
@@ -45,7 +47,7 @@
                         @Html.DisplayFor(model => invoice.SoldTo)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => invoice.TransactionDate)
+                        @invoice.TransactionDate.ToShortDateString()
                     </td>
                     <td>
                         @Html.DisplayFor(model => invoice.Terms)

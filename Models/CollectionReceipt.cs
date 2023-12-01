@@ -12,8 +12,9 @@ namespace Accounting_System.Models
         public SalesInvoice? SalesInvoice { get; set; }
 
         public string? CRNo { get; set; }
+        public int SeriesNumber { get; set; }
 
-        public string Date { get; set; }
+        public DateTime Date { get; set; }
 
         [Display(Name = "Reference No")]
         public string ReferenceNo { get; set; }
@@ -22,7 +23,7 @@ namespace Accounting_System.Models
         public string FormOfPayment { get; set; }
 
         [Display(Name = "Check Date")]
-        public string CheckDate { get; set; }
+        public DateTime CheckDate { get; set; }
 
         [Display(Name = "Check No")]
         public int CheckNo { get; set; }
@@ -31,13 +32,16 @@ namespace Accounting_System.Models
 
         public string Branch { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Amount { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal EWT { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Total { get; set; }
 
-        public bool IsPrint { get; set; }
+        public bool IsPrinted { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? Customers { get; set; }
