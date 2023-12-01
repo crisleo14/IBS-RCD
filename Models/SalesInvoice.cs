@@ -99,9 +99,9 @@ namespace Accounting_System.Models
         public DateTime TransactionDate { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal? Discount { get; set; }
+        public decimal Discount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal? NetDiscount { get; set; }
+        public decimal NetDiscount { get; set; }
     }
 }

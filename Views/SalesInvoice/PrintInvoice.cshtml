@@ -245,35 +245,30 @@
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>Discount: </b></p></td>
-                                    @if (Model.Discount != null || Model.Discount != 0)
+                                    <td class="text-end">
+                                    @if (Model.Discount == null || Model.Discount == 0)
                                         {
-                                        <td class="text-end">@Html.DisplayFor(model => model.Discount)</td>
+                                            <p style="height: 9px;"></p>
                                         }else{
-                                        <td class="text-end"></td>
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Discount)</p>
                                         }
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
                                     <td class="text-end">
                                         @{
-                                            var discount = Model.VatableSales + Model.VatAmount;
+                                            var totalSales = Model.VatableSales + Model.VatAmount;
                                             var otherDiscount =  Model.Amount - Model.Discount;
                                         }
                                         @if (Model.CustomerType == "Vatable")
                                         {
-                                            @if (Model.Discount != null || Model.Discount != 0)
-                                            {
-                                                <p style="height: 9px;">@Html.DisplayFor(model => discount)</p>
-                                            }else{
-                                                <p style="height: 9px;">@Html.DisplayFor(model => discount)</p>
-                                            }
+                                                <p style="height: 9px;">@Html.DisplayFor(model => totalSales)</p> 
                                         }
                                             else
                                             {
                                             @if (Model.Discount != null || Model.Discount != 0)
                                             {
-                                                <p style="height: 9px;">@Html.DisplayFor(model => otherDiscount)</p>
-                                            }else{
                                                 <p style="height: 9px;">@Html.DisplayFor(model => otherDiscount)</p>
                                             }
                                         }
