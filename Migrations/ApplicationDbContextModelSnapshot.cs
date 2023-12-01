@@ -904,10 +904,10 @@ namespace Accounting_System.Migrations
 
                     b.Property<DateTime>("ReceivedDate")
                         .HasColumnType("timestamp with time zone");
-
+                        
                     b.Property<int>("SeriesNumber")
                         .HasColumnType("integer");
-
+                        
                     b.Property<int>("SupplierId")
                         .HasColumnType("integer");
 
