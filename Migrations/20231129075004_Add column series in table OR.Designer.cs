@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231129075004_Add column series in table OR")]
+    partial class AddcolumnseriesintableOR
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -295,9 +298,6 @@ namespace Accounting_System.Migrations
                     b.Property<int?>("SOAId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("SeriesNumber")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Source")
                         .IsRequired()
                         .HasColumnType("text");
@@ -406,9 +406,6 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer");
 
                     b.Property<int?>("SalesInvoiceId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("SeriesNumber")
                         .HasColumnType("integer");
 
                     b.Property<string>("Source")
@@ -905,9 +902,6 @@ namespace Accounting_System.Migrations
                     b.Property<DateTime>("ReceivedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("SeriesNumber")
-                        .HasColumnType("integer");
-
                     b.Property<int>("SupplierId")
                         .HasColumnType("integer");
 
@@ -969,9 +963,6 @@ namespace Accounting_System.Migrations
                     b.Property<string>("Remarks")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("SeriesNumber")
-                        .HasColumnType("integer");
 
                     b.Property<string>("TruckOrVessels")
                         .IsRequired()
@@ -1079,17 +1070,11 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal?>("Discount")
-                        .HasColumnType("numeric");
-
                     b.Property<bool>("IsPosted")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsVoid")
                         .HasColumnType("boolean");
-
-                    b.Property<decimal?>("NetDiscount")
-                        .HasColumnType("numeric");
 
                     b.Property<bool>("OriginalCopy")
                         .HasColumnType("boolean");
@@ -1159,8 +1144,6 @@ namespace Accounting_System.Migrations
                         .HasColumnType("boolean");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CustomerId");
 
                     b.ToTable("SalesInvoices");
                 });
@@ -1666,17 +1649,6 @@ namespace Accounting_System.Migrations
                         .IsRequired();
 
                     b.Navigation("PurchaseOrder");
-                });
-
-            modelBuilder.Entity("Accounting_System.Models.SalesInvoice", b =>
-                {
-                    b.HasOne("Accounting_System.Models.Customer", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.StatementOfAccount", b =>

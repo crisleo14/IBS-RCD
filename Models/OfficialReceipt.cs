@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Accounting_System.Models
@@ -11,6 +12,7 @@ namespace Accounting_System.Models
         public StatementOfAccount? StatementOfAccount { get; set; }
 
         public string? ORNo { get; set; }
+        public int SeriesNumber { get; set; }
 
         public DateTime Date { get; set; }
 
@@ -22,6 +24,7 @@ namespace Accounting_System.Models
 
         public DateTime CheckDate { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Amount { get; set; }
 
         public bool IsPrinted { get; set; }

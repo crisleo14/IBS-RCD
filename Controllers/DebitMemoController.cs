@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace Accounting_System.Controllers
 {
     public class DebitMemoController : Controller
@@ -23,6 +22,7 @@ namespace Accounting_System.Controllers
             this._userManager = userManager;
             _debitMemoRepo = dmcmRepo;
         }
+
         public async Task<IActionResult> Index()
         {
             var dm = await _dbContext.DebitMemos
@@ -32,6 +32,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync();
             return View(dm);
         }
+
         [HttpGet]
         public IActionResult Create()
         {
@@ -47,20 +48,20 @@ namespace Accounting_System.Controllers
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
-                    Text = s.SOANo  
+                    Text = s.SOANo
                 })
                 .ToList();
 
             return View(viewModel);
         }
+
         [HttpPost]
         public async Task<IActionResult> Create(DebitMemo model)
         {
-
             if (ModelState.IsValid)
             {
                 var generateDMNo = await _debitMemoRepo.GenerateDMNo();
-
+                model.SeriesNumber = await _debitMemoRepo.GetLastSeriesNumber();
                 model.DMNo = generateDMNo;
 
                 if (model.Source == "Sales Invoice")
@@ -70,7 +71,7 @@ namespace Accounting_System.Controllers
                     var existingSalesInvoice = _dbContext.SalesInvoices
                                                .FirstOrDefault(si => si.Id == model.SalesInvoiceId);
 
-                    model.DebitAmount =  model.AdjustedPrice * existingSalesInvoice.Quantity - existingSalesInvoice.Amount;
+                    model.DebitAmount = model.AdjustedPrice * existingSalesInvoice.Quantity - existingSalesInvoice.Amount;
 
                     if (existingSalesInvoice.CustomerType == "Vatable")
                     {
@@ -141,7 +142,7 @@ namespace Accounting_System.Controllers
             var findIdOfDM = await _debitMemoRepo.FindDM(id);
             if (findIdOfDM != null && !findIdOfDM.IsPrinted)
             {
-                findIdOfDM  .IsPrinted = true;
+                findIdOfDM.IsPrinted = true;
                 await _dbContext.SaveChangesAsync();
             }
             return RedirectToAction("Print", new { id = id });

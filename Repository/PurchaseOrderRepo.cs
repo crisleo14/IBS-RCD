@@ -22,6 +22,25 @@ namespace Accounting_System.Repository
                 .ToListAsync();
         }
 
+        public async Task<int> GetLastSeriesNumber()
+        {
+            var lastInvoice = await _dbContext
+                .PurchaseOrders
+                .OrderByDescending(s => s.Id)
+                .FirstOrDefaultAsync();
+
+            if (lastInvoice != null)
+            {
+                // Increment the last serial by one and return it
+                return lastInvoice.SeriesNumber + 1;
+            }
+            else
+            {
+                // If there are no existing records, you can start with a default value like 1
+                return 1;
+            }
+        }
+
         public async Task<string> GeneratePONo()
         {
             var purchaseOrder = await _dbContext
@@ -31,7 +50,7 @@ namespace Accounting_System.Repository
 
             if (purchaseOrder != null)
             {
-                var generatedCR = purchaseOrder.Id + 1;
+                var generatedCR = purchaseOrder.SeriesNumber + 1;
                 return $"PO{generatedCR.ToString("D10")}";
             }
             else

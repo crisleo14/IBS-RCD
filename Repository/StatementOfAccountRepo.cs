@@ -42,6 +42,25 @@ namespace Accounting_System.Repository
         //    }
         //}
 
+        public async Task<int> GetLastSeriesNumber()
+        {
+            var lastInvoice = await _dbContext
+                .StatementOfAccounts
+                .OrderByDescending(s => s.Id)
+                .FirstOrDefaultAsync();
+
+            if (lastInvoice != null)
+            {
+                // Increment the last serial by one and return it
+                return lastInvoice.SeriesNumber + 1;
+            }
+            else
+            {
+                // If there are no existing records, you can start with a default value like 1
+                return 1;
+            }
+        }
+
         public async Task<string> GenerateSOANo()
         {
             var statementOfAccount = await _dbContext
@@ -51,7 +70,7 @@ namespace Accounting_System.Repository
 
             if (statementOfAccount != null)
             {
-                var generatedSOA = statementOfAccount.Id + 1;
+                var generatedSOA = statementOfAccount.SeriesNumber + 1;
                 return $"SOA{generatedSOA.ToString("D10")}";
             }
             else

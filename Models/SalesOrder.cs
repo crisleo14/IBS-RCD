@@ -20,16 +20,20 @@ namespace Accounting_System.Models
         [Display(Name = "Date Expiration")]
         public string DateExpiration { get; set; } = "";
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Quantity { get; set; }
 
         [Display(Name = "Quantity Serve")]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal QuantityServe { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Balance { get; set; }
 
         [Display(Name = "Delivery Date")]
         public string DeliveryDate { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Display(Name = "Order Amount")]
         public decimal OrderAmount { get; set; }
 

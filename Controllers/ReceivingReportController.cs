@@ -56,7 +56,7 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 var generatedRR = await _receivingReportRepo.GenerateRRNo();
-
+                model.SeriesNumber = await _receivingReportRepo.GetLastSeriesNumber();
                 model.RRNo = generatedRR;
                 model.CreatedBy = _userManager.GetUserName(this.User);
 

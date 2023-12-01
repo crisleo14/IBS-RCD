@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231130053639_add column Discount in table sales invoice")]
+    partial class addcolumnDiscountintablesalesinvoice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1079,17 +1082,14 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal?>("Discount")
-                        .HasColumnType("numeric");
+                    b.Property<int?>("Discount")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("IsPosted")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsVoid")
                         .HasColumnType("boolean");
-
-                    b.Property<decimal?>("NetDiscount")
-                        .HasColumnType("numeric");
 
                     b.Property<bool>("OriginalCopy")
                         .HasColumnType("boolean");

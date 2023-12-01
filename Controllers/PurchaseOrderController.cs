@@ -52,7 +52,7 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 var generatedPO = await _purchaseOrderRepo.GeneratePONo();
-
+                model.SeriesNumber = await _purchaseOrderRepo.GetLastSeriesNumber();
                 model.PONo = generatedPO;
                 model.CreatedBy = _userManager.GetUserName(this.User);
 

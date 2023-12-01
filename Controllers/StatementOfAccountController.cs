@@ -57,6 +57,8 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
+                model.SeriesNumber = await _statementOfAccountRepo.GetLastSeriesNumber();
+
                 model.SOANo = await _statementOfAccountRepo.GenerateSOANo();
 
                 model.CreatedBy = _userManager.GetUserName(this.User);

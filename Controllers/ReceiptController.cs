@@ -70,6 +70,7 @@ namespace Accounting_System.Controllers
                 if (existingSalesInvoice.Amount >= model.Amount)
                 {
                     var generateCRNo = await _receiptRepo.GenerateCRNo();
+                    model.SeriesNumber = await _receiptRepo.GetLastSeriesNumberCR();
                     model.CRNo = generateCRNo;
                     model.CreatedBy = _userManager.GetUserName(this.User);
                     _dbContext.Add(model);
@@ -123,7 +124,7 @@ namespace Accounting_System.Controllers
                 if (existingSOA.Amount >= model.Amount)
                 {
                     var generateORNo = await _receiptRepo.GenerateORNo();
-
+                    model.SeriesNumber = await _receiptRepo.GetLastSeriesNumberOR();
                     model.ORNo = generateORNo;
                     model.CreatedBy = _userManager.GetUserName(this.User);
                     _dbContext.Add(model);
