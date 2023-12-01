@@ -9,6 +9,7 @@ namespace Accounting_System.Models
         [Display(Name = "RR No")]
         public string? RRNo { get; set; }
 
+        public int SeriesNumber { get; set; }
         public DateTime Date { get; set; }
 
         [Display(Name = "PO No")]
@@ -40,6 +41,7 @@ namespace Accounting_System.Models
 
         public string Remarks { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal AmountPaid { get; set; }
 
         public bool IsPaid { get; set; }

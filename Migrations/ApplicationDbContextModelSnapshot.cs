@@ -243,6 +243,9 @@ namespace Accounting_System.Migrations
                     b.Property<int>("SalesInvoiceId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("SeriesNumber")
+                        .HasColumnType("integer");
+
                     b.Property<decimal>("Total")
                         .HasColumnType("numeric");
 
@@ -290,6 +293,9 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer");
 
                     b.Property<int?>("SOAId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SeriesNumber")
                         .HasColumnType("integer");
 
                     b.Property<string>("Source")
@@ -400,6 +406,9 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer");
 
                     b.Property<int?>("SalesInvoiceId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SeriesNumber")
                         .HasColumnType("integer");
 
                     b.Property<string>("Source")
@@ -731,6 +740,9 @@ namespace Accounting_System.Migrations
                     b.Property<int>("SOAId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("SeriesNumber")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SOAId");
@@ -893,6 +905,9 @@ namespace Accounting_System.Migrations
                     b.Property<DateTime>("ReceivedDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("SeriesNumber")
+                        .HasColumnType("integer");
+
                     b.Property<int>("SupplierId")
                         .HasColumnType("integer");
 
@@ -954,6 +969,9 @@ namespace Accounting_System.Migrations
                     b.Property<string>("Remarks")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("SeriesNumber")
+                        .HasColumnType("integer");
 
                     b.Property<string>("TruckOrVessels")
                         .IsRequired()
@@ -1061,11 +1079,17 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<decimal?>("Discount")
+                        .HasColumnType("numeric");
+
                     b.Property<bool>("IsPosted")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsVoid")
                         .HasColumnType("boolean");
+
+                    b.Property<decimal?>("NetDiscount")
+                        .HasColumnType("numeric");
 
                     b.Property<bool>("OriginalCopy")
                         .HasColumnType("boolean");
@@ -1135,6 +1159,8 @@ namespace Accounting_System.Migrations
                         .HasColumnType("boolean");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
 
                     b.ToTable("SalesInvoices");
                 });
@@ -1254,11 +1280,17 @@ namespace Accounting_System.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("IsPrinted")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime>("Period")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SOANo")
                         .HasColumnType("text");
+
+                    b.Property<int>("SeriesNumber")
+                        .HasColumnType("integer");
 
                     b.Property<int>("ServicesId")
                         .HasColumnType("integer");
@@ -1634,6 +1666,17 @@ namespace Accounting_System.Migrations
                         .IsRequired();
 
                     b.Navigation("PurchaseOrder");
+                });
+
+            modelBuilder.Entity("Accounting_System.Models.SalesInvoice", b =>
+                {
+                    b.HasOne("Accounting_System.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.StatementOfAccount", b =>

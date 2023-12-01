@@ -15,7 +15,7 @@
         <form asp-action="CreateCollectionReceipt">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label class="control-label">Customers</label>
+                <label class="control-label">SI NO.</label>
                 <select asp-for="SalesInvoiceId" asp-items="@Model.Customers" class="form-select js-select2">
                     <option></option>
                 </select>

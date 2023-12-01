@@ -62,6 +62,7 @@ namespace Accounting_System.Repository
         {
             var invoice = await _dbContext
                 .SalesInvoices
+                .Include(c => c.Customer)
                 .FirstOrDefaultAsync(invoice => invoice.Id == id);
 
             if (invoice != null)

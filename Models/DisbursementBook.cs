@@ -11,6 +11,7 @@ namespace Accounting_System.Models
 
         public string Payee { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Amount { get; set; }
 
         public string Particulars { get; set; }
@@ -29,7 +30,10 @@ namespace Accounting_System.Models
         [Display(Name = "Chart Of Account")]
         public string ChartOfAccount { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Debit { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Credit { get; set; }
     }
 }

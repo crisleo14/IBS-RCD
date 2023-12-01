@@ -12,6 +12,25 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
+        public async Task<int> GetLastSeriesNumber()
+        {
+            var lastInvoice = await _dbContext
+                .CreditMemos
+                .OrderByDescending(s => s.Id)
+                .FirstOrDefaultAsync();
+
+            if (lastInvoice != null)
+            {
+                // Increment the last serial by one and return it
+                return lastInvoice.SeriesNumber + 1;
+            }
+            else
+            {
+                // If there are no existing records, you can start with a default value like 1
+                return 1;
+            }
+        }
+
         public async Task<string> GenerateCMNo()
         {
             var creditMemo = await _dbContext
@@ -21,7 +40,7 @@ namespace Accounting_System.Repository
 
             if (creditMemo != null)
             {
-                var generatedCM = creditMemo.Id + 1;
+                var generatedCM = creditMemo.SeriesNumber + 1;
                 return $"CM{generatedCM.ToString("D10")}";
             }
             else

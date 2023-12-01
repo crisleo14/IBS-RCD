@@ -13,6 +13,25 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
+        public async Task<int> GetLastSeriesNumber()
+        {
+            var lastInvoice = await _dbContext
+                .ReceivingReports
+                .OrderByDescending(s => s.Id)
+                .FirstOrDefaultAsync();
+
+            if (lastInvoice != null)
+            {
+                // Increment the last serial by one and return it
+                return lastInvoice.SeriesNumber + 1;
+            }
+            else
+            {
+                // If there are no existing records, you can start with a default value like 1
+                return 1;
+            }
+        }
+
         public async Task<string> GenerateRRNo()
         {
             var receivingReport = await _dbContext
@@ -22,7 +41,7 @@ namespace Accounting_System.Repository
 
             if (receivingReport != null)
             {
-                var generatedRR = receivingReport.Id + 1;
+                var generatedRR = receivingReport.SeriesNumber + 1;
                 return $"RR{generatedRR.ToString("D10")}";
             }
             else
