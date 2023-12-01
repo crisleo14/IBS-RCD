@@ -6,6 +6,7 @@
     ViewData["Title"] = "Purchase Journal Book";
     var dateFrom = ViewBag.DateFrom;
     var dateTo = ViewBag.DateTo;
+    var lastRecord = ViewBag.LastRecord;
 
     // Convert the date strings to DateTime objects
     DateTime dateFromFormatted;
@@ -34,34 +35,28 @@
 }
 
 <br />
-<div class="text-end">
-    <img src="~/img/Filpride.jpg" height="" width="130px" />
-</div>
-<div class="text-center">
-    <h2><u><b>&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b></u></h2>
-    <p style="line-height: 1; margin-top:-7px;">
-        57 Westgate Offices, Sampson RO CBD, Subic Bay, Freeport Zone,<br />
-        Kalaklan Olongapo City, 2000 Zambales Philippines<br />
-        VAT Reg. TIN: 000-216-589-00000
-    </p>
-
-    <h3><span style="display: inline-block;"><b>PURCHASE BOOK</b></span></h3>
-
-
-</div>
 <div>
+    <pre>
+TAXPAYER'S NAME: Filpride Resources Inc.
+TIN: 000-216-589-00000
+ADDRESS: 57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone, Kalaklan, Olongapo City, 2200 Zambales, Philippines
+
+Accounting System: Accounting Administration System
+Acknowledgement Certificate Control No.:
+Date Issued:</pre>
     <pre id="resultPre">
 Accounting Books File Attributes/Layout Definition
 File Name: Purchase Journal Book Report
 File Type: Text File
-Number of Records:              @numberOfRecords
-Amount Field Control Total:     @amountFieldControlTotal
-Period Covered:                 @dateFrom to @dateTo
-Extracted By:                   @UserManager.GetUserName(User).ToUpper()
+Number of Records:                  @numberOfRecords
+Amount Field Control Total:         @amountFieldControlTotal
+Period Covered:                     @dateFrom to @dateTo
+Transaction cut-off Date & Time:    @lastRecord
+Extracted By:                       @UserManager.GetUserName(User).ToUpper()
 
 </pre>
 </div>
-
+<h3><span style="display: inline-block;"><b>PURCHASE BOOK</b></span></h3>
 <div class="table-responsive" style="margin-top:20px;">
     <table class="table-hover w-100">
         <thead>
@@ -308,89 +303,89 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                 case 1: // Serial No
                     resultPre.textContent += padToLength('SupplierName', 20) +
                         padToLength('Supplier Name', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('12', 9) +
+                        padToLength('61', 7) +
+                        padToLength('50', 12) +
                         content + '\n';
                     break;
                 case 2: // Sold To
                     resultPre.textContent += padToLength('SupplierTin', 20) +
                         padToLength('Supplier TIN', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('63', 9) +
+                        padToLength('82', 7) +
+                        padToLength('20', 12) +
                         content + '\n';
                     break;
                 case 3: // Tin#
                     resultPre.textContent += padToLength('SupplierAddress', 20) +
                         padToLength('Supplier Address', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('84', 9) +
+                        padToLength('283', 7) +
+                        padToLength('200', 12) +
                         content + '\n';
                     break;
                 case 4: // Amount
                     resultPre.textContent += padToLength('PONo', 20) +
                         padToLength('PO No.', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('285', 9) +
+                        padToLength('296', 7) +
+                        padToLength('12', 12) +
                         content + '\n';
                     break;
                 case 5: // Vat Amount
                     resultPre.textContent += padToLength('DocumentNo', 20) +
                         padToLength('Document No', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('298', 9) +
+                        padToLength('309', 7) +
+                        padToLength('12', 12) +
                         content + '\n';
                     break;
                 case 6: // Vatable Sales
                     resultPre.textContent += padToLength('Description', 20) +
                         padToLength('Description', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('311', 9) +
+                        padToLength('360', 7) +
+                        padToLength('50', 12) +
                         content + '\n';
                     break;
                 case 7: // VAT Exempt Sales
                     resultPre.textContent += padToLength('Amount', 20) +
                         padToLength('Amount', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('362', 9) +
+                        padToLength('379', 7) +
+                        padToLength('18', 12) +
                         content + '\n';
                     break;
                 case 8: // Zero Rated
                     resultPre.textContent += padToLength('VatAmount', 20) +
                         padToLength('Vat Amount', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('381', 9) +
+                        padToLength('398', 7) +
+                        padToLength('18', 12) +
                         content + '\n';
                     break;
                 case 9: // Zero Rated
                     resultPre.textContent += padToLength('DefAmount', 20) +
                         padToLength('Def VAT Amount', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('400', 9) +
+                        padToLength('417', 7) +
+                        padToLength('18', 12) +
                         content + '\n';
                     break;
                 case 10: // Zero Rated
                     resultPre.textContent += padToLength('WhtAmount', 20) +
                         padToLength('WHT Amount', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('419', 9) +
+                        padToLength('436', 7) +
+                        padToLength('18', 12) +
                         content + '\n';
                     break;
                 case 11: // Zero Rated
                     resultPre.textContent += padToLength('NetPurchases', 20) +
                         padToLength('Net Purchases', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('438', 9) +
+                        padToLength('455', 7) +
+                        padToLength('18', 12) +
                         content + '\n';
                     break;
             }

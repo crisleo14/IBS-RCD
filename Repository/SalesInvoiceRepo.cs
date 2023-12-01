@@ -21,7 +21,7 @@ namespace Accounting_System.Repository
                 .ToListAsync();
         }
 
-        public async Task<int> GetLastSerialNo()
+        public async Task<int> GetLastSeriesNumber()
         {
             var lastInvoice = await _dbContext
                 .SalesInvoices
@@ -31,7 +31,7 @@ namespace Accounting_System.Repository
             if (lastInvoice != null)
             {
                 // Increment the last serial by one and return it
-                return lastInvoice.SerialNo + 1;
+                return lastInvoice.SeriesNumber + 1;
             }
             else
             {
@@ -40,10 +40,29 @@ namespace Accounting_System.Repository
             }
         }
 
+        public async Task<string> GenerateSINo()
+        {
+            var salesInvoice = await _dbContext
+                .SalesInvoices
+                .OrderByDescending(s => s.Id)
+                .FirstOrDefaultAsync();
+
+            if (salesInvoice != null)
+            {
+                var generatedSI = salesInvoice.SeriesNumber + 1;
+                return $"SI{generatedSI.ToString("D10")}";
+            }
+            else
+            {
+                return $"SI{1.ToString("D10")}";
+            }
+        }
+
         public async Task<SalesInvoice> FindSalesInvoice(int id)
         {
             var invoice = await _dbContext
                 .SalesInvoices
+                .Include(c => c.Customer)
                 .FirstOrDefaultAsync(invoice => invoice.Id == id);
 
             if (invoice != null)

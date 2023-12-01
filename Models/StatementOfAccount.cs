@@ -6,17 +6,8 @@ namespace Accounting_System.Models
 {
     public class StatementOfAccount : BaseEntity
     {
-        public int Number { get; set; }
-
-        [NotMapped]
-        [Display(Name = "SOA No.")]
-        public string FormmatedNumber
-        {
-            get
-            {
-                return "SOA" + Number.ToString("D10");
-            }
-        }
+        public string? SOANo { get; set; }
+        public int SeriesNumber { get; set; }
 
         [Required]
         [Display(Name = "Customer")]
@@ -39,24 +30,12 @@ namespace Accounting_System.Models
         public List<SelectListItem>? Services { get; set; }
 
         [Required]
-        public string Period { get; set; }
+        public DateTime Period { get; set; }
 
         [Required]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Amount { get; set; }
 
-        [Required]
-        [Display(Name = "Account Name")]
-        public string AccountName { get; set; }
-
-        [Required]
-        public string Bank { get; set; }
-
-        [Required]
-        [Display(Name = "Bank Account No.")]
-        public string BankAccountNo { get; set; }
-
-        [Required]
-        [Display(Name = "Bank Branch")]
-        public string BankBranch { get; set; }
+        public bool IsPrinted { get; set; }
     }
 }

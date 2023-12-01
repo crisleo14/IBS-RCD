@@ -6,6 +6,7 @@
     ViewData["Title"] = "Sales Invoice";
     var dateFrom = ViewBag.DateFrom;
     var dateTo = ViewBag.DateTo;
+    var lastRecord = ViewBag.LastRecord;
 
     // Convert the date strings to DateTime objects
     DateTime dateFromFormatted;
@@ -29,52 +30,49 @@
     decimal totalVatableAmount = 0;
     decimal totalExempted = 0;
     decimal totalZeroRated = 0;
+    decimal totalDiscount = 0;
+    decimal totalNetSales = 0;
 
     int numberOfRecords = 0;
     decimal amountFieldControlTotal = 0;
 }
 
 <br />
-<div class="text-end">
-    <img src="~/img/Filpride.jpg" height="" width="130px" />
-</div>
-<div class="text-center">
-    <h2><u><b>&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b></u></h2>
-    <p style="line-height: 1; margin-top:-7px;">
-        57 Westgate Offices, Sampson RO CBD, Subic Bay, Freeport Zone,<br />
-        Kalaklan Olongapo City, 2000 Zambales Philippines<br />
-        VAT Reg. TIN: 000-216-589-00000
-    </p>
-
-    <h3><span style="display: inline-block;"><b>SALES BOOK</b></span></h3>
-
-
-</div>
 <div>
-    <pre id ="resultPre">
+    <pre>
+TAXPAYER'S NAME: Filpride Resources Inc.
+TIN: 000-216-589-00000
+ADDRESS: 57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone, Kalaklan, Olongapo City, 2200 Zambales, Philippines
+
+Accounting System: Accounting Administration System
+Acknowledgement Certificate Control No.:
+Date Issued:</pre>
+    <pre id="resultPre">
 Accounting Books File Attributes/Layout Definition
 File Name: Sales Book Report
 File Type: Text File
-Number of Records:              @numberOfRecords
-Amount Field Control Total:     @amountFieldControlTotal
-Period Covered:                 @dateFrom to @dateTo
-Extracted By:                   @UserManager.GetUserName(User).ToUpper()
+Number of Records:                  @numberOfRecords
+Amount Field Control Total:         @amountFieldControlTotal
+Period Covered:                     @dateFrom to @dateTo
+Transaction cut-off Date & Time:    @lastRecord
+Extracted By:                       @UserManager.GetUserName(User).ToUpper()
 
 </pre>
 </div>
 
+<h3><span style="display: inline-block;"><b>SALES BOOK</b></span></h3>
 <div class="table-responsive" style="margin-top:20px;">
     <table class="table-hover w-100">
         <thead>
             <tr class="table-bordered">
                 <th>
-                    @Html.DisplayNameFor(model => model.TransactionDate)
+                    Tran. Date
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.SerialNo)
+                    @Html.DisplayNameFor(model => model.SINo)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.SoldTo)
+                    Customer Name
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.TinNo)
@@ -100,6 +98,12 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                 <th class="text-end">
                     <div>Zero Rated</div>
                 </th>
+                <th class="text-end">
+                    <div>Discount</div>
+                </th>
+                <th class="text-end">
+                    <div>Net Sales</div>
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -111,7 +115,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                         @Html.DisplayFor(model => invoice.TransactionDate)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => invoice.FormattedSerialNo)
+                        @Html.DisplayFor(model => invoice.SINo)
                     </td>
                     <td>
                         @Html.DisplayFor(model => invoice.SoldTo)
@@ -166,7 +170,22 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                              0.00
                         </td>
                     }
-                  @*   <td>
+                    <td class="text-end">
+                        0.00
+                    </td>
+                    @if(invoice.CustomerType == "Vatable")
+                    {
+                        <td class="text-end">
+                            @Html.DisplayFor(model => invoice.VatableSales)
+                        </td>
+                    }
+                    else
+                    {
+                        <td class="text-end">
+                            @Html.DisplayFor(model => invoice.Amount)
+                        </td>
+                    }
+                    @*   <td>
                         @Html.DisplayFor(model => invoice.Remarks)
                     </td> *@
                 </tr>
@@ -175,6 +194,8 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                @*  totalQuantity += invoice.Quantity; *@
                 totalVatableSales += invoice.VatableSales;
                 totalVatableAmount += invoice.VatAmount;
+                @* totalDiscount += invoice.Discount; *@
+                totalNetSales += invoice.VatableSales;
             }
             <tr class="align-text-bottom" style="border-top: 2px solid black;">
                 @{
@@ -184,6 +205,8 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                     var formattedTotalVatAmount = String.Format("{0:n}", totalVatableAmount);
                     var formattedTotalExempted = String.Format("{0:n}", totalExempted);
                     var formattedTotalZeroRated = String.Format("{0:n}", totalZeroRated);
+                    var formattedTotalDiscount = String.Format("{0:n}", totalDiscount);
+                    var formattedTotalNetSales = String.Format("{0:n}", totalNetSales);
 
                 <td></td>
                 <td></td>
@@ -197,6 +220,8 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                 <td class="text-end">@formattedTotalVatableSales</td>
                 <td class="text-end">@formattedTotalExempted</td>
                 <td class="text-end"><div>@formattedTotalZeroRated</div></td>
+                <td class="text-end"><div>@formattedTotalDiscount</div></td>
+                <td class="text-end"><div>1,205.18</div></td>
                 }
             </tr>
         </tbody>
@@ -321,7 +346,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
             switch (index) {
                 case 0: // Transaction Date
                     resultPre.textContent += padToLength('TransactionDate', 20) +
-                        padToLength('Transaction Date', 20) +
+                        padToLength('Tran. Date', 20) +
                         padToLength(startChar.toString(), 9) +
                         padToLength(endChar.toString(), 7) +
                         padToLength((endChar - startChar + 1).toString(), 12) +
@@ -338,73 +363,89 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                 case 2: // Sold To
                     resultPre.textContent += padToLength('SoldTo', 20) +
                         padToLength('Customer Name', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('25', 9) +
+                        padToLength('124', 7) +
+                        padToLength('100', 12) +
                         content + '\n';
                     break;
                 case 3: // Tin#
                     resultPre.textContent += padToLength('TinNo', 20) +
                         padToLength('Tin#', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('126', 9) +
+                        padToLength('145', 7) +
+                        padToLength('20', 12) +
                         content + '\n';
                     break;
                 case 4: // Amount
-                    resultPre.textContent += padToLength('Amount', 20) +
-                        padToLength('Amount', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                    resultPre.textContent += padToLength('Address', 20) +
+                        padToLength('Address', 20) +
+                        padToLength('147', 9) +
+                        padToLength('346', 7) +
+                        padToLength('200', 12) +
                         content + '\n';
                     break;
                 case 5: // Address
-                    resultPre.textContent += padToLength('Address', 20) +
-                        padToLength('Address', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                    resultPre.textContent += padToLength('ProductDescription', 20) +
+                        padToLength('Description', 20) +
+                        padToLength('348', 9) +
+                        padToLength('397', 7) +
+                        padToLength('50', 12) +
                         content + '\n';
                     break;
                 case 6: // Address
-                    resultPre.textContent += padToLength('ProductDescription', 20) +
-                        padToLength('Description', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                    resultPre.textContent += padToLength('Amount', 20) +
+                        padToLength('Amount', 20) +
+                        padToLength('399', 9) +
+                        padToLength('416', 7) +
+                        padToLength('18', 12) +
                         content + '\n';
                     break;
                 case 7: // Vat Amount
                     resultPre.textContent += padToLength('VatAmount', 20) +
                         padToLength('Vat Amount', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('418', 9) +
+                        padToLength('435', 7) +
+                        padToLength('18', 12) +
                         content + '\n';
                     break;
                 case 8: // Vatable Sales
                     resultPre.textContent += padToLength('VatableSales', 20) +
                         padToLength('Vatable Sales', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('437', 9) +
+                        padToLength('454', 7) +
+                        padToLength('18', 12) +
                         content + '\n';
                     break;
                 case 9: // VAT Exempt Sales
                     resultPre.textContent += padToLength('VatExemptSales', 20) +
                         padToLength('VAT Exempt Sales', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('456', 9) +
+                        padToLength('473', 7) +
+                        padToLength('18', 12) +
                         content + '\n';
                     break;
                 case 10: // Zero Rated
                     resultPre.textContent += padToLength('ZeroRated', 20) +
                         padToLength('Zero Rated', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('475', 9) +
+                        padToLength('492', 7) +
+                        padToLength('18', 12) +
+                        content + '\n';
+                    break;
+                case 11: // Zero Rated
+                    resultPre.textContent += padToLength('Discount', 20) +
+                        padToLength('Discount', 20) +
+                        padToLength('494', 9) +
+                        padToLength('511', 7) +
+                        padToLength('18', 12) +
+                        content + '\n';
+                    break;
+                case 12: // Zero Rated
+                    resultPre.textContent += padToLength('NetSales', 20) +
+                        padToLength('Net Sales', 20) +
+                        padToLength('513', 9) +
+                        padToLength('530', 7) +
+                        padToLength('18', 12) +
                         content + '\n';
                     break;
             }

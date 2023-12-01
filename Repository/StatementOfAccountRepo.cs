@@ -18,26 +18,64 @@ namespace Accounting_System.Repository
         {
             return await _dbContext
                 .StatementOfAccounts
-                .Include(s => s.Customer)
+                .Include(soa => soa.Customer)
+                .Include(soa => soa.Service)
                 .ToListAsync();
         }
 
-        public async Task<int> GetLastSOA()
+        //public async Task<int> GetLastSOA()
+        //{
+        //    var lastRow = await _dbContext
+        //        .StatementOfAccounts
+        //        .OrderByDescending(s => s.Id)
+        //        .FirstOrDefaultAsync();
+
+        //    if (lastRow != null)
+        //    {
+        //        // Increment the last serial by one and return it
+        //        return lastRow.Number + 1;
+        //    }
+        //    else
+        //    {
+        //        // If there are no existing records, you can start with a default value like 1
+        //        return 1;
+        //    }
+        //}
+
+        public async Task<int> GetLastSeriesNumber()
         {
-            var lastRow = await _dbContext
+            var lastInvoice = await _dbContext
                 .StatementOfAccounts
                 .OrderByDescending(s => s.Id)
                 .FirstOrDefaultAsync();
 
-            if (lastRow != null)
+            if (lastInvoice != null)
             {
                 // Increment the last serial by one and return it
-                return lastRow.Number + 1;
+                return lastInvoice.SeriesNumber + 1;
             }
             else
             {
                 // If there are no existing records, you can start with a default value like 1
                 return 1;
+            }
+        }
+
+        public async Task<string> GenerateSOANo()
+        {
+            var statementOfAccount = await _dbContext
+                .StatementOfAccounts
+                .OrderByDescending(s => s.Id)
+                .FirstOrDefaultAsync();
+
+            if (statementOfAccount != null)
+            {
+                var generatedSOA = statementOfAccount.SeriesNumber + 1;
+                return $"SOA{generatedSOA.ToString("D10")}";
+            }
+            else
+            {
+                return $"SOA{1.ToString("D10")}";
             }
         }
 

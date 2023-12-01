@@ -57,8 +57,9 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                model.Number = await _statementOfAccountRepo
-                    .GetLastSOA();
+                model.SeriesNumber = await _statementOfAccountRepo.GetLastSeriesNumber();
+
+                model.SOANo = await _statementOfAccountRepo.GenerateSOANo();
 
                 model.CreatedBy = _userManager.GetUserName(this.User);
 
@@ -78,6 +79,17 @@ namespace Accounting_System.Controllers
                 .FindSOA(id);
 
             return View(soa);
+        }
+
+        public async Task<IActionResult> PrintedSOA(int id)
+        {
+            var findIdOfSOA = await _statementOfAccountRepo.FindSOA(id);
+            if (findIdOfSOA != null && !findIdOfSOA.IsPrinted)
+            {
+                findIdOfSOA.IsPrinted = true;
+                await _dbContext.SaveChangesAsync();
+            }
+            return RedirectToAction("Generate", new { id = id });
         }
     }
 }
