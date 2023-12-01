@@ -9,6 +9,9 @@ namespace Accounting_System.Models
         [Display(Name = "SI No")]
         public string? SINo { get; set; }
 
+        [ForeignKey("CustomerId")]
+        public Customer? Customer { get; set; }
+
         public int SeriesNumber { get; set; }
 
         [Required]
@@ -94,5 +97,11 @@ namespace Accounting_System.Models
         [Required]
         [Display(Name = "Transaction Date")]
         public DateTime TransactionDate { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal Discount { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal NetDiscount { get; set; }
     }
 }

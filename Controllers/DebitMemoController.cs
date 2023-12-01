@@ -4,6 +4,7 @@ using Accounting_System.Repository;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Controllers
 {
@@ -21,12 +22,17 @@ namespace Accounting_System.Controllers
             this._userManager = userManager;
             _debitMemoRepo = dmcmRepo;
         }
+
         public async Task<IActionResult> Index()
         {
-            var viewData = await _debitMemoRepo.GetDMAsync();
-
-            return View(viewData);
+            var dm = await _dbContext.DebitMemos
+                .Include(dm => dm.SalesInvoice)
+                .Include(dm => dm.SOA)
+                .OrderBy(dm => dm.Id)
+                .ToListAsync();
+            return View(dm);
         }
+
         [HttpGet]
         public IActionResult Create()
         {
@@ -35,29 +41,66 @@ namespace Accounting_System.Controllers
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
-                    Text = s.SoldTo
+                    Text = s.SINo
+                })
+                .ToList();
+            viewModel.StatementOfAccounts = _dbContext.StatementOfAccounts
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.SOANo
                 })
                 .ToList();
 
             return View(viewModel);
         }
+
         [HttpPost]
         public async Task<IActionResult> Create(DebitMemo model)
         {
-
             if (ModelState.IsValid)
             {
                 var generateDMNo = await _debitMemoRepo.GenerateDMNo();
-
+                model.SeriesNumber = await _debitMemoRepo.GetLastSeriesNumber();
                 model.DMNo = generateDMNo;
-                //Computation
-                //var multiply = model.DebitAmount * model.SalesInvoice.Quantity;
-                //model.Amount = multiply - model.SalesInvoice.Amount;
-                //if (model.SalesInvoice.CustomerType == "Vatable")
-                //{
-                //    model.VatableSales = model.Amount / (decimal)1.12;
-                //    model.VatAmount = model.Amount - model.VatableSales;
-                //}
+
+                if (model.Source == "Sales Invoice")
+                {
+                    model.SOAId = null;
+
+                    var existingSalesInvoice = _dbContext.SalesInvoices
+                                               .FirstOrDefault(si => si.Id == model.SalesInvoiceId);
+
+                    model.DebitAmount = model.AdjustedPrice * existingSalesInvoice.Quantity - existingSalesInvoice.Amount;
+
+                    if (existingSalesInvoice.CustomerType == "Vatable")
+                    {
+                        model.VatableSales = model.DebitAmount / (decimal)1.12;
+                        model.VatAmount = model.DebitAmount - model.VatableSales;
+                        model.TotalSales = model.VatableSales + model.VatAmount;
+                    }
+
+                    model.TotalSales = model.DebitAmount;
+                }
+                else if (model.Source == "Statement Of Account")
+                {
+                    model.SalesInvoiceId = null;
+
+                    var existingSoa = _dbContext.StatementOfAccounts
+                        .Include(soa => soa.Customer)
+                        .FirstOrDefault(soa => soa.Id == model.SOAId);
+
+                    model.DebitAmount = model.AdjustedPrice - existingSoa.Amount;
+
+                    if (existingSoa.Customer.CustomerType == "Vatable")
+                    {
+                        model.VatableSales = model.DebitAmount / (decimal)1.12;
+                        model.VatAmount = model.DebitAmount - model.VatableSales;
+                        model.TotalSales = model.VatableSales + model.VatAmount;
+                    }
+
+                    model.TotalSales = model.DebitAmount;
+                }
 
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 _dbContext.Add(model);
@@ -71,10 +114,27 @@ namespace Accounting_System.Controllers
                 return View(model);
             }
         }
-        public async Task<IActionResult> Print(int id)
+
+        [HttpGet]
+        public async Task<IActionResult> Print(int? id)
         {
-            var cr = await _debitMemoRepo.FindDM(id);
-            return View(cr);
+            if (id == null || _dbContext.DebitMemos == null)
+            {
+                return NotFound();
+            }
+
+            var debitMemo = await _dbContext.DebitMemos
+                .Include(dm => dm.SalesInvoice)
+                .Include(dm => dm.SOA)
+                .ThenInclude(soa => soa.Customer)
+                .Include(dm => dm.SOA)
+                .ThenInclude(soa => soa.Service)
+                .FirstOrDefaultAsync(r => r.Id == id);
+            if (debitMemo == null)
+            {
+                return NotFound();
+            }
+            return View(debitMemo);
         }
 
         public async Task<IActionResult> PrintedDM(int id)
@@ -82,7 +142,7 @@ namespace Accounting_System.Controllers
             var findIdOfDM = await _debitMemoRepo.FindDM(id);
             if (findIdOfDM != null && !findIdOfDM.IsPrinted)
             {
-                findIdOfDM  .IsPrinted = true;
+                findIdOfDM.IsPrinted = true;
                 await _dbContext.SaveChangesAsync();
             }
             return RedirectToAction("Print", new { id = id });
