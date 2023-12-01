@@ -108,11 +108,18 @@ namespace Accounting_System.Controllers
                 sales.Amount = sales.Quantity * sales.UnitPrice;
                 if (sales.CustomerType == "Vatable")
                 {
-                    decimal netDiscount = (decimal)(sales.Amount - sales.Discount);
-
+                    if (sales.Discount != null || sales.Discount != 0)
+                    {
+                        decimal netDiscount = (decimal)(sales.Amount - sales.Discount);
                     sales.NetDiscount = netDiscount;
                     sales.VatableSales = netDiscount / (decimal)1.12;
                     sales.VatAmount = netDiscount - sales.VatableSales;
+                    }
+                    else
+                    {
+                        sales.VatableSales = sales.Amount / (decimal)1.12;
+                        sales.VatAmount = sales.Amount - sales.VatableSales;
+                    }
                 }
 
                 _dbContext.Add(sales);

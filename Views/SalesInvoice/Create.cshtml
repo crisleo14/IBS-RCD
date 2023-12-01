@@ -75,7 +75,7 @@
 
 
                 <label asp-for="Discount" class="control-label"></label>
-                <input asp-for="Discount" class="form-control" />
+                <input asp-for="Discount" class="form-control" id="discountInput"/>
                 <span asp-validation-for="Discount" class="text-danger"></span>
        </div>
 
@@ -227,7 +227,7 @@
                 }
             }
 
-            $("#unitPriceInput, #quantityInput").on('input', function () {
+            $("#unitPriceInput, #quantityInput, #discountInput").on('input', function () {
                 formatInputValue($(this));
             });
         });
