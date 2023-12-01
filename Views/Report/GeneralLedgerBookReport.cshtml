@@ -6,6 +6,7 @@
     ViewData["Title"] = "General Ledger Book";
     var dateFrom = ViewBag.DateFrom;
     var dateTo = ViewBag.DateTo;
+    var lastRecord = ViewBag.LastRecord;
 
     // Convert the date strings to DateTime objects
     DateTime dateFromFormatted;
@@ -31,34 +32,28 @@
 }
 
 <br />
-<div class="text-end">
-    <img src="~/img/Filpride.jpg" height="" width="130px" />
-</div>
-<div class="text-center">
-    <h2><u><b>&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b></u></h2>
-    <p style="line-height: 1; margin-top:-7px;">
-        57 Westgate Offices, Sampson RO CBD, Subic Bay, Freeport Zone,<br />
-        Kalaklan Olongapo City, 2000 Zambales Philippines<br />
-        VAT Reg. TIN: 000-216-589-00000
-    </p>
-
-    <h3><span style="display: inline-block;"><b>GENERAL LEDGER BOOK</b></span></h3>
-
-
-</div>
 <div>
+    <pre>
+TAXPAYER'S NAME: Filpride Resources Inc.
+TIN: 000-216-589-00000
+ADDRESS: 57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone, Kalaklan, Olongapo City, 2200 Zambales, Philippines
+
+Accounting System: Accounting Administration System
+Acknowledgement Certificate Control No.:
+Date Issued:</pre>
     <pre id="resultPre">
 Accounting Books File Attributes/Layout Definition
 File Name: General Ledger Book Report
 File Type: Text File
-Number of Records:              @numberOfRecords
-Amount Field Control Total:     @amountFieldControlTotal
-Period Covered:                 @dateFrom to @dateTo
-Extracted By:                   @UserManager.GetUserName(User).ToUpper()
+Number of Records:                  @numberOfRecords
+Amount Field Control Total:         @amountFieldControlTotal
+Period Covered:                     @dateFrom to @dateTo
+Transaction cut-off Date & Time:    @lastRecord
+Extracted By:                       @UserManager.GetUserName(User).ToUpper()
 
 </pre>
 </div>
-
+<h3><span style="display: inline-block;"><b>GENERAL LEDGER BOOK</b></span></h3>
 <div class="table-responsive" style="margin-top:20px;">
     <table class="table-hover w-100">
         <thead>
@@ -128,7 +123,7 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
     </table>
 </div>
 
-<div class="text-start" style="margin-top:50px;">
+<div class="text-start" >
     <p style="line-height: 1;">
         <em>
             <strong>Software Name :</strong> Accounting Administration System (AAS)
@@ -256,40 +251,40 @@ Extracted By:                   @UserManager.GetUserName(User).ToUpper()
                     resultPre.textContent += padToLength('Reference', 20) +
                         padToLength('Reference', 20) +
                         padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('24', 7) +
+                        padToLength('13', 12) +
                         content + '\n';
                     break;
                 case 2: // Sold To
                     resultPre.textContent += padToLength('Description', 20) +
                         padToLength('Description', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('26', 9) +
+                        padToLength('75', 7) +
+                        padToLength('50', 12) +
                         content + '\n';
                     break;
                 case 3: // Tin#
                     resultPre.textContent += padToLength('AccountTitle', 20) +
                         padToLength('Account Title', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('77', 9) +
+                        padToLength('126', 7) +
+                        padToLength('50', 12) +
                         content + '\n';
                     break;
                 case 4: // Amount
                     resultPre.textContent += padToLength('Debit', 20) +
                         padToLength('Debit', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('128', 9) +
+                        padToLength('145', 7) +
+                        padToLength('18', 12) +
                         content + '\n';
                     break;
                 case 5: // Vat Amount
                     resultPre.textContent += padToLength('Credit', 20) +
                         padToLength('Credit', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength('147', 9) +
+                        padToLength('164', 7) +
+                        padToLength('18', 12) +
                         content + '\n';
                     break;
             }

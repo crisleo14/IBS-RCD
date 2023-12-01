@@ -5,16 +5,16 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Index</h1>
+<h1>Statement of Account</h1>
 <hr />
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-primary rounded-3">Create New</a>
 </p>
 <table class="table">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.FormmatedNumber)
+                @Html.DisplayNameFor(model => model.SOANo)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Customer)
@@ -35,7 +35,7 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.FormmatedNumber)
+                @Html.DisplayFor(modelItem => item.SOANo)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Customer.Name)
@@ -44,13 +44,13 @@
                 @Html.DisplayFor(modelItem => item.Service.Name)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Period)
+                @item.Period.ToString("MMMM yyyy")
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Amount)
             </td>
             <td>
-                <a asp-action="Generate" asp-route-id="@item.Id">Generate SOA</a> 
+                    <a asp-action="Generate" asp-route-id="@item.Id" class="btn btn-light">Generate SOA</a>
             </td>
         </tr>
 }
