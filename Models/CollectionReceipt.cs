@@ -12,6 +12,7 @@ namespace Accounting_System.Models
         public SalesInvoice? SalesInvoice { get; set; }
 
         public string? CRNo { get; set; }
+        public int SeriesNumber { get; set; }
 
         public DateTime Date { get; set; }
 
@@ -31,10 +32,13 @@ namespace Accounting_System.Models
 
         public string Branch { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Amount { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal EWT { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Total { get; set; }
 
         public bool IsPrinted { get; set; }

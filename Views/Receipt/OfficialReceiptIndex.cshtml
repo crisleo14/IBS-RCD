@@ -45,7 +45,7 @@
                     @Html.DisplayFor(modelItem => item.ORNo)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Date)
+                    @item.Date.ToShortDateString()
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.ReferenceNo)
@@ -54,7 +54,7 @@
                     @Html.DisplayFor(modelItem => item.FormOfPayment)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.CheckDate)
+                    @item.CheckDate.ToShortDateString()
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.CheckNo)

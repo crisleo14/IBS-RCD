@@ -12,8 +12,10 @@ namespace Accounting_System.Models
         [Display(Name = "Account Title")]
         public string AccountTitle { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Debit { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Credit { get; set; }
     }
 }

@@ -30,13 +30,13 @@ namespace Accounting_System.Controllers
 
             return View(viewData);
         }
+
         public async Task<IActionResult> OfficialReceiptIndex()
         {
             var viewData = await _receiptRepo.GetORAsync();
 
             return View(viewData);
         }
-
 
         public IActionResult CreateCollectionReceipt()
         {
@@ -45,7 +45,7 @@ namespace Accounting_System.Controllers
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
-                    Text = s.SoldTo
+                    Text = s.SINo
                 })
                 .ToList();
 
@@ -55,26 +55,43 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateCollectionReceipt(CollectionReceipt model)
         {
-
+            model.Customers = _dbContext.SalesInvoices
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.SoldTo
+                })
+                .ToList();
             if (ModelState.IsValid)
             {
-                var generateCRNo = await _receiptRepo.GenerateCRNo();
+                var existingSalesInvoice = _dbContext.SalesInvoices
+                                               .FirstOrDefault(si => si.Id == model.SalesInvoiceId);
 
-                model.CRNo = generateCRNo;
-                model.CreatedBy = _userManager.GetUserName(this.User);
-                _dbContext.Add(model);
-                await _dbContext.SaveChangesAsync();
-                TempData["success"] = "Collection Receipt created successfully";
-                return RedirectToAction("CollectionReceiptIndex");
+                if (existingSalesInvoice.Amount >= model.Amount)
+                {
+                    var generateCRNo = await _receiptRepo.GenerateCRNo();
+                    model.SeriesNumber = await _receiptRepo.GetLastSeriesNumberCR();
+                    model.CRNo = generateCRNo;
+                    model.CreatedBy = _userManager.GetUserName(this.User);
+                    _dbContext.Add(model);
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Collection Receipt created successfully";
+                    return RedirectToAction("CollectionReceiptIndex");
+                }
+                else
+                {
+                    TempData["error"] = "Please input below or exact amount based on the Sales Invoice";
+                    return View(model);
+                }
             }
             else
             {
-                ModelState.AddModelError("", "The information you submitted is not valid!");
+                TempData["error"] = "The information you submitted is not valid!";
                 return View(model);
             }
         }
 
-
+        [HttpGet]
         public IActionResult CreateOfficialReceipt()
         {
             var viewModel = new OfficialReceipt();
@@ -92,17 +109,34 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateOfficialReceipt(OfficialReceipt model)
         {
-
+            model.SOANo = _dbContext.StatementOfAccounts
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.SOANo
+                })
+                .ToList();
             if (ModelState.IsValid)
             {
-                var generateORNo = await _receiptRepo.GenerateORNo();
+                var existingSOA = _dbContext.StatementOfAccounts
+                                               .FirstOrDefault(si => si.Id == model.SOAId);
 
-                model.ORNo = generateORNo;
-                model.CreatedBy = _userManager.GetUserName(this.User);
-                _dbContext.Add(model);
-                await _dbContext.SaveChangesAsync();
-                TempData["success"] = "Official Receipt created successfully";
-                return RedirectToAction("OfficialReceiptIndex");
+                if (existingSOA.Amount >= model.Amount)
+                {
+                    var generateORNo = await _receiptRepo.GenerateORNo();
+                    model.SeriesNumber = await _receiptRepo.GetLastSeriesNumberOR();
+                    model.ORNo = generateORNo;
+                    model.CreatedBy = _userManager.GetUserName(this.User);
+                    _dbContext.Add(model);
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Official Receipt created successfully";
+                    return RedirectToAction("OfficialReceiptIndex");
+                }
+                else
+                {
+                    TempData["error"] = "Please input below or exact amount based on Statment of Account";
+                    return View(model);
+                }
             }
             else
             {
@@ -111,12 +145,12 @@ namespace Accounting_System.Controllers
             }
         }
 
-
         public async Task<IActionResult> CollectionReceipt(int id)
         {
             var cr = await _receiptRepo.FindCR(id);
             return View(cr);
         }
+
         public async Task<IActionResult> OfficialReceipt(int id)
         {
             var or = await _receiptRepo.FindOR(id);

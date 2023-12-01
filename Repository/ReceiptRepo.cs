@@ -13,6 +13,44 @@ namespace Accounting_System.Repository
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
+        public async Task<int> GetLastSeriesNumberCR()
+        {
+            var lastInvoice = await _dbContext
+                .CollectionReceipts
+                .OrderByDescending(s => s.Id)
+                .FirstOrDefaultAsync();
+
+            if (lastInvoice != null)
+            {
+                // Increment the last serial by one and return it
+                return lastInvoice.SeriesNumber + 1;
+            }
+            else
+            {
+                // If there are no existing records, you can start with a default value like 1
+                return 1;
+            }
+        }
+
+        public async Task<int> GetLastSeriesNumberOR()
+        {
+            var lastInvoice = await _dbContext
+                .OfficialReceipts
+                .OrderByDescending(s => s.Id)
+                .FirstOrDefaultAsync();
+
+            if (lastInvoice != null)
+            {
+                // Increment the last serial by one and return it
+                return lastInvoice.SeriesNumber + 1;
+            }
+            else
+            {
+                // If there are no existing records, you can start with a default value like 1
+                return 1;
+            }
+        }
+
         public async Task<string> GenerateCRNo()
         {
             var collectionReceipt = await _dbContext
@@ -22,7 +60,7 @@ namespace Accounting_System.Repository
 
             if (collectionReceipt != null)
             {
-                var generatedCR = collectionReceipt.Id + 1;
+                var generatedCR = collectionReceipt.SeriesNumber + 1;
                 return $"CR{generatedCR.ToString("D10")}";
             }
             else
@@ -40,7 +78,7 @@ namespace Accounting_System.Repository
 
             if (officialReceipt != null)
             {
-                var generatedCR = officialReceipt.Id + 1;
+                var generatedCR = officialReceipt.SeriesNumber + 1;
                 return $"OR{generatedCR.ToString("D10")}";
             }
             else

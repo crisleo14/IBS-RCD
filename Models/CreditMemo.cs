@@ -9,6 +9,7 @@ namespace Accounting_System.Models
         [Display(Name = "CM No")]
         public string? CMNo { get; set; }
 
+        public int SeriesNumber { get; set; }
         public DateTime Date { get; set; }
 
         [Display(Name = "SI No")]
@@ -32,6 +33,7 @@ namespace Accounting_System.Models
         public string Description { get; set; }
 
         [Display(Name = "Adjusted Price")]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal AdjustedPrice { get; set; }
 
         [Display(Name = "Credit Amount")]

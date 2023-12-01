@@ -26,57 +26,176 @@
 
 </div>
 <br />
-<div class="table-responsive">
-    <table class="w-100" style="margin-top:20px;">
-        <tbody>
-            <tr>
-                <td>
-                    <span><b>Sold to:</b></span>
-                    &nbsp; @Html.DisplayFor(model => model.SalesInvoice.SoldTo) &nbsp;<br />
+@if (Model.Source == "Sales Invoice")
+{
+    <div class="table-responsive">
+        <table class="w-100" style="margin-top:20px;">
+            <tbody>
+                <tr>
+                    <td>
+                        <span><b>Sold to:</b></span>
+                        &nbsp; @Html.DisplayFor(model => model.SalesInvoice.SoldTo) &nbsp;<br />
 
-                    <span><b>Address:</b></span>
-                    &nbsp; @Html.DisplayFor(model => model.SalesInvoice.Address) &nbsp;<br />
+                        <span><b>Address:</b></span>
+                        &nbsp; @Html.DisplayFor(model => model.SalesInvoice.Address) &nbsp;<br />
 
-                    <span><b>TIN:</b></span>
-                    &nbsp; @Html.DisplayFor(model => model.SalesInvoice.TinNo) &nbsp;<br />
+                        <span><b>TIN:</b></span>
+                        &nbsp; @Html.DisplayFor(model => model.SalesInvoice.TinNo) &nbsp;<br />
 
-                    <span><b>Business Style:</b></span>
-                    &nbsp; @Html.DisplayFor(model => model.SalesInvoice.BusinessStyle) &nbsp;
-                </td>
+                        <span><b>Business Style:</b></span>
+                        &nbsp; @Html.DisplayFor(model => model.SalesInvoice.BusinessStyle) &nbsp;
+                    </td>
 
-                <td class="w-25 text-nowrap">
+                    <td class="w-25 text-nowrap">
 
-                    <b>Date :</b> @Html.DisplayFor(model => model.Date)
-                    &nbsp; <span id="invoiceDate"></span>
-                    <br />
-                    <b>@* Terms: *@</b>&nbsp;<span id="terms"></span>&nbsp;<br />
-                    <b>@* Due Date: *@</b>&nbsp; <span id="dueDate"></span><br />
+                        <b>Date :</b> @Model.Date.ToShortDateString()
+                        &nbsp; <span id="invoiceDate"></span>
+                        <br />
+                        <b>@* Terms: *@</b>&nbsp;<span id="terms"></span>&nbsp;<br />
+                        <b>@* Due Date: *@</b>&nbsp; <span id="dueDate"></span><br />
 
-                    <b>@* Other Ref No.: *@</b>&nbsp;&nbsp;
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+                        <b>@* Other Ref No.: *@</b>&nbsp;&nbsp;
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-responsive" style="margin-top:20px;">
+        <table class="table-bordered w-100 text-center">
+            <thead>
+                <tr>
+                    <th>INVOICE NO.</th>
+                    <th>INVOICE DATE</th>
+                    <th>PRODUCT</th>
+                    <th>DESCRIPTION</th>
+                    <th>AMOUNT</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="height:80px;">
+                    <td>@Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
+                    <td>@Model.SalesInvoice.TransactionDate.ToShortDateString()</td>
+                    <td>@Html.DisplayFor(model => model.SalesInvoice.ProductName)</td>
+                    <td>@Html.DisplayFor(model => model.Description)</td>
+                    <td>@Html.DisplayFor(model => model.DebitAmount)</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top:20px;">
+        <table class="w-100">
+            <tbody>
+                <tr>
+                    <td>
+
+                    </td>
+                    <td style="width:40%;">
+                        <div>
+                            <table class="w-100">
+                                <tbody class="text-nowrap">
+                                    <tr>
+                                        <td><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
+                                        <td class="text-end">
+                                            @if (Model.SalesInvoice.CustomerType == "Vatable")
+                                            {
+                                                <p style="height: 9px;">@Html.DisplayFor(model => model.VatableSales)</p>
+                                            }
+                                        </td>
+
+                                    </tr>
+                                    <tr>
+                                        <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
+
+                                        <td class="text-end">
+                                            @if (Model.SalesInvoice.CustomerType == "Zero Rated")
+                                            {
+                                                <p style="height: 9px;">@Html.DisplayFor(model => model.DebitAmount)</p>
+                                            }
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><p style="height: 9px; margin-left:8%;"><b>VAT-Exempt Sales: </b></p></td>
+
+                                        <td class="text-end">
+                                            @if (Model.SalesInvoice.CustomerType == "Exempt")
+                                            {
+                                                <p style="height: 9px;">@Html.DisplayFor(model => model.DebitAmount)</p>
+                                            }
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
+
+                                        <td class="text-end">
+                                            @if (Model.SalesInvoice.CustomerType == "Vatable")
+                                            {
+                                                <p style="height: 9px;">@Html.DisplayFor(model => model.VatAmount)</p>
+                                            }
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
+                                        <td class="text-end"><p style="height: 9px;">@Html.DisplayFor(model => model.TotalSales)</p></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+}
+else if (Model.Source == "Statement Of Account")
+{
+    <div class="table-responsive">
+        <table class="w-100" style="margin-top:20px;">
+            <tbody>
+                <tr>
+                    <td>
+                        <span><b>Sold to:</b></span>
+                        &nbsp;@Html.DisplayFor(model => model.SOA.Customer.Name) &nbsp;<br />
+
+                        <span><b>Address:</b></span>
+                        &nbsp;@Html.DisplayFor(model => model.SOA.Customer.Address) &nbsp;<br />
+
+                        <span><b>TIN:</b></span>
+                        &nbsp;@Html.DisplayFor(model => model.SOA.Customer.TinNo) &nbsp;<br />
+
+                        <span><b>Business Style:</b></span>
+                        &nbsp;@Html.DisplayFor(model => model.SOA.Customer.BusinessStyle) &nbsp;
+                    </td>
+
+                    <td class="w-25 text-nowrap">
+
+                        <b>Date :</b> @Model.Date.ToShortDateString()
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
 <div class="table-responsive" style="margin-top:20px;">
     <table class="table-bordered w-100 text-center">
         <thead>
             <tr>
-                <th>INVOICE/SOA NO.</th>
-                <th>INVOICE/SOA DATE</th>
-                <th>PRODUCT</th>
+                <th>SOA NO.</th>
+                <th>SOA DATE</th>
+                <th>SERVICE</th>
                 <th>DESCRIPTION</th>
                 <th>AMOUNT</th>
             </tr>
         </thead>
         <tbody>
             <tr style="height:80px;">
-                <td>@Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
-                <td>@Html.DisplayFor(model => model.SalesInvoice.TransactionDate)</td>
-                <td>@Html.DisplayFor(model => model.SalesInvoice.ProductName)</td>
+                <td>@Html.DisplayFor(model => model.SOA.SOANo)</td>
+                <td>@Model.SOA.CreatedDate.ToShortDateString()</td>
+                <td>@Html.DisplayFor(model => model.SOA.Service.Name)</td>
                 <td>@Html.DisplayFor(model => model.Description)</td>
-                <td>@Html.DisplayFor(model => model.Amount)</td>
+                <td>@Html.DisplayFor(model => model.DebitAmount)</td>
             </tr>
 
         </tbody>
@@ -88,55 +207,62 @@
         <tbody>
             <tr>
                 <td>
-                  
                 </td>
                 <td style="width:40%;">
                     <div>
                         <table class="w-100">
                             <tbody class="text-nowrap">
                                 <tr>
-                                    <td><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
-                                    <td class="text-end">
-                                        @if (Model.SalesInvoice.CustomerType == "Vatable")
+                                    <td class="w-50"><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
+                                        @if (Model.VatableSales != 0)
                                         {
-                                            <p style="height: 9px;">@Html.DisplayFor(model => model.VatableSales)</p>
+                                            <td class="text-end">@Html.DisplayFor(model => model.VatableSales)</td>
                                         }
-                                    </td>
+                                        else
+                                        {
+                                            <td class="text-end"></td>
+                                        }
 
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
-
-                                    <td class="text-end">
-                                        @if (Model.SalesInvoice.CustomerType == "Zero Rated")
+                                        @if (Model.SOA.Customer.CustomerType == "Zero Rated")
                                         {
-                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p>
+                                            <td class="text-end">@Html.DisplayFor(model => model.DebitAmount)</td>
                                         }
-                                    </td>
+                                        else
+                                        {
+                                            <td class="text-end"></td>
+                                        }
+                                        
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>VAT-Exempt Sales: </b></p></td>
 
-                                    <td class="text-end">
-                                        @if (Model.SalesInvoice.CustomerType == "Exempt")
+                                        @if (Model.SOA.Customer.CustomerType == "Exempt")
                                         {
-                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p>
+                                            <td class="text-end">@Html.DisplayFor(model => model.DebitAmount)</td>
                                         }
-                                    </td>
+                                        else
+                                        {
+                                            <td class="text-end"></td>
+                                        }
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
 
-                                    <td class="text-end">
-                                        @if (Model.SalesInvoice.CustomerType == "Vatable")
+                                        @if (Model.VatAmount != 0)
                                         {
-                                            <p style="height: 9px;">@Html.DisplayFor(model => model.VatAmount)</p>
+                                            <td class="text-end">@Html.DisplayFor(model => model.VatAmount)</td>
                                         }
-                                    </td>
+                                        else
+                                        {
+                                            <td class="text-end"></td>
+                                        }
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
-                                    <td class="text-end"><p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p></td>
+                                    <td class="text-end">@Html.DisplayFor(model => model.TotalSales)</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -146,7 +272,7 @@
         </tbody>
     </table>
 </div>
-
+}
 <div style="margin-top:20px;">
     <p>
         <i>This is a system generated invoice, no signature required.</i>
@@ -182,16 +308,21 @@
     </p>
 </div>
 
-@* <div class="text-end">
-    ORIGINAL COPY
-</div> *@
-
-<div class="text-end">
-    REPRINT COPY
-</div>
+@if (!Model.IsPrinted)
+{
+    <div class="text-end">
+        ORIGINAL COPY
+    </div>
+}
+else
+{
+    <div class="text-end">
+        REPRINT COPY
+    </div>
+}
 
 <div>
-    <a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
+    <a asp-action="PrintedDM" asp-route-id="@Model.Id" class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
     <a asp-action="Index" class="btn" id="otherButton">Back</a>
 </div>
 

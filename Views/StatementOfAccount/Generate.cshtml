@@ -209,14 +209,18 @@ else if (Model.Customer.CustomerType == "Zero Rated")
     </p>
 </div>
 <br />
-
-@* <div class="text-end footer" style="right:8%; bottom:9%;">
+@if (!Model.IsPrinted)
+{
+    <div class="text-end">
         ORIGINAL COPY
-    </div> *@
-<div class="text-end footer" style="right:8%; bottom:9%;">
-    REPRINT COPY
-</div>
-
+    </div>
+}
+else
+{
+    <div class="text-end">
+        REPRINT COPY
+    </div>
+}
 <br />
 <div class="text-start w-100 footer" style="margin-top:50px;">
     <p style="line-height: 1;">
@@ -233,7 +237,7 @@ else if (Model.Customer.CustomerType == "Zero Rated")
 </div>
 
 <div>
-    <a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
+    <a asp-action="PrintedSOA" asp-route-id="@Model.Id" class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
     <a asp-action="Index" class="btn" id="otherButton">Back</a>
 </div>
 
