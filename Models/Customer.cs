@@ -5,6 +5,9 @@ namespace Accounting_System.Models
 {
     public class Customer : BaseEntity
     {
+        [Display(Name = "Customer No")]
+        public int Number { get; set; }
+
         [Required]
         [Display(Name = "Customer Name")]
         public string Name { get; set; }

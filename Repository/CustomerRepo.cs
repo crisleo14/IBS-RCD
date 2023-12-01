@@ -41,5 +41,30 @@ namespace Accounting_System.Repository
         {
             return _dbContext.Customers.Any(c => c.Id == id);
         }
+
+        public async Task<int> GetLastNumber()
+        {
+            var lastNumber = await _dbContext
+                .Customers
+                .OrderByDescending(s => s.Id)
+                .FirstOrDefaultAsync();
+
+            if (lastNumber != null)
+            {
+                return lastNumber.Number + 1;
+            }
+            else
+            {
+                return 1001;
+            }
+        }
+
+        public async Task<Customer?> CheckIfTinNoExist(string tin)
+        {
+            return await _dbContext
+                .Customers
+                .Where(c => c.TinNo == tin)
+                .FirstOrDefaultAsync();
+        }
     }
 }
