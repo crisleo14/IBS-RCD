@@ -90,8 +90,7 @@
         </tbody>
     </table>
 </div>
-    @if (Model.WithHoldingTax)
-    {
+@{
         lessEwtTax = Model.Amount * (decimal)0.01;
         var lessEwtTaxInAmount = String.Format("{0:n}", lessEwtTax);
         lessEwtVat = Model.Amount * (decimal)0.05;
@@ -123,7 +122,6 @@
                 Please attach BIR Form 2306 and 2307 to your payment if you deducted Expanded Withholding Tax and Vat.
             </p>
         }
-        else{}
     }
         else
         {
@@ -149,10 +147,8 @@
                 Please attach BIR Form 2306 and 2307 to your payment if you deducted Expanded Withholding Tax and Vat.
             </p>
         }
-        else{}
         }
-
-    }
+  }  
 <div style="margin-top:20px;">
     <table class="w-100">
         <tbody>

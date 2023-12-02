@@ -4,6 +4,10 @@
 @inject UserManager<IdentityUser> UserManager
 @using Humanizer
 
+@{
+    var formattedToPeso = String.Format("{0:N2}", Model.StatementOfAccount.Amount);
+}
+
 <br />
 <div class="text-end">
     <img src="~/img/Filpride.jpg" height="" width="130px" />
@@ -57,7 +61,7 @@
                     <span class="underline" style="display: inline-block; width: 87%;">&nbsp;&nbsp;@words</span><br />
 
                     <span><b>pesos</b></span>
-                    <span class="underline" style="display: inline-block; width: 92%;">(₱ @Model.StatementOfAccount.Amount)</span><br />
+                    <span class="underline" style="display: inline-block; width: 92%;">(₱ &nbsp;&nbsp;@formattedToPeso)</span><br />
 
                     <span><b>In partial/full payment for</b></span>
                     <span class="underline" style="display: inline-block; width: 72%;">&nbsp;&nbsp;@Model.StatementOfAccount.SOANo</span><br />
@@ -103,7 +107,7 @@
                 <td>
                     @if (Model.StatementOfAccount.Customer.CustomerType == "Exempt")
                     {
-                        <h6 style="height: 9px; padding-right:10px;" class="text-center">@Html.DisplayFor(model => model.StatementOfAccount.Amount)</h6>
+                        <h6 style="height: 9px; padding-right:10px;" class="text-center">@formattedToPeso</h6>
                     }
                 </td>
                 <td style="padding-left:10px;">SOA Date</td>
@@ -114,7 +118,7 @@
                 <td>
                     @if (Model.StatementOfAccount.Customer.CustomerType == "Zero Rated")
                     {
-                        <p style="height: 9px; padding-right:10px;" class="text-center">@Html.DisplayFor(model => model.StatementOfAccount.Amount)</p>
+                        <p style="height: 9px; padding-right:10px;" class="text-center">@formattedToPeso</p>
                     }
                 </td>
                 <td style="padding-left:10px;">SOA #.</td>
@@ -126,7 +130,7 @@
                     <h6 style="height: 9px; padding-right:10px;" class="text-center">@Html.DisplayFor(model => totalSalesVatInclusive)</h6>
                 </td>
                 <td style="padding-left:10px;">Amount</td>
-                <td style="padding-left:10px;">@Html.DisplayFor(model => model.StatementOfAccount.Amount)</td>
+                <td style="padding-left:10px;">@formattedToPeso</td>
             </tr>
             <tr>
                 <td style="padding-left:10px;">Discount</td>
@@ -139,7 +143,7 @@
                 <td>
                     @if (Model.StatementOfAccount.Customer.CustomerType == "Vatable")
                     {
-                        <h6 style="height: 9px; padding-right:10px;" class="text-center">@Html.DisplayFor(model => model.StatementOfAccount.Amount)</h6>
+                        <h6 style="height: 9px; padding-right:10px;" class="text-center">@formattedToPeso</h6>
                     }
                 </td>
                 
