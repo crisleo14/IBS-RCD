@@ -101,27 +101,58 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 var generateCRNo = await _salesInvoiceRepo.GenerateSINo();
+                var existingCustomers = _dbContext.Customers
+                                               .FirstOrDefault(si => si.Id == sales.CustomerId);
 
+                sales.CustomerNo = existingCustomers.Number;
                 sales.SeriesNumber = await _salesInvoiceRepo.GetLastSeriesNumber();
                 sales.CreatedBy = _userManager.GetUserName(this.User);
                 sales.SINo = generateCRNo;
                 sales.Amount = sales.Quantity * sales.UnitPrice;
-                if (sales.CustomerType == "Vatable")
+                if (existingCustomers.CustomerType == "Vatable")
                 {
-                    if (sales.Discount != null || sales.Discount != 0)
-                    {
-                        decimal netDiscount = (decimal)(sales.Amount - sales.Discount);
+                    decimal netDiscount = (decimal)(sales.Amount - sales.Discount);
                     sales.NetDiscount = netDiscount;
                     sales.VatableSales = netDiscount / (decimal)1.12;
                     sales.VatAmount = netDiscount - sales.VatableSales;
-                    }
-                    else
+                    if (existingCustomers.WithHoldingTax)
                     {
-                        sales.VatableSales = sales.Amount / (decimal)1.12;
-                        sales.VatAmount = sales.Amount - sales.VatableSales;
+                        sales.WithHoldingTaxAmount = sales.VatableSales * (decimal)0.01;
+                    }
+                    if (existingCustomers.WithHoldingVat)
+                    {
+                        sales.WithHoldingVatAmount = sales.VatableSales * (decimal)0.05;
                     }
                 }
+                else if (existingCustomers.CustomerType == "Zero Rated")
+                {
+                    decimal netDiscount = (decimal)(sales.Amount - sales.Discount);
+                    sales.NetDiscount = netDiscount;
+                    sales.ZeroRated = sales.Amount;
 
+                    if (existingCustomers.WithHoldingTax)
+                    {
+                        sales.WithHoldingTaxAmount = sales.ZeroRated * (decimal)0.01;
+                    }
+                    if (existingCustomers.WithHoldingVat)
+                    {
+                        sales.WithHoldingVatAmount = sales.ZeroRated * (decimal)0.05;
+                    }
+                }
+                else
+                {
+                    decimal netDiscount = (decimal)(sales.Amount - sales.Discount);
+                    sales.NetDiscount = netDiscount;
+                    sales.VatExempt = sales.Amount;
+                    if (existingCustomers.WithHoldingTax)
+                    {
+                        sales.WithHoldingTaxAmount = sales.VatExempt * (decimal)0.01;
+                    }
+                    if (existingCustomers.WithHoldingVat)
+                    {
+                        sales.WithHoldingVatAmount = sales.VatExempt * (decimal)0.05;
+                    }
+                }
                 _dbContext.Add(sales);
 
                 //Implementation of Audit trail
