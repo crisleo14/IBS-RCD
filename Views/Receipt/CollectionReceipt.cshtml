@@ -142,7 +142,7 @@
                 <td class="text-center"></td>
                 <td class="text-center"></td>
                 <td class="text-center"></td>
-                    @if (Model.SalesInvoice.WithHoldingTax)
+                    @if (Model.SalesInvoice.Customer.WithHoldingTax)
                     {
                         <td class="text-center">@formattedToPeso</td>
                     }
@@ -171,7 +171,7 @@
                 <td class="text-center">@Html.DisplayFor(model => model.CheckNo)</td>
                 <td class="text-center">@Html.DisplayFor(model => model.Bank)</td>
                 <td class="text-center">@Html.DisplayFor(model => model.Branch)</td>
-                    @if (Model.SalesInvoice.WithHoldingTax)
+                    @if (Model.SalesInvoice.Customer.WithHoldingTax)
                     {
                         <td class="text-center">@formattedToPeso</td>
                     }
@@ -200,7 +200,7 @@
                 <td class="text-center">@Html.DisplayFor(model => model.CheckNo)</td>
                 <td class="text-center">@Html.DisplayFor(model => model.Bank)</td>
                 <td class="text-center">@Html.DisplayFor(model => model.Branch)</td>
-                    @if (Model.SalesInvoice.WithHoldingTax)
+                    @if (Model.SalesInvoice.Customer.WithHoldingTax)
                     {
                         <td class="text-center">@formattedToPeso</td>
                     }
@@ -226,7 +226,7 @@
                 <td></td>
                 <td></td>
                 <td></td>
-                @if (Model.SalesInvoice.WithHoldingTax) {
+                @if (Model.SalesInvoice.Customer.WithHoldingTax) {
                     var formattedToPesoTax = String.Format("{0:N2}", EWT);
                     
                     <td class="text-center">@formattedToPesoTax</td>
