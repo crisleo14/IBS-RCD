@@ -5,7 +5,7 @@ namespace Accounting_System.Models
     public class SalesBook : BaseEntity
     {
         [Display(Name = "Tran. Date")]
-        public DateTime TransactionDate { get; set; }
+        public string TransactionDate { get; set; }
 
         [Display(Name = "Serial Number")]
         public string SerialNo { get; set; }
