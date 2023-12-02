@@ -38,38 +38,6 @@ namespace Accounting_System.Controllers
             return View(salesInvoice);
         }
 
-        public async Task<IActionResult> Post(int invoiceId)
-        {
-            var model = await _dbContext.SalesInvoices.FindAsync(invoiceId);
-
-            if (model != null)
-            {
-                if (!model.IsPosted)
-                {
-                    model.IsPosted = true;
-                    //await _inventoryRepo.UpdateQuantity(model.Quantity, int.Parse(model.ProductNo));
-                    //var ledgers = new Ledger[]
-                    //  {
-                    //    new Ledger {AccountNo = 1001,TransactionNo = model.SINo, TransactionDate = model.TransactionDate, Category = "Debit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.Amount},
-                    //    new Ledger {AccountNo = 2001,TransactionNo = model.SINo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatAmount},
-                    //    new Ledger {AccountNo = 4001,TransactionNo = model.SINo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatableSales}
-                    //  };
-                    //_dbContext.Ledgers.AddRange(ledgers);
-                    await _dbContext.SaveChangesAsync();
-                    TempData["success"] = "Sales Invoice has been Posted.";
-                }
-                else
-                {
-                    model.IsVoid = true;
-                    await _dbContext.SaveChangesAsync();
-                    TempData["success"] = "Sales Invoice has been Voided.";
-                }
-                return RedirectToAction(nameof(Index));
-            }
-
-            return NotFound();
-        }
-
         [HttpGet]
         public async Task<IActionResult> Create()
         {
@@ -271,6 +239,232 @@ namespace Accounting_System.Controllers
                 await _dbContext.SaveChangesAsync();
             }
             return RedirectToAction("PrintInvoice", new { id = id });
+        }
+
+        public async Task<IActionResult> Post(int invoiceId)
+        {
+            var model = await _dbContext.SalesInvoices.FindAsync(invoiceId);
+
+            if (model != null)
+            {
+                if (!model.IsPosted)
+                {
+                    model.IsPosted = true;
+
+                    #region --Previous Implementation
+
+                    //await _inventoryRepo.UpdateQuantity(model.Quantity, int.Parse(model.ProductNo));
+                    //var ledgers = new Ledger[]
+                    //  {
+                    //    new Ledger {AccountNo = 1001,TransactionNo = model.SINo, TransactionDate = model.TransactionDate, Category = "Debit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.Amount},
+                    //    new Ledger {AccountNo = 2001,TransactionNo = model.SINo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatAmount},
+                    //    new Ledger {AccountNo = 4001,TransactionNo = model.SINo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatableSales}
+                    //  };
+                    //_dbContext.Ledgers.AddRange(ledgers);
+
+                    #endregion --Previous Implementation
+
+                    #region --Sales Book Recording
+
+                    var sales = new SalesBook();
+
+                    if (model.CustomerType == "Vatable")
+                    {
+                        sales.TransactionDate = model.TransactionDate.ToShortDateString();
+                        sales.SerialNo = model.SINo;
+                        sales.SoldTo = model.SoldTo;
+                        sales.TinNo = model.TinNo;
+                        sales.Address = model.Address;
+                        sales.Description = model.ProductName;
+                        sales.Amount = model.Amount;
+                        sales.VatAmount = model.VatAmount;
+                        sales.VatableSales = model.VatableSales;
+                        sales.Discount = model.Discount;
+                        sales.NetSales = model.NetDiscount;
+                        sales.CreatedBy = model.CreatedBy;
+                        sales.CreatedDate = model.CreatedDate;
+                    }
+                    else if (model.CustomerType == "Exempt")
+                    {
+                        sales.TransactionDate = model.TransactionDate.ToShortDateString();
+                        sales.SerialNo = model.SINo;
+                        sales.SoldTo = model.SoldTo;
+                        sales.TinNo = model.TinNo;
+                        sales.Address = model.Address;
+                        sales.Description = model.ProductName;
+                        sales.Amount = model.Amount;
+                        sales.VatExemptSales = model.Amount;
+                        sales.Discount = model.Discount;
+                        sales.NetSales = model.NetDiscount;
+                        sales.CreatedBy = model.CreatedBy;
+                        sales.CreatedDate = model.CreatedDate;
+                    }
+                    else
+                    {
+                        sales.TransactionDate = model.TransactionDate.ToShortDateString();
+                        sales.SerialNo = model.SINo;
+                        sales.SoldTo = model.SoldTo;
+                        sales.TinNo = model.TinNo;
+                        sales.Address = model.Address;
+                        sales.Description = model.ProductName;
+                        sales.Amount = model.Amount;
+                        sales.ZeroRated = model.Amount;
+                        sales.Discount = model.Discount;
+                        sales.NetSales = model.NetDiscount;
+                        sales.CreatedBy = model.CreatedBy;
+                        sales.CreatedDate = model.CreatedDate;
+                    }
+
+                    _dbContext.Add(sales);
+
+                    #endregion --Sales Book Recording
+
+                    #region --General Ledger Book Recording
+
+                    var ledgers = new GeneralLedgerBook[]
+                    {
+                    #region --AR-Trade Receivable
+
+                        new GeneralLedgerBook
+                        {
+                            Date = model.TransactionDate.ToShortDateString(),
+                            Reference = model.SINo,
+                            Description = model.ProductName,
+                            AccountTitle = "1010201 AR-Trade Receivable",
+                            Debit = model.NetDiscount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount),
+                            Credit = 0,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        },
+
+                    #endregion --AR-Trade Receivable
+
+                    #region --DEFERRED CREDITABLE WITHOLDING TAX
+
+                        new GeneralLedgerBook
+                        {
+                            Date = model.TransactionDate.ToShortDateString(),
+                            Reference = model.SINo,
+                            Description = model.ProductName,
+                            AccountTitle = "1010202 Deferred Creditable Witholding Tax",
+                            Debit = model.WithHoldingTaxAmount, //withholding tax
+                            Credit = 0,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        },
+
+                    #endregion --DEFERRED CREDITABLE WITHOLDING TAX
+
+                    #region --DEFERRED CREDITABLE WITHOLDING VAT
+
+                        new GeneralLedgerBook
+                        {
+                            Date = model.TransactionDate.ToShortDateString(),
+                            Reference = model.SINo,
+                            Description = model.ProductName,
+                            AccountTitle = "1010203 Deferred Creditable Witholding Vat",
+                            Debit = model.WithHoldingVatAmount, //withholding vat
+                            Credit = 0,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        },
+
+                    #endregion --DEFERRED CREDITABLE WITHOLDING VAT
+
+                    model.ProductName == "Biodiesel" ?
+
+                    #region --SALES - BIODIESEL
+
+                        new GeneralLedgerBook
+                        {
+                            Date = model.TransactionDate.ToShortDateString(),
+                            Reference = model.SINo,
+                            Description = model.ProductName,
+                            AccountTitle = "4010101 Sales - Biodiesel",
+                            Debit = 0,
+                            Credit = model.VatableSales > 0
+                                    ? model.VatableSales
+                                    : (model.ZeroRated + model.VatExempt) - model.Discount,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        }
+
+                    #endregion --SALES - BIODIESEL
+
+                    :
+                    model.ProductName == "Econogas" ?
+
+                    #region --SALES - ECONOGAS
+
+                        new GeneralLedgerBook
+                        {
+                            Date = model.TransactionDate.ToShortDateString(),
+                            Reference = model.SINo,
+                            Description = model.ProductName,
+                            AccountTitle = "4010102 Sales - Econogas",
+                            Debit = 0,
+                            Credit = model.VatableSales > 0
+                                    ? model.VatableSales
+                                    : (model.ZeroRated + model.VatExempt) - model.Discount,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        }
+
+                    #endregion --SALES - ECONOGAS
+
+                    :
+
+                    #region --SALES - Envirogas
+
+                        new GeneralLedgerBook
+                        {
+                            Date = model.TransactionDate.ToShortDateString(),
+                            Reference = model.SINo,
+                            Description = model.ProductName,
+                            AccountTitle = "4010103 Sales - Envirogas",
+                            Debit = 0,
+                            Credit = model.VatableSales > 0
+                                    ? model.VatableSales
+                                    : (model.ZeroRated + model.VatExempt) - model.Discount,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        },
+
+                    #endregion --SALES - Envirogas
+
+                    #region --VAT OUTPUT
+
+                        new GeneralLedgerBook
+                        {
+                            Date = model.TransactionDate.ToShortDateString(),
+                            Reference = model.SINo,
+                            Description = model.ProductName,
+                            AccountTitle = "2010301 Vat Output",
+                            Debit = 0,
+                            Credit = model.VatAmount,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        }
+
+                    #endregion --VAT OUTPUT
+                    };
+                    _dbContext.GeneralLedgerBooks.AddRange(ledgers);
+
+                    #endregion --General Ledger Book Recording
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Sales Invoice has been Posted.";
+                }
+                else
+                {
+                    model.IsVoid = true;
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Sales Invoice has been Voided.";
+                }
+                return RedirectToAction(nameof(Index));
+            }
+
+            return NotFound();
         }
     }
 }
