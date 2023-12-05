@@ -21,6 +21,9 @@ namespace Accounting_System.Models
         [NotMapped]
         public List<SelectListItem>? PurchaseOrders { get; set; }
 
+        [Display(Name = "PO No")]
+        public string PONo { get; set; }
+
         [Display(Name = "Truck/Vessels")]
         public string TruckOrVessels { get; set; }
 
