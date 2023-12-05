@@ -235,7 +235,11 @@ public async Task<IActionResult> Edit(SalesInvoice model)
         existingModel.Remarks = model.Remarks;
         existingModel.Discount = model.Discount;
         existingModel.Amount = model.Quantity * model.UnitPrice;
-        if (ModelState.IsValid)
+
+       
+       if (ModelState.IsValid)
+        {
+        if (existingModel.Amount >= model.Discount)
         {
             var existingCustomers = _dbContext.Customers
                                            .FirstOrDefault(si => si.Id == existingModel.CustomerId);
@@ -284,8 +288,14 @@ public async Task<IActionResult> Edit(SalesInvoice model)
                     existingModel.WithHoldingVatAmount = existingModel.VatExempt * (decimal)0.05;
                 }
             }
+            }
+            else
+            {
+                TempData["error"] = "Please input below or exact amount based unit price multiply quantity";
+                return View(model);
+            }
 
-        }
+                }
         else
         {
             ModelState.AddModelError("", "The information you submitted is not valid!");
