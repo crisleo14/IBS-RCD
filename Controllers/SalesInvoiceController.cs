@@ -85,7 +85,7 @@ namespace Accounting_System.Controllers
                     sales.VatAmount = netDiscount - sales.VatableSales;
                     if (existingCustomers.WithHoldingTax)
                     {
-                        sales.WithHoldingTaxAmount = sales.VatableSales / 100;
+                        sales.WithHoldingTaxAmount = sales.VatableSales * (decimal)0.01;
                     }
                     if (existingCustomers.WithHoldingVat)
                     {
