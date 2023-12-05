@@ -69,6 +69,7 @@ namespace Accounting_System.Controllers
                 if (model.Source == "Sales Invoice")
                 {
                     model.SOAId = null;
+                    model.SINo = await _creditMemoRepo.GetSINoAsync(model.SIId);
 
                     var existingSalesInvoice = _dbContext.SalesInvoices
                                                .FirstOrDefault(si => si.Id == model.SIId);
@@ -87,6 +88,7 @@ namespace Accounting_System.Controllers
                 else if (model.Source == "Statement Of Account")
                 {
                     model.SIId = null;
+                    model.SOANo = await _creditMemoRepo.GetSOANoAsync(model.SOAId);
 
                     var existingSoa = _dbContext.StatementOfAccounts
                         .Include(soa => soa.Customer)

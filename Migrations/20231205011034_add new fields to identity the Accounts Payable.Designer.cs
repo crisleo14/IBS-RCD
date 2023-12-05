@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231205011034_add new fields to identity the Accounts Payable")]
+    partial class addnewfieldstoidentitytheAccountsPayable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -293,12 +296,14 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("SINo")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int?>("SOAId")
                         .HasColumnType("integer");
 
                     b.Property<string>("SOANo")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("SeriesNumber")
@@ -920,8 +925,9 @@ namespace Accounting_System.Migrations
                     b.Property<int>("SupplierId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("SupplierNo")
-                        .HasColumnType("integer");
+                    b.Property<string>("SupplierNo")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -967,6 +973,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("PONo")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("PaidDate")
