@@ -59,8 +59,8 @@ namespace Accounting_System.Controllers
                 model.SeriesNumber = await _receivingReportRepo.GetLastSeriesNumber();
                 model.RRNo = generatedRR;
                 model.CreatedBy = _userManager.GetUserName(this.User);
-
                 model.GainOrLoss = model.QuantityDelivered - model.QuantityReceived;
+                model.PONo = await _receivingReportRepo.GetPONoAsync(model.POId);
 
                 _dbContext.Add(model);
 

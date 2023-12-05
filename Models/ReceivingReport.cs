@@ -22,7 +22,7 @@ namespace Accounting_System.Models
         public List<SelectListItem>? PurchaseOrders { get; set; }
 
         [Display(Name = "PO No")]
-        public string PONo { get; set; }
+        public string? PONo { get; set; }
 
         [Display(Name = "Truck/Vessels")]
         public string TruckOrVessels { get; set; }

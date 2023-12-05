@@ -22,7 +22,7 @@ namespace Accounting_System.Models
         public List<SelectListItem>? Invoices { get; set; }
 
         [Display(Name = "SI No")]
-        public string SINo { get; set; }
+        public string? SINo { get; set; }
 
         [Display(Name = "SOA No")]
         public int? SOAId { get; set; }
@@ -34,7 +34,7 @@ namespace Accounting_System.Models
         public List<SelectListItem>? Soa { get; set; }
 
         [Display(Name = "SOA No")]
-        public string SOANo { get; set; }
+        public string? SOANo { get; set; }
 
         public string Description { get; set; }
 

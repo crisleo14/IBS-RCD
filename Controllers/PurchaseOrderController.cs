@@ -55,8 +55,8 @@ namespace Accounting_System.Controllers
                 model.SeriesNumber = await _purchaseOrderRepo.GetLastSeriesNumber();
                 model.PONo = generatedPO;
                 model.CreatedBy = _userManager.GetUserName(this.User);
-
                 model.Amount = model.Quantity * model.Price;
+                model.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model.SupplierId);
 
                 _dbContext.Add(model);
                 await _dbContext.SaveChangesAsync();
