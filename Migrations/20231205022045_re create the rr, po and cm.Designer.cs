@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231205022045_re create the rr, po and cm")]
+    partial class recreatetherrpoandcm
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -292,14 +295,14 @@ namespace Accounting_System.Migrations
                     b.Property<int?>("SIId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("SINo")
-                        .HasColumnType("text");
+                    b.Property<int>("SINo")
+                        .HasColumnType("integer");
 
                     b.Property<int?>("SOAId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("SOANo")
-                        .HasColumnType("text");
+                    b.Property<int>("SOANo")
+                        .HasColumnType("integer");
 
                     b.Property<int>("SeriesNumber")
                         .HasColumnType("integer");
@@ -966,8 +969,8 @@ namespace Accounting_System.Migrations
                     b.Property<int>("POId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("PONo")
-                        .HasColumnType("text");
+                    b.Property<int>("PONo")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("PaidDate")
                         .HasColumnType("timestamp with time zone");

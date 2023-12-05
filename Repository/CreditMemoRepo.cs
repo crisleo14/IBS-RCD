@@ -48,5 +48,36 @@ namespace Accounting_System.Repository
                 return $"CM{1.ToString("D10")}";
             }
         }
+
+
+        public async Task<string> GetSINoAsync(int? id)
+        {
+            if (id != 0)
+            {
+                var si = await _dbContext
+                                .SalesInvoices
+                                .FirstOrDefaultAsync(po => po.Id == id);
+                return si.SINo;
+            }
+            else
+            {
+                throw new ArgumentException("No record found in supplier.");
+            }
+        }
+
+        public async Task<string> GetSOANoAsync(int? id)
+        {
+            if (id != 0)
+            {
+                var soa = await _dbContext
+                                .StatementOfAccounts
+                                .FirstOrDefaultAsync(po => po.Id == id);
+                return soa.SOANo;
+            }
+            else
+            {
+                throw new ArgumentException("No record found in supplier.");
+            }
+        }
     }
 }
