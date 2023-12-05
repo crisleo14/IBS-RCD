@@ -66,18 +66,36 @@ namespace Accounting_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SalesInvoice sales)
         {
+            sales.Customers = await _dbContext.Customers
+                .OrderBy(c => c.Id)
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name
+                })
+                .ToListAsync();
+            sales.Products = await _dbContext.Products
+                .OrderBy(p => p.Id)
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.Name
+                })
+                .ToListAsync();
             if (ModelState.IsValid)
             {
                 var generateCRNo = await _salesInvoiceRepo.GenerateSINo();
                 var existingCustomers = _dbContext.Customers
                                                .FirstOrDefault(si => si.Id == sales.CustomerId);
-
+                
                 sales.CustomerNo = existingCustomers.Number;
                 sales.SeriesNumber = await _salesInvoiceRepo.GetLastSeriesNumber();
                 sales.CreatedBy = _userManager.GetUserName(this.User);
                 sales.SINo = generateCRNo;
                 sales.Amount = sales.Quantity * sales.UnitPrice;
-                if (existingCustomers.CustomerType == "Vatable")
+                if (sales.Amount >= sales.Discount)
+                {
+                    if (existingCustomers.CustomerType == "Vatable")
                 {
                     decimal netDiscount = (decimal)(sales.Amount - sales.Discount);
                     sales.NetDiscount = netDiscount;
@@ -122,7 +140,12 @@ namespace Accounting_System.Controllers
                     }
                 }
                 _dbContext.Add(sales);
-
+                }
+                else
+                {
+                    TempData["error"] = "Please input below or exact amount based on the Sales Invoice";
+                    return View(sales);
+                }
                 //Implementation of Audit trail
                 //AuditTrail auditTrail = new(sales.CreatedBy, $"Create new invoice#{sales.SerialNo}", "Sales Invoice");
                 //_dbContext.Add(auditTrail);
