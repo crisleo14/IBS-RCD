@@ -21,8 +21,6 @@ namespace Accounting_System.Models
         [Display(Name = "Customer Type")]
         public string CustomerType { get; set; }
 
-        public bool WithHoldingTax { get; set; }
-
         [NotMapped]
         public List<SelectListItem>? Customers { get; set; }
 
@@ -99,9 +97,22 @@ namespace Accounting_System.Models
         public DateTime TransactionDate { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal? Discount { get; set; }
+        public decimal Discount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal? NetDiscount { get; set; }
+        public decimal NetDiscount { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal VatExempt { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal ZeroRated { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal WithHoldingVatAmount { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal WithHoldingTaxAmount { get; set; }
+        public int CustomerNo { get; set; }
     }
 }

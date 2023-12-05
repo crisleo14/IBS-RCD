@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231201061158_add number in supplier table")]
+    partial class addnumberinsuppliertable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1030,9 +1033,8 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("TransactionDate")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("VatAmount")
                         .HasColumnType("numeric");
@@ -1079,14 +1081,11 @@ namespace Accounting_System.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("CustomerNo")
-                        .HasColumnType("integer");
-
                     b.Property<string>("CustomerType")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("Discount")
+                    b.Property<decimal?>("Discount")
                         .HasColumnType("numeric");
 
                     b.Property<bool>("IsPosted")
@@ -1095,7 +1094,7 @@ namespace Accounting_System.Migrations
                     b.Property<bool>("IsVoid")
                         .HasColumnType("boolean");
 
-                    b.Property<decimal>("NetDiscount")
+                    b.Property<decimal?>("NetDiscount")
                         .HasColumnType("numeric");
 
                     b.Property<bool>("OriginalCopy")
@@ -1159,20 +1158,11 @@ namespace Accounting_System.Migrations
                     b.Property<decimal>("VatAmount")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("VatExempt")
-                        .HasColumnType("numeric");
-
                     b.Property<decimal>("VatableSales")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("WithHoldingTaxAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("WithHoldingVatAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("ZeroRated")
-                        .HasColumnType("numeric");
+                    b.Property<bool>("WithHoldingTax")
+                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
