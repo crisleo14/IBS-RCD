@@ -6,11 +6,11 @@
 @{
     //2307 withholding Tax
     var lessEwtTax = Model.VatableSales * (decimal)0.01;
-    var formattedLessEwtTax = String.Format("{0:n}", lessEwtTax);
+    var formattedLessEwtTax = String.Format("{0:N2}", lessEwtTax);
 
     //2306 withholding Vat
     var lessEwtVat = Model.VatableSales * (decimal)0.05;
-    var formattedLessEwtVat = String.Format("{0:n}", lessEwtVat);
+    var formattedLessEwtVat = String.Format("{0:N2}", lessEwtVat);
 
     // //2306 and 2307
     // var LessEwtTaxVat = lessEwtTax + lessEwtVat;
@@ -92,9 +92,9 @@
 </div>
 @{
         lessEwtTax = Model.Amount * (decimal)0.01;
-        var lessEwtTaxInAmount = String.Format("{0:n}", lessEwtTax);
+        var lessEwtTaxInAmount = String.Format("{0:N2}", lessEwtTax);
         lessEwtVat = Model.Amount * (decimal)0.05;
-        var lessEwtVatInAmount = String.Format("{0:n}", lessEwtVat);
+        var lessEwtVatInAmount = String.Format("{0:N2}", lessEwtVat);
         @* var lessEwtTaxVat = lessEwtTax + lessEwtVat;
         var lessEwtTaxVatInAmount = String.Format("{0:n}", lessEwtTaxVat); *@
 
@@ -255,17 +255,19 @@
                                     <td class="text-end">
                                         @{
                                             var totalSales = Model.VatableSales + Model.VatAmount;
+                                            var formattedTotalSales = String.Format("{0:N2}", totalSales);
                                             var otherDiscount =  Model.Amount - Model.Discount;
+                                            var formattedOtherDiscount = String.Format("{0:N2}", otherDiscount);
                                         }
                                         @if (Model.CustomerType == "Vatable")
                                         {
-                                                <p style="height: 9px;">@Html.DisplayFor(model => totalSales)</p> 
+                                            <p style="height: 9px;">@Html.DisplayFor(model => formattedTotalSales)</p>
                                         }
                                             else
                                             {
                                             @if (Model.Discount != null || Model.Discount != 0)
                                             {
-                                                <p style="height: 9px;">@Html.DisplayFor(model => otherDiscount)</p>
+                                                <p style="height: 9px;">@Html.DisplayFor(model => formattedOtherDiscount)</p>
                                             }
                                         }
                                     </td>

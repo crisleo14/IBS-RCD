@@ -85,7 +85,7 @@ namespace Accounting_System.Controllers
                     sales.VatAmount = netDiscount - sales.VatableSales;
                     if (existingCustomers.WithHoldingTax)
                     {
-                        sales.WithHoldingTaxAmount = sales.VatableSales * (decimal)0.01;
+                        sales.WithHoldingTaxAmount = sales.VatableSales / 100;
                     }
                     if (existingCustomers.WithHoldingVat)
                     {
@@ -175,54 +175,111 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(int id)
+public async Task<IActionResult> Edit(int id)
+{
+    try
+    {
+        var salesInvoice = await _salesInvoiceRepo.FindSalesInvoice(id);
+        return View(salesInvoice);
+    }
+    catch (Exception ex)
+    {
+        // Handle other exceptions, log them, and return an error response.
+        _logger.LogError(ex, "An error occurred.");
+        return StatusCode(500, "An error occurred. Please try again later.");
+    }
+}
+
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> Edit(SalesInvoice model)
+{
+    try
+    {
+        var existingModel = await _salesInvoiceRepo.FindSalesInvoice(model.Id);
+
+        if (existingModel == null)
         {
-            try
-            {
-                var salesInvoice = await _salesInvoiceRepo.FindSalesInvoice(id);
-                return View(salesInvoice);
-            }
-            catch (Exception ex)
-            {
-                // Handle other exceptions, log them, and return an error response.
-                _logger.LogError(ex, "An error occurred.");
-                return StatusCode(500, "An error occurred. Please try again later.");
-            }
+            return NotFound(); // Return a "Not Found" response when the entity is not found.
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(SalesInvoice model)
-        {
-            try
-            {
-                var existingModel = await _salesInvoiceRepo.FindSalesInvoice(model.Id);
 
-                if (existingModel == null)
+        existingModel.TransactionDate = model.TransactionDate;
+        existingModel.OtherRefNo = model.OtherRefNo;
+        existingModel.PoNo = model.PoNo;
+        existingModel.Quantity = model.Quantity;
+        existingModel.UnitPrice = model.UnitPrice;
+        existingModel.Remarks = model.Remarks;
+        existingModel.Discount = model.Discount;
+        existingModel.Amount = model.Quantity * model.UnitPrice;
+        if (ModelState.IsValid)
+        {
+            var existingCustomers = _dbContext.Customers
+                                           .FirstOrDefault(si => si.Id == existingModel.CustomerId);
+
+            if (existingCustomers.CustomerType == "Vatable")
+            {
+                decimal netDiscount = (decimal)(existingModel.Amount - model.Discount);
+                existingModel.NetDiscount = netDiscount;
+                existingModel.VatableSales = netDiscount / (decimal)1.12;
+                existingModel.VatAmount = netDiscount - existingModel.VatableSales;
+                if (existingCustomers.WithHoldingTax)
                 {
-                    return NotFound(); // Return a "Not Found" response when the entity is not found.
+                    existingModel.WithHoldingTaxAmount = existingModel.VatableSales * (decimal)0.01;
                 }
-
-                existingModel.TransactionDate = model.TransactionDate;
-                existingModel.OtherRefNo = model.OtherRefNo;
-                existingModel.PoNo = model.PoNo;
-                existingModel.ProductNo = model.ProductNo;
-                existingModel.Quantity = model.Quantity;
-                existingModel.UnitPrice = model.UnitPrice;
-                existingModel.Amount = model.Quantity * model.UnitPrice;
-                existingModel.Remarks = model.Remarks;
-
-                // Save the changes to the database
-                await _dbContext.SaveChangesAsync();
-
-                return RedirectToAction("Index"); // Redirect to a success page or the index page
+                if (existingCustomers.WithHoldingVat)
+                {
+                    existingModel.WithHoldingVatAmount = existingModel.VatableSales * (decimal)0.05;
+                }
             }
-            catch (Exception ex)
+            else if (existingCustomers.CustomerType == "Zero Rated")
             {
-                _logger.LogError(ex, "An error occurred.");
-                return StatusCode(500, "An error occurred. Please try again later.");
+                decimal netDiscount = (decimal)(existingModel.Amount - model.Discount);
+                existingModel.NetDiscount = netDiscount;
+                existingModel.ZeroRated = existingModel.Amount;
+
+                if (existingCustomers.WithHoldingTax)
+                {
+                    existingModel.WithHoldingTaxAmount = existingModel.ZeroRated * (decimal)0.01;
+                }
+                if (existingCustomers.WithHoldingVat)
+                {
+                    existingModel.WithHoldingVatAmount = existingModel.ZeroRated * (decimal)0.05;
+                }
             }
+            else
+            {
+                decimal netDiscount = (decimal)(existingModel.Amount - model.Discount);
+                existingModel.NetDiscount = netDiscount;
+                existingModel.VatExempt = existingModel.Amount;
+                if (existingCustomers.WithHoldingTax)
+                {
+                    existingModel.WithHoldingTaxAmount = existingModel.VatExempt * (decimal)0.01;
+                }
+                if (existingCustomers.WithHoldingVat)
+                {
+                    existingModel.WithHoldingVatAmount = existingModel.VatExempt * (decimal)0.05;
+                }
+            }
+
         }
+        else
+        {
+            ModelState.AddModelError("", "The information you submitted is not valid!");
+            return View(model);
+        }
+
+        // Save the changes to the database
+        await _dbContext.SaveChangesAsync();
+
+        return RedirectToAction("Index"); // Redirect to a success page or the index page
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "An error occurred.");
+        return StatusCode(500, "An error occurred. Please try again later.");
+    }
+}
 
         public async Task<IActionResult> PrintInvoice(int id)
         {
