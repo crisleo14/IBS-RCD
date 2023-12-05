@@ -21,6 +21,8 @@ namespace Accounting_System.Models
         [NotMapped]
         public List<SelectListItem>? Suppliers { get; set; }
 
+        public string SupplierNo { get; set; }
+
         [Display(Name = "Product Name")]
         public string ProductName { get; set; }
 
