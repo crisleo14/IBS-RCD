@@ -34,6 +34,7 @@ builder.Services.AddScoped<ServiceRepo>();
 builder.Services.AddScoped<ReceivingReportRepo>();
 builder.Services.AddScoped<CreditMemoRepo>();
 builder.Services.AddScoped<SupplierRepo>();
+builder.Services.AddScoped<CheckVoucherRepo>();
 
 var app = builder.Build();
 
