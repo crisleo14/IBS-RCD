@@ -62,7 +62,8 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 var generatedCM = await _creditMemoRepo.GenerateCMNo();
-                model.SeriesNumber = await _creditMemoRepo.GetLastSeriesNumber();
+                long getLastNumber = await _creditMemoRepo.GetLastSeriesNumber();
+                model.SeriesNumber = getLastNumber;
                 model.CMNo = generatedCM;
                 model.CreatedBy = _userManager.GetUserName(this.User);
 
@@ -104,6 +105,22 @@ namespace Accounting_System.Controllers
                     }
 
                     model.TotalSales = model.CreditAmount;
+                }
+
+
+                if (getLastNumber > 9999999999)
+                {
+                    TempData["error"] = "You reach the maximum Series Number";
+                    return View(model);
+                }
+
+                if (getLastNumber >= 9999999899)
+                {
+                    TempData["warning"] = "Purchase Order created successfully, Warning 100 series number remaining";
+                }
+                else
+                {
+                    TempData["success"] = "Purchase Order created successfully";
                 }
 
                 _dbContext.Add(model);
