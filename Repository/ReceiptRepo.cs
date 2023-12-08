@@ -140,5 +140,29 @@ namespace Accounting_System.Repository
                 throw new ArgumentException("Invalid id value. The id must be greater than 0.");
             }
         }
+
+        public async Task<int> UpdateInvoice(int id, decimal paidAmount)
+        {
+            var si = await _dbContext
+                .SalesInvoices
+                .FirstOrDefaultAsync(si => si.Id == id);
+
+            if (si != null)
+            {
+                si.AmountPaid += paidAmount;
+                si.Balance = si.Amount - si.AmountPaid;
+
+                if (si.Balance == 0)
+                {
+                    si.IsPaid = true;
+                }
+
+                return await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                throw new ArgumentException("", "No record found");
+            }
+        }
     }
 }

@@ -42,6 +42,8 @@ namespace Accounting_System.Controllers
         {
             var viewModel = new CollectionReceipt();
             viewModel.Customers = _dbContext.SalesInvoices
+                .Where(si => !si.IsPaid)
+                .OrderBy(si => si.Id)
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
@@ -74,6 +76,7 @@ namespace Accounting_System.Controllers
                     model.CRNo = generateCRNo;
                     model.CreatedBy = _userManager.GetUserName(this.User);
                     _dbContext.Add(model);
+                    await _receiptRepo.UpdateInvoice(existingSalesInvoice.Id, model.Amount);
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Collection Receipt created successfully";
                     return RedirectToAction("CollectionReceiptIndex");

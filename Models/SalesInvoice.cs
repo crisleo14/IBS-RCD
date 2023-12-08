@@ -30,6 +30,8 @@ namespace Accounting_System.Models
         [NotMapped]
         public List<SelectListItem>? COSNo { get; set; }
 
+        public int CustomerNo { get; set; }
+
         [Display(Name = "Sold To")]
         public string SoldTo { get; set; }
 
@@ -113,6 +115,11 @@ namespace Accounting_System.Models
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal WithHoldingTaxAmount { get; set; }
-        public int CustomerNo { get; set; }
+
+        public decimal AmountPaid { get; set; }
+
+        public decimal Balance { get; set; }
+
+        public bool IsPaid { get; set; }
     }
 }
