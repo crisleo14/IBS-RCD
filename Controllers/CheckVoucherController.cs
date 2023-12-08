@@ -62,7 +62,8 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 var generateCVNo = await _checkVoucherRepo.GenerateCVNo();
-                model.Header.SeriesNumber = await _checkVoucherRepo.GetLastSeriesNumberCV();
+                long getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV();
+                model.Header.SeriesNumber = getLastNumber;
                 model.Header.CVNo = generateCVNo;
                 model.Header.CreatedBy = _userManager.GetUserName(this.User);
 
@@ -81,6 +82,21 @@ namespace Accounting_System.Controllers
 
                 _dbContext.Add(headerEntity);  // Add CheckVoucherHeader to the context
                 _dbContext.Add(detailsEntity); // Add CheckVoucherDetails to the context
+
+                if (getLastNumber > 9999999999)
+                {
+                    TempData["error"] = "You reach the maximum Series Number";
+                    return View(model);
+                }
+
+                if (getLastNumber >= 9999999899)
+                {
+                    TempData["warning"] = "Purchase Order created successfully, Warning 100 series number remaining";
+                }
+                else
+                {
+                    TempData["success"] = "Purchase Order created successfully";
+                }
 
                 await _dbContext.SaveChangesAsync();
                 TempData["success"] = "Check Voucher created successfully";
