@@ -305,9 +305,6 @@ namespace Accounting_System.Migrations
                     b.Property<decimal>("Total")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("WVAT")
-                        .HasColumnType("numeric");
-
                     b.HasKey("Id");
 
                     b.HasIndex("SalesInvoiceId");
