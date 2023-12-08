@@ -9,7 +9,7 @@ namespace Accounting_System.Models
         [Display(Name = "CV No")]
         public string? CVNo { get; set; }
 
-        public int SeriesNumber { get; set; }
+        public long SeriesNumber { get; set; }
 
         public DateTime Date { get; set; }
 
