@@ -78,7 +78,7 @@
             </tr>
             <tr>
                 <td>&nbsp;</td>
-                <td style="padding-left:10px;">(₱&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  @Html.DisplayFor(model => model.SalesInvoice.Amount))</td>
+                <td style="padding-left:10px;">(₱&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  @Html.DisplayFor(model => model.Amount))</td>
             </tr>
             <tr>
                 <td colspan="2" style="padding-left:10px;">IN FULL/PARTIAL payment of: @Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
@@ -103,7 +103,7 @@
             <tr class="text-center">
                 <td style="width:33%">@Model.SalesInvoice.TransactionDate.ToShortDateString()</td>
                 <td style="width:33%">@Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
-                <td style="width:33%">@Html.DisplayFor(model => model.SalesInvoice.Amount)</td>
+                <td style="width:33%">@Html.DisplayFor(model => model.Amount)</td>
             </tr>
             <tr>
                 <td style="width:33%">&nbsp;</td>
@@ -237,7 +237,7 @@
                 <td></td>
                 @if (Model.SalesInvoice.Customer.WithHoldingTax) {
                     var formattedToPesoTax = String.Format("{0:N2}", EWT);
-                    
+
                     <td class="text-center">@formattedToPesoTax</td>
                 }
                 else{

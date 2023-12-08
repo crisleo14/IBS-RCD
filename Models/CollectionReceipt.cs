@@ -26,7 +26,7 @@ namespace Accounting_System.Models
         public DateTime CheckDate { get; set; }
 
         [Display(Name = "Check No")]
-        public int CheckNo { get; set; }
+        public string CheckNo { get; set; }
 
         public string Bank { get; set; }
 
