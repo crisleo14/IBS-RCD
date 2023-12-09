@@ -116,16 +116,15 @@ namespace Accounting_System.Controllers
 
                 if (getLastNumber >= 9999999899)
                 {
-                    TempData["warning"] = "Purchase Order created successfully, Warning 100 series number remaining";
+                    TempData["warning"] = "Credit Memo created successfully, Warning 100 series number remaining";
                 }
                 else
                 {
-                    TempData["success"] = "Purchase Order created successfully";
+                    TempData["success"] = "Credit Memo created successfully";
                 }
 
                 _dbContext.Add(model);
                 await _dbContext.SaveChangesAsync();
-                TempData["success"] = "Credit Memo created successfully";
                 return RedirectToAction("Index");
             }
 

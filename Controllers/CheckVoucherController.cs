@@ -91,15 +91,14 @@ namespace Accounting_System.Controllers
 
                 if (getLastNumber >= 9999999899)
                 {
-                    TempData["warning"] = "Purchase Order created successfully, Warning 100 series number remaining";
+                    TempData["warning"] = "Check Voucher created successfully, Warning 100 series number remaining";
                 }
                 else
                 {
-                    TempData["success"] = "Purchase Order created successfully";
+                    TempData["success"] = "Check Voucher created successfully";
                 }
 
                 await _dbContext.SaveChangesAsync();
-                TempData["success"] = "Check Voucher created successfully";
                 return RedirectToAction("Index");
             }
             else
