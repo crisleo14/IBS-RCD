@@ -12,7 +12,7 @@ namespace Accounting_System.Models
         public SalesInvoice? SalesInvoice { get; set; }
 
         public string? CRNo { get; set; }
-        public int SeriesNumber { get; set; }
+        public long SeriesNumber { get; set; }
 
         public DateTime Date { get; set; }
 
