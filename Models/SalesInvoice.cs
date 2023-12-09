@@ -12,7 +12,7 @@ namespace Accounting_System.Models
         [ForeignKey("CustomerId")]
         public Customer? Customer { get; set; }
 
-        public int SeriesNumber { get; set; }
+        public long SeriesNumber { get; set; }
 
         [Required]
         [Display(Name = "Customer No")]
