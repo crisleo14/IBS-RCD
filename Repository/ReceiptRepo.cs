@@ -32,7 +32,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<int> GetLastSeriesNumberOR()
+        public async Task<long> GetLastSeriesNumberOR()
         {
             var lastInvoice = await _dbContext
                 .OfficialReceipts

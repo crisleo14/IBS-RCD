@@ -141,12 +141,28 @@ namespace Accounting_System.Controllers
                 if (existingSOA.Amount >= model.Amount)
                 {
                     var generateORNo = await _receiptRepo.GenerateORNo();
-                    model.SeriesNumber = await _receiptRepo.GetLastSeriesNumberOR();
+                    long getLastNumber = await _receiptRepo.GetLastSeriesNumberOR();
+
+                    model.SeriesNumber = getLastNumber;
                     model.ORNo = generateORNo;
                     model.CreatedBy = _userManager.GetUserName(this.User);
                     _dbContext.Add(model);
                     await _dbContext.SaveChangesAsync();
-                    TempData["success"] = "Official Receipt created successfully";
+
+                    if (getLastNumber > 9999999999)
+                    {
+                        TempData["error"] = "You reach the maximum Series Number";
+                        return View(model);
+                    }
+
+                    if (getLastNumber >= 9999999899)
+                    {
+                        TempData["warning"] = "Official Receipt created successfully, Warning 100 series number remaining";
+                    }
+                    else
+                    {
+                        TempData["success"] = "Official Receipt created successfully";
+                    }
                     return RedirectToAction("OfficialReceiptIndex");
                 }
                 else
