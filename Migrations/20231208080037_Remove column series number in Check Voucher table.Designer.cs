@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231208080037_Remove column series number in Check Voucher table")]
+    partial class RemovecolumnseriesnumberinCheckVouchertable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -234,9 +237,6 @@ namespace Accounting_System.Migrations
                     b.Property<string>("RRNo")
                         .HasColumnType("text");
 
-                    b.Property<long>("SeriesNumber")
-                        .HasColumnType("bigint");
-
                     b.HasKey("Id");
 
                     b.HasIndex("RRId");
@@ -269,9 +269,8 @@ namespace Accounting_System.Migrations
                     b.Property<DateTime>("CheckDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("CheckNo")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("CheckNo")
+                        .HasColumnType("integer");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
@@ -357,8 +356,8 @@ namespace Accounting_System.Migrations
                     b.Property<string>("SOANo")
                         .HasColumnType("text");
 
-                    b.Property<long>("SeriesNumber")
-                        .HasColumnType("bigint");
+                    b.Property<int>("SeriesNumber")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Source")
                         .IsRequired()
@@ -1041,8 +1040,8 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("SeriesNumber")
-                        .HasColumnType("bigint");
+                    b.Property<int>("SeriesNumber")
+                        .HasColumnType("integer");
 
                     b.Property<string>("TruckOrVessels")
                         .IsRequired()
@@ -1134,12 +1133,6 @@ namespace Accounting_System.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("AmountPaid")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("Balance")
-                        .HasColumnType("numeric");
-
                     b.Property<string>("BusinessStyle")
                         .IsRequired()
                         .HasColumnType("text");
@@ -1162,9 +1155,6 @@ namespace Accounting_System.Migrations
 
                     b.Property<decimal>("Discount")
                         .HasColumnType("numeric");
-
-                    b.Property<bool>("IsPaid")
-                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsPosted")
                         .HasColumnType("boolean");

@@ -37,7 +37,7 @@ namespace Accounting_System.Repository
                 return $"CV{1.ToString("D10")}";
             }
         }
-        public async Task<int> GetLastSeriesNumberCV()
+        public async Task<long> GetLastSeriesNumberCV()
         {
             var lastNumber = await _dbContext
                 .CheckVoucherHeaders
@@ -52,7 +52,7 @@ namespace Accounting_System.Repository
             else
             {
                 // If there are no existing records, you can start with a default value like 1
-                return 1;
+                return 1L;
             }
         }
     }

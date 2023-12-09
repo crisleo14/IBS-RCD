@@ -9,7 +9,7 @@ namespace Accounting_System.Models
         [Display(Name = "RR No")]
         public string? RRNo { get; set; }
 
-        public int SeriesNumber { get; set; }
+        public long SeriesNumber { get; set; }
         public DateTime Date { get; set; }
 
         [Display(Name = "PO No")]
