@@ -72,13 +72,27 @@ namespace Accounting_System.Controllers
                 if (existingSalesInvoice.Amount >= model.Amount)
                 {
                     var generateCRNo = await _receiptRepo.GenerateCRNo();
-                    model.SeriesNumber = await _receiptRepo.GetLastSeriesNumberCR();
+                    long getLastNumber = await _receiptRepo.GetLastSeriesNumberCR();
+                    model.SeriesNumber = getLastNumber;
                     model.CRNo = generateCRNo;
                     model.CreatedBy = _userManager.GetUserName(this.User);
                     _dbContext.Add(model);
                     await _receiptRepo.UpdateInvoice(existingSalesInvoice.Id, model.Amount);
                     await _dbContext.SaveChangesAsync();
-                    TempData["success"] = "Collection Receipt created successfully";
+                    if (getLastNumber > 9999999999)
+                    {
+                        TempData["error"] = "You reach the maximum Series Number";
+                        return View(model);
+                    }
+
+                    if (getLastNumber >= 9999999899)
+                    {
+                        TempData["warning"] = "Collection Receipt created successfully, Warning 100 series number remaining";
+                    }
+                    else
+                    {
+                        TempData["success"] = "Collection Receipt created successfully";
+                    }
                     return RedirectToAction("CollectionReceiptIndex");
                 }
                 else
