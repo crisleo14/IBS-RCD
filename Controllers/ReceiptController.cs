@@ -41,8 +41,33 @@ namespace Accounting_System.Controllers
         public IActionResult CreateCollectionReceipt()
         {
             var viewModel = new CollectionReceipt();
-            viewModel.Customers = _dbContext.SalesInvoices
-                .Where(si => !si.IsPaid)
+
+            viewModel.Customers = _dbContext.Customers
+               .OrderBy(c => c.Id)
+               .Select(s => new SelectListItem
+               {
+                   Value = s.Number.ToString(),
+                   Text = s.Name
+               })
+               .ToList();
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateCollectionReceipt(CollectionReceipt model)
+        {
+            model.Customers = _dbContext.Customers
+               .OrderBy(c => c.Id)
+               .Select(s => new SelectListItem
+               {
+                   Value = s.Number.ToString(),
+                   Text = s.Name
+               })
+               .ToList();
+
+            model.Invoices = _dbContext.SalesInvoices
+                .Where(si => !si.IsPaid && si.CustomerNo == model.CustomerNo)
                 .OrderBy(si => si.Id)
                 .Select(s => new SelectListItem
                 {
@@ -51,19 +76,6 @@ namespace Accounting_System.Controllers
                 })
                 .ToList();
 
-            return View(viewModel);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> CreateCollectionReceipt(CollectionReceipt model)
-        {
-            model.Customers = _dbContext.SalesInvoices
-                .Select(s => new SelectListItem
-                {
-                    Value = s.Id.ToString(),
-                    Text = s.SoldTo
-                })
-                .ToList();
             if (ModelState.IsValid)
             {
                 var existingSalesInvoice = _dbContext.SalesInvoices
@@ -76,16 +88,12 @@ namespace Accounting_System.Controllers
                     model.SeriesNumber = getLastNumber;
                     model.CRNo = generateCRNo;
                     model.CreatedBy = _userManager.GetUserName(this.User);
-                    _dbContext.Add(model);
-                    await _receiptRepo.UpdateInvoice(existingSalesInvoice.Id, model.Amount);
-                    await _dbContext.SaveChangesAsync();
                     if (getLastNumber > 9999999999)
                     {
                         TempData["error"] = "You reach the maximum Series Number";
                         return View(model);
                     }
-
-                    if (getLastNumber >= 9999999899)
+                    else if (getLastNumber >= 9999999899)
                     {
                         TempData["warning"] = "Collection Receipt created successfully, Warning 100 series number remaining";
                     }
@@ -93,6 +101,9 @@ namespace Accounting_System.Controllers
                     {
                         TempData["success"] = "Collection Receipt created successfully";
                     }
+                    _dbContext.Add(model);
+                    await _receiptRepo.UpdateInvoice(existingSalesInvoice.Id, model.Amount);
+                    await _dbContext.SaveChangesAsync();
                     return RedirectToAction("CollectionReceiptIndex");
                 }
                 else
@@ -210,6 +221,24 @@ namespace Accounting_System.Controllers
                 await _dbContext.SaveChangesAsync();
             }
             return RedirectToAction("OfficialReceipt", new { id = id });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetSalesInvoices(int customerNo)
+        {
+            var invoices = await _dbContext
+                .SalesInvoices
+                .Where(si => si.CustomerNo == customerNo && !si.IsPaid)
+                .OrderBy(si => si.Id)
+                .ToListAsync();
+
+            var invoiceList = invoices.Select(si => new SelectListItem
+            {
+                Value = si.Id.ToString(),   // Replace with your actual ID property
+                Text = si.SINo              // Replace with your actual property for display text
+            }).ToList();
+
+            return Json(invoiceList);
         }
     }
 }

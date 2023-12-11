@@ -45,5 +45,10 @@ namespace Accounting_System.Models
 
         [NotMapped]
         public List<SelectListItem>? Customers { get; set; }
+
+        public int CustomerNo { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? Invoices { get; set; }
     }
 }
