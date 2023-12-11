@@ -440,55 +440,51 @@ else if (Model.CustomerType == "Zero Rated")
         });
     </script>
     <script>
-        // Get the transaction date value from the HTML element
-        var transactionDate = document.getElementById('invoiceDate').innerText;
+    // Get the transaction date value from the HTML element
+    var transactionDate = document.getElementById('invoiceDate').innerText;
 
-        // Convert the transaction date string to a Date object
-        var dateObject = new Date(transactionDate);
+    // Convert the transaction date string to a Date object
+    var dateObject = new Date(transactionDate);
 
-        // Get the terms value from the HTML element
-        var terms = document.getElementById('terms').innerText;
+    // Get the terms value from the HTML element
+    var terms = document.getElementById('terms').innerText;
 
-        // Convert the terms to an integer
-        var termsInt = parseInt(terms);
+    // Convert the terms to an integer
+    var termsInt = parseInt(terms);
 
-        // Add the terms to the transaction date
-        if (terms == "COD") {
-            dateObject.setDate(dateObject.getDate());
-        } else if (terms == "M30") {
-
-            var nextMonth = dateObject.getMonth() + 1;
-            var nextMonthDays = new Date(dateObject.getFullYear(), nextMonth, 0).getDate();
-
-            if (nextMonthDays === 30) {
-                dateObject.setMonth(nextMonth);
-                dateObject.setDate(30);
-            } else {
-                dateObject.setMonth(nextMonth + 1);
-                dateObject.setDate(0);
-            }
-        } else if (terms == "M15") {
-
-            var nextMonth = dateObject.getMonth() + 1;
-            var nextMonthDays = new Date(dateObject.getFullYear(), nextMonth, 0).getDate();
-
-            if (nextMonthDays === 30) {
-                dateObject.setMonth(nextMonth);
-                dateObject.setDate(15);
-            } else {
-                dateObject.setMonth(nextMonth + 1);
-                dateObject.setDate(0);
-            }
+    // Add the terms to the transaction date
+    if (terms == "COD") {
+        dateObject.setDate(dateObject.getDate());
+    } else if (terms == "M30") {
+        console.log(dateObject.getMonth());
+        if (dateObject.getDate() === 31) {
+            // If the transaction date is 31st, set due date to 30th of next month
+            dateObject.setDate(dateObject.getDate() + 30); // Move to the next next month
+        } else if (dateObject.getMonth() === 0) {
+            dateObject.setMonth(dateObject.getMonth() + 2); // Move to the next month
+            dateObject.setDate(0);
         } else {
-            dateObject.setDate(dateObject.getDate() + termsInt);
+            dateObject.setMonth(dateObject.getMonth() + 1); // Move to the next month
+            dateObject.setDate(30);
         }
+    }
+    else if (terms == "M15") {
+        dateObject.setMonth(dateObject.getMonth() + 1);
+        dateObject.setDate(15);
+    } else {
+        dateObject.setDate(dateObject.getDate() + termsInt);
+    }
 
-        // Format the date as required
-        var formattedDate = dateObject.toLocaleDateString();
+    // Format the date as mm/dd/yyyy
+    var formattedDate =
+        (dateObject.getMonth() + 1).toString().padStart(2, '0') + '/' +
+        dateObject.getDate().toString().padStart(2, '0') + '/' +
+        dateObject.getFullYear();
 
-        // Update the HTML to display the computed date as the due date
-        document.getElementById('dueDate').innerText = formattedDate;
-    </script>
+    // Update the HTML to display the computed date as the due date
+    document.getElementById('dueDate').innerText = formattedDate;
+</script>
+
 
 
 }
