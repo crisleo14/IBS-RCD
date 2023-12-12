@@ -152,7 +152,7 @@ namespace Accounting_System.Controllers
                 if (existingSOA.Amount >= model.Amount)
                 {
                     var generateORNo = await _receiptRepo.GenerateORNo();
-                    long getLastNumber = await _receiptRepo.GetLastSeriesNumberOR();
+                    var getLastNumber = await _receiptRepo.GetLastSeriesNumberOR();
 
                     model.SeriesNumber = getLastNumber;
                     model.ORNo = generateORNo;
