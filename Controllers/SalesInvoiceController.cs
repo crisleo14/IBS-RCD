@@ -97,59 +97,63 @@ namespace Accounting_System.Controllers
                 if (sales.Amount >= sales.Discount)
                 {
                     if (existingCustomers.CustomerType == "Vatable")
-                {
-                    decimal netDiscount = (decimal)(sales.Amount - sales.Discount);
-                    sales.NetDiscount = netDiscount;
-                    sales.VatableSales = netDiscount / (decimal)1.12;
-                    sales.VatAmount = netDiscount - sales.VatableSales;
-                    if (existingCustomers.WithHoldingTax)
                     {
-                        sales.WithHoldingTaxAmount = sales.VatableSales * (decimal)0.01;
+                        decimal netDiscount = (decimal)(sales.Amount - sales.Discount);
+                        sales.NetDiscount = netDiscount;
+                        sales.VatableSales = netDiscount / (decimal)1.12;
+                        sales.VatAmount = netDiscount - sales.VatableSales;
+                        if (existingCustomers.WithHoldingTax)
+                        {
+                            sales.WithHoldingTaxAmount = sales.VatableSales * (decimal)0.01;
+                        }
+                        if (existingCustomers.WithHoldingVat)
+                        {
+                            sales.WithHoldingVatAmount = sales.VatableSales * (decimal)0.05;
+                        }
                     }
-                    if (existingCustomers.WithHoldingVat)
+                    else if (existingCustomers.CustomerType == "Zero Rated")
                     {
-                        sales.WithHoldingVatAmount = sales.VatableSales * (decimal)0.05;
-                    }
-                }
-                else if (existingCustomers.CustomerType == "Zero Rated")
-                {
-                    decimal netDiscount = (decimal)(sales.Amount - sales.Discount);
-                    sales.NetDiscount = netDiscount;
-                    sales.ZeroRated = sales.Amount;
+                        decimal netDiscount = (decimal)(sales.Amount - sales.Discount);
+                        sales.NetDiscount = netDiscount;
+                        sales.ZeroRated = sales.Amount;
 
-                    if (existingCustomers.WithHoldingTax)
-                    {
-                        sales.WithHoldingTaxAmount = sales.ZeroRated * (decimal)0.01;
+                        if (existingCustomers.WithHoldingTax)
+                        {
+                            sales.WithHoldingTaxAmount = sales.ZeroRated * (decimal)0.01;
+                        }
+                        if (existingCustomers.WithHoldingVat)
+                        {
+                            sales.WithHoldingVatAmount = sales.ZeroRated * (decimal)0.05;
+                        }
                     }
-                    if (existingCustomers.WithHoldingVat)
+                    else
                     {
-                        sales.WithHoldingVatAmount = sales.ZeroRated * (decimal)0.05;
+                        decimal netDiscount = (decimal)(sales.Amount - sales.Discount);
+                        sales.NetDiscount = netDiscount;
+                        sales.VatExempt = sales.Amount;
+                        if (existingCustomers.WithHoldingTax)
+                        {
+                            sales.WithHoldingTaxAmount = sales.VatExempt * (decimal)0.01;
+                        }
+                        if (existingCustomers.WithHoldingVat)
+                        {
+                            sales.WithHoldingVatAmount = sales.VatExempt * (decimal)0.05;
+                        }
                     }
-                }
-                else
-                {
-                    decimal netDiscount = (decimal)(sales.Amount - sales.Discount);
-                    sales.NetDiscount = netDiscount;
-                    sales.VatExempt = sales.Amount;
-                    if (existingCustomers.WithHoldingTax)
-                    {
-                        sales.WithHoldingTaxAmount = sales.VatExempt * (decimal)0.01;
-                    }
-                    if (existingCustomers.WithHoldingVat)
-                    {
-                        sales.WithHoldingVatAmount = sales.VatExempt * (decimal)0.05;
-                    }
-                }
-                _dbContext.Add(sales);
+                    _dbContext.Add(sales);
                 }
                 else
                 {
                     TempData["error"] = "Please input below or exact amount based on the Sales Invoice";
                     return View(sales);
                 }
-                //Implementation of Audit trail
-                //AuditTrail auditTrail = new(sales.CreatedBy, $"Create new invoice#{sales.SerialNo}", "Sales Invoice");
-                //_dbContext.Add(auditTrail);
+
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(sales.CreatedBy, $"Create new invoice# {sales.SINo}", "Sales Invoice");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
 
                 if (getLastNumber > 9999999999)
                 {
@@ -212,121 +216,126 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-public async Task<IActionResult> Edit(int id)
-{
-    try
-    {
-        var salesInvoice = await _salesInvoiceRepo.FindSalesInvoice(id);
-        return View(salesInvoice);
-    }
-    catch (Exception ex)
-    {
-        // Handle other exceptions, log them, and return an error response.
-        _logger.LogError(ex, "An error occurred.");
-        return StatusCode(500, "An error occurred. Please try again later.");
-    }
-}
-
-[HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> Edit(SalesInvoice model)
-{
-    try
-    {
-        var existingModel = await _salesInvoiceRepo.FindSalesInvoice(model.Id);
-
-        if (existingModel == null)
+        public async Task<IActionResult> Edit(int id)
         {
-            return NotFound(); // Return a "Not Found" response when the entity is not found.
+            try
+            {
+                var salesInvoice = await _salesInvoiceRepo.FindSalesInvoice(id);
+                return View(salesInvoice);
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions, log them, and return an error response.
+                _logger.LogError(ex, "An error occurred.");
+                return StatusCode(500, "An error occurred. Please try again later.");
+            }
         }
 
-
-        existingModel.TransactionDate = model.TransactionDate;
-        existingModel.OtherRefNo = model.OtherRefNo;
-        existingModel.PoNo = model.PoNo;
-        existingModel.Quantity = model.Quantity;
-        existingModel.UnitPrice = model.UnitPrice;
-        existingModel.Remarks = model.Remarks;
-        existingModel.Discount = model.Discount;
-        existingModel.Amount = model.Quantity * model.UnitPrice;
-
-       
-       if (ModelState.IsValid)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(SalesInvoice model)
         {
-        if (existingModel.Amount >= model.Discount)
-        {
-            var existingCustomers = _dbContext.Customers
-                                           .FirstOrDefault(si => si.Id == existingModel.CustomerId);
+            try
+            {
+                var existingModel = await _salesInvoiceRepo.FindSalesInvoice(model.Id);
 
-            if (existingCustomers.CustomerType == "Vatable")
-            {
-                decimal netDiscount = (decimal)(existingModel.Amount - model.Discount);
-                existingModel.NetDiscount = netDiscount;
-                existingModel.VatableSales = netDiscount / (decimal)1.12;
-                existingModel.VatAmount = netDiscount - existingModel.VatableSales;
-                if (existingCustomers.WithHoldingTax)
+                if (existingModel == null)
                 {
-                    existingModel.WithHoldingTaxAmount = existingModel.VatableSales * (decimal)0.01;
+                    return NotFound(); // Return a "Not Found" response when the entity is not found.
                 }
-                if (existingCustomers.WithHoldingVat)
-                {
-                    existingModel.WithHoldingVatAmount = existingModel.VatableSales * (decimal)0.05;
-                }
-            }
-            else if (existingCustomers.CustomerType == "Zero Rated")
-            {
-                decimal netDiscount = (decimal)(existingModel.Amount - model.Discount);
-                existingModel.NetDiscount = netDiscount;
-                existingModel.ZeroRated = existingModel.Amount;
 
-                if (existingCustomers.WithHoldingTax)
+                if (ModelState.IsValid)
                 {
-                    existingModel.WithHoldingTaxAmount = existingModel.ZeroRated * (decimal)0.01;
-                }
-                if (existingCustomers.WithHoldingVat)
-                {
-                    existingModel.WithHoldingVatAmount = existingModel.ZeroRated * (decimal)0.05;
-                }
-            }
-            else
-            {
-                decimal netDiscount = (decimal)(existingModel.Amount - model.Discount);
-                existingModel.NetDiscount = netDiscount;
-                existingModel.VatExempt = existingModel.Amount;
-                if (existingCustomers.WithHoldingTax)
-                {
-                    existingModel.WithHoldingTaxAmount = existingModel.VatExempt * (decimal)0.01;
-                }
-                if (existingCustomers.WithHoldingVat)
-                {
-                    existingModel.WithHoldingVatAmount = existingModel.VatExempt * (decimal)0.05;
-                }
-            }
-            }
-            else
-            {
-                TempData["error"] = "Please input below or exact amount based unit price multiply quantity";
-                return View(model);
-            }
+                    existingModel.TransactionDate = model.TransactionDate;
+                    existingModel.OtherRefNo = model.OtherRefNo;
+                    existingModel.PoNo = model.PoNo;
+                    existingModel.Quantity = model.Quantity;
+                    existingModel.UnitPrice = model.UnitPrice;
+                    existingModel.Remarks = model.Remarks;
+                    existingModel.Discount = model.Discount;
+                    existingModel.Amount = model.Quantity * model.UnitPrice;
 
+                    if (existingModel.Amount >= model.Discount)
+                    {
+                        var existingCustomers = _dbContext.Customers
+                                                       .FirstOrDefault(si => si.Id == existingModel.CustomerId);
+
+                        if (existingCustomers.CustomerType == "Vatable")
+                        {
+                            decimal netDiscount = (decimal)(existingModel.Amount - model.Discount);
+                            existingModel.NetDiscount = netDiscount;
+                            existingModel.VatableSales = netDiscount / (decimal)1.12;
+                            existingModel.VatAmount = netDiscount - existingModel.VatableSales;
+                            if (existingCustomers.WithHoldingTax)
+                            {
+                                existingModel.WithHoldingTaxAmount = existingModel.VatableSales * (decimal)0.01;
+                            }
+                            if (existingCustomers.WithHoldingVat)
+                            {
+                                existingModel.WithHoldingVatAmount = existingModel.VatableSales * (decimal)0.05;
+                            }
+                        }
+                        else if (existingCustomers.CustomerType == "Zero Rated")
+                        {
+                            decimal netDiscount = (decimal)(existingModel.Amount - model.Discount);
+                            existingModel.NetDiscount = netDiscount;
+                            existingModel.ZeroRated = existingModel.Amount;
+
+                            if (existingCustomers.WithHoldingTax)
+                            {
+                                existingModel.WithHoldingTaxAmount = existingModel.ZeroRated * (decimal)0.01;
+                            }
+                            if (existingCustomers.WithHoldingVat)
+                            {
+                                existingModel.WithHoldingVatAmount = existingModel.ZeroRated * (decimal)0.05;
+                            }
+                        }
+                        else
+                        {
+                            decimal netDiscount = (decimal)(existingModel.Amount - model.Discount);
+                            existingModel.NetDiscount = netDiscount;
+                            existingModel.VatExempt = existingModel.Amount;
+                            if (existingCustomers.WithHoldingTax)
+                            {
+                                existingModel.WithHoldingTaxAmount = existingModel.VatExempt * (decimal)0.01;
+                            }
+                            if (existingCustomers.WithHoldingVat)
+                            {
+                                existingModel.WithHoldingVatAmount = existingModel.VatExempt * (decimal)0.05;
+                            }
+                        }
+
+                        #region --Audit Trail Recording
+
+                        var modifiedBy = _userManager.GetUserName(this.User);
+                        AuditTrail auditTrail = new(modifiedBy, $"Edited invoice# {model.SINo}", "Sales Invoice");
+                        _dbContext.Add(auditTrail);
+
+                        #endregion --Audit Trail Recording
+                    }
+                    else
+                    {
+                        TempData["error"] = "Please input below or exact amount based unit price multiply quantity";
+                        return View(model);
+                    }
                 }
-        else
-        {
-            ModelState.AddModelError("", "The information you submitted is not valid!");
-            return View(model);
+                else
+                {
+                    ModelState.AddModelError("", "The information you submitted is not valid!");
+                    return View(model);
+                }
+
+                // Save the changes to the database
+                await _dbContext.SaveChangesAsync();
+
+                return RedirectToAction("Index"); // Redirect to a success page or the index page
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred.");
+                return StatusCode(500, "An error occurred. Please try again later.");
+            }
         }
-
-        // Save the changes to the database
-        await _dbContext.SaveChangesAsync();
-
-        return RedirectToAction("Index"); // Redirect to a success page or the index page
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "An error occurred.");
-        return StatusCode(500, "An error occurred. Please try again later.");
-    }
-}
 
         public async Task<IActionResult> PrintInvoice(int id)
         {
@@ -340,6 +349,15 @@ public async Task<IActionResult> Edit(SalesInvoice model)
             if (sales != null && sales.OriginalCopy)
             {
                 sales.OriginalCopy = false;
+
+                #region --Audit Trail Recording
+
+                var printedBy = _userManager.GetUserName(this.User);
+                AuditTrail auditTrail = new(printedBy, $"Printed original copy of invoice# {sales.SINo}", "Sales Invoice");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
                 await _dbContext.SaveChangesAsync();
             }
             return RedirectToAction("PrintInvoice", new { id = id });
@@ -423,9 +441,9 @@ public async Task<IActionResult> Edit(SalesInvoice model)
 
                     #endregion --Sales Book Recording
 
-                    var ledgers = new List<GeneralLedgerBook>();
+                    #region --General Ledger Book Recording
 
-                    // ... (previous code remains unchanged)
+                    var ledgers = new List<GeneralLedgerBook>();
 
                     ledgers.Add(
                         new GeneralLedgerBook
@@ -547,9 +565,18 @@ public async Task<IActionResult> Edit(SalesInvoice model)
 
                     _dbContext.GeneralLedgerBooks.AddRange(ledgers);
 
+                    #endregion --General Ledger Book Recording
+
+                    #region --Audit Trail Recording
+
+                    var postedBy = _userManager.GetUserName(this.User);
+                    AuditTrail auditTrail = new(postedBy, $"Posted invoice# {model.SINo}", "Sales Invoice");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Sales Invoice has been Posted.";
-
                 }
                 else
                 {
