@@ -4,12 +4,7 @@
 @inject UserManager<IdentityUser> UserManager
 @using Humanizer
 
-@{
-    decimal EWT = Model.SalesInvoice.VatableSales * (decimal)0.01;
-    decimal amount = Model.Amount - EWT;
-    decimal total = EWT + amount;
-    var formattedToPeso = String.Format("{0:N2}", amount);
-}
+
 <br />
 <div class="text-end">
     <img src="~/img/Filpride.jpg" height="" width="130px" />
@@ -48,7 +43,7 @@
                 <td style="padding-left:10px;">Buss. Style: &nbsp;@Html.DisplayFor(model => model.SalesInvoice.BusinessStyle)</td>
             </tr>
             @{
-                decimal convertToWords = Model.Amount;
+                decimal convertToWords = Model.Total;
 
                 // Separate the integer and decimal parts
                 int integerPart = (int)Math.Floor(convertToWords);
@@ -78,7 +73,7 @@
             </tr>
             <tr>
                 <td>&nbsp;</td>
-                <td style="padding-left:10px;">(₱&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  @Html.DisplayFor(model => model.Amount))</td>
+                <td style="padding-left:10px;">(₱&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  @Html.DisplayFor(model => model.Total))</td>
             </tr>
             <tr>
                 <td colspan="2" style="padding-left:10px;">IN FULL/PARTIAL payment of: @Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
@@ -103,7 +98,7 @@
             <tr class="text-center">
                 <td style="width:33%">@Model.SalesInvoice.TransactionDate.ToShortDateString()</td>
                 <td style="width:33%">@Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
-                <td style="width:33%">@Html.DisplayFor(model => model.Amount)</td>
+                <td style="width:33%">@Html.DisplayFor(model => model.Total)</td>
             </tr>
             <tr>
                 <td style="width:33%">&nbsp;</td>
@@ -151,14 +146,7 @@
                 <td class="text-center"></td>
                 <td class="text-center"></td>
                 <td class="text-center"></td>
-                    @if (Model.SalesInvoice.Customer.WithHoldingTax)
-                    {
-                        <td class="text-center">@formattedToPeso</td>
-                    }
-                    else
-                    {
-                        <td class="text-center">@Model.Amount</td>
-                    }
+                <td class="text-center">@Html.DisplayFor(model => model.Amount)</td>
                 </tr>
             }
             else
@@ -180,14 +168,7 @@
                 <td class="text-center">@Html.DisplayFor(model => model.CheckNo)</td>
                 <td class="text-center">@Html.DisplayFor(model => model.Bank)</td>
                 <td class="text-center">@Html.DisplayFor(model => model.Branch)</td>
-                    @if (Model.SalesInvoice.Customer.WithHoldingTax)
-                    {
-                        <td class="text-center">@formattedToPeso</td>
-                    }
-                    else
-                    {
-                        <td class="text-center">@Model.Amount</td>
-                    }
+                <td class="text-center">@Html.DisplayFor(model => model.Amount)</td>
                 </tr>
             }
             else
@@ -209,14 +190,8 @@
                 <td class="text-center">@Html.DisplayFor(model => model.CheckNo)</td>
                 <td class="text-center">@Html.DisplayFor(model => model.Bank)</td>
                 <td class="text-center">@Html.DisplayFor(model => model.Branch)</td>
-                    @if (Model.SalesInvoice.Customer.WithHoldingTax)
-                    {
-                        <td class="text-center">@formattedToPeso</td>
-                    }
-                    else{
-                        <td class="text-center">@Model.Amount</td>
-                        }
-                    </tr>
+                <td class="text-center">@Html.DisplayFor(model => model.Amount)</td>
+                </tr>
             }
             else
             {
@@ -235,10 +210,8 @@
                 <td></td>
                 <td></td>
                 <td></td>
-                @if (Model.SalesInvoice.Customer.WithHoldingTax) {
-                    var formattedToPesoTax = String.Format("{0:N2}", EWT);
-
-                    <td class="text-center">@formattedToPesoTax</td>
+                @if (Model.EWT != 0) {
+                    <td class="text-center">@Html.DisplayFor(model => model.EWT)</td>
                 }
                 else{
                     <td></td>
@@ -250,16 +223,13 @@
                 <td></td>
                 <td></td>
                 <td></td>
-                @if (Model.SalesInvoice.Customer.WithHoldingTax)
-                {
-                    var formattedToPesoTax = String.Format("{0:N2}", EWT);
-
-                    <td class="text-center"></td>
+                @if (Model.WVAT != 0) {
+                    <td class="text-center">@Html.DisplayFor(model => model.WVAT)</td>
                 }
-                else
-                {
+                else{
                     <td></td>
-                }
+                    }
+                </tr>
             </tr>
             <tr>
                 <td style="padding-left:20px;">TOTAL</td>
@@ -267,10 +237,7 @@
                 <td></td>
                 <td></td>
                 <td></td>
-                @{
-                    var formattedToPesoTotal = String.Format("{0:N2}", total);
-                }
-                <td class="text-center">@formattedToPesoTotal</td>
+                <td class="text-center">@Html.DisplayFor(model => model.Total)</td>
             </tr>
         </tbody>
     </table>

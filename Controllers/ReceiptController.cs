@@ -87,6 +87,9 @@ namespace Accounting_System.Controllers
                     long getLastNumber = await _receiptRepo.GetLastSeriesNumberCR();
                     model.SeriesNumber = getLastNumber;
                     model.CRNo = generateCRNo;
+                    model.EWT = existingSalesInvoice.WithHoldingTaxAmount;
+                    model.WVAT = existingSalesInvoice.WithHoldingVatAmount;
+                    model.Amount = model.Total - (model.EWT + model.WVAT);
                     model.CreatedBy = _userManager.GetUserName(this.User);
                     if (getLastNumber > 9999999999)
                     {
@@ -102,7 +105,7 @@ namespace Accounting_System.Controllers
                         TempData["success"] = "Collection Receipt created successfully";
                     }
                     _dbContext.Add(model);
-                    await _receiptRepo.UpdateInvoice(existingSalesInvoice.Id, model.Amount);
+                    await _receiptRepo.UpdateInvoice(existingSalesInvoice.Id, model.Total);
                     await _dbContext.SaveChangesAsync();
                     return RedirectToAction("CollectionReceiptIndex");
                 }
