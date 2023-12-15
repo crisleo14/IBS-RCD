@@ -979,7 +979,7 @@ namespace Accounting_System.Migrations
 
                     b.Property<DateTime>("ReceivedDate")
                         .HasColumnType("timestamp with time zone");
-
+                        
                     b.Property<long>("SeriesNumber")
                         .HasColumnType("bigint");
 
