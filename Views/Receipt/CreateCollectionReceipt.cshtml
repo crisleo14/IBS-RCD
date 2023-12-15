@@ -59,17 +59,37 @@
             </div>
             <div class="form-group">
                 <label asp-for="Bank" class="control-label"></label>
-                <input asp-for="Bank" type="text" id="DeliveryDate" class="form-control" />
+                <input asp-for="Bank" type="text" class="form-control" />
                 <span asp-validation-for="Bank" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Branch" class="control-label"></label>
-                <input asp-for="Branch" type="text" id="DeliveryDate" class="form-control" />
+                <input asp-for="Branch" type="text" class="form-control" />
                 <span asp-validation-for="Branch" class="text-danger"></span>
             </div>
+            <fieldset class="form-group">
+                <legend>Select Preference</legend>
+
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" asp-for="Preference" value="With Certificate">
+                    <label class="form-check-label">w/ Certificate</label>
+                </div>
+
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" asp-for="Preference" value="Without Certificate">
+                    <label class="form-check-label">w/o Certificate</label>
+                </div>
+
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" asp-for="Preference" value="Tax/Vat Only">
+                    <label class="form-check-label">Tax/Vat Only</label>
+                </div>
+                <br />
+                    <span asp-validation-for="Preference" class="text-danger"></span>
+            </fieldset>
             <div class="form-group">
                 <label asp-for="Total" class="control-label"></label>
-                <input asp-for="Total" type="text" id="DeliveryDate" class="form-control" />
+                <input asp-for="Total" type="text" class="form-control" />
                 <span asp-validation-for="Total" class="text-danger"></span>
             </div>
 
