@@ -11,6 +11,14 @@
 <h4>Collection Receipt</h4>
 <hr />
 <div class="row">
+        <div class="position-absolute p-2" style="left:40%; width:25%; border:dotted 1px;">
+            <pre>
+ <b>Invoice Details</b>
+ Invoice Amount: <span id="amount"></span>
+ Amount Paid:    <span id="amountPaid"></span>
+ Balance:        <span id="balance"></span>
+            </pre>
+        </div>
     <div class="col-md-4">
         <form asp-action="CreateCollectionReceipt" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -102,10 +110,7 @@
                             <tr>
                                 <th class="w-100">Account Title</th>
                                 <th class="w-20">
-                                    Debit
-                                </th>
-                                <th class="w-20">
-                                    Credit
+                                    Amount
                                 </th>
                                 <th></th>
                             </tr>
@@ -141,13 +146,8 @@
                             <span class="text-danger"></span>
                         </div>
                         <div class="form-group">
-                            <label class="control-label">Debit</label>
+                            <label class="control-label">Amount</label>
                             <input id="Debit" type="text" class="form-control" />
-                            <span class="text-danger"></span>
-                        </div>
-                        <div class="form-group">
-                            <label class="control-label">Credit</label>
-                            <input id="Credit" type="text" class="form-control" />
                             <span class="text-danger"></span>
                         </div>
                     </form>
@@ -185,14 +185,11 @@
         $("#CustomerNo").change(function () {
             var customerNo = $(this).val();
 
-            console.log(customerNo);
-
             $.ajax({
                 url: "/Receipt/GetSalesInvoices",
                 type: "GET",
                 data: { customerNo: customerNo },
                 success: function (data) {
-                    console.log(data);
 
                     // Clear existing options
                     $("#invoices").empty();
@@ -251,6 +248,16 @@
                 $(button).closest("tr").remove();
             }
 
+        </script>
+
+        <script>
+            $(document).ready(function () {
+                $("#invoices").change(function () {
+                    var invoice = $(this).val();
+                    console.log(invoice);
+                    document.getElementById("amount").innerHTML = "test";
+                });
+            });
         </script>
 
 
