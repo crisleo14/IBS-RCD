@@ -83,7 +83,7 @@ namespace Accounting_System.Controllers
 
                 decimal amount;
                 if (model.Total != 0) {
-                    if (model.Preference == "With Certificate")
+                    if (model.Preference == "Complete")
                     {
                         amount = existingSalesInvoice.Amount;
                     }
@@ -93,12 +93,21 @@ namespace Accounting_System.Controllers
                     }
                     else
                     {
-                        amount = existingSalesInvoice.WithHoldingTaxAmount + existingSalesInvoice.WithHoldingVatAmount;
-                        if (amount == 0)
+                        if (existingSalesInvoice.IsTaxAndVatPaid)
                         {
                             TempData["error"] = $"You have no Tax/Vat to pay";
                             return View(model);
                         }
+                        else
+                        {
+                            amount = existingSalesInvoice.WithHoldingTaxAmount + existingSalesInvoice.WithHoldingVatAmount;
+                        }
+                    }
+
+                    decimal amountInTypeOfCollection;
+                    if (model.TypeOfCollection == "Full w/ Offset")
+                    {
+                        amountInTypeOfCollection = existingSalesInvoice.Amount - (existingSalesInvoice.WithHoldingTaxAmount + existingSalesInvoice.WithHoldingVatAmount);
                     }
                 }
                 else
@@ -111,8 +120,41 @@ namespace Accounting_System.Controllers
 
                 bool result;
                 if (model.Preference == "Tax/Vat Only")
+                {  
+                     result = total == amount;
+                    if (!existingSalesInvoice.IsTaxAndVatPaid)
+                    {
+                        existingSalesInvoice.IsTaxAndVatPaid = true;
+                    }
+                    else
+                    {
+                        TempData["error"] = $"You have already paid the Tax/Vat";
+                        return View(model);
+                    }
+                }
+                else if (model.TypeOfCollection == "Full")
                 {
-                    result = total == amount;
+                    if (existingSalesInvoice.AmountPaid == 0)
+                    {
+                        result = total == amount;
+                    }
+                    else
+                    {
+                        TempData["error"] = $"You have already paid the Full Payment";
+                        return View(model);
+                    }
+                }
+                else if (model.TypeOfCollection == "Partial")
+                {
+                    if (existingSalesInvoice.Balance == 0)
+                    {
+                        result = total < amount;
+                    }
+                    else
+                    {
+                        TempData["error"] = $"You have already paid the Partial Payment";
+                        return View(model);
+                    }
                 }
                 else
                 {
@@ -126,7 +168,7 @@ namespace Accounting_System.Controllers
                         model.CRNo = generateCRNo;
                         model.CreatedBy = _userManager.GetUserName(this.User);
 
-                        if (model.Preference == "With Certificate")
+                        if (model.Preference == "Complete")
                         {
                             model.EWT = existingSalesInvoice.WithHoldingTaxAmount;
                             model.WVAT = existingSalesInvoice.WithHoldingVatAmount;
@@ -393,8 +435,43 @@ namespace Accounting_System.Controllers
                 }
                 else
                 {
-                    TempData["error"] = $"Please input below or exact amount of {amount.ToString("0.00")}";
+                    var salesInvoiceBalance = existingSalesInvoice.Balance;
+
+                    string errorMsg;
+                    if (model.Preference == "Tax/Vat Only" || model.TypeOfCollection == "Full")
+                    {
+                        errorMsg = "exact";
+                    }
+                    else if (model.TypeOfCollection == "Partial")
+                    {
+                        if (model.TypeOfCollection == "Partial" && existingSalesInvoice.Balance == salesInvoiceBalance)
+                        {
+                            errorMsg = "below or exact";
+                        }
+                        else
+                        {
+                            errorMsg = "less than";
+                        }
+                        
+                    }
+                    else
+                    {
+                        errorMsg = "below or exact";
+                    }
+
+                    decimal siAmount = Math.Round(salesInvoiceBalance, 2);
+                    decimal totalAmount;
+                    if (existingSalesInvoice.Balance != 0 && model.TypeOfCollection == "Partial")
+                    {
+                        totalAmount = siAmount;
+                    }
+                    else
+                    {
+                        totalAmount = amount;
+                    }
+                    TempData["error"] = $"Please input {errorMsg} amount of {totalAmount}";
                     return View(model);
+
                 }
             }
             else

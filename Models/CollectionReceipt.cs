@@ -63,5 +63,7 @@ namespace Accounting_System.Models
 
         [Required]
         public string Preference { get; set; }
+
+        public string TypeOfCollection { get; set; }
     }
 }
