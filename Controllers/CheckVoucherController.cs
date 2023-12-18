@@ -88,10 +88,10 @@ namespace Accounting_System.Controllers
                     TempData["error"] = "You reach the maximum Series Number";
                     return View(model);
                 }
-
+                var totalRemainingSeries = 9999999999 - getLastNumber;
                 if (getLastNumber >= 9999999899)
                 {
-                    TempData["warning"] = "Check Voucher created successfully, Warning 100 series number remaining";
+                    TempData["warning"] = $"Purchase Order created successfully, Warning {totalRemainingSeries} series number remaining";
                 }
                 else
                 {
