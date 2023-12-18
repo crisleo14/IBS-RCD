@@ -13,7 +13,7 @@ namespace Accounting_System.Repository
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<int> GetLastSeriesNumberCR()
+        public async Task<long> GetLastSeriesNumberCR()
         {
             var lastInvoice = await _dbContext
                 .CollectionReceipts
@@ -32,7 +32,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<int> GetLastSeriesNumberOR()
+        public async Task<long> GetLastSeriesNumberOR()
         {
             var lastInvoice = await _dbContext
                 .OfficialReceipts

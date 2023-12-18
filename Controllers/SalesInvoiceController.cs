@@ -87,9 +87,10 @@ namespace Accounting_System.Controllers
                 var generateCRNo = await _salesInvoiceRepo.GenerateSINo();
                 var existingCustomers = _dbContext.Customers
                                                .FirstOrDefault(si => si.Id == sales.CustomerId);
-                
+                long getLastNumber = await _salesInvoiceRepo.GetLastSeriesNumber();
+
                 sales.CustomerNo = existingCustomers.Number;
-                sales.SeriesNumber = await _salesInvoiceRepo.GetLastSeriesNumber();
+                sales.SeriesNumber = getLastNumber;
                 sales.CreatedBy = _userManager.GetUserName(this.User);
                 sales.SINo = generateCRNo;
                 sales.Amount = sales.Quantity * sales.UnitPrice;
@@ -150,8 +151,21 @@ namespace Accounting_System.Controllers
                 //AuditTrail auditTrail = new(sales.CreatedBy, $"Create new invoice#{sales.SerialNo}", "Sales Invoice");
                 //_dbContext.Add(auditTrail);
 
-                await _dbContext.SaveChangesAsync();
+                if (getLastNumber > 9999999999)
+                {
+                    TempData["error"] = "You reach the maximum Series Number";
+                    return View(sales);
+                }
 
+                if (getLastNumber >= 9999999899)
+                {
+                    TempData["warning"] = "Sales Invoice created successfully, Warning 100 series number remaining";
+                }
+                else
+                {
+                    TempData["success"] = "Sales Invoice created successfully";
+                }
+                await _dbContext.SaveChangesAsync();
                 return RedirectToAction("Index");
             }
             else
