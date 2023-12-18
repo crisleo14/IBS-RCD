@@ -46,6 +46,46 @@
                 <input asp-for="ReferenceNo" type="text" class="form-control" />
                 <span asp-validation-for="ReferenceNo" class="text-danger"></span>
             </div>
+                <fieldset class="form-group">
+                    <label class="control-label">Type of Collection</label><br />
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" asp-for="TypeOfCollection" value="Full">
+                        <label class="form-check-label">Full</label>
+                    </div>
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" asp-for="TypeOfCollection" value="Partial">
+                        <label class="form-check-label">Partial</label>
+                    </div>
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" asp-for="TypeOfCollection" value="Full w/ Offset">
+                        <label class="form-check-label">Full w/ Offset</label>
+                    </div>
+                    <br />
+                    <span asp-validation-for="Preference" class="text-danger"></span>
+                </fieldset>
+                <fieldset class="form-group">
+                    <label class="control-label">Select Preference</label><br />
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" asp-for="Preference" value="Complete">
+                        <label class="form-check-label">Complete</label>
+                    </div>
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" asp-for="Preference" value="Without Certificate">
+                        <label class="form-check-label">w/o Certificate</label>
+                    </div>
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" asp-for="Preference" value="Tax/Vat Only">
+                        <label class="form-check-label">Tax/Vat Only</label>
+                    </div>
+                    <br />
+                    <span asp-validation-for="Preference" class="text-danger"></span>
+                </fieldset>
             <div class="form-group">
                 <label class="control-label">Form of Payment</label>
             <select asp-for="FormOfPayment" class="form-select js-select2">
@@ -75,26 +115,6 @@
                 <input asp-for="Branch" type="text" class="form-control" />
                 <span asp-validation-for="Branch" class="text-danger"></span>
             </div>
-            <fieldset class="form-group">
-                <legend>Select Preference</legend>
-
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" asp-for="Preference" value="With Certificate">
-                    <label class="form-check-label">w/ Certificate</label>
-                </div>
-
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" asp-for="Preference" value="Without Certificate">
-                    <label class="form-check-label">w/o Certificate</label>
-                </div>
-
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" asp-for="Preference" value="Tax/Vat Only">
-                    <label class="form-check-label">Tax/Vat Only</label>
-                </div>
-                <br />
-                    <span asp-validation-for="Preference" class="text-danger"></span>
-            </fieldset>
             <div class="form-group">
                 <label asp-for="Total" class="control-label"></label>
                 <input asp-for="Total" type="text" class="form-control" />
