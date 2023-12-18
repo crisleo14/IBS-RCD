@@ -145,5 +145,48 @@ namespace Accounting_System.Controllers
         //    //    return View(model);
         //    //}
         //}
+
+        [HttpGet]
+        public IActionResult Print()
+        {
+            return View();
+        }
+
+        public async Task<IActionResult> Printed(int id)
+        {
+            var cv = await _dbContext.CheckVoucherHeaders.FindAsync(id);
+            if (cv != null && !cv.IsPrinted)
+            {
+                cv.IsPrinted = true;
+                await _dbContext.SaveChangesAsync();
+            }
+            return RedirectToAction("Print", new { id = id });
+        }
+
+        public async Task<IActionResult> Post(int cvId)
+        {
+            var model = await _dbContext.CheckVoucherHeaders.FindAsync(cvId);
+
+            if (model != null)
+            {
+                if (!model.IsPosted)
+                {
+                    model.IsPosted = true;
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Check Voucher has been Posted.";
+
+                }
+                //else
+                //{
+                //    model.IsVoid = true;
+                //    await _dbContext.SaveChangesAsync();
+                //    TempData["success"] = "Purchase Order has been Voided.";
+                //}
+                return RedirectToAction(nameof(Index));
+            }
+
+            return NotFound();
+        }
     }
 }

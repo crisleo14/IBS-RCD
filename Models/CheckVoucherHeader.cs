@@ -36,5 +36,9 @@ namespace Accounting_System.Models
 
         [Display(Name = "Check #")]
         public string CheckNo { get; set; }
+
+        public bool IsPosted { get; set; }
+
+        public bool IsPrinted { get; set; }
     }
 }
