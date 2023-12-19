@@ -47,5 +47,7 @@ namespace Accounting_System.Models
         public bool IsPrinted { get; set; }
 
         public bool IsPosted { get; set; }
+
+        public string Remarks { get; set; }
     }
 }
