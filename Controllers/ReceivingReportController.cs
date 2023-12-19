@@ -196,5 +196,31 @@ namespace Accounting_System.Controllers
             }
             return RedirectToAction("Print", new { id = id });
         }
+
+        public async Task<IActionResult> Post(int rrId)
+        {
+            var model = await _dbContext.ReceivingReports.FindAsync(rrId);
+
+            if (model != null)
+            {
+                if (!model.IsPosted)
+                {
+                    model.IsPosted = true;
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Receiving Report has been Posted.";
+
+                }
+                //else
+                //{
+                //    model.IsVoid = true;
+                //    await _dbContext.SaveChangesAsync();
+                //    TempData["success"] = "Purchase Order has been Voided.";
+                //}
+                return RedirectToAction(nameof(Index));
+            }
+
+            return NotFound();
+        }
     }
 }
