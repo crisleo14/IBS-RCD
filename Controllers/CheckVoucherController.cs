@@ -61,44 +61,37 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
+                //CV Header Entry
                 var generateCVNo = await _checkVoucherRepo.GenerateCVNo();
                 long getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV();
                 model.Header.SeriesNumber = getLastNumber;
                 model.Header.CVNo = generateCVNo;
                 model.Header.CreatedBy = _userManager.GetUserName(this.User);
 
-                var headerEntity = new CheckVoucherHeader
-                {
-                    CVNo = model.Header.CVNo,
-                    CreatedBy = model.Header.CreatedBy,
-                    // Map other properties...
-                };
+                //CV Details Entry
+                model.Details.CreatedBy = _userManager.GetUserName(this.User);
 
-                var detailsEntity = new CheckVoucherDetail
-                {
-                    COA = model.Details.COA,
-                    // Map other properties...
-                };
 
-                _dbContext.Add(headerEntity);  // Add CheckVoucherHeader to the context
-                _dbContext.Add(detailsEntity); // Add CheckVoucherDetails to the context
+                _dbContext.Add(model.Header);  // Add CheckVoucherHeader to the context
+                _dbContext.Add(model.Details); // Add CheckVoucherDetails to the context
 
                 if (getLastNumber > 9999999999)
                 {
-                    TempData["error"] = "You reach the maximum Series Number";
+                    TempData["error"] = "You reached the maximum Series Number";
                     return View(model);
                 }
+
                 var totalRemainingSeries = 9999999999 - getLastNumber;
                 if (getLastNumber >= 9999999899)
                 {
-                    TempData["warning"] = $"Purchase Order created successfully, Warning {totalRemainingSeries} series number remaining";
+                    TempData["warning"] = $"Purchase Order created successfully, Warning {totalRemainingSeries} series numbers remaining";
                 }
                 else
                 {
                     TempData["success"] = "Check Voucher created successfully";
                 }
 
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();  // await the SaveChangesAsync method
                 return RedirectToAction("Index");
             }
             else
@@ -107,6 +100,7 @@ namespace Accounting_System.Controllers
                 return View(model);
             }
         }
+
 
         //[HttpPost]
         //public async Task<IActionResult> Create(CheckVoucherVM model)
