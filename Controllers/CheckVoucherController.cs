@@ -101,45 +101,6 @@ namespace Accounting_System.Controllers
             }
         }
 
-
-        //[HttpPost]
-        //public async Task<IActionResult> Create(CheckVoucherVM model)
-        //{
-        //    model.Header.RR = _dbContext.ReceivingReports
-        //        .Select(s => new SelectListItem
-        //        {
-        //            Value = s.Id.ToString(),
-        //            Text = s.RRNo
-        //        })
-        //        .ToList();
-
-        //    model.Details.COA = _dbContext.ChartOfAccounts
-        //        .Select(s => new SelectListItem
-        //        {
-        //            Value = s.Id.ToString(),
-        //            Text = s.Number + " " + s.Name
-        //        })
-        //        .ToList();
-
-        //    //if (ModelState.IsValid)
-        //    //{
-        //            var generateCVNo = await _checkVoucherRepo.GenerateCVNo();
-        //            model.Header.SeriesNumber = await _checkVoucherRepo.GetLastSeriesNumberCV();
-        //            model.Header.CVNo = generateCVNo;
-        //            model.Header.CreatedBy = _userManager.GetUserName(this.User);
-
-        //            _dbContext.Add(model);
-        //            await _dbContext.SaveChangesAsync();
-        //            TempData["success"] = "Check Voucher created successfully";
-        //            return RedirectToAction("Index");
-        //    //}
-        //    //else
-        //    //{
-        //    //    TempData["error"] = "The information you submitted is not valid!";
-        //    //    return View(model);
-        //    //}
-        //}
-
         [HttpGet]
         public IActionResult Print()
         {
