@@ -45,5 +45,9 @@ namespace Accounting_System.Models
         public DateTime ReceivedDate { get; set; }
 
         public bool IsPrinted { get; set; }
+
+        public bool IsPosted { get; set; }
+
+        public string Remarks { get; set; }
     }
 }
