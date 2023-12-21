@@ -4,12 +4,7 @@
 @inject UserManager<IdentityUser> UserManager
 @using Humanizer
 
-@{
-    decimal EWT = Model.SalesInvoice.VatableSales * (decimal)0.01;
-    decimal amount = Model.Amount - EWT;
-    decimal total = EWT + amount;
-    var formattedToPeso = String.Format("{0:N2}", amount);
-}
+
 <br />
 <div class="text-end">
     <img src="~/img/Filpride.jpg" height="" width="130px" />
@@ -48,37 +43,60 @@
                 <td style="padding-left:10px;">Buss. Style: &nbsp;@Html.DisplayFor(model => model.SalesInvoice.BusinessStyle)</td>
             </tr>
             @{
-                decimal convertToWords = Model.Amount;
-
-                // Separate the integer and decimal parts
-                int integerPart = (int)Math.Floor(convertToWords);
-                decimal decimalPart = convertToWords - integerPart;
-
-                // Convert the integer part to words
-                string integerWords = integerPart.ToWords();
-
-                // Convert the decimal part to words
-                string decimalWords = "";
-                if (decimalPart > 0)
+                decimal convertToWords = 0;
+                if (Model.Preference == "Tax/Vat Only")
                 {
-                    int decimalPlaces = BitConverter.GetBytes(decimal.GetBits(decimalPart)[3])[2];
-                    int decimalIntegerPart = (int)Math.Floor(decimalPart * (decimal)Math.Pow(10, decimalPlaces));
-                    decimalWords = $" and {decimalIntegerPart.ToWords()} centavos";
+                    convertToWords = Model.EWT + Model.WVAT;
+                }
+                else if (Model.Preference == "Without Certificate")
+                {
+                    convertToWords = Model.Amount;
+                }
+                else {
+                    convertToWords = Model.Total;
                 }
 
-                // Combine the integer and decimal parts
-                string words = integerWords + decimalWords + " pesos only";
+                int integerPart = Convert.ToInt32(Math.Floor(convertToWords));
+                decimal decimalPart = Math.Round((convertToWords - integerPart), 2);
 
+                // Convert integer part to words
+                string integerWords = integerPart.ToWords();
+                integerWords = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(integerWords.ToLower());
 
-                // Capitalize the first letter of each word
-                words = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(words.ToLower());
+                // Convert and format cents value
+                int cents = Convert.ToInt32(decimalPart * 100) % 100;
+                string centsWords = cents.ToWords(); // Use ToWords instead of string formatting
+                centsWords = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(centsWords.ToLower());
+
+                string upperCaseOne = integerWords;
+                string upperCaseTwo = centsWords;
+
+                // Combine words and formatting
+                string words;
+
+                if (cents > 0)
+                {
+                    // If there is a decimal part, include "And" before it
+                    words = $"{upperCaseOne} Pesos and {upperCaseTwo} Centavos Only";
+                }
+                else
+                {
+                    // If there is no decimal part, exclude "And"
+                    words = $"{upperCaseOne} Pesos Only";
+                }
+
+                // Capitalize first letters
+                // words = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(words.ToLower());
+
+                words = words.Replace(" And", "");
+                words = words.Replace("-", " ");
             }
             <tr>
                 <td colspan="2" style="padding-left:10px;">The sum of Pesos:<br /> @words</td>
             </tr>
             <tr>
                 <td>&nbsp;</td>
-                <td style="padding-left:10px;">(₱&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  @Html.DisplayFor(model => model.Amount))</td>
+                <td style="padding-left:10px;">(₱&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  @Html.DisplayFor(model => model.Total))</td>
             </tr>
             <tr>
                 <td colspan="2" style="padding-left:10px;">IN FULL/PARTIAL payment of: @Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
@@ -103,7 +121,7 @@
             <tr class="text-center">
                 <td style="width:33%">@Model.SalesInvoice.TransactionDate.ToShortDateString()</td>
                 <td style="width:33%">@Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
-                <td style="width:33%">@Html.DisplayFor(model => model.Amount)</td>
+                <td style="width:33%">@Html.DisplayFor(model => model.Total)</td>
             </tr>
             <tr>
                 <td style="width:33%">&nbsp;</td>
@@ -144,24 +162,7 @@
                 <td class="text-center" style="width:15%">AMOUNT</td>
             </tr>
 
-            @if (Model.FormOfPayment == "Cash") {
-                <tr>
-                    <td style="padding-left:20px;">Cash</td>
-                <td class="text-center"></td>
-                <td class="text-center"></td>
-                <td class="text-center"></td>
-                <td class="text-center"></td>
-                    @if (Model.SalesInvoice.Customer.WithHoldingTax)
-                    {
-                        <td class="text-center">@formattedToPeso</td>
-                    }
-                    else
-                    {
-                        <td class="text-center">@Model.Amount</td>
-                    }
-                </tr>
-            }
-            else
+           @*  @if (Model.Preference == "Tax/Vat Only")
             {
                 <tr>
                     <td style="padding-left:20px;">Cash</td>
@@ -171,27 +172,6 @@
                     <td></td>
                     <td></td>
                 </tr>
-            }
-            @if (Model.FormOfPayment == "Check")
-            {
-                <tr>
-                    <td style="padding-left:20px;">Check</td>
-                <td class="text-center">@Model.CheckDate.ToShortDateString()</td>
-                <td class="text-center">@Html.DisplayFor(model => model.CheckNo)</td>
-                <td class="text-center">@Html.DisplayFor(model => model.Bank)</td>
-                <td class="text-center">@Html.DisplayFor(model => model.Branch)</td>
-                    @if (Model.SalesInvoice.Customer.WithHoldingTax)
-                    {
-                        <td class="text-center">@formattedToPeso</td>
-                    }
-                    else
-                    {
-                        <td class="text-center">@Model.Amount</td>
-                    }
-                </tr>
-            }
-            else
-            {
                 <tr>
                     <td style="padding-left:20px;">Check</td>
                     <td></td>
@@ -200,77 +180,185 @@
                     <td></td>
                     <td></td>
                 </tr>
-            }
-            @if (Model.FormOfPayment == "Manager's Check")
-            {
                 <tr>
                     <td style="padding-left:20px;">Manager's Check</td>
-                <td class="text-center">@Model.CheckDate.ToShortDateString()</td>
-                <td class="text-center">@Html.DisplayFor(model => model.CheckNo)</td>
-                <td class="text-center">@Html.DisplayFor(model => model.Bank)</td>
-                <td class="text-center">@Html.DisplayFor(model => model.Branch)</td>
-                    @if (Model.SalesInvoice.Customer.WithHoldingTax)
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            }
+            else
+            { *@
+                @if (Model.FormOfPayment == "Cash")
+                {
+                <tr>
+                    <td style="padding-left:20px;">Cash</td>
+                    <td class="text-center"></td>
+                    <td class="text-center"></td>
+                    <td class="text-center"></td>
+                    <td class="text-center"></td>
+                    @if (Model.Preference == "Tax/Vat Only")
                     {
-                        <td class="text-center">@formattedToPeso</td>
+                        <td></td>
                     }
                     else{
-                        <td class="text-center">@Model.Amount</td>
-                        }
-                    </tr>
-            }
-            else
-            {
-                <tr>
-                    <td style="padding-left:20px;">Manager's Check</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            }
-            <tr>
-                <td style="padding-left:20px;">EWT</td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                @if (Model.SalesInvoice.Customer.WithHoldingTax) {
-                    var formattedToPesoTax = String.Format("{0:N2}", EWT);
-
-                    <td class="text-center">@formattedToPesoTax</td>
-                }
-                else{
-                    <td></td>
+                    <td class="text-center">@Html.DisplayFor(model => model.Amount)</td>
                     }
-                </tr>
-            <tr>
-                <td style="padding-left:20px;">WVAT</td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                @if (Model.SalesInvoice.Customer.WithHoldingTax)
-                {
-                    var formattedToPesoTax = String.Format("{0:N2}", EWT);
-
-                    <td class="text-center"></td>
+                    </tr>
                 }
                 else
                 {
-                    <td></td>
+                    <tr>
+                        <td style="padding-left:20px;">Cash</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
                 }
-            </tr>
+                @if (Model.FormOfPayment == "Check")
+                {
+                    <tr>
+                        <td style="padding-left:20px;">Check</td>
+                        <td class="text-center">@Model.CheckDate.ToShortDateString()</td>
+                        <td class="text-center">@Html.DisplayFor(model => model.CheckNo)</td>
+                        <td class="text-center">@Html.DisplayFor(model => model.Bank)</td>
+                        <td class="text-center">@Html.DisplayFor(model => model.Branch)</td>
+                    @if (Model.Preference == "Tax/Vat Only")
+                    {
+                        <td></td>
+                    }
+                    else
+                    {
+                        <td class="text-center">@Html.DisplayFor(model => model.Amount)</td>
+                    }
+                    </tr>
+                }
+                else
+                {
+                    <tr>
+                        <td style="padding-left:20px;">Check</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                }
+                @if (Model.FormOfPayment == "Manager's Check")
+                {
+                    <tr>
+                        <td style="padding-left:20px;">Manager's Check</td>
+                        <td class="text-center">@Model.CheckDate.ToShortDateString()</td>
+                        <td class="text-center">@Html.DisplayFor(model => model.CheckNo)</td>
+                        <td class="text-center">@Html.DisplayFor(model => model.Bank)</td>
+                        <td class="text-center">@Html.DisplayFor(model => model.Branch)</td>
+                    @if (Model.Preference == "Tax/Vat Only")
+                    {
+                        <td></td>
+                    }
+                    else
+                    {
+                        <td class="text-center">@Html.DisplayFor(model => model.Amount)</td>
+                    }
+                    </tr>
+                }
+                else
+                {
+                    <tr>
+                        <td style="padding-left:20px;">Manager's Check</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                }
+            @* } *@
+
+            @if (Model.Preference == "Complete" || Model.Preference == "Tax/Vat Only")
+            {
+                <tr>
+                    <td style="padding-left:20px;">EWT</td>
+                    @* @if (Model.Preference == "Tax/Vat Only" && Model.EWT != 0)
+                    {
+                        <td class="text-center">@Model.CheckDate.ToShortDateString()</td>
+                        <td class="text-center">@Html.DisplayFor(model => model.CheckNo)</td>
+                        <td class="text-center">@Html.DisplayFor(model => model.Bank)</td>
+                        <td class="text-center">@Html.DisplayFor(model => model.Branch)</td>
+                    }
+                    else
+                    { *@
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                   @*  } *@
+                    @if (Model.EWT != 0)
+                    {
+                        <td class="text-center">@Html.DisplayFor(model => model.EWT)</td>
+                    }
+                    else
+                    {
+                        <td></td>
+                    }
+                </tr>
+                <tr>
+                    <td style="padding-left:20px;">WVAT</td>
+                    @* @if (Model.Preference == "Tax/Vat Only" && Model.WVAT != 0)
+                    {
+                        <td class="text-center">@Model.CheckDate.ToShortDateString()</td>
+                        <td class="text-center">@Html.DisplayFor(model => model.CheckNo)</td>
+                        <td class="text-center">@Html.DisplayFor(model => model.Bank)</td>
+                        <td class="text-center">@Html.DisplayFor(model => model.Branch)</td>
+                    }
+                    else
+                    { *@
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                   @*  } *@
+                    @if (Model.WVAT != 0)
+                    {
+                        <td class="text-center">@Html.DisplayFor(model => model.WVAT)</td>
+                    }
+                    else
+                    {
+                        <td></td>
+                    }
+                </tr>
+            }
+            else
+            {
+                <tr>
+                    <td style="padding-left:20px;">EWT</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td style="padding-left:20px;">WVAT</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            }
+
             <tr>
                 <td style="padding-left:20px;">TOTAL</td>
                 <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
-                @{
-                    var formattedToPesoTotal = String.Format("{0:N2}", total);
-                }
-                <td class="text-center">@formattedToPesoTotal</td>
+                <td class="text-center">@Html.DisplayFor(model => model.Total)</td>
             </tr>
         </tbody>
     </table>

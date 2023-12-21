@@ -62,7 +62,7 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 var generatedCM = await _creditMemoRepo.GenerateCMNo();
-                long getLastNumber = await _creditMemoRepo.GetLastSeriesNumber();
+                var getLastNumber = await _creditMemoRepo.GetLastSeriesNumber();
                 model.SeriesNumber = getLastNumber;
                 model.CMNo = generatedCM;
                 model.CreatedBy = _userManager.GetUserName(this.User);

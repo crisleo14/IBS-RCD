@@ -13,10 +13,10 @@ namespace Accounting_System.Models
         [Display(Name = "Customer Name")]
         public string CustomerName { get; set; }
 
-        public string Bank { get; set; }
+        public string? Bank { get; set; }
 
         [Display(Name = "Check No.")]
-        public string CheckNo { get; set; }
+        public string? CheckNo { get; set; }
 
         [Display(Name = "Chart of Account")]
         public string COA { get; set; }

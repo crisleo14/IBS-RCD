@@ -141,7 +141,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<int> UpdateInvoice(int id, decimal paidAmount)
+        public async Task<int> UpdateInvoice(int id, decimal paidAmount, decimal offsetAmount)
         {
             var si = await _dbContext
                 .SalesInvoices
@@ -149,8 +149,9 @@ namespace Accounting_System.Repository
 
             if (si != null)
             {
-                si.AmountPaid += paidAmount;
-                si.Balance = si.Amount - si.AmountPaid;
+                var total = paidAmount + offsetAmount;
+                si.AmountPaid += total;
+                si.Balance = si.NetDiscount - si.AmountPaid;
 
                 if (si.Balance == 0)
                 {
