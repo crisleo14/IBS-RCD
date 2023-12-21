@@ -30,9 +30,11 @@ namespace Accounting_System.Data
         public DbSet<CreditMemo> CreditMemos { get; set; }
         public DbSet<CheckVoucherHeader> CheckVoucherHeaders { get; set; }
         public DbSet<CheckVoucherDetail> CheckVoucherDetails { get; set; }
+        public DbSet<Offsetting> Offsettings { get; set; }
 
         // Book Context
         public DbSet<CashReceiptBook> CashReceiptBooks { get; set; }
+
         public DbSet<InventoryBook> InventoryBooks { get; set; }
         public DbSet<GeneralLedgerBook> GeneralLedgerBooks { get; set; }
         public DbSet<DisbursementBook> DisbursementBooks { get; set; }

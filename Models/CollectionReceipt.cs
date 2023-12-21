@@ -31,11 +31,11 @@ namespace Accounting_System.Models
         public DateTime CheckDate { get; set; }
 
         [Display(Name = "Check No")]
-        public string CheckNo { get; set; }
+        public string? CheckNo { get; set; }
 
-        public string Bank { get; set; }
+        public string? Bank { get; set; }
 
-        public string Branch { get; set; }
+        public string? Branch { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Amount { get; set; }
@@ -64,6 +64,12 @@ namespace Accounting_System.Models
         [Required]
         public string Preference { get; set; }
 
+        [Required]
         public string TypeOfCollection { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? ChartOfAccounts { get; set; }
+
+        public string? SINo { get; set; }
     }
 }
