@@ -121,5 +121,7 @@ namespace Accounting_System.Models
         public decimal Balance { get; set; }
 
         public bool IsPaid { get; set; }
+
+        public bool IsTaxAndVatPaid { get; set; }
     }
 }
