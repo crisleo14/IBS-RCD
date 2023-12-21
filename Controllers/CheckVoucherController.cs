@@ -164,7 +164,7 @@ namespace Accounting_System.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int? id, CheckVoucherVM model)
         {
-            if (id == null || model.Header == null || model.Details == null)
+            if (id == null)
             {
                 return NotFound();
             }
