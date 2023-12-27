@@ -52,26 +52,6 @@
                 <label for="floatingInput" class="control-label">Reference #</label>
                 <span asp-validation-for="ReferenceNo" class="text-danger"></span>
             </div>
-                <fieldset class="form-group">
-                    <label class="control-label">Type of Collection</label><br />
-
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" asp-for="TypeOfCollection" value="Full">
-                        <label class="form-check-label">Full</label>
-                    </div>
-
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" asp-for="TypeOfCollection" value="Partial">
-                        <label class="form-check-label">Partial</label>
-                    </div>
-
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" asp-for="TypeOfCollection" value="Offsetting">
-                        <label class="form-check-label">Full w/ Offset</label>
-                    </div>
-                    <br />
-                    <span asp-validation-for="Preference" class="text-danger"></span>
-                </fieldset>
             <div class="form-group">
                 <label class="control-label">Form of Payment</label>
             <select asp-for="FormOfPayment" class="form-select js-select2">
