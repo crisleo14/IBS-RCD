@@ -28,28 +28,28 @@
     <div class="col-md-4">
         <form asp-action="CreateCollectionReceipt" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label class="control-label">Customers</label>
                 <select asp-for="CustomerNo" asp-items="@Model.Customers" class="form-select js-select2">
                     <option></option>
                 </select>
             </div>
 
-                <div class="form-group">
+                <div class="form-group mb-3">
                     <label class="control-label">SI NO.</label>
                     <select asp-for="SalesInvoiceId" id="invoices" asp-items="@Model.Invoices" class="form-select js-select2">
                         <option></option>
                     </select>
                 </div>
 
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label asp-for="Date" class="control-label"></label>
                 <input asp-for="Date" type="Date" class="form-control" />
                 <span asp-validation-for="Date" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="ReferenceNo" class="control-label"></label>
-                <input asp-for="ReferenceNo" type="text" class="form-control" />
+            <div class="form-floating mb-3">
+                <input asp-for="ReferenceNo" id="floatingInput" type="text" class="form-control" placeholder="Reference #"/>
+                <label for="floatingInput" class="control-label">Reference #</label>
                 <span asp-validation-for="ReferenceNo" class="text-danger"></span>
             </div>
                 <fieldset class="form-group">
@@ -68,26 +68,6 @@
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" asp-for="TypeOfCollection" value="Offsetting">
                         <label class="form-check-label">Full w/ Offset</label>
-                    </div>
-                    <br />
-                    <span asp-validation-for="Preference" class="text-danger"></span>
-                </fieldset>
-                <fieldset class="form-group">
-                    <label class="control-label">Select Preference</label><br />
-
-                    <div class="form-check form-check-inline with-certificate-elements">
-                        <input class="form-check-input" type="radio" asp-for="Preference" value="With Certificate">
-                        <label class="form-check-label">w/ Certificate</label>
-                    </div>
-
-                    <div class="form-check form-check-inline without-certificate-elements">
-                        <input class="form-check-input" type="radio" asp-for="Preference" value="Without Certificate">
-                        <label class="form-check-label">w/o Certificate</label>
-                    </div>
-
-                    <div class="form-check form-check-inline tax-vat-elements">
-                        <input class="form-check-input" type="radio" asp-for="Preference" value="Tax/Vat Only">
-                        <label class="form-check-label">Tax/Vat Only</label>
                     </div>
                     <br />
                     <span asp-validation-for="Preference" class="text-danger"></span>
@@ -123,7 +103,7 @@
             </div>
             <div class="form-group">
                 <label asp-for="Total" class="control-label"></label>
-                <input asp-for="Total" type="text" class="form-control" required/>
+                <input asp-for="Total" type="text" class="form-control moneyInput" required/>
                 <span asp-validation-for="Total" class="text-danger"></span>
             </div>
             <div class="form-group" id="accountingEntrySection" style="display: none;">
@@ -175,7 +155,7 @@
                         </div>
                         <div class="form-group pt-4">
                             <label class="control-label">Amount</label>
-                            <input id="AccountAmount" type="number" class="form-control" />
+                            <input id="AccountAmount" class="form-control moneyInput" />
                             <span class="text-danger"></span>
                         </div>
                     </form>
@@ -434,6 +414,37 @@
             });
         </script>
 
+        <script>
+            $(document).ready(function () {
+                // Attach an input event listener to the moneyInput field
+                $(".moneyInput").on("input", function () {
+                    // Get the current value of the input
+                    var inputValue = $(this).val();
 
+                    // Remove non-numeric characters except for the decimal point
+                    var numericValue = inputValue.replace(/[^\d.]/g, '');
+
+                    // Format the numeric value with commas and two decimal places
+                    var formattedValue = numberWithCommasAndDecimals(numericValue);
+
+                    // Set the formatted value back to the input field
+                    $(this).val(formattedValue);
+                });
+
+                // Function to add commas and two decimal places to a number
+                function numberWithCommasAndDecimals(number) {
+                    // Split the number into integer and decimal parts
+                    var parts = number.split('.');
+                    var integerPart = parts[0];
+                    var decimalPart = parts.length > 1 ? '.' + parts[1] : '';
+
+                    // Add commas to the integer part
+                    var numberWithCommas = integerPart.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+                    // Combine the integer and decimal parts
+                    return numberWithCommas + decimalPart;
+                }
+            });
+        </script>
 
 }
