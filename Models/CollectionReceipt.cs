@@ -64,9 +64,6 @@ namespace Accounting_System.Models
         [Required]
         public string Preference { get; set; }
 
-        [Required]
-        public string TypeOfCollection { get; set; }
-
         [NotMapped]
         public List<SelectListItem>? ChartOfAccounts { get; set; }
 
