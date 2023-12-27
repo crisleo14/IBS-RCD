@@ -101,7 +101,7 @@ namespace Accounting_System.Controllers
                 var totalRemainingSeries = 9999999999 - getLastNumber;
                 if (getLastNumber >= 9999999899)
                 {
-                    TempData["warning"] = $"Purchase Order created successfully, Warning {totalRemainingSeries} series numbers remaining";
+                    TempData["warning"] = $"Check Voucher created successfully, Warning {totalRemainingSeries} series numbers remaining";
                 }
                 else
                 {
@@ -253,7 +253,7 @@ namespace Accounting_System.Controllers
                 var totalRemainingSeries = 9999999999 - getLastNumber;
                 if (getLastNumber >= 9999999899)
                 {
-                    TempData["warning"] = $"Purchase Order created successfully, Warning {totalRemainingSeries} series numbers remaining";
+                    TempData["warning"] = $"Check Voucher created successfully, Warning {totalRemainingSeries} series numbers remaining";
                 }
                 else
                 {
