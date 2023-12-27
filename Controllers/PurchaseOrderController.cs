@@ -72,10 +72,10 @@ namespace Accounting_System.Controllers
                     TempData["error"] = "You reach the maximum Series Number";
                     return View(model);
                 }
-
+                var totalRemainingSeries = 9999999999 - getLastNumber;
                 if (getLastNumber >= 9999999899)
                 {
-                    TempData["warning"] = "Purchase Order created successfully, Warning 100 series number remaining";
+                    TempData["warning"] = $"Purchase Order created successfully, Warning {totalRemainingSeries} series number remaining";
                 }else
                 {
                     TempData["success"] = "Purchase Order created successfully";
@@ -129,6 +129,14 @@ namespace Accounting_System.Controllers
                     return NotFound();
                 }
 
+                model.Suppliers = await _dbContext.Suppliers
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync();
+
                 existingModel.Date = model.Date;
                 existingModel.SupplierId = model.SupplierId;
                 existingModel.ProductName = model.ProductName;
@@ -136,6 +144,7 @@ namespace Accounting_System.Controllers
                 existingModel.Quantity = model.Quantity;
                 existingModel.Price = model.Price;
                 existingModel.Amount = model.Quantity * model.Price;
+                existingModel.Remarks = model.Remarks;
 
                 await _dbContext.SaveChangesAsync();
 
@@ -174,6 +183,32 @@ namespace Accounting_System.Controllers
                 await _dbContext.SaveChangesAsync();
             }
             return RedirectToAction("Print", new { id = id });
+        }
+
+        public async Task<IActionResult> Post(int poId)
+        {
+            var model = await _dbContext.PurchaseOrders.FindAsync(poId);
+
+            if (model != null)
+            {
+                if (!model.IsPosted)
+                {
+                    model.IsPosted = true;
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Purchase Order has been Posted.";
+
+                }
+                //else
+                //{
+                //    model.IsVoid = true;
+                //    await _dbContext.SaveChangesAsync();
+                //    TempData["success"] = "Purchase Order has been Voided.";
+                //}
+                return RedirectToAction(nameof(Index));
+            }
+
+            return NotFound();
         }
     }
 }

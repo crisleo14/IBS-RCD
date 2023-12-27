@@ -95,10 +95,10 @@ namespace Accounting_System.Controllers
                     TempData["error"] = "You reach the maximum Series Number";
                     return View(model);
                 }
-
+                var totalRemainingSeries = 9999999999 - getLastNumber;
                 if (getLastNumber >= 9999999899)
                 {
-                    TempData["warning"] = "Receiving Report created successfully, Warning 100 series number remaining";
+                    TempData["warning"] = $"Receiving Report created successfully, Warning {totalRemainingSeries} series number remaining";
                 }
                 else
                 {
@@ -195,6 +195,32 @@ namespace Accounting_System.Controllers
                 await _dbContext.SaveChangesAsync();
             }
             return RedirectToAction("Print", new { id = id });
+        }
+
+        public async Task<IActionResult> Post(int rrId)
+        {
+            var model = await _dbContext.ReceivingReports.FindAsync(rrId);
+
+            if (model != null)
+            {
+                if (!model.IsPosted)
+                {
+                    model.IsPosted = true;
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Receiving Report has been Posted.";
+
+                }
+                //else
+                //{
+                //    model.IsVoid = true;
+                //    await _dbContext.SaveChangesAsync();
+                //    TempData["success"] = "Purchase Order has been Voided.";
+                //}
+                return RedirectToAction(nameof(Index));
+            }
+
+            return NotFound();
         }
     }
 }
