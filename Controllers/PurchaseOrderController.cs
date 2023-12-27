@@ -129,6 +129,14 @@ namespace Accounting_System.Controllers
                     return NotFound();
                 }
 
+                model.Suppliers = await _dbContext.Suppliers
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync();
+
                 existingModel.Date = model.Date;
                 existingModel.SupplierId = model.SupplierId;
                 existingModel.ProductName = model.ProductName;
@@ -136,6 +144,7 @@ namespace Accounting_System.Controllers
                 existingModel.Quantity = model.Quantity;
                 existingModel.Price = model.Price;
                 existingModel.Amount = model.Quantity * model.Price;
+                existingModel.Remarks = model.Remarks;
 
                 await _dbContext.SaveChangesAsync();
 
