@@ -121,218 +121,218 @@ namespace Accounting_System.Controllers
                 {
                     TempData["warning"] = "Collection Receipt created successfully, Warning 100 series number remaining";
                 }
-                else
-                {
-                    TempData["success"] = "Collection Receipt created successfully";
-                }
+                //else
+                //{
+                //    TempData["success"] = "Collection Receipt created successfully";
+                //}
 
                 #endregion --Validating the series
 
                 #region -- Full Collection
 
-                if (model.TypeOfCollection == "Full")
-                {
-                    if (model.Preference == "With Certificate")
-                    {
-                        if (existingSalesInvoice.IsTaxAndVatPaid)
-                        {
-                            TempData["error"] = "Certificate already paid, please choose the 'w/o Certificate'";
-                            return View(model);
-                        }
+                //if (model.TypeOfCollection == "Full")
+                //{
+                //    if (model.Preference == "With Certificate")
+                //    {
+                //        if (existingSalesInvoice.IsTaxAndVatPaid)
+                //        {
+                //            TempData["error"] = "Certificate already paid, please choose the 'w/o Certificate'";
+                //            return View(model);
+                //        }
 
-                        var amount = existingSalesInvoice.Balance == 0 ? existingSalesInvoice.NetDiscount : existingSalesInvoice.Balance;
+                //        var amount = existingSalesInvoice.Balance == 0 ? existingSalesInvoice.NetDiscount : existingSalesInvoice.Balance;
 
-                        var roundedDecimal = Math.Round(amount, 2, MidpointRounding.AwayFromZero);
+                //        var roundedDecimal = Math.Round(amount, 2, MidpointRounding.AwayFromZero);
 
-                        if (roundedDecimal == model.Total)
-                        {
-                            model.EWT = existingSalesInvoice.WithHoldingTaxAmount;
-                            model.WVAT = existingSalesInvoice.WithHoldingVatAmount;
-                            model.Amount = model.Total - (model.EWT + model.WVAT);
-                            existingSalesInvoice.IsTaxAndVatPaid = true;
-                        }
-                        else
-                        {
-                            TempData["error"] = $"Input the exact amount of {existingSalesInvoice.NetDiscount}";
-                            return View(model);
-                        }
-                    }
-                    else if (model.Preference == "Without Certificate")
-                    {
-                        decimal amount = 0;
+                //        if (roundedDecimal == model.Total)
+                //        {
+                //            model.EWT = existingSalesInvoice.WithHoldingTaxAmount;
+                //            model.WVAT = existingSalesInvoice.WithHoldingVatAmount;
+                //            model.Amount = model.Total - (model.EWT + model.WVAT);
+                //            existingSalesInvoice.IsTaxAndVatPaid = true;
+                //        }
+                //        else
+                //        {
+                //            TempData["error"] = $"Input the exact amount of {existingSalesInvoice.NetDiscount}";
+                //            return View(model);
+                //        }
+                //    }
+                //    else if (model.Preference == "Without Certificate")
+                //    {
+                //        decimal amount = 0;
 
-                        if (existingSalesInvoice.Balance == 0)
-                        {
-                            amount = existingSalesInvoice.NetDiscount - (existingSalesInvoice.WithHoldingVatAmount + existingSalesInvoice.WithHoldingTaxAmount);
-                        }
-                        else if (existingSalesInvoice.Balance != 0 && !existingSalesInvoice.IsTaxAndVatPaid)
-                        {
-                            amount = existingSalesInvoice.Balance - (existingSalesInvoice.WithHoldingVatAmount + existingSalesInvoice.WithHoldingTaxAmount);
-                        }
-                        else
-                        {
-                            amount = existingSalesInvoice.Balance;
-                        }
+                //        if (existingSalesInvoice.Balance == 0)
+                //        {
+                //            amount = existingSalesInvoice.NetDiscount - (existingSalesInvoice.WithHoldingVatAmount + existingSalesInvoice.WithHoldingTaxAmount);
+                //        }
+                //        else if (existingSalesInvoice.Balance != 0 && !existingSalesInvoice.IsTaxAndVatPaid)
+                //        {
+                //            amount = existingSalesInvoice.Balance - (existingSalesInvoice.WithHoldingVatAmount + existingSalesInvoice.WithHoldingTaxAmount);
+                //        }
+                //        else
+                //        {
+                //            amount = existingSalesInvoice.Balance;
+                //        }
 
-                        var roundedDecimal = Math.Round(amount, 2, MidpointRounding.AwayFromZero);
+                //        var roundedDecimal = Math.Round(amount, 2, MidpointRounding.AwayFromZero);
 
-                        if (roundedDecimal == model.Total)
-                        {
-                            model.Amount = roundedDecimal;
-                        }
-                        else
-                        {
-                            TempData["error"] = $"Input the exact amount of {roundedDecimal}";
-                            return View(model);
-                        }
-                    }
-                    else if (model.Preference == "Tax/Vat Only")
-                    {
-                        if (!existingSalesInvoice.IsTaxAndVatPaid)
-                        {
-                            var amount = existingSalesInvoice.WithHoldingTaxAmount + existingSalesInvoice.WithHoldingVatAmount;
+                //        if (roundedDecimal == model.Total)
+                //        {
+                //            model.Amount = roundedDecimal;
+                //        }
+                //        else
+                //        {
+                //            TempData["error"] = $"Input the exact amount of {roundedDecimal}";
+                //            return View(model);
+                //        }
+                //    }
+                //    else if (model.Preference == "Tax/Vat Only")
+                //    {
+                //        if (!existingSalesInvoice.IsTaxAndVatPaid)
+                //        {
+                //            var amount = existingSalesInvoice.WithHoldingTaxAmount + existingSalesInvoice.WithHoldingVatAmount;
 
-                            var roundedDecimal = Math.Round(amount, 2, MidpointRounding.AwayFromZero);
+                //            var roundedDecimal = Math.Round(amount, 2, MidpointRounding.AwayFromZero);
 
-                            if (roundedDecimal == 0)
-                            {
-                                TempData["error"] = $"No tax or vat found in this invoice.";
-                                return View(model);
-                            }
-                            else if (roundedDecimal != model.Total)
-                            {
-                                TempData["error"] = $"Input the exact amount of {roundedDecimal}";
-                                return View(model);
-                            }
-                            else
-                            {
-                                model.EWT = existingSalesInvoice.WithHoldingTaxAmount;
-                                model.WVAT = existingSalesInvoice.WithHoldingVatAmount;
-                                model.Amount = roundedDecimal;
-                                existingSalesInvoice.IsTaxAndVatPaid = true;
-                            }
-                        }
-                        else
-                        {
-                            TempData["error"] = $"Tax/Vat already paid";
-                            return View(model);
-                        }
-                    }
-                    else
-                    {
-                        TempData["error"] = $"Invalid action, please check the details.";
-                        return View(model);
-                    }
-                }
+                //            if (roundedDecimal == 0)
+                //            {
+                //                TempData["error"] = $"No tax or vat found in this invoice.";
+                //                return View(model);
+                //            }
+                //            else if (roundedDecimal != model.Total)
+                //            {
+                //                TempData["error"] = $"Input the exact amount of {roundedDecimal}";
+                //                return View(model);
+                //            }
+                //            else
+                //            {
+                //                model.EWT = existingSalesInvoice.WithHoldingTaxAmount;
+                //                model.WVAT = existingSalesInvoice.WithHoldingVatAmount;
+                //                model.Amount = roundedDecimal;
+                //                existingSalesInvoice.IsTaxAndVatPaid = true;
+                //            }
+                //        }
+                //        else
+                //        {
+                //            TempData["error"] = $"Tax/Vat already paid";
+                //            return View(model);
+                //        }
+                //    }
+                //    else
+                //    {
+                //        TempData["error"] = $"Invalid action, please check the details.";
+                //        return View(model);
+                //    }
+                //}
 
                 #endregion -- Full Collection
 
                 #region -- Partial Collection
 
-                else if (model.TypeOfCollection == "Partial")
-                {
-                    if (model.Preference == "With Certificate")
-                    {
-                        if (existingSalesInvoice.IsTaxAndVatPaid)
-                        {
-                            TempData["error"] = "Certificate already paid, please choose the 'w/o Certificate'";
-                            return View(model);
-                        }
+                //else if (model.TypeOfCollection == "Partial")
+                //{
+                //    if (model.Preference == "With Certificate")
+                //    {
+                //        if (existingSalesInvoice.IsTaxAndVatPaid)
+                //        {
+                //            TempData["error"] = "Certificate already paid, please choose the 'w/o Certificate'";
+                //            return View(model);
+                //        }
 
-                        var amount = existingSalesInvoice.Balance == 0 ? existingSalesInvoice.NetDiscount : existingSalesInvoice.Balance;
+                //        var amount = existingSalesInvoice.Balance == 0 ? existingSalesInvoice.NetDiscount : existingSalesInvoice.Balance;
 
-                        var roundedAmount = Math.Round(amount, 2, MidpointRounding.AwayFromZero);
+                //        var roundedAmount = Math.Round(amount, 2, MidpointRounding.AwayFromZero);
 
-                        if (roundedAmount >= model.Total)
-                        {
-                            model.EWT = existingSalesInvoice.WithHoldingTaxAmount;
-                            model.WVAT = existingSalesInvoice.WithHoldingVatAmount;
-                            model.Amount = model.Total - (model.EWT + model.WVAT);
-                            existingSalesInvoice.IsTaxAndVatPaid = true;
-                        }
-                        else
-                        {
-                            TempData["error"] = $"Input the exact or less than amount of {roundedAmount}";
-                            return View(model);
-                        }
-                    }
-                    else
-                    {
-                        decimal amount = 0;
+                //        if (roundedAmount >= model.Total)
+                //        {
+                //            model.EWT = existingSalesInvoice.WithHoldingTaxAmount;
+                //            model.WVAT = existingSalesInvoice.WithHoldingVatAmount;
+                //            model.Amount = model.Total - (model.EWT + model.WVAT);
+                //            existingSalesInvoice.IsTaxAndVatPaid = true;
+                //        }
+                //        else
+                //        {
+                //            TempData["error"] = $"Input the exact or less than amount of {roundedAmount}";
+                //            return View(model);
+                //        }
+                //    }
+                //    else
+                //    {
+                //        decimal amount = 0;
 
-                        if (existingSalesInvoice.Balance == 0)
-                        {
-                            amount = existingSalesInvoice.NetDiscount - (existingSalesInvoice.WithHoldingVatAmount + existingSalesInvoice.WithHoldingTaxAmount);
-                        }
-                        else if (existingSalesInvoice.Balance != 0 && !existingSalesInvoice.IsTaxAndVatPaid)
-                        {
-                            amount = existingSalesInvoice.Balance - (existingSalesInvoice.WithHoldingVatAmount + existingSalesInvoice.WithHoldingTaxAmount);
-                        }
-                        else
-                        {
-                            amount = existingSalesInvoice.Balance;
-                        }
+                //        if (existingSalesInvoice.Balance == 0)
+                //        {
+                //            amount = existingSalesInvoice.NetDiscount - (existingSalesInvoice.WithHoldingVatAmount + existingSalesInvoice.WithHoldingTaxAmount);
+                //        }
+                //        else if (existingSalesInvoice.Balance != 0 && !existingSalesInvoice.IsTaxAndVatPaid)
+                //        {
+                //            amount = existingSalesInvoice.Balance - (existingSalesInvoice.WithHoldingVatAmount + existingSalesInvoice.WithHoldingTaxAmount);
+                //        }
+                //        else
+                //        {
+                //            amount = existingSalesInvoice.Balance;
+                //        }
 
-                        var roundedAmount = Math.Round(amount, 2, MidpointRounding.AwayFromZero);
+                //        var roundedAmount = Math.Round(amount, 2, MidpointRounding.AwayFromZero);
 
-                        if (roundedAmount >= model.Total)
-                        {
-                            model.Amount = roundedAmount;
-                        }
-                        else
-                        {
-                            TempData["error"] = $"Input the exact or less than amount of  {roundedAmount}";
-                            return View(model);
-                        }
-                    }
-                }
+                //        if (roundedAmount >= model.Total)
+                //        {
+                //            model.Amount = roundedAmount;
+                //        }
+                //        else
+                //        {
+                //            TempData["error"] = $"Input the exact or less than amount of  {roundedAmount}";
+                //            return View(model);
+                //        }
+                //    }
+                //}
 
                 #endregion -- Partial Collection
 
                 #region -- Offsetting Collection
 
-                else if (model.TypeOfCollection == "Offsetting")
-                {
-                    if (existingSalesInvoice.AmountPaid != 0)
-                    {
-                        TempData["error"] = $"Offsetting is not applicable to invoice that had partial payment.";
-                        return View(model);
-                    }
+                //else if (model.TypeOfCollection == "Offsetting")
+                //{
+                //    if (existingSalesInvoice.AmountPaid != 0)
+                //    {
+                //        TempData["error"] = $"Offsetting is not applicable to invoice that had partial payment.";
+                //        return View(model);
+                //    }
 
-                    if (accountTitle.Length != 0 && accountAmount.Length != 0)
-                    {
-                        //offsetting function
-                        var offsettings = new List<Offsetting>();
+                //    if (accountTitle.Length != 0 && accountAmount.Length != 0)
+                //    {
+                //        //offsetting function
+                //        var offsettings = new List<Offsetting>();
 
-                        for (int i = 0; i < accountTitle.Length; i++)
-                        {
-                            var currentAccountTitle = accountTitle[i];
-                            var currentAccountAmount = accountAmount[i];
-                            offsetAmount += accountAmount[i];
+                //        for (int i = 0; i < accountTitle.Length; i++)
+                //        {
+                //            var currentAccountTitle = accountTitle[i];
+                //            var currentAccountAmount = accountAmount[i];
+                //            offsetAmount += accountAmount[i];
 
-                            offsettings.Add(
-                                new Offsetting
-                                {
-                                    AccountNo = currentAccountTitle,
-                                    Source = model.CRNo,
-                                    CreatedBy = model.CreatedBy,
-                                    CreatedDate = model.CreatedDate
-                                }
-                            );
+                //            offsettings.Add(
+                //                new Offsetting
+                //                {
+                //                    AccountNo = currentAccountTitle,
+                //                    Source = model.CRNo,
+                //                    CreatedBy = model.CreatedBy,
+                //                    CreatedDate = model.CreatedDate
+                //                }
+                //            );
 
-                            _dbContext.AddRange(offsettings);
-                        }
-                        model.EWT = existingSalesInvoice.WithHoldingTaxAmount;
-                        model.WVAT = existingSalesInvoice.WithHoldingVatAmount;
-                        model.Amount = model.Total - (model.EWT + model.WVAT);
-                        existingSalesInvoice.IsTaxAndVatPaid = true;
-                    }
-                    else
-                    {
-                        TempData["error"] = $"Accounting entries is required.";
-                        return View(model);
-                    }
-                }
+                //            _dbContext.AddRange(offsettings);
+                //        }
+                //        model.EWT = existingSalesInvoice.WithHoldingTaxAmount;
+                //        model.WVAT = existingSalesInvoice.WithHoldingVatAmount;
+                //        model.Amount = model.Total - (model.EWT + model.WVAT);
+                //        existingSalesInvoice.IsTaxAndVatPaid = true;
+                //    }
+                //    else
+                //    {
+                //        TempData["error"] = $"Accounting entries is required.";
+                //        return View(model);
+                //    }
+                //}
 
                 #endregion -- Offsetting Collection
 
@@ -343,7 +343,7 @@ namespace Accounting_System.Controllers
                 }
 
                 _dbContext.Add(model);
-                await _receiptRepo.UpdateInvoice(existingSalesInvoice.Id, model.Total, offsetAmount);
+                //await _receiptRepo.UpdateInvoice(existingSalesInvoice.Id, model.Total, offsetAmount);
 
                 #region --Audit Trail Recording
 
