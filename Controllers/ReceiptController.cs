@@ -109,7 +109,7 @@ namespace Accounting_System.Controllers
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 model.Total = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + model.EWT + model.WVAT;
 
-                //decimal offsetAmount = 0;
+                decimal offsetAmount = 0;
 
                 #endregion --Saving default value
 
