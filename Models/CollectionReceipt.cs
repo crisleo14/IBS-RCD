@@ -12,7 +12,7 @@ namespace Accounting_System.Models
         [ForeignKey("SalesInvoiceId")]
         public SalesInvoice? SalesInvoice { get; set; }
 
-        [Display(Name = "Customer No.")]
+        [Display(Name = "Collection Receipt No.")]
         public string? CRNo { get; set; }
 
         public long SeriesNumber { get; set; }
