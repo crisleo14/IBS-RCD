@@ -157,7 +157,16 @@
                 <td class="text-center"></td>
                 <td class="text-center"></td>
                 <td class="text-center"></td>
-                <td class="text-center"></td>
+                <td class="text-center">
+                    @if (Model.CashAmount != null)
+                    {
+                        <p style="height: 9px;">@Html.DisplayFor(model => model.CashAmount)</p>
+                    }
+                    else
+                    {
+                        <p></p>
+                    }
+                    </td>
             </tr>
 
             <tr>
