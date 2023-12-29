@@ -23,23 +23,6 @@ namespace Accounting_System.Models
         [Required]
         public string ReferenceNo { get; set; }
 
-        [Display(Name = "Form Of Payment")]
-        [Required]
-        public string FormOfPayment { get; set; }
-
-        [Display(Name = "Check Date")]
-        public DateTime CheckDate { get; set; }
-
-        [Display(Name = "Check No")]
-        public string? CheckNo { get; set; }
-
-        public string? Bank { get; set; }
-
-        public string? Branch { get; set; }
-
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal Amount { get; set; }
-
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal EWT { get; set; }
 
@@ -47,7 +30,6 @@ namespace Accounting_System.Models
         public decimal WVAT { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Required]
         public decimal Total { get; set; }
 
         public bool IsPrinted { get; set; }
@@ -61,12 +43,38 @@ namespace Accounting_System.Models
         [NotMapped]
         public List<SelectListItem>? Invoices { get; set; }
 
-        [Required]
-        public string Preference { get; set; }
+        public string Preference { get; set; } = " ";
 
         [NotMapped]
         public List<SelectListItem>? ChartOfAccounts { get; set; }
 
         public string? SINo { get; set; }
+
+        //cash
+        public decimal CashAmount { get; set; }
+
+        //Check
+        public DateTime? CheckDate { get; set; }
+
+        public string? CheckNo { get; set; }
+
+        public string? CheckBank { get; set; }
+
+        public string? CheckBranch { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal CheckAmount { get; set; }
+
+        //Manager's Check
+        public DateTime? ManagerCheckDate { get; set; }
+
+        public string? ManagerCheckNo { get; set; }
+
+        public string? ManagerCheckBank { get; set; }
+
+        public string? ManagerCheckBranch { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal ManagerCheckAmount { get; set; }
     }
 }
