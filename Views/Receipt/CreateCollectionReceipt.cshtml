@@ -182,44 +182,6 @@
     }
 
     <script>
-    // Function to validate the total amount
-    function validateTotalAmount() {
-        // Check the selected value of TypeOfCollection
-        var typeOfCollection = $("input[name='TypeOfCollection']:checked").val();
-
-        // Only run the validation logic if TypeOfCollection is "Offsetting"
-        if (typeOfCollection === "Offsetting") {
-            // Get the "Invoice Amount" from the page
-            var invoiceAmount = parseFloat($("#amount").text()) || 0;
-
-            // Get the "Total" amount from the form
-            var totalAmount = parseFloat($("#Total").val()) || 0;
-
-            // Calculate the sum of accounting entries' amounts
-            var accountingEntriesSum = 0;
-            $("input[name='accountAmount']").each(function () {
-                accountingEntriesSum += parseFloat($(this).val()) || 0;
-            });
-
-            // Calculate the total sum
-            var totalSum = totalAmount + accountingEntriesSum;
-
-            // Check if the total sum equals the invoice amount
-            if (totalSum !== invoiceAmount) {
-                alert("Total amount and accounting entries' amounts do not match the invoice amount.");
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    // Attach the validation function to the form submission
-    $("form").submit(function () {
-        return validateTotalAmount();
-    });
-</script>
-    <script>
         // Get the current date in the format "YYYY-MM-DD" (required for the date input)
         var myDate = new Date().toISOString().slice(0, 10);
 
@@ -337,32 +299,6 @@
                 $("#invoices").change(function () {
                     // Call the handleInvoiceChange function when the dropdown changes
                     handleInvoiceChange();
-                });
-            });
-        </script>
-
-
-        <script>
-            // Function to handle Form of Payment change event
-            function handleFormOfPaymentChange() {
-                var method = $("#FormOfPayment").val();
-                console.log(method);
-
-                if (method === "Cash") {
-                    $(".check-only").hide();
-                } else {
-                    $(".check-only").show();
-                }
-            }
-
-            $(document).ready(function () {
-                // Call the handleFormOfPaymentChange function on page load
-                handleFormOfPaymentChange();
-
-                // Attach event listener to Form of Payment dropdown
-                $("#FormOfPayment").change(function () {
-                    // Call the handleFormOfPaymentChange function when the dropdown changes
-                    handleFormOfPaymentChange();
                 });
             });
         </script>

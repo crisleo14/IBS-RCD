@@ -51,6 +51,7 @@ namespace Accounting_System.Controllers
                .ToList();
 
             viewModel.ChartOfAccounts = _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == "4" || coa.Level == "5")
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
                 {
@@ -85,6 +86,7 @@ namespace Accounting_System.Controllers
                 .ToList();
 
             model.ChartOfAccounts = _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == "4" || coa.Level == "5")
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
                 {
@@ -190,6 +192,28 @@ namespace Accounting_System.Controllers
                     );
                 }
 
+                if (accountAmount.Length != 0 && accountTitleText.Length != 0)
+                {
+                    for (int i = 0; i < accountTitle.Length; i++)
+                    {
+                        ledgers.Add(
+                        new GeneralLedgerBook
+                        {
+                            Date = model.Date.ToShortDateString(),
+                            Reference = model.CRNo,
+                            Description = "Collection for Receivable",
+                            AccountTitle = accountTitleText[i],
+                            Debit = accountAmount[i],
+                            Credit = 0,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        }
+                        );
+
+                        offsetAmount += accountAmount[i];
+                    }
+                }
+
                 ledgers.Add(
                         new GeneralLedgerBook
                         {
@@ -236,28 +260,6 @@ namespace Accounting_System.Controllers
                             CreatedDate = model.CreatedDate
                         }
                     );
-                }
-
-                if (accountAmount.Length != 0 && accountTitleText.Length != 0)
-                {
-                    for (int i = 0; i < accountTitle.Length; i++)
-                    {
-                        ledgers.Add(
-                        new GeneralLedgerBook
-                        {
-                            Date = model.Date.ToShortDateString(),
-                            Reference = model.CRNo,
-                            Description = "Collection for Receivable",
-                            AccountTitle = accountTitleText[i],
-                            Debit = accountAmount[i],
-                            Credit = 0,
-                            CreatedBy = model.CreatedBy,
-                            CreatedDate = model.CreatedDate
-                        }
-                        );
-
-                        offsetAmount += accountAmount[i];
-                    }
                 }
 
                 _dbContext.AddRange(ledgers);
@@ -326,6 +328,29 @@ namespace Accounting_System.Controllers
                     );
                 }
 
+                if (accountAmount.Length != 0 && accountTitleText.Length != 0)
+                {
+                    for (int i = 0; i < accountTitle.Length; i++)
+                    {
+                        crb.Add(
+                            new CashReceiptBook
+                            {
+                                Date = model.Date.ToShortDateString(),
+                                RefNo = model.CRNo,
+                                CustomerName = existingSalesInvoice.SoldTo,
+                                Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
+                                CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
+                                COA = accountTitleText[i],
+                                Particulars = existingSalesInvoice.SINo,
+                                Debit = accountAmount[i],
+                                Credit = 0,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+                }
+
                 crb.Add(
                 new CashReceiptBook
                 {
@@ -381,29 +406,6 @@ namespace Accounting_System.Controllers
                             CreatedDate = model.CreatedDate
                         }
                     );
-                }
-
-                if (accountAmount.Length != 0 && accountTitleText.Length != 0)
-                {
-                    for (int i = 0; i < accountTitle.Length; i++)
-                    {
-                        crb.Add(
-                            new CashReceiptBook
-                            {
-                                Date = model.Date.ToShortDateString(),
-                                RefNo = model.CRNo,
-                                CustomerName = existingSalesInvoice.SoldTo,
-                                Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
-                                CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
-                                COA = accountTitleText[i],
-                                Particulars = existingSalesInvoice.SINo,
-                                Debit = accountAmount[i],
-                                Credit = 0,
-                                CreatedBy = model.CreatedBy,
-                                CreatedDate = model.CreatedDate
-                            }
-                        );
-                    }
                 }
 
                 _dbContext.AddRange(crb);
