@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231227031326_add new fields in chart of account")]
+    partial class addnewfieldsinchartofaccount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -257,28 +260,22 @@ namespace Accounting_System.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Bank")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Branch")
+                        .HasColumnType("text");
+
                     b.Property<string>("CRNo")
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("CashAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("CheckAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("CheckBank")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CheckBranch")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CheckDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CheckNo")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
@@ -296,26 +293,12 @@ namespace Accounting_System.Migrations
                     b.Property<decimal>("EWT")
                         .HasColumnType("numeric");
 
+                    b.Property<string>("FormOfPayment")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<bool>("IsPrinted")
                         .HasColumnType("boolean");
-
-                    b.Property<decimal>("ManagerCheckAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("ManagerCheckBank")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ManagerCheckBranch")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("ManagerCheckDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ManagerCheckNo")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("Preference")
                         .IsRequired()
@@ -336,6 +319,10 @@ namespace Accounting_System.Migrations
 
                     b.Property<decimal>("Total")
                         .HasColumnType("numeric");
+
+                    b.Property<string>("TypeOfCollection")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<decimal>("WVAT")
                         .HasColumnType("numeric");

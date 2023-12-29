@@ -91,6 +91,8 @@ namespace Accounting_System.Repository
         {
             return await _dbContext
                 .CollectionReceipts
+                .Include(cr => cr.SalesInvoice)
+                .ThenInclude(s => s.Customer)
                 .OrderByDescending(c => c.Id)
                 .ToListAsync();
         }
