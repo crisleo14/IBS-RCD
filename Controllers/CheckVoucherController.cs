@@ -4,6 +4,7 @@ using Accounting_System.Repository;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Controllers
 {
@@ -59,46 +60,55 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CheckVoucherVM model)
         {
+            model.Header.RR = _dbContext.ReceivingReports
+               .Select(rr => new SelectListItem
+               {
+                   Value = rr.Id.ToString(),
+                   Text = rr.RRNo
+               })
+               .ToList();
+
+            model.Details.COA = _dbContext.ChartOfAccounts
+                .Select(coa => new SelectListItem
+                {
+                    Value = coa.Id.ToString(),
+                    Text = coa.Number + " " + coa.Name
+                })
+                .ToList();
+
             if (ModelState.IsValid)
             {
+                //CV Header Entry
                 var generateCVNo = await _checkVoucherRepo.GenerateCVNo();
                 long getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV();
                 model.Header.SeriesNumber = getLastNumber;
                 model.Header.CVNo = generateCVNo;
                 model.Header.CreatedBy = _userManager.GetUserName(this.User);
 
-                var headerEntity = new CheckVoucherHeader
-                {
-                    CVNo = model.Header.CVNo,
-                    CreatedBy = model.Header.CreatedBy,
-                    // Map other properties...
-                };
+                //CV Details Entry
+                model.Details.CreatedBy = _userManager.GetUserName(this.User);
 
-                var detailsEntity = new CheckVoucherDetail
-                {
-                    COA = model.Details.COA,
-                    // Map other properties...
-                };
 
-                _dbContext.Add(headerEntity);  // Add CheckVoucherHeader to the context
-                _dbContext.Add(detailsEntity); // Add CheckVoucherDetails to the context
+                _dbContext.Add(model.Header);  // Add CheckVoucherHeader to the context
+                _dbContext.Add(model.Details); // Add CheckVoucherDetails to the context
 
                 if (getLastNumber > 9999999999)
                 {
-                    TempData["error"] = "You reach the maximum Series Number";
+                    TempData["error"] = "You reached the maximum Series Number";
                     return View(model);
                 }
+
                 var totalRemainingSeries = 9999999999 - getLastNumber;
                 if (getLastNumber >= 9999999899)
                 {
-                    TempData["warning"] = $"Purchase Order created successfully, Warning {totalRemainingSeries} series number remaining";
+                    TempData["warning"] = $"Check Voucher created successfully, Warning {totalRemainingSeries} series numbers remaining";
                 }
                 else
                 {
                     TempData["success"] = "Check Voucher created successfully";
                 }
 
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();  // await the SaveChangesAsync method
                 return RedirectToAction("Index");
             }
             else
@@ -107,44 +117,6 @@ namespace Accounting_System.Controllers
                 return View(model);
             }
         }
-
-        //[HttpPost]
-        //public async Task<IActionResult> Create(CheckVoucherVM model)
-        //{
-        //    model.Header.RR = _dbContext.ReceivingReports
-        //        .Select(s => new SelectListItem
-        //        {
-        //            Value = s.Id.ToString(),
-        //            Text = s.RRNo
-        //        })
-        //        .ToList();
-
-        //    model.Details.COA = _dbContext.ChartOfAccounts
-        //        .Select(s => new SelectListItem
-        //        {
-        //            Value = s.Id.ToString(),
-        //            Text = s.Number + " " + s.Name
-        //        })
-        //        .ToList();
-
-        //    //if (ModelState.IsValid)
-        //    //{
-        //            var generateCVNo = await _checkVoucherRepo.GenerateCVNo();
-        //            model.Header.SeriesNumber = await _checkVoucherRepo.GetLastSeriesNumberCV();
-        //            model.Header.CVNo = generateCVNo;
-        //            model.Header.CreatedBy = _userManager.GetUserName(this.User);
-
-        //            _dbContext.Add(model);
-        //            await _dbContext.SaveChangesAsync();
-        //            TempData["success"] = "Check Voucher created successfully";
-        //            return RedirectToAction("Index");
-        //    //}
-        //    //else
-        //    //{
-        //    //    TempData["error"] = "The information you submitted is not valid!";
-        //    //    return View(model);
-        //    //}
-        //}
 
         [HttpGet]
         public IActionResult Print()
@@ -187,6 +159,115 @@ namespace Accounting_System.Controllers
             }
 
             return NotFound();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int? id, CheckVoucherVM model)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var existingHeaderModel = await _dbContext.CheckVoucherHeaders.FindAsync(id);
+            var existingDetailsModel = await _dbContext.CheckVoucherDetails.FindAsync(id);
+
+            if (existingHeaderModel == null || existingDetailsModel == null)
+            {
+                return NotFound();
+            }
+
+            existingHeaderModel.RR = _dbContext.ReceivingReports
+                .Select(rr => new SelectListItem
+                {
+                    Value = rr.Id.ToString(),
+                    Text = rr.RRNo
+                })
+                .ToList();
+
+            existingDetailsModel.COA = _dbContext.ChartOfAccounts
+                .Select(coa => new SelectListItem
+                {
+                    Value = coa.Id.ToString(),
+                    Text = coa.Number + " " + coa.Name
+                })
+                .ToList();
+
+            model.Header = existingHeaderModel; // Assign the updated header model to the view model
+            model.Details = existingDetailsModel; // Assign the updated details model to the view model
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(CheckVoucherVM model)
+        {
+            model.Header.RR = _dbContext.ReceivingReports
+               .Select(rr => new SelectListItem
+               {
+                   Value = rr.Id.ToString(),
+                   Text = rr.RRNo
+               })
+               .ToList();
+
+            model.Details.COA = _dbContext.ChartOfAccounts
+                .Select(coa => new SelectListItem
+                {
+                    Value = coa.Id.ToString(),
+                    Text = coa.Number + " " + coa.Name
+                })
+                .ToList();
+
+            
+
+            if (ModelState.IsValid)
+            {
+                var existingHeaderModel = await _dbContext.CheckVoucherHeaders.FindAsync(model.Header.Id);
+                var existingDetailsModel = await _dbContext.CheckVoucherDetails.FindAsync(model.Details.Id);
+
+                if (existingHeaderModel == null)
+                {
+                    return NotFound();
+                }
+                if (existingDetailsModel == null)
+                {
+                    return NotFound();
+                }
+
+                //CV Header Entry
+                var generateCVNo = await _checkVoucherRepo.GenerateCVNo();
+                long getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV();
+                existingHeaderModel.SeriesNumber = model.Header.SeriesNumber;
+                existingHeaderModel.CVNo = model.Header.CVNo;
+                existingHeaderModel.CreatedBy = model.Header.CreatedBy;
+
+                //CV Details Entry
+                existingDetailsModel.CreatedBy = model.Details.CreatedBy;
+
+                if (getLastNumber > 9999999999)
+                {
+                    TempData["error"] = "You reached the maximum Series Number";
+                    return View(model);
+                }
+
+                var totalRemainingSeries = 9999999999 - getLastNumber;
+                if (getLastNumber >= 9999999899)
+                {
+                    TempData["warning"] = $"Check Voucher created successfully, Warning {totalRemainingSeries} series numbers remaining";
+                }
+                else
+                {
+                    TempData["success"] = "Check Voucher created successfully";
+                }
+
+                await _dbContext.SaveChangesAsync();  // await the SaveChangesAsync method
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                TempData["error"] = "The information you submitted is not valid!";
+                return View(model);
+            }
         }
     }
 }
