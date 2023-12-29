@@ -25,8 +25,8 @@
 
             </pre>
         </div>
-    <div class="col-md-4">
         <form asp-action="CreateCollectionReceipt" method="post">
+            <div class="col-md-4">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group mb-3">
                 <label class="control-label">Customers</label>
@@ -52,41 +52,68 @@
                 <label for="floatingInput" class="control-label">Reference #</label>
                 <span asp-validation-for="ReferenceNo" class="text-danger"></span>
             </div>
+        </div>
+                <table class="table-bordered w-100">
+                    <tbody>
+                        <tr>
+                            <td colspan="6" style="padding-left:20px;">FORM OF PAYMENT</td>
+                        </tr>
+                        <tr>
+                            <td class="text-center" style="width:25%"></td>
+                            <td class="text-center" style="width:15%">DATE</td>
+                            <td class="text-center" style="width:15%">CHK #</td>
+                            <td class="text-center" style="width:15%">BANK</td>
+                            <td class="text-center" style="width:15%">BRANCH</td>
+                            <td class="text-center" style="width:15%">AMOUNT</td>
+                        </tr>
+
+                        <tr>
+                            <td style="padding-left:20px;">Cash</td>
+                            <td><input style="border:none" class="form-control" disabled /></td>
+                            <td><input style="border:none" class="form-control" disabled /></td>
+                            <td><input style="border:none" class="form-control" disabled /></td>
+                            <td><input style="border:none" class="form-control" disabled /></td>
+                            <td><input asp-for="CashAmount" style="border:none" class="form-control moneyInput" /></td>
+                        </tr>
+
+                        <tr>
+                            <td style="padding-left:20px;">Check</td>
+                            <td><input asp-for="CheckDate" type="date" style="border:none" class="form-control" /></td>
+                            <td><input asp-for="CheckNo" style="border:none" class="form-control" /></td>
+                            <td><input asp-for="CheckBank" style="border:none" class="form-control" /></td>
+                            <td><input asp-for="CheckBranch" style="border:none" class="form-control" /></td>
+                            <td><input asp-for="CheckAmount" style="border:none" class="form-control moneyInput" /></td>
+                        </tr>
+
+                        <tr>
+                            <td style="padding-left:20px;"> Manager's Check</td>
+                        <td class="text-center"><input asp-for="ManagerCheckDate" type="date" style="border:none" class="form-control"/></td>
+                        <td class="text-center"><input asp-for="ManagerCheckNo" style="border:none" class="form-control" /></td>
+                        <td class="text-center"><input asp-for="ManagerCheckBank" style="border:none" class="form-control" /></td>
+                        <td class="text-center"><input asp-for="ManagerCheckBranch" style="border:none" class="form-control" /></td>
+                        <td class="text-center"><input asp-for="ManagerCheckAmount" style="border:none" class="form-control moneyInput" /></td>
+                        </tr>
+                        
+                        <tr>
+                            <td style="padding-left:20px;">EWT</td>
+                            <td><input style="border:none" class="form-control" disabled /></td>
+                            <td><input style="border:none" class="form-control" disabled /></td>
+                            <td><input style="border:none" class="form-control" disabled /></td>
+                            <td><input style="border:none" class="form-control" disabled /></td>
+                            <td><input asp-for="EWT" style="border:none" class="form-control moneyInput" /></td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left:20px;">WVAT</td>
+                            <td><input style="border:none" class="form-control" disabled /></td>
+                            <td><input style="border:none" class="form-control" disabled /></td>
+                            <td><input style="border:none" class="form-control" disabled /></td>
+                            <td><input style="border:none" class="form-control" disabled /></td>
+                            <td><input asp-for="WVAT" style="border:none" class="form-control moneyInput" /></td>
+                        </tr>
+                    </tbody>
+                </table>
+
             <div class="form-group">
-                <label class="control-label">Form of Payment</label>
-            <select asp-for="FormOfPayment" class="form-select js-select2">
-                <option value="" selected disabled>Select form of payment...</option>
-                    <option value="Cash">Cash</option>
-                    <option value="Check">Check</option>
-                    <option value="Manager's Check">Manager's Check</option>
-            </select>
-            </div>
-            <div class="form-group check-only">
-                <label asp-for="CheckDate" class="control-label"></label>
-                <input asp-for="CheckDate" type="date" class="form-control" />
-                <span asp-validation-for="CheckDate" class="text-danger"></span>
-            </div>
-            <div class="form-group check-only">
-                <label asp-for="CheckNo" class="control-label"></label>
-                <input asp-for="CheckNo" type="number" class="form-control" required/>
-                <span asp-validation-for="CheckNo" class="text-danger"></span>
-            </div>
-            <div class="form-group check-only">
-                <label asp-for="Bank" class="control-label"></label>
-                <input asp-for="Bank" type="text" class="form-control" required/>
-                <span asp-validation-for="Bank" class="text-danger"></span>
-            </div>
-            <div class="form-group check-only">
-                <label asp-for="Branch" class="control-label"></label>
-                <input asp-for="Branch" type="text" class="form-control" required/>
-                <span asp-validation-for="Branch" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Total" class="control-label"></label>
-                <input asp-for="Total" type="text" class="form-control moneyInput" required/>
-                <span asp-validation-for="Total" class="text-danger"></span>
-            </div>
-            <div class="form-group" id="accountingEntrySection" style="display: none;">
                     <hr />
                     <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#AddAccEntry">
                         Add Entry
@@ -112,7 +139,6 @@
                 <a asp-action="CollectionReceiptIndex" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
-    </div>
 </div>
 
     <!-- Modal -->
@@ -193,15 +219,6 @@
         return validateTotalAmount();
     });
 </script>
-
-
-    <script>
-        // Get the current date in the format "YYYY-MM-DD" (required for the date input)
-        var currentDate = new Date().toISOString().slice(0, 10);
-
-        // Set the default value of the input field
-        document.getElementById("CheckDate").value = currentDate;
-    </script>
     <script>
         // Get the current date in the format "YYYY-MM-DD" (required for the date input)
         var myDate = new Date().toISOString().slice(0, 10);
@@ -290,44 +307,6 @@
         </script>
 
         <script>
-            $(document).ready(function () {
-                // Function to show/hide elements based on TypeOfCollection value
-                function toggleElementsBasedOnTypeOfCollection() {
-                    var typeOfCollection = $("input[name='TypeOfCollection']:checked").val();
-
-                    // Hide/show elements based on the selected TypeOfCollection value
-                    if (typeOfCollection === "Partial") {
-                        // Hide Tax/Vat Only and show other elements
-                        $(".with-certificate-elements").show();
-                        $(".without-certificate-elements").show();
-                        $(".tax-vat-elements").hide();
-                        $("#accountingEntrySection").hide();
-                    } else if (typeOfCollection === "Offsetting") {
-                        // Hide Tax/Vat Only and show other elements
-                        $(".with-certificate-elements").show();
-                        $(".without-certificate-elements").hide();
-                        $(".tax-vat-elements").hide();
-                        $("#accountingEntrySection").show();
-                    } else {
-                        // Show Tax/Vat Only and hide other elements
-                        $(".with-certificate-elements").show();
-                        $(".without-certificate-elements").show();
-                        $(".tax-vat-elements").show();
-                        $("#accountingEntrySection").hide();
-                    }
-                }
-
-                // Call the function on page load
-                toggleElementsBasedOnTypeOfCollection();
-
-                // Attach event listener to TypeOfCollection radio buttons
-                $("input[name='TypeOfCollection']").change(function () {
-                    toggleElementsBasedOnTypeOfCollection();
-                });
-            });
-        </script>
-
-        <script>
             // Function to handle invoice change event
             function handleInvoiceChange() {
                 var invoiceNo = $("#invoices").val();
@@ -396,10 +375,37 @@
 
         <script>
             $(document).ready(function () {
+                // Attach a focus event listener to the moneyInput field
+                $(".moneyInput").on("focus", function () {
+                    // Get the current value of the input
+                    var inputValue = $(this).val();
+
+                    // If the value is '0.00', set it to an empty string
+                    if (inputValue === '0.00') {
+                        $(this).val('');
+                    }
+                });
+
+                // Attach a blur event listener to the moneyInput field
+                $(".moneyInput").on("blur", function () {
+                    // Get the current value of the input
+                    var inputValue = $(this).val();
+
+                    // If the value is empty, set it back to '0.00'
+                    if (!inputValue.trim()) {
+                        $(this).val('0.00');
+                    }
+                });
+
                 // Attach an input event listener to the moneyInput field
                 $(".moneyInput").on("input", function () {
                     // Get the current value of the input
                     var inputValue = $(this).val();
+
+                    // If the input starts with a dot, add '0' before it
+                    if (inputValue.charAt(0) === '.') {
+                        inputValue = '0' + inputValue;
+                    }
 
                     // Remove non-numeric characters except for the decimal point
                     var numericValue = inputValue.replace(/[^\d.]/g, '');
@@ -426,5 +432,6 @@
                 }
             });
         </script>
+
 
 }
