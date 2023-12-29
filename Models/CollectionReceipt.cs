@@ -12,6 +12,7 @@ namespace Accounting_System.Models
         [ForeignKey("SalesInvoiceId")]
         public SalesInvoice? SalesInvoice { get; set; }
 
+        [Display(Name = "Customer No.")]
         public string? CRNo { get; set; }
 
         public long SeriesNumber { get; set; }
@@ -48,6 +49,7 @@ namespace Accounting_System.Models
         [NotMapped]
         public List<SelectListItem>? ChartOfAccounts { get; set; }
 
+        [Display(Name = "Sales Invoice No.")]
         public string? SINo { get; set; }
 
         //cash
