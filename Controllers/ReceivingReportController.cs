@@ -63,7 +63,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync();
             if (ModelState.IsValid)
             {
-                long getLastNumber = await _receivingReportRepo.GetLastSeriesNumber();
+                var getLastNumber = await _receivingReportRepo.GetLastSeriesNumber();
 
                 if (getLastNumber > 9999999999)
                 {
