@@ -222,7 +222,7 @@ namespace Accounting_System.Controllers
                             Description = "Collection for Receivable",
                             AccountTitle = "1010201 AR-Trade Receivable",
                             Debit = 0,
-                            Credit = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount,
+                            Credit = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + offsetAmount,
                             CreatedBy = model.CreatedBy,
                             CreatedDate = model.CreatedDate
                         }
