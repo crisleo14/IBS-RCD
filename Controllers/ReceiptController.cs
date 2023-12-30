@@ -97,12 +97,33 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
+                #region --Validating the series
+
+                var getLastNumber = await _receiptRepo.GetLastSeriesNumberCR();
+
+                if (getLastNumber > 9999999999)
+                {
+                    TempData["error"] = "You reach the maximum Series Number";
+                    return View(model);
+                }
+                var totalRemainingSeries = 9999999999 - getLastNumber;
+                if (getLastNumber >= 9999999899)
+                {
+                    TempData["warning"] = $"Collection Receipt created successfully, Warning {totalRemainingSeries} series number remaining";
+                }
+                else
+                {
+                    TempData["success"] = "Collection Receipt created successfully";
+                }
+
+                #endregion --Validating the series
+
                 #region --Saving default value
 
                 var existingSalesInvoice = _dbContext.SalesInvoices
                                                .FirstOrDefault(si => si.Id == model.SalesInvoiceId);
                 var generateCRNo = await _receiptRepo.GenerateCRNo();
-                long getLastNumber = await _receiptRepo.GetLastSeriesNumberCR();
+                
                 model.SeriesNumber = getLastNumber;
                 model.SINo = existingSalesInvoice.SINo;
                 model.CRNo = generateCRNo;
@@ -112,24 +133,6 @@ namespace Accounting_System.Controllers
                 decimal offsetAmount = 0;
 
                 #endregion --Saving default value
-
-                #region --Validating the series
-
-                if (getLastNumber > 9999999999)
-                {
-                    TempData["error"] = "You reach the maximum Series Number";
-                    return View(model);
-                }
-                else if (getLastNumber >= 9999999899)
-                {
-                    TempData["warning"] = "Collection Receipt created successfully, Warning 100 series number remaining";
-                }
-                else
-                {
-                    TempData["success"] = "Collection Receipt created successfully";
-                }
-
-                #endregion --Validating the series
 
                 _dbContext.Add(model);
 
@@ -451,13 +454,29 @@ namespace Accounting_System.Controllers
                 .ToList();
             if (ModelState.IsValid)
             {
+                var getLastNumber = await _receiptRepo.GetLastSeriesNumberOR();
+
+                if (getLastNumber > 9999999999)
+                {
+                    TempData["error"] = "You reach the maximum Series Number";
+                    return View(model);
+                }
+                var totalRemainingSeries = 9999999999 - getLastNumber;
+                if (getLastNumber >= 9999999899)
+                {
+                    TempData["warning"] = $"Official Receipt created successfully, Warning {totalRemainingSeries} series number remaining";
+                }
+                else
+                {
+                    TempData["success"] = "Official Receipt created successfully";
+                }
+
                 var existingSOA = _dbContext.StatementOfAccounts
                                                .FirstOrDefault(si => si.Id == model.SOAId);
 
                 if (existingSOA.Amount >= model.Amount)
                 {
                     var generateORNo = await _receiptRepo.GenerateORNo();
-                    var getLastNumber = await _receiptRepo.GetLastSeriesNumberOR();
 
                     model.SeriesNumber = getLastNumber;
                     model.ORNo = generateORNo;
@@ -465,20 +484,6 @@ namespace Accounting_System.Controllers
                     _dbContext.Add(model);
                     await _dbContext.SaveChangesAsync();
 
-                    if (getLastNumber > 9999999999)
-                    {
-                        TempData["error"] = "You reach the maximum Series Number";
-                        return View(model);
-                    }
-
-                    if (getLastNumber >= 9999999899)
-                    {
-                        TempData["warning"] = "Official Receipt created successfully, Warning 100 series number remaining";
-                    }
-                    else
-                    {
-                        TempData["success"] = "Official Receipt created successfully";
-                    }
                     return RedirectToAction("OfficialReceiptIndex");
                 }
                 else

@@ -78,7 +78,7 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
-                long getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV();
+                var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV();
 
                 if (getLastNumber > 9999999999)
                 {
@@ -225,7 +225,7 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
 
-                long getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(); 
+                var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(); 
                 if (getLastNumber > 9999999999)
                 {
                     TempData["error"] = "You reached the maximum Series Number";

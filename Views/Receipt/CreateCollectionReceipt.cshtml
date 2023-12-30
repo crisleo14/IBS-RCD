@@ -52,6 +52,12 @@
                 <label for="floatingInput" class="control-label">Reference #</label>
                 <span asp-validation-for="ReferenceNo" class="text-danger"></span>
             </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Remarks" id="floatingInput" type="text" class="form-control" placeholder="Optional"/>
+                <label for="floatingInput" class="control-label">Remarks</label>
+                <span asp-validation-for="Remarks" class="text-danger"></span>
+            </div>
+
         </div>
                 <table class="table-bordered w-100">
                     <tbody>
@@ -199,14 +205,14 @@
                 data: { customerNo: customerNo },
                 success: function (data) {
 
+                            $("#invoices").empty();
+
                     // Check if data is an array and not null
                     if (Array.isArray(data) && data.length > 0) {
 
                         document.getElementById("amount").innerHTML = "";
                         document.getElementById("amountPaid").innerHTML = "";
                         document.getElementById("balance").innerHTML = "";
-
-                        $("#invoices").empty();
 
                         $("#invoices").append('<option>');
 
