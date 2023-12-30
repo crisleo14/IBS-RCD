@@ -52,6 +52,12 @@
                 <label for="floatingInput" class="control-label">Reference #</label>
                 <span asp-validation-for="ReferenceNo" class="text-danger"></span>
             </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Remarks" id="floatingInput" type="text" class="form-control" placeholder="Optional"/>
+                <label for="floatingInput" class="control-label">Remarks</label>
+                <span asp-validation-for="Remarks" class="text-danger"></span>
+            </div>
+
         </div>
                 <table class="table-bordered w-100">
                     <tbody>
@@ -93,7 +99,7 @@
                         <td class="text-center"><input asp-for="ManagerCheckBranch" style="border:none" class="form-control" /></td>
                         <td class="text-center"><input asp-for="ManagerCheckAmount" style="border:none" class="form-control moneyInput" /></td>
                         </tr>
-                        
+
                         <tr>
                             <td style="padding-left:20px;">EWT</td>
                             <td><input style="border:none" class="form-control" disabled /></td>
@@ -180,45 +186,6 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-
-    <script>
-    // Function to validate the total amount
-    function validateTotalAmount() {
-        // Check the selected value of TypeOfCollection
-        var typeOfCollection = $("input[name='TypeOfCollection']:checked").val();
-
-        // Only run the validation logic if TypeOfCollection is "Offsetting"
-        if (typeOfCollection === "Offsetting") {
-            // Get the "Invoice Amount" from the page
-            var invoiceAmount = parseFloat($("#amount").text()) || 0;
-
-            // Get the "Total" amount from the form
-            var totalAmount = parseFloat($("#Total").val()) || 0;
-
-            // Calculate the sum of accounting entries' amounts
-            var accountingEntriesSum = 0;
-            $("input[name='accountAmount']").each(function () {
-                accountingEntriesSum += parseFloat($(this).val()) || 0;
-            });
-
-            // Calculate the total sum
-            var totalSum = totalAmount + accountingEntriesSum;
-
-            // Check if the total sum equals the invoice amount
-            if (totalSum !== invoiceAmount) {
-                alert("Total amount and accounting entries' amounts do not match the invoice amount.");
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    // Attach the validation function to the form submission
-    $("form").submit(function () {
-        return validateTotalAmount();
-    });
-</script>
     <script>
         // Get the current date in the format "YYYY-MM-DD" (required for the date input)
         var myDate = new Date().toISOString().slice(0, 10);
@@ -226,6 +193,7 @@
         // Set the default value of the input field
         document.getElementById("Date").value = myDate;
     </script>
+
     <script>
     $(document).ready(function () {
         $("#CustomerNo").change(function () {
@@ -237,14 +205,14 @@
                 data: { customerNo: customerNo },
                 success: function (data) {
 
+                            $("#invoices").empty();
+
                     // Check if data is an array and not null
                     if (Array.isArray(data) && data.length > 0) {
 
                         document.getElementById("amount").innerHTML = "";
                         document.getElementById("amountPaid").innerHTML = "";
                         document.getElementById("balance").innerHTML = "";
-
-                        $("#invoices").empty();
 
                         $("#invoices").append('<option>');
 
@@ -341,32 +309,6 @@
             });
         </script>
 
-
-        <script>
-            // Function to handle Form of Payment change event
-            function handleFormOfPaymentChange() {
-                var method = $("#FormOfPayment").val();
-                console.log(method);
-
-                if (method === "Cash") {
-                    $(".check-only").hide();
-                } else {
-                    $(".check-only").show();
-                }
-            }
-
-            $(document).ready(function () {
-                // Call the handleFormOfPaymentChange function on page load
-                handleFormOfPaymentChange();
-
-                // Attach event listener to Form of Payment dropdown
-                $("#FormOfPayment").change(function () {
-                    // Call the handleFormOfPaymentChange function when the dropdown changes
-                    handleFormOfPaymentChange();
-                });
-            });
-        </script>
-
         <script>
             $('#AccountTitle').select2({
                 dropdownParent: $('#AddAccEntry')
@@ -432,6 +374,5 @@
                 }
             });
         </script>
-
 
 }
