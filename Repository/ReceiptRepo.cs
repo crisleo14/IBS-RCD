@@ -155,12 +155,12 @@ namespace Accounting_System.Repository
                 si.AmountPaid += total;
                 si.Balance = si.NetDiscount - si.AmountPaid;
 
-                if (si.Balance == 0 && si.AmountPaid == si.Amount)
+                if (si.Balance == 0 && si.AmountPaid == si.NetDiscount)
                 {
                     si.IsPaid = true;
                     si.Status = "Paid";
                 }
-                else if (si.AmountPaid > si.Amount)
+                else if (si.AmountPaid > si.NetDiscount)
                 {
                     si.IsPaid = true;
                     si.Status = "OverPaid";
