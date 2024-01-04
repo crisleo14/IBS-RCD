@@ -53,14 +53,40 @@ namespace Accounting_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ReceivingReport model)
         {
+            model.PurchaseOrders = await _dbContext.PurchaseOrders
+                .Where(po => !po.IsReceived)
+                .Select(po => new SelectListItem
+                {
+                    Value = po.Id.ToString(),
+                    Text = po.PONo
+                })
+                .ToListAsync();
             if (ModelState.IsValid)
             {
+                var getLastNumber = await _receivingReportRepo.GetLastSeriesNumber();
+
+                if (getLastNumber > 9999999999)
+                {
+                    TempData["error"] = "You reach the maximum Series Number";
+                    return View(model);
+                }
+                var totalRemainingSeries = 9999999999 - getLastNumber;
+                if (getLastNumber >= 9999999899)
+                {
+                    TempData["warning"] = $"Receiving Report created successfully, Warning {totalRemainingSeries} series number remaining";
+                }
+                else
+                {
+                    TempData["success"] = "Receiving Report created successfully";
+                }
+
                 var generatedRR = await _receivingReportRepo.GenerateRRNo();
-                model.SeriesNumber = await _receivingReportRepo.GetLastSeriesNumber();
+               
+                model.SeriesNumber = getLastNumber;
                 model.RRNo = generatedRR;
                 model.CreatedBy = _userManager.GetUserName(this.User);
-
                 model.GainOrLoss = model.QuantityDelivered - model.QuantityReceived;
+                model.PONo = await _receivingReportRepo.GetPONoAsync(model.POId);
 
                 _dbContext.Add(model);
 
@@ -82,7 +108,6 @@ namespace Accounting_System.Controllers
                 }
 
                 await _dbContext.SaveChangesAsync();
-                TempData["success"] = "Receiving Report created successfully";
                 return RedirectToAction("Index");
             }
 
@@ -173,6 +198,32 @@ namespace Accounting_System.Controllers
                 await _dbContext.SaveChangesAsync();
             }
             return RedirectToAction("Print", new { id = id });
+        }
+
+        public async Task<IActionResult> Post(int rrId)
+        {
+            var model = await _dbContext.ReceivingReports.FindAsync(rrId);
+
+            if (model != null)
+            {
+                if (!model.IsPosted)
+                {
+                    model.IsPosted = true;
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Receiving Report has been Posted.";
+
+                }
+                //else
+                //{
+                //    model.IsVoid = true;
+                //    await _dbContext.SaveChangesAsync();
+                //    TempData["success"] = "Purchase Order has been Voided.";
+                //}
+                return RedirectToAction(nameof(Index));
+            }
+
+            return NotFound();
         }
     }
 }

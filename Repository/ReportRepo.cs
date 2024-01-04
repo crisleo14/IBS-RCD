@@ -13,25 +13,25 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        //public async Task<List<SalesInvoice>> GetSalesBooksAsync(string dateFrom, string dateTo)
-        //{
-        //    var fromDate = DateTime.Parse(dateFrom);
-        //    var toDate = DateTime.Parse(dateTo);
+        public async Task<List<SalesBook>> GetSalesBooksAsync(string dateFrom, string dateTo)
+        {
+            var fromDate = DateTime.Parse(dateFrom);
+            var toDate = DateTime.Parse(dateTo);
 
-        //    if (fromDate > toDate)
-        //    {
-        //        throw new ArgumentException("Date From must be greater than Date To !");
-        //    }
+            if (fromDate > toDate)
+            {
+                throw new ArgumentException("Date From must be greater than Date To !");
+            }
 
-        //    var salesBooks = _dbContext
-        //     .SalesBooks
-        //     .AsEnumerable()
-        //     .Where(s => DateTime.Parse(s.Date) >= fromDate && DateTime.Parse(s.Date) <= toDate && s.IsPosted)
-        //     .OrderBy(s => s.Id)
-        //     .ToList();
+            var salesBooks = _dbContext
+             .SalesBooks
+             .AsEnumerable()
+             .Where(s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate)
+             .OrderBy(s => s.Id)
+             .ToList();
 
-        //    return salesBooks;
-        //}
+            return salesBooks;
+        }
 
         public async Task<List<CashReceiptBook>> GetCashReceiptBookAsync(string dateFrom, string dateTo)
         {
@@ -166,6 +166,7 @@ namespace Accounting_System.Repository
             var auditTrail = _dbContext
              .AuditTrails
              .AsEnumerable()
+             .Where(d => d.Date >= fromDate && d.Date <= toDate)
              .OrderBy(d => d.Date)
              .ToList();
 

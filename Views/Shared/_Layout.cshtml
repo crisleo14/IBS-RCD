@@ -35,6 +35,7 @@
                                 <li><a class="dropdown-item" asp-controller="StatementOfAccount" asp-action="Index">Statement Of Account</a></li>
                                 <li><a class="dropdown-item" asp-controller="Receipt" asp-action="OfficialReceiptIndex">Offical Receipt</a></li>
                                 <li><a class="dropdown-item" asp-controller="DebitMemo" asp-action="Index">Debit Memo</a></li>
+                                <li><a class="dropdown-item" asp-controller="CreditMemo" asp-action="Index">Credit Memo</a></li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
@@ -44,7 +45,6 @@
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" asp-controller="PurchaseOrder" asp-action="Index">Purchase Order</a></li>
                                 <li><a class="dropdown-item" asp-controller="CheckVoucher" asp-action="Index">Check Voucher</a></li>
-                                <li><a class="dropdown-item" asp-controller="CreditMemo" asp-action="Index">Credit Memo</a></li>
                                 <li><a class="dropdown-item" asp-controller="JournalVoucher" asp-action="Index">Journal Voucher</a></li>
                                 <li><a class="dropdown-item" asp-controller="ReceivingReport" asp-action="Index">Receiving Report</a></li>
                             </ul>
@@ -70,8 +70,6 @@
                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="JournalBook">Journal Book Report</a></li>
                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="PurchaseBook">Purchase Book</a></li>
                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="SalesBook">Sales Book</a></li>
-@*                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="CustomerProfile">Customer Profile</a></li>
-                                <li><a class="dropdown-item" asp-controller="Report" asp-action="ProductList">Product List</a></li> *@
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
@@ -84,6 +82,9 @@
                                 <li><a class="dropdown-item" asp-controller="Service" asp-action="Index">Services</a></li>
                                 <li><a class="dropdown-item" asp-controller="Supplier" asp-action="Index">Suppliers</a></li>
                             </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="ChartOfAccount" asp-action="Index">Chart of Account</a>
                         </li>
                     </ul>
                 </div>
@@ -108,6 +109,8 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script><!--select 2 scripts-->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><!--Sweet alert scripts-->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.js"></script><!--Data table scripts-->
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

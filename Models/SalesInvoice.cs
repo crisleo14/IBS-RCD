@@ -7,21 +7,21 @@ namespace Accounting_System.Models
     public class SalesInvoice : BaseEntity
     {
         [Display(Name = "SI No")]
+        [Column(TypeName = "varchar(12)")]
         public string? SINo { get; set; }
 
         [ForeignKey("CustomerId")]
         public Customer? Customer { get; set; }
 
-        public int SeriesNumber { get; set; }
+        public long SeriesNumber { get; set; }
 
         [Required]
         [Display(Name = "Customer No")]
         public int CustomerId { get; set; }
 
         [Display(Name = "Customer Type")]
+        [Column(TypeName = "varchar(10)")]
         public string CustomerType { get; set; }
-
-        public bool WithHoldingTax { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? Customers { get; set; }
@@ -32,35 +32,47 @@ namespace Accounting_System.Models
         [NotMapped]
         public List<SelectListItem>? COSNo { get; set; }
 
+        public int CustomerNo { get; set; }
+
         [Display(Name = "Sold To")]
+        [Column(TypeName = "varchar(100)")]
         public string SoldTo { get; set; }
 
+        [Column(TypeName = "varchar(200)")]
         public string Address { get; set; }
 
         [Display(Name = "Tin#")]
+        [Column(TypeName = "varchar(20)")]
         public string TinNo { get; set; }
 
+        [Column(TypeName = "varchar(50)")]
         [Display(Name = "Business Style")]
         public string BusinessStyle { get; set; }
 
+        [Column(TypeName = "varchar(5)")]
         public string Terms { get; set; }
 
+        [Column(TypeName = "varchar(20)")]
         [Required]
         [Display(Name = "Other Ref No")]
         public string OtherRefNo { get; set; }
 
         [Required]
         [Display(Name = "P.O No")]
+        [Column(TypeName = "varchar(20)")]
         public string PoNo { get; set; }
 
         [Required]
         [Display(Name = "Product No")]
+        [Column(TypeName = "varchar(20)")]
         public string ProductNo { get; set; }
 
         [Display(Name = "Product Name")]
+        [Column(TypeName = "varchar(50)")]
         public string ProductName { get; set; }
 
         [Display(Name = "Unit")]
+        [Column(TypeName = "varchar(5)")]
         public string ProductUnit { get; set; }
 
         [Required]
@@ -76,6 +88,7 @@ namespace Accounting_System.Models
         public decimal Amount { get; set; }
 
         [Required]
+        [Column(TypeName = "varchar(100)")]
         public string Remarks { get; set; }
 
         public bool IsVoid { get; set; }
@@ -92,6 +105,7 @@ namespace Accounting_System.Models
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal VatAmount { get; set; }
 
+        [Column(TypeName = "varchar(20)")]
         public string Status { get; set; } = "Pending";
 
         [Required]
@@ -99,9 +113,29 @@ namespace Accounting_System.Models
         public DateTime TransactionDate { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal? Discount { get; set; }
+        public decimal Discount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal? NetDiscount { get; set; }
+        public decimal NetDiscount { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal VatExempt { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal ZeroRated { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal WithHoldingVatAmount { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal WithHoldingTaxAmount { get; set; }
+
+        public decimal AmountPaid { get; set; }
+
+        public decimal Balance { get; set; }
+
+        public bool IsPaid { get; set; }
+
+        public bool IsTaxAndVatPaid { get; set; }
     }
 }

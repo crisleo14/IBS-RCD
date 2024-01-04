@@ -9,6 +9,8 @@ namespace Accounting_System.Models
         [Display(Name = "CV No")]
         public string? CVNo { get; set; }
 
+        public long SeriesNumber { get; set; }
+
         public DateTime Date { get; set; }
 
         [Display(Name = "RR No")]
@@ -20,11 +22,23 @@ namespace Accounting_System.Models
         [NotMapped]
         public List<SelectListItem>? RR { get; set; }
 
+        [Display(Name = "RR No")]
+        public string? RRNo { get; set; }
+
+        public decimal Amount { get; set; }
+
+        [Display(Name = "Amount in Words")]
+        public string? AmountInWords { get; set; }
+
         public string Particulars { get; set; }
 
         public string Bank { get; set; }
 
         [Display(Name = "Check #")]
         public string CheckNo { get; set; }
+
+        public bool IsPosted { get; set; }
+
+        public bool IsPrinted { get; set; }
     }
 }

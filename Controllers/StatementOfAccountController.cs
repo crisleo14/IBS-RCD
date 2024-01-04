@@ -55,9 +55,40 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(StatementOfAccount model)
         {
+            model.Customers = await _dbContext.Customers
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name
+                })
+                .ToListAsync();
+            model.Services = await _dbContext.Services
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name
+                })
+                .ToListAsync();
             if (ModelState.IsValid)
             {
-                model.SeriesNumber = await _statementOfAccountRepo.GetLastSeriesNumber();
+                var getLastNumber = await _statementOfAccountRepo.GetLastSeriesNumber();
+                
+                if (getLastNumber > 9999999999)
+                {
+                    TempData["error"] = "You reach the maximum Series Number";
+                    return View(model);
+                }
+                var totalRemainingSeries = 9999999999 - getLastNumber;
+                if (getLastNumber >= 9999999899)
+                {
+                    TempData["warning"] = $"Statement of Account created successfully, Warning {totalRemainingSeries} series number remaining";
+                }
+                else
+                {
+                    TempData["success"] = "Statement of Account created successfully";
+                }
+
+                model.SeriesNumber = getLastNumber;
 
                 model.SOANo = await _statementOfAccountRepo.GenerateSOANo();
 
@@ -66,7 +97,6 @@ namespace Accounting_System.Controllers
                 _dbContext.Add(model);
 
                 await _dbContext.SaveChangesAsync();
-
                 return RedirectToAction("Index");
             }
 

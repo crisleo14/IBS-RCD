@@ -12,7 +12,7 @@ namespace Accounting_System.Models
         public StatementOfAccount? StatementOfAccount { get; set; }
 
         public string? ORNo { get; set; }
-        public int SeriesNumber { get; set; }
+        public long SeriesNumber { get; set; }
 
         public DateTime Date { get; set; }
 
@@ -31,5 +31,7 @@ namespace Accounting_System.Models
 
         [NotMapped]
         public List<SelectListItem>? SOANo { get; set; }
+
+        public string? Remarks { get; set; }
     }
 }

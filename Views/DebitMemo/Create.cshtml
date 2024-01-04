@@ -7,7 +7,7 @@
 }
 
 <h1>Create</h1>
-
+<partial name="_Notification">
 <h4>Debit Memo</h4>
 <hr />
 <div class="row">
@@ -29,26 +29,26 @@
                 <br />
                 <span asp-validation-for="Source" class="text-danger"></span>
             </fieldset>
-
-
-            <div class="form-group" id="siList" style="display: none;">
-                <label asp-for="SalesInvoiceId" class="control-label"></label>
-                <select asp-for="SalesInvoiceId" asp-items="@Model.SalesInvoices" class="form-control js-select2">
-                    <option></option>
-                </select>
-            </div>
-            <div class="form-group" id="soaList" style="display: none;">
-                <label asp-for="SOAId" class="control-label"></label>
-                <select asp-for="SOAId" asp-items="@Model.StatementOfAccounts" class="form-control js-select2">
-                    <option></option>
-                </select>
-            </div>
-
             <div class="form-group">
                 <label asp-for="Date" class="control-label"></label>
                 <input asp-for="Date" type="Date" class="form-control" />
                 <span asp-validation-for="Date" class="text-danger"></span>
             </div>
+            <div class="form-group" id="siList" style="display: none;">
+                <label asp-for="SalesInvoiceId" class="control-label"></label>
+                <select asp-for="SalesInvoiceId" asp-items="@Model.SalesInvoices" class="form-control js-select2" style="width:100%" required>
+                    <option></option>
+                </select>
+                    <span asp-validation-for="SalesInvoiceId" class="text-danger"></span>
+            </div>
+            <div class="form-group" id="soaList" style="display: none;">
+                <label asp-for="SOAId" class="control-label"></label>
+                    <select asp-for="SOAId" asp-items="@Model.StatementOfAccounts" class="form-control js-select2" style="width:100%" required>
+                    <option></option>
+                </select>
+                    <span asp-validation-for="SOAId" class="text-danger"></span>
+            </div>
+
             <div class="form-group">
                 <label asp-for="AdjustedPrice" class="control-label"></label>
                 <input asp-for="AdjustedPrice" type="number" class="form-control" />
@@ -59,6 +59,12 @@
                 <input asp-for="Description" type="text" class="form-control" />
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Remarks" id="floatingInput" type="text" class="form-control" placeholder="Optional"/>
+                <label for="floatingInput" class="control-label">Remarks</label>
+                <span asp-validation-for="Remarks" class="text-danger"></span>
+            </div>
+
 
             <br />
             <div class="form-group">

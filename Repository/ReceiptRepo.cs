@@ -13,7 +13,7 @@ namespace Accounting_System.Repository
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<int> GetLastSeriesNumberCR()
+        public async Task<long> GetLastSeriesNumberCR()
         {
             var lastInvoice = await _dbContext
                 .CollectionReceipts
@@ -32,7 +32,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<int> GetLastSeriesNumberOR()
+        public async Task<long> GetLastSeriesNumberOR()
         {
             var lastInvoice = await _dbContext
                 .OfficialReceipts
@@ -91,6 +91,8 @@ namespace Accounting_System.Repository
         {
             return await _dbContext
                 .CollectionReceipts
+                .Include(cr => cr.SalesInvoice)
+                .ThenInclude(s => s.Customer)
                 .OrderByDescending(c => c.Id)
                 .ToListAsync();
         }
@@ -107,7 +109,8 @@ namespace Accounting_System.Repository
         {
             var collectionReceipt = await _dbContext
                 .CollectionReceipts
-                .Include(s => s.SalesInvoice)
+                .Include(cr => cr.SalesInvoice)
+                .ThenInclude(s => s.Customer)
                 .FirstOrDefaultAsync(collectionReceipt => collectionReceipt.Id == id);
 
             if (collectionReceipt != null)
@@ -124,9 +127,9 @@ namespace Accounting_System.Repository
         {
             var officialReceipt = await _dbContext
                 .OfficialReceipts
-                .Include(s => s.StatementOfAccount)
+                .Include(or => or.StatementOfAccount)
                 .ThenInclude(soa => soa.Customer)
-                .Include(s => s.StatementOfAccount)
+                .Include(or => or.StatementOfAccount)
                 .ThenInclude(soa => soa.Service)
                 .FirstOrDefaultAsync(collectionReceipt => collectionReceipt.Id == id);
 
@@ -137,6 +140,37 @@ namespace Accounting_System.Repository
             else
             {
                 throw new ArgumentException("Invalid id value. The id must be greater than 0.");
+            }
+        }
+
+        public async Task<int> UpdateInvoice(int id, decimal paidAmount, decimal offsetAmount)
+        {
+            var si = await _dbContext
+                .SalesInvoices
+                .FirstOrDefaultAsync(si => si.Id == id);
+
+            if (si != null)
+            {
+                var total = paidAmount + offsetAmount;
+                si.AmountPaid += total;
+                si.Balance = si.NetDiscount - si.AmountPaid;
+
+                if (si.Balance == 0 && si.AmountPaid == si.NetDiscount)
+                {
+                    si.IsPaid = true;
+                    si.Status = "Paid";
+                }
+                else if (si.AmountPaid > si.NetDiscount)
+                {
+                    si.IsPaid = true;
+                    si.Status = "OverPaid";
+                }
+
+                return await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                throw new ArgumentException("", "No record found");
             }
         }
     }
