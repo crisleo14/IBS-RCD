@@ -65,7 +65,6 @@
                             if (invoice.IsPosted == true && invoice.IsVoid != true)
                             {
                                 <a asp-action="PrintInvoice" asp-route-id="@invoice.Id" class="btn btn-light">Print Invoice</a>
-                                    <a class="btn btn-light" onclick="confirmVoid(@invoice.Id)">Void</a>
                             }
                             else if (invoice.IsVoid == true)
                             {
@@ -73,9 +72,13 @@
                             }
                             if (invoice.IsPosted != true)
                             {
-                                <a class="btn btn-light" onclick="confirmPost(@invoice.Id)">Post</a>
+                                    <a class="btn btn-light" onclick="confirmPost(@invoice.Id)">Post</a>
                             }
-                        }else{
+                            if (invoice.IsVoid != true)
+                            {
+                                <a class="btn btn-light" onclick="confirmVoid(@invoice.Id)">Void</a>
+                            }
+                            }else{
                             if(invoice.IsVoid == true){
                                 <span class="badge rounded-pill bg-danger ">VOIDED</span>
                             }else{
