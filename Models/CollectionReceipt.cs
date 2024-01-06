@@ -96,5 +96,9 @@ namespace Accounting_System.Models
         public decimal Total { get; set; }
 
         public bool IsPrinted { get; set; }
+
+        public bool IsVoid { get; set; }
+
+        public bool IsPosted { get; set; }
     }
 }
