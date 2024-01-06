@@ -2,11 +2,11 @@
 @model Accounting_System.Models.CollectionReceipt
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Edit";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <partial name="_Notification">
-<h1>Create</h1>
+<h1>Edit</h1>
 
 <h4>Collection Receipt</h4>
 <hr />
@@ -25,23 +25,17 @@
 
             </pre>
         </div>
-        <form asp-action="CreateCollectionReceipt" method="post">
+        <form asp-action="Edit" method="post">
             <div class="col-md-4">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group mb-3">
                 <label class="control-label">Customers</label>
-                <select asp-for="CustomerNo" asp-items="@Model.Customers" class="form-select js-select2" required>
-                    <option></option>
-                </select>
-                <span asp-validation-for="CustomerNo" class="text-danger"></span>
+                    <input id="floatingInput" type="text" class="form-control" value="@ViewBag.CustomerName" placeholder="Reference #" readOnly />
             </div>
 
                 <div class="form-group mb-3">
                     <label class="control-label">SI NO.</label>
-                    <select asp-for="SalesInvoiceId" id="invoices" asp-items="@Model.Invoices" class="form-select js-select2">
-                        <option></option>
-                    </select>
-                    <span asp-validation-for="SalesInvoiceId" class="text-danger"></span>
+                    <input id="floatingInput" type="text" class="form-control" value="@Model.SINo" placeholder="Reference #" readOnly />
                 </div>
 
             <div class="form-group mb-3">
