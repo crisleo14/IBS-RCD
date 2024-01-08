@@ -32,7 +32,7 @@ namespace Accounting_System.Controllers
             return View(viewData);
         }
 
-        public async Task<IActionResult> OfficialReceiptIndex()
+        public async Task<IActionResult> OfficialIndex()
         {
             var viewData = await _receiptRepo.GetORAsync();
 
@@ -436,7 +436,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public IActionResult CreateOfficialReceipt()
+        public IActionResult OfficialCreate()
         {
             var viewModel = new OfficialReceipt();
             viewModel.SOANo = _dbContext.StatementOfAccounts
@@ -451,7 +451,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateOfficialReceipt(OfficialReceipt model)
+        public async Task<IActionResult> OfficialCreate(OfficialReceipt model)
         {
             model.SOANo = _dbContext.StatementOfAccounts
                 .Select(s => new SelectListItem
@@ -492,7 +492,7 @@ namespace Accounting_System.Controllers
                     _dbContext.Add(model);
                     await _dbContext.SaveChangesAsync();
 
-                    return RedirectToAction("OfficialReceiptIndex");
+                    return RedirectToAction("OfficialIndex");
                 }
                 else
                 {
@@ -513,7 +513,7 @@ namespace Accounting_System.Controllers
             return View(cr);
         }
 
-        public async Task<IActionResult> OfficialReceipt(int id)
+        public async Task<IActionResult> OfficialPrint(int id)
         {
             var or = await _receiptRepo.FindOR(id);
             return View(or);
@@ -538,7 +538,7 @@ namespace Accounting_System.Controllers
                 findIdOfOR.IsPrinted = true;
                 await _dbContext.SaveChangesAsync();
             }
-            return RedirectToAction("OfficialReceipt", new { id = id });
+            return RedirectToAction("OfficialPrint", new { id = id });
         }
 
         [HttpGet]
