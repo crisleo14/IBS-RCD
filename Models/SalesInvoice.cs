@@ -91,8 +91,6 @@ namespace Accounting_System.Models
         [Column(TypeName = "varchar(100)")]
         public string Remarks { get; set; }
 
-        public bool OriginalCopy { get; set; } = true;
-
         [Display(Name = "Vatable Sales")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal VatableSales { get; set; }
