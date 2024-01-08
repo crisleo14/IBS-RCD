@@ -25,7 +25,7 @@ namespace Accounting_System.Controllers
             _receiptRepo = receiptRepo;
         }
 
-        public async Task<IActionResult> CollectionReceiptIndex()
+        public async Task<IActionResult> CollectionIndex()
         {
             var viewData = await _receiptRepo.GetCRAsync();
 
@@ -39,7 +39,7 @@ namespace Accounting_System.Controllers
             return View(viewData);
         }
 
-        public IActionResult CreateCollectionReceipt()
+        public IActionResult CollectionCreate()
         {
             var viewModel = new CollectionReceipt();
 
@@ -66,7 +66,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCollectionReceipt(CollectionReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle)
+        public async Task<IActionResult> CollectionCreate(CollectionReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle)
         {
             model.Customers = _dbContext.Customers
                .OrderBy(c => c.Id)
@@ -426,7 +426,7 @@ namespace Accounting_System.Controllers
                 await _receiptRepo.UpdateInvoice(existingSalesInvoice.Id, model.Total, offsetAmount);
 
                 await _dbContext.SaveChangesAsync();
-                return RedirectToAction("CollectionReceiptIndex");
+                return RedirectToAction("CollectionIndex");
             }
             else
             {
@@ -507,7 +507,7 @@ namespace Accounting_System.Controllers
             }
         }
 
-        public async Task<IActionResult> CollectionReceipt(int id)
+        public async Task<IActionResult> CollectionPrint(int id)
         {
             var cr = await _receiptRepo.FindCR(id);
             return View(cr);
@@ -527,7 +527,7 @@ namespace Accounting_System.Controllers
                 findIdOfCR.IsPrinted = true;
                 await _dbContext.SaveChangesAsync();
             }
-            return RedirectToAction("CollectionReceipt", new { id = id });
+            return RedirectToAction("CollectionPrint", new { id = id });
         }
 
         public async Task<IActionResult> PrintedOR(int id)
@@ -582,7 +582,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> CollectionEdit(int? id)
         {
             if (id == null)
             {
@@ -632,7 +632,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(CollectionReceipt model)
+        public async Task<IActionResult> CollectionEdit(CollectionReceipt model)
         {
             var existingModel = await _receiptRepo.FindCR(model.Id);
 
@@ -693,7 +693,7 @@ namespace Accounting_System.Controllers
                 #endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync();
-                return RedirectToAction("CollectionReceiptIndex");
+                return RedirectToAction("CollectionIndex");
             }
             else
             {
@@ -714,7 +714,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Collection Receipt has been Posted.";
                 }
-                return RedirectToAction("CollectionReceiptIndex");
+                return RedirectToAction("CollectionIndex");
             }
 
             return NotFound();
@@ -732,7 +732,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Collection Receipt has been Voided.";
                 }
-                return RedirectToAction("CollectionReceiptIndex");
+                return RedirectToAction("CollectionIndex");
             }
 
             return NotFound();
