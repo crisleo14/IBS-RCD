@@ -22,12 +22,12 @@
             <th>
                 @Html.DisplayNameFor(model => model.Service.Name)
             </th>
-            <th>
+            @* <th>
                 @Html.DisplayNameFor(model => model.Period)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Amount)
-            </th>
+            </th> *@
             <th></th>
         </tr>
     </thead>
@@ -43,12 +43,12 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Service.Name)
             </td>
-            <td>
+           @*  <td>
                 @item.Period.ToString("MMMM yyyy")
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Amount)
-            </td>
+            </td> *@
             <td>
                     <a asp-action="Generate" asp-route-id="@item.Id" class="btn btn-light">Generate SOA</a>
             </td>

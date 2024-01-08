@@ -121,6 +121,7 @@ namespace Accounting_System.Controllers
                 #endregion --Validating the series
 
                 #region --Saving default value
+
                 var computeTotalInModelIfZero = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + model.EWT + model.WVAT;
                 if (computeTotalInModelIfZero == 0)
                 {
@@ -130,7 +131,7 @@ namespace Accounting_System.Controllers
                 var existingSalesInvoice = _dbContext.SalesInvoices
                                                .FirstOrDefault(si => si.Id == model.SalesInvoiceId);
                 var generateCRNo = await _receiptRepo.GenerateCRNo();
-                
+
                 model.SeriesNumber = getLastNumber;
                 model.SINo = existingSalesInvoice.SINo;
                 model.CRNo = generateCRNo;
@@ -481,7 +482,7 @@ namespace Accounting_System.Controllers
                 var existingSOA = _dbContext.StatementOfAccounts
                                                .FirstOrDefault(si => si.Id == model.SOAId);
 
-                if (existingSOA.Amount >= model.Amount)
+                if (existingSOA.Total >= model.Amount)
                 {
                     var generateORNo = await _receiptRepo.GenerateORNo();
 

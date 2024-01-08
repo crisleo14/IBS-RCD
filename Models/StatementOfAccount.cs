@@ -6,7 +6,9 @@ namespace Accounting_System.Models
 {
     public class StatementOfAccount : BaseEntity
     {
+        [Column(TypeName = "varchar(12)")]
         public string? SOANo { get; set; }
+
         public long SeriesNumber { get; set; }
 
         [Required]
@@ -30,11 +32,14 @@ namespace Accounting_System.Models
         public List<SelectListItem>? Services { get; set; }
 
         [Required]
-        public DateTime Period { get; set; }
+        public DateTime[] Period { get; set; }
 
         [Required]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal Amount { get; set; }
+        public decimal[] Amount { get; set; }
+
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal Total { get; set; }
 
         public bool IsPrinted { get; set; }
     }

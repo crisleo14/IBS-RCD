@@ -108,7 +108,7 @@ namespace Accounting_System.Controllers
                         .Include(soa => soa.Customer)
                         .FirstOrDefault(soa => soa.Id == model.SOAId);
 
-                    model.DebitAmount = model.AdjustedPrice - existingSoa.Amount;
+                    model.DebitAmount = model.AdjustedPrice - existingSoa.Total;
 
                     if (existingSoa.Customer.CustomerType == "Vatable")
                     {

@@ -5,7 +5,7 @@
 @using Humanizer
 
 @{
-    var formattedToPeso = String.Format("{0:N2}", Model.StatementOfAccount.Amount);
+    var formattedToPeso = String.Format("{0:N2}", Model.StatementOfAccount.Total);
 }
 
 <br />
@@ -100,10 +100,10 @@
             <tr>
                 @{
                     string concatenatedValue = "0.0" + Model.StatementOfAccount.Service.Percent.ToString();
-                    decimal vatableSales = Model.StatementOfAccount.Amount / (decimal)1.12;
-                    decimal totalSalesVatInclusive = Model.StatementOfAccount.Amount - vatableSales;
+                    decimal vatableSales = Model.StatementOfAccount.Total / (decimal)1.12;
+                    decimal totalSalesVatInclusive = Model.StatementOfAccount.Total - vatableSales;
                     decimal EWT = vatableSales * decimal.Parse(concatenatedValue);
-                    decimal totalAmountDue = Model.StatementOfAccount.Amount - EWT;
+                    decimal totalAmountDue = Model.StatementOfAccount.Total - EWT;
 
                 }
                 <td class="w-25" style="padding-left:10px;">Vatable Sales</td>
@@ -159,7 +159,7 @@
                         <h6 style="height: 9px; padding-right:10px;" class="text-center">@formattedToPeso</h6>
                     }
                 </td>
-                
+
                 <td style="padding-left:10px;"></td>
                 <td style="padding-left:10px;"></td>
             </tr>
@@ -175,7 +175,7 @@
                 {
                     <td style="padding-right:10px;" class="text-center">@Html.DisplayFor(model => totalAmountDue)</td>
                 }else{
-                    <td style="padding-right:10px;" class="text-end">@Html.DisplayFor(model => model.StatementOfAccount.Amount)</td>
+                    <td style="padding-right:10px;" class="text-end">@Html.DisplayFor(model => model.StatementOfAccount.Total)</td>
                 }
                 <td></td>
                 <td></td>
@@ -186,7 +186,7 @@
                 <td></td>
                 <td></td>
             </tr>
-            
+
         </tbody>
     </table>
 </div>
@@ -213,7 +213,7 @@
                 {
                     <td>@Html.DisplayFor(model => totalAmountDue)</td>
                 }else{
-                    <td>@Html.DisplayFor(model => model.StatementOfAccount.Amount)</td>
+                    <td>@Html.DisplayFor(model => model.StatementOfAccount.Total)</td>
                 }
             </tr>
             <tr class="text-center">
@@ -231,7 +231,7 @@
                 <td>&nbsp;TOTAL</td>
                 <td></td>
                 <td></td>
-                <td>@Html.DisplayFor(model => model.StatementOfAccount.Amount)</td>
+                <td>@Html.DisplayFor(model => model.StatementOfAccount.Total)</td>
             </tr>
         </tbody>
     </table>
