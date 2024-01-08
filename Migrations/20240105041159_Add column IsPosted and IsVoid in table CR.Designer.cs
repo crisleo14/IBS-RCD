@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240105041159_Add column IsPosted and IsVoid in table CR")]
+    partial class AddcolumnIsPostedandIsVoidintableCR
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,7 +74,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -115,7 +118,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -171,7 +174,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -213,7 +216,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -277,7 +280,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("varchar(20)");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -359,7 +362,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -434,7 +437,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -481,7 +484,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("numeric");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -568,7 +571,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -613,7 +616,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -650,7 +653,7 @@ namespace Accounting_System.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -690,7 +693,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("numeric");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -735,7 +738,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -782,7 +785,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -818,7 +821,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -869,7 +872,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -899,7 +902,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -929,7 +932,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("numeric");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -1005,7 +1008,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("numeric");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -1076,7 +1079,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("numeric");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -1152,7 +1155,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("numeric");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -1226,7 +1229,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -1365,7 +1368,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -1420,28 +1423,20 @@ namespace Accounting_System.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("CurrentAndPrevious")
-                        .IsRequired()
-                        .HasColumnType("varchar(50)");
-
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<int>("Number")
                         .HasColumnType("integer");
 
                     b.Property<int>("Percent")
                         .HasColumnType("integer");
-
-                    b.Property<string>("Unearned")
-                        .IsRequired()
-                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 
@@ -1456,12 +1451,11 @@ namespace Accounting_System.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal[]>("Amount")
-                        .IsRequired()
-                        .HasColumnType("numeric[]");
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -1472,21 +1466,17 @@ namespace Accounting_System.Migrations
                     b.Property<bool>("IsPrinted")
                         .HasColumnType("boolean");
 
-                    b.Property<DateTime[]>("Period")
-                        .IsRequired()
-                        .HasColumnType("timestamp with time zone[]");
+                    b.Property<DateTime>("Period")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SOANo")
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("text");
 
                     b.Property<long>("SeriesNumber")
                         .HasColumnType("bigint");
 
                     b.Property<int>("ServicesId")
                         .HasColumnType("integer");
-
-                    b.Property<decimal>("Total")
-                        .HasColumnType("numeric(18,2)");
 
                     b.HasKey("Id");
 
@@ -1514,7 +1504,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");

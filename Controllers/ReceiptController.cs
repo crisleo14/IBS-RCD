@@ -580,5 +580,163 @@ namespace Accounting_System.Controllers
             }
             return Json(null);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            var existingModel = await _dbContext.CollectionReceipts.FindAsync(id);
+
+            if ( existingModel == null)
+            {
+                return NotFound();
+            }
+
+            existingModel.Customers = _dbContext.Customers
+               .OrderBy(c => c.Id)
+               .Select(s => new SelectListItem
+               {
+                   Value = s.Number.ToString(),
+                   Text = s.Name
+               })
+               .ToList();
+
+            existingModel.Invoices = _dbContext.SalesInvoices
+                .Where(si => !si.IsPaid && si.CustomerNo == existingModel.CustomerNo)
+                .OrderBy(si => si.Id)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.SINo
+                })
+                .ToList();
+
+            existingModel.ChartOfAccounts = _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == "4" || coa.Level == "5")
+                .OrderBy(coa => coa.Id)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number,
+                    Text = s.Number + " " + s.Name
+                })
+                .ToList();
+            var findCustomers = await _dbContext.Customers
+                .FirstOrDefaultAsync(c => c.Number == existingModel.CustomerNo);
+
+            ViewBag.CustomerName = findCustomers.Name;
+
+            return View(existingModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(CollectionReceipt model)
+        {
+            var existingModel = await _receiptRepo.FindCR(model.Id);
+
+            if (ModelState.IsValid)
+            {
+                #region --Validating the series
+
+                var getLastNumber = await _receiptRepo.GetLastSeriesNumberCR();
+
+                if (getLastNumber > 9999999999)
+                {
+                    TempData["error"] = "You reach the maximum Series Number";
+                    return View(model);
+                }
+                var totalRemainingSeries = 9999999999 - getLastNumber;
+                if (getLastNumber >= 9999999899)
+                {
+                    TempData["warning"] = $"Collection Receipt created successfully, Warning {totalRemainingSeries} series number remaining";
+                }
+                else
+                {
+                    TempData["success"] = "Collection Receipt created successfully";
+                }
+
+                #endregion --Validating the series
+
+                #region --Saving default value
+                var computeTotalInModelIfZero = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + model.EWT + model.WVAT;
+                if (computeTotalInModelIfZero == 0)
+                {
+                    TempData["error"] = "Please input atleast one type form of payment";
+                    return View(model);
+                }
+
+                existingModel.Date = model.Date;
+                existingModel.ReferenceNo = model.ReferenceNo;
+                existingModel.Remarks = model.Remarks;
+                existingModel.CheckDate = model.CheckDate;
+                existingModel.CheckNo = model.CheckNo;
+                existingModel.CheckBank = model.CheckBank;
+                existingModel.CheckBranch = model.CheckBranch;
+                existingModel.CashAmount = model.CashAmount;
+                existingModel.CheckAmount = model.CheckAmount;
+                existingModel.ManagerCheckAmount = model.ManagerCheckAmount;
+                existingModel.EWT = model.EWT;
+                existingModel.WVAT = model.WVAT;
+                existingModel.Total = computeTotalInModelIfZero;
+
+                #endregion --Saving default value
+
+                #region --Audit Trail Recording
+
+                var modifiedBy = _userManager.GetUserName(this.User);
+                AuditTrail auditTrail = new(modifiedBy, $"Edited receipt# {model.SINo}", "Collection Receipt");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
+                await _dbContext.SaveChangesAsync();
+                return RedirectToAction("CollectionReceiptIndex");
+            }
+            else
+            {
+                TempData["error"] = "The information you submitted is not valid!";
+                return View(model);
+            }
+        }
+
+        public async Task<IActionResult> Post(int itemId)
+        {
+            var model = await _dbContext.CollectionReceipts.FindAsync(itemId);
+
+            if (model != null)
+            {
+                if (!model.IsPosted)
+                {
+                    model.IsPosted = true;
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Collection Receipt has been Posted.";
+                }
+                return RedirectToAction("CollectionReceiptIndex");
+            }
+
+            return NotFound();
+        }
+
+        public async Task<IActionResult> Void(int itemId)
+        {
+            var model = await _dbContext.CollectionReceipts.FindAsync(itemId);
+
+            if (model != null)
+            {
+                if (!model.IsVoid)
+                {
+                    model.IsVoid = true;
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Collection Receipt has been Voided.";
+                }
+                return RedirectToAction("CollectionReceiptIndex");
+            }
+
+            return NotFound();
+        }
+
+
     }
 }
