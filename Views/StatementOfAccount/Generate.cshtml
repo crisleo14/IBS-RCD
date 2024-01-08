@@ -65,8 +65,8 @@
 
             <tr style="height:80px;">
                 <td>@Html.DisplayFor(model => model.Service.Name)</td>
-                <td>@Model.Period.ToString("MMMM yyyy")</td>
-                <td>@Html.DisplayFor(model => model.Amount)</td>
+                @* <td>@Model.Period.ToString("MMMM yyyy")</td>
+                <td>@Html.DisplayFor(model => model.Amount)</td> *@
             </tr>
 
         </tbody>
@@ -131,7 +131,7 @@
                                     <td class="text-end">
                                         @if (Model.Customer.CustomerType == "Zero Rated")
                                         {
-                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p>
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Total)</p>
                                         }
                                     </td>
                                 </tr>
@@ -141,7 +141,7 @@
                                     <td class="text-end">
                                         @if (Model.Customer.CustomerType == "Exempt")
                                         {
-                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p>
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Total)</p>
                                         }
                                     </td>
                                 </tr>
@@ -161,7 +161,7 @@
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
-                                    <td class="text-end"><p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p></td>
+                                    <td class="text-end"><p style="height: 9px;">@Html.DisplayFor(model => model.Total)</p></td>
                                 </tr>
                             </tbody>
                         </table>

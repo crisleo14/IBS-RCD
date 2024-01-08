@@ -10,6 +10,7 @@ namespace Accounting_System.Models
         public int Id { get; set; }
 
         [Display(Name = "Created By")]
+        [Column(TypeName = "varchar(50)")]
         public string? CreatedBy { get; set; }
 
         [Display(Name = "Created Date")]
