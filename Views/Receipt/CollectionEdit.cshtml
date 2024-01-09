@@ -221,24 +221,35 @@ EditCollection
     </script>
 
         <script>
-            function saveAccountingEntry() {
-                // Get the values from the modal inputs
-                var accountTitle = $("#AccountTitle").val();
-                var accountTitleText = $("#AccountTitle option:selected").text();
-                var accountAmount = $("#AccountAmount").val();
+            // Function to initialize the table with default entries
+            function initializeTable() {
+                // Get the data from ViewBag and parse it as JSON
+                var fetchAccEntries = @Html.Raw(Json.Serialize(ViewBag.fetchAccEntries));
 
-                console.log(accountTitle);
-                console.log(accountTitleText);
+                // Iterate through the initial entries and call saveAccountingEntry for each
+                fetchAccEntries.forEach(function (accountNo) {
+                    saveAccountingEntry(accountNo, "100");
+                });
+            }
+
+            function saveAccountingEntry(accountTitle, accountAmount) {
+                // Get the values from the modal inputs (if available)
+                if (!accountTitle) {
+                    accountTitle = $("#AccountTitle").val();
+                }
+                if (!accountAmount) {
+                    accountAmount = $("#AccountAmount").val();
+                }
 
                 // Create a new row with the text only and a hidden input for the value
                 var newRow = `<tr>
-                                <td>
-                                    <input type='hidden' name='accountTitle' value='${accountTitle}' />
-                                    <input type='text' name='accountTitleText' value='${accountTitleText}' style='border:none' readonly />
-                                </td>
-                                <td><input type='text' name='accountAmount' value='${accountAmount}' style='border:none' readonly /></td>
-                                <td><button type='button' class='btn btn-danger btn-sm' onclick='removeRow(this)'>Remove</button></td>
-                             </tr>`;
+                                        <td>
+                                            <input type='hidden' name='accountTitle' value='${accountTitle}' />
+                                            <input type='text' name='accountTitleText' value='${accountTitle}' style='border:none' readonly />
+                                        </td>
+                                        <td><input type='text' name='accountAmount' value='${accountAmount}' style='border:none' readonly /></td>
+                                        <td><button type='button' class='btn btn-danger btn-sm' onclick='removeRow(this)'>Remove</button></td>
+                                     </tr>`;
 
                 // Append the new row to the table body
                 $("#accountingEntriesBody").append(newRow);
@@ -247,11 +258,9 @@ EditCollection
                 $("#AddAccEntry").modal("hide");
 
                 // Clear the modal inputs
-                $("#AccountTitle").val(""); // Reset the select to its default state
-                $("#AccountTitle").trigger("change"); // Trigger change event for the select
+                $("#AccountTitle").val("");
                 $("#AccountAmount").val("");
             }
-
 
             // Function to remove the corresponding row
             function removeRow(button) {
@@ -259,6 +268,10 @@ EditCollection
                 $(button).closest("tr").remove();
             }
 
+            // Call initializeTable when the page loads
+            $(document).ready(function () {
+                initializeTable();
+            });
         </script>
 
         <script>

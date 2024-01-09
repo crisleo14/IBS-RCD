@@ -423,7 +423,30 @@ namespace Accounting_System.Controllers
 
                 #endregion --Cash Receipt Book Recording
 
-                await _receiptRepo.UpdateInvoice(existingSalesInvoice.Id, model.Total, offsetAmount);
+                #region --Offsetting function
+                var offsettings = new List<Offsetting>();
+
+                for (int i = 0; i < accountTitle.Length; i++)
+                {
+                    var currentAccountTitle = accountTitle[i];
+                    var currentAccountAmount = accountAmount[i];
+                    offsetAmount += accountAmount[i];
+
+                    offsettings.Add(
+                        new Offsetting
+                        {
+                            AccountNo = currentAccountTitle,
+                            Source = model.CRNo,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        }
+                    );
+
+                    _dbContext.AddRange(offsettings);
+                }
+                    #endregion
+
+                    await _receiptRepo.UpdateInvoice(existingSalesInvoice.Id, model.Total, offsetAmount);
 
                 await _dbContext.SaveChangesAsync();
                 return RedirectToAction("CollectionIndex");
@@ -627,6 +650,12 @@ namespace Accounting_System.Controllers
                 .FirstOrDefaultAsync(c => c.Number == existingModel.CustomerNo);
 
             ViewBag.CustomerName = findCustomers.Name;
+
+            var matchingOffsettings = await _dbContext.Offsettings
+            .Where(offset => offset.Source == existingModel.CRNo)
+            .ToListAsync();
+
+            ViewBag.fetchAccEntries = matchingOffsettings.Select(offset => offset.AccountNo).ToList();
 
             return View(existingModel);
         }
