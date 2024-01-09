@@ -437,6 +437,7 @@ namespace Accounting_System.Controllers
                         {
                             AccountNo = currentAccountTitle,
                             Source = model.CRNo,
+                            Amount = currentAccountAmount,
                             CreatedBy = model.CreatedBy,
                             CreatedDate = model.CreatedDate
                         }
@@ -655,7 +656,10 @@ namespace Accounting_System.Controllers
             .Where(offset => offset.Source == existingModel.CRNo)
             .ToListAsync();
 
-            ViewBag.fetchAccEntries = matchingOffsettings.Select(offset => offset.AccountNo).ToList();
+            ViewBag.fetchAccEntries = matchingOffsettings
+                .Select(offset => new { AccountNo = offset.AccountNo, Amount = offset.Amount.ToString("N2") })
+                .ToList();
+
 
             return View(existingModel);
         }

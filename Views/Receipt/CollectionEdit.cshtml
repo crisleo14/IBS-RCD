@@ -221,15 +221,14 @@ EditCollection
     </script>
 
         <script>
-            // Function to initialize the table with default entries
             function initializeTable() {
                 // Get the data from ViewBag and parse it as JSON
                 var fetchAccEntries = @Html.Raw(Json.Serialize(ViewBag.fetchAccEntries));
 
                 // Iterate through the initial entries and call saveAccountingEntry for each
-                fetchAccEntries.forEach(function (accountNo) {
-                    saveAccountingEntry(accountNo, "100");
-                });
+                for (var i = 0; i < fetchAccEntries.length; i++) {
+                    saveAccountingEntry(fetchAccEntries[i].accountNo, fetchAccEntries[i].amount);
+                }
             }
 
             function saveAccountingEntry(accountTitle, accountAmount) {

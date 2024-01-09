@@ -15,6 +15,10 @@ namespace Accounting_System.Models
 
         public string? Reference { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal Amount { get; set; }
+
         [Display(Name = "Created By")]
         [Column(TypeName = "varchar(50)")]
         public string? CreatedBy { get; set; }
