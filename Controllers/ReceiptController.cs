@@ -770,5 +770,23 @@ namespace Accounting_System.Controllers
 
             return NotFound();
         }
+
+        public async Task<IActionResult> Cancel(int itemId)
+        {
+            var model = await _dbContext.CollectionReceipts.FindAsync(itemId);
+
+            if (model != null)
+            {
+                if (!model.IsCanceled)
+                {
+                    model.IsCanceled = true;
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Collection Receipt has been Canceled.";
+                }
+                return RedirectToAction("CollectionIndex");
+            }
+
+            return NotFound();
+        }
     }
 }

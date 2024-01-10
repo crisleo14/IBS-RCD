@@ -580,13 +580,43 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Sales Invoice has been Posted.";
                 }
-                else
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
+
+        public async Task<IActionResult> Void(int invoiceId)
+        {
+            var model = await _dbContext.SalesInvoices.FindAsync(invoiceId);
+
+            if (model != null)
+            {
+                if (!model.IsVoided)
                 {
                     model.IsVoided = true;
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Sales Invoice has been Voided.";
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
+
+        public async Task<IActionResult> Cancel(int invoiceId)
+        {
+            var model = await _dbContext.SalesInvoices.FindAsync(invoiceId);
+
+            if (model != null)
+            {
+                if (!model.IsCanceled)
+                {
+                    model.IsCanceled = true;
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Sales Invoice has been Canceled.";
+                }
+                return RedirectToAction("Index");
             }
 
             return NotFound();
