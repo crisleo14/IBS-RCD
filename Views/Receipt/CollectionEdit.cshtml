@@ -234,21 +234,24 @@ EditCollection
             function saveAccountingEntry(accountTitle, accountAmount) {
                 // Get the values from the modal inputs (if available)
                 if (!accountTitle) {
-                    accountTitle = $("#AccountTitle").val();
+                    accountTitle = $("#AccountTitle option:selected").text();
                 }
                 if (!accountAmount) {
                     accountAmount = $("#AccountAmount").val();
                 }
 
                 // Create a new row with the text only and a hidden input for the value
-                var newRow = `<tr>
-                                        <td>
-                                            <input type='hidden' name='accountTitle' value='${accountTitle}' />
-                                            <input type='text' name='accountTitleText' value='${accountTitle}' style='border:none' readonly />
-                                        </td>
-                                        <td><input type='text' name='accountAmount' value='${accountAmount}' style='border:none' readonly /></td>
-                                        <td><button type='button' class='btn btn-danger btn-sm' onclick='removeRow(this)'>Remove</button></td>
-                                     </tr>`;
+var newRow = `<tr>
+                   <td>
+                       <input type='text' name='editAccountTitleText' value='${accountTitle}' style='border:none' readonly />
+                   </td>
+                   <td>
+                   <input type='text' name='editAccountAmount' value='${accountAmount}' style='border:none' readonly />
+                   </td>
+                   <td>
+                   <button type='button' class='btn btn-danger btn-sm' onclick='removeRow(this)'>Remove</button>
+                   </td>
+              </tr>`;
 
                 // Append the new row to the table body
                 $("#accountingEntriesBody").append(newRow);

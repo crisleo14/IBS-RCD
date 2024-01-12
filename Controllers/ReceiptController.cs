@@ -428,7 +428,7 @@ namespace Accounting_System.Controllers
 
                 for (int i = 0; i < accountTitle.Length; i++)
                 {
-                    var currentAccountTitle = accountTitle[i];
+                    var currentAccountTitle = accountTitleText[i];
                     var currentAccountAmount = accountAmount[i];
                     offsetAmount += accountAmount[i];
 
@@ -647,10 +647,11 @@ namespace Accounting_System.Controllers
                     Text = s.Number + " " + s.Name
                 })
                 .ToList();
+
             var findCustomers = await _dbContext.Customers
                 .FirstOrDefaultAsync(c => c.Number == existingModel.CustomerNo);
 
-            ViewBag.CustomerName = findCustomers.Name;
+            ViewBag.CustomerName = findCustomers?.Name;
 
             var matchingOffsettings = await _dbContext.Offsettings
             .Where(offset => offset.Source == existingModel.CRNo)
@@ -665,7 +666,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CollectionEdit(CollectionReceipt model)
+        public async Task<IActionResult> CollectionEdit(CollectionReceipt model, string[] editAccountTitleText, decimal[] editAccountAmount, string[] editAccountTitle)
         {
             var existingModel = await _receiptRepo.FindCR(model.Id);
 
@@ -715,7 +716,46 @@ namespace Accounting_System.Controllers
                 existingModel.WVAT = model.WVAT;
                 existingModel.Total = computeTotalInModelIfZero;
 
+                decimal offsetAmount = 0;
+
                 #endregion --Saving default value
+
+                #region --Offsetting function
+                var offsetting = new List<Offsetting>();
+
+                for (int i = 0; i < editAccountTitleText.Length; i++)
+                {
+                    var existingOffset = await _dbContext.Offsettings
+                        .FirstOrDefaultAsync(offset => offset.Source == existingModel.CRNo
+                                                        && offset.AccountNo == editAccountTitleText[i]
+                                                        && offset.Amount == editAccountAmount[i]);
+
+                    if (existingOffset == null)
+                    {
+                        var accountTitle = editAccountTitleText[i];
+                        var accountAmount = editAccountAmount[i];
+                        offsetAmount += editAccountAmount[i];
+
+                        offsetting.Add(
+                            new Offsetting
+                            {
+                                AccountNo = accountTitle,
+                                Source = existingModel.CRNo,
+                                Amount = accountAmount,
+                                CreatedBy = existingModel.CreatedBy,
+                                CreatedDate = existingModel.CreatedDate
+                            }
+                        );
+                    }
+                }
+
+                if (offsetting.Any())
+                {
+                    _dbContext.AddRange(offsetting);
+                    await _dbContext.SaveChangesAsync();
+                }
+
+                #endregion
 
                 #region --Audit Trail Recording
 
