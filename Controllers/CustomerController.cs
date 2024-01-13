@@ -47,7 +47,15 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
+                var tinExist = await _customerRepo.CheckIfTinNoExist(customer.TinNo);
 
+                if (tinExist != null)
+                {
+                    ModelState.AddModelError("", "Tin# already exist!");
+                    return View(customer);
+                }
+
+                customer.Number = await _customerRepo.GetLastNumber();
                 customer.CreatedBy = _userManager.GetUserName(this.User);
                 _dbContext.Add(customer);
                 await _dbContext.SaveChangesAsync();
@@ -71,7 +79,7 @@ namespace Accounting_System.Controllers
 
             var customer = await _customerRepo.FindCustomerAsync(id);
 
-            return View(customer);
+            return PartialView("_EditCustomerPartialView",customer);
         }
 
         [HttpPost]
@@ -116,38 +124,6 @@ namespace Accounting_System.Controllers
             return View(customer);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var customer = await _customerRepo.FindCustomerAsync(id);
-
-            return View(customer);
-        }
-
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            if (_dbContext.Customers == null)
-            {
-                return Problem("Entity set 'ApplicationDbContext.Customers'  is null.");
-            }
-
-            var customer = await _dbContext.Customers.FindAsync(id);
-            if (customer != null)
-            {
-                _dbContext.Customers.Remove(customer);
-            }
-
-            await _dbContext.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -190,12 +166,10 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateCOS(SalesOrder model)
         {
-           
             if (ModelState.IsValid)
             {
                 var generateCosNo = await _salesOrderRepo.GenerateCOSNo();
-                
-                
+
                 model.COSNo = generateCosNo;
                 model.Status = "Pending";
                 model.Balance = model.Quantity;
@@ -207,13 +181,14 @@ namespace Accounting_System.Controllers
                 _dbContext.Add(model);
                 await _dbContext.SaveChangesAsync();
                 TempData["success"] = "Sales Order created successfully";
-                return RedirectToAction("OrderSlip");  
+                return RedirectToAction("OrderSlip");
             }
-            else {
-                    ModelState.AddModelError("", "The information you submitted is not valid!");
-                    return View(model);
-                }
+            else
+            {
+                ModelState.AddModelError("", "The information you submitted is not valid!");
+                return View(model);
             }
+        }
 
         public IActionResult PrintOrderSlip()
         {
@@ -267,7 +242,7 @@ namespace Accounting_System.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                        throw;
+                    throw;
                 }
                 return RedirectToAction(nameof(OrderSlip));
             }

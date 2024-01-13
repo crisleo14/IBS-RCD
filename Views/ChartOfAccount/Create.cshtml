@@ -1,0 +1,201 @@
+﻿@model Accounting_System.Models.ChartOfAccount
+
+@{
+    ViewData["Title"] = "Create Chart of Account";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h1 class="text-center my-4">New Chart of Account</h1>
+            <hr />
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="form-group mb-3">
+                    <label class="control-label">Main</label>
+                    <select id="mainLevel" asp-items="@Model.Main" class="form-select js-select2" style=" width: 100%">
+                        <option></option>
+                    </select>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="control-label">Second Level</label>
+                    <select id="secondLevel" class="form-select js-select2" style=" width: 100%">
+                        <option></option>
+                    </select>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="control-label">Third Level</label>
+                    <select id="thirdLevel" name="thirdLevel" class="form-select js-select2" style=" width: 100%">
+                        <option></option>
+                    </select>
+                </div>
+
+                <div class="form-group mb-3" id="fourthLevelDiv" style="display:none">
+                    <label class="control-label">Fourth Level</label>
+                    <select id="fourthLevel" name="fourthLevel" class="form-select js-select2" style=" width: 100%" required>
+                        <option></option>
+                    </select>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="Number">Account Number</label>
+                    <input asp-for="Number" class="form-control" readonly />
+                </div>
+
+                <div class="form-floating my-3">
+                    <input asp-for="Name" id="floatingInput" class="form-control" placeholder="Account Name" />
+                    <label for="floatingInput" class="control-label">Account Name</label>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="text-center mb-3">
+                    <button type="submit" class="btn btn-primary w-50">CREATE</button>
+                </div>
+                <div class="text-center">
+                    <a class="btn btn-secondary w-50" asp-action="Index">BACK</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function () {
+            $("#mainLevel").change(function () {
+                var main = $(this).val();
+                console.log(main);
+                $.ajax({
+                    url: "/ChartOfAccount/GetChartOfAccount",
+                    type: "GET",
+                    data: { number: main },
+                    success: function (data) {
+                        console.log(data);
+                        // Check if data is an array and not null
+                        if (Array.isArray(data) && data.length > 0) {
+
+                            $("#secondLevel").empty();
+
+                            $("#secondLevel").append('<option>');
+
+                            $("#thirdLevel").empty();
+
+                            $("#thirdLevel").append('<option>');
+
+                            $("#fourthLevel").empty();
+
+                            $("#fourthLevel").append('<option>');
+
+                            // Iterate over the array and append options
+                            $.each(data, function (index, item) {
+                                $("#secondLevel").append($('<option>', {
+                                    value: item.value,   // Use the correct property for value
+                                    text: item.text      // Use the correct property for text
+                                }));
+                            });
+                        } else {
+                            // Handle the case where data is null or empty
+                            console.log("No sub account.");
+                        }
+                    }
+                });
+            });
+
+            $("#secondLevel").change(function () {
+                var second = $(this).val();
+                console.log(second);
+                $.ajax({
+                    url: "/ChartOfAccount/GetChartOfAccount",
+                    type: "GET",
+                    data: { number: second },
+                    success: function (data) {
+                        console.log(data);
+                        // Check if data is an array and not null
+                        if (Array.isArray(data) && data.length > 0) {
+
+                            $("#thirdLevel").empty();
+
+                            $("#thirdLevel").append('<option>');
+
+                            // Iterate over the array and append options
+                            $.each(data, function (index, item) {
+                                $("#thirdLevel").append($('<option>', {
+                                    value: item.value,   // Use the correct property for value
+                                    text: item.text      // Use the correct property for text
+                                }));
+                            });
+                        } else {
+                            // Handle the case where data is null or empty
+                            console.log("No sub account.");
+                        }
+                    }
+                });
+            });
+
+            $("#thirdLevel").change(function () {
+                var third = $(this).val();
+                console.log(third);
+                $.ajax({
+                    url: "/ChartOfAccount/GetChartOfAccount",
+                    type: "GET",
+                    data: { number: third },
+                    success: function (data) {
+                        console.log(data.term);
+                        if (Array.isArray(data) && data.length > 0) {
+                            $("#fourthLevelDiv").show();
+                            $("#fourthLevel").empty();
+                            $("#fourthLevel").append('<option>');
+                            $("#fourthLevel").append('<option value="create-new">\u2795 Add New</option>');
+                            $.each(data, function (index, item) {
+                                $("#fourthLevel").append($('<option>', {
+                                    value: item.value,
+                                    text: item.text
+                                }));
+                            });
+                        } else {
+                            console.log("No sub account.");
+                            $("#fourthLevelDiv").hide();
+                            generateAccountNo(third);  // Make third accessible here
+                        }
+                    }
+                });
+            });
+
+            $("#fourthLevel").change(function () {
+                var fourth = $(this).val();
+                console.log(fourth);
+
+                if (fourth != null) {
+                    if (fourth == "create-new") {
+                        generateAccountNo($("#thirdLevel").val());  // Use thirdLevel directly
+                    } else {
+                        generateAccountNo(fourth);
+                    }
+                } else {
+                    window.alert("Fourth level is required");
+                }
+            });
+        });
+    </script>
+
+    <script>
+        function generateAccountNo (parent){
+            $.ajax({
+                url: "/ChartOfAccount/GenerateNumber",
+                type: "GET",
+                data: { parent: parent },
+                success: function (data) {
+                    console.log(data);
+
+                    $("#Number").val(data);
+                }
+            });
+        }
+    </script>
+}
+

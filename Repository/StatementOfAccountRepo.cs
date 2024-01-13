@@ -18,26 +18,46 @@ namespace Accounting_System.Repository
         {
             return await _dbContext
                 .StatementOfAccounts
-                .Include(s => s.Customer)
+                .OrderByDescending(a => a.Id)
+                .Include(soa => soa.Customer)
+                .Include(soa => soa.Service)
                 .ToListAsync();
         }
 
-        public async Task<int> GetLastSOA()
+        public async Task<long> GetLastSeriesNumber()
         {
-            var lastRow = await _dbContext
+            var lastInvoice = await _dbContext
                 .StatementOfAccounts
                 .OrderByDescending(s => s.Id)
                 .FirstOrDefaultAsync();
 
-            if (lastRow != null)
+            if (lastInvoice != null)
             {
                 // Increment the last serial by one and return it
-                return lastRow.Number + 1;
+                return lastInvoice.SeriesNumber + 1;
             }
             else
             {
                 // If there are no existing records, you can start with a default value like 1
                 return 1;
+            }
+        }
+
+        public async Task<string> GenerateSOANo()
+        {
+            var statementOfAccount = await _dbContext
+                .StatementOfAccounts
+                .OrderByDescending(s => s.Id)
+                .FirstOrDefaultAsync();
+
+            if (statementOfAccount != null)
+            {
+                var generatedSOA = statementOfAccount.SeriesNumber + 1;
+                return $"SOA{generatedSOA.ToString("D10")}";
+            }
+            else
+            {
+                return $"SOA{1.ToString("D10")}";
             }
         }
 
@@ -52,6 +72,38 @@ namespace Accounting_System.Repository
             if (statementOfAccount != null)
             {
                 return statementOfAccount;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
+            }
+        }
+
+        public async Task<Services> GetServicesAsync(int id)
+        {
+            var services = await _dbContext
+                .Services
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (services != null)
+            {
+                return services;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
+            }
+        }
+
+        public async Task<Customer> FindCustomerAsync(int id)
+        {
+            var customer = await _dbContext
+                .Customers
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (customer != null)
+            {
+                return customer;
             }
             else
             {

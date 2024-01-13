@@ -13,6 +13,44 @@ namespace Accounting_System.Repository
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
+        public async Task<long> GetLastSeriesNumberCR()
+        {
+            var lastInvoice = await _dbContext
+                .CollectionReceipts
+                .OrderByDescending(s => s.Id)
+                .FirstOrDefaultAsync();
+
+            if (lastInvoice != null)
+            {
+                // Increment the last serial by one and return it
+                return lastInvoice.SeriesNumber + 1;
+            }
+            else
+            {
+                // If there are no existing records, you can start with a default value like 1
+                return 1;
+            }
+        }
+
+        public async Task<long> GetLastSeriesNumberOR()
+        {
+            var lastInvoice = await _dbContext
+                .OfficialReceipts
+                .OrderByDescending(s => s.Id)
+                .FirstOrDefaultAsync();
+
+            if (lastInvoice != null)
+            {
+                // Increment the last serial by one and return it
+                return lastInvoice.SeriesNumber + 1;
+            }
+            else
+            {
+                // If there are no existing records, you can start with a default value like 1
+                return 1;
+            }
+        }
+
         public async Task<string> GenerateCRNo()
         {
             var collectionReceipt = await _dbContext
@@ -22,7 +60,7 @@ namespace Accounting_System.Repository
 
             if (collectionReceipt != null)
             {
-                var generatedCR = collectionReceipt.Id + 1;
+                var generatedCR = collectionReceipt.SeriesNumber + 1;
                 return $"CR{generatedCR.ToString("D10")}";
             }
             else
@@ -40,7 +78,7 @@ namespace Accounting_System.Repository
 
             if (officialReceipt != null)
             {
-                var generatedCR = officialReceipt.Id + 1;
+                var generatedCR = officialReceipt.SeriesNumber + 1;
                 return $"OR{generatedCR.ToString("D10")}";
             }
             else
@@ -53,6 +91,8 @@ namespace Accounting_System.Repository
         {
             return await _dbContext
                 .CollectionReceipts
+                .Include(cr => cr.SalesInvoice)
+                .ThenInclude(s => s.Customer)
                 .OrderByDescending(c => c.Id)
                 .ToListAsync();
         }
@@ -69,7 +109,8 @@ namespace Accounting_System.Repository
         {
             var collectionReceipt = await _dbContext
                 .CollectionReceipts
-                .Include(s => s.SalesInvoice)
+                .Include(cr => cr.SalesInvoice)
+                .ThenInclude(s => s.Customer)
                 .FirstOrDefaultAsync(collectionReceipt => collectionReceipt.Id == id);
 
             if (collectionReceipt != null)
@@ -86,9 +127,9 @@ namespace Accounting_System.Repository
         {
             var officialReceipt = await _dbContext
                 .OfficialReceipts
-                .Include(s => s.StatementOfAccount)
+                .Include(or => or.StatementOfAccount)
                 .ThenInclude(soa => soa.Customer)
-                .Include(s => s.StatementOfAccount)
+                .Include(or => or.StatementOfAccount)
                 .ThenInclude(soa => soa.Service)
                 .FirstOrDefaultAsync(collectionReceipt => collectionReceipt.Id == id);
 
@@ -102,84 +143,52 @@ namespace Accounting_System.Repository
             }
         }
 
-        //    public string GetAmountInWords(decimal amount)
-        //    {
-        //        return ConvertAmountToWords(amount);
-        //    }
-        //    public static string ConvertAmountToWords(decimal amount)
-        //    {
-        //        if (amount < 0 || amount > 999999999.99m)
-        //        {
-        //            // Handle out-of-range values as needed
-        //            return "Out of range";
-        //        }
+        public async Task<int> UpdateInvoice(int id, decimal paidAmount, decimal offsetAmount)
+        {
+            var si = await _dbContext
+                .SalesInvoices
+                .FirstOrDefaultAsync(si => si.Id == id);
 
-        //        string[] units = { "", "Thousand", "Million", "Billion" };
+            if (si != null)
+            {
+                var total = paidAmount + offsetAmount;
+                si.AmountPaid += total;
+                si.Balance = si.NetDiscount - si.AmountPaid;
 
-        //        int digitGroup = 0;
-        //        string amountInWords = "";
+                if (si.Balance == 0 && si.AmountPaid == si.NetDiscount)
+                {
+                    si.IsPaid = true;
+                    si.Status = "Paid";
+                }
+                else if (si.AmountPaid > si.NetDiscount)
+                {
+                    si.IsPaid = true;
+                    si.Status = "OverPaid";
+                }
 
-        //        do
-        //        {
-        //            decimal chunk = amount % 1000;
-        //            if (chunk != 0)
-        //            {
-        //                string chunkInWords = ConvertChunkToWords(chunk);
-        //                amountInWords = $"{chunkInWords} {units[digitGroup]} {amountInWords}";
-        //            }
+                return await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                throw new ArgumentException("", "No record found");
+            }
+        }
 
-        //            amount /= 1000;
-        //            digitGroup++;
-        //        } while (amount > 0);
+        public async Task<List<Offsetting>> GetOffsettingAsync(string source, string reference)
+        {
+            var result = await _dbContext
+                .Offsettings
+                .Where(o => o.Source == source && o.Reference == reference)
+                .ToListAsync();
 
-        //        return amountInWords.Trim();
-        //    }
-
-        //    private static string ConvertChunkToWords(decimal chunk)
-        //    {
-        //        string[] ones =
-        //        {
-        //    "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
-        //    "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"
-        //};
-
-        //        string[] tens =
-        //        {
-        //    "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"
-        //};
-
-        //        string chunkInWords = "";
-
-        //        int hundreds = (int)(chunk / 100);
-        //        if (hundreds > 0)
-        //        {
-        //            chunkInWords += $"{ones[hundreds]} Hundred";
-        //        }
-
-        //        int remainder = (int)(chunk % 100);
-
-        //        if (remainder > 0)
-        //        {
-        //            if (chunkInWords != "")
-        //            {
-        //                chunkInWords += " and ";
-        //            }
-
-        //            if (remainder < 20)
-        //            {
-        //                chunkInWords += ones[remainder];
-        //            }
-        //            else
-        //            {
-        //                chunkInWords += tens[remainder / 10];
-        //                if (remainder % 10 > 0)
-        //                {
-        //                    chunkInWords += $"-{ones[remainder % 10]}";
-        //                }
-        //            }
-        //        }
-
-        //        return chunkInWords;
-        //    }
+            if (result != null)
+            {
+                return result;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
+            }
+        }
     }
 }

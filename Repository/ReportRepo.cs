@@ -13,7 +13,7 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public async Task<List<SalesInvoice>> GetSalesBooksAsync(string dateFrom, string dateTo)
+        public async Task<List<SalesBook>> GetSalesBooksAsync(string dateFrom, string dateTo)
         {
             var fromDate = DateTime.Parse(dateFrom);
             var toDate = DateTime.Parse(dateTo);
@@ -24,9 +24,9 @@ namespace Accounting_System.Repository
             }
 
             var salesBooks = _dbContext
-             .SalesInvoices
+             .SalesBooks
              .AsEnumerable()
-             .Where(s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate && s.IsPosted)
+             .Where(s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate)
              .OrderBy(s => s.Id)
              .ToList();
 
@@ -166,6 +166,7 @@ namespace Accounting_System.Repository
             var auditTrail = _dbContext
              .AuditTrails
              .AsEnumerable()
+             .Where(d => d.Date >= fromDate && d.Date <= toDate)
              .OrderBy(d => d.Date)
              .ToList();
 

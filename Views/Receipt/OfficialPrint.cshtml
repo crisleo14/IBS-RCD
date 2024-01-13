@@ -1,0 +1,335 @@
+﻿@model Accounting_System.Models.OfficialReceipt
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@using Humanizer
+
+@{
+    var formattedToPeso = String.Format("{0:N2}", Model.StatementOfAccount.Total);
+}
+
+<br />
+<div class="text-end">
+    <img src="~/img/Filpride.jpg" height="" width="130px" />
+</div>
+<div class="text-center">
+    <h2><u><b>&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b></u></h2>
+    <p style="line-height: 1; margin-top:-7px;">
+        57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone,<br />
+        Kalaklan, Olongapo City, 2200 Zambales, Philippines<br />
+        VAT Reg. TIN: 000-216-589-00000
+    </p>
+</div>
+
+<h3><span style="display: inline-block;"><b>OFFICIAL RECEIPT</b></span></h3>
+<div class="text-end" style="margin-top:-70px;"><br />
+    <h6><b>No.&nbsp;@Html.DisplayFor(model => model.ORNo)</b></h6>
+</div>
+
+<div class="table-responsive">
+    <table class="w-100" style="margin-top:-10px;">
+        <tbody>
+            <tr>
+                <td>
+                    <br />
+                    <div class="w-100 text-end">
+                    <span><b>Date:</b></span>
+                        <span class="underline" style="display: inline-block; width: 20%; text-align:center">&nbsp;@Model.Date.ToShortDateString()</span><br />
+                    </div>
+
+                    <span><b>Received from:</b></span>
+                    <span class="underline" style="display: inline-block; width: 83%;">&nbsp;&nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.Name)</span><br />
+
+                    <span><b>with TIN</b></span>
+                    <span class="underline" style="display: inline-block; width: 90%;">&nbsp;&nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.TinNo)</span><br />
+
+                    <span><b>and address at</b></span>
+                    <span class="underline" style="display: inline-block; width: 83%;">&nbsp;&nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.Address)</span><br />
+
+                    <span><b>engaged in the business style of</b></span>
+                    <span class="underline" style="display: inline-block; width: 65%;">&nbsp;&nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.BusinessStyle)</span><br />
+
+                    @{
+                        decimal convertToWords = Model.Amount;
+
+                        // Separate the integer and decimal parts
+                        int integerPart = (int)Math.Floor(convertToWords);
+                        decimal decimalPart = convertToWords - integerPart;
+
+                        // Convert the integer part to words
+                        string integerWords = integerPart.ToWords();
+
+                        // Convert the decimal part to words
+                        string decimalWords = "";
+                        if (decimalPart > 0)
+                        {
+                            int decimalPlaces = BitConverter.GetBytes(decimal.GetBits(decimalPart)[3])[2];
+                            int decimalIntegerPart = (int)Math.Floor(decimalPart * (decimal)Math.Pow(10, decimalPlaces));
+                            decimalWords = $" and {decimalIntegerPart.ToWords()} centavos";
+                        }
+
+                        // Combine the integer and decimal parts
+                        string words = integerWords + decimalWords + " pesos only";
+
+                        // Capitalize the first letter of each word
+                        words = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(words.ToLower());
+                    }
+                    <span><b>the sum of</b></span>
+                    <span class="underline" style="display: inline-block; width: 87%;">&nbsp;&nbsp;@words</span><br />
+
+                    <span><b>pesos</b></span>
+                    <span class="underline" style="display: inline-block; width: 92%;">(₱ &nbsp;&nbsp;@formattedToPeso)</span><br />
+
+                    <span><b>In partial/full payment for</b></span>
+                    <span class="underline" style="display: inline-block; width: 72%;">&nbsp;&nbsp;@Model.StatementOfAccount.SOANo</span><br />
+
+                    <span><b>Reference Receipt No.</b></span>
+                    <span class="underline" style="display: inline-block; width: 75%;">&nbsp;&nbsp;@Html.DisplayFor(model => model.ReferenceNo)</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div style="margin-top:20px;">
+    <table class="table-bordered w-100">
+        <tbody>
+            <tr>
+                <td colspan="4">In settlement of the following</td>
+            </tr>
+            <tr>
+                @{
+                    string concatenatedValue = "0.0" + Model.StatementOfAccount.Service.Percent.ToString();
+                    decimal vatableSales = Model.StatementOfAccount.Total / (decimal)1.12;
+                    decimal totalSalesVatInclusive = Model.StatementOfAccount.Total - vatableSales;
+                    decimal EWT = vatableSales * decimal.Parse(concatenatedValue);
+                    decimal totalAmountDue = Model.StatementOfAccount.Total - EWT;
+
+                }
+                <td class="w-25" style="padding-left:10px;">Vatable Sales</td>
+                <td class="w-25">
+                    @if (Model.StatementOfAccount.Customer.CustomerType == "Vatable")
+                    {
+                        <h6 style="height: 9px; padding-right:10px;" class="text-center">@Html.DisplayFor(model => vatableSales)</h6>
+                    }
+                </td>
+                <td colspan="2" class="w-50" style="padding-left:10px;"></td>
+            </tr>
+            <tr>
+                <td style="padding-left:10px;">VAT-Exempt Sales</td>
+                <td>
+                    @if (Model.StatementOfAccount.Customer.CustomerType == "Exempt")
+                    {
+                        <h6 style="height: 9px; padding-right:10px;" class="text-center">@formattedToPeso</h6>
+                    }
+                </td>
+                <td style="padding-left:10px;">SOA Date</td>
+                <td class="w-25" style="padding-left:10px;">@Model.StatementOfAccount.CreatedDate.ToShortDateString()</td>
+            </tr>
+            <tr>
+                <td style="padding-left:10px;">Zero Rated Sales</td>
+                <td>
+                    @if (Model.StatementOfAccount.Customer.CustomerType == "Zero Rated")
+                    {
+                        <p style="height: 9px; padding-right:10px;" class="text-center">@formattedToPeso</p>
+                    }
+                </td>
+                <td style="padding-left:10px;">SOA #.</td>
+                <td style="padding-left:10px;">@Html.DisplayFor(model => model.StatementOfAccount.SOANo)</td>
+            </tr>
+            <tr>
+                <td style="padding-left:10px;">VAT Amount</td>
+                <td>
+                    <h6 style="height: 9px; padding-right:10px;" class="text-center">@Html.DisplayFor(model => totalSalesVatInclusive)</h6>
+                </td>
+                <td style="padding-left:10px;">Amount</td>
+                <td style="padding-left:10px;">@formattedToPeso</td>
+            </tr>
+            <tr>
+                <td style="padding-left:10px;">Discount</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td style="padding-left:10px;">Total Sales(VAT Inclusive)</td>
+                <td>
+                    @if (Model.StatementOfAccount.Customer.CustomerType == "Vatable")
+                    {
+                        <h6 style="height: 9px; padding-right:10px;" class="text-center">@formattedToPeso</h6>
+                    }
+                </td>
+
+                <td style="padding-left:10px;"></td>
+                <td style="padding-left:10px;"></td>
+            </tr>
+            <tr>
+                <td style="padding-left:10px;">Less: Withholding Tax</td>
+                <td style="padding-right:10px;" class="text-center">@Html.DisplayFor(model => EWT)</td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td style="padding-left:10px;">Total Amount Due</td>
+                @if (Model.StatementOfAccount.Customer.WithHoldingTax)
+                {
+                    <td style="padding-right:10px;" class="text-center">@Html.DisplayFor(model => totalAmountDue)</td>
+                }else{
+                    <td style="padding-right:10px;" class="text-end">@Html.DisplayFor(model => model.StatementOfAccount.Total)</td>
+                }
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+
+        </tbody>
+    </table>
+</div>
+<div style="margin-top:20px;">
+    <table class="table-bordered w-100">
+        <tbody>
+            <tr>
+                <td class="text-center" style="width:25%">Form of Payment</td>
+                <td class="text-center" style="width:25%">Check Date</td>
+                <td class="text-center" style="width:25%">Check No.</td>
+                <td class="text-center" style="width:25%">Amount</td>
+            </tr>
+            <tr class="text-center">
+                <td>@Html.DisplayFor(model => model.FormOfPayment)</td>
+                @if (Model.FormOfPayment != "Cash") {
+                    <td>@Model.CheckDate.ToShortDateString()</td>
+                    <td>@Html.DisplayFor(model => model.CheckNo)</td>
+                }
+                else{
+                    <td></td>
+                    <td></td>
+                    }
+                @if (Model.StatementOfAccount.Customer.WithHoldingTax)
+                {
+                    <td>@Html.DisplayFor(model => totalAmountDue)</td>
+                }else{
+                    <td>@Html.DisplayFor(model => model.StatementOfAccount.Total)</td>
+                }
+            </tr>
+            <tr class="text-center">
+                <td>&nbsp;EWT</td>
+                <td></td>
+                <td></td>
+                @if (Model.StatementOfAccount.Customer.WithHoldingTax) {
+                    <td>@Html.DisplayFor(model => EWT)</td>
+                }
+                else{
+                    <td></td>
+                    }
+                </tr>
+            <tr class="text-center">
+                <td>&nbsp;TOTAL</td>
+                <td></td>
+                <td></td>
+                <td>@Html.DisplayFor(model => model.StatementOfAccount.Total)</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="text-center w-100" style="margin-top:20px;">
+    <p>
+        <span>Acknowledgement Certificate No:</span>
+        <span style="display: inline-block;">AC_124_112023_000090</span>
+        <span>&nbsp;&nbsp;Date Issued:</span>
+        <span style="display: inline-block;">November 28, 2023</span><br />
+        Series: OR0000000001 - OR9999999999
+        Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
+    </p>
+</div>
+
+<br />
+<div class="text-start w-100 footer" style="margin-top:50px;">
+    <p style="line-height: 1;">
+        <em>
+            <strong>Software Name :</strong> Accounting Administration System (AAS)
+            <br />
+            <strong>Version :</strong> v1.0
+            <br />
+            <strong>Printed By :</strong> @UserManager.GetUserName(User).ToUpper()
+            <br />
+            <strong>Date & Time Printed :</strong> @DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")
+        </em>
+    </p>
+</div>
+
+@if (!Model.IsPrinted)
+{
+    <div class="text-end">
+        ORIGINAL COPY
+    </div>
+}
+else
+{
+    <div class="text-end">
+        REPRINT COPY
+    </div>
+}
+
+<br />
+@* <a asp-action="OfficialReceipt" class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" id="printButton">Print</a> *@
+<a asp-action="PrintedOR" asp-route-id="@Model.Id" class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
+<a asp-action="OfficialIndex" class="btn" id="otherButton">Back</a>
+
+@section Scripts{
+    <script>
+        var originalFontSizes = [];
+
+        function printPage() {
+            var printButton = document.getElementById("printButton");
+            var otherButton = document.getElementById("otherButton");
+
+            // Hide the header and footer
+            document.querySelector("header").style.display = "none";
+            document.querySelector("footer").style.display = "none";
+
+            // Hide the buttons before printing
+            if (printButton) {
+                printButton.style.visibility = "hidden";
+            }
+            if (otherButton) {
+                otherButton.style.visibility = "hidden";
+            }
+
+            // Get all paragraph elements
+            var paragraphs = document.querySelectorAll("p");
+
+            // Store the original font sizes
+            for (var i = 0; i < paragraphs.length; i++) {
+                originalFontSizes[i] = paragraphs[i].style.fontSize;
+                // Set the font size of all paragraph elements to 12px for printing
+                paragraphs[i].style.fontSize = "12px";
+            }
+
+            // Call the print function
+            window.print();
+
+            // Restore the font sizes
+            for (var i = 0; i < paragraphs.length; i++) {
+                paragraphs[i].style.fontSize = originalFontSizes[i];
+            }
+
+            // Restore the buttons' visibility after printing (optional)
+            if (printButton) {
+                printButton.style.visibility = "visible";
+            }
+            if (otherButton) {
+                otherButton.style.visibility = "visible";
+            }
+
+            // Restore the header and footer's visibility after printing (optional)
+            document.querySelector("header").style.display = "";
+            document.querySelector("footer").style.display = "";
+        }
+    </script>
+}

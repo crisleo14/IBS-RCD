@@ -9,6 +9,7 @@ namespace Accounting_System.Models
         [Display(Name = "PO No")]
         public string? PONo { get; set; }
 
+        public long SeriesNumber { get; set; }
         public DateTime Date { get; set; }
 
         [Display(Name = "Supplier Name")]
@@ -19,6 +20,8 @@ namespace Accounting_System.Models
 
         [NotMapped]
         public List<SelectListItem>? Suppliers { get; set; }
+
+        public int SupplierNo { get; set; }
 
         [Display(Name = "Product Name")]
         public string ProductName { get; set; }
@@ -32,6 +35,15 @@ namespace Accounting_System.Models
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Amount { get; set; }
 
-        public bool IsPrinted { get; set; }
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal FinalPrice { get; set; }
+
+        public decimal QuantityReceived { get; set; }
+
+        public bool IsReceived { get; set; }
+
+        public DateTime ReceivedDate { get; set; }
+
+        public string Remarks { get; set; }
     }
 }

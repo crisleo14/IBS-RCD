@@ -49,29 +49,56 @@ namespace Accounting_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(PurchaseOrder model)
         {
+            model.Suppliers = await _dbContext.Suppliers
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync();
             if (ModelState.IsValid)
             {
-                var generatedPO = await _purchaseOrderRepo.GeneratePONo();
+                var getLastNumber = await _purchaseOrderRepo.GetLastSeriesNumber();
 
+                if (getLastNumber > 9999999999)
+                {
+                    TempData["error"] = "You reach the maximum Series Number";
+                    return View(model);
+                }
+                var totalRemainingSeries = 9999999999 - getLastNumber;
+                if (getLastNumber >= 9999999899)
+                {
+                    TempData["warning"] = $"Purchase Order created successfully, Warning {totalRemainingSeries} series number remaining";
+                }
+                else
+                {
+                    TempData["success"] = "Purchase Order created successfully";
+                }
+
+                var generatedPO = await _purchaseOrderRepo.GeneratePONo();
+                
+
+                model.SeriesNumber = getLastNumber;
                 model.PONo = generatedPO;
                 model.CreatedBy = _userManager.GetUserName(this.User);
-
                 model.Amount = model.Quantity * model.Price;
+                model.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model.SupplierId);
 
                 _dbContext.Add(model);
                 await _dbContext.SaveChangesAsync();
-                TempData["success"] = "Purchase Order created successfully";
                 return RedirectToAction("Index");
             }
-
-            ModelState.AddModelError("", "The information you submitted is not valid!");
-            return View(model);
+            else
+            {
+                ModelState.AddModelError("", "The information you submitted is not valid!");
+                return View(model);
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null || _dbContext.Suppliers == null)
+            if (id == null || _dbContext.PurchaseOrders == null)
             {
                 return NotFound();
             }
@@ -90,7 +117,6 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync();
 
-
             return View(purchaseOrder);
         }
 
@@ -106,6 +132,14 @@ namespace Accounting_System.Controllers
                     return NotFound();
                 }
 
+                model.Suppliers = await _dbContext.Suppliers
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync();
+
                 existingModel.Date = model.Date;
                 existingModel.SupplierId = model.SupplierId;
                 existingModel.ProductName = model.ProductName;
@@ -113,20 +147,21 @@ namespace Accounting_System.Controllers
                 existingModel.Quantity = model.Quantity;
                 existingModel.Price = model.Price;
                 existingModel.Amount = model.Quantity * model.Price;
+                existingModel.Remarks = model.Remarks;
 
                 await _dbContext.SaveChangesAsync();
 
                 TempData["success"] = "Purchase Order updated successfully";
                 return RedirectToAction("Index");
             }
-            
+
             return View(model);
         }
 
         [HttpGet]
         public async Task<IActionResult> Print(int? id)
         {
-            if (id == null || _dbContext.Suppliers == null)
+            if (id == null || _dbContext.ReceivingReports == null)
             {
                 return NotFound();
             }
@@ -140,6 +175,43 @@ namespace Accounting_System.Controllers
             }
 
             return View(purchaseOrder);
+        }
+
+        public async Task<IActionResult> Printed(int id)
+        {
+            var po = await _dbContext.PurchaseOrders.FindAsync(id);
+            if (po != null && !po.IsPrinted)
+            {
+                po.IsPrinted = true;
+                await _dbContext.SaveChangesAsync();
+            }
+            return RedirectToAction("Print", new { id = id });
+        }
+
+        public async Task<IActionResult> Post(int poId)
+        {
+            var model = await _dbContext.PurchaseOrders.FindAsync(poId);
+
+            if (model != null)
+            {
+                if (!model.IsPosted)
+                {
+                    model.IsPosted = true;
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Purchase Order has been Posted.";
+
+                }
+                //else
+                //{
+                //    model.IsVoid = true;
+                //    await _dbContext.SaveChangesAsync();
+                //    TempData["success"] = "Purchase Order has been Voided.";
+                //}
+                return RedirectToAction(nameof(Index));
+            }
+
+            return NotFound();
         }
     }
 }

@@ -6,17 +6,10 @@ namespace Accounting_System.Models
 {
     public class StatementOfAccount : BaseEntity
     {
-        public int Number { get; set; }
+        [Column(TypeName = "varchar(12)")]
+        public string? SOANo { get; set; }
 
-        [NotMapped]
-        [Display(Name = "SOA No.")]
-        public string FormmatedNumber
-        {
-            get
-            {
-                return "SOA" + Number.ToString("D10");
-            }
-        }
+        public long SeriesNumber { get; set; }
 
         [Required]
         [Display(Name = "Customer")]
@@ -35,28 +28,51 @@ namespace Accounting_System.Models
         [ForeignKey("ServicesId")]
         public Services? Service { get; set; }
 
+        public int ServiceNumber { get; set; }
+
         [NotMapped]
         public List<SelectListItem>? Services { get; set; }
 
         [Required]
-        public string Period { get; set; }
+        public DateTime[] Period { get; set; }
 
-        [Required]
-        public decimal Amount { get; set; }
+        [Required(ErrorMessage = "The Amount is required.")]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal[] Amount { get; set; }
 
-        [Required]
-        [Display(Name = "Account Name")]
-        public string AccountName { get; set; }
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal VatAmount { get; set; }
 
-        [Required]
-        public string Bank { get; set; }
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal NetAmount { get; set; }
 
-        [Required]
-        [Display(Name = "Bank Account No.")]
-        public string BankAccountNo { get; set; }
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal Total { get; set; }
 
-        [Required]
-        [Display(Name = "Bank Branch")]
-        public string BankBranch { get; set; }
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal Discount { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal WithholdingTaxAmount { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal WithholdingVatAmount { get; set; }
+
+        [Column(TypeName = "varchar(20)")]
+        public string Status { get; set; } = "Pending";
+
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal AmountPaid { get; set; }
+
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal Balance { get; set; }
+
+        public bool IsPaid { get; set; }
     }
 }
