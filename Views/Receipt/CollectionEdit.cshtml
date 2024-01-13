@@ -1,12 +1,12 @@
 ﻿@using System.ComponentModel.DataAnnotations;
 @model Accounting_System.Models.CollectionReceipt
-
+EditCollection
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Edit";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <partial name="_Notification">
-<h1>Create</h1>
+<h1>Edit</h1>
 
 <h4>Collection Receipt</h4>
 <hr />
@@ -25,23 +25,17 @@
 
             </pre>
         </div>
-        <form asp-action="CreateCollectionReceipt" method="post">
+        <form asp-action="CollectionEdit" method="post">
             <div class="col-md-4">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group mb-3">
                 <label class="control-label">Customers</label>
-                <select asp-for="CustomerNo" asp-items="@Model.Customers" class="form-select js-select2" required>
-                    <option></option>
-                </select>
-                <span asp-validation-for="CustomerNo" class="text-danger"></span>
+                    <input id="floatingInput" type="text" class="form-control" value="@ViewBag.CustomerName" placeholder="Reference #" readOnly />
             </div>
 
                 <div class="form-group mb-3">
                     <label class="control-label">SI NO.</label>
-                    <select asp-for="SalesInvoiceId" id="invoices" asp-items="@Model.Invoices" class="form-select js-select2">
-                        <option></option>
-                    </select>
-                    <span asp-validation-for="SalesInvoiceId" class="text-danger"></span>
+                    <input id="floatingInput" type="text" class="form-control" value="@Model.SINo" placeholder="Reference #" readOnly />
                 </div>
 
             <div class="form-group mb-3">
@@ -135,7 +129,7 @@
             <br />
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
-                <a asp-action="CollectionReceiptIndex" class="btn btn-secondary">Back to List</a>
+                <a asp-action="CollectionIndex" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
 </div>
@@ -227,24 +221,37 @@
     </script>
 
         <script>
-            function saveAccountingEntry() {
-                // Get the values from the modal inputs
-                var accountTitle = $("#AccountTitle").val();
-                var accountTitleText = $("#AccountTitle option:selected").text();
-                var accountAmount = $("#AccountAmount").val();
+            function initializeTable() {
+                // Get the data from ViewBag and parse it as JSON
+                var fetchAccEntries = @Html.Raw(Json.Serialize(ViewBag.fetchAccEntries));
 
-                console.log(accountTitle);
-                console.log(accountTitleText);
+                // Iterate through the initial entries and call saveAccountingEntry for each
+                for (var i = 0; i < fetchAccEntries.length; i++) {
+                    saveAccountingEntry(fetchAccEntries[i].accountNo, fetchAccEntries[i].amount);
+                }
+            }
+
+            function saveAccountingEntry(accountTitle, accountAmount) {
+                // Get the values from the modal inputs (if available)
+                if (!accountTitle) {
+                    accountTitle = $("#AccountTitle option:selected").text();
+                }
+                if (!accountAmount) {
+                    accountAmount = $("#AccountAmount").val();
+                }
 
                 // Create a new row with the text only and a hidden input for the value
-                var newRow = `<tr>
-                                <td>
-                                    <input type='hidden' name='accountTitle' value='${accountTitle}' />
-                                    <input type='text' name='accountTitleText' value='${accountTitleText}' style='border:none' readonly />
-                                </td>
-                                <td><input type='text' name='accountAmount' value='${accountAmount}' style='border:none' readonly /></td>
-                                <td><button type='button' class='btn btn-danger btn-sm' onclick='removeRow(this)'>Remove</button></td>
-                             </tr>`;
+var newRow = `<tr>
+                   <td>
+                       <input type='text' name='editAccountTitleText' value='${accountTitle}' style='border:none' readonly />
+                   </td>
+                   <td>
+                   <input type='text' name='editAccountAmount' value='${accountAmount}' style='border:none' readonly />
+                   </td>
+                   <td>
+                   <button type='button' class='btn btn-danger btn-sm' onclick='removeRow(this)'>Remove</button>
+                   </td>
+              </tr>`;
 
                 // Append the new row to the table body
                 $("#accountingEntriesBody").append(newRow);
@@ -253,11 +260,9 @@
                 $("#AddAccEntry").modal("hide");
 
                 // Clear the modal inputs
-                $("#AccountTitle").val(""); // Reset the select to its default state
-                $("#AccountTitle").trigger("change"); // Trigger change event for the select
+                $("#AccountTitle").val("");
                 $("#AccountAmount").val("");
             }
-
 
             // Function to remove the corresponding row
             function removeRow(button) {
@@ -265,6 +270,10 @@
                 $(button).closest("tr").remove();
             }
 
+            // Call initializeTable when the page loads
+            $(document).ready(function () {
+                initializeTable();
+            });
         </script>
 
         <script>

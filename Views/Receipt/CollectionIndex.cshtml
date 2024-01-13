@@ -11,7 +11,7 @@
 <h1>Collection Receipt</h1>
 
 <p>
-    <a asp-action="CreateCollectionReceipt" class="btn btn-primary rounded-3">Create New</a>
+    <a asp-action="CollectionCreate" class="btn btn-primary rounded-3">Create New</a>
 </p>
 <table class="table table-hover" id="myTable">
     <thead>
@@ -62,31 +62,32 @@
                 <td>
                         @if (item.CreatedBy == UserManager.GetUserName(User))
                         {
-                            if (!item.IsPosted && !item.IsVoided)
+                            if (!item.IsPosted && !item.IsVoided && !item.IsCanceled)
                             {
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-light">Edit</a>
+                                <a asp-action="CollectionEdit" asp-route-id="@item.Id" class="btn btn-light">Edit</a>
                                 <a class="btn btn-light" onclick="confirmPost(@item.Id)">Post</a>
+                                <a class="btn btn-light" onclick="confirmCancel(@item.Id)">Cancel</a>
                             }
-                            if (item.IsPosted && !item.IsVoided)
+                            if (item.IsPosted && !item.IsVoided && !item.IsCanceled)
                                 {
-                                <a asp-action="CollectionReceipt" asp-route-id="@item.Id" class="btn btn-light">Print</a>
-                            }
-                            if (!item.IsVoided)
-                            {
+                                <a asp-action="CollectionPrint" asp-route-id="@item.Id" class="btn btn-light">Print</a>
                                 <a class="btn btn-light" onclick="confirmVoid(@item.Id)">Void</a>
                             }
-
                         }
 
                         @if (item.IsVoided)
                         {
-                        <span class="badge rounded-pill bg-danger ">VOIDED</span>
+                            <span class="badge rounded-pill bg-danger ">VOIDED</span>
+                        }
+                        else if (item.IsCanceled)
+                        {
+                            <span class="badge rounded-pill bg-warning ">CANCELED</span>
                         }
                         else
                         {
                             @if (item.CreatedBy != UserManager.GetUserName(User))
                             {
-                        <span class="badge rounded-pill bg-warning ">VALID</span>
+                        <span class="badge rounded-pill bg-info ">VALID</span>
                             }
                         }
                 </td>
@@ -105,7 +106,7 @@
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
                     cancelButtonColor: '#d33',
-                    confirmButtonText: 'Post'
+                    confirmButtonText: 'Yes'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // Replace with the actual URL that you want to redirect to
@@ -125,11 +126,31 @@
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
                     cancelButtonColor: '#d33',
-                    confirmButtonText: 'Void'
+                    confirmButtonText: 'Yes'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // Replace with the actual URL that you want to redirect to
                         var url = `/Receipt/Void?itemId=${itemId}`;
+                        window.location.href = url;
+                    }
+                })
+            }
+        </script>
+        <script>
+            function confirmCancel(itemId) {
+                console.log(itemId);
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Replace with the actual URL that you want to redirect to
+                        var url = `/Receipt/Cancel?itemId=${itemId}`;
                         window.location.href = url;
                     }
                 })

@@ -25,21 +25,21 @@ namespace Accounting_System.Controllers
             _receiptRepo = receiptRepo;
         }
 
-        public async Task<IActionResult> CollectionReceiptIndex()
+        public async Task<IActionResult> CollectionIndex()
         {
             var viewData = await _receiptRepo.GetCRAsync();
 
             return View(viewData);
         }
 
-        public async Task<IActionResult> OfficialReceiptIndex()
+        public async Task<IActionResult> OfficialIndex()
         {
             var viewData = await _receiptRepo.GetORAsync();
 
             return View(viewData);
         }
 
-        public IActionResult CreateCollectionReceipt()
+        public IActionResult CollectionCreate()
         {
             var viewModel = new CollectionReceipt();
 
@@ -66,7 +66,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCollectionReceipt(CollectionReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle)
+        public async Task<IActionResult> CollectionCreate(CollectionReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle)
         {
             model.Customers = _dbContext.Customers
                .OrderBy(c => c.Id)
@@ -423,10 +423,35 @@ namespace Accounting_System.Controllers
 
                 #endregion --Cash Receipt Book Recording
 
-                await _receiptRepo.UpdateInvoice(existingSalesInvoice.Id, model.Total, offsetAmount);
+                #region --Offsetting function
+                var offsettings = new List<Offsetting>();
+
+                for (int i = 0; i < accountTitle.Length; i++)
+                {
+                    var currentAccountTitle = accountTitleText[i];
+                    var currentAccountAmount = accountAmount[i];
+                    offsetAmount += accountAmount[i];
+
+                    offsettings.Add(
+                        new Offsetting
+                        {
+                            AccountNo = currentAccountTitle,
+                            Source = model.CRNo,
+                            Reference = existingSalesInvoice.SINo,
+                            Amount = currentAccountAmount,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        }
+                    );
+
+                    _dbContext.AddRange(offsettings);
+                }
+                    #endregion
+
+                    await _receiptRepo.UpdateInvoice(existingSalesInvoice.Id, model.Total, offsetAmount);
 
                 await _dbContext.SaveChangesAsync();
-                return RedirectToAction("CollectionReceiptIndex");
+                return RedirectToAction("CollectionIndex");
             }
             else
             {
@@ -436,7 +461,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public IActionResult CreateOfficialReceipt()
+        public IActionResult OfficialCreate()
         {
             var viewModel = new OfficialReceipt();
             viewModel.SOANo = _dbContext.StatementOfAccounts
@@ -451,7 +476,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateOfficialReceipt(OfficialReceipt model)
+        public async Task<IActionResult> OfficialCreate(OfficialReceipt model)
         {
             model.SOANo = _dbContext.StatementOfAccounts
                 .Select(s => new SelectListItem
@@ -492,7 +517,7 @@ namespace Accounting_System.Controllers
                     _dbContext.Add(model);
                     await _dbContext.SaveChangesAsync();
 
-                    return RedirectToAction("OfficialReceiptIndex");
+                    return RedirectToAction("OfficialIndex");
                 }
                 else
                 {
@@ -507,13 +532,13 @@ namespace Accounting_System.Controllers
             }
         }
 
-        public async Task<IActionResult> CollectionReceipt(int id)
+        public async Task<IActionResult> CollectionPrint(int id)
         {
             var cr = await _receiptRepo.FindCR(id);
             return View(cr);
         }
 
-        public async Task<IActionResult> OfficialReceipt(int id)
+        public async Task<IActionResult> OfficialPrint(int id)
         {
             var or = await _receiptRepo.FindOR(id);
             return View(or);
@@ -527,7 +552,7 @@ namespace Accounting_System.Controllers
                 findIdOfCR.IsPrinted = true;
                 await _dbContext.SaveChangesAsync();
             }
-            return RedirectToAction("CollectionReceipt", new { id = id });
+            return RedirectToAction("CollectionPrint", new { id = id });
         }
 
         public async Task<IActionResult> PrintedOR(int id)
@@ -538,7 +563,7 @@ namespace Accounting_System.Controllers
                 findIdOfOR.IsPrinted = true;
                 await _dbContext.SaveChangesAsync();
             }
-            return RedirectToAction("OfficialReceipt", new { id = id });
+            return RedirectToAction("OfficialPrint", new { id = id });
         }
 
         [HttpGet]
@@ -582,7 +607,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> CollectionEdit(int? id)
         {
             if (id == null)
             {
@@ -623,16 +648,26 @@ namespace Accounting_System.Controllers
                     Text = s.Number + " " + s.Name
                 })
                 .ToList();
+
             var findCustomers = await _dbContext.Customers
                 .FirstOrDefaultAsync(c => c.Number == existingModel.CustomerNo);
 
-            ViewBag.CustomerName = findCustomers.Name;
+            ViewBag.CustomerName = findCustomers?.Name;
+
+            var matchingOffsettings = await _dbContext.Offsettings
+            .Where(offset => offset.Source == existingModel.CRNo)
+            .ToListAsync();
+
+            ViewBag.fetchAccEntries = matchingOffsettings
+                .Select(offset => new { AccountNo = offset.AccountNo, Amount = offset.Amount.ToString("N2") })
+                .ToList();
+
 
             return View(existingModel);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(CollectionReceipt model)
+        public async Task<IActionResult> CollectionEdit(CollectionReceipt model, string[] editAccountTitleText, decimal[] editAccountAmount, string[] editAccountTitle)
         {
             var existingModel = await _receiptRepo.FindCR(model.Id);
 
@@ -682,7 +717,52 @@ namespace Accounting_System.Controllers
                 existingModel.WVAT = model.WVAT;
                 existingModel.Total = computeTotalInModelIfZero;
 
+                decimal offsetAmount = 0;
+
                 #endregion --Saving default value
+
+                #region --Offsetting function
+                var offsetting = new List<Offsetting>();
+
+                for (int i = 0; i < editAccountTitleText.Length; i++)
+                {
+                    var existingOffset = await _dbContext.Offsettings
+                        .FirstOrDefaultAsync(offset => offset.Source == existingModel.CRNo
+                                                        && offset.AccountNo == editAccountTitleText[i]
+                                                        && offset.Amount == editAccountAmount[i]);
+
+                    if (existingOffset == null)
+                    {
+                        var accountTitle = editAccountTitleText[i];
+                        var accountAmount = editAccountAmount[i];
+                        offsetAmount += editAccountAmount[i];
+
+                        offsetting.Add(
+                            new Offsetting
+                            {
+                                AccountNo = accountTitle,
+                                Source = existingModel.CRNo,
+                                Amount = accountAmount,
+                                CreatedBy = existingModel.CreatedBy,
+                                CreatedDate = existingModel.CreatedDate
+                            }
+                        );
+                    }
+
+                    if (existingOffset != null && existingOffset.IsRemoved)
+                    {
+                        _dbContext.Offsettings.Remove(existingOffset);
+                        await _dbContext.SaveChangesAsync();
+                    }
+                }
+
+                if (offsetting.Any())
+                {
+                    _dbContext.AddRange(offsetting);
+                    await _dbContext.SaveChangesAsync();
+                }
+
+                #endregion
 
                 #region --Audit Trail Recording
 
@@ -693,7 +773,7 @@ namespace Accounting_System.Controllers
                 #endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync();
-                return RedirectToAction("CollectionReceiptIndex");
+                return RedirectToAction("CollectionIndex");
             }
             else
             {
@@ -714,7 +794,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Collection Receipt has been Posted.";
                 }
-                return RedirectToAction("CollectionReceiptIndex");
+                return RedirectToAction("CollectionIndex");
             }
 
             return NotFound();
@@ -732,10 +812,29 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Collection Receipt has been Voided.";
                 }
-                return RedirectToAction("CollectionReceiptIndex");
+                return RedirectToAction("CollectionIndex");
             }
 
             return NotFound();
         }
+
+        public async Task<IActionResult> Cancel(int itemId)
+        {
+            var model = await _dbContext.CollectionReceipts.FindAsync(itemId);
+
+            if (model != null)
+            {
+                if (!model.IsCanceled)
+                {
+                    model.IsCanceled = true;
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Collection Receipt has been Canceled.";
+                }
+                return RedirectToAction("CollectionIndex");
+            }
+
+            return NotFound();
+        }
+
     }
 }
