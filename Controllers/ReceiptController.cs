@@ -151,279 +151,8 @@ namespace Accounting_System.Controllers
 
                 #endregion --Audit Trail Recording
 
-                #region --General Ledger Book Recording
-
-                var ledgers = new List<GeneralLedgerBook>();
-
-                ledgers.Add(
-                            new GeneralLedgerBook
-                            {
-                                Date = model.Date.ToShortDateString(),
-                                Reference = model.CRNo,
-                                Description = "Collection for Receivable",
-                                AccountTitle = "1010101 Cash in Bank",
-                                Debit = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount,
-                                Credit = 0,
-                                CreatedBy = model.CreatedBy,
-                                CreatedDate = model.CreatedDate
-                            }
-                        );
-
-                if (model.EWT > 0)
-                {
-                    ledgers.Add(
-                        new GeneralLedgerBook
-                        {
-                            Date = model.Date.ToShortDateString(),
-                            Reference = model.CRNo,
-                            Description = "Collection for Receivable",
-                            AccountTitle = "1010604 Creditable Withholding Tax",
-                            Debit = model.EWT,
-                            Credit = 0,
-                            CreatedBy = model.CreatedBy,
-                            CreatedDate = model.CreatedDate
-                        }
-                    );
-                }
-
-                if (model.WVAT > 0)
-                {
-                    ledgers.Add(
-                        new GeneralLedgerBook
-                        {
-                            Date = model.Date.ToShortDateString(),
-                            Reference = model.CRNo,
-                            Description = "Collection for Receivable",
-                            AccountTitle = "1010605 Creditable Withholding Vat",
-                            Debit = model.WVAT,
-                            Credit = 0,
-                            CreatedBy = model.CreatedBy,
-                            CreatedDate = model.CreatedDate
-                        }
-                    );
-                }
-
-                if (accountAmount.Length != 0 && accountTitleText.Length != 0)
-                {
-                    for (int i = 0; i < accountTitle.Length; i++)
-                    {
-                        ledgers.Add(
-                        new GeneralLedgerBook
-                        {
-                            Date = model.Date.ToShortDateString(),
-                            Reference = model.CRNo,
-                            Description = "Collection for Receivable",
-                            AccountTitle = accountTitleText[i],
-                            Debit = accountAmount[i],
-                            Credit = 0,
-                            CreatedBy = model.CreatedBy,
-                            CreatedDate = model.CreatedDate
-                        }
-                        );
-
-                        offsetAmount += accountAmount[i];
-                    }
-                }
-
-                ledgers.Add(
-                        new GeneralLedgerBook
-                        {
-                            Date = model.Date.ToShortDateString(),
-                            Reference = model.CRNo,
-                            Description = "Collection for Receivable",
-                            AccountTitle = "1010201 AR-Trade Receivable",
-                            Debit = 0,
-                            Credit = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + offsetAmount,
-                            CreatedBy = model.CreatedBy,
-                            CreatedDate = model.CreatedDate
-                        }
-                    );
-
-                if (model.EWT > 0)
-                {
-                    ledgers.Add(
-                        new GeneralLedgerBook
-                        {
-                            Date = model.Date.ToShortDateString(),
-                            Reference = model.CRNo,
-                            Description = "Collection for Receivable",
-                            AccountTitle = "1010202 Deferred Creditable Withholding Tax",
-                            Debit = 0,
-                            Credit = model.EWT,
-                            CreatedBy = model.CreatedBy,
-                            CreatedDate = model.CreatedDate
-                        }
-                    );
-                }
-
-                if (model.WVAT > 0)
-                {
-                    ledgers.Add(
-                        new GeneralLedgerBook
-                        {
-                            Date = model.Date.ToShortDateString(),
-                            Reference = model.CRNo,
-                            Description = "Collection for Receivable",
-                            AccountTitle = "1010203 Deferred Creditable Withholding Vat",
-                            Debit = 0,
-                            Credit = model.WVAT,
-                            CreatedBy = model.CreatedBy,
-                            CreatedDate = model.CreatedDate
-                        }
-                    );
-                }
-
-                _dbContext.AddRange(ledgers);
-
-                #endregion --General Ledger Book Recording
-
-                #region --Cash Receipt Book Recording
-
-                var crb = new List<CashReceiptBook>();
-
-                crb.Add(
-                    new CashReceiptBook
-                    {
-                        Date = model.Date.ToShortDateString(),
-                        RefNo = model.CRNo,
-                        CustomerName = existingSalesInvoice.SoldTo,
-                        Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
-                        CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
-                        COA = "1010101 Cash in Bank",
-                        Particulars = existingSalesInvoice.SINo,
-                        Debit = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount,
-                        Credit = 0,
-                        CreatedBy = model.CreatedBy,
-                        CreatedDate = model.CreatedDate
-                    }
-
-                );
-
-                if (model.EWT > 0)
-                {
-                    crb.Add(
-                        new CashReceiptBook
-                        {
-                            Date = model.Date.ToShortDateString(),
-                            RefNo = model.CRNo,
-                            CustomerName = existingSalesInvoice.SoldTo,
-                            Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
-                            CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
-                            COA = "1010604 Creditable Withholding Tax",
-                            Particulars = existingSalesInvoice.SINo,
-                            Debit = model.EWT,
-                            Credit = 0,
-                            CreatedBy = model.CreatedBy,
-                            CreatedDate = model.CreatedDate
-                        }
-                    );
-                }
-
-                if (model.WVAT > 0)
-                {
-                    crb.Add(
-                        new CashReceiptBook
-                        {
-                            Date = model.Date.ToShortDateString(),
-                            RefNo = model.CRNo,
-                            CustomerName = existingSalesInvoice.SoldTo,
-                            Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
-                            CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
-                            COA = "1010605 Creditable Withholding Vat",
-                            Particulars = existingSalesInvoice.SINo,
-                            Debit = model.WVAT,
-                            Credit = 0,
-                            CreatedBy = model.CreatedBy,
-                            CreatedDate = model.CreatedDate
-                        }
-                    );
-                }
-
-                if (accountAmount.Length != 0 && accountTitleText.Length != 0)
-                {
-                    for (int i = 0; i < accountTitle.Length; i++)
-                    {
-                        crb.Add(
-                            new CashReceiptBook
-                            {
-                                Date = model.Date.ToShortDateString(),
-                                RefNo = model.CRNo,
-                                CustomerName = existingSalesInvoice.SoldTo,
-                                Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
-                                CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
-                                COA = accountTitleText[i],
-                                Particulars = existingSalesInvoice.SINo,
-                                Debit = accountAmount[i],
-                                Credit = 0,
-                                CreatedBy = model.CreatedBy,
-                                CreatedDate = model.CreatedDate
-                            }
-                        );
-                    }
-                }
-
-                crb.Add(
-                new CashReceiptBook
-                {
-                    Date = model.Date.ToShortDateString(),
-                    RefNo = model.CRNo,
-                    CustomerName = existingSalesInvoice.SoldTo,
-                    Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
-                    CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
-                    COA = "1010201 AR-Trade Receivable",
-                    Particulars = existingSalesInvoice.SINo,
-                    Debit = 0,
-                    Credit = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + offsetAmount,
-                    CreatedBy = model.CreatedBy,
-                    CreatedDate = model.CreatedDate
-                }
-                );
-
-                if (model.EWT > 0)
-                {
-                    crb.Add(
-                        new CashReceiptBook
-                        {
-                            Date = model.Date.ToShortDateString(),
-                            RefNo = model.CRNo,
-                            CustomerName = existingSalesInvoice.SoldTo,
-                            Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
-                            CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
-                            COA = "1010202 Deferred Creditable Withholding Tax",
-                            Particulars = existingSalesInvoice.SINo,
-                            Debit = 0,
-                            Credit = model.EWT,
-                            CreatedBy = model.CreatedBy,
-                            CreatedDate = model.CreatedDate
-                        }
-                    );
-                }
-
-                if (model.WVAT > 0)
-                {
-                    crb.Add(
-                        new CashReceiptBook
-                        {
-                            Date = model.Date.ToShortDateString(),
-                            RefNo = model.CRNo,
-                            CustomerName = existingSalesInvoice.SoldTo,
-                            Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
-                            CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
-                            COA = "1010203 Deferred Creditable Withholding Vat",
-                            Particulars = existingSalesInvoice.SINo,
-                            Debit = 0,
-                            Credit = model.WVAT,
-                            CreatedBy = model.CreatedBy,
-                            CreatedDate = model.CreatedDate
-                        }
-                    );
-                }
-
-                _dbContext.AddRange(crb);
-
-                #endregion --Cash Receipt Book Recording
-
                 #region --Offsetting function
+
                 var offsettings = new List<Offsetting>();
 
                 for (int i = 0; i < accountTitle.Length; i++)
@@ -437,7 +166,7 @@ namespace Accounting_System.Controllers
                         {
                             AccountNo = currentAccountTitle,
                             Source = model.CRNo,
-                            Reference = existingSalesInvoice.SINo,
+                            Reference = model.SINo,
                             Amount = currentAccountAmount,
                             CreatedBy = model.CreatedBy,
                             CreatedDate = model.CreatedDate
@@ -446,9 +175,8 @@ namespace Accounting_System.Controllers
 
                     _dbContext.AddRange(offsettings);
                 }
-                    #endregion
 
-                    await _receiptRepo.UpdateInvoice(existingSalesInvoice.Id, model.Total, offsetAmount);
+                #endregion --Offsetting function
 
                 await _dbContext.SaveChangesAsync();
                 return RedirectToAction("CollectionIndex");
@@ -662,7 +390,6 @@ namespace Accounting_System.Controllers
                 .Select(offset => new { AccountNo = offset.AccountNo, Amount = offset.Amount.ToString("N2") })
                 .ToList();
 
-
             return View(existingModel);
         }
 
@@ -722,6 +449,7 @@ namespace Accounting_System.Controllers
                 #endregion --Saving default value
 
                 #region --Offsetting function
+
                 var offsetting = new List<Offsetting>();
 
                 for (int i = 0; i < editAccountTitleText.Length; i++)
@@ -762,7 +490,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync();
                 }
 
-                #endregion
+                #endregion --Offsetting function
 
                 #region --Audit Trail Recording
 
@@ -784,13 +512,301 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Post(int itemId)
         {
-            var model = await _dbContext.CollectionReceipts.FindAsync(itemId);
+            var model = await _receiptRepo.FindCR(itemId);
 
             if (model != null)
             {
                 if (!model.IsPosted)
                 {
                     model.IsPosted = true;
+                    model.PostedBy = _userManager.GetUserName(this.User);
+                    model.PostedDate = DateTime.Now;
+
+                    var offset = await _receiptRepo.GetOffsettingAsync(model.CRNo, model.SINo);
+
+                    decimal offsetAmount = 0;
+
+                    #region --General Ledger Book Recording
+
+                    var ledgers = new List<GeneralLedgerBook>();
+
+                    ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.Date.ToShortDateString(),
+                                    Reference = model.CRNo,
+                                    Description = "Collection for Receivable",
+                                    AccountTitle = "1010101 Cash in Bank",
+                                    Debit = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount,
+                                    Credit = 0,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+
+                    if (model.EWT > 0)
+                    {
+                        ledgers.Add(
+                            new GeneralLedgerBook
+                            {
+                                Date = model.Date.ToShortDateString(),
+                                Reference = model.CRNo,
+                                Description = "Collection for Receivable",
+                                AccountTitle = "1010604 Creditable Withholding Tax",
+                                Debit = model.EWT,
+                                Credit = 0,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
+                    if (model.WVAT > 0)
+                    {
+                        ledgers.Add(
+                            new GeneralLedgerBook
+                            {
+                                Date = model.Date.ToShortDateString(),
+                                Reference = model.CRNo,
+                                Description = "Collection for Receivable",
+                                AccountTitle = "1010605 Creditable Withholding Vat",
+                                Debit = model.WVAT,
+                                Credit = 0,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
+                    if (offset != null)
+                    {
+                        foreach (var item in offset)
+                        {
+                            ledgers.Add(
+                            new GeneralLedgerBook
+                            {
+                                Date = model.Date.ToShortDateString(),
+                                Reference = model.CRNo,
+                                Description = "Collection for Receivable",
+                                AccountTitle = item.AccountNo,
+                                Debit = item.Amount,
+                                Credit = 0,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                            );
+
+                            offsetAmount += item.Amount;
+                        }
+                    }
+
+                    ledgers.Add(
+                            new GeneralLedgerBook
+                            {
+                                Date = model.Date.ToShortDateString(),
+                                Reference = model.CRNo,
+                                Description = "Collection for Receivable",
+                                AccountTitle = "1010201 AR-Trade Receivable",
+                                Debit = 0,
+                                Credit = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + offsetAmount,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+
+                    if (model.EWT > 0)
+                    {
+                        ledgers.Add(
+                            new GeneralLedgerBook
+                            {
+                                Date = model.Date.ToShortDateString(),
+                                Reference = model.CRNo,
+                                Description = "Collection for Receivable",
+                                AccountTitle = "1010202 Deferred Creditable Withholding Tax",
+                                Debit = 0,
+                                Credit = model.EWT,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
+                    if (model.WVAT > 0)
+                    {
+                        ledgers.Add(
+                            new GeneralLedgerBook
+                            {
+                                Date = model.Date.ToShortDateString(),
+                                Reference = model.CRNo,
+                                Description = "Collection for Receivable",
+                                AccountTitle = "1010203 Deferred Creditable Withholding Vat",
+                                Debit = 0,
+                                Credit = model.WVAT,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
+                    _dbContext.AddRange(ledgers);
+
+                    #endregion --General Ledger Book Recording
+
+                    #region --Cash Receipt Book Recording
+
+                    var crb = new List<CashReceiptBook>();
+
+                    crb.Add(
+                        new CashReceiptBook
+                        {
+                            Date = model.Date.ToShortDateString(),
+                            RefNo = model.CRNo,
+                            CustomerName = model.SalesInvoice.SoldTo,
+                            Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
+                            CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
+                            COA = "1010101 Cash in Bank",
+                            Particulars = model.SalesInvoice.SINo,
+                            Debit = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount,
+                            Credit = 0,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        }
+
+                    );
+
+                    if (model.EWT > 0)
+                    {
+                        crb.Add(
+                            new CashReceiptBook
+                            {
+                                Date = model.Date.ToShortDateString(),
+                                RefNo = model.CRNo,
+                                CustomerName = model.SalesInvoice.SoldTo,
+                                Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
+                                CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
+                                COA = "1010604 Creditable Withholding Tax",
+                                Particulars = model.SalesInvoice.SINo,
+                                Debit = model.EWT,
+                                Credit = 0,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
+                    if (model.WVAT > 0)
+                    {
+                        crb.Add(
+                            new CashReceiptBook
+                            {
+                                Date = model.Date.ToShortDateString(),
+                                RefNo = model.CRNo,
+                                CustomerName = model.SalesInvoice.SoldTo,
+                                Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
+                                CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
+                                COA = "1010605 Creditable Withholding Vat",
+                                Particulars = model.SalesInvoice.SINo,
+                                Debit = model.WVAT,
+                                Credit = 0,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
+                    if (offset != null)
+                    {
+                        foreach (var item in offset)
+                        {
+                            crb.Add(
+                                new CashReceiptBook
+                                {
+                                    Date = model.Date.ToShortDateString(),
+                                    RefNo = model.CRNo,
+                                    CustomerName = model.SalesInvoice.SoldTo,
+                                    Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
+                                    CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
+                                    COA = item.AccountNo,
+                                    Particulars = model.SalesInvoice.SINo,
+                                    Debit = item.Amount,
+                                    Credit = 0,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+                    }
+
+                    crb.Add(
+                    new CashReceiptBook
+                    {
+                        Date = model.Date.ToShortDateString(),
+                        RefNo = model.CRNo,
+                        CustomerName = model.SalesInvoice.SoldTo,
+                        Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
+                        CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
+                        COA = "1010201 AR-Trade Receivable",
+                        Particulars = model.SalesInvoice.SINo,
+                        Debit = 0,
+                        Credit = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + offsetAmount,
+                        CreatedBy = model.CreatedBy,
+                        CreatedDate = model.CreatedDate
+                    }
+                    );
+
+                    if (model.EWT > 0)
+                    {
+                        crb.Add(
+                            new CashReceiptBook
+                            {
+                                Date = model.Date.ToShortDateString(),
+                                RefNo = model.CRNo,
+                                CustomerName = model.SalesInvoice.SoldTo,
+                                Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
+                                CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
+                                COA = "1010202 Deferred Creditable Withholding Tax",
+                                Particulars = model.SalesInvoice.SINo,
+                                Debit = 0,
+                                Credit = model.EWT,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
+                    if (model.WVAT > 0)
+                    {
+                        crb.Add(
+                            new CashReceiptBook
+                            {
+                                Date = model.Date.ToShortDateString(),
+                                RefNo = model.CRNo,
+                                CustomerName = model.SalesInvoice.SoldTo,
+                                Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
+                                CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
+                                COA = "1010203 Deferred Creditable Withholding Vat",
+                                Particulars = model.SalesInvoice.SINo,
+                                Debit = 0,
+                                Credit = model.WVAT,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
+                    _dbContext.AddRange(crb);
+
+                    #endregion --Cash Receipt Book Recording
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.PostedBy, $"Posted collection# {model.CRNo}", "Collection Receipt");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
+                    await _receiptRepo.UpdateInvoice(model.SalesInvoice.Id, model.Total, offsetAmount);
+
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Collection Receipt has been Posted.";
                 }
@@ -809,6 +825,16 @@ namespace Accounting_System.Controllers
                 if (!model.IsVoided)
                 {
                     model.IsVoided = true;
+                    model.VoidedBy = _userManager.GetUserName(this.User);
+                    model.VoidedDate = DateTime.Now;
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.VoidedBy, $"Voided collection receipt# {model.CRNo}", "Collection Receipt");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Collection Receipt has been Voided.";
                 }
@@ -827,6 +853,16 @@ namespace Accounting_System.Controllers
                 if (!model.IsCanceled)
                 {
                     model.IsCanceled = true;
+                    model.CanceledBy = _userManager.GetUserName(this.User);
+                    model.CanceledDate = DateTime.Now;
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled collection receipt# {model.CRNo}", "Collection Receipt");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Collection Receipt has been Canceled.";
                 }
@@ -835,6 +871,5 @@ namespace Accounting_System.Controllers
 
             return NotFound();
         }
-
     }
 }
