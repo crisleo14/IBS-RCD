@@ -36,6 +36,7 @@ namespace Accounting_System.Controllers
         {
             var viewModel = new StatementOfAccount();
             viewModel.Customers = await _dbContext.Customers
+                .OrderBy(c => c.Id)
                 .Select(c => new SelectListItem
                 {
                     Value = c.Id.ToString(),
@@ -43,10 +44,11 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync();
             viewModel.Services = await _dbContext.Services
-                .Select(c => new SelectListItem
+                .OrderBy(s => s.Id)
+                .Select(s => new SelectListItem
                 {
-                    Value = c.Id.ToString(),
-                    Text = c.Name
+                    Value = s.Id.ToString(),
+                    Text = s.Name
                 })
                 .ToListAsync();
             return View(viewModel);
@@ -56,6 +58,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Create(StatementOfAccount model)
         {
             model.Customers = await _dbContext.Customers
+                .OrderBy(c => c.Id)
                 .Select(c => new SelectListItem
                 {
                     Value = c.Id.ToString(),
@@ -63,10 +66,11 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync();
             model.Services = await _dbContext.Services
-                .Select(c => new SelectListItem
+                .OrderBy(s => s.Id)
+                .Select(s => new SelectListItem
                 {
-                    Value = c.Id.ToString(),
-                    Text = c.Name
+                    Value = s.Id.ToString(),
+                    Text = s.Name
                 })
                 .ToListAsync();
             if (ModelState.IsValid)
