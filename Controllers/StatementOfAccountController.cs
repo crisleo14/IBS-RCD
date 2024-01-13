@@ -71,8 +71,10 @@ namespace Accounting_System.Controllers
                 .ToListAsync();
             if (ModelState.IsValid)
             {
+                #region --Validating the series
+
                 var getLastNumber = await _statementOfAccountRepo.GetLastSeriesNumber();
-                
+
                 if (getLastNumber > 9999999999)
                 {
                     TempData["error"] = "You reach the maximum Series Number";
@@ -88,13 +90,64 @@ namespace Accounting_System.Controllers
                     TempData["success"] = "Statement of Account created successfully";
                 }
 
+                #endregion --Validating the series
+
+                #region --Retrieval of Services
+
+                var services = await _statementOfAccountRepo.GetServicesAsync(model.ServicesId);
+
+                #endregion --Retrieval of Services
+
+                #region --Retrieval of Customer
+
+                var customer = await _statementOfAccountRepo.FindCustomerAsync(model.CustomerId);
+
+                #endregion --Retrieval of Customer
+
+                #region --Saving the default properties
+
                 model.SeriesNumber = getLastNumber;
 
                 model.SOANo = await _statementOfAccountRepo.GenerateSOANo();
 
                 model.CreatedBy = _userManager.GetUserName(this.User);
 
+                model.ServiceNumber = services.Number;
+
+                foreach (var amount in model.Amount)
+                {
+                    model.Total += amount;
+                }
+                if (customer.CustomerType == "Vatable")
+                {
+                    model.NetAmount = (model.Total - model.Discount) / 1.12m;
+                    model.VatAmount = (model.Total - model.Discount) - model.NetAmount;
+                    model.WithholdingTaxAmount = model.NetAmount * (services.Percent / 100m);
+                    if (customer.WithHoldingVat)
+                    {
+                        model.WithholdingVatAmount = model.NetAmount * 0.05m;
+                    }
+                }
+                else
+                {
+                    model.NetAmount = model.Total - model.Discount;
+                    model.WithholdingTaxAmount = model.NetAmount * (services.Percent / 100m);
+                    if (customer.WithHoldingVat)
+                    {
+                        model.WithholdingVatAmount = model.NetAmount * 0.05m;
+                    }
+                }
+
                 _dbContext.Add(model);
+
+                #endregion --Saving the default properties
+
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(model.CreatedBy, $"Create new statement of account# {model.SOANo}", "Statement Of Account");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync();
                 return RedirectToAction("Index");
@@ -120,6 +173,148 @@ namespace Accounting_System.Controllers
                 await _dbContext.SaveChangesAsync();
             }
             return RedirectToAction("Generate", new { id = id });
+        }
+
+        public async Task<IActionResult> Post(int id)
+        {
+            var model = await _statementOfAccountRepo.FindSOA(id);
+
+            if (model != null)
+            {
+                if (!model.IsPosted)
+                {
+                    model.IsPosted = true;
+
+                    decimal currentAndPreviousAmount = 0;
+                    decimal unearnedAmount = 0;
+
+                    for (int i = 0; i < model.Period.Length; i++)
+                    {
+                        if (model.CreatedDate < model.Period[i])
+                        {
+                            currentAndPreviousAmount += model.Amount[i];
+                        }
+                        else
+                        {
+                            unearnedAmount += model.Amount[i];
+                        }
+                    }
+
+                    #region --General Ledger Book Recording
+
+                    var ledgers = new List<GeneralLedgerBook>();
+
+                    ledgers.Add(
+                            new GeneralLedgerBook
+                            {
+                                Date = model.CreatedDate.ToShortDateString(),
+                                Reference = model.SOANo,
+                                Description = model.Service.Name,
+                                AccountTitle = "1010204 AR-Non Trade Receivable",
+                                Debit = model.Total - (model.WithholdingTaxAmount + model.WithholdingVatAmount),
+                                Credit = 0,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    if (model.WithholdingTaxAmount > 0)
+                    {
+                        ledgers.Add(
+                            new GeneralLedgerBook
+                            {
+                                Date = model.CreatedDate.ToShortDateString(),
+                                Reference = model.SOANo,
+                                Description = model.Service.Name,
+                                AccountTitle = "1010202 Deferred Creditable Withholding Tax",
+                                Debit = model.WithholdingTaxAmount,
+                                Credit = 0,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+                    if (model.WithholdingVatAmount > 0)
+                    {
+                        ledgers.Add(
+                            new GeneralLedgerBook
+                            {
+                                Date = model.CreatedDate.ToShortDateString(),
+                                Reference = model.SOANo,
+                                Description = model.Service.Name,
+                                AccountTitle = "1010203 Deferred Creditable Withholding Vat",
+                                Debit = model.WithholdingVatAmount,
+                                Credit = 0,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
+                    if (currentAndPreviousAmount > 0)
+                    {
+                        ledgers.Add(
+                            new GeneralLedgerBook
+                            {
+                                Date = model.CreatedDate.ToShortDateString(),
+                                Reference = model.SOANo,
+                                Description = model.Service.Name,
+                                AccountTitle = model.Service.CurrentAndPrevious,
+                                Debit = 0,
+                                Credit = model.Customer.CustomerType == "Vatable" ? currentAndPreviousAmount / (decimal)1.12 : currentAndPreviousAmount,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
+                    if (unearnedAmount > 0)
+                    {
+                        ledgers.Add(
+                            new GeneralLedgerBook
+                            {
+                                Date = model.CreatedDate.ToShortDateString(),
+                                Reference = model.SOANo,
+                                Description = model.Service.Name,
+                                AccountTitle = model.Service.Unearned,
+                                Debit = 0,
+                                Credit = model.Customer.CustomerType == "Vatable" ? unearnedAmount / (decimal)1.12 : unearnedAmount,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
+                    if (model.VatAmount > 0)
+                    {
+                        ledgers.Add(
+                            new GeneralLedgerBook
+                            {
+                                Date = model.CreatedDate.ToShortDateString(),
+                                Reference = model.SOANo,
+                                Description = model.Service.Name,
+                                AccountTitle = "2010301 Vat Output",
+                                Debit = 0,
+                                Credit = model.VatAmount,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
+                    _dbContext.GeneralLedgerBooks.AddRange(ledgers);
+
+                    #endregion --General Ledger Book Recording
+
+                    await _dbContext.SaveChangesAsync();
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    return RedirectToAction("Index");
+                }
+            }
+
+            return null;
         }
     }
 }

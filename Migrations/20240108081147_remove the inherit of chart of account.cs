@@ -11,45 +11,6 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "CanceledBy",
-                table: "ChartOfAccounts");
-
-            migrationBuilder.DropColumn(
-                name: "CanceledDate",
-                table: "ChartOfAccounts");
-
-            migrationBuilder.DropColumn(
-                name: "IsCanceled",
-                table: "ChartOfAccounts");
-
-            migrationBuilder.DropColumn(
-                name: "IsPosted",
-                table: "ChartOfAccounts");
-
-            migrationBuilder.DropColumn(
-                name: "IsPrinted",
-                table: "ChartOfAccounts");
-
-            migrationBuilder.DropColumn(
-                name: "IsVoided",
-                table: "ChartOfAccounts");
-
-            migrationBuilder.DropColumn(
-                name: "PostedBy",
-                table: "ChartOfAccounts");
-
-            migrationBuilder.DropColumn(
-                name: "PostedDate",
-                table: "ChartOfAccounts");
-
-            migrationBuilder.DropColumn(
-                name: "VoidedBy",
-                table: "ChartOfAccounts");
-
-            migrationBuilder.DropColumn(
-                name: "VoidedDate",
-                table: "ChartOfAccounts");
         }
 
         /// <inheritdoc />

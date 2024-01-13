@@ -660,7 +660,7 @@ namespace Accounting_System.Controllers
                 #endregion --Validating the series
 
                 #region --Saving default value
-                
+
                 var computeTotalInModelIfZero = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + model.EWT + model.WVAT;
                 if (computeTotalInModelIfZero == 0)
                 {
