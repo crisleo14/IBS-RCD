@@ -173,5 +173,22 @@ namespace Accounting_System.Repository
                 throw new ArgumentException("", "No record found");
             }
         }
+
+        public async Task<List<Offsetting>> GetOffsettingAsync(string source, string reference)
+        {
+            var result = await _dbContext
+                .Offsettings
+                .Where(o => o.Source == source && o.Reference == reference)
+                .ToListAsync();
+
+            if (result != null)
+            {
+                return result;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
+            }
+        }
     }
 }
