@@ -15,6 +15,8 @@ namespace Accounting_System.Models
 
         public string? Reference { get; set; }
 
+        public bool IsRemoved { get; set; }
+
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]
         public decimal Amount { get; set; }

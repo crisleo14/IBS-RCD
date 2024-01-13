@@ -437,6 +437,7 @@ namespace Accounting_System.Controllers
                         {
                             AccountNo = currentAccountTitle,
                             Source = model.CRNo,
+                            Reference = existingSalesInvoice.SINo,
                             Amount = currentAccountAmount,
                             CreatedBy = model.CreatedBy,
                             CreatedDate = model.CreatedDate
@@ -747,6 +748,12 @@ namespace Accounting_System.Controllers
                             }
                         );
                     }
+
+                    if (existingOffset != null && existingOffset.IsRemoved)
+                    {
+                        _dbContext.Offsettings.Remove(existingOffset);
+                        await _dbContext.SaveChangesAsync();
+                    }
                 }
 
                 if (offsetting.Any())
@@ -828,5 +835,6 @@ namespace Accounting_System.Controllers
 
             return NotFound();
         }
+
     }
 }
