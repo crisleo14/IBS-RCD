@@ -544,6 +544,7 @@ namespace Accounting_System.Controllers
 
                     model.SeriesNumber = getLastNumber;
                     model.ORNo = generateORNo;
+                    model.Total = computeTotalInModelIfZero;
                     model.CreatedBy = _userManager.GetUserName(this.User);
 
                     //decimal offsetAmount = 0;
