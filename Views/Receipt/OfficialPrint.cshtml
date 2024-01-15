@@ -214,7 +214,7 @@
             </tr>
             <tr class="text-center">
                 
-                    @if (Model.CashAmount == 0)
+                    @if (Model.CashAmount != 0)
                     {
                         <td>Cash</td>
                     }
@@ -231,31 +231,35 @@
                     <td></td>
                     <td></td>
                     }
-                @if (Model.StatementOfAccount.Customer.WithHoldingTax)
+                @if (Model.CashAmount != 0)
                 {
-                    <td>@Html.DisplayFor(model => totalAmountDue)</td>
-                }else{
-                    <td>@Html.DisplayFor(model => model.StatementOfAccount.Total)</td>
+                    <td style="height: 9px;">@Html.DisplayFor(model => model.CashAmount)</td>
+                }
+                else
+                {
+                    <td style="height: 9px;">@Html.DisplayFor(model => model.CheckAmount)</td>
                 }
             </tr>
             <tr class="text-center">
                 <td>&nbsp;EWT</td>
                 <td></td>
                 <td></td>
-                @if (Model.StatementOfAccount.Customer.WithHoldingTax) {
-                    <td>@Html.DisplayFor(model => EWT)</td>
+                @if (Model.EWT != 0)
+                {
+                    <td style="height: 9px;">@Html.DisplayFor(model => model.EWT)</td>
                 }
-                else{
+                else
+                {
                     <td></td>
-                    }
+                }
                 </tr>
             <tr class="text-center">
                 <td>&nbsp;WVAT</td>
                 <td></td>
                 <td></td>
-                @if (Model.StatementOfAccount.Customer.WithHoldingVat)
+                @if (Model.WVAT != 0)
                 {
-                    <td>@Html.DisplayFor(model => model.WVAT)</td>
+                    <td style="height: 9px;">@Html.DisplayFor(model => model.WVAT)</td>
                 }
                 else
                 {
@@ -266,7 +270,14 @@
                 <td>&nbsp;TOTAL</td>
                 <td></td>
                 <td></td>
-                <td>@Html.DisplayFor(model => model.StatementOfAccount.Total)</td>
+                @if (Model.Total != 0)
+                {
+                    <td style="height: 9px;">@Html.DisplayFor(model => model.Total)</td>
+                }
+                else
+                {
+                    <td></td>
+                }
             </tr>
         </tbody>
     </table>

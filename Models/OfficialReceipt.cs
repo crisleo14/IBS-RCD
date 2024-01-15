@@ -33,6 +33,7 @@ namespace Accounting_System.Models
         public string? Remarks { get; set; }
 
         //Cash
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal CashAmount { get; set; }
 
         //Check
