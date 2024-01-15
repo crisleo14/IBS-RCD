@@ -12,24 +12,40 @@ namespace Accounting_System.Models
         public StatementOfAccount? StatementOfAccount { get; set; }
 
         public string? ORNo { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? SOANo { get; set; }
+
+        //COA Property
+
+        [NotMapped]
+        public List<SelectListItem>? ChartOfAccounts { get; set; }
+
         public long SeriesNumber { get; set; }
 
         public DateTime Date { get; set; }
 
         public string ReferenceNo { get; set; }
 
-        public string FormOfPayment { get; set; }
+        public string? Remarks { get; set; }
 
-        public int CheckNo { get; set; }
+        //Cash
+        public decimal CashAmount { get; set; }
 
+        //Check
         public DateTime CheckDate { get; set; }
 
+        [Column(TypeName = "varchar(20)")]
+        public string? CheckNo { get; set; }
+
+
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal Amount { get; set; }
+        public decimal CheckAmount { get; set; }
 
-        [NotMapped]
-        public List<SelectListItem>? SOANo { get; set; }
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal EWT { get; set; }
 
-        public string? Remarks { get; set; }
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal WVAT { get; set; }
     }
 }

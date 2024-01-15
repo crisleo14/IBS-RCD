@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var model = new CollectionReceipt();
 }
 
 <h1>Official Receipt</h1>
@@ -23,16 +24,13 @@
                 @Html.DisplayNameFor(model => model.ReferenceNo)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.FormOfPayment)
-            </th>
-            <th>
                 @Html.DisplayNameFor(model => model.CheckDate)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.CheckNo)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Amount)
+                Amount
             </th>
             <th></th>
         </tr>
@@ -51,16 +49,20 @@
                     @Html.DisplayFor(modelItem => item.ReferenceNo)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.FormOfPayment)
-                </td>
-                <td>
                     @item.CheckDate.ToShortDateString()
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.CheckNo)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Amount)
+                        @if (item.CashAmount != 0)
+                        {
+                            <p>@Html.DisplayFor(modelItem => item.CashAmount)</p>
+                        }
+                        else
+                        {
+                            <p>@Html.DisplayFor(modelItem => item.CheckAmount)</p>
+                        }
                 </td>
                 <td>
                     @*  <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-light">Edit</a> | *@
