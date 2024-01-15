@@ -952,5 +952,58 @@ namespace Accounting_System.Controllers
             return Json(null);
         }
 
+        public async Task<IActionResult> PostOR(int itemId)
+        {
+            var model = await _dbContext.OfficialReceipts.FindAsync(itemId);
+
+            if (model != null)
+            {
+                if (!model.IsPosted)
+                {
+                    model.IsPosted = true;
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Official Receipt has been Posted.";
+                }
+                return RedirectToAction("OfficialIndex");
+            }
+
+            return NotFound();
+        }
+
+        public async Task<IActionResult> VoidOR(int itemId)
+        {
+            var model = await _dbContext.OfficialReceipts.FindAsync(itemId);
+
+            if (model != null)
+            {
+                if (!model.IsVoided)
+                {
+                    model.IsVoided = true;
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Official Receipt has been Voided.";
+                }
+                return RedirectToAction("OfficialIndex");
+            }
+
+            return NotFound();
+        }
+        public async Task<IActionResult> CancelOR(int itemId)
+        {
+            var model = await _dbContext.OfficialReceipts.FindAsync(itemId);
+
+            if (model != null)
+            {
+                if (!model.IsCanceled)
+                {
+                    model.IsCanceled = true;
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Official Receipt has been Canceled.";
+                }
+                return RedirectToAction("OfficialIndex");
+            }
+
+            return NotFound();
+        }
+
     }
 }
