@@ -28,9 +28,16 @@
         <form asp-action="OfficialCreate">
             <div class="col-md-4">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                <div class="form-group">
+                <div class="form-group mb-3">
                     <label class="control-label">Customers</label>
-                    <select asp-for="SOAId" asp-items="@Model.SOANo" class="form-select js-select2">
+                    <select asp-for="CustomerNo" asp-items="@Model.Customers" class="form-select js-select2" required>
+                        <option></option>
+                    </select>
+                    <span asp-validation-for="CustomerNo" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label class="control-label">SOA No.</label>
+                    <select asp-for="SOAId" id="soa" asp-items="@Model.SOANo" class="form-select js-select2">
                         <option></option>
                     </select>
                 </div>
@@ -227,7 +234,7 @@
                                                 <input type='hidden' name='accountTitle' value='${accountTitle}' />
                                                 <input type='text' name='accountTitleText' value='${accountTitleText}' style='border:none' readonly />
                                             </td>
-                                            <td><input type='text' name='accountAmount' value='${accountAmount}' style='border:none' readonly /></td>
+                                                        <td><input type='text' name='accountAmount' value='${Number(accountAmount).toFixed(2)}' style='border:none' readonly /></td>
                                             <td><button type='button' class='btn btn-danger btn-sm' onclick='removeRow(this)'>Remove</button></td>
                                          </tr>`;
 

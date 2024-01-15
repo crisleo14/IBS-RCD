@@ -6,22 +6,25 @@ namespace Accounting_System.Models
 {
     public class OfficialReceipt : BaseEntity
     {
+        public string? ORNo { get; set; }
+
+        [Required(ErrorMessage = "Customer is required.")]
+        public int CustomerNo { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? Customers { get; set; }
+
         public int SOAId { get; set; }
 
         [ForeignKey("SOAId")]
         public StatementOfAccount? StatementOfAccount { get; set; }
 
-        public string? ORNo { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? SOANo { get; set; }
 
-        //COA Property
-
         [NotMapped]
         public List<SelectListItem>? ChartOfAccounts { get; set; }
-
-        public long SeriesNumber { get; set; }
 
         public DateTime Date { get; set; }
 
@@ -50,5 +53,7 @@ namespace Accounting_System.Models
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Total { get; set; }
+
+        public long SeriesNumber { get; set; }
     }
 }

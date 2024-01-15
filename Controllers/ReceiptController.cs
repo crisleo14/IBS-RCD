@@ -464,13 +464,15 @@ namespace Accounting_System.Controllers
         public IActionResult OfficialCreate()
         {
             var viewModel = new OfficialReceipt();
-            viewModel.SOANo = _dbContext.StatementOfAccounts
-                .Select(s => new SelectListItem
-                {
-                    Value = s.Id.ToString(),
-                    Text = s.SOANo
-                })
-                .ToList();
+
+            viewModel.Customers = _dbContext.Customers
+               .OrderBy(c => c.Id)
+               .Select(s => new SelectListItem
+               {
+                   Value = s.Number.ToString(),
+                   Text = s.Name
+               })
+               .ToList();
 
             viewModel.ChartOfAccounts = _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == "4" || coa.Level == "5")
@@ -488,6 +490,25 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> OfficialCreate(OfficialReceipt model/*, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle*/)
         {
+            model.Customers = _dbContext.Customers
+               .OrderBy(c => c.Id)
+               .Select(s => new SelectListItem
+               {
+                   Value = s.Number.ToString(),
+                   Text = s.Name
+               })
+               .ToList();
+
+            model.SOANo = _dbContext.StatementOfAccounts
+                .Where(s => !s.IsPaid && s.Customer.Number == model.CustomerNo)
+                .OrderBy(si => si.Id)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.SOANo
+                })
+                .ToList();
+
             model.SOANo = _dbContext.StatementOfAccounts
                 .Select(s => new SelectListItem
                 {
@@ -896,7 +917,7 @@ namespace Accounting_System.Controllers
         {
             var soa = await _dbContext
                 .StatementOfAccounts
-                .Where(s => s.CustomerId == customerNo && !s.IsPaid)
+                .Where(s => s.Customer.Number == customerNo && !s.IsPaid)
                 .OrderBy(s => s.Id)
                 .ToListAsync();
 
