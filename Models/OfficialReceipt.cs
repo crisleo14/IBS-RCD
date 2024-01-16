@@ -17,7 +17,7 @@ namespace Accounting_System.Models
         public int SOAId { get; set; }
 
         [Display(Name = "Statement Of Account No.")]
-        [Column(TypeName = "varchar(13)")]
+        [Column(TypeName = "varchar(13)")]       
         public string? SOANo { get; set; }
 
         [ForeignKey("SOAId")]
