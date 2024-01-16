@@ -80,31 +80,31 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
         </thead>
         <tbody>
 
-            @foreach (var cashReceipt in Model)
+            @foreach (var ledger in Model)
             {
                 <tr class="align-text-bottom">
                     <td>
-                        @Html.DisplayFor(model => cashReceipt.Date)
+                        @Html.DisplayFor(model => ledger.Date)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => cashReceipt.Reference)
+                        @Html.DisplayFor(model => ledger.Reference)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => cashReceipt.Description)
+                        @Html.DisplayFor(model => ledger.Description)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => cashReceipt.AccountTitle)
+                        @Html.DisplayFor(model => ledger.AccountTitle)
                     </td>
                     <td class="text-end">
-                        @Html.DisplayFor(model => cashReceipt.Debit)
+                        @Html.DisplayFor(model => ledger.Debit)
                     </td>
                     <td class="text-end">
-                        @Html.DisplayFor(model => cashReceipt.Credit)
+                        @Html.DisplayFor(model => ledger.Credit)
                     </td>
                 </tr>
 
-                totalDebitAmount += cashReceipt.Debit;
-                totalCreditAmount += cashReceipt.Credit;
+                totalDebitAmount += ledger.Debit;
+                totalCreditAmount += ledger.Credit;
             }
             <tr class="align-text-bottom" style="border-top: 2px solid black;">
                 @{
@@ -139,7 +139,7 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
 
 <div>
     <a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
-    <a asp-action="SalesBook" class="btn" id="otherButton">Back</a>
+    <a asp-action="GeneralLedgerBook" class="btn" id="otherButton">Back</a>
 </div>
 
 @section Scripts{

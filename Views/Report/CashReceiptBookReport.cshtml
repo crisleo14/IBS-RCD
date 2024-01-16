@@ -119,7 +119,6 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                     <td class="text-end">
                         @Html.DisplayFor(model => cashReceipt.Credit)
                     </td>
-                    
                 </tr>
 
                 totalCreditAmount += cashReceipt.Credit;
@@ -160,7 +159,7 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
 </div>
 <div>
     <a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
-    <a asp-action="SalesBook" class="btn" id="otherButton">Back</a>
+    <a asp-action="CashReceiptBook" class="btn" id="otherButton">Back</a>
 </div>
 
 @section Scripts{
