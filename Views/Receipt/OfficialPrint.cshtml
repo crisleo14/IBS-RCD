@@ -213,7 +213,7 @@
                 <td class="text-center" style="width:25%">Amount</td>
             </tr>
             <tr class="text-center">
-                
+
                     @if (Model.CashAmount != 0)
                     {
                         <td>Cash</td>
@@ -224,7 +224,7 @@
                     }
 
                 @if (Model.CashAmount == 0) {
-                    <td>@Model.CheckDate.ToShortDateString()</td>
+                    <td>@Model.CheckDate?.ToShortDateString()</td>
                     <td>@Html.DisplayFor(model => model.CheckNo)</td>
                 }
                 else{
