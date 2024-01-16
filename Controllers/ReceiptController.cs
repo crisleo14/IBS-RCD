@@ -287,7 +287,7 @@ namespace Accounting_System.Controllers
                     return View(model);
                 }
                 var existingSOA = _dbContext.StatementOfAccounts
-                                               .FirstOrDefault(si => si.Id == model.SOAId);
+                                               .FirstOrDefault(s => s.Id == model.SOAId);
 
                 var generateORNo = await _receiptRepo.GenerateORNo();
 
