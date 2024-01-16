@@ -175,8 +175,10 @@ namespace Accounting_System.Controllers
 
                     _dbContext.AddRange(offsettings);
                 }
-
+                
                 #endregion --Offsetting function
+
+                await _receiptRepo.UpdateInvoice(existingSalesInvoice.Id, model.Total, offsetAmount);
 
                 await _dbContext.SaveChangesAsync();
                 return RedirectToAction("CollectionIndex");
@@ -192,11 +194,23 @@ namespace Accounting_System.Controllers
         public IActionResult OfficialCreate()
         {
             var viewModel = new OfficialReceipt();
-            viewModel.SOANo = _dbContext.StatementOfAccounts
+
+            viewModel.Customers = _dbContext.Customers
+               .OrderBy(c => c.Id)
+               .Select(s => new SelectListItem
+               {
+                   Value = s.Number.ToString(),
+                   Text = s.Name
+               })
+               .ToList();
+
+            viewModel.ChartOfAccounts = _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == "4" || coa.Level == "5")
+                .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Id.ToString(),
-                    Text = s.SOANo
+                    Value = s.Number,
+                    Text = s.Number + " " + s.Name
                 })
                 .ToList();
 
@@ -204,8 +218,27 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> OfficialCreate(OfficialReceipt model)
+        public async Task<IActionResult> OfficialCreate(OfficialReceipt model/*, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle*/)
         {
+            model.Customers = _dbContext.Customers
+               .OrderBy(c => c.Id)
+               .Select(s => new SelectListItem
+               {
+                   Value = s.Number.ToString(),
+                   Text = s.Name
+               })
+               .ToList();
+
+            model.SOANo = _dbContext.StatementOfAccounts
+                .Where(s => !s.IsPaid && s.Customer.Number == model.CustomerNo)
+                .OrderBy(si => si.Id)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.SOANo
+                })
+                .ToList();
+
             model.SOANo = _dbContext.StatementOfAccounts
                 .Select(s => new SelectListItem
                 {
@@ -213,8 +246,22 @@ namespace Accounting_System.Controllers
                     Text = s.SOANo
                 })
                 .ToList();
+
+            model.ChartOfAccounts = _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == "4" || coa.Level == "5")
+                .OrderBy(coa => coa.Id)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number,
+                    Text = s.Number + " " + s.Name
+                })
+                .ToList();
+
             if (ModelState.IsValid)
             {
+
+                #region --Validating the series
+
                 var getLastNumber = await _receiptRepo.GetLastSeriesNumberOR();
 
                 if (getLastNumber > 9999999999)
@@ -231,27 +278,58 @@ namespace Accounting_System.Controllers
                 {
                     TempData["success"] = "Official Receipt created successfully";
                 }
+                #endregion --Validating the series
 
+                #region --Saving default value
+
+                var computeTotalInModelIfZero = model.CashAmount + model.CheckAmount + model.EWT + model.WVAT;
+                if (computeTotalInModelIfZero == 0)
+                {
+                    TempData["error"] = "Please input atleast one type form of payment";
+                    return View(model);
+                }
                 var existingSOA = _dbContext.StatementOfAccounts
                                                .FirstOrDefault(si => si.Id == model.SOAId);
 
-                if (existingSOA.Total >= model.Amount)
-                {
-                    var generateORNo = await _receiptRepo.GenerateORNo();
+                var generateORNo = await _receiptRepo.GenerateORNo();
 
                     model.SeriesNumber = getLastNumber;
                     model.ORNo = generateORNo;
+                    model.Total = computeTotalInModelIfZero;
                     model.CreatedBy = _userManager.GetUserName(this.User);
-                    _dbContext.Add(model);
-                    await _dbContext.SaveChangesAsync();
 
-                    return RedirectToAction("OfficialIndex");
-                }
-                else
-                {
-                    TempData["error"] = "Please input below or exact amount based on Statment of Account";
-                    return View(model);
-                }
+                    //decimal offsetAmount = 0;
+                #endregion --Saving default value
+
+                _dbContext.Add(model);
+
+                #region --Offsetting function
+                //var offsettings = new List<Offsetting>();
+
+                //for (int i = 0; i < accountTitle.Length; i++)
+                //{
+                //    var currentAccountTitle = accountTitleText[i];
+                //    var currentAccountAmount = accountAmount[i];
+                //    offsetAmount += accountAmount[i];
+
+                //    offsettings.Add(
+                //        new Offsetting
+                //        {
+                //            AccountNo = currentAccountTitle,
+                //            Source = model.ORNo,
+                //            Reference = existingSOA.SOANo,
+                //            Amount = currentAccountAmount,
+                //            CreatedBy = model.CreatedBy,
+                //            CreatedDate = model.CreatedDate
+                //        }
+                //    );
+
+                //    _dbContext.AddRange(offsettings);
+                //}
+                #endregion --Offsetting function
+
+                await _dbContext.SaveChangesAsync();
+                return RedirectToAction("OfficialIndex");
             }
             else
             {
@@ -871,5 +949,99 @@ namespace Accounting_System.Controllers
 
             return NotFound();
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetStatementOfAccount(int customerNo)
+        {
+            var soa = await _dbContext
+                .StatementOfAccounts
+                .Where(s => s.Customer.Number == customerNo && !s.IsPaid)
+                .OrderBy(s => s.Id)
+                .ToListAsync();
+
+            var soaList = soa.Select(si => new SelectListItem
+            {
+                Value = si.Id.ToString(),   // Replace with your actual ID property
+                Text = si.SOANo              // Replace with your actual property for display text
+            }).ToList();
+
+            return Json(soaList);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetSOADetails(int soaNo)
+        {
+            var soa = await _dbContext
+                .StatementOfAccounts
+                .FirstOrDefaultAsync(s => s.Id == soaNo);
+
+            if (soa != null)
+            {
+                return Json(new
+                {
+                    Amount = soa.NetAmount.ToString("0.00"),
+                    AmountPaid = soa.AmountPaid.ToString("0.00"),
+                    Balance = soa.Balance.ToString("0.00"),
+                    Ewt = soa.WithholdingTaxAmount.ToString("0.00"),
+                    Wvat = soa.WithholdingVatAmount.ToString("0.00"),
+                    Total = (soa.NetAmount - (soa.WithholdingTaxAmount + soa.WithholdingVatAmount)).ToString("0.00")
+                });
+            }
+            return Json(null);
+        }
+
+        public async Task<IActionResult> PostOR(int itemId)
+        {
+            var model = await _dbContext.OfficialReceipts.FindAsync(itemId);
+
+            if (model != null)
+            {
+                if (!model.IsPosted)
+                {
+                    model.IsPosted = true;
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Official Receipt has been Posted.";
+                }
+                return RedirectToAction("OfficialIndex");
+            }
+
+            return NotFound();
+        }
+
+        public async Task<IActionResult> VoidOR(int itemId)
+        {
+            var model = await _dbContext.OfficialReceipts.FindAsync(itemId);
+
+            if (model != null)
+            {
+                if (!model.IsVoided)
+                {
+                    model.IsVoided = true;
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Official Receipt has been Voided.";
+                }
+                return RedirectToAction("OfficialIndex");
+            }
+
+            return NotFound();
+        }
+        public async Task<IActionResult> CancelOR(int itemId)
+        {
+            var model = await _dbContext.OfficialReceipts.FindAsync(itemId);
+
+            if (model != null)
+            {
+                if (!model.IsCanceled)
+                {
+                    model.IsCanceled = true;
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Official Receipt has been Canceled.";
+                }
+                return RedirectToAction("OfficialIndex");
+            }
+
+            return NotFound();
+        }
+
     }
 }
