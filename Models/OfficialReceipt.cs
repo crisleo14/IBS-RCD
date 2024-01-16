@@ -17,12 +17,11 @@ namespace Accounting_System.Models
         public int SOAId { get; set; }
 
         [Display(Name = "Statement Of Account No.")]
-        [Column(TypeName = "varchar(12)")]
+        [Column(TypeName = "varchar(13)")]       
         public string? SOANo { get; set; }
 
         [ForeignKey("SOAId")]
         public StatementOfAccount? StatementOfAccount { get; set; }
-
 
         [NotMapped]
         public List<SelectListItem>? StatementOfAccounts { get; set; }
@@ -41,22 +40,25 @@ namespace Accounting_System.Models
         public decimal CashAmount { get; set; }
 
         //Check
-        public DateTime CheckDate { get; set; }
+        public DateTime? CheckDate { get; set; }
 
         [Column(TypeName = "varchar(20)")]
         public string? CheckNo { get; set; }
 
-
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal CheckAmount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal EWT { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal WVAT { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Total { get; set; }
 
         public long SeriesNumber { get; set; }

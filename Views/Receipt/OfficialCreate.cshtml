@@ -14,7 +14,7 @@
     <div class="position-absolute p-2" style="left:40%; width:25%; border:dotted 1px;">
             <pre>
  <b>SOA Details</b>
- SOA Amount: <span id="amount"></span>
+ SOA Amount:     <span id="amount"></span>
  EWT:            <span id="ewt"></span>
  WVAT:           <span id="wvat"></span>
  =======================================
@@ -171,13 +171,6 @@
 
             // Set the default value of the input field
             document.getElementById("Date").value = myDate;
-        </script>
-        <script>
-            // Get the current date in the format "YYYY-MM-DD" (required for the date input)
-            var currentDate = new Date().toISOString().slice(0, 10);
-
-            // Set the default value of the input field
-            document.getElementById("CheckDate").value = currentDate;
         </script>
         <script>
             $(document).ready(function () {
