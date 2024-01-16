@@ -374,6 +374,8 @@ namespace Accounting_System.Controllers
                 if (!model.IsPosted)
                 {
                     model.IsPosted = true;
+                    model.PostedBy = _userManager.GetUserName(this.User);
+                    model.PostedDate = DateTime.Now;
 
                     #region --Previous Implementation
 
@@ -571,8 +573,7 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    var postedBy = _userManager.GetUserName(this.User);
-                    AuditTrail auditTrail = new(postedBy, $"Posted invoice# {model.SINo}", "Sales Invoice");
+                    AuditTrail auditTrail = new(model.PostedBy, $"Posted invoice# {model.SINo}", "Sales Invoice");
                     _dbContext.Add(auditTrail);
 
                     #endregion --Audit Trail Recording
@@ -595,6 +596,16 @@ namespace Accounting_System.Controllers
                 if (!model.IsVoided)
                 {
                     model.IsVoided = true;
+                    model.VoidedBy = _userManager.GetUserName(this.User);
+                    model.VoidedDate = DateTime.Now;
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.VoidedBy, $"Voided invoice# {model.SINo}", "Sales Invoice");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Sales Invoice has been Voided.";
                 }
@@ -613,6 +624,17 @@ namespace Accounting_System.Controllers
                 if (!model.IsCanceled)
                 {
                     model.IsCanceled = true;
+                    model.CanceledBy = _userManager.GetUserName(this.User);
+                    model.CanceledDate = DateTime.Now;
+                    model.Status = "Cancelled";
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled invoice# {model.SINo}", "Sales Invoice");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Sales Invoice has been Canceled.";
                 }
