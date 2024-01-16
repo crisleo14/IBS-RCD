@@ -16,12 +16,16 @@ namespace Accounting_System.Models
 
         public int SOAId { get; set; }
 
+        [Display(Name = "Statement Of Account No.")]
+        [Column(TypeName = "varchar(12)")]
+        public string? SOANo { get; set; }
+
         [ForeignKey("SOAId")]
         public StatementOfAccount? StatementOfAccount { get; set; }
 
 
         [NotMapped]
-        public List<SelectListItem>? SOANo { get; set; }
+        public List<SelectListItem>? StatementOfAccounts { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? ChartOfAccounts { get; set; }
