@@ -101,53 +101,53 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
         </thead>
         <tbody>
 
-            @foreach (var order in Model)
+            @foreach (var purchase in Model)
             {
                 <tr class="align-text-bottom">
                     <td>
-                        @Html.DisplayFor(model => order.Date)
+                        @Html.DisplayFor(model => purchase.Date)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => order.SupplierName)
+                        @Html.DisplayFor(model => purchase.SupplierName)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => order.SupplierTin)
+                        @Html.DisplayFor(model => purchase.SupplierTin)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => order.SupplierAddress)
+                        @Html.DisplayFor(model => purchase.SupplierAddress)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => order.FormmatedNumber)
+                        @Html.DisplayFor(model => purchase.FormmatedNumber)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => order.DocumentNo)
+                        @Html.DisplayFor(model => purchase.DocumentNo)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => order.Description)
+                        @Html.DisplayFor(model => purchase.Description)
                     </td>
                     <td class="text-end">
-                        @Html.DisplayFor(model => order.Amount)
+                        @Html.DisplayFor(model => purchase.Amount)
                     </td>
                     <td class="text-end">
-                        @Html.DisplayFor(model => order.VatAmount)
+                        @Html.DisplayFor(model => purchase.VatAmount)
                     </td>
                     <td class="text-end">
                         0.00
                     </td>
                     <td class="text-end">
-                        @Html.DisplayFor(model => order.WhtAmount)
+                        @Html.DisplayFor(model => purchase.WhtAmount)
                     </td>
                     <td class="text-end">
-                        @Html.DisplayFor(model => order.NetPurchases)
+                        @Html.DisplayFor(model => purchase.NetPurchases)
                     </td>
 
                 </tr>
 
-                totalAmount += order.Amount;
-                totalVatableAmount += order.VatAmount;
-                totalDefAmount += order.Discount;
-                totalWthAmount += order.WhtAmount;
-                totalNetPurchases += order.NetPurchases;
+                totalAmount += purchase.Amount;
+                totalVatableAmount += purchase.VatAmount;
+                totalDefAmount += purchase.Discount;
+                totalWthAmount += purchase.WhtAmount;
+                totalNetPurchases += purchase.NetPurchases;
             }
             <tr class="align-text-bottom" style="border-top: 2px solid black;">
                 @{
@@ -192,7 +192,7 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
 
 <div>
     <a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
-    <a asp-action="SalesBook" class="btn" id="otherButton">Back</a>
+    <a asp-action="PurchaseBook" class="btn" id="otherButton">Back</a>
 </div>
 
 @section Scripts{
