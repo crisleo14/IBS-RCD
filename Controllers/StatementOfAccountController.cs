@@ -310,6 +310,7 @@ namespace Accounting_System.Controllers
                     #endregion --General Ledger Book Recording
 
                     await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Statement of Account has been posted.";
                     return RedirectToAction("Index");
                 }
                 else
@@ -321,9 +322,9 @@ namespace Accounting_System.Controllers
             return null;
         }
 
-        public async Task<IActionResult> Cancel(int itemId)
+        public async Task<IActionResult> Cancel(int id)
         {
-            var model = await _dbContext.StatementOfAccounts.FindAsync(itemId);
+            var model = await _dbContext.StatementOfAccounts.FindAsync(id);
 
             if (model != null)
             {
@@ -349,9 +350,9 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Void(int itemId)
+        public async Task<IActionResult> Void(int id)
         {
-            var model = await _dbContext.StatementOfAccounts.FindAsync(itemId);
+            var model = await _dbContext.StatementOfAccounts.FindAsync(id);
 
             if (model != null)
             {
@@ -375,6 +376,39 @@ namespace Accounting_System.Controllers
             }
 
             return NotFound();
+        }
+
+        public async Task<IActionResult> Edit(int id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            var existingModel = await _dbContext.StatementOfAccounts.FindAsync(id);
+
+            if (existingModel == null)
+            {
+                return NotFound();
+            }
+
+            existingModel.Customers = _dbContext.Customers
+               .OrderBy(c => c.Id)
+               .Select(s => new SelectListItem
+               {
+                   Value = s.Number.ToString(),
+                   Text = s.Name
+               })
+               .ToList();
+            existingModel.Services = await _dbContext.Services
+                .OrderBy(s => s.Id)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync();
+
+            return View(existingModel);
         }
     }
 }
