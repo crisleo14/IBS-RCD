@@ -51,7 +51,7 @@
                             }
                             if (item.IsPosted && !item.IsVoided && !item.IsCanceled)
                             {
-                                <a asp-action="Print" asp-route-id="@item.Id" class="btn btn-light">Print</a>
+                                <a asp-action="Generate" asp-route-id="@item.Id" class="btn btn-light">Print</a>
                                 <a class="btn btn-light" onclick="confirmVoid(@item.Id)">Void</a>
                             }
                         }

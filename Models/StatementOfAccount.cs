@@ -64,6 +64,14 @@ namespace Accounting_System.Models
         [Column(TypeName = "numeric(18,2)")]
         public decimal WithholdingVatAmount { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal CurrentAndPreviousAmount { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal UnearnedAmount { get; set; }
+
         [Column(TypeName = "varchar(20)")]
         public string Status { get; set; } = "Pending";
 
