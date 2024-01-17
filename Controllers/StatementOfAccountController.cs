@@ -142,6 +142,24 @@ namespace Accounting_System.Controllers
                     }
                 }
 
+                for (int i = 0; i < model.Period.Length; i++)
+                {
+                    if (model.CreatedDate < model.Period[i])
+                    {
+                        model.UnearnedAmount += model.Amount[i];
+                    }
+                    else
+                    {
+                        model.CurrentAndPreviousAmount += model.Amount[i];
+                    }
+                }
+
+                if (customer.CustomerType == "Vatable")
+                {
+                    model.CurrentAndPreviousAmount /= 1.12m;
+                    model.UnearnedAmount /= 1.12m;
+                }
+
                 _dbContext.Add(model);
 
                 #endregion --Saving the default properties
@@ -188,21 +206,6 @@ namespace Accounting_System.Controllers
                 if (!model.IsPosted)
                 {
                     model.IsPosted = true;
-
-                    decimal currentAndPreviousAmount = 0;
-                    decimal unearnedAmount = 0;
-
-                    for (int i = 0; i < model.Period.Length; i++)
-                    {
-                        if (model.CreatedDate < model.Period[i])
-                        {
-                            currentAndPreviousAmount += model.Amount[i];
-                        }
-                        else
-                        {
-                            unearnedAmount += model.Amount[i];
-                        }
-                    }
 
                     #region --General Ledger Book Recording
 
@@ -254,7 +257,7 @@ namespace Accounting_System.Controllers
                         );
                     }
 
-                    if (currentAndPreviousAmount > 0)
+                    if (model.CurrentAndPreviousAmount > 0)
                     {
                         ledgers.Add(
                             new GeneralLedgerBook
@@ -264,14 +267,14 @@ namespace Accounting_System.Controllers
                                 Description = model.Service.Name,
                                 AccountTitle = model.Service.CurrentAndPrevious,
                                 Debit = 0,
-                                Credit = model.Customer.CustomerType == "Vatable" ? currentAndPreviousAmount / (decimal)1.12 : currentAndPreviousAmount,
+                                Credit = model.CurrentAndPreviousAmount,
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
                             }
                         );
                     }
 
-                    if (unearnedAmount > 0)
+                    if (model.UnearnedAmount > 0)
                     {
                         ledgers.Add(
                             new GeneralLedgerBook
@@ -281,7 +284,7 @@ namespace Accounting_System.Controllers
                                 Description = model.Service.Name,
                                 AccountTitle = model.Service.Unearned,
                                 Debit = 0,
-                                Credit = model.Customer.CustomerType == "Vatable" ? unearnedAmount / (decimal)1.12 : unearnedAmount,
+                                Credit = model.UnearnedAmount,
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
                             }
