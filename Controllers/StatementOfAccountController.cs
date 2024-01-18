@@ -116,7 +116,7 @@ namespace Accounting_System.Controllers
 
                 model.CreatedBy = _userManager.GetUserName(this.User);
 
-                model.ServiceNumber = services.Number;
+                model.ServiceNo = services.Number;
 
                 foreach (var amount in model.Amount)
                 {
@@ -492,8 +492,6 @@ namespace Accounting_System.Controllers
                         existingModel.WithholdingVatAmount = existingModel.NetAmount * 0.05m;
                     }
                 }
-
-
 
                 #endregion --Saving the default properties
 
