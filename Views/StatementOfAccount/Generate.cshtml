@@ -46,8 +46,8 @@
                     <b>SOA Date:</b>
                     &nbsp; <span id="soaDate">@Model.CreatedDate.ToShortDateString()</span>
                     <br />
-                    <b>Terms:</b>&nbsp;<span id="terms">@Html.DisplayFor(model => model.Customer.Terms)</span>&nbsp;<br />
-                    <b>Due Date:</b>&nbsp; <span id="dueDate">11/16/2023</span><br />
+                    <b>Terms:</b>&nbsp;<span id="terms">@Html.DisplayFor(model => model.Terms)</span>&nbsp;<br />
+                    <b>Due Date:</b>&nbsp; <span id="dueDate"></span><br />
                 </td>
             </tr>
         </tbody>
@@ -117,7 +117,7 @@ else
                             <tbody>
 
                                 <tr style="height:170px;">
-                                    <td style="position:relative; top:-35px; left:4%;">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Service.Name)</td>
+                                    <td style="position:relative; top:-35px; left:4%;">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Instructions)</td>
                                 </tr>
 
                             </tbody>
@@ -309,13 +309,15 @@ else
     </script>
     <script>
         // Get the transaction date value from the HTML element
-        var transactionDate = document.getElementById('invoiceDate').innerText;
+        var transactionDate = document.getElementById('soaDate').innerText;
 
         // Convert the transaction date string to a Date object
         var dateObject = new Date(transactionDate);
 
         // Get the terms value from the HTML element
         var terms = document.getElementById('terms').innerText;
+
+        console.log(terms);
 
         // Convert the terms to an integer
         var termsInt = parseInt(terms);
@@ -351,8 +353,11 @@ else
             dateObject.setDate(dateObject.getDate() + termsInt);
         }
 
-        // Format the date as required
-        var formattedDate = dateObject.toLocaleDateString();
+        // Format the date as mm/dd/yyyy
+        var formattedDate =
+            (dateObject.getMonth() + 1).toString().padStart(2, '0') + '/' +
+            dateObject.getDate().toString().padStart(2, '0') + '/' +
+            dateObject.getFullYear();
 
         // Update the HTML to display the computed date as the due date
         document.getElementById('dueDate').innerText = formattedDate;

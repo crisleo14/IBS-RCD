@@ -34,6 +34,10 @@ namespace Accounting_System.Models
         public List<SelectListItem>? Services { get; set; }
 
         [Required]
+        [Column(TypeName = "varchar(5)")]
+        public string Terms { get; set; }
+
+        [Required]
         public DateTime[] Period { get; set; }
 
         [Required(ErrorMessage = "The Amount is required.")]
@@ -80,6 +84,9 @@ namespace Accounting_System.Models
 
         [Column(TypeName = "numeric(18,2)")]
         public decimal Balance { get; set; }
+
+        [Column(TypeName = "varchar(200)")]
+        public string? Instructions { get; set; }
 
         public bool IsPaid { get; set; }
     }
