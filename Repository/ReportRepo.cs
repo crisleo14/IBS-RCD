@@ -13,7 +13,7 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public async Task<List<SalesBook>> GetSalesBooksAsync(string dateFrom, string dateTo)
+        public List<SalesBook> GetSalesBooks(string dateFrom, string dateTo)
         {
             var fromDate = DateTime.Parse(dateFrom);
             var toDate = DateTime.Parse(dateTo);
@@ -33,7 +33,7 @@ namespace Accounting_System.Repository
             return salesBooks;
         }
 
-        public async Task<List<CashReceiptBook>> GetCashReceiptBookAsync(string dateFrom, string dateTo)
+        public List<CashReceiptBook> GetCashReceiptBooks(string dateFrom, string dateTo)
         {
             var fromDate = DateTime.Parse(dateFrom);
             var toDate = DateTime.Parse(dateTo);
@@ -53,7 +53,7 @@ namespace Accounting_System.Repository
             return cashReceiptBooks;
         }
 
-        public async Task<List<PurchaseJournalBook>> GetPurchaseBookAsync(string dateFrom, string dateTo)
+        public List<PurchaseJournalBook> GetPurchaseBooks(string dateFrom, string dateTo)
         {
             var fromDate = DateTime.Parse(dateFrom);
             var toDate = DateTime.Parse(dateTo);
@@ -63,17 +63,17 @@ namespace Accounting_System.Repository
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
 
-            var cashReceiptBooks = _dbContext
+            var purchaseBook = _dbContext
              .PurchaseJournalBooks
              .AsEnumerable()
              .Where(p => DateTime.Parse(p.Date) >= fromDate && DateTime.Parse(p.Date) <= toDate)
              .OrderBy(s => s.Id)
              .ToList();
 
-            return cashReceiptBooks;
+            return purchaseBook;
         }
 
-        public async Task<List<InventoryBook>> GetInventoryBookAsync(string dateFrom, string dateTo)
+        public List<InventoryBook> GetInventoryBooks(string dateFrom, string dateTo)
         {
             var fromDate = DateTime.Parse(dateFrom);
             var toDate = DateTime.Parse(dateTo);
@@ -93,7 +93,7 @@ namespace Accounting_System.Repository
             return inventoryBooks;
         }
 
-        public async Task<List<GeneralLedgerBook>> GetGeneralLedgerBookAsync(string dateFrom, string dateTo)
+        public List<GeneralLedgerBook> GetGeneralLedgerBooks(string dateFrom, string dateTo)
         {
             var fromDate = DateTime.Parse(dateFrom);
             var toDate = DateTime.Parse(dateTo);
@@ -113,7 +113,7 @@ namespace Accounting_System.Repository
             return generalLedgerBooks;
         }
 
-        public async Task<List<DisbursementBook>> GetDisbursementBookAsync(string dateFrom, string dateTo)
+        public List<DisbursementBook> GetDisbursementBooks(string dateFrom, string dateTo)
         {
             var fromDate = DateTime.Parse(dateFrom);
             var toDate = DateTime.Parse(dateTo);
@@ -133,7 +133,7 @@ namespace Accounting_System.Repository
             return disbursementBooks;
         }
 
-        public async Task<List<JournalBook>> GetJournalBookAsync(string dateFrom, string dateTo)
+        public List<JournalBook> GetJournalBooks(string dateFrom, string dateTo)
         {
             var fromDate = DateTime.Parse(dateFrom);
             var toDate = DateTime.Parse(dateTo);
@@ -153,7 +153,7 @@ namespace Accounting_System.Repository
             return disbursementBooks;
         }
 
-        public async Task<List<AuditTrail>> GetAuditTrailAsync(string dateFrom, string dateTo)
+        public List<AuditTrail> GetAuditTrails(string dateFrom, string dateTo)
         {
             var fromDate = DateTime.Parse(dateFrom);
             var toDate = DateTime.Parse(dateTo);
@@ -164,11 +164,11 @@ namespace Accounting_System.Repository
             }
 
             var auditTrail = _dbContext
-             .AuditTrails
-             .AsEnumerable()
-             .Where(d => d.Date >= fromDate && d.Date <= toDate)
-             .OrderBy(d => d.Date)
-             .ToList();
+                .AuditTrails
+                .AsEnumerable()
+                .Where(a => (a.Date.DayOfYear >= fromDate.DayOfYear && a.Date.DayOfYear <= toDate.DayOfYear) || (a.Date >= fromDate && a.Date <= toDate))
+                .OrderBy(a => a.Date)
+                .ToList();
 
             return auditTrail;
         }

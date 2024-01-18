@@ -13,29 +13,37 @@
     <div class="col-md-4">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label asp-for="CustomerId" class="control-label"></label>
                 <select asp-for="CustomerId" class="form-control js-select2" asp-items="@Model.Customers">
                     <option></option>
                 </select>
             </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label asp-for="ServicesId" class="control-label"></label>
                 <select asp-for="ServicesId" class="form-control js-select2" asp-items="@Model.Services">
                     <option></option>
                 </select>
             </div>
-            <div class="form-group">
-                <label asp-for="Period" class="control-label"></label>
-                <input asp-for="Period" type="month" value="@DateTime.Now.ToString("yyyy-MM")" class="form-control" />
-                <span asp-validation-for="Period" class="text-danger"></span>
+            <div class="form-floating mb-3">
+                <input asp-for="Discount" id="floatingInput" type="text" class="form-control" placeholder="Optional"/>
+                <label for="floatingInput" class="control-label">Discount</label>
+                <span asp-validation-for="Discount" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Amount" class="control-label"></label>
-                <input asp-for="Amount" class="form-control" />
-                <span asp-validation-for="Amount" class="text-danger"></span>
-            </div>
-            <div class="form-group mt-3">
+                <button type="button" class="btn btn-success mb-3" id="add-more">&dArr; Add Another</button>
+                    <div id="period-amount-fields" class="row g-2">
+                    <div class="col-sm mb-3">
+                        <label asp-for="Period" class="control-label">Period</label>
+                        <input asp-for="Period" type="month" value="@DateTime.Now.ToString("yyyy-MM")" class="form-control" />
+                        <span asp-validation-for="Period" class="text-danger"></span>
+                    </div>
+                    <div class="col-sm mb-3">
+                        <label asp-for="Amount" class="control-label">Amount</label>
+                        <input asp-for="Amount" class="form-control" />
+                        <span asp-validation-for="Amount" class="text-danger"></span>
+                    </div>
+                    </div>
+            <div class="form-group mb-3">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
         </form>
@@ -46,6 +54,26 @@
     <a asp-action="Index">Back to List</a>
 </div>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+
+        <script>
+            $("#add-more").click(function () {
+                // Clone the existing period and amount fields
+                var periodField = $("#period-amount-fields div:first-child").clone();
+                var amountField = $("#period-amount-fields div:last-child").clone();
+
+                console.log(amountField);
+
+                $("#period-amount-fields input[type='month']", periodField).attr("asp-for", "Period");
+                $("#period-amount-fields input[type='text']", amountField).attr("asp-for", "Amount");
+
+                // Append the cloned fields to the container
+                $("#period-amount-fields").append(periodField);
+                $("#period-amount-fields").append(amountField);
+            });
+        </script>
+
+    }

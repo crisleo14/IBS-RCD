@@ -348,9 +348,9 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> PrintedInvoice(int id)
         {
             var sales = await _salesInvoiceRepo.FindSalesInvoice(id);
-            if (sales != null && sales.OriginalCopy)
+            if (sales != null && sales.IsPrinted)
             {
-                sales.OriginalCopy = false;
+                sales.IsPrinted = false;
 
                 #region --Audit Trail Recording
 
@@ -374,6 +374,8 @@ namespace Accounting_System.Controllers
                 if (!model.IsPosted)
                 {
                     model.IsPosted = true;
+                    model.PostedBy = _userManager.GetUserName(this.User);
+                    model.PostedDate = DateTime.Now;
 
                     #region --Previous Implementation
 
@@ -571,8 +573,7 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    var postedBy = _userManager.GetUserName(this.User);
-                    AuditTrail auditTrail = new(postedBy, $"Posted invoice# {model.SINo}", "Sales Invoice");
+                    AuditTrail auditTrail = new(model.PostedBy, $"Posted invoice# {model.SINo}", "Sales Invoice");
                     _dbContext.Add(auditTrail);
 
                     #endregion --Audit Trail Recording
@@ -580,13 +581,66 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Sales Invoice has been Posted.";
                 }
-                else
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
+
+        public async Task<IActionResult> Void(int invoiceId)
+        {
+            var model = await _dbContext.SalesInvoices.FindAsync(invoiceId);
+
+            if (model != null)
+            {
+                if (!model.IsVoided)
                 {
-                    model.IsVoid = true;
+                    model.IsVoided = true;
+                    model.VoidedBy = _userManager.GetUserName(this.User);
+                    model.VoidedDate = DateTime.Now;
+
+                    await _salesInvoiceRepo.RemoveBookRecord(model.SINo);
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.VoidedBy, $"Voided invoice# {model.SINo}", "Sales Invoice");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Sales Invoice has been Voided.";
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
+
+        public async Task<IActionResult> Cancel(int invoiceId)
+        {
+            var model = await _dbContext.SalesInvoices.FindAsync(invoiceId);
+
+            if (model != null)
+            {
+                if (!model.IsCanceled)
+                {
+                    model.IsCanceled = true;
+                    model.CanceledBy = _userManager.GetUserName(this.User);
+                    model.CanceledDate = DateTime.Now;
+                    model.Status = "Cancelled";
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled invoice# {model.SINo}", "Sales Invoice");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Sales Invoice has been Canceled.";
+                }
+                return RedirectToAction("Index");
             }
 
             return NotFound();

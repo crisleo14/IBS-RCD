@@ -93,7 +93,7 @@ namespace Accounting_System.Repository
                 .CollectionReceipts
                 .Include(cr => cr.SalesInvoice)
                 .ThenInclude(s => s.Customer)
-                .OrderByDescending(c => c.Id)
+                .OrderByDescending(cr => cr.Id)
                 .ToListAsync();
         }
 
@@ -101,7 +101,7 @@ namespace Accounting_System.Repository
         {
             return await _dbContext
                 .OfficialReceipts
-                .OrderByDescending(c => c.Id)
+                .OrderByDescending(cr => cr.Id)
                 .ToListAsync();
         }
 
@@ -171,6 +171,54 @@ namespace Accounting_System.Repository
             else
             {
                 throw new ArgumentException("", "No record found");
+            }
+        }
+
+        public async Task<int> UpdateSoa(int id, decimal paidAmount, decimal offsetAmount)
+        {
+            var soa = await _dbContext
+                .StatementOfAccounts
+                .FirstOrDefaultAsync(si => si.Id == id);
+
+            if (soa != null)
+            {
+                var total = paidAmount + offsetAmount;
+                soa.AmountPaid += total;
+                soa.Balance = soa.NetAmount - soa.AmountPaid;
+
+                if (soa.Balance == 0 && soa.AmountPaid == soa.NetAmount)
+                {
+                    soa.IsPaid = true;
+                    soa.Status = "Paid";
+                }
+                else if (soa.AmountPaid > soa.NetAmount)
+                {
+                    soa.IsPaid = true;
+                    soa.Status = "OverPaid";
+                }
+
+                return await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                throw new ArgumentException("", "No record found");
+            }
+        }
+
+        public async Task<List<Offsetting>> GetOffsettingAsync(string source, string reference)
+        {
+            var result = await _dbContext
+                .Offsettings
+                .Where(o => o.Source == source && o.Reference == reference)
+                .ToListAsync();
+
+            if (result != null)
+            {
+                return result;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
             }
         }
     }

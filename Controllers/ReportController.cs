@@ -21,7 +21,7 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public async Task<IActionResult> SalesBookReport(ViewModelBook model)
+        public IActionResult SalesBookReport(ViewModelBook model)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -29,7 +29,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var salesBook = await _reportRepo.GetSalesBooksAsync(model.DateFrom, model.DateTo);
+                    var salesBook = _reportRepo.GetSalesBooks(model.DateFrom, model.DateTo);
                     var lastRecord = salesBook.LastOrDefault();
                     if (lastRecord != null)
                     {
@@ -53,7 +53,7 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public async Task<IActionResult> CashReceiptBookReport(ViewModelBook model)
+        public IActionResult CashReceiptBookReport(ViewModelBook model)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -61,7 +61,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var cashReceiptBooks = await _reportRepo.GetCashReceiptBookAsync(model.DateFrom, model.DateTo);
+                    var cashReceiptBooks = _reportRepo.GetCashReceiptBooks(model.DateFrom, model.DateTo);
                     var lastRecord = cashReceiptBooks.LastOrDefault();
                     if (lastRecord != null)
                     {
@@ -85,7 +85,7 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public async Task<IActionResult> PurchaseBookReport(ViewModelBook model)
+        public IActionResult PurchaseBookReport(ViewModelBook model)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -93,7 +93,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var purchaseOrders = await _reportRepo.GetPurchaseBookAsync(model.DateFrom, model.DateTo);
+                    var purchaseOrders = _reportRepo.GetPurchaseBooks(model.DateFrom, model.DateTo);
                     var lastRecord = purchaseOrders.LastOrDefault();
                     if (lastRecord != null)
                     {
@@ -117,7 +117,7 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public async Task<IActionResult> InventoryBookReport(ViewModelBook model)
+        public IActionResult InventoryBookReport(ViewModelBook model)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -125,7 +125,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var inventoryBooks = await _reportRepo.GetInventoryBookAsync(model.DateFrom, model.DateTo);
+                    var inventoryBooks = _reportRepo.GetInventoryBooks(model.DateFrom, model.DateTo);
                     var lastRecord = inventoryBooks.LastOrDefault();
                     if (lastRecord != null)
                     {
@@ -149,7 +149,7 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public async Task<IActionResult> GeneralLedgerBookReport(ViewModelBook model)
+        public IActionResult GeneralLedgerBookReport(ViewModelBook model)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -157,7 +157,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var inventoryBooks = await _reportRepo.GetGeneralLedgerBookAsync(model.DateFrom, model.DateTo);
+                    var inventoryBooks = _reportRepo.GetGeneralLedgerBooks(model.DateFrom, model.DateTo);
                     var lastRecord = inventoryBooks.LastOrDefault();
                     if (lastRecord != null)
                     {
@@ -181,7 +181,7 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public async Task<IActionResult> DisbursementBookReport(ViewModelBook model)
+        public IActionResult DisbursementBookReport(ViewModelBook model)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -189,7 +189,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var disbursementBooks = await _reportRepo.GetDisbursementBookAsync(model.DateFrom, model.DateTo);
+                    var disbursementBooks = _reportRepo.GetDisbursementBooks(model.DateFrom, model.DateTo);
                     var lastRecord = disbursementBooks.LastOrDefault();
                     if (lastRecord != null)
                     {
@@ -213,7 +213,7 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public async Task<IActionResult> JournalBookReport(ViewModelBook model)
+        public IActionResult JournalBookReport(ViewModelBook model)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -221,7 +221,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var journalBooks = await _reportRepo.GetJournalBookAsync(model.DateFrom, model.DateTo);
+                    var journalBooks = _reportRepo.GetJournalBooks(model.DateFrom, model.DateTo);
                     var lastRecord = journalBooks.LastOrDefault();
                     if (lastRecord != null)
                     {
@@ -245,7 +245,7 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public async Task<IActionResult> AuditTrailReport(ViewModelBook model)
+        public IActionResult AuditTrailReport(ViewModelBook model)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -253,7 +253,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var disbursementBooks = await _reportRepo.GetAuditTrailAsync(model.DateFrom, model.DateTo);
+                    var disbursementBooks = _reportRepo.GetAuditTrails(model.DateFrom, model.DateTo);
                     var lastRecord = disbursementBooks.LastOrDefault();
                     if (lastRecord != null)
                     {

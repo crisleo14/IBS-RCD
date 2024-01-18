@@ -10,7 +10,6 @@ namespace Accounting_System.Models
         [Column(TypeName = "varchar(12)")]
         public string? CRNo { get; set; }
 
-
         //Invoice Property
 
         [Required(ErrorMessage = "Invoice is required.")]
@@ -38,7 +37,6 @@ namespace Accounting_System.Models
 
         [NotMapped]
         public List<SelectListItem>? ChartOfAccounts { get; set; }
-
 
         [Required]
         public DateTime Date { get; set; }
@@ -95,6 +93,12 @@ namespace Accounting_System.Models
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Total { get; set; }
 
-        public bool IsPrinted { get; set; }
+        public bool IsCertificateUpload { get; set; }
+        
+        [Column(TypeName = "varchar(200)")]
+        public string? F2306FilePath { get; set; }
+
+        [Column(TypeName = "varchar(200)")]
+        public string? F2307FilePath { get; set; }
     }
 }
