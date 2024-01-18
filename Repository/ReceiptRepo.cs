@@ -93,7 +93,7 @@ namespace Accounting_System.Repository
                 .CollectionReceipts
                 .Include(cr => cr.SalesInvoice)
                 .ThenInclude(s => s.Customer)
-                .OrderByDescending(c => c.Id)
+                .OrderByDescending(cr => cr.Id)
                 .ToListAsync();
         }
 
@@ -101,7 +101,7 @@ namespace Accounting_System.Repository
         {
             return await _dbContext
                 .OfficialReceipts
-                .OrderByDescending(c => c.Id)
+                .OrderByDescending(cr => cr.Id)
                 .ToListAsync();
         }
 

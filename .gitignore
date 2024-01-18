@@ -475,3 +475,7 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# BIR Forms
+BIR 2306
+BIR 2307

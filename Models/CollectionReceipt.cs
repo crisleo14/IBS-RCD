@@ -95,10 +95,10 @@ namespace Accounting_System.Models
 
         public bool IsCertificateUpload { get; set; }
 
-        [Column(TypeName = "varchar(50)")]
+        [Column(TypeName = "varchar(200)")]
         public string? F2306FilePath { get; set; }
 
-        [Column(TypeName = "varchar(50)")]
+        [Column(TypeName = "varchar(200)")]
         public string? F2307FilePath { get; set; }
     }
 }
