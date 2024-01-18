@@ -1,39 +1,53 @@
 ﻿@model Accounting_System.Models.Services
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Service";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Create</h1>
+<div class="container">
+    <h1 class="text-center mb-4">Create a New Service</h1> <div class="row justify-content-center">
+        <div class="col-md-6">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div> <div class="form-group mb-3">
+                    <label asp-for="Name" class="form-label">Type of Service</label>
+                    <input asp-for="Name" class="form-control" placeholder="Enter the service type" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
 
-<h4>Services</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Percent" class="control-label"></label>
-                <input asp-for="Percent" class="form-control" />
-                <span asp-validation-for="Percent" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+                <div class="form-group mb-3">
+                    <label asp-for="CurrentAndPrevious" class="form-label">Current and Previous Title</label>
+                    <select asp-for="CurrentAndPrevious" asp-items="@Model.CurrentAndPreviousTitles" class="form-select js-select2" required>
+                        <option value="">-- Select a title --</option>
+                    </select>
+                    <span asp-validation-for="CurrentAndPrevious" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Unearned" class="form-label">Unearned Title</label>
+                    <select asp-for="Unearned" asp-items="@Model.UnearnedTitle" class="form-select js-select2" required>
+                        <option value="">-- Select a title --</option>
+                    </select>
+                    <span asp-validation-for="Unearned" class="text-danger"></span>
+                </div>
+
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon1">%</span>
+                    <input asp-for="Percent" type="text" class="form-control" placeholder="Percentage" aria-label="Percentage" aria-describedby="basic-addon1" required>
+                    <span asp-validation-for="Percent" class="text-danger"></span>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

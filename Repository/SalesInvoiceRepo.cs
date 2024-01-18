@@ -21,7 +21,7 @@ namespace Accounting_System.Repository
                 .ToListAsync();
         }
 
-        public async Task<int> GetLastSeriesNumber()
+        public async Task<long> GetLastSeriesNumber()
         {
             var lastInvoice = await _dbContext
                 .SalesInvoices
@@ -68,6 +68,30 @@ namespace Accounting_System.Repository
             if (invoice != null)
             {
                 return invoice;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
+            }
+        }
+
+        public async Task<int> RemoveBookRecord(string bookNumber)
+        {
+            var result = await _dbContext
+                .SalesBooks
+                .Where(sb => sb.SerialNo == bookNumber)
+                .ToListAsync();
+
+            if (result != null)
+            {
+                foreach (var item in result)
+                {
+                    var deletedRecord = _dbContext
+                        .SalesBooks
+                        .Remove(item);
+                }
+
+                return result.Count;
             }
             else
             {

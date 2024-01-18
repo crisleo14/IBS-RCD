@@ -65,34 +65,47 @@
 
             <tr style="height:80px;">
                 <td>@Html.DisplayFor(model => model.Service.Name)</td>
-                <td>@Model.Period.ToString("MMMM yyyy")</td>
-                <td>@Html.DisplayFor(model => model.Amount)</td>
+
+                <td class="pt-3">
+                    @for (int i = 0; i < Model.Period.Length; i++)
+                    {
+                <p style="line-height:15px">
+                    @Model.Period[i].ToString("MMMM yyyy")
+                </p>
+                    }
+                 </td>
+                <td class="pt-3">
+                    @for (int i = 0; i < Model.Amount.Length; i++)
+                    {
+                        <p style="line-height:15px">
+                    @Html.DisplayFor(model => model.Amount[i])
+                        </p>
+                    }
+                </td>
+
             </tr>
 
         </tbody>
     </table>
 </div>
 
-@{
-    decimal lessEwtTax = 0;
-
-    if(Model.Service.Name == "Hauling")
-    {
-       lessEwtTax = (decimal)892.86 * (decimal)0.02;
-    }
-    else
-    {
-       lessEwtTax = (decimal)892.86 * (decimal)0.05;
-    }
-
-    var formattedLessEwtTax = String.Format("{0:n}", lessEwtTax);
-
+@if (Model.Customer.WithHoldingVat)
+{
     <p style="line-height: 1; margin-top:20px;">
-        Creditable Withholding Tax with the amount of <b>@formattedLessEwtTax</b> is computed for this statement of account.<br />
+        Creditable Withholding Tax with the amount of <b>@Html.DisplayFor(model => model.WithholdingTaxAmount)</b> is computed for this statement of account.<br />
+        Creditable Withholding Vat with the amount of <b>@Html.DisplayFor(model => model.WithholdingVatAmount)</b> is computed for this statement of account.<br />
+        Please attach BIR Form 2306 and 2307 to your payment if you deducted Expanded Withholding Tax and Vat.
+    </p>
+}
+else
+{
+    <p style="line-height: 1; margin-top:20px;">
+        Creditable Withholding Tax with the amount of <b>@Html.DisplayFor(model => model.WithholdingTaxAmount)</b> is computed for this statement of account.<br />
         Please attach BIR Form 2307 to your payment if you deducted Expanded Withholding Tax.
     </p>
-
 }
+
+
 
 <div style="margin-top:20px;">
     <table class="w-100">
@@ -120,7 +133,7 @@
                                     <td class="text-end">
                                         @if (Model.Customer.CustomerType == "Vatable")
                                         {
-                                            <p style="height: 9px;">892.86</p>
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.NetAmount)</p>
                                         }
                                     </td>
 
@@ -131,7 +144,15 @@
                                     <td class="text-end">
                                         @if (Model.Customer.CustomerType == "Zero Rated")
                                         {
-                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p>
+                                            if (Model.Discount > 0)
+                                            {
+                                               <p style="height: 9px;">@Html.DisplayFor(model => model.NetAmount)</p>
+                                            }
+                                            else
+                                            {
+                                               <p style="height: 9px;">@Html.DisplayFor(model => model.Total)</p>
+                                            }
+
                                         }
                                     </td>
                                 </tr>
@@ -141,7 +162,14 @@
                                     <td class="text-end">
                                         @if (Model.Customer.CustomerType == "Exempt")
                                         {
-                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p>
+                                            if (Model.Discount > 0)
+                                            {
+                                                <p style="height: 9px;">@Html.DisplayFor(model => model.NetAmount)</p>
+                                            }
+                                            else
+                                            {
+                                                <p style="height: 9px;">@Html.DisplayFor(model => model.Total)</p>
+                                            }
                                         }
                                     </td>
                                 </tr>
@@ -151,17 +179,24 @@
                                     <td class="text-end">
                                         @if (Model.Customer.CustomerType == "Vatable")
                                         {
-                                            <p style="height: 9px;">107.14</p>
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.VatAmount)</p>
                                         }
                                     </td>
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>Discount: </b></p></td>
-                                    <td class="text-end"></td>
+                                    <td class="text-end">
+
+                                        @if (Model.Discount > 0)
+                                        {
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Discount)</p>
+                                        }
+
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
-                                    <td class="text-end"><p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p></td>
+                                    <td class="text-end"><p style="height: 9px;">@Html.DisplayFor(model => model.Total)</p></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -177,33 +212,13 @@
     </p>
 </div>
 <br />
-@* @if (Model.Customer.CustomerType == "Exempt")
-{
-    <div style="margin-top:20px;">
-        <p>
-            <strong style="border:2px solid; padding:10px;">TAX EXEMPT</strong>
-            <br><br>
-            <em>"This document is not valid for claim of input tax"<br /></em>
-        </p>
-    </div>
-}
-else if (Model.Customer.CustomerType == "Zero Rated")
-{
-    <div style="margin-top:20px;">
-        <p>
-            <strong style="border:2px solid; padding:10px;">ZERO RATED</strong>
-            <br><br>
-            <em>"This document is not valid for claim of input tax"<br /></em>
-    </div>
-} *@
-<br />
 <div class="text-center w-100" style="margin-top:20px;">
     <p @* style="line-height: 1;" *@>
         <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br />
         <span>Acknowledgement Certificate No:</span>
-        <span style="display: inline-block; width: 30%;"></span>
-        <span>Date Issued:</span>
-        <span style="display: inline-block; width: 15%;"></span><br />
+        <span style="display: inline-block;">AC_124_112023_000090</span>
+        <span>&nbsp;&nbsp;Date Issued:</span>
+        <span style="display: inline-block;">November 28, 2023</span><br />
         Series: SOA0000000001 - SOA9999999999
         Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
     </p>

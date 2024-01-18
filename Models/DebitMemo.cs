@@ -25,7 +25,7 @@ namespace Accounting_System.Models
         public List<SelectListItem>? StatementOfAccounts { get; set; }
 
         public string? DMNo { get; set; }
-        public int SeriesNumber { get; set; }
+        public long SeriesNumber { get; set; }
         public DateTime Date { get; set; }
 
         [Display(Name = "Debit Amount")]
@@ -44,12 +44,12 @@ namespace Accounting_System.Models
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal TotalSales { get; set; }
 
-        public bool IsPrinted { get; set; }
-
         [Display(Name = "Adjusted Price")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal AdjustedPrice { get; set; }
 
         public string Source { get; set; }
+
+        public string? Remarks { get; set; }
     }
 }
