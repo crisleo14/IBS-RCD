@@ -142,31 +142,59 @@ namespace Accounting_System.Controllers
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 model.Total = computeTotalInModelIfZero;
 
+                try
+                {
+                    if (bir2306 != null && bir2306.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(bir2306.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await bir2306.CopyToAsync(stream);
+                        }
+
+                        model.F2306FilePath = fileSavePath;
+                        model.IsCertificateUpload = true;
+                    }
+
+                    if (bir2307 != null && bir2307.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(bir2307.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await bir2307.CopyToAsync(stream);
+                        }
+
+                        model.F2307FilePath = fileSavePath;
+                        model.IsCertificateUpload = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                }
+
                 _dbContext.Add(model);
 
                 decimal offsetAmount = 0;
 
                 #endregion --Saving default value
-
-                #region --Unfinished function for saving the file
-
-                //var fileName = Path.GetFileName(bir2306.FileName);
-
-                //var uploadPath = Path.Combine(_webHostEnvironment.WebRootPath, "BIR_2306");
-
-                //if (!Directory.Exists(uploadPath))
-                //{
-                //    Directory.CreateDirectory(uploadPath);
-                //}
-
-                //var filePath = Path.Combine(uploadPath, fileName);
-
-                //using (var stream = new FileStream(filePath, FileMode.Create))
-                //{
-                //    await bir2306.CopyToAsync(stream);
-                //}
-
-                #endregion --Unfinished function for saving the file
 
                 #region --Audit Trail Recording
 
@@ -240,7 +268,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> OfficialCreate(OfficialReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle)
+        public async Task<IActionResult> OfficialCreate(OfficialReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle, IFormFile? bir2306, IFormFile? bir2307)
         {
             model.Customers = _dbContext.Customers
                .OrderBy(c => c.Id)
@@ -321,11 +349,59 @@ namespace Accounting_System.Controllers
                 model.Total = computeTotalInModelIfZero;
                 model.CreatedBy = _userManager.GetUserName(this.User);
 
+                try
+                {
+                    if (bir2306 != null && bir2306.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(bir2306.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await bir2306.CopyToAsync(stream);
+                        }
+
+                        model.F2306FilePath = fileSavePath;
+                        model.IsCertificateUpload = true;
+                    }
+
+                    if (bir2307 != null && bir2307.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(bir2307.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await bir2307.CopyToAsync(stream);
+                        }
+
+                        model.F2307FilePath = fileSavePath;
+                        model.IsCertificateUpload = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                }
+
+                _dbContext.Add(model);
+
                 decimal offsetAmount = 0;
 
                 #endregion --Saving default value
-
-                _dbContext.Add(model);
 
                 #region --Audit Trail Recording
 
@@ -505,7 +581,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CollectionEdit(CollectionReceipt model, string[] editAccountTitleText, decimal[] editAccountAmount, string[] editAccountTitle)
+        public async Task<IActionResult> CollectionEdit(CollectionReceipt model, string[] editAccountTitleText, decimal[] editAccountAmount, string[] editAccountTitle, IFormFile? bir2306, IFormFile? bir2307)
         {
             var existingModel = await _receiptRepo.FindCR(model.Id);
 
@@ -554,6 +630,54 @@ namespace Accounting_System.Controllers
                 existingModel.EWT = model.EWT;
                 existingModel.WVAT = model.WVAT;
                 existingModel.Total = computeTotalInModelIfZero;
+
+                try
+                {
+                    if (bir2306 != null && bir2306.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(bir2306.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await bir2306.CopyToAsync(stream);
+                        }
+
+                        existingModel.F2306FilePath = fileSavePath;
+                        existingModel.IsCertificateUpload = true;
+                    }
+
+                    if (bir2307 != null && bir2307.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(bir2307.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await bir2307.CopyToAsync(stream);
+                        }
+
+                        existingModel.F2307FilePath = fileSavePath;
+                        existingModel.IsCertificateUpload = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                }
 
                 decimal offsetAmount = 0;
 
@@ -1083,7 +1207,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> OfficialEdit(OfficialReceipt model, string[] editAccountTitleText, decimal[] editAccountAmount, string[] editAccountTitle)
+        public async Task<IActionResult> OfficialEdit(OfficialReceipt model, string[] editAccountTitleText, decimal[] editAccountAmount, string[] editAccountTitle, IFormFile? bir2306, IFormFile? bir2307)
         {
             var existingModel = await _receiptRepo.FindOR(model.Id);
 
@@ -1128,6 +1252,54 @@ namespace Accounting_System.Controllers
                 existingModel.EWT = model.EWT;
                 existingModel.WVAT = model.WVAT;
                 existingModel.Total = computeTotalInModelIfZero;
+
+                try
+                {
+                    if (bir2306 != null && bir2306.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(bir2306.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await bir2306.CopyToAsync(stream);
+                        }
+
+                        existingModel.F2306FilePath = fileSavePath;
+                        existingModel.IsCertificateUpload = true;
+                    }
+
+                    if (bir2307 != null && bir2307.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(bir2307.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await bir2307.CopyToAsync(stream);
+                        }
+
+                        existingModel.F2307FilePath = fileSavePath;
+                        existingModel.IsCertificateUpload = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                }
 
                 decimal offsetAmount = 0;
 
