@@ -25,7 +25,7 @@
 
             </pre>
         </div>
-        <form asp-action="CollectionCreate" method="post">
+        <form asp-action="CollectionCreate" method="post" enctype="multipart/form-data">
             <div class="col-md-4">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group mb-3">
@@ -112,8 +112,21 @@
                     </tbody>
                 </table>
 
+                <div class="form-group my-3">
+                    <label class="form-label fst-italic">If applicable, upload the certificate.</label>
+                    <div class="mb-3">
+                        <label for="bir2306" class="form-label">BIR 2306 Form</label>
+                        <input class="form-control form-control-sm w-25" name="bir2306" type="file">
+                    </div>
+                    <div class="mb-3">
+                        <label for="bir2307" class="form-label">BIR 2307 Form</label>
+                    <input class="form-control form-control-sm w-25" name="bir2307" type="file">
+                    </div>
+                </div>
+
+
+            <hr />
             <div class="form-group">
-                    <hr />
                     <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#AddAccEntry">
                         Add Entry
                     </button>
