@@ -5,7 +5,7 @@
 @using Humanizer
 
 @{
-    var formattedToPeso = String.Format("{0:N2}", Model.StatementOfAccount.Amount);
+    var formattedToPeso = String.Format("{0:N2}", Model.StatementOfAccount.Total);
 }
 
 <br />
@@ -50,29 +50,42 @@
                     <span class="underline" style="display: inline-block; width: 65%;">&nbsp;&nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.BusinessStyle)</span><br />
 
                     @{
-                        decimal convertToWords = Model.Amount;
+                        decimal convertToWords = Model.StatementOfAccount.Total;
 
-                        // Separate the integer and decimal parts
-                        int integerPart = (int)Math.Floor(convertToWords);
-                        decimal decimalPart = convertToWords - integerPart;
+                        int integerPart = Convert.ToInt32(Math.Floor(convertToWords));
+                        decimal decimalPart = Math.Round((convertToWords - integerPart), 2);
 
-                        // Convert the integer part to words
+                        // Convert integer part to words
                         string integerWords = integerPart.ToWords();
+                        integerWords = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(integerWords.ToLower());
 
-                        // Convert the decimal part to words
-                        string decimalWords = "";
-                        if (decimalPart > 0)
+                        // Convert and format cents value
+                        int cents = Convert.ToInt32(decimalPart * 100) % 100;
+                        string centsWords = cents.ToWords(); // Use ToWords instead of string formatting
+                        centsWords = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(centsWords.ToLower());
+
+                        string upperCaseOne = integerWords;
+                        string upperCaseTwo = centsWords;
+
+                        // Combine words and formatting
+                        string words;
+
+                        if (cents > 0)
                         {
-                            int decimalPlaces = BitConverter.GetBytes(decimal.GetBits(decimalPart)[3])[2];
-                            int decimalIntegerPart = (int)Math.Floor(decimalPart * (decimal)Math.Pow(10, decimalPlaces));
-                            decimalWords = $" and {decimalIntegerPart.ToWords()} centavos";
+                            // If there is a decimal part, include "And" before it
+                            words = $"{upperCaseOne} Pesos and {upperCaseTwo} Centavos Only";
+                        }
+                        else
+                        {
+                            // If there is no decimal part, exclude "And"
+                            words = $"{upperCaseOne} Pesos Only";
                         }
 
-                        // Combine the integer and decimal parts
-                        string words = integerWords + decimalWords + " pesos only";
+                        // Capitalize first letters
+                        // words = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(words.ToLower());
 
-                        // Capitalize the first letter of each word
-                        words = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(words.ToLower());
+                        words = words.Replace(" And", "");
+                        words = words.Replace("-", " ");
                     }
                     <span><b>the sum of</b></span>
                     <span class="underline" style="display: inline-block; width: 87%;">&nbsp;&nbsp;@words</span><br />
@@ -100,10 +113,10 @@
             <tr>
                 @{
                     string concatenatedValue = "0.0" + Model.StatementOfAccount.Service.Percent.ToString();
-                    decimal vatableSales = Model.StatementOfAccount.Amount / (decimal)1.12;
-                    decimal totalSalesVatInclusive = Model.StatementOfAccount.Amount - vatableSales;
+                    decimal vatableSales = Model.StatementOfAccount.Total / (decimal)1.12;
+                    decimal totalSalesVatInclusive = Model.StatementOfAccount.Total - vatableSales;
                     decimal EWT = vatableSales * decimal.Parse(concatenatedValue);
-                    decimal totalAmountDue = Model.StatementOfAccount.Amount - EWT;
+                    decimal totalAmountDue = Model.StatementOfAccount.Total - EWT;
 
                 }
                 <td class="w-25" style="padding-left:10px;">Vatable Sales</td>
@@ -159,7 +172,7 @@
                         <h6 style="height: 9px; padding-right:10px;" class="text-center">@formattedToPeso</h6>
                     }
                 </td>
-                
+
                 <td style="padding-left:10px;"></td>
                 <td style="padding-left:10px;"></td>
             </tr>
@@ -175,7 +188,7 @@
                 {
                     <td style="padding-right:10px;" class="text-center">@Html.DisplayFor(model => totalAmountDue)</td>
                 }else{
-                    <td style="padding-right:10px;" class="text-end">@Html.DisplayFor(model => model.StatementOfAccount.Amount)</td>
+                    <td style="padding-right:10px;" class="text-end">@Html.DisplayFor(model => model.StatementOfAccount.Total)</td>
                 }
                 <td></td>
                 <td></td>
@@ -186,7 +199,7 @@
                 <td></td>
                 <td></td>
             </tr>
-            
+
         </tbody>
     </table>
 </div>
@@ -200,38 +213,71 @@
                 <td class="text-center" style="width:25%">Amount</td>
             </tr>
             <tr class="text-center">
-                <td>@Html.DisplayFor(model => model.FormOfPayment)</td>
-                @if (Model.FormOfPayment != "Cash") {
-                    <td>@Model.CheckDate.ToShortDateString()</td>
+
+                    @if (Model.CashAmount != 0)
+                    {
+                        <td>Cash</td>
+                    }
+                    else
+                    {
+                        <td style="line-height:1px">Check</td>
+                    }
+
+                @if (Model.CashAmount == 0) {
+                    <td>@Model.CheckDate?.ToShortDateString()</td>
                     <td>@Html.DisplayFor(model => model.CheckNo)</td>
                 }
                 else{
                     <td></td>
                     <td></td>
                     }
-                @if (Model.StatementOfAccount.Customer.WithHoldingTax)
+                @if (Model.CashAmount != 0)
                 {
-                    <td>@Html.DisplayFor(model => totalAmountDue)</td>
-                }else{
-                    <td>@Html.DisplayFor(model => model.StatementOfAccount.Amount)</td>
+                    <td style="height: 9px;">@Html.DisplayFor(model => model.CashAmount)</td>
+                }
+                else
+                {
+                    <td style="height: 9px;">@Html.DisplayFor(model => model.CheckAmount)</td>
                 }
             </tr>
             <tr class="text-center">
                 <td>&nbsp;EWT</td>
                 <td></td>
                 <td></td>
-                @if (Model.StatementOfAccount.Customer.WithHoldingTax) {
-                    <td>@Html.DisplayFor(model => EWT)</td>
+                @if (Model.EWT != 0)
+                {
+                    <td style="height: 9px;">@Html.DisplayFor(model => model.EWT)</td>
                 }
-                else{
+                else
+                {
                     <td></td>
-                    }
+                }
                 </tr>
+            <tr class="text-center">
+                <td>&nbsp;WVAT</td>
+                <td></td>
+                <td></td>
+                @if (Model.WVAT != 0)
+                {
+                    <td style="height: 9px;">@Html.DisplayFor(model => model.WVAT)</td>
+                }
+                else
+                {
+                    <td></td>
+                }
+            </tr>
             <tr class="text-center">
                 <td>&nbsp;TOTAL</td>
                 <td></td>
                 <td></td>
-                <td>@Html.DisplayFor(model => model.StatementOfAccount.Amount)</td>
+                @if (Model.Total != 0)
+                {
+                    <td style="height: 9px;">@Html.DisplayFor(model => model.Total)</td>
+                }
+                else
+                {
+                    <td></td>
+                }
             </tr>
         </tbody>
     </table>
@@ -279,7 +325,7 @@ else
 <br />
 @* <a asp-action="OfficialReceipt" class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" id="printButton">Print</a> *@
 <a asp-action="PrintedOR" asp-route-id="@Model.Id" class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
-<a asp-action="OfficialReceiptIndex" class="btn" id="otherButton">Back</a>
+<a asp-action="OfficialIndex" class="btn" id="otherButton">Back</a>
 
 @section Scripts{
     <script>

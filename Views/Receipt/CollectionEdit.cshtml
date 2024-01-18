@@ -1,12 +1,12 @@
 ﻿@using System.ComponentModel.DataAnnotations;
 @model Accounting_System.Models.CollectionReceipt
-
+EditCollection
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Edit";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <partial name="_Notification">
-<h1>Create</h1>
+<h1>Edit</h1>
 
 <h4>Collection Receipt</h4>
 <hr />
@@ -25,21 +25,17 @@
 
             </pre>
         </div>
-        <form asp-action="CreateCollectionReceipt" method="post">
+        <form asp-action="CollectionEdit" method="post" enctype="multipart/form-data">
             <div class="col-md-4">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group mb-3">
                 <label class="control-label">Customers</label>
-                <select asp-for="CustomerNo" asp-items="@Model.Customers" class="form-select js-select2">
-                    <option></option>
-                </select>
+                    <input id="floatingInput" type="text" class="form-control" value="@ViewBag.CustomerName" placeholder="Reference #" readOnly />
             </div>
 
                 <div class="form-group mb-3">
                     <label class="control-label">SI NO.</label>
-                    <select asp-for="SalesInvoiceId" id="invoices" asp-items="@Model.Invoices" class="form-select js-select2">
-                        <option></option>
-                    </select>
+                    <input id="floatingInput" type="text" class="form-control" value="@Model.SINo" placeholder="Reference #" readOnly />
                 </div>
 
             <div class="form-group mb-3">
@@ -92,15 +88,6 @@
                         </tr>
 
                         <tr>
-                            <td style="padding-left:20px;"> Manager's Check</td>
-                        <td class="text-center"><input asp-for="ManagerCheckDate" type="date" style="border:none" class="form-control"/></td>
-                        <td class="text-center"><input asp-for="ManagerCheckNo" style="border:none" class="form-control" /></td>
-                        <td class="text-center"><input asp-for="ManagerCheckBank" style="border:none" class="form-control" /></td>
-                        <td class="text-center"><input asp-for="ManagerCheckBranch" style="border:none" class="form-control" /></td>
-                        <td class="text-center"><input asp-for="ManagerCheckAmount" style="border:none" class="form-control moneyInput" /></td>
-                        </tr>
-
-                        <tr>
                             <td style="padding-left:20px;">EWT</td>
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
@@ -119,8 +106,37 @@
                     </tbody>
                 </table>
 
+            <div class="form-group my-3">
+                <label class="form-label fst-italic">Uploaded certificate.</label>
+                @if(Model.F2306FilePath == null)
+                {
+                    <div class="mb-3">
+                        <label for="bir2306" class="form-label">BIR 2306 Form</label>
+                        <input class="form-control form-control-sm w-25" name="bir2306" type="file">
+                    </div>
+                }
+                else
+                {
+                    <h6>BIR 2306 Form <span class="badge rounded-pill bg-success">&check;</span></h6>
+                }
+
+                @if(Model.F2307FilePath == null)
+                {
+                    <div class="mb-3">
+                        <label for="bir2307" class="form-label">BIR 2307 Form</label>
+                        <input class="form-control form-control-sm w-25" name="bir2307" type="file">
+                    </div>
+                }
+                else
+                {
+                    <h6>BIR 2307 Form <span class="badge rounded-pill bg-success">&check;</span></h6>
+                }
+
+            </div>
+
+
+            <hr />
             <div class="form-group">
-                    <hr />
                     <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#AddAccEntry">
                         Add Entry
                     </button>
@@ -142,7 +158,7 @@
             <br />
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
-                <a asp-action="CollectionReceiptIndex" class="btn btn-secondary">Back to List</a>
+                <a asp-action="CollectionIndex" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
 </div>
@@ -234,24 +250,37 @@
     </script>
 
         <script>
-            function saveAccountingEntry() {
-                // Get the values from the modal inputs
-                var accountTitle = $("#AccountTitle").val();
-                var accountTitleText = $("#AccountTitle option:selected").text();
-                var accountAmount = $("#AccountAmount").val();
+            function initializeTable() {
+                // Get the data from ViewBag and parse it as JSON
+                var fetchAccEntries = @Html.Raw(Json.Serialize(ViewBag.fetchAccEntries));
 
-                console.log(accountTitle);
-                console.log(accountTitleText);
+                // Iterate through the initial entries and call saveAccountingEntry for each
+                for (var i = 0; i < fetchAccEntries.length; i++) {
+                    saveAccountingEntry(fetchAccEntries[i].accountNo, fetchAccEntries[i].amount);
+                }
+            }
+
+            function saveAccountingEntry(accountTitle, accountAmount) {
+                // Get the values from the modal inputs (if available)
+                if (!accountTitle) {
+                    accountTitle = $("#AccountTitle option:selected").text();
+                }
+                if (!accountAmount) {
+                    accountAmount = $("#AccountAmount").val();
+                }
 
                 // Create a new row with the text only and a hidden input for the value
-                var newRow = `<tr>
-                                <td>
-                                    <input type='hidden' name='accountTitle' value='${accountTitle}' />
-                                    <input type='text' name='accountTitleText' value='${accountTitleText}' style='border:none' readonly />
-                                </td>
-                                <td><input type='text' name='accountAmount' value='${accountAmount}' style='border:none' readonly /></td>
-                                <td><button type='button' class='btn btn-danger btn-sm' onclick='removeRow(this)'>Remove</button></td>
-                             </tr>`;
+var newRow = `<tr>
+                   <td>
+                       <input type='text' name='editAccountTitleText' value='${accountTitle}' style='border:none' readonly />
+                   </td>
+                   <td>
+                   <input type='text' name='editAccountAmount' value='${accountAmount}' style='border:none' readonly />
+                   </td>
+                   <td>
+                   <button type='button' class='btn btn-danger btn-sm' onclick='removeRow(this)'>Remove</button>
+                   </td>
+              </tr>`;
 
                 // Append the new row to the table body
                 $("#accountingEntriesBody").append(newRow);
@@ -260,11 +289,9 @@
                 $("#AddAccEntry").modal("hide");
 
                 // Clear the modal inputs
-                $("#AccountTitle").val(""); // Reset the select to its default state
-                $("#AccountTitle").trigger("change"); // Trigger change event for the select
+                $("#AccountTitle").val("");
                 $("#AccountAmount").val("");
             }
-
 
             // Function to remove the corresponding row
             function removeRow(button) {
@@ -272,6 +299,10 @@
                 $(button).closest("tr").remove();
             }
 
+            // Call initializeTable when the page loads
+            $(document).ready(function () {
+                initializeTable();
+            });
         </script>
 
         <script>
@@ -314,65 +345,4 @@
                 dropdownParent: $('#AddAccEntry')
             });
         </script>
-
-        <script>
-            $(document).ready(function () {
-                // Attach a focus event listener to the moneyInput field
-                $(".moneyInput").on("focus", function () {
-                    // Get the current value of the input
-                    var inputValue = $(this).val();
-
-                    // If the value is '0.00', set it to an empty string
-                    if (inputValue === '0.00') {
-                        $(this).val('');
-                    }
-                });
-
-                // Attach a blur event listener to the moneyInput field
-                $(".moneyInput").on("blur", function () {
-                    // Get the current value of the input
-                    var inputValue = $(this).val();
-
-                    // If the value is empty, set it back to '0.00'
-                    if (!inputValue.trim()) {
-                        $(this).val('0.00');
-                    }
-                });
-
-                // Attach an input event listener to the moneyInput field
-                $(".moneyInput").on("input", function () {
-                    // Get the current value of the input
-                    var inputValue = $(this).val();
-
-                    // If the input starts with a dot, add '0' before it
-                    if (inputValue.charAt(0) === '.') {
-                        inputValue = '0' + inputValue;
-                    }
-
-                    // Remove non-numeric characters except for the decimal point
-                    var numericValue = inputValue.replace(/[^\d.]/g, '');
-
-                    // Format the numeric value with commas and two decimal places
-                    var formattedValue = numberWithCommasAndDecimals(numericValue);
-
-                    // Set the formatted value back to the input field
-                    $(this).val(formattedValue);
-                });
-
-                // Function to add commas and two decimal places to a number
-                function numberWithCommasAndDecimals(number) {
-                    // Split the number into integer and decimal parts
-                    var parts = number.split('.');
-                    var integerPart = parts[0];
-                    var decimalPart = parts.length > 1 ? '.' + parts[1] : '';
-
-                    // Add commas to the integer part
-                    var numberWithCommas = integerPart.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-
-                    // Combine the integer and decimal parts
-                    return numberWithCommas + decimalPart;
-                }
-            });
-        </script>
-
 }

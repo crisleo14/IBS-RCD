@@ -74,5 +74,29 @@ namespace Accounting_System.Repository
                 throw new ArgumentException("Invalid id value. The id must be greater than 0.");
             }
         }
+
+        public async Task<int> RemoveBookRecord(string bookNumber)
+        {
+            var result = await _dbContext
+                .SalesBooks
+                .Where(sb => sb.SerialNo == bookNumber)
+                .ToListAsync();
+
+            if (result != null)
+            {
+                foreach (var item in result)
+                {
+                    var deletedRecord = _dbContext
+                        .SalesBooks
+                        .Remove(item);
+                }
+
+                return result.Count;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
+            }
+        }
     }
 }

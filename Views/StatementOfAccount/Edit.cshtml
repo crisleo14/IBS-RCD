@@ -1,0 +1,93 @@
+﻿@model Accounting_System.Models.StatementOfAccount
+
+@{
+    ViewData["Title"] = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Edit</h1>
+<partial name="_Notification">
+    <h4>Statement Of Account</h4>
+    <hr />
+    <div class="row">
+        <div class="col-md-4">
+            <form asp-action="Edit">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-group mb-3">
+                    <label asp-for="CustomerId" class="control-label"></label>
+                    <input asp-for="CustomerId" class="form-control" hidden />
+                    <input value="@Model.Customer.Name" class="form-control" readOnly />
+                </div>
+                <div class="form-group mb-3">
+                    <label asp-for="ServicesId" class="control-label"></label>
+                    <input asp-for="ServicesId" class="form-control" hidden />
+                    <input value="@Model.Service.Name" class="form-control" readOnly />
+                </div>
+                <div class="form-floating mb-3">
+                    <input asp-for="Discount" id="floatingInput" type="text" class="form-control" placeholder="Optional" />
+                    <label for="floatingInput" class="control-label">Discount</label>
+                    <span asp-validation-for="Discount" class="text-danger"></span>
+                </div>
+                <button type="button" class="btn btn-success mb-3" id="add-more">&dArr; Add Another</button>
+                <div id="period-amount-fields" class="row g-2">
+            @if (Model.Amount != null)
+                {
+                    for (int i = 0; i < Model.Amount.Length; i++)
+                    {
+                    <div class="col-sm mb-3">
+                        <label asp-for="Period" class="control-label">Period</label>
+                        <input asp-for="Period[i]" type="month" class="form-control" />
+                        <span asp-validation-for="Period" class="text-danger"></span>
+                    </div>
+                        
+                    <div class="col-sm mb-3">
+                        <label asp-for="Amount" class="control-label">Amount</label>
+                        <input asp-for="Amount[i]" class="form-control" />
+                        <span asp-validation-for="Amount" class="text-danger"></span>
+                    </div>
+                    }
+                }
+                </div>
+                <div class="form-group mb-3">
+                    <input type="submit" value="Save" class="btn btn-primary" />
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div>
+        <a asp-action="Index">Back to List</a>
+    </div>
+
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+
+        <script>
+            var counter = 0; // To keep track of the number of copies added
+
+            $("#add-more").click(function () {
+                // Increment the counter
+                counter++;
+
+                // Create new period and amount fields
+                var periodField = $('<div class="col-sm mb-3" >\
+                                            <label asp-for="Period" class="control-label" >Period</label>\
+                                            <input asp-for="Period" type="month" class="form-control"                                value="@DateTime.Now.ToString("yyyy-MM")" />\
+                                            <span asp-validation-for="Period" class="text-danger" > </span>\
+                                        </div>');
+
+                var amountField = $('<div class="col-sm mb-3" >\
+                                            <label asp-for="Amount" class="control-label" >Amount</label>\
+                                            <input asp-for="Amount" class="form-control" />\
+                                            <span asp-validation-for="Amount" class="text-danger" > </span>\
+                                        </div>');
+
+                // Append the new fields to the container
+                $("#period-amount-fields").append(periodField);
+                $("#period-amount-fields").append(amountField);
+            });
+        </script>
+
+    }

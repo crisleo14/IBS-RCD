@@ -79,7 +79,7 @@ namespace Accounting_System.Controllers
                 }
 
                 var generatedCM = await _creditMemoRepo.GenerateCMNo();
-                
+
                 model.SeriesNumber = getLastNumber;
                 model.CMNo = generatedCM;
                 model.CreatedBy = _userManager.GetUserName(this.User);
@@ -112,7 +112,7 @@ namespace Accounting_System.Controllers
                         .Include(soa => soa.Customer)
                         .FirstOrDefault(soa => soa.Id == model.SOAId);
 
-                    model.CreditAmount = model.AdjustedPrice - existingSoa.Amount;
+                    model.CreditAmount = model.AdjustedPrice - existingSoa.Total;
 
                     if (existingSoa.Customer.CustomerType == "Vatable")
                     {
@@ -211,7 +211,7 @@ namespace Accounting_System.Controllers
                         .Include(soa => soa.Customer)
                         .FirstOrDefault(soa => soa.Id == existingModel.SOAId);
 
-                    existingModel.CreditAmount = model.AdjustedPrice - existingSoa.Amount;
+                    existingModel.CreditAmount = model.AdjustedPrice - existingSoa.Total;
 
                     if (existingSoa.Customer.CustomerType == "Vatable")
                     {
