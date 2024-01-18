@@ -28,7 +28,7 @@ namespace Accounting_System.Models
         [ForeignKey("ServicesId")]
         public Services? Service { get; set; }
 
-        public int ServiceNumber { get; set; }
+        public int ServiceNo { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? Services { get; set; }
