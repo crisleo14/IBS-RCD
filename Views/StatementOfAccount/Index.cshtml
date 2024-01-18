@@ -40,38 +40,38 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Service.Name)
             </td>
-                    <td>
-                        @if (item.CreatedBy == UserManager.GetUserName(User))
-                        {
-                            if (!item.IsPosted && !item.IsVoided && !item.IsCanceled)
-                            {
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-light">Edit</a>
-                                <a class="btn btn-light" onclick="confirmPost(@item.Id)">Post</a>
-                                <a class="btn btn-light" onclick="confirmCancel(@item.Id)">Cancel</a>
-                            }
-                            if (item.IsPosted && !item.IsVoided && !item.IsCanceled)
-                            {
-                                <a asp-action="Generate" asp-route-id="@item.Id" class="btn btn-light">Print</a>
-                                <a class="btn btn-light" onclick="confirmVoid(@item.Id)">Void</a>
-                            }
-                        }
+            <td>
+                @if (item.CreatedBy == UserManager.GetUserName(User))
+                {
+                    if (!item.IsPosted && !item.IsVoided && !item.IsCanceled)
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-light">Edit</a>
+                        <a class="btn btn-light" onclick="confirmPost(@item.Id)">Post</a>
+                        <a class="btn btn-light" onclick="confirmCancel(@item.Id)">Cancel</a>
+                    }
+                    if (item.IsPosted && !item.IsVoided && !item.IsCanceled)
+                    {
+                        <a asp-action="Generate" asp-route-id="@item.Id" class="btn btn-light">Print</a>
+                        <a class="btn btn-light" onclick="confirmVoid(@item.Id)">Void</a>
+                    }
+                }
 
-                        @if (item.IsVoided)
-                        {
-                            <span class="badge rounded-pill bg-danger ">VOIDED</span>
-                        }
-                        else if (item.IsCanceled)
-                        {
-                            <span class="badge rounded-pill bg-warning ">CANCELED</span>
-                        }
-                        else
-                        {
-                            @if (item.CreatedBy != UserManager.GetUserName(User))
-                            {
-                                <span class="badge rounded-pill bg-info ">VALID</span>
-                            }
-                        }
-                    </td>
+                @if (item.IsVoided)
+                {
+                    <span class="badge rounded-pill bg-danger ">VOIDED</span>
+                }
+                else if (item.IsCanceled)
+                {
+                    <span class="badge rounded-pill bg-warning ">CANCELED</span>
+                }
+                else
+                {
+                    @if (item.CreatedBy != UserManager.GetUserName(User))
+                    {
+                        <span class="badge rounded-pill bg-info ">VALID</span>
+                    }
+                }
+            </td>
         </tr>
 }
     </tbody>
