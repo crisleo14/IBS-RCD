@@ -7,48 +7,91 @@
 
 <h1>Edit</h1>
 
-<h4>PurchaseOrder</h4>
 <hr />
 <div class="row">
-    <div class="col-md-4">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Date" class="control-label"></label>
-                <input type="date" asp-for="Date" class="form-control" />
-                <span asp-validation-for="Date" class="text-danger"></span>
+            <div class="text-end">
+                <img src="~/img/Filpride.jpg" height="" width="130px" />
             </div>
-            <div class="form-group">
-                <label asp-for="SupplierId" class="control-label"></label>
-                <select asp-for="SupplierId" class="form-control js-select2" asp-items="@Model.Suppliers"></select>
-                <span asp-validation-for="SupplierId" class="text-danger"></span>
+            <div class="text-center">
+                <h2><u><b>&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b></u></h2>
+                <p style="line-height: 1; margin-top:-7px;">
+                    57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone,<br />
+                    Kalaklan, Olongapo City, 2200 Zambales, Philippines<br />
+                    VAT Reg. TIN: 000-216-589-00000
+                </p>
+
+                <h3><span style="display: inline-block;"><b>Purchase Order</b></span></h3>
+                <div class="text-end" style="margin-top:-60px;">
+                </div>
+
             </div>
-            <div class="form-group">
-                <label asp-for="ProductName" class="control-label"></label>
-                <input asp-for="ProductName" class="form-control" />
-                <span asp-validation-for="ProductName" class="text-danger"></span>
+            <br />
+            <div class="table-responsive" style="margin-top:50px;">
+                <table class="w-100">
+                    <tbody>
+                        <tr style="padding-left:10px;">
+                            <td>
+                            <b>Supplier:</b> &nbsp;<select asp-for="SupplierId" class="form-control js-select2 w-75" asp-items="@Model.Suppliers">
+                                    <option></option>
+                                </select>
+                            </td>
+
+                            <td><b>Date:</b> &nbsp;<input type="date" asp-for="Date" class="form-control" /></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <div class="form-group">
-                <label asp-for="Quantity" class="control-label"></label>
-                <input asp-for="Quantity" class="form-control" />
-                <span asp-validation-for="Quantity" class="text-danger"></span>
+
+            <div class="table-responsive" style="margin-top:50px;">
+                <table class="w-100">
+                    <thead>
+                        <tr style="padding-left:10px;">
+                            <th class="w-25">Product Name</th>
+                            <th class="w-25">Quantity</th>
+                            <th class="w-25">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="w-25"><input asp-for="ProductName" class="form-control" /></td>
+                            <td class="w-25"><input asp-for="Quantity" class="form-control" /></td>
+                            <td class="w-25"><input asp-for="Price" class="form-control" /></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <div class="form-group">
-                <label asp-for="Price" class="control-label"></label>
-                <input asp-for="Price" class="form-control" />
-                <span asp-validation-for="Price" class="text-danger"></span>
-            </div>
+            <br />
             <div class="form-group">
                 <label asp-for="Remarks" class="control-label"></label>
                 <textarea asp-for="Remarks" class="form-control"></textarea>
                 <span asp-validation-for="Remarks" class="text-danger"></span>
             </div>
+            <div class="text-center w-100" style="margin-top:20px;">
+                <p @* style="line-height: 1;" *@>
+                    <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br /><br />
+                    <span>Acknowledgement Certificate No:</span>
+                    <span style="display: inline-block;">AC_124_112023_000090</span>
+                    <span>&nbsp;&nbsp;Date Issued:</span>
+                    <span style="display: inline-block;">November 28, 2023</span><br />
+                    Series: PO0000000001 - PO9999999999
+            </div>
+            <div class="text-start w-100 footer" style="margin-top:50px;">
+                <p style="line-height: 1;">
+                    <em>
+                        <strong>Software Name :</strong> Accounting Administration System (AAS)
+                        <br />
+                        <strong>Version :</strong> v1.0
+                    </em>
+                </p>
+            </div>
+            <br />
             <input type="hidden" asp-for="Id" />
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>
         </form>
-    </div>
 </div>
 
 <div>
