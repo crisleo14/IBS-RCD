@@ -196,8 +196,6 @@ namespace Accounting_System.Controllers
 
                 #endregion --Saving default value
 
-
-
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt");
