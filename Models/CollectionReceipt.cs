@@ -92,5 +92,13 @@ namespace Accounting_System.Models
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Total { get; set; }
+
+        public bool IsCertificateUpload { get; set; }
+
+        [Column(TypeName = "varchar(50)")]
+        public string? F2306FilePath { get; set; }
+
+        [Column(TypeName = "varchar(50)")]
+        public string? F2307FilePath { get; set; }
     }
 }

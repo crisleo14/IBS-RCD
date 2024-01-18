@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Controllers
@@ -18,11 +19,14 @@ namespace Accounting_System.Controllers
 
         private readonly ReceiptRepo _receiptRepo;
 
-        public ReceiptController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, ReceiptRepo receiptRepo)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+
+        public ReceiptController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, ReceiptRepo receiptRepo, IWebHostEnvironment webHostEnvironment)
         {
             _dbContext = dbContext;
             this._userManager = userManager;
             _receiptRepo = receiptRepo;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         public async Task<IActionResult> CollectionIndex()
@@ -66,7 +70,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CollectionCreate(CollectionReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle)
+        public async Task<IActionResult> CollectionCreate(CollectionReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle, IFormFile? bir2306, IFormFile? bir2307)
         {
             model.Customers = _dbContext.Customers
                .OrderBy(c => c.Id)
@@ -138,11 +142,31 @@ namespace Accounting_System.Controllers
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 model.Total = computeTotalInModelIfZero;
 
+                _dbContext.Add(model);
+
                 decimal offsetAmount = 0;
 
                 #endregion --Saving default value
 
-                _dbContext.Add(model);
+                #region --Unfinished function for saving the file
+
+                //var fileName = Path.GetFileName(bir2306.FileName);
+
+                //var uploadPath = Path.Combine(_webHostEnvironment.WebRootPath, "BIR_2306");
+
+                //if (!Directory.Exists(uploadPath))
+                //{
+                //    Directory.CreateDirectory(uploadPath);
+                //}
+
+                //var filePath = Path.Combine(uploadPath, fileName);
+
+                //using (var stream = new FileStream(filePath, FileMode.Create))
+                //{
+                //    await bir2306.CopyToAsync(stream);
+                //}
+
+                #endregion --Unfinished function for saving the file
 
                 #region --Audit Trail Recording
 
@@ -1055,7 +1079,6 @@ namespace Accounting_System.Controllers
                 .Select(offset => new { AccountNo = offset.AccountNo, Amount = offset.Amount.ToString("N2") })
                 .ToList();
 
-
             return View(existingModel);
         }
 
@@ -1111,6 +1134,7 @@ namespace Accounting_System.Controllers
                 #endregion --Saving default value
 
                 #region --Offsetting function
+
                 var offsetting = new List<Offsetting>();
 
                 for (int i = 0; i < editAccountTitleText.Length; i++)
@@ -1151,7 +1175,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync();
                 }
 
-                #endregion
+                #endregion --Offsetting function
 
                 #region --Audit Trail Recording
 

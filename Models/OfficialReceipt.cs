@@ -17,7 +17,7 @@ namespace Accounting_System.Models
         public int SOAId { get; set; }
 
         [Display(Name = "Statement Of Account No.")]
-        [Column(TypeName = "varchar(13)")]       
+        [Column(TypeName = "varchar(13)")]
         public string? SOANo { get; set; }
 
         [ForeignKey("SOAId")]
@@ -62,5 +62,13 @@ namespace Accounting_System.Models
         public decimal Total { get; set; }
 
         public long SeriesNumber { get; set; }
+
+        public bool IsCertificateUpload { get; set; }
+
+        [Column(TypeName = "varchar(50)")]
+        public string? F2306FilePath { get; set; }
+
+        [Column(TypeName = "varchar(50)")]
+        public string? F2307FilePath { get; set; }
     }
 }
