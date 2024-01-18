@@ -8,7 +8,7 @@ namespace Accounting_System.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-
+      
         [Display(Name = "Supplier No")]
         public int Number { get; set; }
 

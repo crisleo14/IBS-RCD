@@ -37,6 +37,7 @@ builder.Services.AddScoped<SupplierRepo>();
 builder.Services.AddScoped<CheckVoucherRepo>();
 builder.Services.AddScoped<ChartOfAccountRepo>();
 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
