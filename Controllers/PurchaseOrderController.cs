@@ -188,27 +188,85 @@ namespace Accounting_System.Controllers
             return RedirectToAction("Print", new { id = id });
         }
 
-        public async Task<IActionResult> Post(int poId)
+        public async Task<IActionResult> Post(int id)
         {
-            var model = await _dbContext.PurchaseOrders.FindAsync(poId);
+            var model = await _dbContext.PurchaseOrders.FindAsync(id);
 
             if (model != null)
             {
                 if (!model.IsPosted)
                 {
                     model.IsPosted = true;
+                    model.PostedBy = _userManager.GetUserName(this.User);
+                    model.PostedDate = DateTime.Now;
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.PostedBy, $"Voided purchase order# {model.PONo}", "Purchase Order");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync();
-                    TempData["success"] = "Purchase Order has been Posted.";
-
+                    TempData["success"] = "Purchase Order has been Voided.";
                 }
-                //else
-                //{
-                //    model.IsVoid = true;
-                //    await _dbContext.SaveChangesAsync();
-                //    TempData["success"] = "Purchase Order has been Voided.";
-                //}
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
+
+        public async Task<IActionResult> Void(int id)
+        {
+            var model = await _dbContext.PurchaseOrders.FindAsync(id);
+
+            if (model != null)
+            {
+                if (!model.IsVoided)
+                {
+                    model.IsVoided = true;
+                    model.VoidedBy = _userManager.GetUserName(this.User);
+                    model.VoidedDate = DateTime.Now;
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.VoidedBy, $"Voided purchase order# {model.PONo}", "Purchase Order");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Purchase Order has been Voided.";
+                }
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
+
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var model = await _dbContext.PurchaseOrders.FindAsync(id);
+
+            if (model != null)
+            {
+                if (!model.IsCanceled)
+                {
+                    model.IsCanceled = true;
+                    model.CanceledBy = _userManager.GetUserName(this.User);
+                    model.CanceledDate = DateTime.Now;
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Canceled purchase order# {model.PONo}", "Purchase Order");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Purchase Order has been Canceled.";
+                }
+                return RedirectToAction("Index");
             }
 
             return NotFound();
