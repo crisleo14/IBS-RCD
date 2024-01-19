@@ -14,6 +14,7 @@ namespace Accounting_System.Models
         [NotMapped]
         public List<SelectListItem>? Customers { get; set; }
 
+        [Required(ErrorMessage = "SOA is required.")]
         public int SOAId { get; set; }
 
         [Display(Name = "Statement Of Account No.")]
