@@ -14,32 +14,52 @@
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group mb-3">
-                <label asp-for="CustomerId" class="control-label"></label>
-                <select asp-for="CustomerId" class="form-control js-select2" asp-items="@Model.Customers">
+                <label asp-for="CustomerId" class="control-label">Customer<span class="required">*</span></label>
+                <select asp-for="CustomerId" class="form-control js-select2" asp-items="@Model.Customers" required>
                     <option></option>
                 </select>
+                <span asp-validation-for="CustomerId" class="text-danger"></span>
             </div>
             <div class="form-group mb-3">
-                <label asp-for="ServicesId" class="control-label"></label>
+                <label asp-for="ServicesId" class="control-label">Particular<span class="required">*</span></label>
                 <select asp-for="ServicesId" class="form-control js-select2" asp-items="@Model.Services">
                     <option></option>
                 </select>
+                <span asp-validation-for="ServicesId" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="Terms" class="control-label">Terms<span class="required">*</span></label>
+                <select asp-for="Terms" class="form-select js-select2">
+                <option value="" selected disabled>-- Select the Terms --</option>
+                <option value="COD">COD</option>
+                <option value="7D">7D</option>
+                <option value="15D">15D</option>
+                <option value="30D">30D</option>
+                <option value="M15">M15</option>
+                <option value="M30">M30</option>
+                </select>
+                <span asp-validation-for="Terms" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
-                <input asp-for="Discount" id="floatingInput" type="text" class="form-control" placeholder="Optional"/>
-                <label for="floatingInput" class="control-label">Discount</label>
+                <input asp-for="Discount" id="discount" type="text" class="form-control moneyInput" placeholder="Optional"/>
+                <label for="discount" class="control-label">Discount</label>
                 <span asp-validation-for="Discount" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <textarea asp-for="Instructions" class="form-control" placeholder="Leave a instruction here" id="instructions" style="height: 100px"></textarea>
+                <label for="instructions" class="control-label">Instructions</label>
+                <span asp-validation-for="Instructions" class="text-danger"></span>
             </div>
                 <button type="button" class="btn btn-success mb-3" id="add-more">&dArr; Add Another</button>
                     <div id="period-amount-fields" class="row g-2">
                     <div class="col-sm mb-3">
-                        <label asp-for="Period" class="control-label">Period</label>
+                        <label asp-for="Period" class="control-label">Period<span class="required">*</span></label>
                         <input asp-for="Period" type="month" value="@DateTime.Now.ToString("yyyy-MM")" class="form-control" />
                         <span asp-validation-for="Period" class="text-danger"></span>
                     </div>
                     <div class="col-sm mb-3">
-                        <label asp-for="Amount" class="control-label">Amount</label>
-                        <input asp-for="Amount" class="form-control" />
+                        <label asp-for="Amount" class="control-label">Amount<span class="required">*</span></label>
+                        <input asp-for="Amount" class="form-control moneyInput" />
                         <span asp-validation-for="Amount" class="text-danger"></span>
                     </div>
                     </div>

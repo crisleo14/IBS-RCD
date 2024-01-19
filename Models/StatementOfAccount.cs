@@ -11,8 +11,8 @@ namespace Accounting_System.Models
 
         public long SeriesNumber { get; set; }
 
-        [Required]
         [Display(Name = "Customer")]
+        [Required(ErrorMessage = "The Customer is required.")]
         public int CustomerId { get; set; }
 
         [ForeignKey("CustomerId")]
@@ -21,17 +21,21 @@ namespace Accounting_System.Models
         [NotMapped]
         public List<SelectListItem>? Customers { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "The Service is required.")]
         [Display(Name = "Particulars")]
         public int ServicesId { get; set; }
 
         [ForeignKey("ServicesId")]
         public Services? Service { get; set; }
 
-        public int ServiceNumber { get; set; }
+        public int ServiceNo { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? Services { get; set; }
+
+        [Required]
+        [Column(TypeName = "varchar(5)")]
+        public string Terms { get; set; }
 
         [Required]
         public DateTime[] Period { get; set; }
@@ -80,6 +84,9 @@ namespace Accounting_System.Models
 
         [Column(TypeName = "numeric(18,2)")]
         public decimal Balance { get; set; }
+
+        [Column(TypeName = "varchar(200)")]
+        public string? Instructions { get; set; }
 
         public bool IsPaid { get; set; }
     }

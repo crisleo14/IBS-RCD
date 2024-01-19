@@ -116,7 +116,7 @@ namespace Accounting_System.Controllers
 
                 model.CreatedBy = _userManager.GetUserName(this.User);
 
-                model.ServiceNumber = services.Number;
+                model.ServiceNo = services.Number;
 
                 foreach (var amount in model.Amount)
                 {
@@ -381,27 +381,28 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
+        [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var existingModel = await _dbContext.StatementOfAccounts.FindAsync(id);
+            var existingModel = await _statementOfAccountRepo.FindSOA(id);
 
             if (existingModel == null)
             {
                 return NotFound();
             }
 
-            existingModel.Customers = _dbContext.Customers
-               .OrderBy(c => c.Id)
-               .Select(s => new SelectListItem
-               {
-                   Value = s.Number.ToString(),
-                   Text = s.Name
-               })
-               .ToList();
+            existingModel.Customers = await _dbContext.Customers
+                .OrderBy(c => c.Id)
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name
+                })
+                .ToListAsync();
             existingModel.Services = await _dbContext.Services
                 .OrderBy(s => s.Id)
                 .Select(s => new SelectListItem
@@ -410,6 +411,100 @@ namespace Accounting_System.Controllers
                     Text = s.Name
                 })
                 .ToListAsync();
+
+            return View(existingModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(StatementOfAccount model)
+        {
+            var existingModel = await _statementOfAccountRepo.FindSOA(model.Id);
+
+            if (existingModel == null)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                #region --Validating the series
+
+                var getLastNumber = await _statementOfAccountRepo.GetLastSeriesNumber();
+
+                if (getLastNumber > 9999999999)
+                {
+                    TempData["error"] = "You reach the maximum Series Number";
+                    return View(model);
+                }
+                var totalRemainingSeries = 9999999999 - getLastNumber;
+                if (getLastNumber >= 9999999899)
+                {
+                    TempData["warning"] = $"Statement of Account created successfully, Warning {totalRemainingSeries} series number remaining";
+                }
+                else
+                {
+                    TempData["success"] = "Statement of Account created successfully";
+                }
+
+                #endregion --Validating the series
+
+                #region --Retrieval of Services
+
+                var services = await _statementOfAccountRepo.GetServicesAsync(model.ServicesId);
+
+                #endregion --Retrieval of Services
+
+                #region --Retrieval of Customer
+
+                var customer = await _statementOfAccountRepo.FindCustomerAsync(model.CustomerId);
+
+                #endregion --Retrieval of Customer
+
+                #region --Saving the default properties
+
+                existingModel.Discount = model.Discount;
+                existingModel.Amount = model.Amount;
+                existingModel.Period = model.Period;
+
+                decimal total = 0;
+                for (int i = 0; i < model.Amount.Length; i++)
+                {
+                    total += model.Amount[i];
+                }
+                existingModel.Total = total;
+
+                if (customer.CustomerType == "Vatable")
+                {
+                    existingModel.NetAmount = (existingModel.Total - existingModel.Discount) / 1.12m;
+                    existingModel.VatAmount = (existingModel.Total - existingModel.Discount) - existingModel.NetAmount;
+                    existingModel.WithholdingTaxAmount = existingModel.NetAmount * (services.Percent / 100m);
+                    if (customer.WithHoldingVat)
+                    {
+                        existingModel.WithholdingVatAmount = existingModel.NetAmount * 0.05m;
+                    }
+                }
+                else
+                {
+                    existingModel.NetAmount = existingModel.Total - existingModel.Discount;
+                    existingModel.WithholdingTaxAmount = existingModel.NetAmount * (services.Percent / 100m);
+                    if (customer.WithHoldingVat)
+                    {
+                        existingModel.WithholdingVatAmount = existingModel.NetAmount * 0.05m;
+                    }
+                }
+
+                #endregion --Saving the default properties
+
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(existingModel.CreatedBy, $"Edit statement of account# {existingModel.SOANo}", "Statement Of Account");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
+                await _dbContext.SaveChangesAsync();
+                return RedirectToAction("Index");
+            }
 
             return View(existingModel);
         }
