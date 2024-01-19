@@ -56,8 +56,8 @@
                     <tbody>
                         <tr>
                             <td class="w-25"><input asp-for="ProductName" class="form-control" /></td>
-                            <td class="w-25"><input asp-for="Quantity" class="form-control" /></td>
-                            <td class="w-25"><input asp-for="Price" class="form-control" /></td>
+                        <td class="w-25"><input asp-for="Quantity" class="form-control moneyInput" /></td>
+                        <td class="w-25"><input asp-for="Price" class="form-control moneyInput" /></td>
                         </tr>
                     </tbody>
                 </table>
@@ -69,7 +69,6 @@
                 <span asp-validation-for="Remarks" class="text-danger"></span>
             </div>
             <div class="text-center w-100" style="margin-top:20px;">
-                <p @* style="line-height: 1;" *@>
                     <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br /><br />
                     <span>Acknowledgement Certificate No:</span>
                     <span style="display: inline-block;">AC_124_112023_000090</span>
