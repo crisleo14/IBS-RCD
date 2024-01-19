@@ -11,8 +11,8 @@ namespace Accounting_System.Models
 
         public long SeriesNumber { get; set; }
 
-        [Required]
         [Display(Name = "Customer")]
+        [Required(ErrorMessage = "The Customer is required.")]
         public int CustomerId { get; set; }
 
         [ForeignKey("CustomerId")]
@@ -21,7 +21,7 @@ namespace Accounting_System.Models
         [NotMapped]
         public List<SelectListItem>? Customers { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "The Service is required.")]
         [Display(Name = "Particulars")]
         public int ServicesId { get; set; }
 
