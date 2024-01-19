@@ -52,6 +52,7 @@ namespace Accounting_System.Models
         public string? Remarks { get; set; }
 
         //Cash
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal CashAmount { get; set; }
 
         //Check
@@ -94,7 +95,7 @@ namespace Accounting_System.Models
         public decimal Total { get; set; }
 
         public bool IsCertificateUpload { get; set; }
-        
+
         [Column(TypeName = "varchar(200)")]
         public string? F2306FilePath { get; set; }
 

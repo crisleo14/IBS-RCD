@@ -40,7 +40,7 @@
             </div>
             <div class="form-floating mb-3">
                 <input asp-for="Discount" id="discount" type="text" class="form-control" placeholder="Optional"/>
-                <label for="discount" class="control-label">Discount</label>
+                    <label for="discount" class="control-label moneyInput">Discount</label>
                 <span asp-validation-for="Discount" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
@@ -56,7 +56,7 @@
                         <span asp-validation-for="Period" class="text-danger"></span>
                     </div>
                     <div class="col-sm mb-3">
-                        <label asp-for="Amount" class="control-label">Amount</label>
+                        <label asp-for="Amount" class="control-label moneyInput">Amount</label>
                         <input asp-for="Amount" class="form-control" />
                         <span asp-validation-for="Amount" class="text-danger"></span>
                     </div>
