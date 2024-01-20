@@ -51,6 +51,7 @@
                 <span asp-validation-for="Instructions" class="text-danger"></span>
             </div>
                 <button type="button" class="btn btn-success mb-3" id="add-more">&dArr; Add Another</button>
+                <button type="button" class="btn btn-danger mb-3 remove-period-amount">Remove</button>
                     <div id="period-amount-fields" class="row g-2">
                     <div class="col-sm mb-3">
                         <label asp-for="Period" class="control-label">Period<span class="required">*</span></label>
@@ -74,26 +75,42 @@
     <a asp-action="Index">Back to List</a>
 </div>
 
-    @section Scripts {
-        @{
-            await Html.RenderPartialAsync("_ValidationScriptsPartial");
-        }
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $("#add-more").click(function () {
+            // Clone the existing period and amount fields
+            var periodField = $("#period-amount-fields div:first-child").clone();
+            var amountField = $("#period-amount-fields div:last-child").clone();
+
+            // Set unique IDs for the cloned fields
+            var uniqueId = new Date().getTime(); // Generate a unique timestamp-based ID
+            $("input[type='month']", periodField).attr("id", "Period_" + uniqueId);
+            $("input[type='text']", amountField).attr("id", "Amount_" + uniqueId);
+
+            // Append the cloned fields to the container
+            $("#period-amount-fields").append(periodField);
+            $("#period-amount-fields").append(amountField);
+        });
+    </script>
 
         <script>
-            $("#add-more").click(function () {
-                // Clone the existing period and amount fields
-                var periodField = $("#period-amount-fields div:first-child").clone();
-                var amountField = $("#period-amount-fields div:last-child").clone();
+            $(document).on("click", ".remove-period-amount", function () {
+                // Check if there is more than one pair of period and amount fields
+                var fieldCount = $("#period-amount-fields div").length;
 
-                console.log(amountField);
+                if (fieldCount > 2) {
+                    $("#period-amount-fields div:last-child").prev().remove(); // Remove the second-to-last field
+                    $("#period-amount-fields div:last-child").remove(); // Remove the last field
+                }
 
-                $("#period-amount-fields input[type='month']", periodField).attr("asp-for", "Period");
-                $("#period-amount-fields input[type='text']", amountField).attr("asp-for", "Amount");
-
-                // Append the cloned fields to the container
-                $("#period-amount-fields").append(periodField);
-                $("#period-amount-fields").append(amountField);
+                console.log(fieldCount);
             });
         </script>
 
-    }
+
+}
+
