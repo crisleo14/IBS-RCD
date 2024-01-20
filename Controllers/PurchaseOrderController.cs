@@ -76,7 +76,7 @@ namespace Accounting_System.Controllers
                 }
 
                 var generatedPO = await _purchaseOrderRepo.GeneratePONo();
-                
+
 
                 model.SeriesNumber = getLastNumber;
                 model.PONo = generatedPO;
@@ -202,7 +202,7 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.PostedBy, $"Voided purchase order# {model.PONo}", "Purchase Order");
+                    AuditTrail auditTrail = new(model.PostedBy, $"Posted purchase order# {model.PONo}", "Purchase Order");
                     _dbContext.Add(auditTrail);
 
                     #endregion --Audit Trail Recording
