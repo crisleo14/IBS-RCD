@@ -9,9 +9,11 @@ using Accounting_System.Data;
 using Accounting_System.Models;
 using Microsoft.AspNetCore.Identity;
 using Accounting_System.Repository;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Accounting_System.Controllers
 {
+    [Authorize]
     public class SupplierController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -20,11 +22,14 @@ namespace Accounting_System.Controllers
 
         private readonly SupplierRepo _supplierRepo;
 
-        public SupplierController(ApplicationDbContext context, UserManager<IdentityUser> userManager, SupplierRepo supplierRepo)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+
+        public SupplierController(ApplicationDbContext context, UserManager<IdentityUser> userManager, SupplierRepo supplierRepo, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
             _userManager = userManager;
             _supplierRepo = supplierRepo;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: Supplier
@@ -64,12 +69,55 @@ namespace Accounting_System.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,Address,TinNo,BusinessStyle,Type,WithholdingTax,WithholdingVat,Id,CreatedBy,CreatedDate")] Supplier supplier)
+        public async Task<IActionResult> Create(Supplier supplier, IFormFile? document, IFormFile? registration)
         {
             if (ModelState.IsValid)
             {
                 supplier.CreatedBy = _userManager.GetUserName(this.User).ToString();
                 supplier.Number = await _supplierRepo.GetLastNumber();
+
+                if (document != null && document.Length > 0)
+                {
+                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Proof of Exemption", supplier.Name);
+
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    string fileName = Path.GetFileName(document.FileName);
+                    string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                    {
+                        await document.CopyToAsync(stream);
+                    }
+
+                    supplier.ProofOfExemptionFilePath = fileSavePath;
+                }
+
+                if (registration != null && registration.Length > 0)
+                {
+                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Proof of Registration", supplier.Name);
+
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    string fileName = Path.GetFileName(registration.FileName);
+                    string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                    {
+                        await registration.CopyToAsync(stream);
+                    }
+
+                    supplier.ProofOfRegistrationFilePath = fileSavePath;
+                }
+                else
+                {
+                }
 
                 _context.Add(supplier);
                 await _context.SaveChangesAsync();
@@ -99,7 +147,7 @@ namespace Accounting_System.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Name,Address,TinNo,BusinessStyle,Type,WithholdingTax,WithholdingVat,Id,CreatedBy,CreatedDate")] Supplier supplier)
+        public async Task<IActionResult> Edit(int id, Supplier supplier)
         {
             if (id != supplier.Id)
             {

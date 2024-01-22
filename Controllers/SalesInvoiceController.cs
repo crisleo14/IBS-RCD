@@ -365,6 +365,13 @@ namespace Accounting_System.Controllers
             return RedirectToAction("PrintInvoice", new { id = id });
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Preview(int? id)
+        {
+            var invoice = await _salesInvoiceRepo.FindSalesInvoice(id);
+            return PartialView("_PreviewPartialView", invoice);
+        }
+
         public async Task<IActionResult> Post(int invoiceId)
         {
             var model = await _dbContext.SalesInvoices.FindAsync(invoiceId);
