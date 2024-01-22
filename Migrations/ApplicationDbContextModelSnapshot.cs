@@ -1772,32 +1772,48 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("BusinessStyle")
-                        .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("varchar(50)");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(50)");
 
                     b.Property<int>("Number")
                         .HasColumnType("integer");
 
+                    b.Property<string>("ProofOfExemptionFilePath")
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("ProofOfRegistrationFilePath")
+                        .IsRequired()
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("ReasonOfExemption")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Terms")
+                        .IsRequired()
+                        .HasColumnType("varchar(5)");
+
                     b.Property<string>("TinNo")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("Validity")
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime?>("ValidityDate")
+                        .HasColumnType("date");
 
                     b.Property<bool>("WithholdingTax")
                         .HasColumnType("boolean");
