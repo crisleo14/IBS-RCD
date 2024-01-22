@@ -17,6 +17,7 @@ namespace Accounting_System.Repository
         {
             return await _dbContext
                 .SalesInvoices
+                .Include(c => c.Customer)
                 .OrderBy(s => s.Id)
                 .ToListAsync();
         }
@@ -25,6 +26,7 @@ namespace Accounting_System.Repository
         {
             var lastInvoice = await _dbContext
                 .SalesInvoices
+                .Include(c => c.Customer)
                 .OrderByDescending(s => s.Id)
                 .FirstOrDefaultAsync();
 
@@ -58,7 +60,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<SalesInvoice> FindSalesInvoice(int id)
+        public async Task<SalesInvoice> FindSalesInvoice(int? id)
         {
             var invoice = await _dbContext
                 .SalesInvoices
