@@ -459,6 +459,18 @@ namespace Accounting_System.Controllers
             return View(or);
         }
 
+        public async Task<IActionResult> CollectionPreview(int id)
+        {
+            var cr = await _receiptRepo.FindCR(id);
+            return PartialView("_CollectionPreviewPartialView", cr);
+        }
+
+        public async Task<IActionResult> OfficialPreview(int id)
+        {
+            var or = await _receiptRepo.FindOR(id);
+            return PartialView("_OfficialPreviewPartialView", or);
+        }
+
         public async Task<IActionResult> PrintedCR(int id)
         {
             var findIdOfCR = await _receiptRepo.FindCR(id);

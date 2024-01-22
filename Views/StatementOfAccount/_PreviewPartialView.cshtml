@@ -1,0 +1,303 @@
+﻿@model Accounting_System.Models.StatementOfAccount
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+
+<div class="modal fade" id="Preview-@Model.Id" data-bs-backdrop="static" aria-labelledby="PreviewSOALabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="PreviewSOALabel">Preview</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+<br />
+<div class="text-end">
+    <img src="~/img/Filpride.jpg" height="" width="130px" />
+</div>
+<div class="text-center">
+    <h2><u><b>&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b></u></h2>
+    <p style="line-height: 1; margin-top:-7px;">
+        57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone,<br />
+        Kalaklan, Olongapo City, 2200 Zambales, Philippines<br />
+        VAT Reg. TIN: 000-216-589-00000
+    </p>
+
+    <h3><span style="display: inline-block;"><b>STATEMENT OF ACCOUNT</b></span></h3>
+    <div class="text-end" style="margin-top:-60px;">
+        <h6><b>No.&nbsp;@Html.DisplayFor(model => model.SOANo)</b></h6>
+    </div>
+</div>
+<br />
+<hr />
+
+<div class="table-responsive">
+    <table class="w-100" style="margin-top:20px;">
+        <tbody>
+            <tr>
+                <td>
+                    <span><b>Customer:</b></span>
+                    &nbsp; @Html.DisplayFor(model => model.Customer.Name) &nbsp;<br />
+
+                    <span><b>Address:</b></span>
+                    &nbsp; @Html.DisplayFor(model => model.Customer.Address) &nbsp;<br />
+
+                    <span><b>TIN:</b></span>
+                    &nbsp; @Html.DisplayFor(model => model.Customer.TinNo) &nbsp;<br />
+
+                    <span><b>Business Style:</b></span>
+                    &nbsp; @Html.DisplayFor(model => model.Customer.BusinessStyle) &nbsp;
+                </td>
+
+                <td class="w-25 text-nowrap">
+
+                    <b>SOA Date:</b>
+                    &nbsp; <span id="soaDate">@Model.CreatedDate.ToShortDateString()</span>
+                    <br />
+                    <b>Terms:</b>&nbsp;<span id="terms">@Html.DisplayFor(model => model.Terms)</span>&nbsp;<br />
+                    <b>Due Date:</b>&nbsp; <span id="dueDate"></span><br />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="table-responsive" style="margin-top:20px;">
+    <table class="table-bordered w-100 text-center">
+        <tbody>
+            <tr>
+                <td><b>PARTICULAR</b></td>
+                <td><b>PERIOD</b></td>
+                <td><b>AMOUNT</b></td>
+            </tr>
+
+            <tr style="height:80px;">
+                <td>@Html.DisplayFor(model => model.Service.Name)</td>
+
+                <td class="pt-3">
+                    @for (int i = 0; i < Model.Period.Length; i++)
+                    {
+                        <p style="line-height:15px">
+                            @Model.Period[i].ToString("MMMM yyyy")
+                        </p>
+                    }
+                </td>
+                <td class="pt-3">
+                    @for (int i = 0; i < Model.Amount.Length; i++)
+                    {
+                        <p style="line-height:15px">
+                            @Html.DisplayFor(model => model.Amount[i])
+                        </p>
+                    }
+                </td>
+
+            </tr>
+
+        </tbody>
+    </table>
+</div>
+
+@if (Model.Customer.WithHoldingVat)
+{
+    <p style="line-height: 1; margin-top:20px;">
+        Creditable Withholding Tax with the amount of <b>@Html.DisplayFor(model => model.WithholdingTaxAmount)</b> is computed for this statement of account.<br />
+        Creditable Withholding Vat with the amount of <b>@Html.DisplayFor(model => model.WithholdingVatAmount)</b> is computed for this statement of account.<br />
+        Please attach BIR Form 2306 and 2307 to your payment if you deducted Expanded Withholding Tax and Vat.
+    </p>
+}
+else
+{
+    <p style="line-height: 1; margin-top:20px;">
+        Creditable Withholding Tax with the amount of <b>@Html.DisplayFor(model => model.WithholdingTaxAmount)</b> is computed for this statement of account.<br />
+        Please attach BIR Form 2307 to your payment if you deducted Expanded Withholding Tax.
+    </p>
+}
+
+
+
+<div style="margin-top:20px;">
+    <table class="w-100">
+        <tbody>
+            <tr>
+                <td style="width:33%">
+                    <div>
+                        <table class="table-bordered w-100">
+                            <tbody>
+
+                                <tr style="height:170px;">
+                                    <td style="position:relative; top:-35px; left:4%;">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Instructions)</td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </td>
+                <td style="width:33%;">
+                    <div>
+                        <table class="table-bordered w-100">
+                            <tbody class="text-nowrap">
+                                <tr>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
+                                    <td class="text-end">
+                                        @if (Model.Customer.CustomerType == "Vatable")
+                                        {
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.NetAmount)</p>
+                                        }
+                                    </td>
+
+                                </tr>
+                                <tr>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
+
+                                    <td class="text-end">
+                                        @if (Model.Customer.CustomerType == "Zero Rated")
+                                        {
+                                            if (Model.Discount > 0)
+                                            {
+                                                <p style="height: 9px;">@Html.DisplayFor(model => model.NetAmount)</p>
+                                            }
+                                            else
+                                            {
+                                                <p style="height: 9px;">@Html.DisplayFor(model => model.Total)</p>
+                                            }
+
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT-Exempt Sales: </b></p></td>
+
+                                    <td class="text-end">
+                                        @if (Model.Customer.CustomerType == "Exempt")
+                                        {
+                                            if (Model.Discount > 0)
+                                            {
+                                                <p style="height: 9px;">@Html.DisplayFor(model => model.NetAmount)</p>
+                                            }
+                                            else
+                                            {
+                                                <p style="height: 9px;">@Html.DisplayFor(model => model.Total)</p>
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
+
+                                    <td class="text-end">
+                                        @if (Model.Customer.CustomerType == "Vatable")
+                                        {
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.VatAmount)</p>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>Discount: </b></p></td>
+                                    <td class="text-end">
+
+                                        @if (Model.Discount > 0)
+                                        {
+                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Discount)</p>
+                                        }
+
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
+                                    <td class="text-end"><p style="height: 9px;">@Html.DisplayFor(model => model.Total)</p></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div style="margin-top:20px;">
+    <p>
+        <i>This is a system generated statement of account, no signature required.</i>
+    </p>
+</div>
+<br />
+<div class="text-center w-100" style="margin-top:20px;">
+    <p @* style="line-height: 1;" *@>
+        <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br />
+        <span>Acknowledgement Certificate No:</span>
+        <span style="display: inline-block;">AC_124_112023_000090</span>
+        <span>&nbsp;&nbsp;Date Issued:</span>
+        <span style="display: inline-block;">November 28, 2023</span><br />
+        Series: SOA0000000001 - SOA9999999999
+    </p>
+</div>
+<br />
+<div>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+</div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        // Get the transaction date value from the HTML element
+        var transactionDate = document.getElementById('soaDate').innerText;
+
+        // Convert the transaction date string to a Date object
+        var dateObject = new Date(transactionDate);
+
+        // Get the terms value from the HTML element
+        var terms = document.getElementById('terms').innerText;
+
+        console.log(terms);
+
+        // Convert the terms to an integer
+        var termsInt = parseInt(terms);
+
+        // Add the terms to the transaction date
+        if (terms == "COD") {
+            dateObject.setDate(dateObject.getDate());
+        } else if (terms == "M30") {
+
+            var nextMonth = dateObject.getMonth() + 1;
+            var nextMonthDays = new Date(dateObject.getFullYear(), nextMonth, 0).getDate();
+
+            if (nextMonthDays === 30) {
+                dateObject.setMonth(nextMonth);
+                dateObject.setDate(30);
+            } else {
+                dateObject.setMonth(nextMonth + 1);
+                dateObject.setDate(0);
+            }
+        } else if (terms == "M15") {
+
+            var nextMonth = dateObject.getMonth() + 1;
+            var nextMonthDays = new Date(dateObject.getFullYear(), nextMonth, 0).getDate();
+
+            if (nextMonthDays === 30) {
+                dateObject.setMonth(nextMonth);
+                dateObject.setDate(15);
+            } else {
+                dateObject.setMonth(nextMonth + 1);
+                dateObject.setDate(0);
+            }
+        } else {
+            dateObject.setDate(dateObject.getDate() + termsInt);
+        }
+
+        // Format the date as mm/dd/yyyy
+        var formattedDate =
+            (dateObject.getMonth() + 1).toString().padStart(2, '0') + '/' +
+            dateObject.getDate().toString().padStart(2, '0') + '/' +
+            dateObject.getFullYear();
+
+        // Update the HTML to display the computed date as the due date
+        document.getElementById('dueDate').innerText = formattedDate;
+    </script>
+}

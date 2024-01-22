@@ -101,6 +101,10 @@ namespace Accounting_System.Repository
         {
             return await _dbContext
                 .OfficialReceipts
+                .Include(soa => soa.StatementOfAccount)
+                .ThenInclude(s => s.Service)
+                .Include(soa => soa.StatementOfAccount)
+                .ThenInclude(c => c.Customer)
                 .OrderByDescending(cr => cr.Id)
                 .ToListAsync();
         }

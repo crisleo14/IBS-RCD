@@ -186,6 +186,14 @@ namespace Accounting_System.Controllers
             return View(soa);
         }
 
+        public async Task<IActionResult> Preview(int id)
+        {
+            var soa = await _statementOfAccountRepo
+                .FindSOA(id);
+
+            return PartialView("_PreviewPartialView", soa);
+        }
+
         public async Task<IActionResult> PrintedSOA(int id)
         {
             var findIdOfSOA = await _statementOfAccountRepo.FindSOA(id);
