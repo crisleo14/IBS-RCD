@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240120042001_add data type in date time properties")]
+    partial class adddatatypeindatetimeproperties
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1787,14 +1790,8 @@ namespace Accounting_System.Migrations
                     b.Property<int>("Number")
                         .HasColumnType("integer");
 
-                    b.Property<string>("ProofOfExemptionFilePath")
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<string>("ProofOfRegistrationFilePath")
-                        .IsRequired()
-                        .HasColumnType("varchar(200)");
-
                     b.Property<string>("ReasonOfExemption")
+                        .IsRequired()
                         .HasColumnType("varchar(100)");
 
                     b.Property<string>("Terms")
@@ -1810,10 +1807,11 @@ namespace Accounting_System.Migrations
                         .HasColumnType("varchar(20)");
 
                     b.Property<string>("Validity")
+                        .IsRequired()
                         .HasColumnType("varchar(20)");
 
                     b.Property<DateTime?>("ValidityDate")
-                        .HasColumnType("date");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<bool>("WithholdingTax")
                         .HasColumnType("boolean");
