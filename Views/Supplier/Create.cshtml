@@ -11,32 +11,40 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
+            <div class="form-floating mb-3">
+                <input asp-for="Name" class="form-control" placeholder=""/>
+                <label asp-for="Name" class="control-label">Name<span class="required">*</span></label>
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Address" class="control-label"></label>
-                <input asp-for="Address" class="form-control" />
+            <div class="form-floating mb-3">
+                <input asp-for="Address" class="form-control" placeholder=""/>
+                <label asp-for="Address" class="control-label">Address<span class="required">*</span></label>
                 <span asp-validation-for="Address" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="TinNo" class="control-label"></label>
-                <input asp-for="TinNo" class="form-control" />
+            <div class="form-floating mb-3">
+                <input asp-for="TinNo" class="form-control" placeholder=""/>
+                <label asp-for="TinNo" class="control-label">Tin No<span class="required">*</span></label>
                 <span asp-validation-for="TinNo" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="BusinessStyle" class="control-label"></label>
-                <input asp-for="BusinessStyle" class="form-control" />
-                <span asp-validation-for="BusinessStyle" class="text-danger"></span>
+            <div class="form-group mb-3">
+                <label asp-for="Terms" class="control-label">Terms<span class="required">*</span></label>
+                <select asp-for="Terms" class="form-select js-select2">
+                    <option value="" selected disabled>-- Select the Terms --</option>
+                    <option value="COD">COD</option>
+                    <option value="7D">7D</option>
+                    <option value="15D">15D</option>
+                    <option value="30D">30D</option>
+                    <option value="M15">M15</option>
+                    <option value="M30">M30</option>
+                </select>
+                <span asp-validation-for="Terms" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Type" class="control-label"></label>
+            <div class="form-group mb-3">
+                <label asp-for="Type" class="control-label">Type<span class="required">*</span></label>
                 <div class="col">
-                    <select asp-for="Type" class="form-select js-select2">
+                    <select asp-for="Type" class="form-select js-select2" onchange="toggleExemptionFields(this)">
                         <option value="" selected disabled>-- Select the Supplier Type --</option>
                         <option value="Vatable">VATable</option>
                         <option value="Zero Rated">Zero Rated</option>
@@ -44,29 +52,76 @@
                     </select>
                     <span asp-validation-for="Type" class="text-danger"></span>
                 </div>
-                <span asp-validation-for="Type" class="text-danger"></span>
             </div>
-            <div class="form-group form-check">
+            <div id="exemptionFields" style="display:none;">
+                <div class="form-floating mb-3">
+                    <textarea asp-for="ReasonOfExemption" class="form-control" placeholder="Reason of exemption" style="height: 100px" required></textarea>
+                    <label asp-for="ReasonOfExemption" class="control-label">Reason<span class="required">*</span></label>
+                    <span asp-validation-for="ReasonOfExemption" class="text-danger"></span>
+                </div>
+                <fieldset class="mb-3">
+                    <legend>Validity<span class="required">*</span></legend>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" asp-for="Validity" value="Permanent" onchange="toggleValidityDate(this)" required>
+                        <label class="form-check-label" asp-for="Validity">Permanent</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" asp-for="Validity" value="Temporary" onchange="toggleValidityDate(this)">
+                        <label class="form-check-label" asp-for="Validity">Temporary</label>
+                    </div>
+                    <span asp-validation-for="Validity" class="text-danger"></span>
+                </fieldset>
+                <div id="validityDateField" class="form-group mb-3">
+                    <label asp-for="ValidityDate" class="control-label">Validity Date<span class="required">*</span></label>
+                    <input asp-for="ValidityDate" type="date" value="yyyy-MM-dd" class="form-control" required />
+                    <span asp-validation-for="ValidityDate" class="text-danger"></span>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="document" class="form-label">Upload the proof of exemption documents.<span class="required">*</span></label>
+                    <input class="form-control form-control-sm" name="document" type="file" required>
+                </div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="registration" class="form-label">Upload the proof of BIR registration<span class="required">*</span></label>
+                <input class="form-control form-control-sm" name="registration" type='file' required>
+                <span asp-validation-for="ProofOfRegistrationFilePath" class="text-danger"></span>
+            </div>
+            <div class="form-check mb-1">
                 <label class="form-check-label">
-                    <input class="form-check-input" asp-for="WithholdingTax" /> @Html.DisplayNameFor(model => model.WithholdingTax)
+                <input class="form-check-input" asp-for="WithholdingTax" /> @Html.DisplayNameFor(model => model.WithholdingTax)
                 </label>
             </div>
-            <div class="form-group form-check">
+            <div class="form-check mb-3">
                 <label class="form-check-label">
                     <input class="form-check-input" asp-for="WithholdingVat" /> @Html.DisplayNameFor(model => model.WithholdingVat)
                 </label>
             </div>
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <button type="submit" value="Save" class="btn btn-primary">Submit</button>
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        function toggleExemptionFields(selectElement) {
+            const exemptionFields = document.getElementById("exemptionFields");
+            console.log(selectElement);
+            if (selectElement.value === "Exempt") {
+                exemptionFields.style.display = "block";
+            } else {
+                exemptionFields.style.display = "none";
+            }
+        }
+
+        function toggleValidityDate(radioButton) {
+            const validityDateField = document.getElementById("validityDateField");
+            validityDateField.style.display = radioButton.value === "Permanent" ? "none" : "block";
+        }
+    </script>
 }
