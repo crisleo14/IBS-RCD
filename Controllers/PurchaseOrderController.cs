@@ -271,5 +271,12 @@ namespace Accounting_System.Controllers
 
             return NotFound();
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Preview(int? id)
+        {
+            var po = await _purchaseOrderRepo.FindPurchaseOrder(id);
+            return PartialView("_PreviewPartialView", po);
+        }
     }
 }
