@@ -5,7 +5,7 @@
 @using Humanizer
 
 @{
-    var formattedToPeso = String.Format("{0:N2}", Model.StatementOfAccount.Total);
+    var formattedToPeso = String.Format("{0:N2}", Model.Total);
 }
 
 <br />
@@ -50,7 +50,7 @@
                     <span class="underline" style="display: inline-block; width: 65%;">&nbsp;&nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.BusinessStyle)</span><br />
 
                     @{
-                        decimal convertToWords = Model.StatementOfAccount.Total;
+                        decimal convertToWords = Model.Total;
 
                         int integerPart = Convert.ToInt32(Math.Floor(convertToWords));
                         decimal decimalPart = Math.Round((convertToWords - integerPart), 2);
@@ -91,7 +91,7 @@
                     <span class="underline" style="display: inline-block; width: 87%;">&nbsp;&nbsp;@words</span><br />
 
                     <span><b>pesos</b></span>
-                    <span class="underline" style="display: inline-block; width: 92%;">(₱ &nbsp;&nbsp;@formattedToPeso)</span><br />
+                    <span class="underline" style="display: inline-block; width: 92%;">(₱ &nbsp;&nbsp;@Html.DisplayFor(model => model.Total))</span><br />
 
                     <span><b>In partial/full payment for</b></span>
                     <span class="underline" style="display: inline-block; width: 72%;">&nbsp;&nbsp;@Model.StatementOfAccount.SOANo</span><br />
@@ -113,8 +113,8 @@
             <tr>
                 @{
                     string concatenatedValue = "0.0" + Model.StatementOfAccount.Service.Percent.ToString();
-                    decimal vatableSales = Model.StatementOfAccount.Total / (decimal)1.12;
-                    decimal totalSalesVatInclusive = Model.StatementOfAccount.Total - vatableSales;
+                    decimal vatableSales = Model.Total / (decimal)1.12;
+                    decimal totalSalesVatInclusive = Model.Total - vatableSales;
                     decimal EWT = vatableSales * decimal.Parse(concatenatedValue);
                     decimal totalAmountDue = Model.StatementOfAccount.Total - EWT;
 
@@ -133,7 +133,7 @@
                 <td>
                     @if (Model.StatementOfAccount.Customer.CustomerType == "Exempt")
                     {
-                        <h6 style="height: 9px; padding-right:10px;" class="text-center">@formattedToPeso</h6>
+                        <h6 style="height: 9px; padding-right:10px;" class="text-center">@Html.DisplayFor(model => model.Total)</h6>
                     }
                 </td>
                 <td style="padding-left:10px;">SOA Date</td>
@@ -144,7 +144,7 @@
                 <td>
                     @if (Model.StatementOfAccount.Customer.CustomerType == "Zero Rated")
                     {
-                        <p style="height: 9px; padding-right:10px;" class="text-center">@formattedToPeso</p>
+                        <p style="height: 9px; padding-right:10px;" class="text-center">@Html.DisplayFor(model => model.Total)</p>
                     }
                 </td>
                 <td style="padding-left:10px;">SOA #.</td>
@@ -156,7 +156,7 @@
                     <h6 style="height: 9px; padding-right:10px;" class="text-center">@Html.DisplayFor(model => totalSalesVatInclusive)</h6>
                 </td>
                 <td style="padding-left:10px;">Amount</td>
-                <td style="padding-left:10px;">@formattedToPeso</td>
+                <td style="padding-left:10px;">@Html.DisplayFor(model => model.Total)</td>
             </tr>
             <tr>
                 <td style="padding-left:10px;">Discount</td>
@@ -169,7 +169,7 @@
                 <td>
                     @if (Model.StatementOfAccount.Customer.CustomerType == "Vatable")
                     {
-                        <h6 style="height: 9px; padding-right:10px;" class="text-center">@formattedToPeso</h6>
+                        <h6 style="height: 9px; padding-right:10px;" class="text-center">@Html.DisplayFor(model => model.Total)</h6>
                     }
                 </td>
 
@@ -178,17 +178,26 @@
             </tr>
             <tr>
                 <td style="padding-left:10px;">Less: Withholding Tax</td>
-                <td style="padding-right:10px;" class="text-center">@Html.DisplayFor(model => EWT)</td>
+                    @if (Model.EWT != 0)
+                    {
+                    <td style="height: 9px;">@Html.DisplayFor(model => model.EWT)</td>
+                    }
+                    else
+                    {
+                    <td></td>
+                    }
                 <td></td>
                 <td></td>
             </tr>
             <tr>
                 <td style="padding-left:10px;">Total Amount Due</td>
-                @if (Model.StatementOfAccount.Customer.WithHoldingTax)
+                @if (Model.CashAmount != 0)
                 {
-                    <td style="padding-right:10px;" class="text-center">@Html.DisplayFor(model => totalAmountDue)</td>
-                }else{
-                    <td style="padding-right:10px;" class="text-end">@Html.DisplayFor(model => model.StatementOfAccount.Total)</td>
+                    <td style="height: 9px;" class="text-center">@Html.DisplayFor(model => model.CashAmount)</td>
+                }
+                else
+                {
+                    <td style="height: 9px;" class="text-center">@Html.DisplayFor(model => model.CheckAmount)</td>
                 }
                 <td></td>
                 <td></td>
