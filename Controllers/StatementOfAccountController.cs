@@ -158,16 +158,18 @@ namespace Accounting_System.Controllers
 
                 if (customer.CustomerType == "Vatable")
                 {
-                    model.CurrentAndPreviousAmount /= 1.12m;
-                    model.UnearnedAmount /= 1.12m;
+                    model.CurrentAndPreviousAmount = Math.Round(model.CurrentAndPreviousAmount / 1.12m, 2);
+                    model.UnearnedAmount = Math.Round(model.UnearnedAmount / 1.12m, 2);
 
                     var total = model.CurrentAndPreviousAmount + model.UnearnedAmount;
 
-                    if (model.NetAmount < total)
+                    var roundedNetAmount = Math.Round(model.NetAmount, 2);
+
+                    if (roundedNetAmount > total)
                     {
                         var shortAmount = model.NetAmount - total;
 
-                        model.UnearnedAmount += shortAmount;
+                        model.CurrentAndPreviousAmount += shortAmount;
                     }
                 }
 
