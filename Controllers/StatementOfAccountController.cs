@@ -1,6 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -8,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Controllers
 {
+    [Authorize]
     public class StatementOfAccountController : Controller
     {
         private readonly ApplicationDbContext _dbContext;
@@ -158,6 +160,15 @@ namespace Accounting_System.Controllers
                 {
                     model.CurrentAndPreviousAmount /= 1.12m;
                     model.UnearnedAmount /= 1.12m;
+
+                    var total = model.CurrentAndPreviousAmount + model.UnearnedAmount;
+
+                    if (model.NetAmount < total)
+                    {
+                        var shortAmount = model.NetAmount - total;
+
+                        model.UnearnedAmount += shortAmount;
+                    }
                 }
 
                 _dbContext.Add(model);
@@ -307,7 +318,7 @@ namespace Accounting_System.Controllers
                                 Date = model.CreatedDate.ToShortDateString(),
                                 Reference = model.SOANo,
                                 Description = model.Service.Name,
-                                AccountTitle = "2010301 Vat Output",
+                                AccountTitle = "2010304 Deferred Vat Output",
                                 Debit = 0,
                                 Credit = model.VatAmount,
                                 CreatedBy = model.CreatedBy,
