@@ -1447,6 +1447,23 @@ namespace Accounting_System.Controllers
                         );
                     }
 
+                    if (model.StatementOfAccount.Customer.CustomerType == "Vatable")
+                    {
+                        ledgers.Add(
+                           new GeneralLedgerBook
+                           {
+                               Date = model.Date.ToShortDateString(),
+                               Reference = model.ORNo,
+                               Description = "Collection for Receivable",
+                               AccountTitle = "2010304 Deferred Vat Output",
+                               Debit = (model.CashAmount + model.CheckAmount) - (model.CashAmount + model.CheckAmount) / 1.12m,
+                               Credit = 0,
+                               CreatedBy = model.CreatedBy,
+                               CreatedDate = model.CreatedDate
+                           }
+                       );
+                    }
+
                     if (offset != null)
                     {
                         foreach (var item in offset)
@@ -1517,6 +1534,23 @@ namespace Accounting_System.Controllers
                         );
                     }
 
+                    if (model.StatementOfAccount.Customer.CustomerType == "Vatable")
+                    {
+                        ledgers.Add(
+                           new GeneralLedgerBook
+                           {
+                               Date = model.Date.ToShortDateString(),
+                               Reference = model.ORNo,
+                               Description = "Collection for Receivable",
+                               AccountTitle = "2010301 Vat Output",
+                               Debit = 0,
+                               Credit = (model.CashAmount + model.CheckAmount) - (model.CashAmount + model.CheckAmount) / 1.12m,
+                               CreatedBy = model.CreatedBy,
+                               CreatedDate = model.CreatedDate
+                           }
+                       );
+                    }
+
                     _dbContext.AddRange(ledgers);
 
                     #endregion --General Ledger Book Recording
@@ -1576,6 +1610,26 @@ namespace Accounting_System.Controllers
                                 COA = "1010605 Creditable Withholding Vat",
                                 Particulars = model.StatementOfAccount.SOANo,
                                 Debit = model.WVAT,
+                                Credit = 0,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
+                    if (model.StatementOfAccount.Customer.CustomerType == "Vatable")
+                    {
+                        crb.Add(
+                            new CashReceiptBook
+                            {
+                                Date = model.Date.ToShortDateString(),
+                                RefNo = model.ORNo,
+                                CustomerName = model.StatementOfAccount.Customer.Name,
+                                Bank = "--",
+                                CheckNo = "--",
+                                COA = "2010304 Deferred Vat Output",
+                                Particulars = model.StatementOfAccount.SOANo,
+                                Debit = (model.CashAmount + model.CheckAmount) - (model.CashAmount + model.CheckAmount) / 1.12m,
                                 Credit = 0,
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
@@ -1657,6 +1711,26 @@ namespace Accounting_System.Controllers
                                 Particulars = model.StatementOfAccount.SOANo,
                                 Debit = 0,
                                 Credit = model.WVAT,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
+                    if (model.StatementOfAccount.Customer.CustomerType == "Vatable")
+                    {
+                        crb.Add(
+                            new CashReceiptBook
+                            {
+                                Date = model.Date.ToShortDateString(),
+                                RefNo = model.ORNo,
+                                CustomerName = model.StatementOfAccount.Customer.Name,
+                                Bank = "--",
+                                CheckNo = "--",
+                                COA = "2010301 Vat Output",
+                                Particulars = model.StatementOfAccount.SOANo,
+                                Debit = 0,
+                                Credit = (model.CashAmount + model.CheckAmount) - (model.CashAmount + model.CheckAmount) / 1.12m,
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
                             }
