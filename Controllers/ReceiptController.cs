@@ -1464,7 +1464,7 @@ await _dbContext.SaveChangesAsync();
                                Reference = model.ORNo,
                                Description = "Collection for Receivable",
                                AccountTitle = "2010304 Deferred Vat Output",
-                               Debit = (model.CashAmount + model.CheckAmount) - (model.CashAmount + model.CheckAmount) / 1.12m,
+                               Debit = (model.Total / 1.12m) * 0.12m,
                                Credit = 0,
                                CreatedBy = model.CreatedBy,
                                CreatedDate = model.CreatedDate
@@ -1552,7 +1552,7 @@ await _dbContext.SaveChangesAsync();
                                Description = "Collection for Receivable",
                                AccountTitle = "2010301 Vat Output",
                                Debit = 0,
-                               Credit = (model.CashAmount + model.CheckAmount) - (model.CashAmount + model.CheckAmount) / 1.12m,
+                               Credit = (model.Total / 1.12m) * 0.12m,
                                CreatedBy = model.CreatedBy,
                                CreatedDate = model.CreatedDate
                            }
@@ -1637,7 +1637,7 @@ await _dbContext.SaveChangesAsync();
                                 CheckNo = "--",
                                 COA = "2010304 Deferred Vat Output",
                                 Particulars = model.StatementOfAccount.SOANo,
-                                Debit = (model.CashAmount + model.CheckAmount) - (model.CashAmount + model.CheckAmount) / 1.12m,
+                                Debit = (model.Total / 1.12m) * 0.12m,
                                 Credit = 0,
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
@@ -1738,7 +1738,7 @@ await _dbContext.SaveChangesAsync();
                                 COA = "2010301 Vat Output",
                                 Particulars = model.StatementOfAccount.SOANo,
                                 Debit = 0,
-                                Credit = (model.CashAmount + model.CheckAmount) - (model.CashAmount + model.CheckAmount) / 1.12m,
+                                Credit = (model.Total / 1.12m) * 0.12m,
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
                             }
