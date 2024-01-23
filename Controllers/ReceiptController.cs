@@ -696,46 +696,54 @@ namespace Accounting_System.Controllers
                 #endregion --Saving default value
 
                 #region --Offsetting function
-
                 var offsetting = new List<Offsetting>();
 
-                for (int i = 0; i < editAccountTitleText.Length; i++)
-                {
-                    var existingOffset = await _dbContext.Offsettings
-                        .FirstOrDefaultAsync(offset => offset.Source == existingModel.CRNo
-                                                        && offset.AccountNo == editAccountTitleText[i]
-                                                        && offset.Amount == editAccountAmount[i]);
+for (int i = 0; i < editAccountTitleText.Length; i++)
+{
+    var existingCRNo = existingModel.CRNo;
+    var accountTitle = editAccountTitleText[i];
+    var accountAmount = editAccountAmount[i];
 
-                    if (existingOffset == null)
-                    {
-                        var accountTitle = editAccountTitleText[i];
-                        var accountAmount = editAccountAmount[i];
-                        offsetAmount += editAccountAmount[i];
+    var existingOffsetting = await _dbContext.Offsettings
+        .FirstOrDefaultAsync(offset => offset.Source == existingCRNo && offset.AccountNo == accountTitle);
 
-                        offsetting.Add(
-                            new Offsetting
-                            {
-                                AccountNo = accountTitle,
-                                Source = existingModel.CRNo,
-                                Amount = accountAmount,
-                                CreatedBy = existingModel.CreatedBy,
-                                CreatedDate = existingModel.CreatedDate
-                            }
-                        );
-                    }
+    if (existingOffsetting != null)
+    {
+        // Update existing entry
+        existingOffsetting.Amount = accountAmount;
+    }
+    else
+    {
+        // Add new entry
+        offsetting.Add(
+            new Offsetting
+            {
+                AccountNo = accountTitle,
+                Source = existingModel.CRNo,
+                Amount = accountAmount,
+                CreatedBy = existingModel.CreatedBy,
+                CreatedDate = existingModel.CreatedDate
+            }
+        );
+    }
+}
 
-                    if (existingOffset != null && existingOffset.IsRemoved)
-                    {
-                        _dbContext.Offsettings.Remove(existingOffset);
-                        await _dbContext.SaveChangesAsync();
-                    }
-                }
+// Identify removed entries
+var existingAccountNos = offsetting.Select(o => o.AccountNo).ToList();
+var entriesToRemove = await _dbContext.Offsettings
+    .Where(offset => offset.Source == existingModel.CRNo && !existingAccountNos.Contains(offset.AccountNo))
+    .ToListAsync();
 
-                if (offsetting.Any())
-                {
-                    _dbContext.AddRange(offsetting);
-                    await _dbContext.SaveChangesAsync();
-                }
+// Remove entries individually
+foreach (var entryToRemove in entriesToRemove)
+{
+    _dbContext.Offsettings.Remove(entryToRemove);
+}
+
+// Add or update entries in the database
+_dbContext.Offsettings.AddRange(offsetting);
+await _dbContext.SaveChangesAsync();
+
 
                 #endregion --Offsetting function
 
