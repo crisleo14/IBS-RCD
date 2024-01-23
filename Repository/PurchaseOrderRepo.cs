@@ -73,5 +73,22 @@ namespace Accounting_System.Repository
                 throw new ArgumentException("No record found in supplier.");
             }
         }
+
+        public async Task<PurchaseOrder> FindPurchaseOrder(int? id)
+        {
+            var po = await _dbContext
+                .PurchaseOrders
+                //.Include(c => c.Customer)
+                .FirstOrDefaultAsync(po => po.Id == id);
+
+            if (po != null)
+            {
+                return po;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
+            }
+        }
     }
 }
