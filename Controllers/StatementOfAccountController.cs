@@ -18,11 +18,14 @@ namespace Accounting_System.Controllers
 
         private readonly UserManager<IdentityUser> _userManager;
 
-        public StatementOfAccountController(ApplicationDbContext dbContext, StatementOfAccountRepo statementOfAccountRepo, UserManager<IdentityUser> userManager)
+        private readonly GeneralRepo _generalRepo;
+
+        public StatementOfAccountController(ApplicationDbContext dbContext, StatementOfAccountRepo statementOfAccountRepo, UserManager<IdentityUser> userManager, GeneralRepo generalRepo)
         {
             _dbContext = dbContext;
             _statementOfAccountRepo = statementOfAccountRepo;
             _userManager = userManager;
+            _generalRepo = generalRepo;
         }
 
         public async Task<IActionResult> Index()
@@ -212,6 +215,14 @@ namespace Accounting_System.Controllers
             var findIdOfSOA = await _statementOfAccountRepo.FindSOA(id);
             if (findIdOfSOA != null && !findIdOfSOA.IsPrinted)
             {
+                #region --Audit Trail Recording
+
+                var printedBy = _userManager.GetUserName(this.User);
+                AuditTrail auditTrail = new(printedBy, $"Printed original copy of soa# {findIdOfSOA.SOANo}", "Statement Of Account");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
                 findIdOfSOA.IsPrinted = true;
                 await _dbContext.SaveChangesAsync();
             }
@@ -333,6 +344,13 @@ namespace Accounting_System.Controllers
 
                     #endregion --General Ledger Book Recording
 
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.PostedBy, $"Posted statement of account# {model.SOANo}", "Statement Of Account");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Statement of Account has been posted.";
                     return RedirectToAction("Index");
@@ -392,6 +410,8 @@ namespace Accounting_System.Controllers
                     _dbContext.Add(auditTrail);
 
                     #endregion --Audit Trail Recording
+
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.SOANo);
 
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Statement of Account has been voided.";
