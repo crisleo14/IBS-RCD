@@ -1,0 +1,45 @@
+﻿using Accounting_System.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
+
+namespace Accounting_System.Repository
+{
+    public class GeneralRepo
+    {
+        private readonly ApplicationDbContext _dbContext;
+
+        public GeneralRepo(ApplicationDbContext dbContext)
+        {
+            _dbContext = dbContext;
+        }
+
+        public async Task<int> RemoveRecords<TEntity>(Expression<Func<TEntity, bool>> predicate)
+       where TEntity : class
+        {
+            var entitySet = _dbContext.Set<TEntity>();
+            var entitiesToRemove = await entitySet.Where(predicate).ToListAsync();
+
+            if (entitiesToRemove.Any())
+            {
+                foreach (var entity in entitiesToRemove)
+                {
+                    entitySet.Remove(entity);
+                }
+
+                try
+                {
+                    await _dbContext.SaveChangesAsync();
+                    return entitiesToRemove.Count;
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
+            }
+            else
+            {
+                throw new ArgumentException($"No entities found with identifier value: '{predicate.Body.ToString}'");
+            }
+        }
+    }
+}
