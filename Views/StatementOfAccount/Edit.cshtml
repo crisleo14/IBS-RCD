@@ -42,7 +42,7 @@
                         
                     <div class="col-sm mb-3">
                         <label asp-for="Amount" class="control-label">Amount</label>
-                        <input asp-for="Amount[i]" class="form-control" />
+                        <input asp-for="Amount[i]" class="form-control moneyInput" placeholder="0.00" />
                         <span asp-validation-for="Amount" class="text-danger"></span>
                     </div>
                     }
@@ -80,7 +80,7 @@
 
                 var amountField = $('<div class="col-sm mb-3" >\
                                             <label asp-for="Amount" class="control-label" >Amount</label>\
-                                            <input asp-for="Amount" class="form-control" />\
+                                            <input asp-for="Amount" class="form-control moneyInput" placeholder="0.00" />\
                                             <span asp-validation-for="Amount" class="text-danger" > </span>\
                                         </div>');
 
