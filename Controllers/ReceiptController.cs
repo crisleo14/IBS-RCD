@@ -21,12 +21,15 @@ namespace Accounting_System.Controllers
 
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ReceiptController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, ReceiptRepo receiptRepo, IWebHostEnvironment webHostEnvironment)
+        private readonly GeneralRepo _generalRepo;
+
+        public ReceiptController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, ReceiptRepo receiptRepo, IWebHostEnvironment webHostEnvironment, GeneralRepo generalRepo)
         {
             _dbContext = dbContext;
             this._userManager = userManager;
             _receiptRepo = receiptRepo;
             _webHostEnvironment = webHostEnvironment;
+            _generalRepo = generalRepo;
         }
 
         public async Task<IActionResult> CollectionIndex()
@@ -476,6 +479,14 @@ namespace Accounting_System.Controllers
             var findIdOfCR = await _receiptRepo.FindCR(id);
             if (findIdOfCR != null && !findIdOfCR.IsPrinted)
             {
+                #region --Audit Trail Recording
+
+                var printedBy = _userManager.GetUserName(this.User);
+                AuditTrail auditTrail = new(printedBy, $"Printed original copy of cr# {findIdOfCR.CRNo}", "Collection Receipt");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
                 findIdOfCR.IsPrinted = true;
                 await _dbContext.SaveChangesAsync();
             }
@@ -487,6 +498,14 @@ namespace Accounting_System.Controllers
             var findIdOfOR = await _receiptRepo.FindOR(id);
             if (findIdOfOR != null && !findIdOfOR.IsPrinted)
             {
+                #region --Audit Trail Recording
+
+                var printedBy = _userManager.GetUserName(this.User);
+                AuditTrail auditTrail = new(printedBy, $"Printed original copy of or# {findIdOfOR.ORNo}", "Official Receipt");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
                 findIdOfOR.IsPrinted = true;
                 await _dbContext.SaveChangesAsync();
             }
@@ -696,61 +715,60 @@ namespace Accounting_System.Controllers
                 #endregion --Saving default value
 
                 #region --Offsetting function
+
                 var offsetting = new List<Offsetting>();
 
-for (int i = 0; i < editAccountTitleText.Length; i++)
-{
-    var existingCRNo = existingModel.CRNo;
-    var accountTitle = editAccountTitleText[i];
-    var accountAmount = editAccountAmount[i];
+                for (int i = 0; i < editAccountTitleText.Length; i++)
+                {
+                    var existingCRNo = existingModel.CRNo;
+                    var accountTitle = editAccountTitleText[i];
+                    var accountAmount = editAccountAmount[i];
 
-    var existingOffsetting = await _dbContext.Offsettings
-        .FirstOrDefaultAsync(offset => offset.Source == existingCRNo && offset.AccountNo == accountTitle);
+                    var existingOffsetting = await _dbContext.Offsettings
+                        .FirstOrDefaultAsync(offset => offset.Source == existingCRNo && offset.AccountNo == accountTitle);
 
-    if (existingOffsetting != null)
-    {
-        // Update existing entry
-        existingOffsetting.Amount = accountAmount;
-    }
-    else
-    {
-        // Add new entry
-        offsetting.Add(
-            new Offsetting
-            {
-                AccountNo = accountTitle,
-                Source = existingModel.CRNo,
-                Amount = accountAmount,
-                CreatedBy = existingModel.CreatedBy,
-                CreatedDate = existingModel.CreatedDate
-            }
-        );
-    }
-}
+                    if (existingOffsetting != null)
+                    {
+                        // Update existing entry
+                        existingOffsetting.Amount = accountAmount;
+                    }
+                    else
+                    {
+                        // Add new entry
+                        offsetting.Add(
+                            new Offsetting
+                            {
+                                AccountNo = accountTitle,
+                                Source = existingModel.CRNo,
+                                Amount = accountAmount,
+                                CreatedBy = existingModel.CreatedBy,
+                                CreatedDate = existingModel.CreatedDate
+                            }
+                        );
+                    }
+                }
 
-// Identify removed entries
-var existingAccountNos = offsetting.Select(o => o.AccountNo).ToList();
-var entriesToRemove = await _dbContext.Offsettings
-    .Where(offset => offset.Source == existingModel.CRNo && !existingAccountNos.Contains(offset.AccountNo))
-    .ToListAsync();
+                // Identify removed entries
+                var existingAccountNos = offsetting.Select(o => o.AccountNo).ToList();
+                var entriesToRemove = await _dbContext.Offsettings
+                    .Where(offset => offset.Source == existingModel.CRNo && !existingAccountNos.Contains(offset.AccountNo))
+                    .ToListAsync();
 
-// Remove entries individually
-foreach (var entryToRemove in entriesToRemove)
-{
-    _dbContext.Offsettings.Remove(entryToRemove);
-}
+                // Remove entries individually
+                foreach (var entryToRemove in entriesToRemove)
+                {
+                    _dbContext.Offsettings.Remove(entryToRemove);
+                }
 
-// Add or update entries in the database
-_dbContext.Offsettings.AddRange(offsetting);
-await _dbContext.SaveChangesAsync();
-
+                // Add or update entries in the database
+                _dbContext.Offsettings.AddRange(offsetting);
 
                 #endregion --Offsetting function
 
                 #region --Audit Trail Recording
 
                 var modifiedBy = _userManager.GetUserName(this.User);
-                AuditTrail auditTrail = new(modifiedBy, $"Edited receipt# {model.SINo}", "Collection Receipt");
+                AuditTrail auditTrail = new(modifiedBy, $"Edited receipt# {model.CRNo}", "Collection Receipt");
                 _dbContext.Add(auditTrail);
 
                 #endregion --Audit Trail Recording
@@ -1055,7 +1073,7 @@ await _dbContext.SaveChangesAsync();
 
                     #region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.PostedBy, $"Posted collection# {model.CRNo}", "Collection Receipt");
+                    AuditTrail auditTrail = new(model.PostedBy, $"Posted collection receipt# {model.CRNo}", "Collection Receipt");
                     _dbContext.Add(auditTrail);
 
                     #endregion --Audit Trail Recording
@@ -1082,6 +1100,9 @@ await _dbContext.SaveChangesAsync();
                     model.IsVoided = true;
                     model.VoidedBy = _userManager.GetUserName(this.User);
                     model.VoidedDate = DateTime.Now;
+
+                    await _generalRepo.RemoveRecords<CashReceiptBook>(crb => crb.RefNo == model.CRNo);
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CRNo);
 
                     #region --Audit Trail Recording
 
@@ -1364,7 +1385,6 @@ await _dbContext.SaveChangesAsync();
                 if (offsetting.Any())
                 {
                     _dbContext.AddRange(offsetting);
-                    await _dbContext.SaveChangesAsync();
                 }
 
                 #endregion --Offsetting function
@@ -1751,7 +1771,7 @@ await _dbContext.SaveChangesAsync();
 
                     #region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.PostedBy, $"Posted official# {model.ORNo}", "Official Receipt");
+                    AuditTrail auditTrail = new(model.PostedBy, $"Posted official receipt# {model.ORNo}", "Official Receipt");
                     _dbContext.Add(auditTrail);
 
                     #endregion --Audit Trail Recording
@@ -1778,6 +1798,9 @@ await _dbContext.SaveChangesAsync();
                     model.IsVoided = true;
                     model.VoidedBy = _userManager.GetUserName(this.User);
                     model.VoidedDate = DateTime.Now;
+
+                    await _generalRepo.RemoveRecords<CashReceiptBook>(crb => crb.RefNo == model.ORNo);
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.ORNo);
 
                     #region --Audit Trail Recording
 
