@@ -188,14 +188,14 @@ namespace Accounting_System.Repository
             {
                 var total = paidAmount + offsetAmount;
                 soa.AmountPaid += total;
-                soa.Balance = soa.NetAmount - soa.AmountPaid;
+                soa.Balance = (soa.Total - soa.Discount) - soa.AmountPaid;
 
-                if (soa.Balance == 0 && soa.AmountPaid == soa.NetAmount)
+                if (soa.Balance == 0 && soa.AmountPaid == (soa.Total - soa.Discount))
                 {
                     soa.IsPaid = true;
                     soa.Status = "Paid";
                 }
-                else if (soa.AmountPaid > soa.NetAmount)
+                else if (soa.AmountPaid > (soa.Total - soa.Discount))
                 {
                     soa.IsPaid = true;
                     soa.Status = "OverPaid";
