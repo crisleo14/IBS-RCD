@@ -22,13 +22,16 @@ namespace Accounting_System.Controllers
 
         private readonly InventoryRepo _inventoryRepo;
 
-        public SalesInvoiceController(ILogger<HomeController> logger, ApplicationDbContext dbContext, SalesInvoiceRepo salesInvoiceRepo, UserManager<IdentityUser> userManager, InventoryRepo inventoryRepo)
+        private readonly GeneralRepo _generalRepo;
+
+        public SalesInvoiceController(ILogger<HomeController> logger, ApplicationDbContext dbContext, SalesInvoiceRepo salesInvoiceRepo, UserManager<IdentityUser> userManager, InventoryRepo inventoryRepo, GeneralRepo generalRepo)
         {
             _dbContext = dbContext;
             _salesInvoiceRepo = salesInvoiceRepo;
             _logger = logger;
             this._userManager = userManager;
             _inventoryRepo = inventoryRepo;
+            _generalRepo = generalRepo;
         }
 
         public async Task<IActionResult> Index()
@@ -606,7 +609,8 @@ namespace Accounting_System.Controllers
                     model.VoidedBy = _userManager.GetUserName(this.User);
                     model.VoidedDate = DateTime.Now;
 
-                    await _salesInvoiceRepo.RemoveBookRecord(model.SINo);
+                    await _generalRepo.RemoveRecords<SalesBook>(sb => sb.SerialNo == model.SINo);
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.SINo);
 
                     #region --Audit Trail Recording
 
@@ -635,11 +639,11 @@ namespace Accounting_System.Controllers
                     model.IsCanceled = true;
                     model.CanceledBy = _userManager.GetUserName(this.User);
                     model.CanceledDate = DateTime.Now;
-                    model.Status = "Cancelled";
+                    model.Status = "Canceled";
 
                     #region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled invoice# {model.SINo}", "Sales Invoice");
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Canceled invoice# {model.SINo}", "Sales Invoice");
                     _dbContext.Add(auditTrail);
 
                     #endregion --Audit Trail Recording
