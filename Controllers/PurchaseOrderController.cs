@@ -56,6 +56,7 @@ namespace Accounting_System.Controllers
                     Text = s.Name
                 })
                 .ToListAsync();
+
             if (ModelState.IsValid)
             {
                 var getLastNumber = await _purchaseOrderRepo.GetLastSeriesNumber();
@@ -77,7 +78,6 @@ namespace Accounting_System.Controllers
 
                 var generatedPO = await _purchaseOrderRepo.GeneratePONo();
 
-
                 model.SeriesNumber = getLastNumber;
                 model.PONo = generatedPO;
                 model.CreatedBy = _userManager.GetUserName(this.User);
@@ -85,6 +85,14 @@ namespace Accounting_System.Controllers
                 model.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model.SupplierId);
 
                 _dbContext.Add(model);
+
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(model.CreatedBy, $"Create new purchase order# {model.PONo}", "Purchase Order");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
                 await _dbContext.SaveChangesAsync();
                 return RedirectToAction("Index");
             }
@@ -149,6 +157,13 @@ namespace Accounting_System.Controllers
                 existingModel.Amount = model.Quantity * model.Price;
                 existingModel.Remarks = model.Remarks;
 
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(existingModel.CreatedBy, $"Edit purchase order# {existingModel.PONo}", "Purchase Order");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
                 await _dbContext.SaveChangesAsync();
 
                 TempData["success"] = "Purchase Order updated successfully";
@@ -182,6 +197,14 @@ namespace Accounting_System.Controllers
             var po = await _dbContext.PurchaseOrders.FindAsync(id);
             if (po != null && !po.IsPrinted)
             {
+                #region --Audit Trail Recording
+
+                var printedBy = _userManager.GetUserName(this.User);
+                AuditTrail auditTrail = new(printedBy, $"Printed original copy of po# {po.PONo}", "Purchase Order");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
                 po.IsPrinted = true;
                 await _dbContext.SaveChangesAsync();
             }

@@ -1,6 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -8,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Controllers
 {
+    [Authorize]
     public class StatementOfAccountController : Controller
     {
         private readonly ApplicationDbContext _dbContext;
@@ -16,11 +18,14 @@ namespace Accounting_System.Controllers
 
         private readonly UserManager<IdentityUser> _userManager;
 
-        public StatementOfAccountController(ApplicationDbContext dbContext, StatementOfAccountRepo statementOfAccountRepo, UserManager<IdentityUser> userManager)
+        private readonly GeneralRepo _generalRepo;
+
+        public StatementOfAccountController(ApplicationDbContext dbContext, StatementOfAccountRepo statementOfAccountRepo, UserManager<IdentityUser> userManager, GeneralRepo generalRepo)
         {
             _dbContext = dbContext;
             _statementOfAccountRepo = statementOfAccountRepo;
             _userManager = userManager;
+            _generalRepo = generalRepo;
         }
 
         public async Task<IActionResult> Index()
@@ -156,8 +161,19 @@ namespace Accounting_System.Controllers
 
                 if (customer.CustomerType == "Vatable")
                 {
-                    model.CurrentAndPreviousAmount /= 1.12m;
-                    model.UnearnedAmount /= 1.12m;
+                    model.CurrentAndPreviousAmount = Math.Round(model.CurrentAndPreviousAmount / 1.12m, 2);
+                    model.UnearnedAmount = Math.Round(model.UnearnedAmount / 1.12m, 2);
+
+                    var total = model.CurrentAndPreviousAmount + model.UnearnedAmount;
+
+                    var roundedNetAmount = Math.Round(model.NetAmount, 2);
+
+                    if (roundedNetAmount > total)
+                    {
+                        var shortAmount = model.NetAmount - total;
+
+                        model.CurrentAndPreviousAmount += shortAmount;
+                    }
                 }
 
                 _dbContext.Add(model);
@@ -199,6 +215,14 @@ namespace Accounting_System.Controllers
             var findIdOfSOA = await _statementOfAccountRepo.FindSOA(id);
             if (findIdOfSOA != null && !findIdOfSOA.IsPrinted)
             {
+                #region --Audit Trail Recording
+
+                var printedBy = _userManager.GetUserName(this.User);
+                AuditTrail auditTrail = new(printedBy, $"Printed original copy of soa# {findIdOfSOA.SOANo}", "Statement Of Account");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
                 findIdOfSOA.IsPrinted = true;
                 await _dbContext.SaveChangesAsync();
             }
@@ -307,7 +331,7 @@ namespace Accounting_System.Controllers
                                 Date = model.CreatedDate.ToShortDateString(),
                                 Reference = model.SOANo,
                                 Description = model.Service.Name,
-                                AccountTitle = "2010301 Vat Output",
+                                AccountTitle = "2010304 Deferred Vat Output",
                                 Debit = 0,
                                 Credit = model.VatAmount,
                                 CreatedBy = model.CreatedBy,
@@ -319,6 +343,13 @@ namespace Accounting_System.Controllers
                     _dbContext.GeneralLedgerBooks.AddRange(ledgers);
 
                     #endregion --General Ledger Book Recording
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.PostedBy, $"Posted statement of account# {model.SOANo}", "Statement Of Account");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Statement of Account has been posted.";
@@ -379,6 +410,8 @@ namespace Accounting_System.Controllers
                     _dbContext.Add(auditTrail);
 
                     #endregion --Audit Trail Recording
+
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.SOANo);
 
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Statement of Account has been voided.";
