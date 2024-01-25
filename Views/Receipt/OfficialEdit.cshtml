@@ -11,20 +11,6 @@
     <h4>Official Receipt</h4>
     <hr />
     <div class="row">
-        <div class="position-absolute p-2" style="left:40%; width:25%; border:dotted 1px;">
-            <pre>
-            <b>SOA Details</b>
- SOA Amount: <span id="amount"></span>
- EWT:            <span id="ewt"></span>
- WVAT:           <span id="wvat"></span>
- =======================================
- Less EWT/WVAT:  <span id="total"></span>
- =======================================
- Amount Paid:    <span id="amountPaid"></span>
- Balance:        <span id="balance"></span>
-
-            </pre>
-        </div>
         <form asp-action="OfficialEdit" method="post" enctype="multipart/form-data">
             <div class="col-md-4">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -172,7 +158,7 @@
                         </div>
                         <div class="form-group pt-4">
                             <label class="control-label">Amount</label>
-                            <input id="AccountAmount" class="form-control moneyInput" />
+                            <input id="AccountAmount" class="form-control moneyInput" placeholder="0.00"/>
                             <span class="text-danger"></span>
                         </div>
                     </form>
@@ -203,45 +189,6 @@
             // Set the default value of the input field
             document.getElementById("CheckDate").value = currentDate;
         </script>
-        <script>
-            $(document).ready(function () {
-                $("#CustomerNo").change(function () {
-                    var customerNo = $(this).val();
-
-                    $.ajax({
-                        url: "/Receipt/GetStatementOfAccount",
-                        type: "GET",
-                        data: { customerNo: customerNo },
-                        success: function (data) {
-
-                            $("#soa").empty();
-
-                            // Check if data is an array and not null
-                            if (Array.isArray(data) && data.length > 0) {
-
-                                document.getElementById("amount").innerHTML = "";
-                                document.getElementById("amountPaid").innerHTML = "";
-                                document.getElementById("balance").innerHTML = "";
-
-                                $("#soa").append('<option>');
-
-                                // Iterate over the array and append options
-                                $.each(data, function (index, item) {
-                                    $("#soa").append($('<option>', {
-                                        value: item.value,   // Use the correct property for value
-                                        text: item.text      // Use the correct property for text
-                                    }));
-                                });
-                            } else {
-                                // Handle the case where data is null or empty
-                                console.log("No statement of account found for the selected customer.");
-                            }
-                        }
-                    });
-                });
-            });
-        </script>
-
         <script>
             function saveAccountingEntry() {
                 // Get the values from the modal inputs
