@@ -200,9 +200,9 @@ namespace Accounting_System.Controllers
             return RedirectToAction("Print", new { id = id });
         }
 
-        public async Task<IActionResult> Post(int rrId)
+        public async Task<IActionResult> Post(int id)
         {
-            var model = await _dbContext.ReceivingReports.FindAsync(rrId);
+            var model = await _dbContext.ReceivingReports.FindAsync(id);
 
             if (model != null)
             {
@@ -214,13 +214,72 @@ namespace Accounting_System.Controllers
                     TempData["success"] = "Receiving Report has been Posted.";
 
                 }
-                //else
-                //{
-                //    model.IsVoid = true;
-                //    await _dbContext.SaveChangesAsync();
-                //    TempData["success"] = "Purchase Order has been Voided.";
-                //}
+
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(model.VoidedBy, $"Posted receiving# {model.RRNo}", "Receiving Report");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
                 return RedirectToAction(nameof(Index));
+            }
+
+            return NotFound();
+        }
+
+        public async Task<IActionResult> Void(int id)
+        {
+            var model = await _dbContext.ReceivingReports.FindAsync(id);
+
+            if (model != null)
+            {
+                if (!model.IsVoided)
+                {
+                    model.IsVoided = true;
+                    model.VoidedBy = _userManager.GetUserName(this.User);
+                    model.VoidedDate = DateTime.Now;
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.VoidedBy, $"Voided receiving# {model.RRNo}", "Receiving Report");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Receiving Report has been Voided.";
+                }
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
+
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var model = await _dbContext.ReceivingReports.FindAsync(id);
+
+            if (model != null)
+            {
+                if (!model.IsCanceled)
+                {
+                    model.IsCanceled = true;
+                    model.CanceledBy = _userManager.GetUserName(this.User);
+                    model.CanceledDate = DateTime.Now;
+                    //model.Status = "Canceled";
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Canceled receiving# {model.RRNo}", "Receiving Report");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Receiving Report has been Canceled.";
+                }
+                return RedirectToAction("Index");
             }
 
             return NotFound();
