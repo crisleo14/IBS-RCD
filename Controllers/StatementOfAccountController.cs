@@ -238,6 +238,8 @@ namespace Accounting_System.Controllers
                 if (!model.IsPosted)
                 {
                     model.IsPosted = true;
+                    model.PostedBy = _userManager.GetUserName(this.User);
+                    model.PostedBy = DateTime.Now;
 
                     #region --General Ledger Book Recording
 
