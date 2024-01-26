@@ -28,17 +28,9 @@
                 <span asp-validation-for="ServicesId" class="text-danger"></span>
             </div>
             <div class="form-group mb-3">
-                <label asp-for="Terms" class="control-label">Terms<span class="required">*</span></label>
-                <select asp-for="Terms" class="form-select js-select2">
-                <option value="" selected disabled>-- Select the Terms --</option>
-                <option value="COD">COD</option>
-                <option value="7D">7D</option>
-                <option value="15D">15D</option>
-                <option value="30D">30D</option>
-                <option value="M15">M15</option>
-                <option value="M30">M30</option>
-                </select>
-                <span asp-validation-for="Terms" class="text-danger"></span>
+                <label asp-for="DueDate" class="control-label">Due Date<span class="required">*</span></label>
+                <input asp-for="DueDate" type="date" class="form-control" />
+                <span asp-validation-for="DueDate" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
                 <input asp-for="Discount" id="discount" type="text" class="form-control moneyInput" placeholder="0.00"/>
@@ -111,6 +103,13 @@
             });
         </script>
 
+    <script>
+        // Get the current date in the format "YYYY-MM-DD" (required for the date input)
+        var currentDate = new Date().toISOString().slice(0, 10);
+
+        // Set the default value of the input field
+        document.getElementById("DueDate").value = currentDate;
+    </script>
 
 }
 
