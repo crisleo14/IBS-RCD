@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240126063837_change the quantity data type")]
+    partial class changethequantitydatatype
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1246,8 +1249,8 @@ namespace Accounting_System.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("ProductNo")
-                        .HasColumnType("text");
+                    b.Property<int>("ProductNo")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
@@ -1270,10 +1273,6 @@ namespace Accounting_System.Migrations
 
                     b.Property<int>("SupplierNo")
                         .HasColumnType("integer");
-
-                    b.Property<string>("Terms")
-                        .IsRequired()
-                        .HasColumnType("varchar(5)");
 
                     b.Property<string>("VoidedBy")
                         .HasColumnType("varchar(50)");

@@ -37,7 +37,7 @@
         <tbody>
             <tr style="padding-left:10px;">
                 <td class="w-75">Supplier: &nbsp;@Html.DisplayFor(model => model.Supplier.Name)</td>
-                <td class="w-25">@Model.Date.ToShortDateString()</td>
+                <td class="w-25">@Model.Date.ToString("MM/dd/yyyy")</td>
             </tr>
             <tr style="padding-left:10px;">
                 <td>Address: &nbsp;@Html.DisplayFor(model => model.Supplier.Address)</td>
@@ -63,7 +63,7 @@
         </thead>
         <tbody>
             <tr>
-                <td class="w-25">@Html.DisplayFor(model => model.ProductName)</td>
+                <td class="w-25">@Html.DisplayFor(model => model.Product.Name)</td>
                 <td class="w-25">@Html.DisplayFor(model => model.Quantity)</td>
                 <td class="w-25">@Html.DisplayFor(model => model.Price)</td>
                 <td class="w-25">@Html.DisplayFor(model => model.Amount)</td>

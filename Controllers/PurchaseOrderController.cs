@@ -42,6 +42,14 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync();
 
+            viewModel.Products = await _dbContext.Products
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync();
+
             return View(viewModel);
         }
 
@@ -50,6 +58,14 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Create(PurchaseOrder model)
         {
             model.Suppliers = await _dbContext.Suppliers
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync();
+
+            model.Products = await _dbContext.Products
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
@@ -83,6 +99,7 @@ namespace Accounting_System.Controllers
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 model.Amount = model.Quantity * model.Price;
                 model.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model.SupplierId);
+                model.ProductNo = await _purchaseOrderRepo.GetProductNoAsync(model.ProductId);
 
                 _dbContext.Add(model);
 
@@ -125,6 +142,14 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync();
 
+            purchaseOrder.Products = await _dbContext.Products
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync();
+
             return View(purchaseOrder);
         }
 
@@ -148,9 +173,17 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync();
 
+                model.Products = await _dbContext.Products
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync();
+
                 existingModel.Date = model.Date;
                 existingModel.SupplierId = model.SupplierId;
-                existingModel.ProductName = model.ProductName;
+                existingModel.ProductId = model.ProductId;
                 existingModel.Quantity = model.Quantity;
                 existingModel.Quantity = model.Quantity;
                 existingModel.Price = model.Price;
@@ -181,9 +214,8 @@ namespace Accounting_System.Controllers
                 return NotFound();
             }
 
-            var purchaseOrder = await _dbContext.PurchaseOrders
-                .Include(p => p.Supplier)
-                .FirstOrDefaultAsync(p => p.Id == id);
+            var purchaseOrder = await _purchaseOrderRepo
+                .FindPurchaseOrder(id);
             if (purchaseOrder == null)
             {
                 return NotFound();
