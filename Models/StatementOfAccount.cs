@@ -34,8 +34,9 @@ namespace Accounting_System.Models
         public List<SelectListItem>? Services { get; set; }
 
         [Required]
-        [Column(TypeName = "varchar(5)")]
-        public string Terms { get; set; }
+        [Display(Name = "Due Date")]
+        [Column(TypeName = "date")]
+        public DateTime DueDate { get; set; }
 
         [Required]
         public DateTime[] Period { get; set; }
