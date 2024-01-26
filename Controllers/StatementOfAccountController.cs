@@ -239,7 +239,7 @@ namespace Accounting_System.Controllers
                 {
                     model.IsPosted = true;
                     model.PostedBy = _userManager.GetUserName(this.User);
-                    model.PostedBy = DateTime.Now;
+                    model.PostedDate = DateTime.Now;
 
                     #region --General Ledger Book Recording
 
