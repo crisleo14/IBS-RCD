@@ -33,7 +33,7 @@ namespace Accounting_System.Models
 
         [Display(Name = "Qty Received")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal QuantityReceived { get; set; }
+        public int QuantityReceived { get; set; }
 
         [Display(Name = "Gain/Loss")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]

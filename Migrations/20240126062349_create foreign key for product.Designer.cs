@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240126062349_create foreign key for product")]
+    partial class createforeignkeyforproduct
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1196,7 +1199,7 @@ namespace Accounting_System.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<string>("CanceledBy")
                         .HasColumnType("varchar(50)");
@@ -1211,10 +1214,10 @@ namespace Accounting_System.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("date");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("FinalPrice")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<bool>("IsCanceled")
                         .HasColumnType("boolean");
@@ -1232,7 +1235,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("PONo")
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("text");
 
                     b.Property<string>("PostedBy")
                         .HasColumnType("varchar(50)");
@@ -1241,26 +1244,26 @@ namespace Accounting_System.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("ProductNo")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Quantity")
+                    b.Property<int>("ProductNo")
                         .HasColumnType("integer");
 
-                    b.Property<int>("QuantityReceived")
-                        .HasColumnType("integer");
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("QuantityReceived")
+                        .HasColumnType("numeric");
 
                     b.Property<DateTime>("ReceivedDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Remarks")
                         .IsRequired()
-                        .HasColumnType("varchar(200)");
+                        .HasColumnType("text");
 
                     b.Property<long>("SeriesNumber")
                         .HasColumnType("bigint");
@@ -1270,10 +1273,6 @@ namespace Accounting_System.Migrations
 
                     b.Property<int>("SupplierNo")
                         .HasColumnType("integer");
-
-                    b.Property<string>("Terms")
-                        .IsRequired()
-                        .HasColumnType("varchar(5)");
 
                     b.Property<string>("VoidedBy")
                         .HasColumnType("varchar(50)");
@@ -1356,8 +1355,8 @@ namespace Accounting_System.Migrations
                     b.Property<decimal>("QuantityDelivered")
                         .HasColumnType("numeric");
 
-                    b.Property<int>("QuantityReceived")
-                        .HasColumnType("integer");
+                    b.Property<decimal>("QuantityReceived")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("RRNo")
                         .HasColumnType("text");
