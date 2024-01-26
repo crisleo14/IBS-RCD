@@ -14,27 +14,27 @@
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="Date" class="control-label"></label>
+                <label asp-for="Date" class="control-label">Date<span class="required">*</span></label>
                 <input asp-for="Date" class="form-control" />
                 <span asp-validation-for="Date" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="POId" class="control-label"></label>
+                <label asp-for="POId" class="control-label">PO No.<span class="required">*</span></label>
                 <select asp-for="POId" class="form-control" asp-items="@Model.PurchaseOrders"></select>
                 <span asp-validation-for="POId" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="TruckOrVessels" class="control-label"></label>
+                <label asp-for="TruckOrVessels" class="control-label">Truck/Vessels<span class="required">*</span></label>
                 <input asp-for="TruckOrVessels" class="form-control" />
                 <span asp-validation-for="TruckOrVessels" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="QuantityDelivered" class="control-label"></label>
+                <label asp-for="QuantityDelivered" class="control-label">Qty Delivered<span class="required">*</span></label>
                 <input asp-for="QuantityDelivered" class="form-control moneyInput" />
                 <span asp-validation-for="QuantityDelivered" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="QuantityReceived" class="control-label"></label>
+                <label asp-for="QuantityReceived" class="control-label">Qty Received<span class="required">*</span></label>
                 <input asp-for="QuantityReceived" class="form-control moneyInput" />
                 <span asp-validation-for="QuantityReceived" class="text-danger"></span>
             </div>
@@ -44,7 +44,7 @@
                 <span asp-validation-for="OtherRef" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Remarks" class="control-label"></label>
+                <label asp-for="Remarks" class="control-label">Remarks<span class="required">*</span></label>
                 <input asp-for="Remarks" class="form-control" />
                 <span asp-validation-for="Remarks" class="text-danger"></span>
             </div>
