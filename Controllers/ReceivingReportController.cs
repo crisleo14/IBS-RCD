@@ -26,7 +26,8 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Index()
         {
             var rr = await _dbContext.ReceivingReports
-                .Include(r => r.PurchaseOrder)
+                .Include(p => p.PurchaseOrder)
+                .ThenInclude(s => s.Supplier)
                 .OrderBy(r => r.Id)
                 .ToListAsync();
 
