@@ -75,7 +75,7 @@ namespace Accounting_System.Models
 
         [Required]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal Quantity { get; set; }
+        public int Quantity { get; set; }
 
         [Required]
         [Display(Name = "Unit Price")]
