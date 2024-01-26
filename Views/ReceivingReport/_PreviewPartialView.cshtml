@@ -1,0 +1,116 @@
+﻿@using Microsoft.AspNetCore.Identity
+@model Accounting_System.Models.ReceivingReport
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+<div class="modal fade" id="Preview-@Model.Id" data-bs-backdrop="static" aria-labelledby="PreviewSalesInvoiceLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="PreviewSalesInvoiceLabel">Preview</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <br />
+                <div class="text-end">
+                    <img src="~/img/Filpride.jpg" height="" width="130px" />
+                </div>
+                <div class="text-center">
+                    <h2><u><b>&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b></u></h2>
+                    <p style="line-height: 1; margin-top:-7px;">
+                        57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone,<br />
+                        Kalaklan, Olongapo City, 2200 Zambales, Philippines<br />
+                        VAT Reg. TIN: 000-216-589-00000
+                    </p>
+                </div>
+
+                <h3><span style="display: inline-block; margin-top:50px;"><b>RECEIVING REPORT</b></span></h3>
+                <div class="text-end" style="margin-top:-50px;">
+                    <h6><b>No.&nbsp;@Html.DisplayFor(model => model.RRNo)</b></h6>
+                </div>
+
+
+                <div class="w-100 text-end" style="margin-top:20px; padding-bottom:10px;">
+                    <span><b>Date:</b></span>
+                    <span class="underline" style="display: inline-block; width: 20%; text-align:center;">@Model.Date.ToShortDateString()</span><br />
+                </div>
+
+                <div>
+                    <table class="table-bordered w-100">
+                        <tbody>
+                            <tr>
+                                <td colspan="2" class="text-start" style="padding-left:10px;">Supplier: &nbsp; @Html.DisplayFor(model => model.PurchaseOrder.Supplier.Name)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top:20px;">
+                    <table class="table-bordered w-100">
+                        <tbody>
+                            <tr>
+                                <td colspan="7" class="text-start" style="padding-left:20px;">DETAILS</td>
+                            </tr>
+                            <tr>
+                                <td class="text-center" style="width:12.5%">PO#</td>
+                                <td class="text-center" style="width:12.5%">SUPPLIER INVOICE#/DATE</td>
+                                <td class="text-center" style="width:25%">TRUCK/VESSELS</td>
+                                <td class="text-center" style="width:12.5%">PRODUCT</td>
+                                <td class="text-center" style="width:12.5%">QTY SERVED</td>
+                                <td class="text-center" style="width:12.5%">QTY RECEIVED</td>
+                                <td class="text-center" style="width:12.5%">GAIN/LOSS</td>
+                            </tr>
+                            <tr>
+                                <td class="text-center p-lg-4">@Html.DisplayFor(model => model.PONo)</td>
+                                <td class="text-center p-lg-4"></td>
+                                <td class="text-center p-lg-4">@Html.DisplayFor(model => model.TruckOrVessels)</td>
+                                <td class="text-center p-lg-4">@Html.DisplayFor(model => model.PurchaseOrder.ProductName)</td>
+                                <td class="text-center p-lg-4">@Html.DisplayFor(model => model.QuantityDelivered)</td>
+                                <td class="text-center p-lg-4">@Html.DisplayFor(model => model.QuantityReceived)</td>
+                                <td class="text-center p-lg-4">@Html.DisplayFor(model => model.GainOrLoss)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div>
+                    <table class="table-bordered w-100 mt-2">
+                        <tbody>
+                            <tr>
+                                <td colspan="2" class="text-start" style="padding-left:10px;">Other Reference: &nbsp; @Html.DisplayFor(model => model.OtherRef)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top:10px;">
+                    <table class="table-bordered w-100">
+                        <tbody>
+                            <tr>
+                                <td class="p-lg-4 text-start" colspan="6" style="padding-left:20px;">REMARKS : @Html.DisplayFor(model => model.Remarks)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+
+                <div class="text-center w-100" style="margin-top:10px;">
+                    <p>
+                        <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br />
+                        <span>Acknowledgement Certificate No:</span>
+                        <span style="display: inline-block;">AC_124_112023_000090</span>
+                        <span>&nbsp;&nbsp;Date Issued:</span>
+                        <span style="display: inline-block;">November 28, 2023</span><br />
+                        Series: RR0000000001 - RR9999999999
+                    </p>
+                </div>
+
+                <div class="text-start">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
