@@ -1,5 +1,5 @@
-﻿@using Microsoft.AspNetCore.Identity
-@model Accounting_System.Models.ReceivingReport
+﻿@model Accounting_System.Models.ReceivingReport
+@using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
@@ -66,7 +66,7 @@
                                 <td class="text-center p-lg-4">@Html.DisplayFor(model => model.PONo)</td>
                                 <td class="text-center p-lg-4"></td>
                                 <td class="text-center p-lg-4">@Html.DisplayFor(model => model.TruckOrVessels)</td>
-                                <td class="text-center p-lg-4">@Html.DisplayFor(model => model.PurchaseOrder.ProductName)</td>
+                                <td class="text-center p-lg-4">@Html.DisplayFor(model => model.PurchaseOrder.Product.Name)</td>
                                 <td class="text-center p-lg-4">@Html.DisplayFor(model => model.QuantityDelivered)</td>
                                 <td class="text-center p-lg-4">@Html.DisplayFor(model => model.QuantityReceived)</td>
                                 <td class="text-center p-lg-4">@Html.DisplayFor(model => model.GainOrLoss)</td>

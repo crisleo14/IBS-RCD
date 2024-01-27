@@ -79,7 +79,7 @@
                             <tr style="height:80px;">
                                 <td>@Html.DisplayFor(model => model.ProductName)</td>
                                 <td>@Html.DisplayFor(model => model.ProductUnit)</td>
-                                <td>@Model.Quantity</td>
+                                <td>@Model.Quantity.ToString("N0")</td>
                                 <td>@Html.DisplayFor(model => model.UnitPrice)</td>
                                 <td>@Html.DisplayFor(model => model.Amount)</td>
                             </tr>
