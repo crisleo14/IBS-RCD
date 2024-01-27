@@ -55,7 +55,7 @@
         <tbody>
             <tr>
                 <td class="w-25">@Html.DisplayFor(model => model.Product.Name)</td>
-                <td class="w-25">@Html.DisplayFor(model => model.Quantity)</td>
+                <td class="w-25">@Model.Quantity.ToString("N0")</td>
                 <td class="w-25">@Html.DisplayFor(model => model.Price)</td>
                 <td class="w-25">@Html.DisplayFor(model => model.Amount)</td>
             </tr>
@@ -64,7 +64,7 @@
 </div>
 
 <div class="table-responsive" style="margin-top:50px;">
-    <table class="w-100 text-center">
+    <table class="w-100">
         <thead>
             <tr>
                 <th class="w-25">@Html.DisplayNameFor(model => model.Remarks)</th>

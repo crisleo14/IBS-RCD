@@ -128,7 +128,7 @@ namespace Accounting_System.Controllers
                 return NotFound();
             }
 
-            var purchaseOrder = await _dbContext.PurchaseOrders.FindAsync(id);
+            var purchaseOrder = await _purchaseOrderRepo.FindPurchaseOrder(id);
             if (purchaseOrder == null)
             {
                 return NotFound();
@@ -149,6 +149,8 @@ namespace Accounting_System.Controllers
                     Text = s.Name
                 })
                 .ToListAsync();
+
+            ViewBag.PurchaseOrders = purchaseOrder.Quantity;
 
             return View(purchaseOrder);
         }
@@ -185,10 +187,11 @@ namespace Accounting_System.Controllers
                 existingModel.SupplierId = model.SupplierId;
                 existingModel.ProductId = model.ProductId;
                 existingModel.Quantity = model.Quantity;
-                existingModel.Quantity = model.Quantity;
                 existingModel.Price = model.Price;
                 existingModel.Amount = model.Quantity * model.Price;
                 existingModel.Remarks = model.Remarks;
+                existingModel.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model.SupplierId);
+                existingModel.ProductNo = await _purchaseOrderRepo.GetProductNoAsync(model.ProductId);
 
                 #region --Audit Trail Recording
 
