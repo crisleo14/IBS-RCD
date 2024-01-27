@@ -28,6 +28,8 @@ namespace Accounting_System.Controllers
             var rr = await _dbContext.ReceivingReports
                 .Include(p => p.PurchaseOrder)
                 .ThenInclude(s => s.Supplier)
+                .Include(p => p.PurchaseOrder)
+                .ThenInclude(prod => prod.Product)
                 .OrderBy(r => r.Id)
                 .ToListAsync();
 
@@ -179,8 +181,10 @@ namespace Accounting_System.Controllers
             }
 
             var receivingReport = await _dbContext.ReceivingReports
+                .Include(p => p.PurchaseOrder)
+                .ThenInclude(s => s.Supplier)
                 .Include(r => r.PurchaseOrder)
-                .ThenInclude(p => p.Supplier)
+                .ThenInclude(prod => prod.Product)
                 .FirstOrDefaultAsync(r => r.Id == id);
             if (receivingReport == null)
             {
