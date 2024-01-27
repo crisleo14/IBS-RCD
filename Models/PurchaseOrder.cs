@@ -44,7 +44,6 @@ namespace Accounting_System.Models
         public string Terms { get; set; }
 
         [Required]
-        [DisplayFormat(DataFormatString = "{0:N0}", ApplyFormatInEditMode = true)]
         public int Quantity { get; set; }
 
         [Required]
