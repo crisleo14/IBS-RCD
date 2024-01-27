@@ -74,7 +74,6 @@ namespace Accounting_System.Models
         public string ProductUnit { get; set; }
 
         [Required]
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public int Quantity { get; set; }
 
         [Required]
