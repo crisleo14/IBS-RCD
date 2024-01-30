@@ -117,10 +117,21 @@ namespace Accounting_System.Controllers
                 }
                 else
                 {
+                    TempData["error"] = "There's something wrong in your file. Contact MIS.";
+                    return View(supplier);
                 }
 
                 _context.Add(supplier);
+
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(supplier.CreatedBy, $"Create new supplier {supplier.Name}", "Supplier Master File");
+                _context.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
                 await _context.SaveChangesAsync();
+                TempData["success"] = $"Supplier {supplier.Name} has been created.";
                 return RedirectToAction(nameof(Index));
             }
             return View(supplier);

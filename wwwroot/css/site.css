@@ -46,17 +46,35 @@ body {
     .footer {
         position: fixed;
         bottom: 50px;
-       /* left: 0;*/
         text-align:center;
     }
 
-    body {
-        margin: 0 !important;
+    /*p {
+        font-size: 12px;
     }
 
-    @page {
-        margin: 24px 0px 0px 0px !important; /* Sets the top margin to 24px and the others to 0 */
+    table {
+        font-size: 12px;
     }
+
+    #printButton {
+        display: none;
+        visibility: hidden;
+    }
+
+    #otherButton {
+        display: none;
+        visibility: hidden;
+    }
+
+    header {
+        display: none;
+        visibility: hidden;
+    }
+    footer {
+        display: none;
+        visibility: hidden;
+    }*/
 }
 
 .underline {

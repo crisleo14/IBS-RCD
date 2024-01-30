@@ -1,0 +1,120 @@
+﻿html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px;
+    font-family: Roboto,sans-serif;
+}
+
+/*tab navigation*/
+.login-logout-card .card-header {
+    padding: 0px 0px 12px 0px;
+}
+
+.login-logout-card ul.nav-tabs {
+    margin: 0px 0px -12px 0px;
+}
+
+.login-logout-card li.nav-item {
+    width: 50%;
+}
+
+.login-logout-card a.nav-link {
+    font-size: 1rem;
+    color: #495057;
+    text-align: center;
+    padding: 1rem;
+}
+
+.login-logout-card .card-body {
+    padding: 10px 20px;
+}
+
+@media print {
+    @page {
+        size: legal landscape;
+    }
+
+    /*this the css settings/code of print in books only*/
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    p {
+        font-size: 12px;
+    }
+
+    table {
+        font-size: 12px;
+    }
+
+    #printButton {
+        display: none;
+        visibility: hidden;
+    }
+
+    #otherButton {
+        display: none;
+        visibility: hidden;
+    }
+
+    header {
+        display: none;
+        visibility: hidden;
+    }
+    /*this the css settings/code of print in books only*/
+
+    .content {
+        margin: 0 0 !important;
+    }
+    .br-top {
+        display: none;
+        visibility: hidden;
+    }
+}
+
+.content {
+    margin: 0 15%;
+}
+
+.underline {
+    border-bottom: 1px solid black !important;
+}
+
+
+/*Uncomment this code for debugging purposes */
+/**{
+    border: 1px solid red;
+}*/
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.required {
+    color: red;
+    margin-left: 2px;
+}

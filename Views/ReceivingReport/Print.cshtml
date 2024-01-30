@@ -55,9 +55,9 @@
             </tr>
             <tr>
                 <td class="text-center p-lg-4">@Html.DisplayFor(model => model.PONo)</td>
-                <td class="text-center p-lg-4"></td>
+                <td class="text-center p-lg-4">@Html.DisplayFor(model => model.InvoiceOrDate)</td>
                 <td class="text-center p-lg-4">@Html.DisplayFor(model => model.TruckOrVessels)</td>
-                <td class="text-center p-lg-4">@Html.DisplayFor(model => model.PurchaseOrder.ProductName)</td>
+                <td class="text-center p-lg-4">@Html.DisplayFor(model => model.PurchaseOrder.Product.Name)</td>
                 <td class="text-center p-lg-4">@Html.DisplayFor(model => model.QuantityDelivered)</td>
                 <td class="text-center p-lg-4">@Html.DisplayFor(model => model.QuantityReceived)</td>
                 <td class="text-center p-lg-4">@Html.DisplayFor(model => model.GainOrLoss)</td>
@@ -121,16 +121,16 @@
 </div>
 
 @if (!Model.IsPrinted)
-{ 
+{
     <div class="text-end">
         ORIGINAL COPY
-    </div> 
+    </div>
  }
 else
 {
   <div class="text-end">
         REPRINT COPY
-    </div> 
+    </div>
  }
 
 <a asp-action="Printed" class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" id="printButton">Print</a>

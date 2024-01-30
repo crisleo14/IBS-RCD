@@ -7,11 +7,13 @@ namespace Accounting_System.Models
     public class PurchaseOrder : BaseEntity
     {
         [Display(Name = "PO No")]
+        [Column(TypeName = "varchar(12)")]
         public string? PONo { get; set; }
 
         public long SeriesNumber { get; set; }
 
         [Required]
+        [Column(TypeName = "date")]
         public DateTime Date { get; set; }
 
         [Required]
@@ -28,29 +30,43 @@ namespace Accounting_System.Models
 
         [Required]
         [Display(Name = "Product Name")]
-        public string ProductName { get; set; }
+        public int ProductId { get; set; }
+
+        [ForeignKey("ProductId")]
+        public Product? Product { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? Products { get; set; }
+
+        public string? ProductNo { get; set; }
+
+        [Column(TypeName = "varchar(5)")]
+        public string Terms { get; set; }
+
+        [Required]
+        public int Quantity { get; set; }
 
         [Required]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal Quantity { get; set; }
-
-        [Required]
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Price { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Amount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal FinalPrice { get; set; }
 
-        public decimal QuantityReceived { get; set; }
+        public int QuantityReceived { get; set; }
 
         public bool IsReceived { get; set; }
 
         public DateTime ReceivedDate { get; set; }
 
         [Required]
+        [Column(TypeName = "varchar(200)")]
         public string Remarks { get; set; }
     }
 }

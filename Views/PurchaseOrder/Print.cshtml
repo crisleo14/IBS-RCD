@@ -28,7 +28,7 @@
         <tbody>
             <tr style="padding-left:10px;">
                 <td class="w-75">Supplier: &nbsp;@Html.DisplayFor(model => model.Supplier.Name)</td>
-                <td class="w-25">@Model.Date.ToShortDateString()</td>
+                <td class="w-25 text-end">Date: &nbsp;@Model.Date.ToString("MM/dd/yyyy")</td>
             </tr>
             <tr style="padding-left:10px;">
                 <td>Address: &nbsp;@Html.DisplayFor(model => model.Supplier.Address)</td>
@@ -43,9 +43,9 @@
 </div>
 
 <div class="table-responsive" style="margin-top:50px;">
-    <table class="w-100">
+    <table class="w-100 text-center">
         <thead>
-            <tr style="padding-left:10px;">
+            <tr>
                 <th class="w-25">Product Name</th>
                 <th class="w-25">Quantity</th>
                 <th class="w-25">Price</th>
@@ -54,14 +54,33 @@
         </thead>
         <tbody>
             <tr>
-                <td class="w-25">@Html.DisplayFor(model => model.ProductName)</td>
-                <td class="w-25">@Html.DisplayFor(model => model.Quantity)</td>
+                <td class="w-25">@Html.DisplayFor(model => model.Product.Name)</td>
+                <td class="w-25">@Model.Quantity.ToString("N0")</td>
                 <td class="w-25">@Html.DisplayFor(model => model.Price)</td>
                 <td class="w-25">@Html.DisplayFor(model => model.Amount)</td>
             </tr>
         </tbody>
     </table>
 </div>
+
+<div class="table-responsive" style="margin-top:50px;">
+    <table class="w-100">
+        <thead>
+            <tr>
+                <th class="w-25">@Html.DisplayNameFor(model => model.Remarks)</th>
+                <th></th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="w-25" colspan="4">@Html.DisplayFor(model => model.Remarks)</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
 <br /><br /><br /><br /><br /><br /><br /><br />
 <div class="text-center w-100" style="margin-top:20px;">
     <p>
