@@ -12,7 +12,7 @@
 <p>
     <a asp-action="Create">Add New</a>
 </p>
-<table class="table">
+<table class="table" id="myOwnTable">
     <thead>
         <tr>
             <th>
@@ -46,7 +46,7 @@
                 @Html.DisplayFor(modelItem => item.RRNo)
             </td>
             <td>
-                @item.Date.ToShortDateString()
+                @item.Date.ToString("MM/dd/yyyy")
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.PurchaseOrder.PONo)
@@ -55,10 +55,10 @@
                 @Html.DisplayFor(modelItem => item.TruckOrVessels)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.QuantityDelivered)
+                @item.QuantityDelivered.ToString("N0")
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.QuantityReceived)
+                @item.QuantityReceived.ToString("N0")
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.GainOrLoss)

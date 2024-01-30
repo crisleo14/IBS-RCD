@@ -34,7 +34,7 @@
 
                 <div class="w-100 text-end" style="margin-top:20px; padding-bottom:10px;">
                     <span><b>Date:</b></span>
-                    <span class="underline" style="display: inline-block; width: 20%; text-align:center;">@Model.Date.ToShortDateString()</span><br />
+                    <span class="underline" style="display: inline-block; width: 20%; text-align:center;">@Model.Date.ToString("MM/dd/yyyy")</span><br />
                 </div>
 
                 <div>
@@ -64,7 +64,7 @@
                             </tr>
                             <tr>
                                 <td class="text-center p-lg-4">@Html.DisplayFor(model => model.PONo)</td>
-                                <td class="text-center p-lg-4"></td>
+                                <td class="text-center p-lg-4">@Html.DisplayFor(model => model.InvoiceOrDate)</td>
                                 <td class="text-center p-lg-4">@Html.DisplayFor(model => model.TruckOrVessels)</td>
                                 <td class="text-center p-lg-4">@Html.DisplayFor(model => model.PurchaseOrder.Product.Name)</td>
                                 <td class="text-center p-lg-4">@Html.DisplayFor(model => model.QuantityDelivered)</td>

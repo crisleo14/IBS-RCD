@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var dateToInput = document.getElementById('DateTo');
 
     // Add an event listener to DateFrom input
-    dateFromInput.addEventListener('change', function () {
+    dateFromInput?.addEventListener('change', function () {
         // Set DateTo input value to DateFrom input value
         dateToInput.value = dateFromInput.value;
     });

@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240127025749_revise the RR model")]
+    partial class revisetheRRmodel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1322,10 +1325,6 @@ namespace Accounting_System.Migrations
                     b.Property<decimal?>("GainOrLoss")
                         .HasColumnType("numeric");
 
-                    b.Property<string>("InvoiceOrDate")
-                        .IsRequired()
-                        .HasColumnType("varchar(100)");
-
                     b.Property<bool>("IsCanceled")
                         .HasColumnType("boolean");
 
@@ -1343,7 +1342,7 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("OtherRef")
                         .IsRequired()
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("text");
 
                     b.Property<int>("POId")
                         .HasColumnType("integer");
