@@ -22,13 +22,16 @@ namespace Accounting_System.Controllers
 
         private readonly InventoryRepo _inventoryRepo;
 
-        public SalesInvoiceController(ILogger<HomeController> logger, ApplicationDbContext dbContext, SalesInvoiceRepo salesInvoiceRepo, UserManager<IdentityUser> userManager, InventoryRepo inventoryRepo)
+        private readonly GeneralRepo _generalRepo;
+
+        public SalesInvoiceController(ILogger<HomeController> logger, ApplicationDbContext dbContext, SalesInvoiceRepo salesInvoiceRepo, UserManager<IdentityUser> userManager, InventoryRepo inventoryRepo, GeneralRepo generalRepo)
         {
             _dbContext = dbContext;
             _salesInvoiceRepo = salesInvoiceRepo;
             _logger = logger;
             this._userManager = userManager;
             _inventoryRepo = inventoryRepo;
+            _generalRepo = generalRepo;
         }
 
         public async Task<IActionResult> Index()
@@ -365,6 +368,13 @@ namespace Accounting_System.Controllers
             return RedirectToAction("PrintInvoice", new { id = id });
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Preview(int? id)
+        {
+            var invoice = await _salesInvoiceRepo.FindSalesInvoice(id);
+            return PartialView("_PreviewPartialView", invoice);
+        }
+
         public async Task<IActionResult> Post(int invoiceId)
         {
             var model = await _dbContext.SalesInvoices.FindAsync(invoiceId);
@@ -599,6 +609,9 @@ namespace Accounting_System.Controllers
                     model.VoidedBy = _userManager.GetUserName(this.User);
                     model.VoidedDate = DateTime.Now;
 
+                    await _generalRepo.RemoveRecords<SalesBook>(sb => sb.SerialNo == model.SINo);
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.SINo);
+
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.VoidedBy, $"Voided invoice# {model.SINo}", "Sales Invoice");
@@ -626,11 +639,11 @@ namespace Accounting_System.Controllers
                     model.IsCanceled = true;
                     model.CanceledBy = _userManager.GetUserName(this.User);
                     model.CanceledDate = DateTime.Now;
-                    model.Status = "Cancelled";
+                    model.Status = "Canceled";
 
                     #region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled invoice# {model.SINo}", "Sales Invoice");
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Canceled invoice# {model.SINo}", "Sales Invoice");
                     _dbContext.Add(auditTrail);
 
                     #endregion --Audit Trail Recording

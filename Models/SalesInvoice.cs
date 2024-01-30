@@ -53,11 +53,9 @@ namespace Accounting_System.Models
         public string Terms { get; set; }
 
         [Column(TypeName = "varchar(20)")]
-        [Required]
         [Display(Name = "Other Ref No")]
         public string OtherRefNo { get; set; }
 
-        [Required]
         [Display(Name = "P.O No")]
         [Column(TypeName = "varchar(20)")]
         public string PoNo { get; set; }
@@ -76,8 +74,7 @@ namespace Accounting_System.Models
         public string ProductUnit { get; set; }
 
         [Required]
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal Quantity { get; set; }
+        public int Quantity { get; set; }
 
         [Required]
         [Display(Name = "Unit Price")]

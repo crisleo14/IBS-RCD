@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Controllers
@@ -18,11 +19,17 @@ namespace Accounting_System.Controllers
 
         private readonly ReceiptRepo _receiptRepo;
 
-        public ReceiptController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, ReceiptRepo receiptRepo)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+
+        private readonly GeneralRepo _generalRepo;
+
+        public ReceiptController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, ReceiptRepo receiptRepo, IWebHostEnvironment webHostEnvironment, GeneralRepo generalRepo)
         {
             _dbContext = dbContext;
             this._userManager = userManager;
             _receiptRepo = receiptRepo;
+            _webHostEnvironment = webHostEnvironment;
+            _generalRepo = generalRepo;
         }
 
         public async Task<IActionResult> CollectionIndex()
@@ -66,7 +73,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CollectionCreate(CollectionReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle)
+        public async Task<IActionResult> CollectionCreate(CollectionReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle, IFormFile? bir2306, IFormFile? bir2307)
         {
             model.Customers = _dbContext.Customers
                .OrderBy(c => c.Id)
@@ -138,11 +145,59 @@ namespace Accounting_System.Controllers
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 model.Total = computeTotalInModelIfZero;
 
+                try
+                {
+                    if (bir2306 != null && bir2306.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(bir2306.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await bir2306.CopyToAsync(stream);
+                        }
+
+                        model.F2306FilePath = fileSavePath;
+                        model.IsCertificateUpload = true;
+                    }
+
+                    if (bir2307 != null && bir2307.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(bir2307.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await bir2307.CopyToAsync(stream);
+                        }
+
+                        model.F2307FilePath = fileSavePath;
+                        model.IsCertificateUpload = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                }
+
+                _dbContext.Add(model);
+
                 decimal offsetAmount = 0;
 
                 #endregion --Saving default value
-
-                _dbContext.Add(model);
 
                 #region --Audit Trail Recording
 
@@ -216,7 +271,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> OfficialCreate(OfficialReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle)
+        public async Task<IActionResult> OfficialCreate(OfficialReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle, IFormFile? bir2306, IFormFile? bir2307)
         {
             model.Customers = _dbContext.Customers
                .OrderBy(c => c.Id)
@@ -297,11 +352,59 @@ namespace Accounting_System.Controllers
                 model.Total = computeTotalInModelIfZero;
                 model.CreatedBy = _userManager.GetUserName(this.User);
 
+                try
+                {
+                    if (bir2306 != null && bir2306.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(bir2306.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await bir2306.CopyToAsync(stream);
+                        }
+
+                        model.F2306FilePath = fileSavePath;
+                        model.IsCertificateUpload = true;
+                    }
+
+                    if (bir2307 != null && bir2307.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(bir2307.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await bir2307.CopyToAsync(stream);
+                        }
+
+                        model.F2307FilePath = fileSavePath;
+                        model.IsCertificateUpload = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                }
+
+                _dbContext.Add(model);
+
                 decimal offsetAmount = 0;
 
                 #endregion --Saving default value
-
-                _dbContext.Add(model);
 
                 #region --Audit Trail Recording
 
@@ -359,11 +462,31 @@ namespace Accounting_System.Controllers
             return View(or);
         }
 
+        public async Task<IActionResult> CollectionPreview(int id)
+        {
+            var cr = await _receiptRepo.FindCR(id);
+            return PartialView("_CollectionPreviewPartialView", cr);
+        }
+
+        public async Task<IActionResult> OfficialPreview(int id)
+        {
+            var or = await _receiptRepo.FindOR(id);
+            return PartialView("_OfficialPreviewPartialView", or);
+        }
+
         public async Task<IActionResult> PrintedCR(int id)
         {
             var findIdOfCR = await _receiptRepo.FindCR(id);
             if (findIdOfCR != null && !findIdOfCR.IsPrinted)
             {
+                #region --Audit Trail Recording
+
+                var printedBy = _userManager.GetUserName(this.User);
+                AuditTrail auditTrail = new(printedBy, $"Printed original copy of cr# {findIdOfCR.CRNo}", "Collection Receipt");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
                 findIdOfCR.IsPrinted = true;
                 await _dbContext.SaveChangesAsync();
             }
@@ -375,6 +498,14 @@ namespace Accounting_System.Controllers
             var findIdOfOR = await _receiptRepo.FindOR(id);
             if (findIdOfOR != null && !findIdOfOR.IsPrinted)
             {
+                #region --Audit Trail Recording
+
+                var printedBy = _userManager.GetUserName(this.User);
+                AuditTrail auditTrail = new(printedBy, $"Printed original copy of or# {findIdOfOR.ORNo}", "Official Receipt");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
                 findIdOfOR.IsPrinted = true;
                 await _dbContext.SaveChangesAsync();
             }
@@ -481,7 +612,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CollectionEdit(CollectionReceipt model, string[] editAccountTitleText, decimal[] editAccountAmount, string[] editAccountTitle)
+        public async Task<IActionResult> CollectionEdit(CollectionReceipt model, string[] editAccountTitleText, decimal[] editAccountAmount, string[] editAccountTitle, IFormFile? bir2306, IFormFile? bir2307)
         {
             var existingModel = await _receiptRepo.FindCR(model.Id);
 
@@ -531,6 +662,54 @@ namespace Accounting_System.Controllers
                 existingModel.WVAT = model.WVAT;
                 existingModel.Total = computeTotalInModelIfZero;
 
+                try
+                {
+                    if (bir2306 != null && bir2306.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(bir2306.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await bir2306.CopyToAsync(stream);
+                        }
+
+                        existingModel.F2306FilePath = fileSavePath;
+                        existingModel.IsCertificateUpload = true;
+                    }
+
+                    if (bir2307 != null && bir2307.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(bir2307.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await bir2307.CopyToAsync(stream);
+                        }
+
+                        existingModel.F2307FilePath = fileSavePath;
+                        existingModel.IsCertificateUpload = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                }
+
                 decimal offsetAmount = 0;
 
                 #endregion --Saving default value
@@ -541,17 +720,21 @@ namespace Accounting_System.Controllers
 
                 for (int i = 0; i < editAccountTitleText.Length; i++)
                 {
-                    var existingOffset = await _dbContext.Offsettings
-                        .FirstOrDefaultAsync(offset => offset.Source == existingModel.CRNo
-                                                        && offset.AccountNo == editAccountTitleText[i]
-                                                        && offset.Amount == editAccountAmount[i]);
+                    var existingCRNo = existingModel.CRNo;
+                    var accountTitle = editAccountTitleText[i];
+                    var accountAmount = editAccountAmount[i];
 
-                    if (existingOffset == null)
+                    var existingOffsetting = await _dbContext.Offsettings
+                        .FirstOrDefaultAsync(offset => offset.Source == existingCRNo && offset.AccountNo == accountTitle);
+
+                    if (existingOffsetting != null)
                     {
-                        var accountTitle = editAccountTitleText[i];
-                        var accountAmount = editAccountAmount[i];
-                        offsetAmount += editAccountAmount[i];
-
+                        // Update existing entry
+                        existingOffsetting.Amount = accountAmount;
+                    }
+                    else
+                    {
+                        // Add new entry
                         offsetting.Add(
                             new Offsetting
                             {
@@ -563,26 +746,29 @@ namespace Accounting_System.Controllers
                             }
                         );
                     }
-
-                    if (existingOffset != null && existingOffset.IsRemoved)
-                    {
-                        _dbContext.Offsettings.Remove(existingOffset);
-                        await _dbContext.SaveChangesAsync();
-                    }
                 }
 
-                if (offsetting.Any())
+                // Identify removed entries
+                var existingAccountNos = offsetting.Select(o => o.AccountNo).ToList();
+                var entriesToRemove = await _dbContext.Offsettings
+                    .Where(offset => offset.Source == existingModel.CRNo && !existingAccountNos.Contains(offset.AccountNo))
+                    .ToListAsync();
+
+                // Remove entries individually
+                foreach (var entryToRemove in entriesToRemove)
                 {
-                    _dbContext.AddRange(offsetting);
-                    await _dbContext.SaveChangesAsync();
+                    _dbContext.Offsettings.Remove(entryToRemove);
                 }
+
+                // Add or update entries in the database
+                _dbContext.Offsettings.AddRange(offsetting);
 
                 #endregion --Offsetting function
 
                 #region --Audit Trail Recording
 
                 var modifiedBy = _userManager.GetUserName(this.User);
-                AuditTrail auditTrail = new(modifiedBy, $"Edited receipt# {model.SINo}", "Collection Receipt");
+                AuditTrail auditTrail = new(modifiedBy, $"Edited receipt# {model.CRNo}", "Collection Receipt");
                 _dbContext.Add(auditTrail);
 
                 #endregion --Audit Trail Recording
@@ -887,7 +1073,7 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.PostedBy, $"Posted collection# {model.CRNo}", "Collection Receipt");
+                    AuditTrail auditTrail = new(model.PostedBy, $"Posted collection receipt# {model.CRNo}", "Collection Receipt");
                     _dbContext.Add(auditTrail);
 
                     #endregion --Audit Trail Recording
@@ -914,6 +1100,9 @@ namespace Accounting_System.Controllers
                     model.IsVoided = true;
                     model.VoidedBy = _userManager.GetUserName(this.User);
                     model.VoidedDate = DateTime.Now;
+
+                    await _generalRepo.RemoveRecords<CashReceiptBook>(crb => crb.RefNo == model.CRNo);
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CRNo);
 
                     #region --Audit Trail Recording
 
@@ -1055,12 +1244,11 @@ namespace Accounting_System.Controllers
                 .Select(offset => new { AccountNo = offset.AccountNo, Amount = offset.Amount.ToString("N2") })
                 .ToList();
 
-
             return View(existingModel);
         }
 
         [HttpPost]
-        public async Task<IActionResult> OfficialEdit(OfficialReceipt model, string[] editAccountTitleText, decimal[] editAccountAmount, string[] editAccountTitle)
+        public async Task<IActionResult> OfficialEdit(OfficialReceipt model, string[] editAccountTitleText, decimal[] editAccountAmount, string[] editAccountTitle, IFormFile? bir2306, IFormFile? bir2307)
         {
             var existingModel = await _receiptRepo.FindOR(model.Id);
 
@@ -1106,11 +1294,60 @@ namespace Accounting_System.Controllers
                 existingModel.WVAT = model.WVAT;
                 existingModel.Total = computeTotalInModelIfZero;
 
+                try
+                {
+                    if (bir2306 != null && bir2306.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(bir2306.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await bir2306.CopyToAsync(stream);
+                        }
+
+                        existingModel.F2306FilePath = fileSavePath;
+                        existingModel.IsCertificateUpload = true;
+                    }
+
+                    if (bir2307 != null && bir2307.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(bir2307.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await bir2307.CopyToAsync(stream);
+                        }
+
+                        existingModel.F2307FilePath = fileSavePath;
+                        existingModel.IsCertificateUpload = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                }
+
                 decimal offsetAmount = 0;
 
                 #endregion --Saving default value
 
                 #region --Offsetting function
+
                 var offsetting = new List<Offsetting>();
 
                 for (int i = 0; i < editAccountTitleText.Length; i++)
@@ -1148,10 +1385,9 @@ namespace Accounting_System.Controllers
                 if (offsetting.Any())
                 {
                     _dbContext.AddRange(offsetting);
-                    await _dbContext.SaveChangesAsync();
                 }
 
-                #endregion
+                #endregion --Offsetting function
 
                 #region --Audit Trail Recording
 
@@ -1239,6 +1475,23 @@ namespace Accounting_System.Controllers
                         );
                     }
 
+                    if (model.StatementOfAccount.Customer.CustomerType == "Vatable")
+                    {
+                        ledgers.Add(
+                           new GeneralLedgerBook
+                           {
+                               Date = model.Date.ToShortDateString(),
+                               Reference = model.ORNo,
+                               Description = "Collection for Receivable",
+                               AccountTitle = "2010304 Deferred Vat Output",
+                               Debit = (model.Total / 1.12m) * 0.12m,
+                               Credit = 0,
+                               CreatedBy = model.CreatedBy,
+                               CreatedDate = model.CreatedDate
+                           }
+                       );
+                    }
+
                     if (offset != null)
                     {
                         foreach (var item in offset)
@@ -1267,7 +1520,7 @@ namespace Accounting_System.Controllers
                                 Date = model.Date.ToShortDateString(),
                                 Reference = model.ORNo,
                                 Description = "Collection for Receivable",
-                                AccountTitle = "1010201 AR-Trade Receivable",
+                                AccountTitle = "1010204 AR-Non Trade Receivable",
                                 Debit = 0,
                                 Credit = model.CashAmount + model.CheckAmount + offsetAmount,
                                 CreatedBy = model.CreatedBy,
@@ -1307,6 +1560,23 @@ namespace Accounting_System.Controllers
                                 CreatedDate = model.CreatedDate
                             }
                         );
+                    }
+
+                    if (model.StatementOfAccount.Customer.CustomerType == "Vatable")
+                    {
+                        ledgers.Add(
+                           new GeneralLedgerBook
+                           {
+                               Date = model.Date.ToShortDateString(),
+                               Reference = model.ORNo,
+                               Description = "Collection for Receivable",
+                               AccountTitle = "2010301 Vat Output",
+                               Debit = 0,
+                               Credit = (model.Total / 1.12m) * 0.12m,
+                               CreatedBy = model.CreatedBy,
+                               CreatedDate = model.CreatedDate
+                           }
+                       );
                     }
 
                     _dbContext.AddRange(ledgers);
@@ -1375,6 +1645,26 @@ namespace Accounting_System.Controllers
                         );
                     }
 
+                    if (model.StatementOfAccount.Customer.CustomerType == "Vatable")
+                    {
+                        crb.Add(
+                            new CashReceiptBook
+                            {
+                                Date = model.Date.ToShortDateString(),
+                                RefNo = model.ORNo,
+                                CustomerName = model.StatementOfAccount.Customer.Name,
+                                Bank = "--",
+                                CheckNo = "--",
+                                COA = "2010304 Deferred Vat Output",
+                                Particulars = model.StatementOfAccount.SOANo,
+                                Debit = (model.Total / 1.12m) * 0.12m,
+                                Credit = 0,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
                     if (offset != null)
                     {
                         foreach (var item in offset)
@@ -1406,7 +1696,7 @@ namespace Accounting_System.Controllers
                         CustomerName = model.StatementOfAccount.Customer.Name,
                         Bank = "--",
                         CheckNo = "--",
-                        COA = "1010201 AR-Trade Receivable",
+                        COA = "1010204 AR-Non Trade Receivable",
                         Particulars = model.StatementOfAccount.SOANo,
                         Debit = 0,
                         Credit = model.CashAmount + model.CheckAmount + offsetAmount,
@@ -1455,13 +1745,33 @@ namespace Accounting_System.Controllers
                         );
                     }
 
+                    if (model.StatementOfAccount.Customer.CustomerType == "Vatable")
+                    {
+                        crb.Add(
+                            new CashReceiptBook
+                            {
+                                Date = model.Date.ToShortDateString(),
+                                RefNo = model.ORNo,
+                                CustomerName = model.StatementOfAccount.Customer.Name,
+                                Bank = "--",
+                                CheckNo = "--",
+                                COA = "2010301 Vat Output",
+                                Particulars = model.StatementOfAccount.SOANo,
+                                Debit = 0,
+                                Credit = (model.Total / 1.12m) * 0.12m,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
                     _dbContext.AddRange(crb);
 
                     #endregion --Cash Receipt Book Recording
 
                     #region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.PostedBy, $"Posted official# {model.ORNo}", "Official Receipt");
+                    AuditTrail auditTrail = new(model.PostedBy, $"Posted official receipt# {model.ORNo}", "Official Receipt");
                     _dbContext.Add(auditTrail);
 
                     #endregion --Audit Trail Recording
@@ -1488,6 +1798,9 @@ namespace Accounting_System.Controllers
                     model.IsVoided = true;
                     model.VoidedBy = _userManager.GetUserName(this.User);
                     model.VoidedDate = DateTime.Now;
+
+                    await _generalRepo.RemoveRecords<CashReceiptBook>(crb => crb.RefNo == model.ORNo);
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.ORNo);
 
                     #region --Audit Trail Recording
 

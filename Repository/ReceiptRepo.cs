@@ -93,7 +93,7 @@ namespace Accounting_System.Repository
                 .CollectionReceipts
                 .Include(cr => cr.SalesInvoice)
                 .ThenInclude(s => s.Customer)
-                .OrderByDescending(c => c.Id)
+                .OrderByDescending(cr => cr.Id)
                 .ToListAsync();
         }
 
@@ -101,7 +101,11 @@ namespace Accounting_System.Repository
         {
             return await _dbContext
                 .OfficialReceipts
-                .OrderByDescending(c => c.Id)
+                .Include(soa => soa.StatementOfAccount)
+                .ThenInclude(s => s.Service)
+                .Include(soa => soa.StatementOfAccount)
+                .ThenInclude(c => c.Customer)
+                .OrderByDescending(cr => cr.Id)
                 .ToListAsync();
         }
 
@@ -184,14 +188,14 @@ namespace Accounting_System.Repository
             {
                 var total = paidAmount + offsetAmount;
                 soa.AmountPaid += total;
-                soa.Balance = soa.NetAmount - soa.AmountPaid;
+                soa.Balance = (soa.Total - soa.Discount) - soa.AmountPaid;
 
-                if (soa.Balance == 0 && soa.AmountPaid == soa.NetAmount)
+                if (soa.Balance == 0 && soa.AmountPaid == (soa.Total - soa.Discount))
                 {
                     soa.IsPaid = true;
                     soa.Status = "Paid";
                 }
-                else if (soa.AmountPaid > soa.NetAmount)
+                else if (soa.AmountPaid > (soa.Total - soa.Discount))
                 {
                     soa.IsPaid = true;
                     soa.Status = "OverPaid";

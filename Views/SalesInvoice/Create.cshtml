@@ -18,92 +18,116 @@
 
                 <div class="row">
 
-                  @*   column 1 *@
        <div class="col">
-                <label class="control-label">Customer Name</label>
-                <select asp-for="CustomerId" asp-items="@Model.Customers" class="form-control js-select2">
-                    <option></option>
-                </select>
-                <span asp-validation-for="CustomerId" class="text-danger"></span>
+                <div class="form-group mb-3">
+                        <label class="control-label">Customer Name<span class="required">*</span></label>
+                        <select asp-for="CustomerId" asp-items="@Model.Customers" class="form-control js-select2">
+                            <option></option>
+                        </select>
+                        <span asp-validation-for="CustomerId" class="text-danger"></span>
+                </div>
 
                 <input type="hidden" asp-for="SoldTo" id="soldTo" class="form-control" readonly />
 
-                <label asp-for="TinNo" class="control-label"></label>
-                <input asp-for="TinNo" id="tinNo" class="form-control" readonly />
-                <span asp-validation-for="TinNo" class="text-danger"></span>
+                <div class="form-group mb-3">
+                        <label asp-for="TinNo" class="control-label"></label>
+                        <input asp-for="TinNo" id="tinNo" class="form-control" readonly />
+                        <span asp-validation-for="TinNo" class="text-danger"></span>
+                </div>
 
-                <label asp-for="CustomerType" class="control-label"></label>
-                <input asp-for="CustomerType" id="customerType" class="form-control" readonly />
-                <span asp-validation-for="CustomerType" class="text-danger"></span>
+                <div class="form-group mb-3">
+                        <label asp-for="CustomerType" class="control-label"></label>
+                        <input asp-for="CustomerType" id="customerType" class="form-control" readonly />
+                        <span asp-validation-for="CustomerType" class="text-danger"></span>
+                </div>
 
-                <label asp-for="Address" class="control-label"></label>
-                <input asp-for="Address" id="address" class="form-control" readonly />
-                <span asp-validation-for="Address" class="text-danger"></span>
+                <div class="form-group mb-3">
+                        <label asp-for="Address" class="control-label"></label>
+                        <input asp-for="Address" id="address" class="form-control" readonly />
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                </div>
 
-                <label asp-for="BusinessStyle" class="control-label"></label>
-                <input asp-for="BusinessStyle" id="businessStyle" class="form-control" readonly />
-                <span asp-validation-for="BusinessStyle" class="text-danger"></span>
+                <div class="form-group mb-3">
+                        <label asp-for="BusinessStyle" class="control-label"></label>
+                        <input asp-for="BusinessStyle" id="businessStyle" class="form-control" readonly />
+                        <span asp-validation-for="BusinessStyle" class="text-danger"></span>
+                </div>
 
-                <label asp-for="Terms" class="control-label"></label>
-                <input asp-for="Terms" id="terms" class="form-control" readonly />
-                <span asp-validation-for="Terms" class="text-danger"></span>
-
-                @* <input type="hidden" asp-for="WithHoldingTax" id="withHoldingTax" class="form-control" /> *@
+                <div class="form-group mb-3">
+                        <label asp-for="Terms" class="control-label"></label>
+                        <input asp-for="Terms" id="terms" class="form-control" readonly />
+                        <span asp-validation-for="Terms" class="text-danger"></span>
+                </div>
        </div>
 
-            @*   column 2 *@
        <div class="col">
-                <label class="control-label">Product Name</label>
-                <select asp-for="ProductNo" asp-items="@Model.Products" class="form-control js-select2">
-                    <option></option>
-                </select>
-                <span asp-validation-for="ProductNo" class="text-danger"></span>
+
+                <div class="form-group mb-3">
+                        <label class="control-label">Product Name<span class="required">*</span></label>
+                        <select asp-for="ProductNo" asp-items="@Model.Products" class="form-control js-select2">
+                            <option></option>
+                        </select>
+                        <span asp-validation-for="ProductNo" class="text-danger"></span>
+                </div>
 
                 <input type="hidden" asp-for="ProductName" id="productName" class="form-control" readonly />
 
-                  <label asp-for="ProductUnit" class="control-label"></label>
-                <input asp-for="ProductUnit" id="productUnit" class="form-control" readonly />
-                <span asp-validation-for="ProductUnit" class="text-danger"></span>
+                <div class="form-group mb-3">
+                        <label asp-for="ProductUnit" class="control-label"></label>
+                        <input asp-for="ProductUnit" id="productUnit" class="form-control" readonly />
+                        <span asp-validation-for="ProductUnit" class="text-danger"></span>
+                </div>
 
-                <label asp-for="UnitPrice" class="control-label"></label>
-                    <input asp-for="UnitPrice" class="form-control moneyInput" />
-                <span asp-validation-for="UnitPrice" class="text-danger"></span>
+                <div class="form-group mb-3">
+                        <label asp-for="UnitPrice" class="control-label">Unit Price<span class="required">*</span></label>
+                        <input asp-for="UnitPrice" class="form-control moneyInput" />
+                        <span asp-validation-for="UnitPrice" class="text-danger"></span>
+                </div>
 
-                <label asp-for="Quantity" class="control-label"></label>
-                <input asp-for="Quantity" class="form-control moneyInput" value="0" />
-                <span asp-validation-for="Quantity" class="text-danger"></span>
+                <div class="form-group mb-3">
+                        <label asp-for="Quantity" class="control-label">Quantity<span class="required">*</span></label>
+                        <input asp-for="Quantity" class="form-control" value="" />
+                        <span asp-validation-for="Quantity" class="text-danger"></span>
+                </div>
 
+                <div class="form-group mb-3">
+                        <label asp-for="Discount" class="control-label"></label>
+                        <input asp-for="Discount" class="form-control moneyInput" />
+                        <span asp-validation-for="Discount" class="text-danger"></span>
+                </div>
 
-                <label asp-for="Discount" class="control-label"></label>
-                    <input asp-for="Discount" class="form-control moneyInput" />
-                <span asp-validation-for="Discount" class="text-danger"></span>
        </div>
 
-            @*   column 3 *@
        <div class="col">
-                <label asp-for="TransactionDate" class="control-label"></label>
-                <input type="date" asp-for="TransactionDate" class="form-control" />
-                <span asp-validation-for="TransactionDate" class="text-danger"></span>
+                <div class="form-group mb-3">
+                        <label asp-for="TransactionDate" class="control-label">Date<span class="required">*</span></label>
+                        <input type="date" asp-for="TransactionDate" class="form-control" />
+                        <span asp-validation-for="TransactionDate" class="text-danger"></span>
+                </div>
 
-                <label asp-for="PoNo" class="control-label"></label>
-                <input asp-for="PoNo" class="form-control" />
-                <span asp-validation-for="PoNo" class="text-danger"></span>
+                <div class="form-floating mb-3">
 
-                <label asp-for="OtherRefNo" class="control-label"></label>
-                <input asp-for="OtherRefNo" class="form-control" />
-                <span asp-validation-for="OtherRefNo" class="text-danger"></span>
+                        <input asp-for="PoNo" class="form-control" placeholder="Optional" />
+                        <label asp-for="PoNo" class="control-label">P.O No.</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="OtherRefNo" class="form-control" placeholder="Optional" />
+                    <label asp-for="OtherRefNo" class="control-label">Other Ref No.</label>
+                </div>
+
                     </div>
                 </div>
        </div>
 
 
-            <div class="form-group">
-                <label asp-for="Remarks" class="control-label"></label>
-                <input asp-for="Remarks" class="form-control" autocomplete="off"/>
+            <div class="form-floating">
+                <textarea asp-for="Remarks" class="form-control" placeholder="Leave a remarks here" style="height: 100px"></textarea>
+                <label asp-for="Remarks" class="control-label">Remarks<span class="required">*</span></label>
                 <span asp-validation-for="Remarks" class="text-danger"></span>
             </div>
     <div class="form-group" style="margin-top:50px;">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <input type="submit" value="Create" class="btn btn-primary" />
             </div>
         </form>
 <div>

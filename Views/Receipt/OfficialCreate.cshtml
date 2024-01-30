@@ -25,33 +25,33 @@
 
             </pre>
         </div>
-        <form asp-action="OfficialCreate">
+        <form asp-action="OfficialCreate" method="post" enctype="multipart/form-data">
             <div class="col-md-4">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="form-group mb-3">
-                    <label class="control-label">Customers</label>
+                    <label class="control-label">Customers<span class="required">*</span></label>
                     <select asp-for="CustomerNo" asp-items="@Model.Customers" class="form-select js-select2" required>
                         <option></option>
                     </select>
                     <span asp-validation-for="CustomerNo" class="text-danger"></span>
                 </div>
-                <div class="form-group">
-                    <label class="control-label">SOA No.</label>
+                <div class="form-group mb-3">
+                    <label class="control-label">SOA No.<span class="required">*</span></label>
                     <select asp-for="SOAId" id="soa" asp-items="@Model.StatementOfAccounts" class="form-select js-select2">
                         <option></option>
                     </select>
+                    <span asp-validation-for="CustomerNo" class="text-danger"></span>
                 </div>
-                <div class="form-group">
-                    <label asp-for="Date" class="control-label"></label>
+                <div class="form-group mb-3">
+                    <label asp-for="Date" class="control-label">Date<span class="required">*</span></label>
                     <input asp-for="Date" type="Date" class="form-control" />
                     <span asp-validation-for="Date" class="text-danger"></span>
                 </div>
-                <div class="form-group">
-                    <label asp-for="ReferenceNo" class="control-label"></label>
-                    <input asp-for="ReferenceNo" type="text" class="form-control" />
+                <div class="form-floating mb-3">
+                    <input asp-for="ReferenceNo" id="floatingInput" type="text" class="form-control" placeholder="Reference #" />
+                    <label for="floatingInput" class="control-label">Reference #<span class="required">*</span></label>
                     <span asp-validation-for="ReferenceNo" class="text-danger"></span>
                 </div>
-                <br />
                 <div class="form-floating mb-3">
                     <input asp-for="Remarks" id="floatingInput" type="text" class="form-control" placeholder="Optional"/>
                     <label for="floatingInput" class="control-label">Remarks</label>
@@ -62,7 +62,7 @@
             <table class="table-bordered w-100">
                 <tbody>
                     <tr>
-                        <td colspan="6" style="padding-left:20px;">FORM OF PAYMENT</td>
+                        <td colspan="6" style="padding-left:20px;">FORM OF PAYMENT<span class="required">*</span></td>
                     </tr>
                     <tr>
                         <td class="text-center" style="width:25%"></td>
@@ -100,8 +100,21 @@
                 </tbody>
             </table>
 
+            <div class="form-group my-3">
+                <label class="form-label fst-italic">If applicable, upload the certificate.</label>
+                <div class="mb-3">
+                    <label for="bir2306" class="form-label">BIR 2306 Form</label>
+                    <input class="form-control form-control-sm w-25" name="bir2306" type="file">
+                </div>
+                <div class="mb-3">
+                    <label for="bir2307" class="form-label">BIR 2307 Form</label>
+                    <input class="form-control form-control-sm w-25" name="bir2307" type="file">
+                </div>
+            </div>
+
+
+            <hr />
             <div class="form-group">
-                <hr />
                 <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#AddAccEntry">
                     Add Entry
                 </button>
@@ -122,7 +135,7 @@
 
             <br />
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <input type="submit" value="Create" class="btn btn-primary" />
                 <a asp-action="OfficialIndex" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
@@ -148,14 +161,14 @@
                         </div>
                         <div class="form-group pt-4">
                             <label class="control-label">Amount</label>
-                            <input id="AccountAmount" class="form-control moneyInput" />
+                            <input id="AccountAmount" class="form-control moneyInput" placeholder="0.00" />
                             <span class="text-danger"></span>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="saveAccountingEntry()">Save</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAccountingEntry()">Create</button>
                 </div>
             </div>
         </div>

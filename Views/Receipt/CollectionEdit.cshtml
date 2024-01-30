@@ -11,21 +11,7 @@ EditCollection
 <h4>Collection Receipt</h4>
 <hr />
 <div class="row">
-        <div class="position-absolute p-2" style="left:40%; width:25%; border:dotted 1px;">
-            <pre>
- <b>Invoice Details</b>
- Invoice Amount: <span id="amount"></span>
- EWT:            <span id="ewt"></span>
- WVAT:           <span id="wvat"></span>
- =======================================
- Less EWT/WVAT:  <span id="total"></span>
- =======================================
- Amount Paid:    <span id="amountPaid"></span>
- Balance:        <span id="balance"></span>
-
-            </pre>
-        </div>
-        <form asp-action="CollectionEdit" method="post">
+        <form asp-action="CollectionEdit" method="post" enctype="multipart/form-data">
             <div class="col-md-4">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group mb-3">
@@ -75,7 +61,7 @@ EditCollection
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
-                            <td><input asp-for="CashAmount" style="border:none" class="form-control moneyInput" /></td>
+                        <td><input asp-for="CashAmount" style="border:none" class="form-control moneyInput" /></td>
                         </tr>
 
                         <tr>
@@ -106,8 +92,37 @@ EditCollection
                     </tbody>
                 </table>
 
+            <div class="form-group my-3">
+                <label class="form-label fst-italic">Uploaded certificate.</label>
+                @if(Model.F2306FilePath == null)
+                {
+                    <div class="mb-3">
+                        <label for="bir2306" class="form-label">BIR 2306 Form</label>
+                        <input class="form-control form-control-sm w-25" name="bir2306" type="file">
+                    </div>
+                }
+                else
+                {
+                    <h6>BIR 2306 Form <span class="badge rounded-pill bg-success">&check;</span></h6>
+                }
+
+                @if(Model.F2307FilePath == null)
+                {
+                    <div class="mb-3">
+                        <label for="bir2307" class="form-label">BIR 2307 Form</label>
+                        <input class="form-control form-control-sm w-25" name="bir2307" type="file">
+                    </div>
+                }
+                else
+                {
+                    <h6>BIR 2307 Form <span class="badge rounded-pill bg-success">&check;</span></h6>
+                }
+
+            </div>
+
+
+            <hr />
             <div class="form-group">
-                    <hr />
                     <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#AddAccEntry">
                         Add Entry
                     </button>
@@ -154,7 +169,7 @@ EditCollection
                         </div>
                         <div class="form-group pt-4">
                             <label class="control-label">Amount</label>
-                            <input id="AccountAmount" class="form-control moneyInput" />
+                            <input id="AccountAmount" class="form-control moneyInput" placeholder="0.00" />
                             <span class="text-danger"></span>
                         </div>
                     </form>
@@ -180,46 +195,6 @@ EditCollection
         // Set the default value of the input field
         document.getElementById("Date").value = myDate;
     </script>
-
-    <script>
-    $(document).ready(function () {
-        $("#CustomerNo").change(function () {
-            var customerNo = $(this).val();
-
-            $.ajax({
-                url: "/Receipt/GetSalesInvoices",
-                type: "GET",
-                data: { customerNo: customerNo },
-                success: function (data) {
-
-                            $("#invoices").empty();
-
-                    // Check if data is an array and not null
-                    if (Array.isArray(data) && data.length > 0) {
-
-                        document.getElementById("amount").innerHTML = "";
-                        document.getElementById("amountPaid").innerHTML = "";
-                        document.getElementById("balance").innerHTML = "";
-
-                        $("#invoices").append('<option>');
-
-                        // Iterate over the array and append options
-                        $.each(data, function (index, item) {
-                            $("#invoices").append($('<option>', {
-                                value: item.value,   // Use the correct property for value
-                                text: item.text      // Use the correct property for text
-                            }));
-                        });
-                    } else {
-                        // Handle the case where data is null or empty
-                        console.log("No sales invoices found for the selected customer.");
-                    }
-                }
-            });
-        });
-    });
-    </script>
-
         <script>
             function initializeTable() {
                 // Get the data from ViewBag and parse it as JSON

@@ -10,45 +10,62 @@
 <h4>ReceivingReport</h4>
 <hr />
 <div class="row">
+        <div class="position-absolute p-2" style="left:40%; width:25%; border:dotted 1px;">
+            <pre>
+                   <b>PO Liquidations</b>
+
+    PO No: <span id="poNo" class="fw-bold"></span> - Quantity: <span id="poQuantity" class="fw-bold"></span>
+ <ul id="rrList"></ul>
+ ======================================================
+    Remaining Quantity:  <span id="remainingQuantity"></span>
+
+            </pre>
+        </div>
     <div class="col-md-4">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Date" class="control-label"></label>
-                <input type="date" asp-for="Date" class="form-control" />
-                <span asp-validation-for="Date" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="POId" class="control-label"></label>
-                <select asp-for="POId" class ="form-control js-select2" asp-items="@Model.PurchaseOrders">
-                    <option></option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label asp-for="TruckOrVessels" class="control-label"></label>
-                <input asp-for="TruckOrVessels" class="form-control" />
-                <span asp-validation-for="TruckOrVessels" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="QuantityDelivered" class="control-label"></label>
-                <input asp-for="QuantityDelivered" class="form-control" />
-                <span asp-validation-for="QuantityDelivered" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="QuantityReceived" class="control-label"></label>
-                <input asp-for="QuantityReceived" class="form-control" />
-                <span asp-validation-for="QuantityReceived" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="OtherRef" class="control-label"></label>
-                <input asp-for="OtherRef" class="form-control" />
-                <span asp-validation-for="OtherRef" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Remarks" class="control-label"></label>
-                <textarea asp-for="Remarks" class="form-control"></textarea>
-                <span asp-validation-for="Remarks" class="text-danger"></span>
-            </div>
+                <div class="form-group mb-3">
+                    <label asp-for="Date" class="control-label">Date<span class="required">*</span></label>
+                    <input asp-for="Date" type="date" class="form-control" />
+                    <span asp-validation-for="Date" class="text-danger"></span>
+                </div>
+                <div class="form-group mb-3">
+                    <label asp-for="POId" class="control-label">PO No.<span class="required">*</span></label>
+                    <select asp-for="POId" class="form-control js-select2" asp-items="@Model.PurchaseOrders" style="width:100%">
+                        <option></option>
+                    </select>
+                    <span asp-validation-for="POId" class="text-danger"></span>
+                </div>
+                <div class="form-floating mb-3">
+                    <input asp-for="InvoiceOrDate" class="form-control" placeholder=""/>
+                    <label asp-for="InvoiceOrDate" class="control-label">Supplier Invoice#/Date<span class="required">*</span></label>
+                    <span asp-validation-for="InvoiceOrDate" class="text-danger"></span>
+                </div>
+                <div class="form-floating mb-3">
+                    <input asp-for="TruckOrVessels" class="form-control" placeholder="" />
+                    <label asp-for="TruckOrVessels" class="control-label">Truck/Vessels<span class="required">*</span></label>
+                    <span asp-validation-for="TruckOrVessels" class="text-danger"></span>
+                </div>
+                <div class="form-floating mb-3">
+                    <input asp-for="QuantityDelivered" type="text" value="" class="form-control" placeholder=""/>
+                    <label asp-for="QuantityDelivered" class="control-label">Qty Delivered<span class="required">*</span></label>
+                    <span asp-validation-for="QuantityDelivered" class="text-danger"></span>
+                </div>
+                <div class="form-floating mb-3">
+                    <input asp-for="QuantityReceived" type="text" value="" class="form-control" placeholder="" />
+                    <label asp-for="QuantityReceived" class="control-label">Qty Received<span class="required">*</span></label>
+                    <span asp-validation-for="QuantityReceived" class="text-danger"></span>
+                </div>
+                <div class="form-floating mb-3">
+                    <input asp-for="OtherRef" class="form-control" placeholder=""/>
+                    <label asp-for="OtherRef" class="control-label"></label>
+                    <span asp-validation-for="OtherRef" class="text-danger"></span>
+                </div>
+                <div class="form-floating mb-3">
+                    <textarea asp-for="Remarks" class="form-control" placeholder="" style="height: 100px"></textarea>
+                    <label asp-for="Remarks" class="control-label">Remarks<span class="required">*</span></label>
+                    <span asp-validation-for="Remarks" class="text-danger"></span>
+                </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
@@ -66,4 +83,64 @@
     <script>
         document.getElementById('Date').value = new Date().toISOString().substring(0, 10);
     </script>
+
+    <script>
+            // Function to handle invoice change event
+            function handlePoChange() {
+                var id = $("#POId").val();
+                console.log(id);
+                if (id != "") {
+                    $.ajax({
+                        url: "/ReceivingReport/GetLiquidations",
+                        type: "GET",
+                        data: { id: id },
+                        success: function (data) {
+                            console.log(data);
+                            // Update PO No and Quantity
+                            document.getElementById("poNo").innerHTML = data.poNo;
+                            document.getElementById("poQuantity").innerHTML = data.poQuantity;
+
+                            // Calculate and update Remaining Quantity
+                            var totalReceived = 0;
+                            for (var i = 0; i < 5 && i < data.rrList.length; i++) {
+                                totalReceived += data.rrList[i].quantityReceived;
+                            }
+                            var remainingQuantity = data.poQuantity - totalReceived;
+
+                            // Format the remaining quantity with thousand's comma
+                            var formattedRemainingQuantity = formatNumberWithCommas(remainingQuantity);
+
+                            // Display the formatted remaining quantity
+                            document.getElementById("remainingQuantity").innerHTML = formattedRemainingQuantity + "L";
+
+                            var rrList = data.rrList;
+                            var rrListUl = document.getElementById("rrList");
+                            rrListUl.innerHTML = ""; // Clear previous list items
+
+                            for (var i = 0; i < rrList.length; i++) {
+                                var rr = rrList[i];
+                                var li = document.createElement("li");
+                                li.textContent = "RR No: " + rr.rrNo + " - Quantity: " + rr.quantityReceived;
+                                rrListUl.appendChild(li);
+                            }
+                        }
+                    });
+                }
+            }
+
+            function formatNumberWithCommas(number) {
+                return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            }
+
+            $(document).ready(function () {
+                // Call the handleInvoiceChange function on page load
+                handlePoChange();
+
+                // Attach event listener to invoice dropdown
+                $("#POId").change(function () {
+                    // Call the handleInvoiceChange function when the dropdown changes
+                    handlePoChange();
+                });
+            });
+        </script>
 }

@@ -1,4 +1,4 @@
-﻿ using Accounting_System.Data;
+﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +18,7 @@ namespace Accounting_System.Repository
             return await _dbContext
                 .PurchaseOrders
                 .Include(p => p.Supplier)
+                .Include(p => p.Product)
                 .OrderBy(s => s.Id)
                 .ToListAsync();
         }
@@ -71,6 +72,39 @@ namespace Accounting_System.Repository
             else
             {
                 throw new ArgumentException("No record found in supplier.");
+            }
+        }
+
+        public async Task<string> GetProductNoAsync(int id)
+        {
+            if (id != 0)
+            {
+                var product = await _dbContext
+                                .Products
+                                .FirstOrDefaultAsync(s => s.Id == id);
+                return product.Code;
+            }
+            else
+            {
+                throw new ArgumentException("No record found in supplier.");
+            }
+        }
+
+        public async Task<PurchaseOrder> FindPurchaseOrder(int? id)
+        {
+            var po = await _dbContext
+                .PurchaseOrders
+                .Include(p => p.Supplier)
+                .Include(p => p.Product)
+                .FirstOrDefaultAsync(po => po.Id == id);
+
+            if (po != null)
+            {
+                return po;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
             }
         }
     }

@@ -25,7 +25,6 @@ builder.Services.AddScoped<SalesInvoiceRepo>();
 builder.Services.AddScoped<CustomerRepo>();
 builder.Services.AddScoped<ReportRepo>();
 builder.Services.AddScoped<InventoryRepo>();
-builder.Services.AddScoped<SalesOrderRepo>();
 builder.Services.AddScoped<ReceiptRepo>();
 builder.Services.AddScoped<StatementOfAccountRepo>();
 builder.Services.AddScoped<PurchaseOrderRepo>();
@@ -36,6 +35,7 @@ builder.Services.AddScoped<CreditMemoRepo>();
 builder.Services.AddScoped<SupplierRepo>();
 builder.Services.AddScoped<CheckVoucherRepo>();
 builder.Services.AddScoped<ChartOfAccountRepo>();
+builder.Services.AddScoped<GeneralRepo>();
 
 var app = builder.Build();
 

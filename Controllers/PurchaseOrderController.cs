@@ -42,6 +42,14 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync();
 
+            viewModel.Products = await _dbContext.Products
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync();
+
             return View(viewModel);
         }
 
@@ -56,6 +64,15 @@ namespace Accounting_System.Controllers
                     Text = s.Name
                 })
                 .ToListAsync();
+
+            model.Products = await _dbContext.Products
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync();
+
             if (ModelState.IsValid)
             {
                 var getLastNumber = await _purchaseOrderRepo.GetLastSeriesNumber();
@@ -76,15 +93,23 @@ namespace Accounting_System.Controllers
                 }
 
                 var generatedPO = await _purchaseOrderRepo.GeneratePONo();
-                
 
                 model.SeriesNumber = getLastNumber;
                 model.PONo = generatedPO;
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 model.Amount = model.Quantity * model.Price;
                 model.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model.SupplierId);
+                model.ProductNo = await _purchaseOrderRepo.GetProductNoAsync(model.ProductId);
 
                 _dbContext.Add(model);
+
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(model.CreatedBy, $"Create new purchase order# {model.PONo}", "Purchase Order");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
                 await _dbContext.SaveChangesAsync();
                 return RedirectToAction("Index");
             }
@@ -103,7 +128,7 @@ namespace Accounting_System.Controllers
                 return NotFound();
             }
 
-            var purchaseOrder = await _dbContext.PurchaseOrders.FindAsync(id);
+            var purchaseOrder = await _purchaseOrderRepo.FindPurchaseOrder(id);
             if (purchaseOrder == null)
             {
                 return NotFound();
@@ -116,6 +141,16 @@ namespace Accounting_System.Controllers
                     Text = s.Name
                 })
                 .ToListAsync();
+
+            purchaseOrder.Products = await _dbContext.Products
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync();
+
+            ViewBag.PurchaseOrders = purchaseOrder.Quantity;
 
             return View(purchaseOrder);
         }
@@ -140,14 +175,30 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync();
 
+                model.Products = await _dbContext.Products
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync();
+
                 existingModel.Date = model.Date;
                 existingModel.SupplierId = model.SupplierId;
-                existingModel.ProductName = model.ProductName;
-                existingModel.Quantity = model.Quantity;
+                existingModel.ProductId = model.ProductId;
                 existingModel.Quantity = model.Quantity;
                 existingModel.Price = model.Price;
                 existingModel.Amount = model.Quantity * model.Price;
                 existingModel.Remarks = model.Remarks;
+                existingModel.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model.SupplierId);
+                existingModel.ProductNo = await _purchaseOrderRepo.GetProductNoAsync(model.ProductId);
+
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(existingModel.CreatedBy, $"Edit purchase order# {existingModel.PONo}", "Purchase Order");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync();
 
@@ -166,9 +217,8 @@ namespace Accounting_System.Controllers
                 return NotFound();
             }
 
-            var purchaseOrder = await _dbContext.PurchaseOrders
-                .Include(p => p.Supplier)
-                .FirstOrDefaultAsync(p => p.Id == id);
+            var purchaseOrder = await _purchaseOrderRepo
+                .FindPurchaseOrder(id);
             if (purchaseOrder == null)
             {
                 return NotFound();
@@ -182,36 +232,109 @@ namespace Accounting_System.Controllers
             var po = await _dbContext.PurchaseOrders.FindAsync(id);
             if (po != null && !po.IsPrinted)
             {
+                #region --Audit Trail Recording
+
+                var printedBy = _userManager.GetUserName(this.User);
+                AuditTrail auditTrail = new(printedBy, $"Printed original copy of po# {po.PONo}", "Purchase Order");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
                 po.IsPrinted = true;
                 await _dbContext.SaveChangesAsync();
             }
             return RedirectToAction("Print", new { id = id });
         }
 
-        public async Task<IActionResult> Post(int poId)
+        public async Task<IActionResult> Post(int id)
         {
-            var model = await _dbContext.PurchaseOrders.FindAsync(poId);
+            var model = await _dbContext.PurchaseOrders.FindAsync(id);
 
             if (model != null)
             {
                 if (!model.IsPosted)
                 {
                     model.IsPosted = true;
+                    model.PostedBy = _userManager.GetUserName(this.User);
+                    model.PostedDate = DateTime.Now;
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.PostedBy, $"Posted purchase order# {model.PONo}", "Purchase Order");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync();
-                    TempData["success"] = "Purchase Order has been Posted.";
-
+                    TempData["success"] = "Purchase Order has been Voided.";
                 }
-                //else
-                //{
-                //    model.IsVoid = true;
-                //    await _dbContext.SaveChangesAsync();
-                //    TempData["success"] = "Purchase Order has been Voided.";
-                //}
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
 
             return NotFound();
+        }
+
+        public async Task<IActionResult> Void(int id)
+        {
+            var model = await _dbContext.PurchaseOrders.FindAsync(id);
+
+            if (model != null)
+            {
+                if (!model.IsVoided)
+                {
+                    model.IsVoided = true;
+                    model.VoidedBy = _userManager.GetUserName(this.User);
+                    model.VoidedDate = DateTime.Now;
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.VoidedBy, $"Voided purchase order# {model.PONo}", "Purchase Order");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Purchase Order has been Voided.";
+                }
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
+
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var model = await _dbContext.PurchaseOrders.FindAsync(id);
+
+            if (model != null)
+            {
+                if (!model.IsCanceled)
+                {
+                    model.IsCanceled = true;
+                    model.CanceledBy = _userManager.GetUserName(this.User);
+                    model.CanceledDate = DateTime.Now;
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Canceled purchase order# {model.PONo}", "Purchase Order");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Purchase Order has been Canceled.";
+                }
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Preview(int? id)
+        {
+            var po = await _purchaseOrderRepo.FindPurchaseOrder(id);
+            return PartialView("_PreviewPartialView", po);
         }
     }
 }

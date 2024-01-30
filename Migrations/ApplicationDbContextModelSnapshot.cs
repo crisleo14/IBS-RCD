@@ -321,7 +321,16 @@ namespace Accounting_System.Migrations
                     b.Property<decimal>("EWT")
                         .HasColumnType("numeric");
 
+                    b.Property<string>("F2306FilePath")
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("F2307FilePath")
+                        .HasColumnType("varchar(200)");
+
                     b.Property<bool>("IsCanceled")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsCertificateUpload")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsPosted")
@@ -970,7 +979,16 @@ namespace Accounting_System.Migrations
                     b.Property<decimal>("EWT")
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<string>("F2306FilePath")
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("F2307FilePath")
+                        .HasColumnType("varchar(200)");
+
                     b.Property<bool>("IsCanceled")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsCertificateUpload")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsPosted")
@@ -1178,7 +1196,7 @@ namespace Accounting_System.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("CanceledBy")
                         .HasColumnType("varchar(50)");
@@ -1193,10 +1211,10 @@ namespace Accounting_System.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("date");
 
                     b.Property<decimal>("FinalPrice")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<bool>("IsCanceled")
                         .HasColumnType("boolean");
@@ -1214,7 +1232,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("PONo")
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(12)");
 
                     b.Property<string>("PostedBy")
                         .HasColumnType("varchar(50)");
@@ -1223,24 +1241,26 @@ namespace Accounting_System.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
 
-                    b.Property<string>("ProductName")
-                        .IsRequired()
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ProductNo")
                         .HasColumnType("text");
 
-                    b.Property<decimal>("Quantity")
-                        .HasColumnType("numeric");
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
 
-                    b.Property<decimal>("QuantityReceived")
-                        .HasColumnType("numeric");
+                    b.Property<int>("QuantityReceived")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("ReceivedDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Remarks")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<long>("SeriesNumber")
                         .HasColumnType("bigint");
@@ -1251,6 +1271,10 @@ namespace Accounting_System.Migrations
                     b.Property<int>("SupplierNo")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Terms")
+                        .IsRequired()
+                        .HasColumnType("varchar(5)");
+
                     b.Property<string>("VoidedBy")
                         .HasColumnType("varchar(50)");
 
@@ -1258,6 +1282,8 @@ namespace Accounting_System.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
 
                     b.HasIndex("SupplierId");
 
@@ -1273,7 +1299,7 @@ namespace Accounting_System.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("AmountPaid")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("CanceledBy")
                         .HasColumnType("varchar(50)");
@@ -1288,10 +1314,17 @@ namespace Accounting_System.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("date");
+
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("date");
 
                     b.Property<decimal?>("GainOrLoss")
                         .HasColumnType("numeric");
+
+                    b.Property<string>("InvoiceOrDate")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
 
                     b.Property<bool>("IsCanceled")
                         .HasColumnType("boolean");
@@ -1310,16 +1343,16 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("OtherRef")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(100)");
 
                     b.Property<int>("POId")
                         .HasColumnType("integer");
 
                     b.Property<string>("PONo")
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(12)");
 
                     b.Property<DateTime>("PaidDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("PostedBy")
                         .HasColumnType("varchar(50)");
@@ -1327,14 +1360,14 @@ namespace Accounting_System.Migrations
                     b.Property<DateTime?>("PostedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal>("QuantityDelivered")
-                        .HasColumnType("numeric");
+                    b.Property<int>("QuantityDelivered")
+                        .HasColumnType("integer");
 
-                    b.Property<decimal>("QuantityReceived")
-                        .HasColumnType("numeric");
+                    b.Property<int>("QuantityReceived")
+                        .HasColumnType("integer");
 
                     b.Property<string>("RRNo")
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(12)");
 
                     b.Property<string>("Remarks")
                         .IsRequired()
@@ -1345,7 +1378,7 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("TruckOrVessels")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("VoidedBy")
                         .HasColumnType("varchar(50)");
@@ -1521,8 +1554,8 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(5)");
 
-                    b.Property<decimal>("Quantity")
-                        .HasColumnType("numeric");
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Remarks")
                         .IsRequired()
@@ -1585,105 +1618,6 @@ namespace Accounting_System.Migrations
                     b.HasIndex("CustomerId");
 
                     b.ToTable("SalesInvoices");
-                });
-
-            modelBuilder.Entity("Accounting_System.Models.SalesOrder", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ApprovedBy")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("ApprovedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal>("Balance")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("COSNo")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CanceledBy")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("DateExpiration")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("DeliveryDate")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsCanceled")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsPosted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsPrinted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsVoided")
-                        .HasColumnType("boolean");
-
-                    b.Property<decimal>("OrderAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("PO")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PostedBy")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal>("Quantity")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("QuantityServe")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("Remarks")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("TransactionDate")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("VoidedBy")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("SalesOrders");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.Services", b =>
@@ -1753,11 +1687,20 @@ namespace Accounting_System.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<decimal>("CurrentAndPreviousAmount")
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer");
 
                     b.Property<decimal>("Discount")
                         .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Instructions")
+                        .HasColumnType("varchar(200)");
 
                     b.Property<bool>("IsCanceled")
                         .HasColumnType("boolean");
@@ -1793,7 +1736,7 @@ namespace Accounting_System.Migrations
                     b.Property<long>("SeriesNumber")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("ServiceNumber")
+                    b.Property<int>("ServiceNo")
                         .HasColumnType("integer");
 
                     b.Property<int>("ServicesId")
@@ -1804,6 +1747,9 @@ namespace Accounting_System.Migrations
                         .HasColumnType("varchar(20)");
 
                     b.Property<decimal>("Total")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("UnearnedAmount")
                         .HasColumnType("numeric(18,2)");
 
                     b.Property<decimal>("VatAmount")
@@ -1840,32 +1786,48 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("BusinessStyle")
-                        .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("varchar(50)");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(50)");
 
                     b.Property<int>("Number")
                         .HasColumnType("integer");
 
+                    b.Property<string>("ProofOfExemptionFilePath")
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("ProofOfRegistrationFilePath")
+                        .IsRequired()
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("ReasonOfExemption")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Terms")
+                        .IsRequired()
+                        .HasColumnType("varchar(5)");
+
                     b.Property<string>("TinNo")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("Validity")
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime?>("ValidityDate")
+                        .HasColumnType("date");
 
                     b.Property<bool>("WithholdingTax")
                         .HasColumnType("boolean");
@@ -2188,11 +2150,19 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.PurchaseOrder", b =>
                 {
+                    b.HasOne("Accounting_System.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Accounting_System.Models.Supplier", "Supplier")
                         .WithMany()
                         .HasForeignKey("SupplierId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Product");
 
                     b.Navigation("Supplier");
                 });

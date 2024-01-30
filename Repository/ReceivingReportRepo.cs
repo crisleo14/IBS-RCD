@@ -64,5 +64,117 @@ namespace Accounting_System.Repository
                 throw new ArgumentException("No record found in supplier.");
             }
         }
+
+        public async Task<int> UpdatePOAsync(int id, int quantityReceived)
+        {
+            var po = await _dbContext.PurchaseOrders
+                    .FirstOrDefaultAsync(po => po.Id == id);
+
+            if (po != null)
+            {
+                po.QuantityReceived += quantityReceived;
+
+                if (po.QuantityReceived >= po.Quantity)
+                {
+                    po.IsReceived = true;
+                    po.ReceivedDate = DateTime.Now;
+                }
+
+                return await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                throw new ArgumentException("No record found.");
+            }
+        }
+
+        public async Task<DateTime> ComputeDueDateAsync(int poId, DateTime rrDate)
+        {
+            var po = await _dbContext
+                .PurchaseOrders
+                .FirstOrDefaultAsync(po => po.Id == poId);
+
+            if (po != null)
+            {
+                DateTime dueDate;
+
+                switch (po.Terms)
+                {
+                    case "7D":
+                        return dueDate = rrDate.AddDays(7);
+
+                    case "15D":
+                        return dueDate = rrDate.AddDays(15);
+
+                    case "30D":
+                        return dueDate = rrDate.AddDays(30);
+
+                    case "M15":
+                        return dueDate = rrDate.AddMonths(1).AddDays(15 - rrDate.Day);
+
+                    case "M30":
+                        if (rrDate.Month == 1)
+                        {
+                            dueDate = new DateTime(rrDate.Year, rrDate.Month, 1).AddMonths(2).AddDays(-1);
+                        }
+                        else
+                        {
+                            dueDate = new DateTime(rrDate.Year, rrDate.Month, 1).AddMonths(2).AddDays(-1);
+
+                            if (dueDate.Day == 31)
+                            {
+                                dueDate = dueDate.AddDays(-1);
+                            }
+                        }
+                        return dueDate;
+
+                    default:
+                        return dueDate = rrDate;
+                }
+            }
+            else
+            {
+                throw new ArgumentException("No record found.");
+            }
+        }
+
+        public async Task<ReceivingReport> FindRR(int id)
+        {
+            var rr = await _dbContext
+                .ReceivingReports
+                .Include(rr => rr.PurchaseOrder)
+                .ThenInclude(po => po.Product)
+                .Include(rr => rr.PurchaseOrder)
+                .ThenInclude(po => po.Supplier)
+                .FirstOrDefaultAsync(rr => rr.Id == id);
+
+            if (rr != null)
+            {
+                return rr;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
+            }
+        }
+
+        public async Task<PurchaseOrder> GetPurchaseOrderAsync(int id)
+        {
+            var po = await _dbContext
+                .PurchaseOrders
+                .Include(po => po.Product)
+                .Include(po => po.Supplier)
+                .FirstOrDefaultAsync (po => po.Id == id);
+
+            if (po != null)
+            {
+                return po;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
+            }
+
+        }
     }
 }

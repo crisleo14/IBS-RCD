@@ -11,9 +11,9 @@
 <h1>Official Receipt</h1>
 <partial name="_Notification">
 <p>
-    <a asp-action="OfficialCreate" class="btn btn-primary rounded-3">Create New</a>
+    <a asp-action="OfficialCreate" class="btn btn-primary rounded-3">Add New</a>
 </p>
-<table class="table table-hover" id="myTable">
+<table class="table table-hover" id="myOwnTable">
     <thead>
         <tr class="text-primary">
             <th>
@@ -72,6 +72,10 @@
                         if (!item.IsPosted && !item.IsVoided && !item.IsCanceled)
                         {
                             <a asp-action="OfficialEdit" asp-route-id="@item.Id" class="btn btn-light">Edit</a>
+                            <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#Preview-@item.Id" data-bs-url="@Url.Action($"Preview/{item.Id}")">
+                                Preview
+                            </button>
+                            @await Html.PartialAsync("_OfficialPreviewPartialView",item)
                             <a class="btn btn-light" onclick="confirmPost(@item.Id)">Post</a>
                             <a class="btn btn-light" onclick="confirmCancel(@item.Id)">Cancel</a>
                         }
