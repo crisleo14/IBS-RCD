@@ -8,6 +8,8 @@
     var dateTo = ViewBag.DateTo;
     var lastRecord = ViewBag.LastRecord;
 
+    Layout = "~/Views/Shared/_BooksLayout.cshtml";
+
     // Convert the date strings to DateTime objects
     DateTime dateFromFormatted;
     if (DateTime.TryParse(dateFrom, out dateFromFormatted))
@@ -30,18 +32,18 @@
     int numberOfRecords = 0;
     decimal amountFieldControlTotal = 0;
 }
-
-<br />
-<div>
-    <pre>
+<br class="br-top" />
+<pre>
 TAXPAYER'S NAME: Filpride Resources Inc.
 TIN: 000-216-589-00000
 ADDRESS: 57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone, Kalaklan, Olongapo City, 2200 Zambales, Philippines
 
 Accounting System: Accounting Administration System
 Acknowledgement Certificate Control No.:
-Date Issued:</pre>
-    <pre id="resultPre">
+Date Issued:
+</pre>
+
+<pre id="resultPre">
 Accounting Books File Attributes/Layout Definition
 File Name: Cash Receipt Book Report
 File Type: Text File
@@ -52,179 +54,116 @@ Transaction cut-off Date & Time:    @lastRecord
 Extracted By:                       @UserManager.GetUserName(User).ToUpper()
 
 </pre>
-</div>
-<h3><span style="display: inline-block;"><b>CASH RECEIPT BOOK</b></span></h3>
-<div class="table-responsive" style="margin-top:20px;">
-    <table class="table-hover w-100">
-        <thead>
-            <tr class="table-bordered">
-                <th>
-                    Date
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.RefNo)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.CustomerName)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.Bank)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.CheckNo)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.COA)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.Particulars)
-                </th>
-                <th class="text-end">
-                    @Html.DisplayNameFor(model => model.Debit)
-                </th>
-                <th class="text-end">
-                    @Html.DisplayNameFor(model => model.Credit)
-                </th>
+
+<h3><b>CASH RECEIPT BOOK</b></h3>
+<table class="table-hover w-100" style="margin-top:20px;">
+    <thead>
+        <tr class="table-bordered">
+            <th>
+                Date
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RefNo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CustomerName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Bank)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CheckNo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.COA)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Particulars)
+            </th>
+            <th class="text-end">
+                @Html.DisplayNameFor(model => model.Debit)
+            </th>
+            <th class="text-end">
+                @Html.DisplayNameFor(model => model.Credit)
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+
+        @foreach (var cashReceipt in Model)
+        {
+            <tr class="align-text-bottom">
+                <td>
+                    @Html.DisplayFor(model => cashReceipt.Date)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => cashReceipt.RefNo)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => cashReceipt.CustomerName)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => cashReceipt.Bank)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => cashReceipt.CheckNo)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => cashReceipt.COA)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => cashReceipt.Particulars)
+                </td>
+                <td class="text-end">
+                    @Html.DisplayFor(model => cashReceipt.Debit)
+                </td>
+                <td class="text-end">
+                    @Html.DisplayFor(model => cashReceipt.Credit)
+                </td>
             </tr>
-        </thead>
-        <tbody>
 
-            @foreach (var cashReceipt in Model)
-            {
-                <tr class="align-text-bottom">
-                    <td>
-                        @Html.DisplayFor(model => cashReceipt.Date)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => cashReceipt.RefNo)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => cashReceipt.CustomerName)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => cashReceipt.Bank)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => cashReceipt.CheckNo)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => cashReceipt.COA)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => cashReceipt.Particulars)
-                    </td>
-                    <td class="text-end">
-                        @Html.DisplayFor(model => cashReceipt.Debit)
-                    </td>
-                    <td class="text-end">
-                        @Html.DisplayFor(model => cashReceipt.Credit)
-                    </td>
-                </tr>
+            totalCreditAmount += cashReceipt.Credit;
+            totalDebitAmount += cashReceipt.Debit;
+        }
+        <tr class="align-text-bottom" style="border-top: 2px solid black;">
+            @{
+                var formattedTotalCreditAmount = String.Format("{0:n}", totalCreditAmount);
+                var formattedTotalDebitAmount = String.Format("{0:n}", totalDebitAmount);
 
-                totalCreditAmount += cashReceipt.Credit;
-                totalDebitAmount += cashReceipt.Debit;
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="text-center"><b>TOTAL:</b></td>
+                <td class="text-end">@formattedTotalCreditAmount</td>
+                <td class="text-end"><div>@formattedTotalDebitAmount</div></td>
             }
-            <tr class="align-text-bottom" style="border-top: 2px solid black;">
-                @{
-                    var formattedTotalCreditAmount = String.Format("{0:n}", totalCreditAmount);
-                    var formattedTotalDebitAmount = String.Format("{0:n}", totalDebitAmount);
+        </tr>
+    </tbody>
+</table>
 
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td class="text-center"><b>TOTAL:</b></td>
-                    <td class="text-end">@formattedTotalCreditAmount</td>
-                    <td class="text-end"><div>@formattedTotalDebitAmount</div></td>
-                }
-            </tr>
-        </tbody>
-    </table>
-</div>
+<p style="line-height: 1; margin-top:25px;" class="text-start">
+    <em>
+        <b>Software Name :</b> Accounting Administration System (AAS)
+        <br />
+        <b>Version :</b> v1.0
+        <br />
+        <b>Printed By :</b> @UserManager.GetUserName(User).ToUpper()
+        <br />
+        <b>Date & Time Printed :</b> @DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")
+    </em>
+</p>
 
-<div class="text-start" style="margin-top:50px;">
-    <p style="line-height: 1;">
-        <em>
-            <strong>Software Name :</strong> Accounting Administration System (AAS)
-            <br />
-            <strong>Version :</strong> v1.0
-            <br />
-            <strong>Printed By :</strong> @UserManager.GetUserName(User).ToUpper()
-            <br />
-            <strong>Date & Time Printed :</strong> @DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")
-        </em>
-    </p>
-</div>
-<div>
-    <a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
-    <a asp-action="CashReceiptBook" class="btn" id="otherButton">Back</a>
-</div>
+<a class="btn btn-success" onclick="printPage()" id="printButton" style="margin-top:25px;">Print</a>
+<a asp-action="CashReceiptBook" class="btn" id="otherButton" style="margin-top:25px;">Back</a>
 
 @section Scripts{
     <script>
-        var originalFontSizes = [];
         function printPage() {
-            var printButton = document.getElementById("printButton");
-            var otherButton = document.getElementById("otherButton");
-
-            // Hide the header and footer
-            document.querySelector("header").style.display = "none";
-            document.querySelector("footer").style.display = "none";
-
-            // Hide the buttons before printing
-            if (printButton) {
-                printButton.style.visibility = "hidden";
-            }
-            if (otherButton) {
-                otherButton.style.visibility = "hidden";
-            }
-
-            // Get all paragraph elements
-            var paragraphs = document.querySelectorAll("p");
-
-            // Store the original font sizes
-            for (var i = 0; i < paragraphs.length; i++) {
-                originalFontSizes[i] = paragraphs[i].style.fontSize;
-                // Set the font size of all paragraph elements to 12px for printing
-                paragraphs[i].style.fontSize = "12px";
-            }
-
-            // Get all table text elements
-            var mytable = document.querySelectorAll("table");
-
-            // Store the original font sizes
-            for (var i = 0; i < mytable.length; i++) {
-                originalFontSizes[i] = mytable[i].style.fontSize;
-                // Set the font size of all paragraph elements to 12px for printing
-                mytable[i].style.fontSize = "12px";
-            }
-
             // Call the print function
             window.print();
-
-            // Restore the font sizes
-            for (var i = 0; i < paragraphs.length; i++) {
-                paragraphs[i].style.fontSize = originalFontSizes[i];
-            }
-
-            // Restore the font sizes
-            for (var i = 0; i < mytable.length; i++) {
-                mytable[i].style.fontSize = originalFontSizes[i];
-            }
-
-            // Restore the buttons' visibility after printing (optional)
-            if (printButton) {
-                printButton.style.visibility = "visible";
-            }
-            if (otherButton) {
-                otherButton.style.visibility = "visible";
-            }
-
-            // Restore the header and footer's visibility after printing (optional)
-            document.querySelector("header").style.display = "";
-            document.querySelector("footer").style.display = "";
         }
     </script>
     <script>

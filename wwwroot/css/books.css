@@ -1,4 +1,4 @@
-html {
+﻿html {
     font-size: 14px;
 }
 
@@ -43,13 +43,17 @@ body {
 }
 
 @media print {
-    .footer {
-        position: fixed;
-        bottom: 50px;
-        text-align:center;
+    @page {
+        size: legal landscape;
     }
 
-    /*p {
+    /*this the css settings/code of print in books only*/
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    p {
         font-size: 12px;
     }
 
@@ -71,10 +75,19 @@ body {
         display: none;
         visibility: hidden;
     }
-    footer {
+    /*this the css settings/code of print in books only*/
+
+    .content {
+        margin: 0 0 !important;
+    }
+    .br-top {
         display: none;
         visibility: hidden;
-    }*/
+    }
+}
+
+.content {
+    margin: 0 15%;
 }
 
 .underline {
@@ -82,7 +95,7 @@ body {
 }
 
 
- /*Uncomment this code for debugging purposes */
+/*Uncomment this code for debugging purposes */
 /**{
     border: 1px solid red;
 }*/
@@ -102,6 +115,6 @@ input[type=number] {
 }
 
 .required {
-    color:red;
-    margin-left:2px;
+    color: red;
+    margin-left: 2px;
 }
