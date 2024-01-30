@@ -13,39 +13,44 @@
     <div class="col-md-4">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Date" class="control-label">Date<span class="required">*</span></label>
-                <input asp-for="Date" class="form-control" />
+            <div class="form-group mb-3">
+                <label asp-for="Date" class="control-label">Date</label>
+                <input asp-for="Date" type="date" class="form-control" />
                 <span asp-validation-for="Date" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="POId" class="control-label">PO No.<span class="required">*</span></label>
-                <select asp-for="POId" class="form-control" asp-items="@Model.PurchaseOrders"></select>
+            <div class="form-group mb-3">
+                <label asp-for="POId" class="control-label">PO No.</label>
+                <select asp-for="POId" class="form-control js-select2" asp-items="@Model.PurchaseOrders"></select>
                 <span asp-validation-for="POId" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="TruckOrVessels" class="control-label">Truck/Vessels<span class="required">*</span></label>
+            <div class="form-group mb-3">
+                <label asp-for="InvoiceOrDate" class="control-label">Truck/Vessels</label>
+                <input asp-for="InvoiceOrDate" class="form-control" />
+                <span asp-validation-for="InvoiceOrDate" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="TruckOrVessels" class="control-label">Truck/Vessels</label>
                 <input asp-for="TruckOrVessels" class="form-control" />
                 <span asp-validation-for="TruckOrVessels" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="QuantityDelivered" class="control-label">Qty Delivered<span class="required">*</span></label>
-                <input asp-for="QuantityDelivered" class="form-control moneyInput" />
+            <div class="form-group mb-3">
+                <label asp-for="QuantityDelivered" class="control-label">Qty Delivered</label>
+                <input asp-for="QuantityDelivered" class="form-control" />
                 <span asp-validation-for="QuantityDelivered" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="QuantityReceived" class="control-label">Qty Received<span class="required">*</span></label>
-                <input asp-for="QuantityReceived" class="form-control moneyInput" />
+            <div class="form-group mb-3">
+                <label asp-for="QuantityReceived" class="control-label">Qty Received</label>
+                <input asp-for="QuantityReceived" class="form-control" />
                 <span asp-validation-for="QuantityReceived" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label asp-for="OtherRef" class="control-label"></label>
                 <input asp-for="OtherRef" class="form-control" />
                 <span asp-validation-for="OtherRef" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Remarks" class="control-label">Remarks<span class="required">*</span></label>
-                <input asp-for="Remarks" class="form-control" />
+            <div class="form-group mb-3">
+                <label asp-for="Remarks" class="control-label">Remarks</label>
+                <textarea asp-for="Remarks" class="form-control" style="height: 100px"></textarea>
                 <span asp-validation-for="Remarks" class="text-danger"></span>
             </div>
             <div class="form-group">
