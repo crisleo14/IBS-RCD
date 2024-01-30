@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240130034353_change the withholding tax properties")]
+    partial class changethewithholdingtaxproperties
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1298,9 +1301,6 @@ namespace Accounting_System.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric(18,2)");
-
                     b.Property<decimal>("AmountPaid")
                         .HasColumnType("numeric(18,2)");
 
@@ -1322,11 +1322,8 @@ namespace Accounting_System.Migrations
                     b.Property<DateTime?>("DueDate")
                         .HasColumnType("date");
 
-                    b.Property<decimal>("EwtAmount")
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<decimal>("GainOrLoss")
-                        .HasColumnType("numeric(18,2)");
+                    b.Property<decimal?>("GainOrLoss")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("InvoiceOrDate")
                         .IsRequired()
@@ -1346,9 +1343,6 @@ namespace Accounting_System.Migrations
 
                     b.Property<bool>("IsVoided")
                         .HasColumnType("boolean");
-
-                    b.Property<decimal>("NetAmount")
-                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("OtherRef")
                         .IsRequired()
@@ -1388,9 +1382,6 @@ namespace Accounting_System.Migrations
                     b.Property<string>("TruckOrVessels")
                         .IsRequired()
                         .HasColumnType("varchar(100)");
-
-                    b.Property<decimal>("VatAmount")
-                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("VoidedBy")
                         .HasColumnType("varchar(50)");
@@ -1817,6 +1808,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("varchar(200)");
 
                     b.Property<string>("ProofOfRegistrationFilePath")
+                        .IsRequired()
                         .HasColumnType("varchar(200)");
 
                     b.Property<string>("ReasonOfExemption")

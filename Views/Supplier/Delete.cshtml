@@ -37,22 +37,10 @@
             @Html.DisplayFor(model => model.Terms)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Type)
+            @Html.DisplayNameFor(model => model.VatType)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Type)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.WithholdingTax)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.WithholdingTax)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.WithholdingVat)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.WithholdingVat)
+            @Html.DisplayFor(model => model.VatType)
         </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.CreatedBy)
@@ -67,7 +55,7 @@
             @Html.DisplayFor(model => model.CreatedDate)
         </dd>
     </dl>
-    
+
     <form asp-action="Delete">
         <input type="hidden" asp-for="Id" />
         <input type="submit" value="Delete" class="btn btn-danger" /> |
