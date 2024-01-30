@@ -71,7 +71,14 @@
                                 if (invoice.IsPosted && !invoice.IsVoided && !invoice.IsCanceled)
                                 {
                                     <a asp-action="PrintInvoice" asp-route-id="@invoice.Id" class="btn btn-light">Print</a>
-                                    <a class="btn btn-light" onclick="confirmVoid(@invoice.Id)">Void</a>
+                                    if (invoice.AmountPaid == 0)
+                                    {
+                                        <a class="btn btn-light" onclick="confirmVoid(@invoice.Id)">Void</a>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-light" disabled readonly>Void</button>
+                                    }
                                 }
                             }
 
