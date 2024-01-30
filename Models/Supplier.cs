@@ -26,12 +26,15 @@ namespace Accounting_System.Models
         public string Terms { get; set; }
 
         [Column(TypeName = "varchar(20)")]
-        [Display(Name = "Supplier Type")]
-        public string Type { get; set; }
+        [Display(Name = "VAT Type")]
+        public string VatType { get; set; }
+
+        [Column(TypeName = "varchar(20)")]
+        [Display(Name = "TAX Type")]
+        public string TaxType { get; set; }
 
         [Column(TypeName = "varchar(200)")]
-        [Required]
-        public string ProofOfRegistrationFilePath { get; set; }
+        public string? ProofOfRegistrationFilePath { get; set; }
 
         [Display(Name = "Reason")]
         [Column(TypeName = "varchar(100)")]
@@ -46,12 +49,6 @@ namespace Accounting_System.Models
 
         [Column(TypeName = "varchar(200)")]
         public string? ProofOfExemptionFilePath { get; set; }
-
-        [Display(Name = "Withholding Tax")]
-        public bool WithholdingTax { get; set; }
-
-        [Display(Name = "Withholding Vat")]
-        public bool WithholdingVat { get; set; }
 
         [Display(Name = "Created By")]
         [Column(TypeName = "varchar(50)")]

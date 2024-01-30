@@ -8,6 +8,7 @@
 <h1>Create</h1>
 
 <h4>Supplier</h4>
+<partial name="_Notification">
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -42,15 +43,26 @@
                 <span asp-validation-for="Terms" class="text-danger"></span>
             </div>
             <div class="form-group mb-3">
-                <label asp-for="Type" class="control-label">Type<span class="required">*</span></label>
+                <label asp-for="VatType" class="control-label">VAT Type<span class="required">*</span></label>
                 <div class="col">
-                    <select asp-for="Type" class="form-select js-select2" onchange="toggleExemptionFields(this)">
-                        <option value="" selected disabled>-- Select the Supplier Type --</option>
+                    <select asp-for="VatType" class="form-select js-select2">
+                        <option value="" selected disabled>-- Select the Supplier VAT Type --</option>
                         <option value="Vatable">VATable</option>
                         <option value="Zero Rated">Zero Rated</option>
                         <option value="Exempt">Exempt</option>
                     </select>
-                    <span asp-validation-for="Type" class="text-danger"></span>
+                    <span asp-validation-for="VatType" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="TaxType" class="control-label">TAX Type<span class="required">*</span></label>
+                <div class="col">
+                    <select asp-for="TaxType" class="form-select js-select2" onchange="toggleExemptionFields(this)">
+                        <option value="" selected disabled>-- Select the Supplier TAX Type --</option>
+                        <option value="Withholding Tax">Withholding Tax</option>
+                        <option value="Exempt">Exempt</option>
+                    </select>
+                    <span asp-validation-for="TaxType" class="text-danger"></span>
                 </div>
             </div>
             <div id="exemptionFields" style="display:none;">
@@ -85,16 +97,6 @@
                 <label for="registration" class="form-label">Upload the proof of BIR registration<span class="required">*</span></label>
                 <input class="form-control form-control-sm" name="registration" type='file' required>
                 <span asp-validation-for="ProofOfRegistrationFilePath" class="text-danger"></span>
-            </div>
-            <div class="form-check mb-1">
-                <label class="form-check-label">
-                <input class="form-check-input" asp-for="WithholdingTax" /> @Html.DisplayNameFor(model => model.WithholdingTax)
-                </label>
-            </div>
-            <div class="form-check mb-3">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="WithholdingVat" /> @Html.DisplayNameFor(model => model.WithholdingVat)
-                </label>
             </div>
             <div class="form-group">
                 <button type="submit" value="Save" class="btn btn-primary">Submit</button>
