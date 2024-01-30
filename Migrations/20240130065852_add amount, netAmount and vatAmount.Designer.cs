@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240130065852_add amount, netAmount and vatAmount")]
+    partial class addamountnetAmountandvatAmount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1321,9 +1324,6 @@ namespace Accounting_System.Migrations
 
                     b.Property<DateTime?>("DueDate")
                         .HasColumnType("date");
-
-                    b.Property<decimal>("EwtAmount")
-                        .HasColumnType("numeric(18,2)");
 
                     b.Property<decimal>("GainOrLoss")
                         .HasColumnType("numeric(18,2)");

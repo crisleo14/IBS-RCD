@@ -1,6 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -8,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Controllers
 {
+    [Authorize]
     public class ReceivingReportController : Controller
     {
         private readonly ApplicationDbContext _dbContext;
@@ -16,11 +18,14 @@ namespace Accounting_System.Controllers
 
         private readonly ReceivingReportRepo _receivingReportRepo;
 
-        public ReceivingReportController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, ReceivingReportRepo receivingReportRepo)
+        private readonly GeneralRepo _generalRepo;
+
+        public ReceivingReportController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, ReceivingReportRepo receivingReportRepo, GeneralRepo generalRepo)
         {
             _dbContext = dbContext;
             _userManager = userManager;
             _receivingReportRepo = receivingReportRepo;
+            _generalRepo = generalRepo;
         }
 
         public async Task<IActionResult> Index()
@@ -87,6 +92,16 @@ namespace Accounting_System.Controllers
 
                 #endregion --Validating Series
 
+                #region --Retrieve PO
+
+                var po = await _dbContext
+                            .PurchaseOrders
+                            .Include(po => po.Supplier)
+                            .Include(po => po.Product)
+                            .FirstOrDefaultAsync(po => po.Id == model.POId);
+
+                #endregion --Retrieve PO
+
                 var generatedRR = await _receivingReportRepo.GenerateRRNo();
                 model.SeriesNumber = getLastNumber;
                 model.RRNo = generatedRR;
@@ -94,6 +109,23 @@ namespace Accounting_System.Controllers
                 model.GainOrLoss = model.QuantityDelivered - model.QuantityReceived;
                 model.PONo = await _receivingReportRepo.GetPONoAsync(model.POId);
                 model.DueDate = await _receivingReportRepo.ComputeDueDateAsync(model.POId, model.Date);
+
+                if (po.Supplier.VatType == "Vatable")
+                {
+                    model.Amount = model.QuantityReceived * po.Price;
+                    model.NetAmount = model.Amount / 1.12m;
+                    model.VatAmount = model.NetAmount * .12m;
+                }
+                else
+                {
+                    model.Amount = model.QuantityReceived * po.Price;
+                    model.NetAmount = model.Amount;
+                }
+
+                if (po.Supplier.TaxType == "Withholding Tax")
+                {
+                    model.EwtAmount = model.NetAmount * .01m;
+                }
 
                 _dbContext.Add(model);
 
@@ -160,6 +192,16 @@ namespace Accounting_System.Controllers
                     return NotFound();
                 }
 
+                #region --Retrieve PO
+
+                var po = await _dbContext
+                            .PurchaseOrders
+                            .Include(po => po.Supplier)
+                            .Include(po => po.Product)
+                            .FirstOrDefaultAsync(po => po.Id == model.POId);
+
+                #endregion --Retrieve PO
+
                 existingModel.Date = model.Date;
                 existingModel.POId = model.POId;
                 existingModel.PONo = await _receivingReportRepo.GetPONoAsync(model.POId);
@@ -171,6 +213,25 @@ namespace Accounting_System.Controllers
                 existingModel.GainOrLoss = model.QuantityDelivered - model.QuantityReceived;
                 existingModel.OtherRef = model.OtherRef;
                 existingModel.Remarks = model.Remarks;
+
+                if (po.Supplier.VatType == "Vatable")
+                {
+                    existingModel.Amount = model.QuantityReceived * po.Price;
+                    existingModel.NetAmount = existingModel.Amount / 1.12m;
+                    existingModel.VatAmount = existingModel.NetAmount * .12m;
+                }
+                else
+                {
+                    existingModel.Amount = model.QuantityReceived * po.Price;
+                    existingModel.NetAmount = existingModel.Amount;
+                }
+
+                if (po.Supplier.TaxType == "Withholding Tax")
+                {
+                    existingModel.EwtAmount = existingModel.NetAmount * .01m;
+                }
+
+
 
                 #region --Audit Trail Recording
 
@@ -233,14 +294,86 @@ namespace Accounting_System.Controllers
 
                     var ledger = new List<GeneralLedgerBook>();
 
-                    //ledger.Add(new GeneralLedgerBook
-                    //{
-                    //    Date = model.CreatedDate.ToShortDateString(),
-                    //    Reference = model.RRNo,
-                    //    Description = "Receipt of Goods",
-                    //    AccountTitle = model.PurchaseOrder.Product.Name,
-                    //    Debit =
-                    //});
+                    if (model.PurchaseOrder.Product.Name == "Biodiesel")
+                    {
+                        ledger.Add(new GeneralLedgerBook
+                        {
+                            Date = model.CreatedDate.ToShortDateString(),
+                            Reference = model.RRNo,
+                            Description = "Receipt of Goods",
+                            AccountTitle = "1010401 Inventory - Biodiesel",
+                            Debit = model.NetAmount,
+                            Credit = 0,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        });
+                    }
+                    else if (model.PurchaseOrder.Product.Name == "Econogas")
+                    {
+                        ledger.Add(new GeneralLedgerBook
+                        {
+                            Date = model.CreatedDate.ToShortDateString(),
+                            Reference = model.RRNo,
+                            Description = "Receipt of Goods",
+                            AccountTitle = "1010402 Inventory - Econogas",
+                            Debit = model.NetAmount,
+                            Credit = 0,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        });
+                    }
+                    else
+                    {
+                        ledger.Add(new GeneralLedgerBook
+                        {
+                            Date = model.CreatedDate.ToShortDateString(),
+                            Reference = model.RRNo,
+                            Description = "Receipt of Goods",
+                            AccountTitle = "1010403 Inventory - Envirogas",
+                            Debit = model.NetAmount,
+                            Credit = 0,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        });
+                    }
+
+                    ledger.Add(new GeneralLedgerBook
+                    {
+                        Date = model.CreatedDate.ToShortDateString(),
+                        Reference = model.RRNo,
+                        Description = "Receipt of Goods",
+                        AccountTitle = "1010602 Vat Input",
+                        Debit = model.VatAmount,
+                        Credit = 0,
+                        CreatedBy = model.CreatedBy,
+                        CreatedDate = model.CreatedDate
+                    });
+
+                    ledger.Add(new GeneralLedgerBook
+                    {
+                        Date = model.CreatedDate.ToShortDateString(),
+                        Reference = model.RRNo,
+                        Description = "Receipt of Goods",
+                        AccountTitle = "2010101 AP-Trade Payable",
+                        Debit = 0,
+                        Credit = model.Amount - model.EwtAmount,
+                        CreatedBy = model.CreatedBy,
+                        CreatedDate = model.CreatedDate
+                    });
+
+                    ledger.Add(new GeneralLedgerBook
+                    {
+                        Date = model.CreatedDate.ToShortDateString(),
+                        Reference = model.RRNo,
+                        Description = "Receipt of Goods",
+                        AccountTitle = "2010302 Expanded Withholding Tax 1%",
+                        Debit = 0,
+                        Credit = model.EwtAmount,
+                        CreatedBy = model.CreatedBy,
+                        CreatedDate = model.CreatedDate
+                    });
+
+                    _dbContext.AddRange(ledger);
 
                     #endregion --General Ledger Recording
 
@@ -285,6 +418,8 @@ namespace Accounting_System.Controllers
 
                     #endregion --Audit Trail Recording
 
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.RRNo);
+
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Receiving Report has been Voided.";
                 }
@@ -305,7 +440,6 @@ namespace Accounting_System.Controllers
                     model.IsCanceled = true;
                     model.CanceledBy = _userManager.GetUserName(this.User);
                     model.CanceledDate = DateTime.Now;
-                    //model.Status = "Canceled";
 
                     #region --Audit Trail Recording
 
@@ -338,7 +472,7 @@ namespace Accounting_System.Controllers
                 {
                     poNo = po.PONo,
                     poQuantity = po.Quantity.ToString(),
-                    rrList =  rr
+                    rrList = rr
                 });
             }
             else
