@@ -377,14 +377,37 @@ namespace Accounting_System.Controllers
 
                     #endregion --General Ledger Recording
 
+                    await _receivingReportRepo.UpdatePOAsync(model.PurchaseOrder.Id, model.QuantityReceived);
+
+                    #region --Purchase Book Recording
+
+                    var purchaseBook = new List<PurchaseJournalBook>();
+
+                        purchaseBook.Add(new PurchaseJournalBook
+                        {
+                            Date = model.Date.ToShortDateString(),
+                            SupplierName = model.PurchaseOrder.Supplier.Name,
+                            SupplierTin = model.PurchaseOrder.Supplier.TinNo,
+                            SupplierAddress = model.PurchaseOrder.Supplier.Address,
+                            DocumentNo = model.RRNo,
+                            Description = model.PurchaseOrder.Product.Name,
+                            Amount = model.Amount,
+                            VatAmount = model.VatAmount,
+                            WhtAmount = model.EwtAmount,
+                            NetPurchases = model.Amount - model.EwtAmount,
+                            CreatedBy = model.CreatedBy,
+                            PONo = model.PurchaseOrder.PONo
+                        });
+
+                    _dbContext.AddRange(purchaseBook);
+                    #endregion --Purchase Book Recording
+
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.PostedBy, $"Posted receiving# {model.RRNo}", "Receiving Report");
                     _dbContext.Add(auditTrail);
 
                     #endregion --Audit Trail Recording
-
-                    await _receivingReportRepo.UpdatePOAsync(model.PurchaseOrder.Id, model.QuantityReceived);
 
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Receiving Report has been Posted.";
