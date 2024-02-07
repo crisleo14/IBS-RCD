@@ -9,18 +9,6 @@ namespace Accounting_System.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        public int Number { get; set; }
-
-        [NotMapped]
-        [Display(Name = "PO No.")]
-        public string FormmatedNumber
-        {
-            get
-            {
-                return "PO" + Number.ToString("D10");
-            }
-        }
-
         public string Date { get; set; }
 
         [Display(Name = "Supplier Name")]
@@ -36,24 +24,6 @@ namespace Accounting_System.Models
         public string DocumentNo { get; set; }
 
         public string Description { get; set; }
-
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal Quantity { get; set; }
-
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Display(Name = "Unit Price")]
-        public decimal UnitPrice { get; set; }
-
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal Vatable { get; set; }
-
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Display(Name = "Vat Exempt")]
-        public decimal VatExempt { get; set; }
-
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Display(Name = "Zero Rated")]
-        public decimal ZeroRated { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Discount { get; set; }
@@ -79,5 +49,9 @@ namespace Accounting_System.Models
 
         [Display(Name = "Created Date")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        [Display(Name = "PO No.")]
+        [Column(TypeName = "varchar(12)")]
+        public string PONo { get; set; }
     }
 }
