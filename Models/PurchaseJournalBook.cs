@@ -53,5 +53,9 @@ namespace Accounting_System.Models
         [Display(Name = "PO No.")]
         [Column(TypeName = "varchar(12)")]
         public string PONo { get; set; }
+
+        [Display(Name = "Due Date")]
+        [Column(TypeName = "date")]
+        public DateTime? DueDate { get; set; }
     }
 }
