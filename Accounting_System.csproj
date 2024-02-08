@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <None Remove="Views\Customer\CreateCOS.cshtml~RF777d1c.TMP" />
+    <None Remove="Views\Report\MaturityAgingReport.cshtml~RF35c7a3.TMP" />
   </ItemGroup>
 
   <ItemGroup>
