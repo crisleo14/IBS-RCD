@@ -28,6 +28,9 @@ namespace Accounting_System.Controllers
             var dm = await _dbContext.DebitMemos
                 .Include(dm => dm.SalesInvoice)
                 .Include(dm => dm.SOA)
+                .ThenInclude(soa => soa.Customer)
+                .Include(dm => dm.SOA)
+                .ThenInclude(soa => soa.Service)
                 .OrderBy(dm => dm.Id)
                 .ToListAsync();
             return View(dm);
@@ -271,6 +274,12 @@ namespace Accounting_System.Controllers
             }
 
             return NotFound();
+        }
+
+        public async Task<IActionResult> Preview(int id)
+        {
+            var dm = await _debitMemoRepo.FindDM(id);
+            return PartialView("_PrevieDebit", dm);
         }
     }
 }
