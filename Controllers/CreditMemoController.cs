@@ -92,13 +92,22 @@ namespace Accounting_System.Controllers
                     var existingSalesInvoice = _dbContext.SalesInvoices
                                                .FirstOrDefault(si => si.Id == model.SIId);
 
-                    model.CreditAmount = existingSalesInvoice.Quantity * model.AdjustedPrice - existingSalesInvoice.Amount;
+                    model.CreditAmount = existingSalesInvoice.Quantity * model.AdjustedPrice;
 
                     if (existingSalesInvoice.CustomerType == "Vatable")
                     {
                         model.VatableSales = model.CreditAmount / (decimal)1.12;
                         model.VatAmount = model.CreditAmount - model.VatableSales;
                         model.TotalSales = model.VatableSales + model.VatAmount;
+
+                        if (existingSalesInvoice.WithHoldingTaxAmount != 0)
+                        {
+                            model.WithHoldingTaxAmount = model.VatableSales * 0.01m;
+                        }
+                        if (existingSalesInvoice.WithHoldingVatAmount != 0)
+                        {
+                            model.WithHoldingVatAmount = model.VatableSales * 0.05m;
+                        }
                     }
 
                     model.TotalSales = model.CreditAmount;
@@ -119,6 +128,15 @@ namespace Accounting_System.Controllers
                         model.VatableSales = model.CreditAmount / (decimal)1.12;
                         model.VatAmount = model.CreditAmount - model.VatableSales;
                         model.TotalSales = model.VatableSales + model.VatAmount;
+
+                        if (existingSoa.WithholdingTaxAmount != 0)
+                        {
+                            model.WithHoldingTaxAmount = model.VatableSales * 0.01m;
+                        }
+                        if (existingSoa.WithholdingVatAmount != 0)
+                        {
+                            model.WithHoldingVatAmount = model.VatableSales * 0.05m;
+                        }
                     }
 
                     model.TotalSales = model.CreditAmount;

@@ -48,6 +48,14 @@ namespace Accounting_System.Models
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal AdjustedPrice { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal WithHoldingVatAmount { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal WithHoldingTaxAmount { get; set; }
+
         public string Source { get; set; }
 
         public string? Remarks { get; set; }

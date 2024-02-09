@@ -89,13 +89,22 @@ namespace Accounting_System.Controllers
                     var existingSalesInvoice = _dbContext.SalesInvoices
                                                .FirstOrDefault(si => si.Id == model.SalesInvoiceId);
 
-                    model.DebitAmount = model.AdjustedPrice * existingSalesInvoice.Quantity - existingSalesInvoice.Amount;
+                    model.DebitAmount = model.AdjustedPrice * existingSalesInvoice.Quantity;
 
                     if (existingSalesInvoice.CustomerType == "Vatable")
                     {
                         model.VatableSales = model.DebitAmount / (decimal)1.12;
                         model.VatAmount = model.DebitAmount - model.VatableSales;
                         model.TotalSales = model.VatableSales + model.VatAmount;
+
+                        if (existingSalesInvoice.WithHoldingTaxAmount != 0)
+                        {
+                            model.WithHoldingTaxAmount = model.VatableSales * 0.01m;
+                        }
+                        if (existingSalesInvoice.WithHoldingVatAmount != 0)
+                        {
+                            model.WithHoldingVatAmount = model.VatableSales * 0.05m;
+                        }
                     }
 
                     model.TotalSales = model.DebitAmount;
@@ -115,6 +124,15 @@ namespace Accounting_System.Controllers
                         model.VatableSales = model.DebitAmount / (decimal)1.12;
                         model.VatAmount = model.DebitAmount - model.VatableSales;
                         model.TotalSales = model.VatableSales + model.VatAmount;
+
+                        if (existingSoa.WithholdingTaxAmount != 0)
+                        {
+                            model.WithHoldingTaxAmount = model.VatableSales * 0.01m;
+                        }
+                        if (existingSoa.WithholdingVatAmount != 0)
+                        {
+                            model.WithHoldingVatAmount = model.VatableSales * 0.05m;
+                        }
                     }
 
                     model.TotalSales = model.DebitAmount;
