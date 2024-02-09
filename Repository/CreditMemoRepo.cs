@@ -1,4 +1,5 @@
 ﻿using Accounting_System.Data;
+using Accounting_System.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Repository
@@ -9,7 +10,7 @@ namespace Accounting_System.Repository
 
         public CreditMemoRepo(ApplicationDbContext dbContext)
         {
-            _dbContext = dbContext;
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
         public async Task<long> GetLastSeriesNumber()
@@ -77,6 +78,22 @@ namespace Accounting_System.Repository
             else
             {
                 throw new ArgumentException("No record found in supplier.");
+            }
+        }
+
+        public async Task<CreditMemo> FindCM(int id)
+        {
+            var creditMemo = await _dbContext
+                .CreditMemos
+                .FirstOrDefaultAsync(creditMemo => creditMemo.Id == id);
+
+            if (creditMemo != null)
+            {
+                return creditMemo;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
             }
         }
     }

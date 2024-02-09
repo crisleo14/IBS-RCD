@@ -283,5 +283,94 @@ namespace Accounting_System.Controllers
             }
             return RedirectToAction("Print", new { id = id });
         }
+
+        public async Task<IActionResult> Post(int id)
+        {
+            var model = await _creditMemoRepo.FindCM(id);
+
+            if (model != null)
+            {
+                if (!model.IsPosted)
+                {
+                    model.IsPosted = true;
+                    model.PostedBy = _userManager.GetUserName(this.User);
+                    model.PostedDate = DateTime.Now;
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.PostedBy, $"Posted credit memo# {model.CMNo}", "Credit Memo");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
+                    //await _receiptRepo.UpdateCreditMemo(model.SalesInvoice.Id, model.Total, offsetAmount);
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Credit Memo has been Posted.";
+                }
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
+
+        public async Task<IActionResult> Void(int id)
+        {
+            var model = await _dbContext.CreditMemos.FindAsync(id);
+
+            if (model != null)
+            {
+                if (!model.IsVoided)
+                {
+                    model.IsVoided = true;
+                    model.VoidedBy = _userManager.GetUserName(this.User);
+                    model.VoidedDate = DateTime.Now;
+
+                    //await _generalRepo.RemoveRecords<CashReceiptBook>(crb => crb.RefNo == model.CRNo);
+                    //await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CRNo);
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.VoidedBy, $"Voided credit memo# {model.CMNo}", "Credit Memo");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Credit Memo has been Voided.";
+                }
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
+
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var model = await _dbContext.CreditMemos.FindAsync(id);
+
+            if (model != null)
+            {
+                if (!model.IsCanceled)
+                {
+                    model.IsCanceled = true;
+                    model.CanceledBy = _userManager.GetUserName(this.User);
+                    model.CanceledDate = DateTime.Now;
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Canceled credit memo# {model.CMNo}", "Credit Memo");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Credit Memo has been Canceled.";
+                }
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
     }
 }

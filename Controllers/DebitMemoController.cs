@@ -183,5 +183,94 @@ namespace Accounting_System.Controllers
             }
             return RedirectToAction("Print", new { id = id });
         }
+
+        public async Task<IActionResult> Post(int id)
+        {
+            var model = await _debitMemoRepo.FindDM(id);
+
+            if (model != null)
+            {
+                if (!model.IsPosted)
+                {
+                    model.IsPosted = true;
+                    model.PostedBy = _userManager.GetUserName(this.User);
+                    model.PostedDate = DateTime.Now;
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.PostedBy, $"Posted debit memo# {model.DMNo}", "Debit Memo");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
+                    //await _receiptRepo.UpdateCreditMemo(model.SalesInvoice.Id, model.Total, offsetAmount);
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Debit Memo has been Posted.";
+                }
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
+
+        public async Task<IActionResult> Void(int id)
+        {
+            var model = await _dbContext.DebitMemos.FindAsync(id);
+
+            if (model != null)
+            {
+                if (!model.IsVoided)
+                {
+                    model.IsVoided = true;
+                    model.VoidedBy = _userManager.GetUserName(this.User);
+                    model.VoidedDate = DateTime.Now;
+
+                    //await _generalRepo.RemoveRecords<CashReceiptBook>(crb => crb.RefNo == model.CRNo);
+                    //await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CRNo);
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.VoidedBy, $"Voided debit memo# {model.DMNo}", "Debit Memo");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Debit Memo has been Voided.";
+                }
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
+
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var model = await _dbContext.DebitMemos.FindAsync(id);
+
+            if (model != null)
+            {
+                if (!model.IsCanceled)
+                {
+                    model.IsCanceled = true;
+                    model.CanceledBy = _userManager.GetUserName(this.User);
+                    model.CanceledDate = DateTime.Now;
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Canceled debit memo# {model.DMNo}", "Debit Memo");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync();
+                    TempData["success"] = "Debit Memo has been Canceled.";
+                }
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
     }
 }
