@@ -28,6 +28,9 @@ namespace Accounting_System.Controllers
             var cm = await _dbContext.CreditMemos
                 .Include(cm => cm.SalesInvoice)
                 .Include(cm => cm.StatementOfAccount)
+                .ThenInclude(soa => soa.Customer)
+                .Include(cm => cm.StatementOfAccount)
+                .ThenInclude(soa => soa.Service)
                 .OrderBy(cm => cm.Id)
                 .ToListAsync();
 
@@ -371,6 +374,12 @@ namespace Accounting_System.Controllers
             }
 
             return NotFound();
+        }
+
+        public async Task<IActionResult> Preview(int id)
+        {
+            var cm = await _creditMemoRepo.FindCM(id);
+            return PartialView("_PreviewCredit", cm);
         }
     }
 }
