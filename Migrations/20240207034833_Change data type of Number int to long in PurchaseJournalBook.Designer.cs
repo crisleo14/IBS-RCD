@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240207034833_Change data type of Number int to long in PurchaseJournalBook")]
+    partial class ChangedatatypeofNumberinttolonginPurchaseJournalBook
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1146,9 +1149,11 @@ namespace Accounting_System.Migrations
                     b.Property<decimal>("NetPurchases")
                         .HasColumnType("numeric");
 
-                    b.Property<string>("PONo")
-                        .IsRequired()
-                        .HasColumnType("varchar(12)");
+                    b.Property<long>("Number")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("SupplierAddress")
                         .IsRequired()
@@ -1162,10 +1167,22 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("numeric");
+
                     b.Property<decimal>("VatAmount")
                         .HasColumnType("numeric");
 
+                    b.Property<decimal>("VatExempt")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("Vatable")
+                        .HasColumnType("numeric");
+
                     b.Property<decimal>("WhtAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("ZeroRated")
                         .HasColumnType("numeric");
 
                     b.HasKey("Id");
