@@ -11,19 +11,6 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<decimal[]>(
-                name: "Amount",
-                table: "StatementOfAccounts",
-                type: "numeric[]",
-                nullable: false,
-                defaultValue: new decimal[0]);
-
-            migrationBuilder.AddColumn<DateTime[]>(
-                name: "Period",
-                table: "StatementOfAccounts",
-                type: "date[]",
-                nullable: false,
-                defaultValue: new DateTime[0]);
         }
 
         /// <inheritdoc />
