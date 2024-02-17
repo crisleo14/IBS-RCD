@@ -18,40 +18,6 @@ namespace Accounting_System.Migrations
                 nullable: true,
                 oldClrType: typeof(DateTime),
                 oldType: "timestamp with time zone");
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "CashAmount",
-                table: "OfficialReceipts",
-                type: "numeric",
-                nullable: false,
-                defaultValue: 0m);
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "CheckAmount",
-                table: "OfficialReceipts",
-                type: "numeric(18,2)",
-                nullable: false,
-                defaultValue: 0m);
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "EWT",
-                table: "OfficialReceipts",
-                type: "numeric(18,2)",
-                nullable: false,
-                defaultValue: 0m);
-
-            migrationBuilder.AddColumn<string>(
-                name: "SOANo",
-                table: "OfficialReceipts",
-                type: "varchar(13)",
-                nullable: true);
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "Total",
-                table: "OfficialReceipts",
-                type: "numeric(18,2)",
-                nullable: false,
-                defaultValue: 0m);
         }
 
         /// <inheritdoc />

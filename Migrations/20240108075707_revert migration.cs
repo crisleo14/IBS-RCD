@@ -10,17 +10,6 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "CanceledBy",
-                table: "StatementOfAccounts",
-                type: "varchar(50)",
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "CanceledBy",
-                table: "CollectionReceipts",
-                type: "varchar(50)",
-                nullable: true);
         }
 
         /// <inheritdoc />
