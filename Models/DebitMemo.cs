@@ -59,5 +59,19 @@ namespace Accounting_System.Models
         public string Source { get; set; }
 
         public string? Remarks { get; set; }
+
+        [Column(TypeName = "date[]")]
+        public DateTime[]? Period { get; set; } = null;
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal[] Amount { get; set; } = new decimal[1] { 0 };
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal CurrentAndPreviousAmount { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal UnearnedAmount { get; set; }
     }
 }

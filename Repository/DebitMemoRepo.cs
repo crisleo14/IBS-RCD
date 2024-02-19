@@ -64,6 +64,9 @@ namespace Accounting_System.Repository
                 .DebitMemos
                 .Include(s => s.SalesInvoice)
                 .Include(soa => soa.SOA)
+                .ThenInclude(soa => soa.Customer)
+                .Include(c => c.SOA)
+                .ThenInclude(soa => soa.Service)
                 .FirstOrDefaultAsync(debitMemo => debitMemo.Id == id);
 
             if (debitMemo != null)

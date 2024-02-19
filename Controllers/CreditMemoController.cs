@@ -332,111 +332,111 @@ namespace Accounting_System.Controllers
                     model.PostedDate = DateTime.Now;
 
                     
-                        #region --Sales Book Recording
+                    #region --Sales Book Recording
 
-                    var sales = new SalesBook();
+                var sales = new SalesBook();
 
-                    if (model.SINo != null)
+                if (model.SINo != null)
+                {
+                    if (model.SalesInvoice.CustomerType == "Vatable")
                     {
-                        if (model.SalesInvoice.CustomerType == "Vatable")
-                        {
-                            sales.TransactionDate = model.Date.ToShortDateString();
-                            sales.SerialNo = model.CMNo;
-                            sales.SoldTo = model.SalesInvoice.SoldTo;
-                            sales.TinNo = model.SalesInvoice.TinNo;
-                            sales.Address = model.SalesInvoice.Address;
-                            sales.Description = model.SalesInvoice.ProductName;
-                            sales.Amount = model.CreditAmount;
-                            sales.VatAmount = model.VatAmount;
-                            sales.VatableSales = model.VatableSales;
-                            //sales.Discount = model.Discount;
-                            //sales.NetSales = model.NetDiscount;
-                            sales.CreatedBy = model.CreatedBy;
-                            sales.CreatedDate = model.CreatedDate;
-                        }
-                        else if (model.SalesInvoice.CustomerType == "Exempt")
-                        {
-                            sales.TransactionDate = model.Date.ToShortDateString();
-                            sales.SerialNo = model.CMNo;
-                            sales.SoldTo = model.SalesInvoice.SoldTo;
-                            sales.TinNo = model.SalesInvoice.TinNo;
-                            sales.Address = model.SalesInvoice.Address;
-                            sales.Description = model.SalesInvoice.ProductName;
-                            sales.Amount = model.CreditAmount;
-                            sales.VatExemptSales = model.CreditAmount;
-                            //sales.Discount = model.Discount;
-                            //sales.NetSales = model.NetDiscount;
-                            sales.CreatedBy = model.CreatedBy;
-                            sales.CreatedDate = model.CreatedDate;
-                        }
-                        else
-                        {
-                            sales.TransactionDate = model.Date.ToShortDateString();
-                            sales.SerialNo = model.CMNo;
-                            sales.SoldTo = model.SalesInvoice.SoldTo;
-                            sales.TinNo = model.SalesInvoice.TinNo;
-                            sales.Address = model.SalesInvoice.Address;
-                            sales.Description = model.SalesInvoice.ProductName;
-                            sales.Amount = model.CreditAmount;
-                            sales.ZeroRated = model.CreditAmount;
-                            //sales.Discount = model.Discount;
-                            //sales.NetSales = model.NetDiscount;
-                            sales.CreatedBy = model.CreatedBy;
-                            sales.CreatedDate = model.CreatedDate;
-                        }
+                        sales.TransactionDate = model.Date.ToShortDateString();
+                        sales.SerialNo = model.CMNo;
+                        sales.SoldTo = model.SalesInvoice.SoldTo;
+                        sales.TinNo = model.SalesInvoice.TinNo;
+                        sales.Address = model.SalesInvoice.Address;
+                        sales.Description = model.SalesInvoice.ProductName;
+                        sales.Amount = model.CreditAmount;
+                        sales.VatAmount = model.VatAmount;
+                        sales.VatableSales = model.VatableSales;
+                        //sales.Discount = model.Discount;
+                        //sales.NetSales = model.NetDiscount;
+                        sales.CreatedBy = model.CreatedBy;
+                        sales.CreatedDate = model.CreatedDate;
                     }
-                    if (model.SOANo != null)
+                    else if (model.SalesInvoice.CustomerType == "Exempt")
                     {
-                        if (model.StatementOfAccount.Customer.CustomerType == "Vatable")
-                        {
-                            sales.TransactionDate = model.Date.ToShortDateString();
-                            sales.SerialNo = model.CMNo;
-                            sales.SoldTo = model.StatementOfAccount.Customer.Name;
-                            sales.TinNo = model.StatementOfAccount.Customer.TinNo;
-                            sales.Address = model.StatementOfAccount.Customer.Address;
-                            sales.Description = model.StatementOfAccount.Service.Name;
-                            sales.Amount = model.CreditAmount;
-                            sales.VatAmount = model.VatAmount;
-                            sales.VatableSales = model.VatableSales;
-                            //sales.Discount = model.Discount;
-                            //sales.NetSales = model.NetDiscount;
-                            sales.CreatedBy = model.CreatedBy;
-                            sales.CreatedDate = model.CreatedDate;
-                        }
-                        else if (model.StatementOfAccount.Customer.CustomerType == "Exempt")
-                        {
-                            sales.TransactionDate = model.Date.ToShortDateString();
-                            sales.SerialNo = model.CMNo;
-                            sales.SoldTo = model.StatementOfAccount.Customer.Name;
-                            sales.TinNo = model.StatementOfAccount.Customer.TinNo;
-                            sales.Address = model.StatementOfAccount.Customer.Address;
-                            sales.Description = model.StatementOfAccount.Service.Name;
-                            sales.Amount = model.CreditAmount;
-                            sales.VatExemptSales = model.CreditAmount;
-                            //sales.Discount = model.Discount;
-                            //sales.NetSales = model.NetDiscount;
-                            sales.CreatedBy = model.CreatedBy;
-                            sales.CreatedDate = model.CreatedDate;
-                        }
-                        else
-                        {
-                            sales.TransactionDate = model.Date.ToShortDateString();
-                            sales.SerialNo = model.CMNo;
-                            sales.SoldTo = model.StatementOfAccount.Customer.Name;
-                            sales.TinNo = model.StatementOfAccount.Customer.TinNo;
-                            sales.Address = model.StatementOfAccount.Customer.Address;
-                            sales.Description = model.StatementOfAccount.Service.Name;
-                            sales.Amount = model.CreditAmount;
-                            sales.ZeroRated = model.CreditAmount;
-                            //sales.Discount = model.Discount;
-                            //sales.NetSales = model.NetDiscount;
-                            sales.CreatedBy = model.CreatedBy;
-                            sales.CreatedDate = model.CreatedDate;
-                        }
+                        sales.TransactionDate = model.Date.ToShortDateString();
+                        sales.SerialNo = model.CMNo;
+                        sales.SoldTo = model.SalesInvoice.SoldTo;
+                        sales.TinNo = model.SalesInvoice.TinNo;
+                        sales.Address = model.SalesInvoice.Address;
+                        sales.Description = model.SalesInvoice.ProductName;
+                        sales.Amount = model.CreditAmount;
+                        sales.VatExemptSales = model.CreditAmount;
+                        //sales.Discount = model.Discount;
+                        //sales.NetSales = model.NetDiscount;
+                        sales.CreatedBy = model.CreatedBy;
+                        sales.CreatedDate = model.CreatedDate;
                     }
-                    _dbContext.Add(sales);
+                    else
+                    {
+                        sales.TransactionDate = model.Date.ToShortDateString();
+                        sales.SerialNo = model.CMNo;
+                        sales.SoldTo = model.SalesInvoice.SoldTo;
+                        sales.TinNo = model.SalesInvoice.TinNo;
+                        sales.Address = model.SalesInvoice.Address;
+                        sales.Description = model.SalesInvoice.ProductName;
+                        sales.Amount = model.CreditAmount;
+                        sales.ZeroRated = model.CreditAmount;
+                        //sales.Discount = model.Discount;
+                        //sales.NetSales = model.NetDiscount;
+                        sales.CreatedBy = model.CreatedBy;
+                        sales.CreatedDate = model.CreatedDate;
+                    }
+                }
+                if (model.SOANo != null)
+                {
+                    if (model.StatementOfAccount.Customer.CustomerType == "Vatable")
+                    {
+                        sales.TransactionDate = model.Date.ToShortDateString();
+                        sales.SerialNo = model.CMNo;
+                        sales.SoldTo = model.StatementOfAccount.Customer.Name;
+                        sales.TinNo = model.StatementOfAccount.Customer.TinNo;
+                        sales.Address = model.StatementOfAccount.Customer.Address;
+                        sales.Description = model.StatementOfAccount.Service.Name;
+                        sales.Amount = model.CreditAmount;
+                        sales.VatAmount = model.VatAmount;
+                        sales.VatableSales = model.VatableSales;
+                        //sales.Discount = model.Discount;
+                        //sales.NetSales = model.NetDiscount;
+                        sales.CreatedBy = model.CreatedBy;
+                        sales.CreatedDate = model.CreatedDate;
+                    }
+                    else if (model.StatementOfAccount.Customer.CustomerType == "Exempt")
+                    {
+                        sales.TransactionDate = model.Date.ToShortDateString();
+                        sales.SerialNo = model.CMNo;
+                        sales.SoldTo = model.StatementOfAccount.Customer.Name;
+                        sales.TinNo = model.StatementOfAccount.Customer.TinNo;
+                        sales.Address = model.StatementOfAccount.Customer.Address;
+                        sales.Description = model.StatementOfAccount.Service.Name;
+                        sales.Amount = model.CreditAmount;
+                        sales.VatExemptSales = model.CreditAmount;
+                        //sales.Discount = model.Discount;
+                        //sales.NetSales = model.NetDiscount;
+                        sales.CreatedBy = model.CreatedBy;
+                        sales.CreatedDate = model.CreatedDate;
+                    }
+                    else
+                    {
+                        sales.TransactionDate = model.Date.ToShortDateString();
+                        sales.SerialNo = model.CMNo;
+                        sales.SoldTo = model.StatementOfAccount.Customer.Name;
+                        sales.TinNo = model.StatementOfAccount.Customer.TinNo;
+                        sales.Address = model.StatementOfAccount.Customer.Address;
+                        sales.Description = model.StatementOfAccount.Service.Name;
+                        sales.Amount = model.CreditAmount;
+                        sales.ZeroRated = model.CreditAmount;
+                        //sales.Discount = model.Discount;
+                        //sales.NetSales = model.NetDiscount;
+                        sales.CreatedBy = model.CreatedBy;
+                        sales.CreatedDate = model.CreatedDate;
+                    }
+                }
+                _dbContext.Add(sales);
 
-                    #endregion --Sales Book Recording
+                #endregion --Sales Book Recording
 
                     #region --General Ledger Book Recording
 
