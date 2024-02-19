@@ -63,6 +63,7 @@ namespace Accounting_System.Repository
             var debitMemo = await _dbContext
                 .DebitMemos
                 .Include(s => s.SalesInvoice)
+                .Include(soa => soa.SOA)
                 .FirstOrDefaultAsync(debitMemo => debitMemo.Id == id);
 
             if (debitMemo != null)

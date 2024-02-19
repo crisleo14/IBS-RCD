@@ -10,12 +10,7 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "Terms",
-                table: "PurchaseOrders",
-                type: "varchar(5)",
-                nullable: false,
-                defaultValue: "");
+
         }
 
         /// <inheritdoc />

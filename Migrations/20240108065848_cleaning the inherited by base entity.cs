@@ -10,13 +10,6 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "IsVoid",
-                table: "SalesInvoices");
-
-            migrationBuilder.DropColumn(
-                name: "IsVoid",
-                table: "CollectionReceipts");
         }
 
         /// <inheritdoc />

@@ -10,43 +10,7 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "FormOfPayment",
-                table: "OfficialReceipts");
-
-            migrationBuilder.RenameColumn(
-                name: "Amount",
-                table: "OfficialReceipts",
-                newName: "WVAT");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "CheckNo",
-                table: "OfficialReceipts",
-                type: "varchar(20)",
-                nullable: true,
-                oldClrType: typeof(int),
-                oldType: "integer");
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "CashAmount",
-                table: "OfficialReceipts",
-                type: "numeric",
-                nullable: false,
-                defaultValue: 0m);
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "CheckAmount",
-                table: "OfficialReceipts",
-                type: "numeric",
-                nullable: false,
-                defaultValue: 0m);
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "EWT",
-                table: "OfficialReceipts",
-                type: "numeric",
-                nullable: false,
-                defaultValue: 0m);
+           
         }
 
         /// <inheritdoc />

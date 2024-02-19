@@ -10,12 +10,7 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "InvoiceOrDate",
-                table: "ReceivingReports",
-                type: "varchar(100)",
-                nullable: false,
-                defaultValue: "");
+
         }
 
         /// <inheritdoc />

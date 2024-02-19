@@ -10,13 +10,7 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<string>(
-                name: "ProductNo",
-                table: "PurchaseOrders",
-                type: "text",
-                nullable: true,
-                oldClrType: typeof(int),
-                oldType: "integer");
+
         }
 
         /// <inheritdoc />

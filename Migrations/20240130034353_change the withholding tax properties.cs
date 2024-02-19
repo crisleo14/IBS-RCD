@@ -10,25 +10,7 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "WithholdingTax",
-                table: "Suppliers");
-
-            migrationBuilder.DropColumn(
-                name: "WithholdingVat",
-                table: "Suppliers");
-
-            migrationBuilder.RenameColumn(
-                name: "Type",
-                table: "Suppliers",
-                newName: "VatType");
-
-            migrationBuilder.AddColumn<string>(
-                name: "TaxType",
-                table: "Suppliers",
-                type: "varchar(20)",
-                nullable: false,
-                defaultValue: "");
+            
         }
 
         /// <inheritdoc />

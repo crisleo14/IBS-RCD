@@ -10,36 +10,7 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "ProductName",
-                table: "PurchaseOrders");
-
-            migrationBuilder.AddColumn<int>(
-                name: "ProductId",
-                table: "PurchaseOrders",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
-
-            migrationBuilder.AddColumn<int>(
-                name: "ProductNo",
-                table: "PurchaseOrders",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PurchaseOrders_ProductId",
-                table: "PurchaseOrders",
-                column: "ProductId");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_PurchaseOrders_Products_ProductId",
-                table: "PurchaseOrders",
-                column: "ProductId",
-                principalTable: "Products",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+            
         }
 
         /// <inheritdoc />

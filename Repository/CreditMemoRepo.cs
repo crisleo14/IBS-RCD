@@ -85,6 +85,11 @@ namespace Accounting_System.Repository
         {
             var creditMemo = await _dbContext
                 .CreditMemos
+                .Include(c => c.SalesInvoice)
+                .Include(c => c.StatementOfAccount)
+                .ThenInclude(soa => soa.Customer)
+                .Include(c => c.StatementOfAccount)
+                .ThenInclude(soa => soa.Service)
                 .FirstOrDefaultAsync(creditMemo => creditMemo.Id == id);
 
             if (creditMemo != null)

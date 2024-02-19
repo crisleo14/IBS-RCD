@@ -11,69 +11,7 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<string>(
-                name: "TruckOrVessels",
-                table: "ReceivingReports",
-                type: "varchar(100)",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "text");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "RRNo",
-                table: "ReceivingReports",
-                type: "varchar(12)",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "text",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<int>(
-                name: "QuantityDelivered",
-                table: "ReceivingReports",
-                type: "integer",
-                nullable: false,
-                oldClrType: typeof(decimal),
-                oldType: "numeric");
-
-            migrationBuilder.AlterColumn<DateTime>(
-                name: "PaidDate",
-                table: "ReceivingReports",
-                type: "timestamp without time zone",
-                nullable: false,
-                oldClrType: typeof(DateTime),
-                oldType: "timestamp with time zone");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "PONo",
-                table: "ReceivingReports",
-                type: "varchar(12)",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "text",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<DateTime>(
-                name: "Date",
-                table: "ReceivingReports",
-                type: "date",
-                nullable: false,
-                oldClrType: typeof(DateTime),
-                oldType: "timestamp with time zone");
-
-            migrationBuilder.AlterColumn<decimal>(
-                name: "AmountPaid",
-                table: "ReceivingReports",
-                type: "numeric(18,2)",
-                nullable: false,
-                oldClrType: typeof(decimal),
-                oldType: "numeric");
-
-            migrationBuilder.AddColumn<DateTime>(
-                name: "DueDate",
-                table: "ReceivingReports",
-                type: "date",
-                nullable: true);
+           
         }
 
         /// <inheritdoc />

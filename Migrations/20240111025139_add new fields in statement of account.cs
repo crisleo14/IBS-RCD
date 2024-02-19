@@ -10,61 +10,7 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<decimal>(
-                name: "AmountPaid",
-                table: "StatementOfAccounts",
-                type: "numeric(18,2)",
-                nullable: false,
-                defaultValue: 0m);
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "Balance",
-                table: "StatementOfAccounts",
-                type: "numeric(18,2)",
-                nullable: false,
-                defaultValue: 0m);
-
-            migrationBuilder.AddColumn<bool>(
-                name: "IsPaid",
-                table: "StatementOfAccounts",
-                type: "boolean",
-                nullable: false,
-                defaultValue: false);
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "NetAmount",
-                table: "StatementOfAccounts",
-                type: "numeric(18,2)",
-                nullable: false,
-                defaultValue: 0m);
-
-            migrationBuilder.AddColumn<string>(
-                name: "Status",
-                table: "StatementOfAccounts",
-                type: "varchar(20)",
-                nullable: false,
-                defaultValue: "");
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "VatAmount",
-                table: "StatementOfAccounts",
-                type: "numeric(18,2)",
-                nullable: false,
-                defaultValue: 0m);
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "WithholdingTaxAmount",
-                table: "StatementOfAccounts",
-                type: "numeric(18,2)",
-                nullable: false,
-                defaultValue: 0m);
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "WithholdingVatAmount",
-                table: "StatementOfAccounts",
-                type: "numeric(18,2)",
-                nullable: false,
-                defaultValue: 0m);
+          
         }
 
         /// <inheritdoc />

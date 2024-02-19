@@ -10,12 +10,7 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<decimal>(
-                name: "Total",
-                table: "OfficialReceipts",
-                type: "numeric",
-                nullable: false,
-                defaultValue: 0m);
+
         }
 
         /// <inheritdoc />

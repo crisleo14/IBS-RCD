@@ -10,9 +10,7 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "OriginalCopy",
-                table: "SalesInvoices");
+
         }
 
         /// <inheritdoc />
