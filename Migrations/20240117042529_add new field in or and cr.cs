@@ -10,43 +10,7 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "F2306FilePath",
-                table: "OfficialReceipts",
-                type: "varchar(50)",
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "F2307FilePath",
-                table: "OfficialReceipts",
-                type: "varchar(50)",
-                nullable: true);
-
-            migrationBuilder.AddColumn<bool>(
-                name: "IsCertificateUpload",
-                table: "OfficialReceipts",
-                type: "boolean",
-                nullable: false,
-                defaultValue: false);
-
-            migrationBuilder.AddColumn<string>(
-                name: "F2306FilePath",
-                table: "CollectionReceipts",
-                type: "varchar(50)",
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "F2307FilePath",
-                table: "CollectionReceipts",
-                type: "varchar(50)",
-                nullable: true);
-
-            migrationBuilder.AddColumn<bool>(
-                name: "IsCertificateUpload",
-                table: "CollectionReceipts",
-                type: "boolean",
-                nullable: false,
-                defaultValue: false);
+          
         }
 
         /// <inheritdoc />

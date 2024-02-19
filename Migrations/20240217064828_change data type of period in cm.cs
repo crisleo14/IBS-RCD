@@ -6,20 +6,25 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Accounting_System.Migrations
 {
     /// <inheritdoc />
-    public partial class createcolumnDueDateinpurchasejournalbook : Migration
+    public partial class changedatatypeofperiodincm : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            
+            migrationBuilder.AddColumn<DateTime[]>(
+                name: "Period",
+                table: "CreditMemos",
+                type: "date[]",
+                nullable: false,
+                defaultValue: new DateTime[0]);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "DueDate",
-                table: "PurchaseJournalBooks");
+                name: "Period",
+                table: "CreditMemos");
         }
     }
 }

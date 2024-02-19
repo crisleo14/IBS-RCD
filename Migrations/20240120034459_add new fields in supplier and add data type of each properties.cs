@@ -11,68 +11,7 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "BusinessStyle",
-                table: "Suppliers");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Type",
-                table: "Suppliers",
-                type: "varchar(20)",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "text");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "TinNo",
-                table: "Suppliers",
-                type: "varchar(20)",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "text");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Name",
-                table: "Suppliers",
-                type: "varchar(50)",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "text");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Address",
-                table: "Suppliers",
-                type: "varchar(200)",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "text");
-
-            migrationBuilder.AddColumn<string>(
-                name: "ReasonOfExemption",
-                table: "Suppliers",
-                type: "varchar(100)",
-                nullable: false,
-                defaultValue: "");
-
-            migrationBuilder.AddColumn<string>(
-                name: "Terms",
-                table: "Suppliers",
-                type: "varchar(5)",
-                nullable: false,
-                defaultValue: "");
-
-            migrationBuilder.AddColumn<string>(
-                name: "Validity",
-                table: "Suppliers",
-                type: "varchar(20)",
-                nullable: false,
-                defaultValue: "");
-
-            migrationBuilder.AddColumn<DateTime>(
-                name: "ValidityDate",
-                table: "Suppliers",
-                type: "timestamp with time zone",
-                nullable: true);
+           
         }
 
         /// <inheritdoc />

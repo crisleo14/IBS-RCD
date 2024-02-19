@@ -6,27 +6,25 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Accounting_System.Migrations
 {
     /// <inheritdoc />
-    public partial class removetermsfieldandaddduedatefield : Migration
+    public partial class removefieldperiodmodelinCM : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-
+            migrationBuilder.DropColumn(
+                name: "Period",
+                table: "CreditMemos");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "DueDate",
-                table: "StatementOfAccounts");
-
-            migrationBuilder.AddColumn<string>(
-                name: "Terms",
-                table: "StatementOfAccounts",
-                type: "varchar(5)",
+            migrationBuilder.AddColumn<DateTime[]>(
+                name: "Period",
+                table: "CreditMemos",
+                type: "date[]",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: new DateTime[0]);
         }
     }
 }

@@ -10,13 +10,7 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<long>(
-                name: "Number",
-                table: "PurchaseJournalBooks",
-                type: "bigint",
-                nullable: false,
-                oldClrType: typeof(int),
-                oldType: "integer");
+
         }
 
         /// <inheritdoc />

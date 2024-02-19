@@ -10,10 +10,7 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "Instruction",
-                table: "StatementOfAccounts",
-                newName: "Instructions");
+
         }
 
         /// <inheritdoc />

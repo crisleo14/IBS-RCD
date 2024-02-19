@@ -10,36 +10,7 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "Number",
-                table: "PurchaseJournalBooks");
-
-            migrationBuilder.DropColumn(
-                name: "Quantity",
-                table: "PurchaseJournalBooks");
-
-            migrationBuilder.DropColumn(
-                name: "UnitPrice",
-                table: "PurchaseJournalBooks");
-
-            migrationBuilder.DropColumn(
-                name: "VatExempt",
-                table: "PurchaseJournalBooks");
-
-            migrationBuilder.DropColumn(
-                name: "Vatable",
-                table: "PurchaseJournalBooks");
-
-            migrationBuilder.DropColumn(
-                name: "ZeroRated",
-                table: "PurchaseJournalBooks");
-
-            migrationBuilder.AddColumn<string>(
-                name: "PONo",
-                table: "PurchaseJournalBooks",
-                type: "varchar(12)",
-                nullable: false,
-                defaultValue: "");
+            
         }
 
         /// <inheritdoc />

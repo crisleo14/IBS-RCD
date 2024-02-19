@@ -5,20 +5,25 @@
 namespace Accounting_System.Migrations
 {
     /// <inheritdoc />
-    public partial class addewtamountinrr : Migration
+    public partial class changedatatypeofWVATinCM : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-
+            migrationBuilder.AddColumn<decimal>(
+                name: "WithHoldingTaxAmount",
+                table: "CreditMemos",
+                type: "numeric(18,2)",
+                nullable: false,
+                defaultValue: 0m);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "EwtAmount",
-                table: "ReceivingReports");
+                name: "WithHoldingTaxAmount",
+                table: "CreditMemos");
         }
     }
 }

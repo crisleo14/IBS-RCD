@@ -5,24 +5,25 @@
 namespace Accounting_System.Migrations
 {
     /// <inheritdoc />
-    public partial class AddnewcolumnfieldEWTandWVATinCreditMemo : Migration
+    public partial class removefieldWTAXmodelinCM : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            
+            migrationBuilder.DropColumn(
+                name: "WithHoldingTaxAmount",
+                table: "CreditMemos");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
+            migrationBuilder.AddColumn<decimal>(
                 name: "WithHoldingTaxAmount",
-                table: "CreditMemos");
-
-            migrationBuilder.DropColumn(
-                name: "WithHoldingVatAmount",
-                table: "CreditMemos");
+                table: "CreditMemos",
+                type: "numeric(18,2)",
+                nullable: false,
+                defaultValue: 0m);
         }
     }
 }

@@ -31,7 +31,7 @@ namespace Accounting_System.Controllers
                 .ThenInclude(soa => soa.Customer)
                 .Include(cm => cm.StatementOfAccount)
                 .ThenInclude(soa => soa.Service)
-                .OrderBy(cm => cm.Id)
+                .OrderBy(cm => cm.Id) 
                 .ToListAsync();
 
             return View(cm);
@@ -60,8 +60,22 @@ namespace Accounting_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreditMemo model)
+        public async Task<IActionResult> Create(CreditMemo model, DateTime[] period)
         {
+            model.Invoices = await _dbContext.SalesInvoices
+                .Select(si => new SelectListItem
+                {
+                    Value = si.Id.ToString(),
+                    Text = si.SINo
+                })
+                .ToListAsync();
+            model.Soa = await _dbContext.StatementOfAccounts
+                .Select(soa => new SelectListItem
+                {
+                    Value = soa.Id.ToString(),
+                    Text = soa.SOANo
+                })
+                .ToListAsync();
             if (ModelState.IsValid)
             {
                 var getLastNumber = await _creditMemoRepo.GetLastSeriesNumber();
@@ -99,7 +113,7 @@ namespace Accounting_System.Controllers
 
                     if (existingSalesInvoice.CustomerType == "Vatable")
                     {
-                        model.VatableSales = model.CreditAmount / (decimal)1.12;
+                        model.VatableSales = model.CreditAmount / 1.12m;
                         model.VatAmount = model.CreditAmount - model.VatableSales;
                         model.TotalSales = model.VatableSales + model.VatAmount;
 
@@ -128,7 +142,7 @@ namespace Accounting_System.Controllers
 
                     if (existingSoa.Customer.CustomerType == "Vatable")
                     {
-                        model.VatableSales = model.CreditAmount / (decimal)1.12;
+                        model.VatableSales = model.CreditAmount / 1.12m;
                         model.VatAmount = model.CreditAmount - model.VatableSales;
                         model.TotalSales = model.VatableSales + model.VatAmount;
 
@@ -143,7 +157,25 @@ namespace Accounting_System.Controllers
                     }
 
                     model.TotalSales = model.CreditAmount;
+
+                    #region --CM Entries function
+
+                    for (int i = 0; i < period.Length; i++)
+                    {
+                        if (model.CreatedDate < period[i])
+                        {
+                            model.UnearnedAmount += model.Amount[i];
+                        }
+                        else
+                        {
+                            model.CurrentAndPreviousAmount += model.Amount[i];
+                        }
+                    }
+
+                    #endregion ----CM Entries function
                 }
+
+
 
                 _dbContext.Add(model);
                 await _dbContext.SaveChangesAsync();
@@ -299,6 +331,357 @@ namespace Accounting_System.Controllers
                     model.PostedBy = _userManager.GetUserName(this.User);
                     model.PostedDate = DateTime.Now;
 
+                    
+                        #region --Sales Book Recording
+
+                    var sales = new SalesBook();
+
+                    if (model.SINo != null)
+                    {
+                        if (model.SalesInvoice.CustomerType == "Vatable")
+                        {
+                            sales.TransactionDate = model.Date.ToShortDateString();
+                            sales.SerialNo = model.CMNo;
+                            sales.SoldTo = model.SalesInvoice.SoldTo;
+                            sales.TinNo = model.SalesInvoice.TinNo;
+                            sales.Address = model.SalesInvoice.Address;
+                            sales.Description = model.SalesInvoice.ProductName;
+                            sales.Amount = model.CreditAmount;
+                            sales.VatAmount = model.VatAmount;
+                            sales.VatableSales = model.VatableSales;
+                            //sales.Discount = model.Discount;
+                            //sales.NetSales = model.NetDiscount;
+                            sales.CreatedBy = model.CreatedBy;
+                            sales.CreatedDate = model.CreatedDate;
+                        }
+                        else if (model.SalesInvoice.CustomerType == "Exempt")
+                        {
+                            sales.TransactionDate = model.Date.ToShortDateString();
+                            sales.SerialNo = model.CMNo;
+                            sales.SoldTo = model.SalesInvoice.SoldTo;
+                            sales.TinNo = model.SalesInvoice.TinNo;
+                            sales.Address = model.SalesInvoice.Address;
+                            sales.Description = model.SalesInvoice.ProductName;
+                            sales.Amount = model.CreditAmount;
+                            sales.VatExemptSales = model.CreditAmount;
+                            //sales.Discount = model.Discount;
+                            //sales.NetSales = model.NetDiscount;
+                            sales.CreatedBy = model.CreatedBy;
+                            sales.CreatedDate = model.CreatedDate;
+                        }
+                        else
+                        {
+                            sales.TransactionDate = model.Date.ToShortDateString();
+                            sales.SerialNo = model.CMNo;
+                            sales.SoldTo = model.SalesInvoice.SoldTo;
+                            sales.TinNo = model.SalesInvoice.TinNo;
+                            sales.Address = model.SalesInvoice.Address;
+                            sales.Description = model.SalesInvoice.ProductName;
+                            sales.Amount = model.CreditAmount;
+                            sales.ZeroRated = model.CreditAmount;
+                            //sales.Discount = model.Discount;
+                            //sales.NetSales = model.NetDiscount;
+                            sales.CreatedBy = model.CreatedBy;
+                            sales.CreatedDate = model.CreatedDate;
+                        }
+                    }
+                    if (model.SOANo != null)
+                    {
+                        if (model.StatementOfAccount.Customer.CustomerType == "Vatable")
+                        {
+                            sales.TransactionDate = model.Date.ToShortDateString();
+                            sales.SerialNo = model.CMNo;
+                            sales.SoldTo = model.StatementOfAccount.Customer.Name;
+                            sales.TinNo = model.StatementOfAccount.Customer.TinNo;
+                            sales.Address = model.StatementOfAccount.Customer.Address;
+                            sales.Description = model.StatementOfAccount.Service.Name;
+                            sales.Amount = model.CreditAmount;
+                            sales.VatAmount = model.VatAmount;
+                            sales.VatableSales = model.VatableSales;
+                            //sales.Discount = model.Discount;
+                            //sales.NetSales = model.NetDiscount;
+                            sales.CreatedBy = model.CreatedBy;
+                            sales.CreatedDate = model.CreatedDate;
+                        }
+                        else if (model.StatementOfAccount.Customer.CustomerType == "Exempt")
+                        {
+                            sales.TransactionDate = model.Date.ToShortDateString();
+                            sales.SerialNo = model.CMNo;
+                            sales.SoldTo = model.StatementOfAccount.Customer.Name;
+                            sales.TinNo = model.StatementOfAccount.Customer.TinNo;
+                            sales.Address = model.StatementOfAccount.Customer.Address;
+                            sales.Description = model.StatementOfAccount.Service.Name;
+                            sales.Amount = model.CreditAmount;
+                            sales.VatExemptSales = model.CreditAmount;
+                            //sales.Discount = model.Discount;
+                            //sales.NetSales = model.NetDiscount;
+                            sales.CreatedBy = model.CreatedBy;
+                            sales.CreatedDate = model.CreatedDate;
+                        }
+                        else
+                        {
+                            sales.TransactionDate = model.Date.ToShortDateString();
+                            sales.SerialNo = model.CMNo;
+                            sales.SoldTo = model.StatementOfAccount.Customer.Name;
+                            sales.TinNo = model.StatementOfAccount.Customer.TinNo;
+                            sales.Address = model.StatementOfAccount.Customer.Address;
+                            sales.Description = model.StatementOfAccount.Service.Name;
+                            sales.Amount = model.CreditAmount;
+                            sales.ZeroRated = model.CreditAmount;
+                            //sales.Discount = model.Discount;
+                            //sales.NetSales = model.NetDiscount;
+                            sales.CreatedBy = model.CreatedBy;
+                            sales.CreatedDate = model.CreatedDate;
+                        }
+                    }
+                    _dbContext.Add(sales);
+
+                    #endregion --Sales Book Recording
+
+                    #region --General Ledger Book Recording
+
+                    if (model.SINo != null)
+                    {
+                        var ledgers = new List<GeneralLedgerBook>();
+
+                        ledgers.Add(
+                            new GeneralLedgerBook
+                            {
+                                Date = model.Date.ToShortDateString(),
+                                Reference = model.CMNo,
+                                Description = model.SalesInvoice.ProductName,
+                                AccountTitle = "1010201 AR-Trade Receivable",
+                                Debit = model.CreditAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount),
+                                Credit = 0,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+
+                        if (model.WithHoldingTaxAmount > 0)
+                        {
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.Date.ToShortDateString(),
+                                    Reference = model.CMNo,
+                                    Description = model.SalesInvoice.ProductName,
+                                    AccountTitle = "1010202 Deferred Creditable Withholding Tax",
+                                    Debit = model.WithHoldingTaxAmount,
+                                    Credit = 0,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+                        if (model.WithHoldingVatAmount > 0)
+                        {
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.Date.ToShortDateString(),
+                                    Reference = model.CMNo,
+                                    Description = model.SalesInvoice.ProductName,
+                                    AccountTitle = "1010203 Deferred Creditable Withholding Vat",
+                                    Debit = model.WithHoldingVatAmount,
+                                    Credit = 0,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+                        if (model.SalesInvoice.ProductName == "Biodiesel")
+                        {
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.Date.ToShortDateString(),
+                                    Reference = model.CMNo,
+                                    Description = model.SalesInvoice.ProductName,
+                                    AccountTitle = "4010101 Sales - Biodiesel",
+                                    Debit = 0,
+                                    Credit = model.VatableSales > 0
+                                                ? model.VatableSales
+                                                : model.CreditAmount,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+                        else if (model.SalesInvoice.ProductName == "Econogas")
+                        {
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.Date.ToShortDateString(),
+                                    Reference = model.CMNo,
+                                    Description = model.SalesInvoice.ProductName,
+                                    AccountTitle = "4010102 Sales - Econogas",
+                                    Debit = 0,
+                                    Credit = model.VatableSales > 0
+                                                ? model.VatableSales
+                                                : model.CreditAmount,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+                        else if (model.SalesInvoice.ProductName == "Envirogas")
+                        {
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.Date.ToShortDateString(),
+                                    Reference = model.CMNo,
+                                    Description = model.SalesInvoice.ProductName,
+                                    AccountTitle = "4010103 Sales - Envirogas",
+                                    Debit = 0,
+                                    Credit = model.VatableSales > 0
+                                                ? model.VatableSales
+                                                : model.CreditAmount,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+
+                        if (model.VatAmount > 0)
+                        {
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.Date.ToShortDateString(),
+                                    Reference = model.CMNo,
+                                    Description = model.SalesInvoice.ProductName,
+                                    AccountTitle = "2010301 Vat Output",
+                                    Debit = 0,
+                                    Credit = model.VatAmount,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+
+
+                        _dbContext.GeneralLedgerBooks.AddRange(ledgers);
+                    }
+
+                    if (model.SOANo != null)
+                    {
+                        var ledgers = new List<GeneralLedgerBook>();
+
+                        ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.Date.ToShortDateString(),
+                                    Reference = model.CMNo,
+                                    Description = model.StatementOfAccount.Service.Name,
+                                    AccountTitle = "1010204 AR-Non Trade Receivable",
+                                    Debit = model.CreditAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount),
+                                    Credit = 0,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        if (model.WithHoldingTaxAmount < 0)
+                        {
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.Date.ToShortDateString(),
+                                    Reference = model.CMNo,
+                                    Description = model.StatementOfAccount.Service.Name,
+                                    AccountTitle = "1010202 Deferred Creditable Withholding Tax",
+                                    Debit = model.WithHoldingTaxAmount,
+                                    Credit = 0,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+                        if (model.WithHoldingVatAmount < 0)
+                        {
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.Date.ToShortDateString(),
+                                    Reference = model.CMNo,
+                                    Description = model.StatementOfAccount.Service.Name,
+                                    AccountTitle = "1010203 Deferred Creditable Withholding Vat",
+                                    Debit = model.WithHoldingVatAmount,
+                                    Credit = 0,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+
+                        //for (int i = 0; i < model.StatementOfAccount.Period.Length; i++)
+                        //{
+                        //    if (model.CreatedDate < model.StatementOfAccount.Period[i])
+                        //    {
+                        //        unearnedAmount += model.StatementOfAccount.Amount[i];
+                        //    }
+                        //    else
+                        //    {
+                        //        currentAndPreviousAmount += model.StatementOfAccount.Amount[i];
+                        //    }
+                        //}
+
+                        if (model.StatementOfAccount.CurrentAndPreviousAmount > 0)
+                        {
+                            ledgers.Add(new GeneralLedgerBook
+                            {
+                                Date = model.Date.ToShortDateString(),
+                                Reference = model.CMNo,
+                                Description = model.StatementOfAccount.Service.Name,
+                                AccountTitle = model.StatementOfAccount.Service.CurrentAndPrevious,
+                                Debit = 0,
+                                Credit = model.StatementOfAccount.CurrentAndPreviousAmount,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            });
+                        }
+
+                        if (model.StatementOfAccount.UnearnedAmount > 0)
+                        {
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.Date.ToShortDateString(),
+                                    Reference = model.CMNo,
+                                    Description = model.StatementOfAccount.Service.Name,
+                                    AccountTitle = model.StatementOfAccount.Service.Unearned,
+                                    Debit = 0,
+                                    Credit = model.StatementOfAccount.UnearnedAmount,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+
+                        if (model.VatAmount < 0)
+                        {
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.Date.ToShortDateString(),
+                                    Reference = model.CMNo,
+                                    Description = model.StatementOfAccount.Service.Name,
+                                    AccountTitle = "2010304 Deferred Vat Output",
+                                    Debit = 0,
+                                    Credit = model.VatAmount,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+
+                        _dbContext.GeneralLedgerBooks.AddRange(ledgers);
+                    }
+
+                    #endregion --General Ledger Book Recording
+
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.PostedBy, $"Posted credit memo# {model.CMNo}", "Credit Memo");
@@ -380,6 +763,22 @@ namespace Accounting_System.Controllers
         {
             var cm = await _creditMemoRepo.FindCM(id);
             return PartialView("_PreviewCredit", cm);
+        }
+
+        [HttpGet]
+        public JsonResult GetSOADetails(int soaId)
+        {
+            var model = _dbContext.StatementOfAccounts.FirstOrDefault(soa => soa.Id == soaId);
+            if (model != null)
+            {
+                return Json(new
+                {
+                    Period = model?.Period,
+                    Amount = model?.Amount
+                });
+            }
+
+            return Json(null);
         }
     }
 }

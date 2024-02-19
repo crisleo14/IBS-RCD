@@ -10,12 +10,7 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<bool>(
-                name: "IsRemoved",
-                table: "Offsettings",
-                type: "boolean",
-                nullable: false,
-                defaultValue: false);
+
         }
 
         /// <inheritdoc />

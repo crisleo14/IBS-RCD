@@ -10,11 +10,7 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "SOANo",
-                table: "OfficialReceipts",
-                type: "varchar(12)",
-                nullable: true);
+
         }
 
         /// <inheritdoc />
