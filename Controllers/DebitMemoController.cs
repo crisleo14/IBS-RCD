@@ -323,7 +323,7 @@ namespace Accounting_System.Controllers
 
                     #region --General Ledger Book Recording
 
-                    if (model.SalesInvoice.SINo != null)
+                    if (model.SalesInvoiceId != null)
                     {
                         var ledgers = new List<GeneralLedgerBook>();
 
@@ -449,7 +449,7 @@ namespace Accounting_System.Controllers
                         _dbContext.GeneralLedgerBooks.AddRange(ledgers);
                     }
 
-                    if (model.SOA.SOANo != null)
+                    if (model.SOAId != null)
                     {
                         var ledgers = new List<GeneralLedgerBook>();
 
