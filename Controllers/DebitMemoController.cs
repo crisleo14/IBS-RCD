@@ -92,13 +92,13 @@ namespace Accounting_System.Controllers
                     var existingSalesInvoice = _dbContext.SalesInvoices
                                                .FirstOrDefault(si => si.Id == model.SalesInvoiceId);
 
-                    model.DebitAmount = model.AdjustedPrice * existingSalesInvoice.Quantity;
+                    var adjustedPrice = model.AdjustedPrice - existingSalesInvoice.UnitPrice;
+                    model.DebitAmount = existingSalesInvoice.Quantity * adjustedPrice;
 
                     if (existingSalesInvoice.CustomerType == "Vatable")
                     {
-                        model.VatableSales = model.DebitAmount / (decimal)1.12;
+                        model.VatableSales = model.DebitAmount / 1.12m;
                         model.VatAmount = model.DebitAmount - model.VatableSales;
-                        model.TotalSales = model.VatableSales + model.VatAmount;
 
                         if (existingSalesInvoice.WithHoldingTaxAmount != 0)
                         {
@@ -108,9 +108,14 @@ namespace Accounting_System.Controllers
                         {
                             model.WithHoldingVatAmount = model.VatableSales * 0.05m;
                         }
-                    }
 
-                    model.TotalSales = model.DebitAmount;
+                        model.TotalSales = (model.VatableSales + model.VatAmount) - (model.WithHoldingVatAmount + model.WithHoldingTaxAmount);
+                    }
+                    else
+                    {
+                        model.TotalSales = model.DebitAmount;
+                    }
+                    
                 }
                 else if (model.Source == "Statement Of Account")
                 {
@@ -120,25 +125,6 @@ namespace Accounting_System.Controllers
                         .Include(soa => soa.Customer)
                         .FirstOrDefault(soa => soa.Id == model.SOAId);
 
-                    model.DebitAmount = model.AdjustedPrice - existingSoa.Total;
-
-                    if (existingSoa.Customer.CustomerType == "Vatable")
-                    {
-                        model.VatableSales = model.DebitAmount / (decimal)1.12;
-                        model.VatAmount = model.DebitAmount - model.VatableSales;
-                        model.TotalSales = model.VatableSales + model.VatAmount;
-
-                        if (existingSoa.WithholdingTaxAmount != 0)
-                        {
-                            model.WithHoldingTaxAmount = model.VatableSales * 0.01m;
-                        }
-                        if (existingSoa.WithholdingVatAmount != 0)
-                        {
-                            model.WithHoldingVatAmount = model.VatableSales * 0.05m;
-                        }
-                    }
-
-                    model.TotalSales = model.DebitAmount;
 
                     #region --CM Entries function
 
@@ -155,6 +141,28 @@ namespace Accounting_System.Controllers
                     }
 
                     #endregion ----CM Entries function
+
+                    model.DebitAmount = existingSoa.Total + model.UnearnedAmount + model.CurrentAndPreviousAmount;
+
+                    if (existingSoa.Customer.CustomerType == "Vatable")
+                    {
+                        model.VatableSales = model.DebitAmount / (decimal)1.12;
+                        model.VatAmount = model.DebitAmount - model.VatableSales;
+                        model.TotalSales = model.VatableSales + model.VatAmount;
+
+                        if (existingSoa.WithholdingTaxAmount != 0)
+                        {
+                            model.WithHoldingTaxAmount = model.VatableSales * 0.01m;
+                        }
+                        if (existingSoa.WithholdingVatAmount != 0)
+                        {
+                            model.WithHoldingVatAmount = model.VatableSales * 0.05m;
+                        }
+                    }
+                    else
+                    {
+                        model.TotalSales = model.DebitAmount;
+                    }
                 }
 
                 model.CreatedBy = _userManager.GetUserName(this.User);
@@ -466,7 +474,7 @@ namespace Accounting_System.Controllers
                                     CreatedDate = model.CreatedDate
                                 }
                             );
-                        if (model.WithHoldingTaxAmount < 0)
+                        if (model.WithHoldingTaxAmount > 0)
                         {
                             ledgers.Add(
                                 new GeneralLedgerBook
@@ -482,7 +490,7 @@ namespace Accounting_System.Controllers
                                 }
                             );
                         }
-                        if (model.WithHoldingVatAmount < 0)
+                        if (model.WithHoldingVatAmount > 0)
                         {
                             ledgers.Add(
                                 new GeneralLedgerBook
@@ -499,19 +507,7 @@ namespace Accounting_System.Controllers
                             );
                         }
 
-                        //for (int i = 0; i < model.StatementOfAccount.Period.Length; i++)
-                        //{
-                        //    if (model.CreatedDate < model.StatementOfAccount.Period[i])
-                        //    {
-                        //        unearnedAmount += model.StatementOfAccount.Amount[i];
-                        //    }
-                        //    else
-                        //    {
-                        //        currentAndPreviousAmount += model.StatementOfAccount.Amount[i];
-                        //    }
-                        //}
-
-                        if (model.SOA.CurrentAndPreviousAmount > 0)
+                        if (model.CurrentAndPreviousAmount > 0)
                         {
                             ledgers.Add(new GeneralLedgerBook
                             {
@@ -526,7 +522,7 @@ namespace Accounting_System.Controllers
                             });
                         }
 
-                        if (model.SOA.UnearnedAmount > 0)
+                        if (model.UnearnedAmount > 0)
                         {
                             ledgers.Add(
                                 new GeneralLedgerBook
@@ -543,7 +539,7 @@ namespace Accounting_System.Controllers
                             );
                         }
 
-                        if (model.VatAmount < 0)
+                        if (model.VatAmount > 0)
                         {
                             ledgers.Add(
                                 new GeneralLedgerBook
