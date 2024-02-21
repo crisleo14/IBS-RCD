@@ -84,5 +84,7 @@ namespace Accounting_System.Models
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]
         public decimal UnearnedAmount { get; set; }
+
+        public int ServicesId { get; set; }
     }
 }

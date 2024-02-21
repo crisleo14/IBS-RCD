@@ -8,8 +8,6 @@
     var dateTo = ViewBag.DateTo;
     var lastRecord = ViewBag.LastRecord;
 
-    Layout = "~/Views/Shared/_BooksLayout.cshtml";
-
     // Convert the date strings to DateTime objects
     DateTime dateFromFormatted;
     if (DateTime.TryParse(dateFrom, out dateFromFormatted))
@@ -83,6 +81,13 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
 
             @foreach (var ledger in Model)
             {
+                decimal originalDebitAmount = ledger.Debit;
+                string formattedDebitAmount = originalDebitAmount < 0 ? $"({-originalDebitAmount:F2})" : originalDebitAmount.ToString("F2");
+
+                decimal originalCreditAmount = ledger.Credit;
+                string formattedCreditAmount = originalCreditAmount < 0 ? $"({-originalCreditAmount:F2})" : originalCreditAmount.ToString("F2");
+
+
                 <tr class="align-text-bottom">
                     <td>
                         @Html.DisplayFor(model => ledger.Date)
@@ -97,10 +102,10 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                         @Html.DisplayFor(model => ledger.AccountTitle)
                     </td>
                     <td class="text-end">
-                        @Html.DisplayFor(model => ledger.Debit)
+                        @Html.DisplayFor(model => formattedDebitAmount)
                     </td>
                     <td class="text-end">
-                        @Html.DisplayFor(model => ledger.Credit)
+                        @Html.DisplayFor(model => formattedCreditAmount)
                     </td>
                 </tr>
 

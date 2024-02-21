@@ -8,8 +8,6 @@
     var dateTo = ViewBag.DateTo;
     var lastRecord = ViewBag.LastRecord;
 
-    Layout = "~/Views/Shared/_BooksLayout.cshtml";
-
     // Convert the date strings to DateTime objects
     DateTime dateFromFormatted;
     if (DateTime.TryParse(dateFrom, out dateFromFormatted))

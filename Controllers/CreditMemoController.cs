@@ -23,7 +23,7 @@ namespace Accounting_System.Controllers
             _creditMemoRepo = creditMemoRepo;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             var cm = await _dbContext.CreditMemos
                 .Include(cm => cm.SalesInvoice)
@@ -32,7 +32,7 @@ namespace Accounting_System.Controllers
                 .Include(cm => cm.StatementOfAccount)
                 .ThenInclude(soa => soa.Service)
                 .OrderBy(cm => cm.Id) 
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return View(cm);
         }
@@ -60,7 +60,7 @@ namespace Accounting_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreditMemo model, DateTime[] period)
+        public async Task<IActionResult> Create(CreditMemo model, DateTime[] period, CancellationToken cancellationToken)
         {
             model.Invoices = await _dbContext.SalesInvoices
                 .Select(si => new SelectListItem
@@ -68,14 +68,14 @@ namespace Accounting_System.Controllers
                     Value = si.Id.ToString(),
                     Text = si.SINo
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
             model.Soa = await _dbContext.StatementOfAccounts
                 .Select(soa => new SelectListItem
                 {
                     Value = soa.Id.ToString(),
                     Text = soa.SOANo
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
             if (ModelState.IsValid)
             {
                 var getLastNumber = await _creditMemoRepo.GetLastSeriesNumber();
@@ -106,10 +106,10 @@ namespace Accounting_System.Controllers
                     model.SOAId = null;
                     model.SINo = await _creditMemoRepo.GetSINoAsync(model.SIId);
 
-                    var existingSalesInvoice = _dbContext.SalesInvoices
-                                               .FirstOrDefault(si => si.Id == model.SIId);
+                    var existingSalesInvoice = await _dbContext.SalesInvoices
+                                               .FirstOrDefaultAsync(si => si.Id == model.SIId, cancellationToken);
 
-                    var adjustedPrice = existingSalesInvoice.UnitPrice - model.AdjustedPrice;
+                    var adjustedPrice = -existingSalesInvoice.UnitPrice - -model.AdjustedPrice;
                     model.CreditAmount = existingSalesInvoice.Quantity * adjustedPrice;
 
                     if (existingSalesInvoice.CustomerType == "Vatable")
@@ -125,7 +125,7 @@ namespace Accounting_System.Controllers
                         {
                             model.WithHoldingVatAmount = model.VatableSales * 0.05m;
                         }
-                        model.TotalSales = (model.VatableSales + model.VatAmount) - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount);
+                        model.TotalSales = model.VatableSales + model.VatAmount;
                     }
                     else
                     {
@@ -138,9 +138,19 @@ namespace Accounting_System.Controllers
                     model.SIId = null;
                     model.SOANo = await _creditMemoRepo.GetSOANoAsync(model.SOAId);
 
-                    var existingSoa = _dbContext.StatementOfAccounts
+                    var existingSoa = await _dbContext.StatementOfAccounts
                         .Include(soa => soa.Customer)
-                        .FirstOrDefault(soa => soa.Id == model.SOAId);
+                        .FirstOrDefaultAsync(soa => soa.Id == model.SOAId, cancellationToken);
+
+                    #region --Retrieval of Services
+
+                    model.ServicesId = existingSoa.ServicesId;
+
+                    var services = await _dbContext
+                    .Services
+                    .FirstOrDefaultAsync(s => s.Id == model.ServicesId, cancellationToken);
+
+                    #endregion --Retrieval of Services
 
                     #region --CM Entries function
 
@@ -160,18 +170,16 @@ namespace Accounting_System.Controllers
 
                     #endregion ----CM Entries function
 
-                    model.CreditAmount = -existingSoa.Total - (model.UnearnedAmount + model.CurrentAndPreviousAmount);
+                    model.CreditAmount = (-existingSoa.Total) - (model.UnearnedAmount + model.CurrentAndPreviousAmount);
+                    
 
                     if (existingSoa.Customer.CustomerType == "Vatable")
                     {
                         model.VatableSales = model.CreditAmount / 1.12m;
                         model.VatAmount = model.CreditAmount - model.VatableSales;
                         model.TotalSales = model.VatableSales + model.VatAmount;
+                        model.WithHoldingTaxAmount = model.VatableSales * (services.Percent / 100m);
 
-                        if (existingSoa.WithholdingTaxAmount != 0)
-                        {
-                            model.WithHoldingTaxAmount = model.VatableSales * 0.01m;
-                        }
                         if (existingSoa.WithholdingVatAmount != 0)
                         {
                             model.WithHoldingVatAmount = model.VatableSales * 0.05m;
@@ -183,8 +191,8 @@ namespace Accounting_System.Controllers
                     }
                 }
 
-                _dbContext.Add(model);
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.AddAsync(model, cancellationToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction("Index");
             }
 
@@ -193,7 +201,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, CancellationToken cancellationToken)
         {
             if (id == null || _dbContext.CreditMemos == null)
             {
@@ -212,7 +220,7 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.SINo
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             creditMemo.Soa = await _dbContext.StatementOfAccounts
                 .Select(s => new SelectListItem
@@ -220,17 +228,17 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.SOANo
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return View(creditMemo);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(CreditMemo model)
+        public async Task<IActionResult> Edit(CreditMemo model, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
-                var existingModel = await _dbContext.CreditMemos.FindAsync(model.Id);
+                var existingModel = await _dbContext.CreditMemos.FindAsync(model.Id, cancellationToken);
 
                 if (existingModel == null)
                 {
@@ -247,8 +255,8 @@ namespace Accounting_System.Controllers
                     existingModel.SOAId = null;
                     existingModel.SIId = model.SIId;
 
-                    var existingSalesInvoice = _dbContext.SalesInvoices
-                                               .FirstOrDefault(si => si.Id == existingModel.SIId);
+                    var existingSalesInvoice = await _dbContext.SalesInvoices
+                                               .FirstOrDefaultAsync(si => si.Id == existingModel.SIId, cancellationToken);
 
                     existingModel.CreditAmount = existingSalesInvoice.Quantity * model.AdjustedPrice - existingSalesInvoice.Amount;
 
@@ -266,9 +274,9 @@ namespace Accounting_System.Controllers
                     existingModel.SIId = null;
                     existingModel.SOAId = model.SOAId;
 
-                    var existingSoa = _dbContext.StatementOfAccounts
+                    var existingSoa = await _dbContext.StatementOfAccounts
                         .Include(soa => soa.Customer)
-                        .FirstOrDefault(soa => soa.Id == existingModel.SOAId);
+                        .FirstOrDefaultAsync(soa => soa.Id == existingModel.SOAId, cancellationToken);
 
                     existingModel.CreditAmount = model.AdjustedPrice - existingSoa.Total;
 
@@ -282,7 +290,7 @@ namespace Accounting_System.Controllers
                     existingModel.TotalSales = existingModel.CreditAmount;
                 }
 
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
 
                 TempData["success"] = "Credit Memo updated successfully";
                 return RedirectToAction("Index");
@@ -292,7 +300,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Print(int? id)
+        public async Task<IActionResult> Print(int? id, CancellationToken cancellationToken)
         {
             if (id == null || _dbContext.CreditMemos == null)
             {
@@ -305,7 +313,7 @@ namespace Accounting_System.Controllers
                 .ThenInclude(soa => soa.Customer)
                 .Include(cm => cm.StatementOfAccount)
                 .ThenInclude(soa => soa.Service)
-                .FirstOrDefaultAsync(r => r.Id == id);
+                .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
             if (creditMemo == null)
             {
                 return NotFound();
@@ -314,18 +322,18 @@ namespace Accounting_System.Controllers
             return View(creditMemo);
         }
 
-        public async Task<IActionResult> Printed(int id)
+        public async Task<IActionResult> Printed(int id, CancellationToken cancellationToken)
         {
-            var cm = await _dbContext.CreditMemos.FindAsync(id);
+            var cm = await _dbContext.CreditMemos.FindAsync(id, cancellationToken);
             if (cm != null && !cm.IsPrinted)
             {
                 cm.IsPrinted = true;
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
             }
             return RedirectToAction("Print", new { id = id });
         }
 
-        public async Task<IActionResult> Post(int id)
+        public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
         {
             var model = await _creditMemoRepo.FindCM(id);
 
@@ -356,7 +364,7 @@ namespace Accounting_System.Controllers
                         sales.VatAmount = model.VatAmount;
                         sales.VatableSales = model.VatableSales;
                         //sales.Discount = model.Discount;
-                        //sales.NetSales = model.NetDiscount;
+                        sales.NetSales = model.VatableSales;
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
                     }
@@ -371,7 +379,7 @@ namespace Accounting_System.Controllers
                         sales.Amount = model.CreditAmount;
                         sales.VatExemptSales = model.CreditAmount;
                         //sales.Discount = model.Discount;
-                        //sales.NetSales = model.NetDiscount;
+                        sales.NetSales = model.VatableSales;
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
                     }
@@ -386,7 +394,7 @@ namespace Accounting_System.Controllers
                         sales.Amount = model.CreditAmount;
                         sales.ZeroRated = model.CreditAmount;
                         //sales.Discount = model.Discount;
-                        //sales.NetSales = model.NetDiscount;
+                        sales.NetSales = model.VatableSales;
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
                     }
@@ -405,7 +413,7 @@ namespace Accounting_System.Controllers
                         sales.VatAmount = model.VatAmount;
                         sales.VatableSales = model.VatableSales;
                         //sales.Discount = model.Discount;
-                        //sales.NetSales = model.NetDiscount;
+                        sales.NetSales = model.VatableSales;
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
                     }
@@ -420,7 +428,7 @@ namespace Accounting_System.Controllers
                         sales.Amount = model.CreditAmount;
                         sales.VatExemptSales = model.CreditAmount;
                         //sales.Discount = model.Discount;
-                        //sales.NetSales = model.NetDiscount;
+                        sales.NetSales = model.VatableSales;
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
                     }
@@ -435,12 +443,12 @@ namespace Accounting_System.Controllers
                         sales.Amount = model.CreditAmount;
                         sales.ZeroRated = model.CreditAmount;
                         //sales.Discount = model.Discount;
-                        //sales.NetSales = model.NetDiscount;
+                        sales.NetSales = model.VatableSales;
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
                     }
                 }
-                _dbContext.Add(sales);
+                await _dbContext.AddAsync(sales, cancellationToken);
 
                 #endregion --Sales Book Recording
 
@@ -457,14 +465,14 @@ namespace Accounting_System.Controllers
                                 Reference = model.CMNo,
                                 Description = model.SalesInvoice.ProductName,
                                 AccountTitle = "1010201 AR-Trade Receivable",
-                                Debit = model.CreditAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount),
-                                Credit = 0,
+                                Debit = 0,
+                                Credit = model.CreditAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount),
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
                             }
                         );
 
-                        if (model.WithHoldingTaxAmount > 0)
+                        if (model.WithHoldingTaxAmount < 0)
                         {
                             ledgers.Add(
                                 new GeneralLedgerBook
@@ -473,14 +481,14 @@ namespace Accounting_System.Controllers
                                     Reference = model.CMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountTitle = "1010202 Deferred Creditable Withholding Tax",
-                                    Debit = model.WithHoldingTaxAmount,
-                                    Credit = 0,
+                                    Debit = 0,
+                                    Credit = model.WithHoldingTaxAmount,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
                             );
                         }
-                        if (model.WithHoldingVatAmount > 0)
+                        if (model.WithHoldingVatAmount < 0)
                         {
                             ledgers.Add(
                                 new GeneralLedgerBook
@@ -489,8 +497,8 @@ namespace Accounting_System.Controllers
                                     Reference = model.CMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountTitle = "1010203 Deferred Creditable Withholding Vat",
-                                    Debit = model.WithHoldingVatAmount,
-                                    Credit = 0,
+                                    Debit = 0,
+                                    Credit = model.WithHoldingVatAmount,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -505,11 +513,11 @@ namespace Accounting_System.Controllers
                                     Reference = model.CMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountTitle = "4010101 Sales - Biodiesel",
-                                    Debit = 0,
-                                    Credit = model.VatableSales > 0
+                                    Debit = model.VatableSales < 0
                                                 ? model.VatableSales
                                                 : model.CreditAmount,
                                     CreatedBy = model.CreatedBy,
+                                    Credit = 0,
                                     CreatedDate = model.CreatedDate
                                 }
                             );
@@ -523,10 +531,10 @@ namespace Accounting_System.Controllers
                                     Reference = model.CMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountTitle = "4010102 Sales - Econogas",
-                                    Debit = 0,
-                                    Credit = model.VatableSales > 0
+                                    Debit = model.VatableSales < 0
                                                 ? model.VatableSales
                                                 : model.CreditAmount,
+                                    Credit = 0,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -541,17 +549,17 @@ namespace Accounting_System.Controllers
                                     Reference = model.CMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountTitle = "4010103 Sales - Envirogas",
-                                    Debit = 0,
-                                    Credit = model.VatableSales > 0
+                                    Debit = model.VatableSales < 0
                                                 ? model.VatableSales
                                                 : model.CreditAmount,
+                                    Credit = 0,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
                             );
                         }
 
-                        if (model.VatAmount > 0)
+                        if (model.VatAmount < 0)
                         {
                             ledgers.Add(
                                 new GeneralLedgerBook
@@ -560,8 +568,8 @@ namespace Accounting_System.Controllers
                                     Reference = model.CMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountTitle = "2010301 Vat Output",
-                                    Debit = 0,
-                                    Credit = model.VatAmount,
+                                    Debit = model.VatAmount,
+                                    Credit = 0,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -583,8 +591,8 @@ namespace Accounting_System.Controllers
                                     Reference = model.CMNo,
                                     Description = model.StatementOfAccount.Service.Name,
                                     AccountTitle = "1010204 AR-Non Trade Receivable",
-                                    Debit = model.CreditAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount),
-                                    Credit = 0,
+                                    Debit = 0,
+                                    Credit = model.CreditAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount),
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -598,8 +606,8 @@ namespace Accounting_System.Controllers
                                     Reference = model.CMNo,
                                     Description = model.StatementOfAccount.Service.Name,
                                     AccountTitle = "1010202 Deferred Creditable Withholding Tax",
-                                    Debit = model.WithHoldingTaxAmount,
-                                    Credit = 0,
+                                    Debit = 0,
+                                    Credit = model.WithHoldingTaxAmount,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -614,8 +622,8 @@ namespace Accounting_System.Controllers
                                     Reference = model.CMNo,
                                     Description = model.StatementOfAccount.Service.Name,
                                     AccountTitle = "1010203 Deferred Creditable Withholding Vat",
-                                    Debit = model.WithHoldingVatAmount,
-                                    Credit = 0,
+                                    Debit = 0,
+                                    Credit = model.WithHoldingVatAmount,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -630,8 +638,8 @@ namespace Accounting_System.Controllers
                                 Reference = model.CMNo,
                                 Description = model.StatementOfAccount.Service.Name,
                                 AccountTitle = model.StatementOfAccount.Service.CurrentAndPrevious,
-                                Debit = 0,
-                                Credit = model.StatementOfAccount.CurrentAndPreviousAmount,
+                                Debit = model.CurrentAndPreviousAmount / 1.12m,
+                                Credit = 0,
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
                             });
@@ -646,8 +654,8 @@ namespace Accounting_System.Controllers
                                     Reference = model.CMNo,
                                     Description = model.StatementOfAccount.Service.Name,
                                     AccountTitle = model.StatementOfAccount.Service.Unearned,
-                                    Debit = 0,
-                                    Credit = model.StatementOfAccount.UnearnedAmount,
+                                    Debit = model.UnearnedAmount / 1.12m,
+                                    Credit = 0,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -663,15 +671,15 @@ namespace Accounting_System.Controllers
                                     Reference = model.CMNo,
                                     Description = model.StatementOfAccount.Service.Name,
                                     AccountTitle = "2010304 Deferred Vat Output",
-                                    Debit = 0,
-                                    Credit = model.VatAmount,
+                                    Debit = model.VatAmount,
+                                    Credit = 0,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
                             );
                         }
 
-                        _dbContext.GeneralLedgerBooks.AddRange(ledgers);
+                       await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
                     }
 
                     #endregion --General Ledger Book Recording
@@ -679,13 +687,13 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.PostedBy, $"Posted credit memo# {model.CMNo}", "Credit Memo");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
                     //await _receiptRepo.UpdateCreditMemo(model.SalesInvoice.Id, model.Total, offsetAmount);
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Credit Memo has been Posted.";
                 }
                 return RedirectToAction("Index");
@@ -694,9 +702,9 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Void(int id)
+        public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.CreditMemos.FindAsync(id);
+            var model = await _dbContext.CreditMemos.FindAsync(id, cancellationToken);
 
             if (model != null)
             {
@@ -712,11 +720,11 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.VoidedBy, $"Voided credit memo# {model.CMNo}", "Credit Memo");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Credit Memo has been Voided.";
                 }
                 return RedirectToAction("Index");
@@ -725,9 +733,9 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Cancel(int id)
+        public async Task<IActionResult> Cancel(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.CreditMemos.FindAsync(id);
+            var model = await _dbContext.CreditMemos.FindAsync(id, cancellationToken);
 
             if (model != null)
             {
@@ -744,7 +752,7 @@ namespace Accounting_System.Controllers
 
                     #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Credit Memo has been Canceled.";
                 }
                 return RedirectToAction("Index");
@@ -760,9 +768,9 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public JsonResult GetSOADetails(int soaId)
+        public async Task<JsonResult> GetSOADetails(int soaId, CancellationToken cancellationToken)
         {
-            var model = _dbContext.StatementOfAccounts.FirstOrDefault(soa => soa.Id == soaId);
+            var model = await _dbContext.StatementOfAccounts.FirstOrDefaultAsync(soa => soa.Id == soaId, cancellationToken);
             if (model != null)
             {
                 return Json(new

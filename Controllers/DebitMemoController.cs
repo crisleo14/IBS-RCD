@@ -59,7 +59,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(DebitMemo model, DateTime[] period)
+        public async Task<IActionResult> Create(DebitMemo model, DateTime[] period, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
@@ -89,8 +89,8 @@ namespace Accounting_System.Controllers
                 {
                     model.SOAId = null;
 
-                    var existingSalesInvoice = _dbContext.SalesInvoices
-                                               .FirstOrDefault(si => si.Id == model.SalesInvoiceId);
+                    var existingSalesInvoice = await _dbContext.SalesInvoices
+                                               .FirstOrDefaultAsync(si => si.Id == model.SalesInvoiceId, cancellationToken);
 
                     var adjustedPrice = model.AdjustedPrice - existingSalesInvoice.UnitPrice;
                     model.DebitAmount = existingSalesInvoice.Quantity * adjustedPrice;
@@ -109,7 +109,7 @@ namespace Accounting_System.Controllers
                             model.WithHoldingVatAmount = model.VatableSales * 0.05m;
                         }
 
-                        model.TotalSales = (model.VatableSales + model.VatAmount) - (model.WithHoldingVatAmount + model.WithHoldingTaxAmount);
+                        model.TotalSales = model.VatableSales + model.VatAmount;
                     }
                     else
                     {
@@ -121,12 +121,22 @@ namespace Accounting_System.Controllers
                 {
                     model.SalesInvoiceId = null;
 
-                    var existingSoa = _dbContext.StatementOfAccounts
+                    var existingSoa = await _dbContext.StatementOfAccounts
                         .Include(soa => soa.Customer)
-                        .FirstOrDefault(soa => soa.Id == model.SOAId);
+                        .FirstOrDefaultAsync(soa => soa.Id == model.SOAId, cancellationToken);
 
 
-                    #region --CM Entries function
+                    #region --Retrieval of Services
+
+                    model.ServicesId = existingSoa.ServicesId;
+
+                    var services = await _dbContext
+                    .Services
+                    .FirstOrDefaultAsync(s => s.Id == model.ServicesId, cancellationToken);
+
+                    #endregion --Retrieval of Services
+
+                    #region --DM Entries function
 
                     for (int i = 0; i < period.Length; i++)
                     {
@@ -142,18 +152,16 @@ namespace Accounting_System.Controllers
 
                     #endregion ----CM Entries function
 
-                    model.DebitAmount = existingSoa.Total + model.UnearnedAmount + model.CurrentAndPreviousAmount;
+                    model.DebitAmount = model.UnearnedAmount + model.CurrentAndPreviousAmount;
+
 
                     if (existingSoa.Customer.CustomerType == "Vatable")
                     {
-                        model.VatableSales = model.DebitAmount / (decimal)1.12;
+                        model.VatableSales = model.DebitAmount / 1.12m;
                         model.VatAmount = model.DebitAmount - model.VatableSales;
                         model.TotalSales = model.VatableSales + model.VatAmount;
+                        model.WithHoldingTaxAmount = model.VatableSales * (services.Percent / 100m);
 
-                        if (existingSoa.WithholdingTaxAmount != 0)
-                        {
-                            model.WithHoldingTaxAmount = model.VatableSales * 0.01m;
-                        }
                         if (existingSoa.WithholdingVatAmount != 0)
                         {
                             model.WithHoldingVatAmount = model.VatableSales * 0.05m;
@@ -166,8 +174,8 @@ namespace Accounting_System.Controllers
                 }
 
                 model.CreatedBy = _userManager.GetUserName(this.User);
-                _dbContext.Add(model);
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.AddAsync(model, cancellationToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
 
                 return RedirectToAction("Index");
             }
@@ -241,7 +249,7 @@ namespace Accounting_System.Controllers
                             sales.VatAmount = model.VatAmount;
                             sales.VatableSales = model.VatableSales;
                             //sales.Discount = model.Discount;
-                            //sales.NetSales = model.NetDiscount;
+                            sales.NetSales = model.VatableSales;
                             sales.CreatedBy = model.CreatedBy;
                             sales.CreatedDate = model.CreatedDate;
                         }
@@ -256,7 +264,7 @@ namespace Accounting_System.Controllers
                             sales.Amount = model.DebitAmount;
                             sales.VatExemptSales = model.DebitAmount;
                             //sales.Discount = model.Discount;
-                            //sales.NetSales = model.NetDiscount;
+                            sales.NetSales = model.VatableSales;
                             sales.CreatedBy = model.CreatedBy;
                             sales.CreatedDate = model.CreatedDate;
                         }
@@ -271,7 +279,7 @@ namespace Accounting_System.Controllers
                             sales.Amount = model.DebitAmount;
                             sales.ZeroRated = model.DebitAmount;
                             //sales.Discount = model.Discount;
-                            //sales.NetSales = model.NetDiscount;
+                            sales.NetSales = model.VatableSales;
                             sales.CreatedBy = model.CreatedBy;
                             sales.CreatedDate = model.CreatedDate;
                         }
@@ -290,7 +298,7 @@ namespace Accounting_System.Controllers
                             sales.VatAmount = model.VatAmount;
                             sales.VatableSales = model.VatableSales;
                             //sales.Discount = model.Discount;
-                            //sales.NetSales = model.NetDiscount;
+                            sales.NetSales = model.VatableSales;
                             sales.CreatedBy = model.CreatedBy;
                             sales.CreatedDate = model.CreatedDate;
                         }
@@ -305,7 +313,7 @@ namespace Accounting_System.Controllers
                             sales.Amount = model.DebitAmount;
                             sales.VatExemptSales = model.DebitAmount;
                             //sales.Discount = model.Discount;
-                            //sales.NetSales = model.NetDiscount;
+                            sales.NetSales = model.VatableSales;
                             sales.CreatedBy = model.CreatedBy;
                             sales.CreatedDate = model.CreatedDate;
                         }
@@ -320,7 +328,7 @@ namespace Accounting_System.Controllers
                             sales.Amount = model.DebitAmount;
                             sales.ZeroRated = model.DebitAmount;
                             //sales.Discount = model.Discount;
-                            //sales.NetSales = model.NetDiscount;
+                            sales.NetSales = model.VatableSales;
                             sales.CreatedBy = model.CreatedBy;
                             sales.CreatedDate = model.CreatedDate;
                         }
@@ -342,8 +350,8 @@ namespace Accounting_System.Controllers
                                 Reference = model.DMNo,
                                 Description = model.SalesInvoice.ProductName,
                                 AccountTitle = "1010201 AR-Trade Receivable",
-                                Debit = model.DebitAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount),
-                                Credit = 0,
+                                Debit = 0,
+                                Credit = model.DebitAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount),
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
                             }
@@ -358,8 +366,8 @@ namespace Accounting_System.Controllers
                                     Reference = model.DMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountTitle = "1010202 Deferred Creditable Withholding Tax",
-                                    Debit = model.WithHoldingTaxAmount,
-                                    Credit = 0,
+                                    Debit = 0,
+                                    Credit = model.WithHoldingTaxAmount,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -374,8 +382,8 @@ namespace Accounting_System.Controllers
                                     Reference = model.DMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountTitle = "1010203 Deferred Creditable Withholding Vat",
-                                    Debit = model.WithHoldingVatAmount,
-                                    Credit = 0,
+                                    Debit = 0,
+                                    Credit = model.WithHoldingVatAmount,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -390,11 +398,11 @@ namespace Accounting_System.Controllers
                                     Reference = model.DMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountTitle = "4010101 Sales - Biodiesel",
-                                    Debit = 0,
-                                    Credit = model.VatableSales > 0
+                                    Debit = model.VatableSales > 0
                                                 ? model.VatableSales
                                                 : model.DebitAmount,
                                     CreatedBy = model.CreatedBy,
+                                    Credit = 0,
                                     CreatedDate = model.CreatedDate
                                 }
                             );
@@ -408,11 +416,11 @@ namespace Accounting_System.Controllers
                                     Reference = model.DMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountTitle = "4010102 Sales - Econogas",
-                                    Debit = 0,
-                                    Credit = model.VatableSales > 0
+                                    Debit = model.VatableSales > 0
                                                 ? model.VatableSales
                                                 : model.DebitAmount,
                                     CreatedBy = model.CreatedBy,
+                                    Credit = 0,
                                     CreatedDate = model.CreatedDate
                                 }
                             );
@@ -426,11 +434,11 @@ namespace Accounting_System.Controllers
                                     Reference = model.DMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountTitle = "4010103 Sales - Envirogas",
-                                    Debit = 0,
-                                    Credit = model.VatableSales > 0
+                                    Debit = model.VatableSales > 0
                                                 ? model.VatableSales
                                                 : model.DebitAmount,
                                     CreatedBy = model.CreatedBy,
+                                    Credit = 0,
                                     CreatedDate = model.CreatedDate
                                 }
                             );
@@ -445,8 +453,8 @@ namespace Accounting_System.Controllers
                                     Reference = model.DMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountTitle = "2010301 Vat Output",
-                                    Debit = 0,
-                                    Credit = model.VatAmount,
+                                    Debit = model.VatAmount,
+                                    Credit = 0,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -468,8 +476,8 @@ namespace Accounting_System.Controllers
                                     Reference = model.DMNo,
                                     Description = model.SOA.Service.Name,
                                     AccountTitle = "1010204 AR-Non Trade Receivable",
-                                    Debit = model.DebitAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount),
-                                    Credit = 0,
+                                    Debit = 0,
+                                    Credit = model.DebitAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount),
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -483,8 +491,8 @@ namespace Accounting_System.Controllers
                                     Reference = model.DMNo,
                                     Description = model.SOA.Service.Name,
                                     AccountTitle = "1010202 Deferred Creditable Withholding Tax",
-                                    Debit = model.WithHoldingTaxAmount,
-                                    Credit = 0,
+                                    Debit = 0,
+                                    Credit = model.WithHoldingTaxAmount,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -499,8 +507,8 @@ namespace Accounting_System.Controllers
                                     Reference = model.DMNo,
                                     Description = model.SOA.Service.Name,
                                     AccountTitle = "1010203 Deferred Creditable Withholding Vat",
-                                    Debit = model.WithHoldingVatAmount,
-                                    Credit = 0,
+                                    Debit = 0,
+                                    Credit = model.WithHoldingVatAmount,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -515,8 +523,8 @@ namespace Accounting_System.Controllers
                                 Reference = model.DMNo,
                                 Description = model.SOA.Service.Name,
                                 AccountTitle = model.SOA.Service.CurrentAndPrevious,
-                                Debit = 0,
-                                Credit = model.SOA.CurrentAndPreviousAmount,
+                                Debit = model.CurrentAndPreviousAmount / 1.12m,
+                                Credit = 0,
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
                             });
@@ -531,8 +539,8 @@ namespace Accounting_System.Controllers
                                     Reference = model.DMNo,
                                     Description = model.SOA.Service.Name,
                                     AccountTitle = model.SOA.Service.Unearned,
-                                    Debit = 0,
-                                    Credit = model.SOA.UnearnedAmount,
+                                    Debit = model.UnearnedAmount / 1.12m,
+                                    Credit = 0,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -548,8 +556,8 @@ namespace Accounting_System.Controllers
                                     Reference = model.DMNo,
                                     Description = model.SOA.Service.Name,
                                     AccountTitle = "2010304 Deferred Vat Output",
-                                    Debit = 0,
-                                    Credit = model.VatAmount,
+                                    Debit = model.VatAmount,
+                                    Credit = 0,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
