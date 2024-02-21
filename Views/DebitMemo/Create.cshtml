@@ -40,6 +40,12 @@
                     <option></option>
                 </select>
                     <span asp-validation-for="SalesInvoiceId" class="text-danger"></span>
+
+            <div class="form-group mt-3">
+                <label asp-for="AdjustedPrice" class="control-label"></label>
+                <input asp-for="AdjustedPrice" type="number" class="form-control" />
+                <span asp-validation-for="AdjustedPrice" class="text-danger"></span>
+            </div>
             </div>
             <div class="form-group" id="soaList" style="display: none;">
                 <label asp-for="SOAId" class="control-label"></label>
@@ -60,12 +66,7 @@
                     </div>
             </div>
 
-            <div class="form-group">
-                <label asp-for="AdjustedPrice" class="control-label"></label>
-                <input asp-for="AdjustedPrice" type="number" class="form-control" />
-                <span asp-validation-for="AdjustedPrice" class="text-danger"></span>
-            </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label asp-for="Description" class="control-label"></label>
                 <input asp-for="Description" type="text" class="form-control" />
                 <span asp-validation-for="Description" class="text-danger"></span>
