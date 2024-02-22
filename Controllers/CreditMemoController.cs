@@ -37,7 +37,7 @@ namespace Accounting_System.Controllers
             return View(cm);
         }
 
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
             var viewModel = new CreditMemo();
             viewModel.Invoices = await _dbContext.SalesInvoices
@@ -46,14 +46,14 @@ namespace Accounting_System.Controllers
                     Value = si.Id.ToString(),
                     Text = si.SINo
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
             viewModel.Soa = await _dbContext.StatementOfAccounts
                 .Select(soa => new SelectListItem
                 {
                     Value = soa.Id.ToString(),
                     Text = soa.SOANo
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return View(viewModel);
         }

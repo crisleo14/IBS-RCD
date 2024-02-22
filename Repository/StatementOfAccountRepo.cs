@@ -14,22 +14,22 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public async Task<List<StatementOfAccount>> GetSOAListAsync()
+        public async Task<List<StatementOfAccount>> GetSOAListAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext
                 .StatementOfAccounts
                 .OrderByDescending(a => a.Id)
                 .Include(soa => soa.Customer)
                 .Include(soa => soa.Service)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
 
-        public async Task<long> GetLastSeriesNumber()
+        public async Task<long> GetLastSeriesNumber(CancellationToken cancellationToken = default)
         {
             var lastInvoice = await _dbContext
                 .StatementOfAccounts
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (lastInvoice != null)
             {
@@ -43,12 +43,12 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<string> GenerateSOANo()
+        public async Task<string> GenerateSOANo(CancellationToken cancellationToken = default)
         {
             var statementOfAccount = await _dbContext
                 .StatementOfAccounts
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (statementOfAccount != null)
             {
@@ -61,13 +61,13 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<StatementOfAccount> FindSOA(int id)
+        public async Task<StatementOfAccount> FindSOA(int id, CancellationToken cancellationToken = default)
         {
             var statementOfAccount = await _dbContext
                 .StatementOfAccounts
                 .Include(s => s.Customer)
                 .Include(s => s.Service)
-                .FirstOrDefaultAsync(s => s.Id == id);
+                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
 
             if (statementOfAccount != null)
             {
@@ -79,11 +79,11 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<Services> GetServicesAsync(int id)
+        public async Task<Services> GetServicesAsync(int id, CancellationToken  cancellationToken = default)
         {
             var services = await _dbContext
                 .Services
-                .FirstOrDefaultAsync(s => s.Id == id);
+                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
 
             if (services != null)
             {
@@ -95,11 +95,11 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<Customer> FindCustomerAsync(int id)
+        public async Task<Customer> FindCustomerAsync(int id, CancellationToken cancellationToken = default)
         {
             var customer = await _dbContext
                 .Customers
-                .FirstOrDefaultAsync(s => s.Id == id);
+                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
 
             if (customer != null)
             {

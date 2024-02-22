@@ -23,7 +23,7 @@ namespace Accounting_System.Controllers
             _debitMemoRepo = dmcmRepo;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             var dm = await _dbContext.DebitMemos
                 .Include(dm => dm.SalesInvoice)
@@ -32,28 +32,28 @@ namespace Accounting_System.Controllers
                 .Include(dm => dm.SOA)
                 .ThenInclude(soa => soa.Service)
                 .OrderBy(dm => dm.Id)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
             return View(dm);
         }
 
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
             var viewModel = new DebitMemo();
-            viewModel.SalesInvoices = _dbContext.SalesInvoices
+            viewModel.SalesInvoices = await _dbContext.SalesInvoices
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
                     Text = s.SINo
                 })
-                .ToList();
-            viewModel.StatementOfAccounts = _dbContext.StatementOfAccounts
+                .ToListAsync(cancellationToken);
+            viewModel.StatementOfAccounts = await _dbContext.StatementOfAccounts
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
                     Text = s.SOANo
                 })
-                .ToList();
+                .ToListAsync(cancellationToken);
 
             return View(viewModel);
         }
@@ -208,18 +208,18 @@ namespace Accounting_System.Controllers
             return View(debitMemo);
         }
 
-        public async Task<IActionResult> PrintedDM(int id)
+        public async Task<IActionResult> PrintedDM(int id, CancellationToken cancellationToken)
         {
             var findIdOfDM = await _debitMemoRepo.FindDM(id);
             if (findIdOfDM != null && !findIdOfDM.IsPrinted)
             {
                 findIdOfDM.IsPrinted = true;
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
             }
             return RedirectToAction("Print", new { id = id });
         }
 
-        public async Task<IActionResult> Post(int id)
+        public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
         {
             var model = await _debitMemoRepo.FindDM(id);
 
@@ -333,7 +333,7 @@ namespace Accounting_System.Controllers
                             sales.CreatedDate = model.CreatedDate;
                         }
                     }
-                    _dbContext.Add(sales);
+                    await _dbContext.AddAsync(sales, cancellationToken);
 
                     #endregion --Sales Book Recording
 
@@ -564,7 +564,7 @@ namespace Accounting_System.Controllers
                             );
                         }
 
-                        _dbContext.GeneralLedgerBooks.AddRange(ledgers);
+                        await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
                     }
 
                     #endregion --General Ledger Book Recording
@@ -572,13 +572,13 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.PostedBy, $"Posted debit memo# {model.DMNo}", "Debit Memo");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
                     //await _receiptRepo.UpdateCreditMemo(model.SalesInvoice.Id, model.Total, offsetAmount);
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Debit Memo has been Posted.";
                 }
                 return RedirectToAction("Index");
@@ -587,7 +587,7 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Void(int id)
+        public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
         {
             var model = await _dbContext.DebitMemos.FindAsync(id);
 
@@ -605,11 +605,11 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.VoidedBy, $"Voided debit memo# {model.DMNo}", "Debit Memo");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Debit Memo has been Voided.";
                 }
                 return RedirectToAction("Index");
@@ -618,7 +618,7 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Cancel(int id)
+        public async Task<IActionResult> Cancel(int id, CancellationToken cancellationToken)
         {
             var model = await _dbContext.DebitMemos.FindAsync(id);
 
@@ -633,11 +633,11 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.CanceledBy, $"Canceled debit memo# {model.DMNo}", "Debit Memo");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Debit Memo has been Canceled.";
                 }
                 return RedirectToAction("Index");
@@ -646,16 +646,16 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Preview(int id)
+        public async Task<IActionResult> Preview(int id, CancellationToken cancellationToken)
         {
             var dm = await _debitMemoRepo.FindDM(id);
             return PartialView("_PrevieDebit", dm);
         }
 
         [HttpGet]
-        public JsonResult GetSOADetails(int soaId)
+        public async Task<JsonResult> GetSOADetails(int soaId, CancellationToken cancellationToken)
         {
-            var model = _dbContext.StatementOfAccounts.FirstOrDefault(soa => soa.Id == soaId);
+            var model = await _dbContext.StatementOfAccounts.FirstOrDefaultAsync(soa => soa.Id == soaId, cancellationToken);
             if (model != null)
             {
                 return Json(new

@@ -40,7 +40,7 @@ namespace Accounting_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Customer customer)
+        public async Task<IActionResult> Create(Customer customer, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
@@ -55,7 +55,7 @@ namespace Accounting_System.Controllers
                 customer.Number = await _customerRepo.GetLastNumber();
                 customer.CreatedBy = _userManager.GetUserName(this.User);
                 _dbContext.Add(customer);
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
 
                 return RedirectToAction("Index");
             }
@@ -81,7 +81,7 @@ namespace Accounting_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Customer customer)
+        public async Task<IActionResult> Edit(int id, Customer customer, CancellationToken cancellationToken)
         {
             if (id != customer.Id)
             {
@@ -103,7 +103,7 @@ namespace Accounting_System.Controllers
                     existingModel.WithHoldingVat = customer.WithHoldingVat;
 
                     _dbContext.Update(existingModel);
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -121,14 +121,14 @@ namespace Accounting_System.Controllers
             return View(customer);
         }
 
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id, CancellationToken cancellationToken)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var customer = await _customerRepo.FindCustomerAsync(id);
+            var customer = await _customerRepo.FindCustomerAsync(id, cancellationToken);
 
             if (customer == null)
             {

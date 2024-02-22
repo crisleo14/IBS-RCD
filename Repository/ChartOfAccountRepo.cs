@@ -14,13 +14,13 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public async Task<List<SelectListItem>> FindAccountsAsync(string accountNo)
+        public async Task<List<SelectListItem>> FindAccountsAsync(string accountNo, CancellationToken cancellationToken = default)
         {
             var coa = await _dbContext
                 .ChartOfAccounts
                 .Where(coa => coa.Parent == accountNo)
                 .OrderBy(coa => coa.Id)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             var list = coa.Select(s => new SelectListItem
             {
@@ -31,12 +31,12 @@ namespace Accounting_System.Repository
             return list;
         }
 
-        public async Task<string> GenerateNumberAsync(string parent)
+        public async Task<string> GenerateNumberAsync(string parent, CancellationToken cancellationToken = default)
         {
             var lastAccount = await _dbContext
                 .ChartOfAccounts
                 .OrderBy(coa => coa.Id)
-                .LastOrDefaultAsync(coa => coa.Parent == parent);
+                .LastOrDefaultAsync(coa => coa.Parent == parent, cancellationToken);
 
             if (lastAccount != null)
             {

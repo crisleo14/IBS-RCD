@@ -13,12 +13,12 @@ namespace Accounting_System.Repository
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<long> GetLastSeriesNumber()
+        public async Task<long> GetLastSeriesNumber(CancellationToken cancellationToken = default)
         {
             var lastInvoice = await _dbContext
                 .CreditMemos
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (lastInvoice != null)
             {
@@ -32,12 +32,12 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<string> GenerateCMNo()
+        public async Task<string> GenerateCMNo(CancellationToken cancellationToken = default)
         {
             var creditMemo = await _dbContext
                 .CreditMemos
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (creditMemo != null)
             {
@@ -51,13 +51,13 @@ namespace Accounting_System.Repository
         }
 
 
-        public async Task<string> GetSINoAsync(int? id)
+        public async Task<string> GetSINoAsync(int? id, CancellationToken cancellationToken = default)
         {
             if (id != 0)
             {
                 var si = await _dbContext
                                 .SalesInvoices
-                                .FirstOrDefaultAsync(po => po.Id == id);
+                                .FirstOrDefaultAsync(po => po.Id == id, cancellationToken);
                 return si.SINo;
             }
             else
@@ -66,13 +66,13 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<string> GetSOANoAsync(int? id)
+        public async Task<string> GetSOANoAsync(int? id, CancellationToken cancellationToken = default)
         {
             if (id != 0)
             {
                 var soa = await _dbContext
                                 .StatementOfAccounts
-                                .FirstOrDefaultAsync(po => po.Id == id);
+                                .FirstOrDefaultAsync(po => po.Id == id, cancellationToken);
                 return soa.SOANo;
             }
             else
@@ -81,7 +81,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<CreditMemo> FindCM(int id)
+        public async Task<CreditMemo> FindCM(int id, CancellationToken cancellationToken = default)
         {
             var creditMemo = await _dbContext
                 .CreditMemos
@@ -90,7 +90,7 @@ namespace Accounting_System.Repository
                 .ThenInclude(soa => soa.Customer)
                 .Include(c => c.StatementOfAccount)
                 .ThenInclude(soa => soa.Service)
-                .FirstOrDefaultAsync(creditMemo => creditMemo.Id == id);
+                .FirstOrDefaultAsync(creditMemo => creditMemo.Id == id, cancellationToken);
 
             if (creditMemo != null)
             {

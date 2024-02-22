@@ -30,7 +30,7 @@ namespace Accounting_System.Controllers
             return View(cv);
         }
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
             var viewModel = new CheckVoucherVM
             {
@@ -38,43 +38,43 @@ namespace Accounting_System.Controllers
                 Details = new CheckVoucherDetail()
             };
 
-            viewModel.Header.RR = _dbContext.ReceivingReports
+            viewModel.Header.RR = await _dbContext.ReceivingReports
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
                     Text = s.RRNo
                 })
-                .ToList();
+                .ToListAsync(cancellationToken);
 
-            viewModel.Details.COA = _dbContext.ChartOfAccounts
+            viewModel.Details.COA = await _dbContext.ChartOfAccounts
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
                     Text = s.Number + " " + s.Name
                 })
-                .ToList();
+                .ToListAsync(cancellationToken);
 
             return View(viewModel);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CheckVoucherVM model)
+        public async Task<IActionResult> Create(CheckVoucherVM model, CancellationToken cancellationToken)
         {
-            model.Header.RR = _dbContext.ReceivingReports
+            model.Header.RR = await _dbContext.ReceivingReports
                .Select(rr => new SelectListItem
                {
                    Value = rr.Id.ToString(),
                    Text = rr.RRNo
                })
-               .ToList();
+               .ToListAsync(cancellationToken);
 
-            model.Details.COA = _dbContext.ChartOfAccounts
+            model.Details.COA = await _dbContext.ChartOfAccounts
                 .Select(coa => new SelectListItem
                 {
                     Value = coa.Id.ToString(),
                     Text = coa.Number + " " + coa.Name
                 })
-                .ToList();
+                .ToListAsync(cancellationToken);
 
             if (ModelState.IsValid)
             {
@@ -107,10 +107,10 @@ namespace Accounting_System.Controllers
                 model.Details.CreatedBy = _userManager.GetUserName(this.User);
 
 
-                _dbContext.Add(model.Header);  // Add CheckVoucherHeader to the context
+                await _dbContext.AddAsync(model.Header, cancellationToken);  // Add CheckVoucherHeader to the context
                 _dbContext.Add(model.Details); // Add CheckVoucherDetails to the context
 
-                await _dbContext.SaveChangesAsync();  // await the SaveChangesAsync method
+                await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
                 return RedirectToAction("Index");
             }
             else
@@ -126,20 +126,20 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Printed(int id)
+        public async Task<IActionResult> Printed(int id, CancellationToken cancellationToken)
         {
-            var cv = await _dbContext.CheckVoucherHeaders.FindAsync(id);
+            var cv = await _dbContext.CheckVoucherHeaders.FindAsync(id, cancellationToken);
             if (cv != null && !cv.IsPrinted)
             {
                 cv.IsPrinted = true;
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
             }
             return RedirectToAction("Print", new { id = id });
         }
 
-        public async Task<IActionResult> Post(int cvId)
+        public async Task<IActionResult> Post(int cvId, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.CheckVoucherHeaders.FindAsync(cvId);
+            var model = await _dbContext.CheckVoucherHeaders.FindAsync(cvId, cancellationToken);
 
             if (model != null)
             {
@@ -147,7 +147,7 @@ namespace Accounting_System.Controllers
                 {
                     model.IsPosted = true;
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Check Voucher has been Posted.";
 
                 }
@@ -164,36 +164,36 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(int? id, CheckVoucherVM model)
+        public async Task<IActionResult> Edit(int? id, CheckVoucherVM model, CancellationToken cancellationToken)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var existingHeaderModel = await _dbContext.CheckVoucherHeaders.FindAsync(id);
-            var existingDetailsModel = await _dbContext.CheckVoucherDetails.FindAsync(id);
+            var existingHeaderModel = await _dbContext.CheckVoucherHeaders.FindAsync(id, cancellationToken);
+            var existingDetailsModel = await _dbContext.CheckVoucherDetails.FindAsync(id, cancellationToken);
 
             if (existingHeaderModel == null || existingDetailsModel == null)
             {
                 return NotFound();
             }
 
-            existingHeaderModel.RR = _dbContext.ReceivingReports
+            existingHeaderModel.RR = await _dbContext.ReceivingReports
                 .Select(rr => new SelectListItem
                 {
                     Value = rr.Id.ToString(),
                     Text = rr.RRNo
                 })
-                .ToList();
+                .ToListAsync(cancellationToken);
 
-            existingDetailsModel.COA = _dbContext.ChartOfAccounts
+            existingDetailsModel.COA = await _dbContext.ChartOfAccounts
                 .Select(coa => new SelectListItem
                 {
                     Value = coa.Id.ToString(),
                     Text = coa.Number + " " + coa.Name
                 })
-                .ToList();
+                .ToListAsync(cancellationToken);
 
             model.Header = existingHeaderModel; // Assign the updated header model to the view model
             model.Details = existingDetailsModel; // Assign the updated details model to the view model
@@ -202,23 +202,23 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(CheckVoucherVM model)
+        public async Task<IActionResult> Edit(CheckVoucherVM model, CancellationToken cancellationToken)
         {
-            model.Header.RR = _dbContext.ReceivingReports
+            model.Header.RR = await _dbContext.ReceivingReports
                .Select(rr => new SelectListItem
                {
                    Value = rr.Id.ToString(),
                    Text = rr.RRNo
                })
-               .ToList();
+               .ToListAsync(cancellationToken);
 
-            model.Details.COA = _dbContext.ChartOfAccounts
+            model.Details.COA = await _dbContext.ChartOfAccounts
                 .Select(coa => new SelectListItem
                 {
                     Value = coa.Id.ToString(),
                     Text = coa.Number + " " + coa.Name
                 })
-                .ToList();
+                .ToListAsync(cancellationToken);
 
             
 
@@ -242,8 +242,8 @@ namespace Accounting_System.Controllers
                     TempData["success"] = "Check Voucher created successfully";
                 }
 
-                var existingHeaderModel = await _dbContext.CheckVoucherHeaders.FindAsync(model.Header.Id);
-                var existingDetailsModel = await _dbContext.CheckVoucherDetails.FindAsync(model.Details.Id);
+                var existingHeaderModel = await _dbContext.CheckVoucherHeaders.FindAsync(model.Header.Id, cancellationToken);
+                var existingDetailsModel = await _dbContext.CheckVoucherDetails.FindAsync(model.Details.Id, cancellationToken);
 
                 if (existingHeaderModel == null)
                 {
@@ -264,7 +264,7 @@ namespace Accounting_System.Controllers
                 //CV Details Entry
                 existingDetailsModel.CreatedBy = model.Details.CreatedBy;
 
-                await _dbContext.SaveChangesAsync();  // await the SaveChangesAsync method
+                await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
                 return RedirectToAction("Index");
             }
             else

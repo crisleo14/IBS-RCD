@@ -13,19 +13,19 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public async Task<List<CheckVoucherHeader>> GetCheckVouchers()
+        public async Task<List<CheckVoucherHeader>> GetCheckVouchers(CancellationToken cancellationToken = default)
         {
             return await _dbContext
                 .CheckVoucherHeaders
                 .OrderByDescending(cv => cv.Id)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
-        public async Task<string> GenerateCVNo()
+        public async Task<string> GenerateCVNo(CancellationToken cancellationToken = default)
         {
             var checkVoucher = await _dbContext
                 .CheckVoucherHeaders
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (checkVoucher != null)
             {
@@ -37,12 +37,12 @@ namespace Accounting_System.Repository
                 return $"CV{1.ToString("D10")}";
             }
         }
-        public async Task<long> GetLastSeriesNumberCV()
+        public async Task<long> GetLastSeriesNumberCV(CancellationToken cancellationToken = default)
         {
             var lastNumber = await _dbContext
                 .CheckVoucherHeaders
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (lastNumber != null)
             {
