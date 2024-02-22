@@ -12,12 +12,12 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public async Task<int> GetLastNumber()
+        public async Task<int> GetLastNumber(CancellationToken cancellationToken = default)
         {
             var lastNumber = await _dbContext
                 .Suppliers
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (lastNumber != null)
             {

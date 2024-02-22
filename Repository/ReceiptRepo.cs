@@ -13,12 +13,12 @@ namespace Accounting_System.Repository
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<long> GetLastSeriesNumberCR()
+        public async Task<long> GetLastSeriesNumberCR(CancellationToken cancellationToken = default)
         {
             var lastInvoice = await _dbContext
                 .CollectionReceipts
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (lastInvoice != null)
             {
@@ -32,12 +32,12 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<long> GetLastSeriesNumberOR()
+        public async Task<long> GetLastSeriesNumberOR(CancellationToken cancellationToken = default)
         {
             var lastInvoice = await _dbContext
                 .OfficialReceipts
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (lastInvoice != null)
             {
@@ -51,12 +51,12 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<string> GenerateCRNo()
+        public async Task<string> GenerateCRNo(CancellationToken cancellationToken = default)
         {
             var collectionReceipt = await _dbContext
                 .CollectionReceipts
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (collectionReceipt != null)
             {
@@ -69,12 +69,12 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<string> GenerateORNo()
+        public async Task<string> GenerateORNo(CancellationToken cancellationToken = default)
         {
             var officialReceipt = await _dbContext
                 .OfficialReceipts
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (officialReceipt != null)
             {
@@ -87,17 +87,17 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<List<CollectionReceipt>> GetCRAsync()
+        public async Task<List<CollectionReceipt>> GetCRAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext
                 .CollectionReceipts
                 .Include(cr => cr.SalesInvoice)
                 .ThenInclude(s => s.Customer)
                 .OrderByDescending(cr => cr.Id)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
 
-        public async Task<List<OfficialReceipt>> GetORAsync()
+        public async Task<List<OfficialReceipt>> GetORAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext
                 .OfficialReceipts
@@ -106,16 +106,16 @@ namespace Accounting_System.Repository
                 .Include(soa => soa.StatementOfAccount)
                 .ThenInclude(c => c.Customer)
                 .OrderByDescending(cr => cr.Id)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
 
-        public async Task<CollectionReceipt> FindCR(int id)
+        public async Task<CollectionReceipt> FindCR(int id, CancellationToken cancellationToken = default)
         {
             var collectionReceipt = await _dbContext
                 .CollectionReceipts
                 .Include(cr => cr.SalesInvoice)
                 .ThenInclude(s => s.Customer)
-                .FirstOrDefaultAsync(collectionReceipt => collectionReceipt.Id == id);
+                .FirstOrDefaultAsync(collectionReceipt => collectionReceipt.Id == id, cancellationToken);
 
             if (collectionReceipt != null)
             {
@@ -127,7 +127,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<OfficialReceipt> FindOR(int id)
+        public async Task<OfficialReceipt> FindOR(int id, CancellationToken cancellationToken = default)
         {
             var officialReceipt = await _dbContext
                 .OfficialReceipts
@@ -135,7 +135,7 @@ namespace Accounting_System.Repository
                 .ThenInclude(soa => soa.Customer)
                 .Include(or => or.StatementOfAccount)
                 .ThenInclude(soa => soa.Service)
-                .FirstOrDefaultAsync(collectionReceipt => collectionReceipt.Id == id);
+                .FirstOrDefaultAsync(collectionReceipt => collectionReceipt.Id == id, cancellationToken);
 
             if (officialReceipt != null)
             {
@@ -147,11 +147,11 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<int> UpdateInvoice(int id, decimal paidAmount, decimal offsetAmount)
+        public async Task<int> UpdateInvoice(int id, decimal paidAmount, decimal offsetAmount, CancellationToken cancellationToken = default)
         {
             var si = await _dbContext
                 .SalesInvoices
-                .FirstOrDefaultAsync(si => si.Id == id);
+                .FirstOrDefaultAsync(si => si.Id == id, cancellationToken);
 
             if (si != null)
             {
@@ -170,7 +170,7 @@ namespace Accounting_System.Repository
                     si.Status = "OverPaid";
                 }
 
-                return await _dbContext.SaveChangesAsync();
+                return await _dbContext.SaveChangesAsync(cancellationToken);
             }
             else
             {
@@ -178,11 +178,11 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<int> UpdateSoa(int id, decimal paidAmount, decimal offsetAmount)
+        public async Task<int> UpdateSoa(int id, decimal paidAmount, decimal offsetAmount, CancellationToken cancellationToken = default)
         {
             var soa = await _dbContext
                 .StatementOfAccounts
-                .FirstOrDefaultAsync(si => si.Id == id);
+                .FirstOrDefaultAsync(si => si.Id == id, cancellationToken);
 
             if (soa != null)
             {
@@ -201,7 +201,7 @@ namespace Accounting_System.Repository
                     soa.Status = "OverPaid";
                 }
 
-                return await _dbContext.SaveChangesAsync();
+                return await _dbContext.SaveChangesAsync(cancellationToken);
             }
             else
             {
@@ -209,12 +209,12 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<List<Offsetting>> GetOffsettingAsync(string source, string reference)
+        public async Task<List<Offsetting>> GetOffsettingAsync(string source, string reference, CancellationToken cancellationToken = default)
         {
             var result = await _dbContext
                 .Offsettings
                 .Where(o => o.Source == source && o.Reference == reference)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             if (result != null)
             {

@@ -13,11 +13,11 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public async Task<int> RemoveRecords<TEntity>(Expression<Func<TEntity, bool>> predicate)
+        public async Task<int> RemoveRecords<TEntity>(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
        where TEntity : class
         {
             var entitySet = _dbContext.Set<TEntity>();
-            var entitiesToRemove = await entitySet.Where(predicate).ToListAsync();
+            var entitiesToRemove = await entitySet.Where(predicate).ToListAsync(cancellationToken);
 
             if (entitiesToRemove.Any())
             {
@@ -28,7 +28,7 @@ namespace Accounting_System.Repository
 
                 try
                 {
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     return entitiesToRemove.Count;
                 }
                 catch (Exception ex)

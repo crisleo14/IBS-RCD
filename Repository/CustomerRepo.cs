@@ -13,19 +13,19 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public async Task<List<Customer>> GetCustomersAsync()
+        public async Task<List<Customer>> GetCustomersAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext
                 .Customers
                 .OrderByDescending(c => c.Id)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
 
-        public async Task<Customer> FindCustomerAsync(int? id)
+        public async Task<Customer> FindCustomerAsync(int? id, CancellationToken cancellationToken = default)
         {
             var customer = await _dbContext
                 .Customers
-                .FirstOrDefaultAsync(c => c.Id == id);
+                .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
 
             if (customer != null)
             {
@@ -59,12 +59,12 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<Customer?> CheckIfTinNoExist(string tin)
+        public async Task<Customer?> CheckIfTinNoExist(string tin, CancellationToken cancellationToken = default)
         {
             return await _dbContext
                 .Customers
                 .Where(c => c.TinNo == tin)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
         }
     }
 }

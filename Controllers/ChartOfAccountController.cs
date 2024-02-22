@@ -28,15 +28,15 @@ namespace Accounting_System.Controllers
         }
 
         // GET: ChartOfAccounts
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             return _dbContext.ChartOfAccounts != null ?
-                        View(await _dbContext.ChartOfAccounts.OrderBy(coa => coa.Number).ToListAsync()) :
+                        View(await _dbContext.ChartOfAccounts.OrderBy(coa => coa.Number).ToListAsync(cancellationToken)) :
                         Problem("Entity set 'ApplicationDbContext.ChartOfAccounts'  is null.");
         }
 
         // GET: ChartOfAccounts/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id, CancellationToken cancellationToken)
         {
             if (id == null || _dbContext.ChartOfAccounts == null)
             {
@@ -44,7 +44,7 @@ namespace Accounting_System.Controllers
             }
 
             var chartOfAccount = await _dbContext.ChartOfAccounts
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
             if (chartOfAccount == null)
             {
                 return NotFound();
@@ -54,11 +54,11 @@ namespace Accounting_System.Controllers
         }
 
         // GET: ChartOfAccounts/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
             var viewModel = new ChartOfAccount();
 
-            viewModel.Main = _dbContext.ChartOfAccounts
+            viewModel.Main = await _dbContext.ChartOfAccounts
                 .OrderBy(coa => coa.Id)
                 .Where(coa => coa.IsMain)
                 .Select(s => new SelectListItem
@@ -66,7 +66,7 @@ namespace Accounting_System.Controllers
                     Value = s.Number,
                     Text = s.Number + " " + s.Name
                 })
-               .ToList();
+               .ToListAsync(cancellationToken);
 
             return View(viewModel);
         }
@@ -76,7 +76,7 @@ namespace Accounting_System.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ChartOfAccount chartOfAccount, string thirdLevel, string? fourthLevel)
+        public async Task<IActionResult> Create(ChartOfAccount chartOfAccount, string thirdLevel, string? fourthLevel, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
@@ -87,7 +87,7 @@ namespace Accounting_System.Controllers
                     var existingCoa = await _dbContext
                         .ChartOfAccounts
                         .OrderBy(coa => coa.Id)
-                        .FirstOrDefaultAsync(coa => coa.Number == thirdLevel);
+                        .FirstOrDefaultAsync(coa => coa.Number == thirdLevel, cancellationToken);
 
                     if (existingCoa == null)
                     {
@@ -104,7 +104,7 @@ namespace Accounting_System.Controllers
                     var existingCoa = await _dbContext
                         .ChartOfAccounts
                         .OrderBy(coa => coa.Id)
-                        .FirstOrDefaultAsync(coa => coa.Number == fourthLevel);
+                        .FirstOrDefaultAsync(coa => coa.Number == fourthLevel, cancellationToken);
 
                     if (existingCoa == null)
                     {
@@ -117,22 +117,22 @@ namespace Accounting_System.Controllers
                     chartOfAccount.Parent = fourthLevel;
                 }
 
-                _dbContext.Add(chartOfAccount);
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.AddAsync(chartOfAccount, cancellationToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction(nameof(Index));
             }
             return View(chartOfAccount);
         }
 
         // GET: ChartOfAccounts/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, CancellationToken cancellationToken)
         {
             if (id == null || _dbContext.ChartOfAccounts == null)
             {
                 return NotFound();
             }
 
-            var chartOfAccount = await _dbContext.ChartOfAccounts.FindAsync(id);
+            var chartOfAccount = await _dbContext.ChartOfAccounts.FindAsync(id, cancellationToken);
             if (chartOfAccount == null)
             {
                 return NotFound();
@@ -145,7 +145,7 @@ namespace Accounting_System.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("IsMain,Number,Name,Type,Category,Level,Id,CreatedBy,CreatedDate")] ChartOfAccount chartOfAccount)
+        public async Task<IActionResult> Edit(int id, [Bind("IsMain,Number,Name,Type,Category,Level,Id,CreatedBy,CreatedDate")] ChartOfAccount chartOfAccount, CancellationToken cancellationToken)
         {
             if (id != chartOfAccount.Id)
             {
@@ -157,7 +157,7 @@ namespace Accounting_System.Controllers
                 try
                 {
                     _dbContext.Update(chartOfAccount);
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -176,7 +176,7 @@ namespace Accounting_System.Controllers
         }
 
         // GET: ChartOfAccounts/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int? id, CancellationToken cancellationToken)
         {
             if (id == null || _dbContext.ChartOfAccounts == null)
             {
@@ -184,7 +184,7 @@ namespace Accounting_System.Controllers
             }
 
             var chartOfAccount = await _dbContext.ChartOfAccounts
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
             if (chartOfAccount == null)
             {
                 return NotFound();
@@ -196,19 +196,19 @@ namespace Accounting_System.Controllers
         // POST: ChartOfAccounts/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id, CancellationToken cancellationToken)
         {
             if (_dbContext.ChartOfAccounts == null)
             {
                 return Problem("Entity set 'ApplicationDbContext.ChartOfAccounts'  is null.");
             }
-            var chartOfAccount = await _dbContext.ChartOfAccounts.FindAsync(id);
+            var chartOfAccount = await _dbContext.ChartOfAccounts.FindAsync(id, cancellationToken);
             if (chartOfAccount != null)
             {
                 _dbContext.ChartOfAccounts.Remove(chartOfAccount);
             }
 
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken);
             return RedirectToAction(nameof(Index));
         }
 

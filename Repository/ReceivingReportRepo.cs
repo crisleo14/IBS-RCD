@@ -13,12 +13,12 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public async Task<long> GetLastSeriesNumber()
+        public async Task<long> GetLastSeriesNumber(CancellationToken cancellationToken = default)
         {
             var lastInvoice = await _dbContext
                 .ReceivingReports
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (lastInvoice != null)
             {
@@ -32,12 +32,12 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<string> GenerateRRNo()
+        public async Task<string> GenerateRRNo(CancellationToken cancellationToken = default)
         {
             var receivingReport = await _dbContext
                 .ReceivingReports
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (receivingReport != null)
             {
@@ -50,13 +50,13 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<string> GetPONoAsync(int id)
+        public async Task<string> GetPONoAsync(int id, CancellationToken cancellationToken = default)
         {
             if (id != 0)
             {
                 var po = await _dbContext
                                 .PurchaseOrders
-                                .FirstOrDefaultAsync(po => po.Id == id);
+                                .FirstOrDefaultAsync(po => po.Id == id, cancellationToken);
                 return po.PONo;
             }
             else
@@ -65,10 +65,10 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<int> UpdatePOAsync(int id, int quantityReceived)
+        public async Task<int> UpdatePOAsync(int id, int quantityReceived, CancellationToken cancellationToken = default)
         {
             var po = await _dbContext.PurchaseOrders
-                    .FirstOrDefaultAsync(po => po.Id == id);
+                    .FirstOrDefaultAsync(po => po.Id == id, cancellationToken);
 
             if (po != null)
             {
@@ -80,7 +80,7 @@ namespace Accounting_System.Repository
                     po.ReceivedDate = DateTime.Now;
                 }
 
-                return await _dbContext.SaveChangesAsync();
+                return await _dbContext.SaveChangesAsync(cancellationToken);
             }
             else
             {
@@ -88,11 +88,11 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<DateTime> ComputeDueDateAsync(int poId, DateTime rrDate)
+        public async Task<DateTime> ComputeDueDateAsync(int poId, DateTime rrDate, CancellationToken cancellationToken = default)
         {
             var po = await _dbContext
                 .PurchaseOrders
-                .FirstOrDefaultAsync(po => po.Id == poId);
+                .FirstOrDefaultAsync(po => po.Id == poId, cancellationToken);
 
             if (po != null)
             {
@@ -138,7 +138,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<ReceivingReport> FindRR(int id)
+        public async Task<ReceivingReport> FindRR(int id, CancellationToken cancellationToken = default)
         {
             var rr = await _dbContext
                 .ReceivingReports
@@ -146,7 +146,7 @@ namespace Accounting_System.Repository
                 .ThenInclude(po => po.Product)
                 .Include(rr => rr.PurchaseOrder)
                 .ThenInclude(po => po.Supplier)
-                .FirstOrDefaultAsync(rr => rr.Id == id);
+                .FirstOrDefaultAsync(rr => rr.Id == id, cancellationToken);
 
             if (rr != null)
             {
@@ -158,13 +158,13 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<PurchaseOrder> GetPurchaseOrderAsync(int id)
+        public async Task<PurchaseOrder> GetPurchaseOrderAsync(int id, CancellationToken cancellationToken = default)
         {
             var po = await _dbContext
                 .PurchaseOrders
                 .Include(po => po.Product)
                 .Include(po => po.Supplier)
-                .FirstOrDefaultAsync (po => po.Id == id);
+                .FirstOrDefaultAsync (po => po.Id == id, cancellationToken);
 
             if (po != null)
             {

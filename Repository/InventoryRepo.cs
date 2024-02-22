@@ -12,11 +12,11 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public async Task UpdateQuantity(decimal sold, int productId)
+        public async Task UpdateQuantity(decimal sold, int productId, CancellationToken cancellationToken = default)
         {
             var inventory = await _dbContext
                 .Inventories
-                .FirstOrDefaultAsync(x => x.ProductId == productId);
+                .FirstOrDefaultAsync(x => x.ProductId == productId, cancellationToken);
             if (inventory == null)
             {
                 throw new ArgumentException("No product found !");
@@ -24,7 +24,7 @@ namespace Accounting_System.Repository
             inventory.QuantityServe += sold;
             inventory.QuantityBalance -= sold;
 
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }

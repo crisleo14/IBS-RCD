@@ -13,20 +13,20 @@ namespace Accounting_System.Repository
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<List<DebitMemo>> GetDMAsync()
+        public async Task<List<DebitMemo>> GetDMAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext
                 .DebitMemos
                 .OrderByDescending(d => d.Id)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
 
-        public async Task<long> GetLastSeriesNumber()
+        public async Task<long> GetLastSeriesNumber(CancellationToken cancellationToken = default)
         {
             var lastInvoice = await _dbContext
                 .DebitMemos
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (lastInvoice != null)
             {
@@ -40,12 +40,12 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<string> GenerateDMNo()
+        public async Task<string> GenerateDMNo(CancellationToken cancellationToken = default)
         {
             var debitMemo = await _dbContext
                 .DebitMemos
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (debitMemo != null)
             {
@@ -58,7 +58,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<DebitMemo> FindDM(int id)
+        public async Task<DebitMemo> FindDM(int id, CancellationToken cancellationToken = default)
         {
             var debitMemo = await _dbContext
                 .DebitMemos
@@ -67,7 +67,7 @@ namespace Accounting_System.Repository
                 .ThenInclude(soa => soa.Customer)
                 .Include(c => c.SOA)
                 .ThenInclude(soa => soa.Service)
-                .FirstOrDefaultAsync(debitMemo => debitMemo.Id == id);
+                .FirstOrDefaultAsync(debitMemo => debitMemo.Id == id, cancellationToken);
 
             if (debitMemo != null)
             {

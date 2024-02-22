@@ -14,22 +14,22 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public async Task<List<SalesInvoice>> GetSalesInvoicesAsync()
+        public async Task<List<SalesInvoice>> GetSalesInvoicesAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext
                 .SalesInvoices
                 .Include(c => c.Customer)
                 .OrderBy(s => s.Id)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
 
-        public async Task<long> GetLastSeriesNumber()
+        public async Task<long> GetLastSeriesNumber(CancellationToken cancellationToken = default)
         {
             var lastInvoice = await _dbContext
                 .SalesInvoices
                 .Include(c => c.Customer)
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (lastInvoice != null)
             {
@@ -43,12 +43,12 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<string> GenerateSINo()
+        public async Task<string> GenerateSINo(CancellationToken cancellationToken = default)
         {
             var salesInvoice = await _dbContext
                 .SalesInvoices
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (salesInvoice != null)
             {
@@ -61,7 +61,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<SalesInvoice> FindSalesInvoice(int? id)
+        public async Task<SalesInvoice> FindSalesInvoice(int? id, CancellationToken cancellationToken = default)
         {
             var invoice = await _dbContext
                 .SalesInvoices

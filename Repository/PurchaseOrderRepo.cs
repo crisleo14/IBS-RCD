@@ -13,22 +13,22 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public async Task<List<PurchaseOrder>> GetPurchaseOrderAsync()
+        public async Task<List<PurchaseOrder>> GetPurchaseOrderAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext
                 .PurchaseOrders
                 .Include(p => p.Supplier)
                 .Include(p => p.Product)
                 .OrderBy(s => s.Id)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
 
-        public async Task<long> GetLastSeriesNumber()
+        public async Task<long> GetLastSeriesNumber(CancellationToken cancellationToken = default)
         {
             var lastInvoice = await _dbContext
                 .PurchaseOrders
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (lastInvoice != null)
             {
@@ -42,12 +42,12 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<string> GeneratePONo()
+        public async Task<string> GeneratePONo(CancellationToken cancellationToken = default)
         {
             var purchaseOrder = await _dbContext
                 .PurchaseOrders
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (purchaseOrder != null)
             {
@@ -60,13 +60,13 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<int> GetSupplierNoAsync(int id)
+        public async Task<int> GetSupplierNoAsync(int id, CancellationToken cancellationToken = default)
         {
             if (id != 0)
             {
                 var supplier = await _dbContext
                                 .Suppliers
-                                .FirstOrDefaultAsync(s => s.Id == id);
+                                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
                 return supplier.Number;
             }
             else
@@ -75,13 +75,13 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<string> GetProductNoAsync(int id)
+        public async Task<string> GetProductNoAsync(int id, CancellationToken cancellationToken = default)
         {
             if (id != 0)
             {
                 var product = await _dbContext
                                 .Products
-                                .FirstOrDefaultAsync(s => s.Id == id);
+                                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
                 return product.Code;
             }
             else
@@ -90,13 +90,13 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<PurchaseOrder> FindPurchaseOrder(int? id)
+        public async Task<PurchaseOrder> FindPurchaseOrder(int? id, CancellationToken cancellationToken = default)
         {
             var po = await _dbContext
                 .PurchaseOrders
                 .Include(p => p.Supplier)
                 .Include(p => p.Product)
-                .FirstOrDefaultAsync(po => po.Id == id);
+                .FirstOrDefaultAsync(po => po.Id == id, cancellationToken);
 
             if (po != null)
             {
