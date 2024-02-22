@@ -397,7 +397,7 @@ namespace Accounting_System.Controllers
                             NetPurchases = model.Amount - model.EwtAmount,
                             CreatedBy = model.CreatedBy,
                             PONo = model.PurchaseOrder.PONo,
-                            DueDate = model.DueDate
+                            DueDate = model.DueDate.ToShortDateString()
                         });
 
                     _dbContext.AddRange(purchaseBook);

@@ -17,7 +17,7 @@ namespace Accounting_System.Models
         public DateTime Date { get; set; }
 
         [Column(TypeName = "date")]
-        public DateTime? DueDate { get; set; }
+        public DateTime DueDate { get; set; }
 
         [Display(Name = "PO Id")]
         [Required]
