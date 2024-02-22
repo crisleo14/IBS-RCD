@@ -760,7 +760,7 @@ namespace Accounting_System.Controllers
 
             return NotFound();
         }
-
+ 
         public async Task<IActionResult> Preview(int id)
         {
             var cm = await _creditMemoRepo.FindCM(id);

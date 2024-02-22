@@ -55,7 +55,6 @@ namespace Accounting_System.Models
         public string PONo { get; set; }
 
         [Display(Name = "Due Date")]
-        [Column(TypeName = "date")]
-        public DateTime? DueDate { get; set; }
+        public string DueDate { get; set; }
     }
 }
