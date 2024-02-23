@@ -32,34 +32,34 @@ namespace Accounting_System.Controllers
             _generalRepo = generalRepo;
         }
 
-        public async Task<IActionResult> CollectionIndex()
+        public async Task<IActionResult> CollectionIndex(CancellationToken cancellationToken)
         {
-            var viewData = await _receiptRepo.GetCRAsync();
+            var viewData = await _receiptRepo.GetCRAsync(cancellationToken);
 
             return View(viewData);
         }
 
-        public async Task<IActionResult> OfficialIndex()
+        public async Task<IActionResult> OfficialIndex(CancellationToken cancellationToken)
         {
-            var viewData = await _receiptRepo.GetORAsync();
+            var viewData = await _receiptRepo.GetORAsync(cancellationToken);
 
             return View(viewData);
         }
 
-        public IActionResult CollectionCreate()
+        public async Task<IActionResult> CollectionCreate(CancellationToken cancellationToken)
         {
             var viewModel = new CollectionReceipt();
 
-            viewModel.Customers = _dbContext.Customers
+            viewModel.Customers = await _dbContext.Customers
                .OrderBy(c => c.Id)
                .Select(s => new SelectListItem
                {
                    Value = s.Number.ToString(),
                    Text = s.Name
                })
-               .ToList();
+               .ToListAsync(cancellationToken);
 
-            viewModel.ChartOfAccounts = _dbContext.ChartOfAccounts
+            viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == "4" || coa.Level == "5")
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
@@ -67,24 +67,24 @@ namespace Accounting_System.Controllers
                     Value = s.Number,
                     Text = s.Number + " " + s.Name
                 })
-                .ToList();
+                .ToListAsync(cancellationToken);
 
             return View(viewModel);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CollectionCreate(CollectionReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle, IFormFile? bir2306, IFormFile? bir2307)
+        public async Task<IActionResult> CollectionCreate(CollectionReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle, IFormFile? bir2306, IFormFile? bir2307, CancellationToken cancellationToken)
         {
-            model.Customers = _dbContext.Customers
+            model.Customers = await _dbContext.Customers
                .OrderBy(c => c.Id)
                .Select(s => new SelectListItem
                {
                    Value = s.Number.ToString(),
                    Text = s.Name
                })
-               .ToList();
+               .ToListAsync(cancellationToken);
 
-            model.Invoices = _dbContext.SalesInvoices
+            model.Invoices = await _dbContext.SalesInvoices
                 .Where(si => !si.IsPaid && si.CustomerNo == model.CustomerNo)
                 .OrderBy(si => si.Id)
                 .Select(s => new SelectListItem
@@ -92,9 +92,9 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.SINo
                 })
-                .ToList();
+                .ToListAsync(cancellationToken);
 
-            model.ChartOfAccounts = _dbContext.ChartOfAccounts
+            model.ChartOfAccounts = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == "4" || coa.Level == "5")
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
@@ -102,13 +102,13 @@ namespace Accounting_System.Controllers
                     Value = s.Number,
                     Text = s.Number + " " + s.Name
                 })
-                .ToList();
+                .ToListAsync(cancellationToken);
 
             if (ModelState.IsValid)
             {
                 #region --Validating the series
 
-                var getLastNumber = await _receiptRepo.GetLastSeriesNumberCR();
+                var getLastNumber = await _receiptRepo.GetLastSeriesNumberCR(cancellationToken);
 
                 if (getLastNumber > 9999999999)
                 {
@@ -135,9 +135,9 @@ namespace Accounting_System.Controllers
                     TempData["error"] = "Please input atleast one type form of payment";
                     return View(model);
                 }
-                var existingSalesInvoice = _dbContext.SalesInvoices
-                                               .FirstOrDefault(si => si.Id == model.SalesInvoiceId);
-                var generateCRNo = await _receiptRepo.GenerateCRNo();
+                var existingSalesInvoice = await _dbContext.SalesInvoices
+                                               .FirstOrDefaultAsync(si => si.Id == model.SalesInvoiceId, cancellationToken);
+                var generateCRNo = await _receiptRepo.GenerateCRNo(cancellationToken);
 
                 model.SeriesNumber = getLastNumber;
                 model.SINo = existingSalesInvoice.SINo;
@@ -193,7 +193,7 @@ namespace Accounting_System.Controllers
                 {
                 }
 
-                _dbContext.Add(model);
+                await _dbContext.AddAsync(model, cancellationToken);
 
                 decimal offsetAmount = 0;
 
@@ -202,7 +202,7 @@ namespace Accounting_System.Controllers
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
@@ -228,12 +228,12 @@ namespace Accounting_System.Controllers
                         }
                     );
 
-                    _dbContext.AddRange(offsettings);
+                    await _dbContext.AddRangeAsync(offsettings, cancellationToken);
                 }
 
                 #endregion --Offsetting function
 
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction("CollectionIndex");
             }
             else
@@ -244,20 +244,20 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public IActionResult OfficialCreate()
+        public async Task<IActionResult> OfficialCreate(CancellationToken cancellationToken)
         {
             var viewModel = new OfficialReceipt();
 
-            viewModel.Customers = _dbContext.Customers
+            viewModel.Customers = await _dbContext.Customers
                .OrderBy(c => c.Id)
                .Select(s => new SelectListItem
                {
                    Value = s.Number.ToString(),
                    Text = s.Name
                })
-               .ToList();
+               .ToListAsync(cancellationToken);
 
-            viewModel.ChartOfAccounts = _dbContext.ChartOfAccounts
+            viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == "4" || coa.Level == "5")
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
@@ -265,24 +265,24 @@ namespace Accounting_System.Controllers
                     Value = s.Number,
                     Text = s.Number + " " + s.Name
                 })
-                .ToList();
+                .ToListAsync(cancellationToken);
 
             return View(viewModel);
         }
 
         [HttpPost]
-        public async Task<IActionResult> OfficialCreate(OfficialReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle, IFormFile? bir2306, IFormFile? bir2307)
+        public async Task<IActionResult> OfficialCreate(OfficialReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle, IFormFile? bir2306, IFormFile? bir2307, CancellationToken cancellationToken)
         {
-            model.Customers = _dbContext.Customers
+            model.Customers = await _dbContext.Customers
                .OrderBy(c => c.Id)
                .Select(s => new SelectListItem
                {
                    Value = s.Number.ToString(),
                    Text = s.Name
                })
-               .ToList();
+               .ToListAsync(cancellationToken);
 
-            model.StatementOfAccounts = _dbContext.StatementOfAccounts
+            model.StatementOfAccounts = await _dbContext.StatementOfAccounts
                 .Where(s => !s.IsPaid && s.Customer.Number == model.CustomerNo)
                 .OrderBy(si => si.Id)
                 .Select(s => new SelectListItem
@@ -290,17 +290,17 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.SOANo
                 })
-                .ToList();
+                .ToListAsync(cancellationToken);
 
-            model.StatementOfAccounts = _dbContext.StatementOfAccounts
+            model.StatementOfAccounts = await _dbContext.StatementOfAccounts
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
                     Text = s.SOANo
                 })
-                .ToList();
+                .ToListAsync(cancellationToken);
 
-            model.ChartOfAccounts = _dbContext.ChartOfAccounts
+            model.ChartOfAccounts = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == "4" || coa.Level == "5")
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
@@ -308,13 +308,13 @@ namespace Accounting_System.Controllers
                     Value = s.Number,
                     Text = s.Number + " " + s.Name
                 })
-                .ToList();
+                .ToListAsync(cancellationToken);
 
             if (ModelState.IsValid)
             {
                 #region --Validating the series
 
-                var getLastNumber = await _receiptRepo.GetLastSeriesNumberOR();
+                var getLastNumber = await _receiptRepo.GetLastSeriesNumberOR(cancellationToken);
 
                 if (getLastNumber > 9999999999)
                 {
@@ -341,10 +341,10 @@ namespace Accounting_System.Controllers
                     TempData["error"] = "Please input atleast one type form of payment";
                     return View(model);
                 }
-                var existingSOA = _dbContext.StatementOfAccounts
-                                               .FirstOrDefault(s => s.Id == model.SOAId);
+                var existingSOA = await _dbContext.StatementOfAccounts
+                                               .FirstOrDefaultAsync(s => s.Id == model.SOAId, cancellationToken);
 
-                var generateORNo = await _receiptRepo.GenerateORNo();
+                var generateORNo = await _receiptRepo.GenerateORNo(cancellationToken);
 
                 model.SeriesNumber = getLastNumber;
                 model.ORNo = generateORNo;
@@ -400,7 +400,7 @@ namespace Accounting_System.Controllers
                 {
                 }
 
-                _dbContext.Add(model);
+                await _dbContext.AddAsync(model, cancellationToken);
 
                 decimal offsetAmount = 0;
 
@@ -409,7 +409,7 @@ namespace Accounting_System.Controllers
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(model.CreatedBy, $"Create new official receipt# {model.ORNo}", "Official Receipt");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
@@ -435,12 +435,12 @@ namespace Accounting_System.Controllers
                         }
                     );
 
-                    _dbContext.AddRange(offsettings);
+                    await _dbContext.AddRangeAsync(offsettings, cancellationToken);
                 }
 
                 #endregion --Offsetting function
 
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction("OfficialIndex");
             }
             else
@@ -450,76 +450,76 @@ namespace Accounting_System.Controllers
             }
         }
 
-        public async Task<IActionResult> CollectionPrint(int id)
+        public async Task<IActionResult> CollectionPrint(int id, CancellationToken cancellationToken)
         {
-            var cr = await _receiptRepo.FindCR(id);
+            var cr = await _receiptRepo.FindCR(id, cancellationToken);
             return View(cr);
         }
 
-        public async Task<IActionResult> OfficialPrint(int id)
+        public async Task<IActionResult> OfficialPrint(int id, CancellationToken cancellationToken)
         {
-            var or = await _receiptRepo.FindOR(id);
+            var or = await _receiptRepo.FindOR(id, cancellationToken);
             return View(or);
         }
 
-        public async Task<IActionResult> CollectionPreview(int id)
+        public async Task<IActionResult> CollectionPreview(int id, CancellationToken cancellationToken)
         {
-            var cr = await _receiptRepo.FindCR(id);
+            var cr = await _receiptRepo.FindCR(id, cancellationToken);
             return PartialView("_CollectionPreviewPartialView", cr);
         }
 
-        public async Task<IActionResult> OfficialPreview(int id)
+        public async Task<IActionResult> OfficialPreview(int id, CancellationToken cancellationToken)
         {
-            var or = await _receiptRepo.FindOR(id);
+            var or = await _receiptRepo.FindOR(id, cancellationToken);
             return PartialView("_OfficialPreviewPartialView", or);
         }
 
-        public async Task<IActionResult> PrintedCR(int id)
+        public async Task<IActionResult> PrintedCR(int id, CancellationToken cancellationToken)
         {
-            var findIdOfCR = await _receiptRepo.FindCR(id);
+            var findIdOfCR = await _receiptRepo.FindCR(id, cancellationToken);
             if (findIdOfCR != null && !findIdOfCR.IsPrinted)
             {
                 #region --Audit Trail Recording
 
                 var printedBy = _userManager.GetUserName(this.User);
                 AuditTrail auditTrail = new(printedBy, $"Printed original copy of cr# {findIdOfCR.CRNo}", "Collection Receipt");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
                 findIdOfCR.IsPrinted = true;
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
             }
             return RedirectToAction("CollectionPrint", new { id = id });
         }
 
-        public async Task<IActionResult> PrintedOR(int id)
+        public async Task<IActionResult> PrintedOR(int id, CancellationToken cancellationToken)
         {
-            var findIdOfOR = await _receiptRepo.FindOR(id);
+            var findIdOfOR = await _receiptRepo.FindOR(id, cancellationToken);
             if (findIdOfOR != null && !findIdOfOR.IsPrinted)
             {
                 #region --Audit Trail Recording
 
                 var printedBy = _userManager.GetUserName(this.User);
                 AuditTrail auditTrail = new(printedBy, $"Printed original copy of or# {findIdOfOR.ORNo}", "Official Receipt");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
                 findIdOfOR.IsPrinted = true;
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
             }
             return RedirectToAction("OfficialPrint", new { id = id });
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetSalesInvoices(int customerNo)
+        public async Task<IActionResult> GetSalesInvoices(int customerNo, CancellationToken cancellationToken)
         {
             var invoices = await _dbContext
                 .SalesInvoices
                 .Where(si => si.CustomerNo == customerNo && !si.IsPaid)
                 .OrderBy(si => si.Id)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             var invoiceList = invoices.Select(si => new SelectListItem
             {
@@ -531,11 +531,11 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetInvoiceDetails(int invoiceNo)
+        public async Task<IActionResult> GetInvoiceDetails(int invoiceNo, CancellationToken cancellationToken)
         {
             var invoice = await _dbContext
                 .SalesInvoices
-                .FirstOrDefaultAsync(si => si.Id == invoiceNo);
+                .FirstOrDefaultAsync(si => si.Id == invoiceNo, cancellationToken);
 
             if (invoice != null)
             {
@@ -553,29 +553,29 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> CollectionEdit(int? id)
+        public async Task<IActionResult> CollectionEdit(int? id, CancellationToken cancellationToken)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var existingModel = await _dbContext.CollectionReceipts.FindAsync(id);
+            var existingModel = await _dbContext.CollectionReceipts.FindAsync(id, cancellationToken);
 
             if (existingModel == null)
             {
                 return NotFound();
             }
 
-            existingModel.Customers = _dbContext.Customers
+            existingModel.Customers = await _dbContext.Customers
                .OrderBy(c => c.Id)
                .Select(s => new SelectListItem
                {
                    Value = s.Number.ToString(),
                    Text = s.Name
                })
-               .ToList();
+               .ToListAsync(cancellationToken);
 
-            existingModel.Invoices = _dbContext.SalesInvoices
+            existingModel.Invoices = await _dbContext.SalesInvoices
                 .Where(si => !si.IsPaid && si.CustomerNo == existingModel.CustomerNo)
                 .OrderBy(si => si.Id)
                 .Select(s => new SelectListItem
@@ -583,9 +583,9 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.SINo
                 })
-                .ToList();
+                .ToListAsync(cancellationToken);
 
-            existingModel.ChartOfAccounts = _dbContext.ChartOfAccounts
+            existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == "4" || coa.Level == "5")
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
@@ -593,16 +593,16 @@ namespace Accounting_System.Controllers
                     Value = s.Number,
                     Text = s.Number + " " + s.Name
                 })
-                .ToList();
+                .ToListAsync(cancellationToken);
 
             var findCustomers = await _dbContext.Customers
-                .FirstOrDefaultAsync(c => c.Number == existingModel.CustomerNo);
+                .FirstOrDefaultAsync(c => c.Number == existingModel.CustomerNo, cancellationToken);
 
             ViewBag.CustomerName = findCustomers?.Name;
 
             var matchingOffsettings = await _dbContext.Offsettings
             .Where(offset => offset.Source == existingModel.CRNo)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
             ViewBag.fetchAccEntries = matchingOffsettings
                 .Select(offset => new { AccountNo = offset.AccountNo, Amount = offset.Amount.ToString("N2") })
@@ -612,15 +612,15 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CollectionEdit(CollectionReceipt model, string[] editAccountTitleText, decimal[] editAccountAmount, string[] editAccountTitle, IFormFile? bir2306, IFormFile? bir2307)
+        public async Task<IActionResult> CollectionEdit(CollectionReceipt model, string[] editAccountTitleText, decimal[] editAccountAmount, string[] editAccountTitle, IFormFile? bir2306, IFormFile? bir2307, CancellationToken cancellationToken)
         {
-            var existingModel = await _receiptRepo.FindCR(model.Id);
+            var existingModel = await _receiptRepo.FindCR(model.Id, cancellationToken);
 
             if (ModelState.IsValid)
             {
                 #region --Validating the series
 
-                var getLastNumber = await _receiptRepo.GetLastSeriesNumberCR();
+                var getLastNumber = await _receiptRepo.GetLastSeriesNumberCR(cancellationToken);
 
                 if (getLastNumber > 9999999999)
                 {
@@ -725,7 +725,7 @@ namespace Accounting_System.Controllers
                     var accountAmount = editAccountAmount[i];
 
                     var existingOffsetting = await _dbContext.Offsettings
-                        .FirstOrDefaultAsync(offset => offset.Source == existingCRNo && offset.AccountNo == accountTitle);
+                        .FirstOrDefaultAsync(offset => offset.Source == existingCRNo && offset.AccountNo == accountTitle, cancellationToken);
 
                     if (existingOffsetting != null)
                     {
@@ -752,7 +752,7 @@ namespace Accounting_System.Controllers
                 var existingAccountNos = offsetting.Select(o => o.AccountNo).ToList();
                 var entriesToRemove = await _dbContext.Offsettings
                     .Where(offset => offset.Source == existingModel.CRNo && !existingAccountNos.Contains(offset.AccountNo))
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 // Remove entries individually
                 foreach (var entryToRemove in entriesToRemove)
@@ -761,7 +761,7 @@ namespace Accounting_System.Controllers
                 }
 
                 // Add or update entries in the database
-                _dbContext.Offsettings.AddRange(offsetting);
+                await _dbContext.Offsettings.AddRangeAsync(offsetting, cancellationToken);
 
                 #endregion --Offsetting function
 
@@ -769,11 +769,11 @@ namespace Accounting_System.Controllers
 
                 var modifiedBy = _userManager.GetUserName(this.User);
                 AuditTrail auditTrail = new(modifiedBy, $"Edited receipt# {model.CRNo}", "Collection Receipt");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction("CollectionIndex");
             }
             else
@@ -783,9 +783,9 @@ namespace Accounting_System.Controllers
             }
         }
 
-        public async Task<IActionResult> Post(int itemId)
+        public async Task<IActionResult> Post(int itemId, CancellationToken cancellationToken)
         {
-            var model = await _receiptRepo.FindCR(itemId);
+            var model = await _receiptRepo.FindCR(itemId, cancellationToken);
 
             if (model != null)
             {
@@ -795,7 +795,7 @@ namespace Accounting_System.Controllers
                     model.PostedBy = _userManager.GetUserName(this.User);
                     model.PostedDate = DateTime.Now;
 
-                    var offset = await _receiptRepo.GetOffsettingAsync(model.CRNo, model.SINo);
+                    var offset = await _receiptRepo.GetOffsettingAsync(model.CRNo, model.SINo, cancellationToken);
 
                     decimal offsetAmount = 0;
 
@@ -921,7 +921,7 @@ namespace Accounting_System.Controllers
                         );
                     }
 
-                    _dbContext.AddRange(ledgers);
+                    await _dbContext.AddRangeAsync(ledgers, cancellationToken);
 
                     #endregion --General Ledger Book Recording
 
@@ -1067,20 +1067,20 @@ namespace Accounting_System.Controllers
                         );
                     }
 
-                    _dbContext.AddRange(crb);
+                    await _dbContext.AddRangeAsync(crb, cancellationToken);
 
                     #endregion --Cash Receipt Book Recording
 
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.PostedBy, $"Posted collection receipt# {model.CRNo}", "Collection Receipt");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _receiptRepo.UpdateInvoice(model.SalesInvoice.Id, model.Total, offsetAmount);
+                    await _receiptRepo.UpdateInvoice(model.SalesInvoice.Id, model.Total, offsetAmount, cancellationToken);
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Collection Receipt has been Posted.";
                 }
                 return RedirectToAction("CollectionIndex");
@@ -1089,9 +1089,9 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Void(int itemId)
+        public async Task<IActionResult> Void(int itemId, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.CollectionReceipts.FindAsync(itemId);
+            var model = await _dbContext.CollectionReceipts.FindAsync(itemId, cancellationToken);
 
             if (model != null)
             {
@@ -1101,17 +1101,17 @@ namespace Accounting_System.Controllers
                     model.VoidedBy = _userManager.GetUserName(this.User);
                     model.VoidedDate = DateTime.Now;
 
-                    await _generalRepo.RemoveRecords<CashReceiptBook>(crb => crb.RefNo == model.CRNo);
-                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CRNo);
+                    await _generalRepo.RemoveRecords<CashReceiptBook>(crb => crb.RefNo == model.CRNo, cancellationToken);
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CRNo, cancellationToken);
 
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.VoidedBy, $"Voided collection receipt# {model.CRNo}", "Collection Receipt");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Collection Receipt has been Voided.";
                 }
                 return RedirectToAction("CollectionIndex");
@@ -1120,9 +1120,9 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Cancel(int itemId)
+        public async Task<IActionResult> Cancel(int itemId, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.CollectionReceipts.FindAsync(itemId);
+            var model = await _dbContext.CollectionReceipts.FindAsync(itemId, cancellationToken);
 
             if (model != null)
             {
@@ -1135,11 +1135,11 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.CanceledBy, $"Canceled collection receipt# {model.CRNo}", "Collection Receipt");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Collection Receipt has been Canceled.";
                 }
                 return RedirectToAction("CollectionIndex");
@@ -1149,13 +1149,13 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetStatementOfAccount(int customerNo)
+        public async Task<IActionResult> GetStatementOfAccount(int customerNo, CancellationToken cancellationToken)
         {
             var soa = await _dbContext
                 .StatementOfAccounts
                 .Where(s => s.Customer.Number == customerNo && !s.IsPaid)
                 .OrderBy(s => s.Id)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             var soaList = soa.Select(si => new SelectListItem
             {
@@ -1167,11 +1167,11 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetSOADetails(int soaNo)
+        public async Task<IActionResult> GetSOADetails(int soaNo, CancellationToken cancellationToken)
         {
             var soa = await _dbContext
                 .StatementOfAccounts
-                .FirstOrDefaultAsync(s => s.Id == soaNo);
+                .FirstOrDefaultAsync(s => s.Id == soaNo, cancellationToken);
 
             if (soa != null)
             {
@@ -1189,29 +1189,29 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> OfficialEdit(int? id)
+        public async Task<IActionResult> OfficialEdit(int? id, CancellationToken cancellationToken)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var existingModel = await _dbContext.OfficialReceipts.FindAsync(id);
+            var existingModel = await _dbContext.OfficialReceipts.FindAsync(id, cancellationToken);
 
             if (existingModel == null)
             {
                 return NotFound();
             }
 
-            existingModel.Customers = _dbContext.Customers
+            existingModel.Customers = await _dbContext.Customers
                .OrderBy(c => c.Id)
                .Select(s => new SelectListItem
                {
                    Value = s.Number.ToString(),
                    Text = s.Name
                })
-               .ToList();
+               .ToListAsync(cancellationToken);
 
-            existingModel.StatementOfAccounts = _dbContext.StatementOfAccounts
+            existingModel.StatementOfAccounts = await _dbContext.StatementOfAccounts
                 .Where(s => !s.IsPaid && s.Customer.Number == existingModel.CustomerNo)
                 .OrderBy(si => si.Id)
                 .Select(s => new SelectListItem
@@ -1219,9 +1219,9 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.SOANo
                 })
-                .ToList();
+                .ToListAsync(cancellationToken);
 
-            existingModel.ChartOfAccounts = _dbContext.ChartOfAccounts
+            existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == "4" || coa.Level == "5")
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
@@ -1229,16 +1229,16 @@ namespace Accounting_System.Controllers
                     Value = s.Number,
                     Text = s.Number + " " + s.Name
                 })
-                .ToList();
+                .ToListAsync(cancellationToken);
 
             var findCustomers = await _dbContext.Customers
-                .FirstOrDefaultAsync(c => c.Number == existingModel.CustomerNo);
+                .FirstOrDefaultAsync(c => c.Number == existingModel.CustomerNo, cancellationToken);
 
             ViewBag.CustomerName = findCustomers?.Name;
 
             var matchingOffsettings = await _dbContext.Offsettings
             .Where(offset => offset.Source == existingModel.ORNo)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
             ViewBag.fetchAccEntries = matchingOffsettings
                 .Select(offset => new { AccountNo = offset.AccountNo, Amount = offset.Amount.ToString("N2") })
@@ -1248,15 +1248,15 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> OfficialEdit(OfficialReceipt model, string[] editAccountTitleText, decimal[] editAccountAmount, string[] editAccountTitle, IFormFile? bir2306, IFormFile? bir2307)
+        public async Task<IActionResult> OfficialEdit(OfficialReceipt model, string[] editAccountTitleText, decimal[] editAccountAmount, string[] editAccountTitle, IFormFile? bir2306, IFormFile? bir2307, CancellationToken cancellationToken)
         {
-            var existingModel = await _receiptRepo.FindOR(model.Id);
+            var existingModel = await _receiptRepo.FindOR(model.Id, cancellationToken);
 
             if (ModelState.IsValid)
             {
                 #region --Validating the series
 
-                var getLastNumber = await _receiptRepo.GetLastSeriesNumberOR();
+                var getLastNumber = await _receiptRepo.GetLastSeriesNumberOR(cancellationToken);
 
                 if (getLastNumber > 9999999999)
                 {
@@ -1355,7 +1355,7 @@ namespace Accounting_System.Controllers
                     var existingOffset = await _dbContext.Offsettings
                         .FirstOrDefaultAsync(offset => offset.Source == existingModel.ORNo
                                                         && offset.AccountNo == editAccountTitleText[i]
-                                                        && offset.Amount == editAccountAmount[i]);
+                                                        && offset.Amount == editAccountAmount[i], cancellationToken);
 
                     if (existingOffset == null)
                     {
@@ -1378,13 +1378,13 @@ namespace Accounting_System.Controllers
                     if (existingOffset != null && existingOffset.IsRemoved)
                     {
                         _dbContext.Offsettings.Remove(existingOffset);
-                        await _dbContext.SaveChangesAsync();
+                        await _dbContext.SaveChangesAsync(cancellationToken);
                     }
                 }
 
                 if (offsetting.Any())
                 {
-                    _dbContext.AddRange(offsetting);
+                    await _dbContext.AddRangeAsync(offsetting, cancellationToken);
                 }
 
                 #endregion --Offsetting function
@@ -1393,11 +1393,11 @@ namespace Accounting_System.Controllers
 
                 var modifiedBy = _userManager.GetUserName(this.User);
                 AuditTrail auditTrail = new(modifiedBy, $"Edited receipt# {model.SOANo}", "Official Receipt");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction("OfficialIndex");
             }
             else
@@ -1407,9 +1407,9 @@ namespace Accounting_System.Controllers
             }
         }
 
-        public async Task<IActionResult> PostOR(int itemId)
+        public async Task<IActionResult> PostOR(int itemId, CancellationToken cancellationToken)
         {
-            var model = await _receiptRepo.FindOR(itemId);
+            var model = await _receiptRepo.FindOR(itemId, cancellationToken);
 
             if (model != null)
             {
@@ -1419,7 +1419,7 @@ namespace Accounting_System.Controllers
                     model.PostedBy = _userManager.GetUserName(this.User);
                     model.PostedDate = DateTime.Now;
 
-                    var offset = await _receiptRepo.GetOffsettingAsync(model.ORNo, model.SOANo);
+                    var offset = await _receiptRepo.GetOffsettingAsync(model.ORNo, model.SOANo, cancellationToken);
 
                     decimal offsetAmount = 0;
 
@@ -1579,7 +1579,7 @@ namespace Accounting_System.Controllers
                        );
                     }
 
-                    _dbContext.AddRange(ledgers);
+                    await _dbContext.AddRangeAsync(ledgers, cancellationToken);
 
                     #endregion --General Ledger Book Recording
 
@@ -1765,18 +1765,18 @@ namespace Accounting_System.Controllers
                         );
                     }
 
-                    _dbContext.AddRange(crb);
+                    await _dbContext.AddRangeAsync(crb, cancellationToken);
 
                     #endregion --Cash Receipt Book Recording
 
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.PostedBy, $"Posted official receipt# {model.ORNo}", "Official Receipt");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _receiptRepo.UpdateSoa(model.StatementOfAccount.Id, model.Total, offsetAmount);
+                    await _receiptRepo.UpdateSoa(model.StatementOfAccount.Id, model.Total, offsetAmount, cancellationToken);
 
                     await _dbContext.SaveChangesAsync();
                     TempData["success"] = "Official Receipt has been Posted.";
@@ -1787,9 +1787,9 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> VoidOR(int itemId)
+        public async Task<IActionResult> VoidOR(int itemId, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.OfficialReceipts.FindAsync(itemId);
+            var model = await _dbContext.OfficialReceipts.FindAsync(itemId, cancellationToken);
 
             if (model != null)
             {
@@ -1799,17 +1799,17 @@ namespace Accounting_System.Controllers
                     model.VoidedBy = _userManager.GetUserName(this.User);
                     model.VoidedDate = DateTime.Now;
 
-                    await _generalRepo.RemoveRecords<CashReceiptBook>(crb => crb.RefNo == model.ORNo);
-                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.ORNo);
+                    await _generalRepo.RemoveRecords<CashReceiptBook>(crb => crb.RefNo == model.ORNo, cancellationToken);
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.ORNo,cancellationToken);
 
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.VoidedBy, $"Voided official receipt# {model.ORNo}", "Official Receipt");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Official Receipt has been Voided.";
                 }
                 return RedirectToAction("OfficialIndex");
@@ -1818,9 +1818,9 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> CancelOR(int itemId)
+        public async Task<IActionResult> CancelOR(int itemId, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.OfficialReceipts.FindAsync(itemId);
+            var model = await _dbContext.OfficialReceipts.FindAsync(itemId, cancellationToken);
 
             if (model != null)
             {
@@ -1833,11 +1833,11 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.CanceledBy, $"Canceled official receipt# {model.ORNo}", "Official Receipt");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Official Receipt has been Canceled.";
                 }
                 return RedirectToAction("OfficialIndex");

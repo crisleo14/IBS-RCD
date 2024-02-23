@@ -78,7 +78,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
             if (ModelState.IsValid)
             {
-                var getLastNumber = await _creditMemoRepo.GetLastSeriesNumber();
+                var getLastNumber = await _creditMemoRepo.GetLastSeriesNumber(cancellationToken);
 
                 if (getLastNumber > 9999999999)
                 {
@@ -95,7 +95,7 @@ namespace Accounting_System.Controllers
                     TempData["success"] = "Credit Memo created successfully";
                 }
 
-                var generatedCM = await _creditMemoRepo.GenerateCMNo();
+                var generatedCM = await _creditMemoRepo.GenerateCMNo(cancellationToken);
 
                 model.SeriesNumber = getLastNumber;
                 model.CMNo = generatedCM;
@@ -104,7 +104,7 @@ namespace Accounting_System.Controllers
                 if (model.Source == "Sales Invoice")
                 {
                     model.SOAId = null;
-                    model.SINo = await _creditMemoRepo.GetSINoAsync(model.SIId);
+                    model.SINo = await _creditMemoRepo.GetSINoAsync(model.SIId, cancellationToken);
 
                     var existingSalesInvoice = await _dbContext.SalesInvoices
                                                .FirstOrDefaultAsync(si => si.Id == model.SIId, cancellationToken);
@@ -136,7 +136,7 @@ namespace Accounting_System.Controllers
                 else if (model.Source == "Statement Of Account")
                 {
                     model.SIId = null;
-                    model.SOANo = await _creditMemoRepo.GetSOANoAsync(model.SOAId);
+                    model.SOANo = await _creditMemoRepo.GetSOANoAsync(model.SOAId, cancellationToken);
 
                     var existingSoa = await _dbContext.StatementOfAccounts
                         .Include(soa => soa.Customer)
@@ -208,7 +208,7 @@ namespace Accounting_System.Controllers
                 return NotFound();
             }
 
-            var creditMemo = await _dbContext.CreditMemos.FindAsync(id);
+            var creditMemo = await _dbContext.CreditMemos.FindAsync(id, cancellationToken);
             if (creditMemo == null)
             {
                 return NotFound();
@@ -335,7 +335,7 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
         {
-            var model = await _creditMemoRepo.FindCM(id);
+            var model = await _creditMemoRepo.FindCM(id, cancellationToken);
 
             if (model != null)
             {
@@ -577,7 +577,7 @@ namespace Accounting_System.Controllers
                         }
 
 
-                        _dbContext.GeneralLedgerBooks.AddRange(ledgers);
+                        await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
                     }
 
                     if (model.SOANo != null)
@@ -748,7 +748,7 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.CanceledBy, $"Canceled credit memo# {model.CMNo}", "Credit Memo");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
@@ -761,9 +761,9 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
  
-        public async Task<IActionResult> Preview(int id)
+        public async Task<IActionResult> Preview(int id, CancellationToken cancellationToken)
         {
-            var cm = await _creditMemoRepo.FindCM(id);
+            var cm = await _creditMemoRepo.FindCM(id, cancellationToken);
             return PartialView("_PreviewCredit", cm);
         }
 

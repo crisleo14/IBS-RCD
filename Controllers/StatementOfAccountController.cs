@@ -28,16 +28,16 @@ namespace Accounting_System.Controllers
             _generalRepo = generalRepo;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             var results = await _statementOfAccountRepo
-                .GetSOAListAsync();
+                .GetSOAListAsync(cancellationToken);
 
             return View(results);
         }
 
         [HttpGet]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
             var viewModel = new StatementOfAccount();
             viewModel.Customers = await _dbContext.Customers
@@ -47,7 +47,7 @@ namespace Accounting_System.Controllers
                     Value = c.Id.ToString(),
                     Text = c.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
             viewModel.Services = await _dbContext.Services
                 .OrderBy(s => s.Id)
                 .Select(s => new SelectListItem
@@ -55,12 +55,12 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
             return View(viewModel);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(StatementOfAccount model)
+        public async Task<IActionResult> Create(StatementOfAccount model, CancellationToken cancellationToken)
         {
             model.Customers = await _dbContext.Customers
                 .OrderBy(c => c.Id)
@@ -69,7 +69,7 @@ namespace Accounting_System.Controllers
                     Value = c.Id.ToString(),
                     Text = c.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
             model.Services = await _dbContext.Services
                 .OrderBy(s => s.Id)
                 .Select(s => new SelectListItem
@@ -77,12 +77,12 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
             if (ModelState.IsValid)
             {
                 #region --Validating the series
 
-                var getLastNumber = await _statementOfAccountRepo.GetLastSeriesNumber();
+                var getLastNumber = await _statementOfAccountRepo.GetLastSeriesNumber(cancellationToken);
 
                 if (getLastNumber > 9999999999)
                 {
@@ -103,13 +103,13 @@ namespace Accounting_System.Controllers
 
                 #region --Retrieval of Services
 
-                var services = await _statementOfAccountRepo.GetServicesAsync(model.ServicesId);
+                var services = await _statementOfAccountRepo.GetServicesAsync(model.ServicesId, cancellationToken);
 
                 #endregion --Retrieval of Services
 
                 #region --Retrieval of Customer
 
-                var customer = await _statementOfAccountRepo.FindCustomerAsync(model.CustomerId);
+                var customer = await _statementOfAccountRepo.FindCustomerAsync(model.CustomerId, cancellationToken);
 
                 #endregion --Retrieval of Customer
 
@@ -117,7 +117,7 @@ namespace Accounting_System.Controllers
 
                 model.SeriesNumber = getLastNumber;
 
-                model.SOANo = await _statementOfAccountRepo.GenerateSOANo();
+                model.SOANo = await _statementOfAccountRepo.GenerateSOANo(cancellationToken);
 
                 model.CreatedBy = _userManager.GetUserName(this.User);
 
@@ -176,62 +176,62 @@ namespace Accounting_System.Controllers
                     }
                 }
 
-                _dbContext.Add(model);
+                await _dbContext.AddAsync(model, cancellationToken);
 
                 #endregion --Saving the default properties
 
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(model.CreatedBy, $"Create new statement of account# {model.SOANo}", "Statement Of Account");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction("Index");
             }
 
             return View(model);
         }
 
-        public async Task<IActionResult> Generate(int id)
+        public async Task<IActionResult> Generate(int id, CancellationToken cancellationToken)
         {
             var soa = await _statementOfAccountRepo
-                .FindSOA(id);
+                .FindSOA(id, cancellationToken);
 
             return View(soa);
         }
 
-        public async Task<IActionResult> Preview(int id)
+        public async Task<IActionResult> Preview(int id, CancellationToken cancellationToken)
         {
             var soa = await _statementOfAccountRepo
-                .FindSOA(id);
+                .FindSOA(id, cancellationToken);
 
             return PartialView("_PreviewPartialView", soa);
         }
 
-        public async Task<IActionResult> PrintedSOA(int id)
+        public async Task<IActionResult> PrintedSOA(int id, CancellationToken cancellationToken)
         {
-            var findIdOfSOA = await _statementOfAccountRepo.FindSOA(id);
+            var findIdOfSOA = await _statementOfAccountRepo.FindSOA(id, cancellationToken);
             if (findIdOfSOA != null && !findIdOfSOA.IsPrinted)
             {
                 #region --Audit Trail Recording
 
                 var printedBy = _userManager.GetUserName(this.User);
                 AuditTrail auditTrail = new(printedBy, $"Printed original copy of soa# {findIdOfSOA.SOANo}", "Statement Of Account");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
                 findIdOfSOA.IsPrinted = true;
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
             }
             return RedirectToAction("Generate", new { id = id });
         }
 
-        public async Task<IActionResult> Post(int id)
+        public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
         {
-            var model = await _statementOfAccountRepo.FindSOA(id);
+            var model = await _statementOfAccountRepo.FindSOA(id, cancellationToken);
 
             if (model != null)
             {
@@ -342,18 +342,18 @@ namespace Accounting_System.Controllers
                         );
                     }
 
-                    _dbContext.GeneralLedgerBooks.AddRange(ledgers);
+                    await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
 
                     #endregion --General Ledger Book Recording
 
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.PostedBy, $"Posted statement of account# {model.SOANo}", "Statement Of Account");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Statement of Account has been posted.";
                     return RedirectToAction("Index");
                 }
@@ -366,9 +366,9 @@ namespace Accounting_System.Controllers
             return null;
         }
 
-        public async Task<IActionResult> Cancel(int id)
+        public async Task<IActionResult> Cancel(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.StatementOfAccounts.FindAsync(id);
+            var model = await _dbContext.StatementOfAccounts.FindAsync(id, cancellationToken);
 
             if (model != null)
             {
@@ -381,11 +381,11 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.CanceledBy, $"Canceled statement of account# {model.SOANo}", "Statement Of Account");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Statement of Account has been canceled.";
                 }
                 return RedirectToAction("Index");
@@ -394,9 +394,9 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Void(int id)
+        public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.StatementOfAccounts.FindAsync(id);
+            var model = await _dbContext.StatementOfAccounts.FindAsync(id, cancellationToken);
 
             if (model != null)
             {
@@ -409,13 +409,13 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.VoidedBy, $"Voided statement of account# {model.SOANo}", "Statement Of Account");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.SOANo);
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.SOANo, cancellationToken);
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Statement of Account has been voided.";
                 }
                 return RedirectToAction("Index");
@@ -425,13 +425,13 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(int id, CancellationToken cancellationToken)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            var existingModel = await _statementOfAccountRepo.FindSOA(id);
+            var existingModel = await _statementOfAccountRepo.FindSOA(id, cancellationToken);
 
             if (existingModel == null)
             {
@@ -445,7 +445,7 @@ namespace Accounting_System.Controllers
                     Value = c.Id.ToString(),
                     Text = c.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
             existingModel.Services = await _dbContext.Services
                 .OrderBy(s => s.Id)
                 .Select(s => new SelectListItem
@@ -453,15 +453,15 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return View(existingModel);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(StatementOfAccount model)
+        public async Task<IActionResult> Edit(StatementOfAccount model, CancellationToken cancellationToken)
         {
-            var existingModel = await _statementOfAccountRepo.FindSOA(model.Id);
+            var existingModel = await _statementOfAccountRepo.FindSOA(model.Id, cancellationToken);
 
             if (existingModel == null)
             {
@@ -472,7 +472,7 @@ namespace Accounting_System.Controllers
             {
                 #region --Validating the series
 
-                var getLastNumber = await _statementOfAccountRepo.GetLastSeriesNumber();
+                var getLastNumber = await _statementOfAccountRepo.GetLastSeriesNumber(cancellationToken);
 
                 if (getLastNumber > 9999999999)
                 {
@@ -493,13 +493,13 @@ namespace Accounting_System.Controllers
 
                 #region --Retrieval of Services
 
-                var services = await _statementOfAccountRepo.GetServicesAsync(model.ServicesId);
+                var services = await _statementOfAccountRepo.GetServicesAsync(model.ServicesId, cancellationToken);
 
                 #endregion --Retrieval of Services
 
                 #region --Retrieval of Customer
 
-                var customer = await _statementOfAccountRepo.FindCustomerAsync(model.CustomerId);
+                var customer = await _statementOfAccountRepo.FindCustomerAsync(model.CustomerId, cancellationToken);
 
                 #endregion --Retrieval of Customer
 
@@ -541,11 +541,11 @@ namespace Accounting_System.Controllers
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(existingModel.CreatedBy, $"Edit statement of account# {existingModel.SOANo}", "Statement Of Account");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction("Index");
             }
 
