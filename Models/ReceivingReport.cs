@@ -33,9 +33,12 @@ namespace Accounting_System.Models
         [Column(TypeName = "varchar(12)")]
         public string? PONo { get; set; }
 
-        [Display(Name = "Supplier Invoice#/Date")]
+        [Display(Name = "Supplier Invoice#")]
         [Column(TypeName = "varchar(100)")]
-        public string InvoiceOrDate { get; set; }
+        public string SupplierInvoiceNumber { get; set; }
+
+        [Display(Name = "Supplier Invoice Date")]
+        public string SupplierInvoiceDate { get; set; }
 
         [Required]
         [Display(Name = "Truck/Vessels")]
