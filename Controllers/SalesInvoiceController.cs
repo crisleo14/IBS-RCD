@@ -34,15 +34,15 @@ namespace Accounting_System.Controllers
             _generalRepo = generalRepo;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
-            var salesInvoice = await _salesInvoiceRepo.GetSalesInvoicesAsync();
+            var salesInvoice = await _salesInvoiceRepo.GetSalesInvoicesAsync(cancellationToken);
 
             return View(salesInvoice);
         }
 
         [HttpGet]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
             var viewModel = new SalesInvoice();
             viewModel.Customers = await _dbContext.Customers
@@ -52,7 +52,7 @@ namespace Accounting_System.Controllers
                     Value = c.Id.ToString(),
                     Text = c.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
             viewModel.Products = await _dbContext.Products
                 .OrderBy(p => p.Id)
                 .Select(p => new SelectListItem
@@ -60,14 +60,14 @@ namespace Accounting_System.Controllers
                     Value = p.Id.ToString(),
                     Text = p.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return View(viewModel);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(SalesInvoice sales)
+        public async Task<IActionResult> Create(SalesInvoice sales, CancellationToken cancellationToken)
         {
             sales.Customers = await _dbContext.Customers
                 .OrderBy(c => c.Id)
@@ -76,7 +76,7 @@ namespace Accounting_System.Controllers
                     Value = c.Id.ToString(),
                     Text = c.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
             sales.Products = await _dbContext.Products
                 .OrderBy(p => p.Id)
                 .Select(p => new SelectListItem
@@ -84,10 +84,10 @@ namespace Accounting_System.Controllers
                     Value = p.Id.ToString(),
                     Text = p.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
             if (ModelState.IsValid)
             {
-                var getLastNumber = await _salesInvoiceRepo.GetLastSeriesNumber();
+                var getLastNumber = await _salesInvoiceRepo.GetLastSeriesNumber(cancellationToken);
 
                 if (getLastNumber > 9999999999)
                 {
@@ -104,9 +104,9 @@ namespace Accounting_System.Controllers
                     TempData["success"] = "Sales Invoice created successfully";
                 }
 
-                var generateCRNo = await _salesInvoiceRepo.GenerateSINo();
-                var existingCustomers = _dbContext.Customers
-                                               .FirstOrDefault(si => si.Id == sales.CustomerId);
+                var generateCRNo = await _salesInvoiceRepo.GenerateSINo(cancellationToken);
+                var existingCustomers = await _dbContext.Customers
+                                               .FirstOrDefaultAsync(si => si.Id == sales.CustomerId, cancellationToken);
 
                 sales.CustomerNo = existingCustomers.Number;
                 sales.SeriesNumber = getLastNumber;
@@ -159,7 +159,7 @@ namespace Accounting_System.Controllers
                             sales.WithHoldingVatAmount = sales.VatExempt * (decimal)0.05;
                         }
                     }
-                    _dbContext.Add(sales);
+                    await _dbContext.AddAsync(sales, cancellationToken);
                 }
                 else
                 {
@@ -170,11 +170,11 @@ namespace Accounting_System.Controllers
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(sales.CreatedBy, $"Create new invoice# {sales.SINo}", "Sales Invoice");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction("Index");
             }
             else
@@ -185,9 +185,9 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public JsonResult GetCustomerDetails(int customerId)
+        public async Task<JsonResult> GetCustomerDetails(int customerId, CancellationToken cancellationToken)
         {
-            var customer = _dbContext.Customers.FirstOrDefault(c => c.Id == customerId);
+            var customer = await _dbContext.Customers.FirstOrDefaultAsync(c => c.Id == customerId, cancellationToken);
             if (customer != null)
             {
                 return Json(new
@@ -206,9 +206,9 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public JsonResult GetProductDetails(int productId)
+        public async Task<JsonResult> GetProductDetails(int productId, CancellationToken cancellationToken)
         {
-            var product = _dbContext.Products.FirstOrDefault(c => c.Id == productId);
+            var product = await _dbContext.Products.FirstOrDefaultAsync(c => c.Id == productId, cancellationToken);
             if (product != null)
             {
                 return Json(new
@@ -221,11 +221,11 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(int id, CancellationToken cancellationToken)
         {
             try
             {
-                var salesInvoice = await _salesInvoiceRepo.FindSalesInvoice(id);
+                var salesInvoice = await _salesInvoiceRepo.FindSalesInvoice(id, cancellationToken);
                 return View(salesInvoice);
             }
             catch (Exception ex)
@@ -238,11 +238,11 @@ namespace Accounting_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(SalesInvoice model)
+        public async Task<IActionResult> Edit(SalesInvoice model, CancellationToken cancellationToken)
         {
             try
             {
-                var existingModel = await _salesInvoiceRepo.FindSalesInvoice(model.Id);
+                var existingModel = await _salesInvoiceRepo.FindSalesInvoice(model.Id, cancellationToken);
 
                 if (existingModel == null)
                 {
@@ -262,8 +262,8 @@ namespace Accounting_System.Controllers
 
                     if (existingModel.Amount >= model.Discount)
                     {
-                        var existingCustomers = _dbContext.Customers
-                                                       .FirstOrDefault(si => si.Id == existingModel.CustomerId);
+                        var existingCustomers = await _dbContext.Customers
+                                                       .FirstOrDefaultAsync(si => si.Id == existingModel.CustomerId, cancellationToken);
 
                         if (existingCustomers.CustomerType == "Vatable")
                         {
@@ -314,7 +314,7 @@ namespace Accounting_System.Controllers
 
                         var modifiedBy = _userManager.GetUserName(this.User);
                         AuditTrail auditTrail = new(modifiedBy, $"Edited invoice# {model.SINo}", "Sales Invoice");
-                        _dbContext.Add(auditTrail);
+                        await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                         #endregion --Audit Trail Recording
                     }
@@ -331,7 +331,7 @@ namespace Accounting_System.Controllers
                 }
 
                 // Save the changes to the database
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
 
                 return RedirectToAction("Index"); // Redirect to a success page or the index page
             }
@@ -342,15 +342,15 @@ namespace Accounting_System.Controllers
             }
         }
 
-        public async Task<IActionResult> PrintInvoice(int id)
+        public async Task<IActionResult> PrintInvoice(int id, CancellationToken cancellationToken)
         {
-            var sales = await _salesInvoiceRepo.FindSalesInvoice(id);
+            var sales = await _salesInvoiceRepo.FindSalesInvoice(id, cancellationToken);
             return View(sales);
         }
 
-        public async Task<IActionResult> PrintedInvoice(int id)
+        public async Task<IActionResult> PrintedInvoice(int id, CancellationToken cancellationToken)
         {
-            var sales = await _salesInvoiceRepo.FindSalesInvoice(id);
+            var sales = await _salesInvoiceRepo.FindSalesInvoice(id, cancellationToken);
             if (sales != null && sales.IsPrinted)
             {
                 sales.IsPrinted = false;
@@ -359,25 +359,25 @@ namespace Accounting_System.Controllers
 
                 var printedBy = _userManager.GetUserName(this.User);
                 AuditTrail auditTrail = new(printedBy, $"Printed original copy of invoice# {sales.SINo}", "Sales Invoice");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
             }
             return RedirectToAction("PrintInvoice", new { id = id });
         }
 
         [HttpGet]
-        public async Task<IActionResult> Preview(int? id)
+        public async Task<IActionResult> Preview(int? id, CancellationToken cancellationToken)
         {
-            var invoice = await _salesInvoiceRepo.FindSalesInvoice(id);
+            var invoice = await _salesInvoiceRepo.FindSalesInvoice(id, cancellationToken);
             return PartialView("_PreviewPartialView", invoice);
         }
 
-        public async Task<IActionResult> Post(int invoiceId)
+        public async Task<IActionResult> Post(int invoiceId, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.SalesInvoices.FindAsync(invoiceId);
+            var model = await _dbContext.SalesInvoices.FindAsync(invoiceId, cancellationToken);
 
             if (model != null)
             {
@@ -451,7 +451,7 @@ namespace Accounting_System.Controllers
                         sales.CreatedDate = model.CreatedDate;
                     }
 
-                    _dbContext.Add(sales);
+                    await _dbContext.AddAsync(sales, cancellationToken);
 
                     #endregion --Sales Book Recording
 
@@ -577,18 +577,18 @@ namespace Accounting_System.Controllers
                         );
                     }
 
-                    _dbContext.GeneralLedgerBooks.AddRange(ledgers);
+                    await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
 
                     #endregion --General Ledger Book Recording
 
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.PostedBy, $"Posted invoice# {model.SINo}", "Sales Invoice");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Sales Invoice has been Posted.";
                 }
                 return RedirectToAction("Index");
@@ -597,9 +597,9 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Void(int invoiceId)
+        public async Task<IActionResult> Void(int invoiceId, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.SalesInvoices.FindAsync(invoiceId);
+            var model = await _dbContext.SalesInvoices.FindAsync(invoiceId, cancellationToken);
 
             if (model != null)
             {
@@ -609,17 +609,17 @@ namespace Accounting_System.Controllers
                     model.VoidedBy = _userManager.GetUserName(this.User);
                     model.VoidedDate = DateTime.Now;
 
-                    await _generalRepo.RemoveRecords<SalesBook>(sb => sb.SerialNo == model.SINo);
-                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.SINo);
+                    await _generalRepo.RemoveRecords<SalesBook>(sb => sb.SerialNo == model.SINo, cancellationToken);
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.SINo, cancellationToken);
 
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.VoidedBy, $"Voided invoice# {model.SINo}", "Sales Invoice");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Sales Invoice has been Voided.";
                 }
                 return RedirectToAction("Index");
@@ -628,9 +628,9 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Cancel(int invoiceId)
+        public async Task<IActionResult> Cancel(int invoiceId, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.SalesInvoices.FindAsync(invoiceId);
+            var model = await _dbContext.SalesInvoices.FindAsync(invoiceId, cancellationToken);
 
             if (model != null)
             {
@@ -644,11 +644,11 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.CanceledBy, $"Canceled invoice# {model.SINo}", "Sales Invoice");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Sales Invoice has been Canceled.";
                 }
                 return RedirectToAction("Index");

@@ -25,9 +25,9 @@ namespace Accounting_System.Controllers
             this._userManager = userManager;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
-            var customer = await _customerRepo.GetCustomersAsync();
+            var customer = await _customerRepo.GetCustomersAsync(cancellationToken);
 
             return View(customer);
         }
@@ -44,7 +44,7 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var tinExist = await _customerRepo.CheckIfTinNoExist(customer.TinNo);
+                var tinExist = await _customerRepo.CheckIfTinNoExist(customer.TinNo, cancellationToken);
 
                 if (tinExist != null)
                 {
@@ -52,9 +52,9 @@ namespace Accounting_System.Controllers
                     return View(customer);
                 }
 
-                customer.Number = await _customerRepo.GetLastNumber();
+                customer.Number = await _customerRepo.GetLastNumber(cancellationToken);
                 customer.CreatedBy = _userManager.GetUserName(this.User);
-                _dbContext.Add(customer);
+                await _dbContext.AddAsync(customer, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
                 return RedirectToAction("Index");
@@ -67,14 +67,14 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, CancellationToken cancellationToken)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var customer = await _customerRepo.FindCustomerAsync(id);
+            var customer = await _customerRepo.FindCustomerAsync(id, cancellationToken);
 
             return PartialView("_EditCustomerPartialView", customer);
         }
@@ -87,7 +87,7 @@ namespace Accounting_System.Controllers
             {
                 return NotFound();
             }
-            var existingModel = await _customerRepo.FindCustomerAsync(id);
+            var existingModel = await _customerRepo.FindCustomerAsync(id, cancellationToken);
 
             if (ModelState.IsValid)
             {
@@ -107,7 +107,7 @@ namespace Accounting_System.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!_customerRepo.CustomerExist(customer.Id))
+                    if (!_customerRepo.CustomerExist(customer.Id, cancellationToken))
                     {
                         return NotFound();
                     }

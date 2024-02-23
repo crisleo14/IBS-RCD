@@ -23,15 +23,15 @@ namespace Accounting_System.Controllers
             _userManager = userManager;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
-            var purchaseOrder = await _purchaseOrderRepo.GetPurchaseOrderAsync();
+            var purchaseOrder = await _purchaseOrderRepo.GetPurchaseOrderAsync(cancellationToken);
 
             return View(purchaseOrder);
         }
 
         [HttpGet]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
             var viewModel = new PurchaseOrder();
             viewModel.Suppliers = await _dbContext.Suppliers
@@ -40,7 +40,7 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             viewModel.Products = await _dbContext.Products
                 .Select(s => new SelectListItem
@@ -48,14 +48,14 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return View(viewModel);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(PurchaseOrder model)
+        public async Task<IActionResult> Create(PurchaseOrder model, CancellationToken cancellationToken)
         {
             model.Suppliers = await _dbContext.Suppliers
                 .Select(s => new SelectListItem
@@ -63,7 +63,7 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             model.Products = await _dbContext.Products
                 .Select(s => new SelectListItem
@@ -71,11 +71,11 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             if (ModelState.IsValid)
             {
-                var getLastNumber = await _purchaseOrderRepo.GetLastSeriesNumber();
+                var getLastNumber = await _purchaseOrderRepo.GetLastSeriesNumber(cancellationToken);
 
                 if (getLastNumber > 9999999999)
                 {
@@ -92,25 +92,25 @@ namespace Accounting_System.Controllers
                     TempData["success"] = "Purchase Order created successfully";
                 }
 
-                var generatedPO = await _purchaseOrderRepo.GeneratePONo();
+                var generatedPO = await _purchaseOrderRepo.GeneratePONo(cancellationToken);
 
                 model.SeriesNumber = getLastNumber;
                 model.PONo = generatedPO;
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 model.Amount = model.Quantity * model.Price;
-                model.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model.SupplierId);
-                model.ProductNo = await _purchaseOrderRepo.GetProductNoAsync(model.ProductId);
+                model.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model.SupplierId, cancellationToken);
+                model.ProductNo = await _purchaseOrderRepo.GetProductNoAsync(model.ProductId, cancellationToken);
 
-                _dbContext.Add(model);
+                await _dbContext.AddAsync(model, cancellationToken);
 
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(model.CreatedBy, $"Create new purchase order# {model.PONo}", "Purchase Order");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction("Index");
             }
             else
@@ -121,14 +121,14 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, CancellationToken cancellationToken)
         {
             if (id == null || _dbContext.PurchaseOrders == null)
             {
                 return NotFound();
             }
 
-            var purchaseOrder = await _purchaseOrderRepo.FindPurchaseOrder(id);
+            var purchaseOrder = await _purchaseOrderRepo.FindPurchaseOrder(id, cancellationToken);
             if (purchaseOrder == null)
             {
                 return NotFound();
@@ -140,7 +140,7 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             purchaseOrder.Products = await _dbContext.Products
                 .Select(s => new SelectListItem
@@ -148,7 +148,7 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             ViewBag.PurchaseOrders = purchaseOrder.Quantity;
 
@@ -156,11 +156,11 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(PurchaseOrder model)
+        public async Task<IActionResult> Edit(PurchaseOrder model, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
-                var existingModel = await _dbContext.PurchaseOrders.FindAsync(model.Id);
+                var existingModel = await _dbContext.PurchaseOrders.FindAsync(model.Id, cancellationToken);
 
                 if (existingModel == null)
                 {
@@ -173,7 +173,7 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
                 model.Products = await _dbContext.Products
                 .Select(s => new SelectListItem
@@ -181,7 +181,7 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
                 existingModel.Date = model.Date;
                 existingModel.SupplierId = model.SupplierId;
@@ -190,17 +190,17 @@ namespace Accounting_System.Controllers
                 existingModel.Price = model.Price;
                 existingModel.Amount = model.Quantity * model.Price;
                 existingModel.Remarks = model.Remarks;
-                existingModel.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model.SupplierId);
-                existingModel.ProductNo = await _purchaseOrderRepo.GetProductNoAsync(model.ProductId);
+                existingModel.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model.SupplierId, cancellationToken);
+                existingModel.ProductNo = await _purchaseOrderRepo.GetProductNoAsync(model.ProductId, cancellationToken);
 
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(existingModel.CreatedBy, $"Edit purchase order# {existingModel.PONo}", "Purchase Order");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
 
                 TempData["success"] = "Purchase Order updated successfully";
                 return RedirectToAction("Index");
@@ -210,7 +210,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Print(int? id)
+        public async Task<IActionResult> Print(int? id, CancellationToken cancellationToken)
         {
             if (id == null || _dbContext.ReceivingReports == null)
             {
@@ -218,7 +218,7 @@ namespace Accounting_System.Controllers
             }
 
             var purchaseOrder = await _purchaseOrderRepo
-                .FindPurchaseOrder(id);
+                .FindPurchaseOrder(id, cancellationToken);
             if (purchaseOrder == null)
             {
                 return NotFound();
@@ -227,28 +227,28 @@ namespace Accounting_System.Controllers
             return View(purchaseOrder);
         }
 
-        public async Task<IActionResult> Printed(int id)
+        public async Task<IActionResult> Printed(int id, CancellationToken cancellationToken)
         {
-            var po = await _dbContext.PurchaseOrders.FindAsync(id);
+            var po = await _dbContext.PurchaseOrders.FindAsync(id, cancellationToken);
             if (po != null && !po.IsPrinted)
             {
                 #region --Audit Trail Recording
 
                 var printedBy = _userManager.GetUserName(this.User);
                 AuditTrail auditTrail = new(printedBy, $"Printed original copy of po# {po.PONo}", "Purchase Order");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
                 po.IsPrinted = true;
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
             }
             return RedirectToAction("Print", new { id = id });
         }
 
-        public async Task<IActionResult> Post(int id)
+        public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.PurchaseOrders.FindAsync(id);
+            var model = await _dbContext.PurchaseOrders.FindAsync(id, cancellationToken);
 
             if (model != null)
             {
@@ -261,11 +261,11 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.PostedBy, $"Posted purchase order# {model.PONo}", "Purchase Order");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Purchase Order has been Voided.";
                 }
                 return RedirectToAction("Index");
@@ -274,9 +274,9 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Void(int id)
+        public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.PurchaseOrders.FindAsync(id);
+            var model = await _dbContext.PurchaseOrders.FindAsync(id, cancellationToken);
 
             if (model != null)
             {
@@ -289,11 +289,11 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.VoidedBy, $"Voided purchase order# {model.PONo}", "Purchase Order");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Purchase Order has been Voided.";
                 }
                 return RedirectToAction("Index");
@@ -302,9 +302,9 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Cancel(int id)
+        public async Task<IActionResult> Cancel(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.PurchaseOrders.FindAsync(id);
+            var model = await _dbContext.PurchaseOrders.FindAsync(id, cancellationToken);
 
             if (model != null)
             {
@@ -317,11 +317,11 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.CanceledBy, $"Canceled purchase order# {model.PONo}", "Purchase Order");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Purchase Order has been Canceled.";
                 }
                 return RedirectToAction("Index");
@@ -331,9 +331,9 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Preview(int? id)
+        public async Task<IActionResult> Preview(int? id, CancellationToken cancellationToken)
         {
-            var po = await _purchaseOrderRepo.FindPurchaseOrder(id);
+            var po = await _purchaseOrderRepo.FindPurchaseOrder(id, cancellationToken);
             return PartialView("_PreviewPartialView", po);
         }
     }

@@ -33,15 +33,15 @@ namespace Accounting_System.Controllers
         }
 
         // GET: Supplier
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             return _context.Suppliers != null ?
-                        View(await _context.Suppliers.OrderBy(s => s.Id).ToListAsync()) :
+                        View(await _context.Suppliers.OrderBy(s => s.Id).ToListAsync(cancellationToken)) :
                         Problem("Entity set 'ApplicationDbContext.Suppliers'  is null.");
         }
 
         // GET: Supplier/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id, CancellationToken cancellationToken)
         {
             if (id == null || _context.Suppliers == null)
             {
@@ -49,7 +49,7 @@ namespace Accounting_System.Controllers
             }
 
             var supplier = await _context.Suppliers
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
             if (supplier == null)
             {
                 return NotFound();
@@ -69,12 +69,12 @@ namespace Accounting_System.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Supplier supplier, IFormFile? document, IFormFile? registration)
+        public async Task<IActionResult> Create(Supplier supplier, IFormFile? document, IFormFile? registration, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
                 supplier.CreatedBy = _userManager.GetUserName(this.User).ToString();
-                supplier.Number = await _supplierRepo.GetLastNumber();
+                supplier.Number = await _supplierRepo.GetLastNumber(cancellationToken);
 
                 if (document != null && document.Length > 0)
                 {
@@ -121,16 +121,16 @@ namespace Accounting_System.Controllers
                     return View(supplier);
                 }
 
-                _context.Add(supplier);
+                await _context.AddAsync(supplier, cancellationToken);
 
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(supplier.CreatedBy, $"Create new supplier {supplier.Name}", "Supplier Master File");
-                _context.Add(auditTrail);
+                await _context.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
                 TempData["success"] = $"Supplier {supplier.Name} has been created.";
                 return RedirectToAction(nameof(Index));
             }
@@ -138,14 +138,14 @@ namespace Accounting_System.Controllers
         }
 
         // GET: Supplier/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, CancellationToken cancellationToken)
         {
             if (id == null || _context.Suppliers == null)
             {
                 return NotFound();
             }
 
-            var supplier = await _context.Suppliers.FindAsync(id);
+            var supplier = await _context.Suppliers.FindAsync(id, cancellationToken);
             if (supplier == null)
             {
                 return NotFound();
@@ -158,7 +158,7 @@ namespace Accounting_System.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Supplier supplier)
+        public async Task<IActionResult> Edit(int id, Supplier supplier, CancellationToken cancellationToken)
         {
             if (id != supplier.Id)
             {
@@ -170,7 +170,7 @@ namespace Accounting_System.Controllers
                 try
                 {
                     _context.Update(supplier);
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(cancellationToken);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -189,7 +189,7 @@ namespace Accounting_System.Controllers
         }
 
         // GET: Supplier/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int? id, CancellationToken cancellationToken)
         {
             if (id == null || _context.Suppliers == null)
             {
@@ -197,7 +197,7 @@ namespace Accounting_System.Controllers
             }
 
             var supplier = await _context.Suppliers
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
             if (supplier == null)
             {
                 return NotFound();
@@ -209,19 +209,19 @@ namespace Accounting_System.Controllers
         // POST: Supplier/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id, CancellationToken cancellationToken)
         {
             if (_context.Suppliers == null)
             {
                 return Problem("Entity set 'ApplicationDbContext.Suppliers'  is null.");
             }
-            var supplier = await _context.Suppliers.FindAsync(id);
+            var supplier = await _context.Suppliers.FindAsync(id, cancellationToken);
             if (supplier != null)
             {
                 _context.Suppliers.Remove(supplier);
             }
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
             return RedirectToAction(nameof(Index));
         }
 

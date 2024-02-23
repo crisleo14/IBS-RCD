@@ -37,17 +37,17 @@ namespace Accounting_System.Repository
             }
         }
 
-        public bool CustomerExist(int id)
+        public async Task<bool> CustomerExist(int id, CancellationToken cancellationToken = default)
         {
-            return _dbContext.Customers.Any(c => c.Id == id);
+            return await _dbContext.Customers.AnyAsync(c => c.Id == id, cancellationToken);
         }
 
-        public async Task<int> GetLastNumber()
+        public async Task<int> GetLastNumber(CancellationToken cancellationToken = default)
         {
             var lastNumber = await _dbContext
                 .Customers
                 .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (lastNumber != null)
             {

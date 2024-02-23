@@ -63,7 +63,7 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var getLastNumber = await _debitMemoRepo.GetLastSeriesNumber();
+                var getLastNumber = await _debitMemoRepo.GetLastSeriesNumber(cancellationToken);
 
                 if (getLastNumber > 9999999999)
                 {
@@ -80,7 +80,7 @@ namespace Accounting_System.Controllers
                     TempData["success"] = "Debit Memo created successfully";
                 }
 
-                var generateDMNo = await _debitMemoRepo.GenerateDMNo();
+                var generateDMNo = await _debitMemoRepo.GenerateDMNo(cancellationToken);
 
                 model.SeriesNumber = getLastNumber;
                 model.DMNo = generateDMNo;
@@ -187,7 +187,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Print(int? id)
+        public async Task<IActionResult> Print(int? id, CancellationToken cancellationToken)
         {
             if (id == null || _dbContext.DebitMemos == null)
             {
@@ -200,7 +200,7 @@ namespace Accounting_System.Controllers
                 .ThenInclude(soa => soa.Customer)
                 .Include(dm => dm.SOA)
                 .ThenInclude(soa => soa.Service)
-                .FirstOrDefaultAsync(r => r.Id == id);
+                .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
             if (debitMemo == null)
             {
                 return NotFound();
@@ -210,7 +210,7 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> PrintedDM(int id, CancellationToken cancellationToken)
         {
-            var findIdOfDM = await _debitMemoRepo.FindDM(id);
+            var findIdOfDM = await _debitMemoRepo.FindDM(id, cancellationToken);
             if (findIdOfDM != null && !findIdOfDM.IsPrinted)
             {
                 findIdOfDM.IsPrinted = true;
@@ -221,7 +221,7 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
         {
-            var model = await _debitMemoRepo.FindDM(id);
+            var model = await _debitMemoRepo.FindDM(id, cancellationToken);
 
             if (model != null)
             {
@@ -462,7 +462,7 @@ namespace Accounting_System.Controllers
                         }
 
 
-                        _dbContext.GeneralLedgerBooks.AddRange(ledgers);
+                        await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
                     }
 
                     if (model.SOAId != null)
@@ -589,7 +589,7 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.DebitMemos.FindAsync(id);
+            var model = await _dbContext.DebitMemos.FindAsync(id, cancellationToken);
 
             if (model != null)
             {
@@ -620,7 +620,7 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Cancel(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.DebitMemos.FindAsync(id);
+            var model = await _dbContext.DebitMemos.FindAsync(id, cancellationToken);
 
             if (model != null)
             {
@@ -648,7 +648,7 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Preview(int id, CancellationToken cancellationToken)
         {
-            var dm = await _debitMemoRepo.FindDM(id);
+            var dm = await _debitMemoRepo.FindDM(id, cancellationToken);
             return PartialView("_PrevieDebit", dm);
         }
 

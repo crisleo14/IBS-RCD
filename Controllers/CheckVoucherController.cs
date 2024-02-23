@@ -23,9 +23,9 @@ namespace Accounting_System.Controllers
             _checkVoucherRepo = checkVoucherRepo;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
-            var cv = await _checkVoucherRepo.GetCheckVouchers();
+            var cv = await _checkVoucherRepo.GetCheckVouchers(cancellationToken);
 
             return View(cv);
         }
@@ -78,7 +78,7 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
-                var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV();
+                var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(cancellationToken);
 
                 if (getLastNumber > 9999999999)
                 {
@@ -97,7 +97,7 @@ namespace Accounting_System.Controllers
                 }
 
                 //CV Header Entry
-                var generateCVNo = await _checkVoucherRepo.GenerateCVNo();
+                var generateCVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken);
                 
                 model.Header.SeriesNumber = getLastNumber;
                 model.Header.CVNo = generateCVNo;
@@ -224,7 +224,7 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
-                var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(); 
+                var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(cancellationToken); 
                 
                 if (getLastNumber > 9999999999)
                 {
@@ -255,7 +255,7 @@ namespace Accounting_System.Controllers
                 }
 
                 //CV Header Entry
-                var generateCVNo = await _checkVoucherRepo.GenerateCVNo();
+                var generateCVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken);
                 
                 existingHeaderModel.SeriesNumber = model.Header.SeriesNumber;
                 existingHeaderModel.CVNo = model.Header.CVNo;

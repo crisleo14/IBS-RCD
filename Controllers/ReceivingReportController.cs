@@ -28,7 +28,7 @@ namespace Accounting_System.Controllers
             _generalRepo = generalRepo;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             var rr = await _dbContext.ReceivingReports
                 .Include(p => p.PurchaseOrder)
@@ -36,13 +36,13 @@ namespace Accounting_System.Controllers
                 .Include(p => p.PurchaseOrder)
                 .ThenInclude(prod => prod.Product)
                 .OrderBy(r => r.Id)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return View(rr);
         }
 
         [HttpGet]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
             var viewModel = new ReceivingReport();
             viewModel.PurchaseOrders = await _dbContext.PurchaseOrders
@@ -52,14 +52,14 @@ namespace Accounting_System.Controllers
                     Value = po.Id.ToString(),
                     Text = po.PONo
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return View(viewModel);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ReceivingReport model)
+        public async Task<IActionResult> Create(ReceivingReport model, CancellationToken cancellationToken)
         {
             model.PurchaseOrders = await _dbContext.PurchaseOrders
                 .Where(po => !po.IsReceived)
@@ -68,12 +68,12 @@ namespace Accounting_System.Controllers
                     Value = po.Id.ToString(),
                     Text = po.PONo
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
             if (ModelState.IsValid)
             {
                 #region --Validating Series
 
-                var getLastNumber = await _receivingReportRepo.GetLastSeriesNumber();
+                var getLastNumber = await _receivingReportRepo.GetLastSeriesNumber(cancellationToken);
 
                 if (getLastNumber > 9999999999)
                 {
@@ -98,17 +98,17 @@ namespace Accounting_System.Controllers
                             .PurchaseOrders
                             .Include(po => po.Supplier)
                             .Include(po => po.Product)
-                            .FirstOrDefaultAsync(po => po.Id == model.POId);
+                            .FirstOrDefaultAsync(po => po.Id == model.POId, cancellationToken);
 
                 #endregion --Retrieve PO
 
-                var generatedRR = await _receivingReportRepo.GenerateRRNo();
+                var generatedRR = await _receivingReportRepo.GenerateRRNo(cancellationToken);
                 model.SeriesNumber = getLastNumber;
                 model.RRNo = generatedRR;
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 model.GainOrLoss = model.QuantityDelivered - model.QuantityReceived;
-                model.PONo = await _receivingReportRepo.GetPONoAsync(model.POId);
-                model.DueDate = await _receivingReportRepo.ComputeDueDateAsync(model.POId, model.Date);
+                model.PONo = await _receivingReportRepo.GetPONoAsync(model.POId, cancellationToken);
+                model.DueDate = await _receivingReportRepo.ComputeDueDateAsync(model.POId, model.Date, cancellationToken);
 
                 if (po.Supplier.VatType == "Vatable")
                 {
@@ -127,16 +127,16 @@ namespace Accounting_System.Controllers
                     model.EwtAmount = model.NetAmount * .01m;
                 }
 
-                _dbContext.Add(model);
+                await _dbContext.AddAsync(model, cancellationToken);
 
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(model.CreatedBy, $"Create new rr# {model.RRNo}", "Receiving Report");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
 
                 return RedirectToAction("Index");
             }
@@ -146,14 +146,14 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, CancellationToken cancellationToken)
         {
             if (id == null || _dbContext.ReceivingReports == null)
             {
                 return NotFound();
             }
 
-            var receivingReport = await _dbContext.ReceivingReports.FindAsync(id);
+            var receivingReport = await _dbContext.ReceivingReports.FindAsync(id, cancellationToken);
             if (receivingReport == null)
             {
                 return NotFound();
@@ -165,15 +165,15 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.PONo
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return View(receivingReport);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(ReceivingReport model)
+        public async Task<IActionResult> Edit(ReceivingReport model, CancellationToken cancellationToken)
         {
-            var receivingReport = await _dbContext.ReceivingReports.FindAsync(model.Id);
+            var receivingReport = await _dbContext.ReceivingReports.FindAsync(model.Id, cancellationToken);
 
             receivingReport.PurchaseOrders = await _dbContext.PurchaseOrders
                 .Select(s => new SelectListItem
@@ -181,11 +181,11 @@ namespace Accounting_System.Controllers
                     Value = s.Id.ToString(),
                     Text = s.PONo
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             if (ModelState.IsValid)
             {
-                var existingModel = await _dbContext.ReceivingReports.FindAsync(model.Id);
+                var existingModel = await _dbContext.ReceivingReports.FindAsync(model.Id, cancellationToken);
 
                 if (existingModel == null)
                 {
@@ -198,14 +198,14 @@ namespace Accounting_System.Controllers
                             .PurchaseOrders
                             .Include(po => po.Supplier)
                             .Include(po => po.Product)
-                            .FirstOrDefaultAsync(po => po.Id == model.POId);
+                            .FirstOrDefaultAsync(po => po.Id == model.POId, cancellationToken);
 
                 #endregion --Retrieve PO
 
                 existingModel.Date = model.Date;
                 existingModel.POId = model.POId;
-                existingModel.PONo = await _receivingReportRepo.GetPONoAsync(model.POId);
-                existingModel.DueDate = await _receivingReportRepo.ComputeDueDateAsync(model.POId, model.Date);
+                existingModel.PONo = await _receivingReportRepo.GetPONoAsync(model.POId, cancellationToken);
+                existingModel.DueDate = await _receivingReportRepo.ComputeDueDateAsync(model.POId, model.Date, cancellationToken);
                 existingModel.InvoiceOrDate = model.InvoiceOrDate;
                 existingModel.TruckOrVessels = model.TruckOrVessels;
                 existingModel.QuantityDelivered = model.QuantityDelivered;
@@ -236,11 +236,11 @@ namespace Accounting_System.Controllers
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(existingModel.CreatedBy, $"Edit rr# {existingModel.RRNo}", "Receiving Report");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
 
                 TempData["success"] = "Receiving Report updated successfully";
                 return RedirectToAction("Index");
@@ -250,14 +250,14 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Print(int id)
+        public async Task<IActionResult> Print(int id, CancellationToken cancellationToken)
         {
             if (id == null || _dbContext.ReceivingReports == null)
             {
                 return NotFound();
             }
 
-            var receivingReport = await _receivingReportRepo.FindRR(id);
+            var receivingReport = await _receivingReportRepo.FindRR(id, cancellationToken);
 
             if (receivingReport == null)
             {
@@ -267,20 +267,20 @@ namespace Accounting_System.Controllers
             return View(receivingReport);
         }
 
-        public async Task<IActionResult> Printed(int id)
+        public async Task<IActionResult> Printed(int id, CancellationToken cancellationToken)
         {
-            var rr = await _dbContext.ReceivingReports.FindAsync(id);
+            var rr = await _dbContext.ReceivingReports.FindAsync(id, cancellationToken);
             if (rr != null && !rr.IsPrinted)
             {
                 rr.IsPrinted = true;
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
             }
             return RedirectToAction("Print", new { id = id });
         }
 
-        public async Task<IActionResult> Post(int id)
+        public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
         {
-            var model = await _receivingReportRepo.FindRR(id);
+            var model = await _receivingReportRepo.FindRR(id, cancellationToken);
 
             if (model != null)
             {
@@ -373,11 +373,11 @@ namespace Accounting_System.Controllers
                         CreatedDate = model.CreatedDate
                     });
 
-                    _dbContext.AddRange(ledger);
+                    await _dbContext.AddRangeAsync(ledger, cancellationToken);
 
                     #endregion --General Ledger Recording
 
-                    await _receivingReportRepo.UpdatePOAsync(model.PurchaseOrder.Id, model.QuantityReceived);
+                    await _receivingReportRepo.UpdatePOAsync(model.PurchaseOrder.Id, model.QuantityReceived, cancellationToken);
 
                     #region --Purchase Book Recording
 
@@ -400,17 +400,17 @@ namespace Accounting_System.Controllers
                             DueDate = model.DueDate.ToShortDateString()
                         });
 
-                    _dbContext.AddRange(purchaseBook);
+                    await _dbContext.AddRangeAsync(purchaseBook, cancellationToken);
                     #endregion --Purchase Book Recording
 
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.PostedBy, $"Posted receiving# {model.RRNo}", "Receiving Report");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Receiving Report has been Posted.";
                     return RedirectToAction(nameof(Index));
                 }
@@ -423,9 +423,9 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Void(int id)
+        public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.ReceivingReports.FindAsync(id);
+            var model = await _dbContext.ReceivingReports.FindAsync(id, cancellationToken);
 
             if (model != null)
             {
@@ -438,13 +438,13 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.VoidedBy, $"Voided receiving# {model.RRNo}", "Receiving Report");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.RRNo);
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.RRNo, cancellationToken);
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Receiving Report has been Voided.";
                 }
                 return RedirectToAction("Index");
@@ -453,9 +453,9 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Cancel(int id)
+        public async Task<IActionResult> Cancel(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.ReceivingReports.FindAsync(id);
+            var model = await _dbContext.ReceivingReports.FindAsync(id, cancellationToken);
 
             if (model != null)
             {
@@ -468,11 +468,11 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(model.CanceledBy, $"Canceled receiving# {model.RRNo}", "Receiving Report");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Receiving Report has been Canceled.";
                 }
                 return RedirectToAction("Index");
@@ -482,13 +482,13 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetLiquidations(int id)
+        public async Task<IActionResult> GetLiquidations(int id, CancellationToken cancellationToken)
         {
-            var po = await _receivingReportRepo.GetPurchaseOrderAsync(id);
+            var po = await _receivingReportRepo.GetPurchaseOrderAsync(id, cancellationToken);
             var rr = await _dbContext
                 .ReceivingReports
                 .Where(rr => rr.PONo == po.PONo && rr.IsPosted)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             if (po != null)
             {

@@ -13,12 +13,12 @@ namespace Accounting_System.Controllers
             _dbContext = dbContext;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             var result = await _dbContext
                 .Inventories
                 .Include(inventory => inventory.Product)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return View(result);
         }

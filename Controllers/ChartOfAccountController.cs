@@ -218,15 +218,15 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetChartOfAccount(string number)
+        public async Task<IActionResult> GetChartOfAccount(string number, CancellationToken cancellationToken)
         {
-            return Json(await _coaRepo.FindAccountsAsync(number));
+            return Json(await _coaRepo.FindAccountsAsync(number, cancellationToken));
         }
 
         [HttpGet]
-        public async Task<IActionResult> GenerateNumber(string parent)
+        public async Task<IActionResult> GenerateNumber(string parent, CancellationToken cancellationToken)
         {
-            return Json(await _coaRepo.GenerateNumberAsync(parent));
+            return Json(await _coaRepo.GenerateNumberAsync(parent, cancellationToken));
         }
     }
 }
