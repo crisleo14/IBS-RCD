@@ -266,7 +266,7 @@ namespace Accounting_System.Controllers
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Purchase Order has been Voided.";
+                    TempData["success"] = "Purchase Order has been Posted.";
                 }
                 return RedirectToAction("Index");
             }
