@@ -107,7 +107,7 @@ namespace Accounting_System.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!_customerRepo.CustomerExist(customer.Id, cancellationToken))
+                    if (!_customerRepo.CustomerExist(customer.Id))
                     {
                         return NotFound();
                     }
