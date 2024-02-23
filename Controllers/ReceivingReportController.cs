@@ -206,7 +206,8 @@ namespace Accounting_System.Controllers
                 existingModel.POId = model.POId;
                 existingModel.PONo = await _receivingReportRepo.GetPONoAsync(model.POId, cancellationToken);
                 existingModel.DueDate = await _receivingReportRepo.ComputeDueDateAsync(model.POId, model.Date, cancellationToken);
-                existingModel.InvoiceOrDate = model.InvoiceOrDate;
+                existingModel.SupplierInvoiceNumber = model.SupplierInvoiceNumber;
+                existingModel.SupplierInvoiceDate = model.SupplierInvoiceDate;
                 existingModel.TruckOrVessels = model.TruckOrVessels;
                 existingModel.QuantityDelivered = model.QuantityDelivered;
                 existingModel.QuantityReceived = model.QuantityReceived;

@@ -24,9 +24,14 @@
                 <span asp-validation-for="POId" class="text-danger"></span>
             </div>
             <div class="form-group mb-3">
-                <label asp-for="InvoiceOrDate" class="control-label">Truck/Vessels</label>
-                <input asp-for="InvoiceOrDate" class="form-control" />
-                <span asp-validation-for="InvoiceOrDate" class="text-danger"></span>
+                <label asp-for="SupplierInvoiceNumber" class="control-label"></label>
+                <input asp-for="SupplierInvoiceNumber" class="form-control" />
+                <span asp-validation-for="SupplierInvoiceNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="SupplierInvoiceDate" class="control-label"></label>
+                <input asp-for="SupplierInvoiceDate" type="date" class="form-control" />
+                <span asp-validation-for="SupplierInvoiceDate" class="text-danger"></span>
             </div>
             <div class="form-group mb-3">
                 <label asp-for="TruckOrVessels" class="control-label">Truck/Vessels</label>
