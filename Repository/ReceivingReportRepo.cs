@@ -74,10 +74,14 @@ namespace Accounting_System.Repository
             {
                 po.QuantityReceived += quantityReceived;
 
-                if (po.QuantityReceived >= po.Quantity)
+                if (po.QuantityReceived == po.Quantity)
                 {
                     po.IsReceived = true;
                     po.ReceivedDate = DateTime.Now;
+                }
+                if (po.QuantityReceived > po.Quantity)
+                {
+                    throw new ArgumentException("Input is exceed to remaining quantity received");
                 }
 
                 return await _dbContext.SaveChangesAsync(cancellationToken);
