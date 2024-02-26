@@ -21,7 +21,7 @@
             <div class="form-group mb-3">
                 <label asp-for="POId" class="control-label">PO No.</label>
                 <select asp-for="POId" class="form-control js-select2" asp-items="@Model.PurchaseOrders" disabled readonly></select>
-                <span asp-validation-for="POId" class="text-danger"></span>
+                <input type="hidden" asp-for="POId" />
             </div>
             <div class="form-group mb-3">
                 <label asp-for="SupplierInvoiceNumber" class="control-label"></label>
@@ -40,13 +40,13 @@
             </div>
             <div class="form-group mb-3">
                 <label asp-for="QuantityDelivered" class="control-label">Qty Delivered</label>
-                <input asp-for="QuantityDelivered" class="form-control" />
-                <span asp-validation-for="QuantityDelivered" class="text-danger"></span>
+                <input asp-for="QuantityDelivered" class="form-control" disabled readonly />
+                <input type="hidden" asp-for="QuantityDelivered" />
             </div>
             <div class="form-group mb-3">
                 <label asp-for="QuantityReceived" class="control-label">Qty Received</label>
-                <input asp-for="QuantityReceived" class="form-control" />
-                <span asp-validation-for="QuantityReceived" class="text-danger"></span>
+                <input asp-for="QuantityReceived" class="form-control" disabled readonly />
+                <input type="hidden" asp-for="QuantityReceived" />
             </div>
             <div class="form-group mb-3">
                 <label asp-for="OtherRef" class="control-label"></label>
@@ -55,8 +55,8 @@
             </div>
             <div class="form-group mb-3">
                 <label asp-for="Remarks" class="control-label">Remarks</label>
-                <textarea asp-for="Remarks" class="form-control" style="height: 100px"></textarea>
-                <span asp-validation-for="Remarks" class="text-danger"></span>
+                <textarea asp-for="Remarks" class="form-control" style="height: 100px" disabled readonly></textarea>
+                <input type="hidden" asp-for="Remarks" />
             </div>
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
