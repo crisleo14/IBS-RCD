@@ -200,7 +200,7 @@ namespace Accounting_System.Repository
             var maturityAging = _dbContext
              .PurchaseJournalBooks
              .AsEnumerable()
-             .Where(p => DateTime.Parse(p.Date) >= fromDate && DateTime.Parse(p.Date) <= toDate)
+             .Where(p => DateTime.Parse(p.DueDate) >= fromDate && DateTime.Parse(p.DueDate) <= toDate)
              .OrderBy(s => s.Id)
              .ToList();
 
