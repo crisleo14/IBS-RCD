@@ -241,6 +241,61 @@ namespace Accounting_System.Controllers
                     model.PostedBy = _userManager.GetUserName(this.User);
                     model.PostedDate = DateTime.Now;
 
+                    #region --Sales Book Recording
+
+                    var sales = new SalesBook();
+
+                    if (model.Customer.CustomerType == "Vatable")
+                    {
+                        sales.TransactionDate = model.CreatedDate.ToShortDateString();
+                        sales.SerialNo = model.SOANo;
+                        sales.SoldTo = model.Customer.Name;
+                        sales.TinNo = model.Customer.TinNo;
+                        sales.Address = model.Customer.Address;
+                        sales.Description = model.Service.Name;
+                        sales.Amount = model.Total;
+                        sales.VatAmount = model.VatAmount;
+                        sales.VatableSales = model.Total / 1.12m;
+                        sales.Discount = model.Discount;
+                        sales.NetSales = model.NetAmount;
+                        sales.CreatedBy = model.CreatedBy;
+                        sales.CreatedDate = model.CreatedDate;
+                    }
+                    else if (model.Customer.CustomerType == "Exempt")
+                    {
+                        sales.TransactionDate = model.CreatedDate.ToShortDateString();
+                        sales.SerialNo = model.SOANo;
+                        sales.SoldTo = model.Customer.Name;
+                        sales.TinNo = model.Customer.TinNo;
+                        sales.Address = model.Customer.Address;
+                        sales.Description = model.Service.Name;
+                        sales.Amount = model.Total;
+                        sales.VatExemptSales = model.Total;
+                        sales.Discount = model.Discount;
+                        sales.NetSales = model.NetAmount;
+                        sales.CreatedBy = model.CreatedBy;
+                        sales.CreatedDate = model.CreatedDate;
+                    }
+                    else
+                    {
+                        sales.TransactionDate = model.CreatedDate.ToShortDateString();
+                        sales.SerialNo = model.SOANo;
+                        sales.SoldTo = model.Customer.Name;
+                        sales.TinNo = model.Customer.TinNo;
+                        sales.Address = model.Customer.Address;
+                        sales.Description = model.Service.Name;
+                        sales.Amount = model.Total;
+                        sales.ZeroRated = model.Total;
+                        sales.Discount = model.Discount;
+                        sales.NetSales = model.NetAmount;
+                        sales.CreatedBy = model.CreatedBy;
+                        sales.CreatedDate = model.CreatedDate;
+                    }
+
+                    await _dbContext.AddAsync(sales, cancellationToken);
+
+                    #endregion --Sales Book Recording
+
                     #region --General Ledger Book Recording
 
                     var ledgers = new List<GeneralLedgerBook>();
