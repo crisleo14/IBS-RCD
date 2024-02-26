@@ -139,8 +139,6 @@ namespace Accounting_System.Controllers
                     model.EwtAmount = model.NetAmount * .01m;
                 }
 
-                await _dbContext.AddAsync(model, cancellationToken);
-
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(model.CreatedBy, $"Create new rr# {model.RRNo}", "Receiving Report");
@@ -148,6 +146,7 @@ namespace Accounting_System.Controllers
 
                 #endregion --Audit Trail Recording
 
+                await _dbContext.AddAsync(model, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
                 return RedirectToAction("Index");
@@ -185,20 +184,18 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(ReceivingReport model, CancellationToken cancellationToken)
         {
-            var receivingReport = await _dbContext.ReceivingReports.FindAsync(model.Id, cancellationToken);
+            var existingModel = await _dbContext.ReceivingReports.FindAsync(model.Id, cancellationToken);
 
-            receivingReport.PurchaseOrders = await _dbContext.PurchaseOrders
+            existingModel.PurchaseOrders = await _dbContext.PurchaseOrders
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
                     Text = s.PONo
                 })
                 .ToListAsync(cancellationToken);
-
+            
             if (ModelState.IsValid)
             {
-                var existingModel = await _dbContext.ReceivingReports.FindAsync(model.Id, cancellationToken);
-
                 if (existingModel == null)
                 {
                     return NotFound();
@@ -259,7 +256,7 @@ namespace Accounting_System.Controllers
                 return RedirectToAction("Index");
             }
 
-            return View(model);
+            return View(existingModel);
         }
 
         [HttpGet]
