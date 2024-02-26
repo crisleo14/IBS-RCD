@@ -502,9 +502,20 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetLiquidations(int id, CancellationToken cancellationToken)
         {
             var po = await _receivingReportRepo.GetPurchaseOrderAsync(id, cancellationToken);
+
+            var rrPostedOnly = await _dbContext
+                .ReceivingReports
+                .Where(rr => rr.PONo == po.PONo && rr.IsPosted)
+                .ToListAsync(cancellationToken);
+
             var rr = await _dbContext
                 .ReceivingReports
                 .Where(rr => rr.PONo == po.PONo)
+                .ToListAsync(cancellationToken);
+
+            var rrNotPosted = await _dbContext
+                .ReceivingReports
+                .Where(rr => rr.PONo == po.PONo && !rr.IsPosted)
                 .ToListAsync(cancellationToken);
 
             if (po != null)
@@ -513,7 +524,9 @@ namespace Accounting_System.Controllers
                 {
                     poNo = po.PONo,
                     poQuantity = po.Quantity.ToString(),
-                    rrList = rr
+                    rrList = rr,
+                    rrListPostedOnly = rrPostedOnly,
+                    rrListNotPosted = rrNotPosted
                 });
             }
             else

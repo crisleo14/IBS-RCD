@@ -10,14 +10,23 @@
 <h4>ReceivingReport</h4>
 <hr />
 <div class="row">
-        <div class="position-absolute p-2" style="left:40%; width:25%; border:dotted 1px;">
+        <div class="position-absolute p-2" style="left:40%; width:35%; border:dotted 1px;">
             <pre>
                    <b>PO Liquidations</b>
-
+    
     PO No: <span id="poNo" class="fw-bold"></span> - Quantity: <span id="poQuantity" class="fw-bold"></span>
- <ul id="rrList"></ul>
- ======================================================
-    Remaining Quantity:  <span id="remainingQuantity"></span>
+
+    Posted RR:
+            <ul id="rrListPostedOnly" style="margin: 0;"></ul>
+ =====================================================================
+    Remaining Quantity (Only posted RR):  <span id="remainingQuantityPostedOnly"></span>
+ =====================================================================
+
+    Unposted RR:
+            <ul id="rrListNotPosted" style="margin: 0;"></ul>
+ =====================================================================
+    Remaining Quantity (Including posted and unposted RR):  <span id="remainingQuantity"></span>
+ =====================================================================
 
             </pre>
         </div>
@@ -113,23 +122,42 @@
                             for (var i = 0; i < 5 && i < data.rrList.length; i++) {
                                 totalReceived += data.rrList[i].quantityReceived;
                             }
+                            var totalReceivedPostedOnly = 0;
+                            for (var i = 0; i < 5 && i < data.rrListPostedOnly.length; i++) {
+                                totalReceivedPostedOnly += data.rrListPostedOnly[i].quantityReceived;
+                            }
+
+                            var remainingQuantityPostedOnly = data.poQuantity - totalReceivedPostedOnly;
                             var remainingQuantity = data.poQuantity - totalReceived;
 
                             // Format the remaining quantity with thousand's comma
+                            var formattedRemainingQuantityPostedOnly = formatNumberWithCommas(remainingQuantityPostedOnly);
                             var formattedRemainingQuantity = formatNumberWithCommas(remainingQuantity);
 
                             // Display the formatted remaining quantity
+                            document.getElementById("remainingQuantityPostedOnly").innerHTML = formattedRemainingQuantityPostedOnly + "L";
                             document.getElementById("remainingQuantity").innerHTML = formattedRemainingQuantity + "L";
 
-                            var rrList = data.rrList;
-                            var rrListUl = document.getElementById("rrList");
-                            rrListUl.innerHTML = ""; // Clear previous list items
+                            var rrListPostedOnly = data.rrListPostedOnly;
+                            var rrListPostedOnlyUl = document.getElementById("rrListPostedOnly");
+                            rrListPostedOnlyUl.innerHTML = ""; // Clear previous list items
 
-                            for (var i = 0; i < rrList.length; i++) {
-                                var rr = rrList[i];
+                            var rrListNotPosted = data.rrListNotPosted;
+                            var rrListNotPostedUl = document.getElementById("rrListNotPosted");
+                            rrListNotPostedUl.innerHTML = ""; // Clear previous list items
+
+                            for (var i = 0; i < rrListPostedOnly.length; i++) {
+                                var rrPostedOnly = rrListPostedOnly[i];
+                                var list = document.createElement("li");
+                                list.textContent = "RR No: " + rrPostedOnly.rrNo + " - Quantity: -" + rrPostedOnly.quantityReceived;
+                                rrListPostedOnlyUl.appendChild(list);
+                            }
+
+                            for (var i = 0; i < rrListNotPosted.length; i++) {
+                                var rrNotPosted = rrListNotPosted[i];
                                 var li = document.createElement("li");
-                                li.textContent = "RR No: " + rr.rrNo + " - Quantity: -" + rr.quantityReceived;
-                                rrListUl.appendChild(li);
+                                li.textContent = "RR No: " + rrNotPosted.rrNo + " - Quantity: -" + rrNotPosted.quantityReceived;
+                                rrListNotPostedUl.appendChild(li);
                             }
                         }
                     });
