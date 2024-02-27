@@ -41,11 +41,16 @@
                     </select>
                     <span asp-validation-for="SIId" class="text-danger"></span>
 
-                    <div class="form-group">
+                    <div class="form-group mt-3">
                         <label asp-for="AdjustedPrice" class="control-label"></label>
                         <input asp-for="AdjustedPrice" type="number" class="form-control" />
                         <span asp-validation-for="AdjustedPrice" class="text-danger"></span>
                     </div>
+                    <div class="form-group mb-3 mt-3">
+                        <label class="control-label">Quantity</label>
+                        <input asp-for="Quantity" type="number" class="form-control" />
+                    </div>
+
                 </div>
                 <div class="form-group" id="soaList" style="display: none;">
                     <label asp-for="SOAId" class="control-label"></label>
