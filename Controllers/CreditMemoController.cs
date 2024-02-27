@@ -157,19 +157,19 @@ namespace Accounting_System.Controllers
                     {
                         if (model.CreatedDate < period[i])
                         {
-                            model.Amount[i] -= existingSoa.Amount[i];
-                            model.UnearnedAmount += model.Amount[i];
+                            model.UnearnedAmount += -model.Amount[i];
+                            model.Amount[i] += -model.Amount[i];
                         }
                         else
                         {
-                            model.Amount[i] -= existingSoa.Amount[i];
-                            model.CurrentAndPreviousAmount += model.Amount[i];
+                            model.CurrentAndPreviousAmount += -model.Amount[i];
+                            model.Amount[i] += -model.Amount[i];
                         }
                     }
 
                     #endregion ----CM Entries function
 
-                    model.CreditAmount = (-existingSoa.Total) - (model.UnearnedAmount + model.CurrentAndPreviousAmount);
+                    model.CreditAmount = model.UnearnedAmount + model.CurrentAndPreviousAmount;
                     
 
                     if (existingSoa.Customer.CustomerType == "Vatable")
