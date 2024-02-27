@@ -21,7 +21,7 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public IActionResult SalesBookReport(ViewModelBook model)
+        public IActionResult SalesBookReport(ViewModelBook model, string? selectedDocument)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -29,7 +29,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var salesBook = _reportRepo.GetSalesBooks(model.DateFrom, model.DateTo);
+                    var salesBook = _reportRepo.GetSalesBooks(model.DateFrom, model.DateTo, selectedDocument);
                     var lastRecord = salesBook.LastOrDefault();
                     if (lastRecord != null)
                     {

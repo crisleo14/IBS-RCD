@@ -13,24 +13,38 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public List<SalesBook> GetSalesBooks(string dateFrom, string dateTo)
+        public List<SalesBook> GetSalesBooks(string dateFrom, string dateTo, string? selectedDocument)
         {
             var fromDate = DateTime.Parse(dateFrom);
             var toDate = DateTime.Parse(dateTo);
+            List<SalesBook> salesBooks = new List<SalesBook>();
 
             if (fromDate > toDate)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
 
-            var salesBooks = _dbContext
-             .SalesBooks
-             .AsEnumerable()
-             .Where(s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate)
-             .OrderBy(s => s.Id)
-             .ToList();
+            if (selectedDocument == null)
+            {
+                salesBooks = _dbContext
+                 .SalesBooks
+                 .AsEnumerable()
+                 .Where(s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate)
+                 .OrderBy(s => s.Id)
+                 .ToList();
+            }
+            else
+            {
+                salesBooks = _dbContext
+                 .SalesBooks
+                 .AsEnumerable()
+                 .Where(s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate && s.SerialNo.Contains(selectedDocument))
+                 .OrderBy(s => s.Id)
+                 .ToList();   
+            }
 
             return salesBooks;
+
         }
 
         public List<CashReceiptBook> GetCashReceiptBooks(string dateFrom, string dateTo)
