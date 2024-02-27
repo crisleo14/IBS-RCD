@@ -42,6 +42,8 @@ namespace Accounting_System.Models
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal AdjustedPrice { get; set; }
 
+        public int Quantity { get; set; }
+
         [Display(Name = "Credit Amount")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal CreditAmount { get; set; }

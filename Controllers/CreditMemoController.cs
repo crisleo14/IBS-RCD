@@ -109,8 +109,7 @@ namespace Accounting_System.Controllers
                     var existingSalesInvoice = await _dbContext.SalesInvoices
                                                .FirstOrDefaultAsync(si => si.Id == model.SIId, cancellationToken);
 
-                    var adjustedPrice = -existingSalesInvoice.UnitPrice - -model.AdjustedPrice;
-                    model.CreditAmount = existingSalesInvoice.Quantity * adjustedPrice;
+                    model.CreditAmount = model.Quantity == 0 ? -model.AdjustedPrice * existingSalesInvoice.Quantity : model.AdjustedPrice == 0 ? existingSalesInvoice.UnitPrice * -model.Quantity : model.Quantity * -model.AdjustedPrice;
 
                     if (existingSalesInvoice.CustomerType == "Vatable")
                     {
