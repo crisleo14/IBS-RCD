@@ -124,13 +124,13 @@ namespace Accounting_System.Controllers
 
                 if (po.Supplier.VatType == "Vatable")
                 {
-                    model.Amount = model.QuantityReceived * po.Price;
+                    model.Amount = model.QuantityDelivered < model.QuantityReceived ? model.QuantityDelivered * po.Price : model.QuantityReceived * po.Price;
                     model.NetAmount = model.Amount / 1.12m;
                     model.VatAmount = model.NetAmount * .12m;
                 }
                 else
                 {
-                    model.Amount = model.QuantityReceived * po.Price;
+                    model.Amount = model.QuantityDelivered < model.QuantityReceived ? model.QuantityDelivered * po.Price  : model.QuantityReceived * po.Price;
                     model.NetAmount = model.Amount;
                 }
 
