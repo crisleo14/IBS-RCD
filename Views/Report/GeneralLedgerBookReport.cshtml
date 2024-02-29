@@ -81,13 +81,6 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
 
             @foreach (var ledger in Model)
             {
-                decimal originalDebitAmount = ledger.Debit;
-                string formattedDebitAmount = originalDebitAmount < 0 ? $"({-originalDebitAmount:F2})" : originalDebitAmount.ToString("F2");
-
-                decimal originalCreditAmount = ledger.Credit;
-                string formattedCreditAmount = originalCreditAmount < 0 ? $"({-originalCreditAmount:F2})" : originalCreditAmount.ToString("F2");
-
-
                 <tr class="align-text-bottom">
                     <td>
                         @Html.DisplayFor(model => ledger.Date)
@@ -102,10 +95,10 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                         @Html.DisplayFor(model => ledger.AccountTitle)
                     </td>
                     <td class="text-end">
-                        @Html.DisplayFor(model => formattedDebitAmount)
+                        @Html.DisplayFor(model => ledger.Debit)
                     </td>
                     <td class="text-end">
-                        @Html.DisplayFor(model => formattedCreditAmount)
+                        @Html.DisplayFor(model => ledger.Credit)
                     </td>
                 </tr>
 
@@ -114,15 +107,12 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
             }
             <tr class="align-text-bottom" style="border-top: 2px solid black;">
                 @{
-                    var formattedTotalDebitAmount = String.Format("{0:n}", totalDebitAmount);
-                    var formattedTotalCreditAmount = String.Format("{0:n}", totalCreditAmount);
-
                     <td></td>
                     <td></td>
                     <td></td>
                     <td class="text-center"><b>TOTAL:</b></td>
-                    <td class="text-end">@formattedTotalDebitAmount</td>
-                    <td class="text-end">@formattedTotalCreditAmount</td>
+                    <td class="text-end">@totalDebitAmount.ToString("F2")</td>
+                    <td class="text-end">@totalCreditAmount.ToString("F2")</td>
                 }
             </tr>
         </tbody>
@@ -246,10 +236,9 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
         // Get the pre tag element
         var resultPre = document.getElementById('resultPre');
 
-        console.log("@formattedTotalDebitAmount");
         // Replace the placeholder in the HTML with the actual number of records
         resultPre.innerHTML = resultPre.innerHTML.replace('@numberOfRecords', (allTrElements.length - 1));
-        resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@formattedTotalDebitAmount");
+        resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@totalDebitAmount");
 
     </script>
 
