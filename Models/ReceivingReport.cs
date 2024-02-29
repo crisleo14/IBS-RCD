@@ -35,10 +35,10 @@ namespace Accounting_System.Models
 
         [Display(Name = "Supplier Invoice#")]
         [Column(TypeName = "varchar(100)")]
-        public string SupplierInvoiceNumber { get; set; }
+        public string? SupplierInvoiceNumber { get; set; }
 
         [Display(Name = "Supplier Invoice Date")]
-        public string SupplierInvoiceDate { get; set; }
+        public string? SupplierInvoiceDate { get; set; }
 
         [Required]
         [Display(Name = "Truck/Vessels")]
@@ -76,7 +76,7 @@ namespace Accounting_System.Models
 
         [Display(Name = "Other Reference")]
         [Column(TypeName = "varchar(100)")]
-        public string OtherRef { get; set; }
+        public string? OtherRef { get; set; }
 
         [Required]
         public string Remarks { get; set; }

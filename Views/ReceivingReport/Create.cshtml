@@ -23,6 +23,7 @@
  =====================================================================
 
     Unposted RR:
+            <ul id="rrListCanceled" style="margin: 0;"></ul>
             <ul id="rrListNotPosted" style="margin: 0;"></ul>
  =====================================================================
     Remaining Quantity (Including posted and unposted RR):  <span id="remainingQuantity"></span>
@@ -46,14 +47,12 @@
                     <span asp-validation-for="POId" class="text-danger"></span>
                 </div>
                 <div class="form-floating mb-3">
-                    <input asp-for="SupplierInvoiceNumber" class="form-control" placeholder="" />
-                    <label asp-for="SupplierInvoiceNumber" class="control-label">Supplier Invoice Number<span class="required">*</span></label>
-                    <span asp-validation-for="SupplierInvoiceNumber" class="text-danger"></span>
+                    <input asp-for="SupplierInvoiceNumber" class="form-control" />
+                    <label asp-for="SupplierInvoiceNumber" class="control-label">Supplier Invoice Number</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input asp-for="SupplierInvoiceDate" type="date" class="form-control" placeholder="" />
-                    <label asp-for="SupplierInvoiceDate" class="control-label">Supplier Invoice Date<span class="required">*</span></label>
-                    <span asp-validation-for="SupplierInvoiceDate" class="text-danger"></span>
+                    <input asp-for="SupplierInvoiceDate" type="date" class="form-control" />
+                    <label asp-for="SupplierInvoiceDate" class="control-label">Supplier Invoice Date</label>
                 </div>
                 <div class="form-floating mb-3">
                     <input asp-for="TruckOrVessels" class="form-control" placeholder="" />
@@ -73,7 +72,6 @@
                 <div class="form-floating mb-3">
                     <input asp-for="OtherRef" class="form-control" placeholder=""/>
                     <label asp-for="OtherRef" class="control-label"></label>
-                    <span asp-validation-for="OtherRef" class="text-danger"></span>
                 </div>
                 <div class="form-floating mb-3">
                     <textarea asp-for="Remarks" class="form-control" placeholder="" style="height: 100px"></textarea>
@@ -97,9 +95,6 @@
     <script>
         document.getElementById('Date').value = new Date().toISOString().substring(0, 10);
     </script>
-        <script>
-            document.getElementById('SupplierInvoiceDate').value = new Date().toISOString().substring(0, 10);
-        </script>
 
     <script>
             // Function to handle invoice change event
@@ -146,6 +141,10 @@
                             var rrListNotPostedUl = document.getElementById("rrListNotPosted");
                             rrListNotPostedUl.innerHTML = ""; // Clear previous list items
 
+                            var rrListCanceled = data.rrListCanceled;
+                            var rrListCanceledUl = document.getElementById("rrListCanceled");
+                            rrListCanceledUl.innerHTML = ""; // Clear previous list items
+
                             for (var i = 0; i < rrListPostedOnly.length; i++) {
                                 var rrPostedOnly = rrListPostedOnly[i];
                                 var list = document.createElement("li");
@@ -158,6 +157,13 @@
                                 var li = document.createElement("li");
                                 li.textContent = "RR No: " + rrNotPosted.rrNo + " - Quantity: -" + rrNotPosted.quantityReceived;
                                 rrListNotPostedUl.appendChild(li);
+                            }
+
+                            for (var i = 0; i < rrListCanceled.length; i++) {
+                                var rrCanceled = rrListCanceled[i];
+                                var listed = document.createElement("li");
+                                listed.textContent = rrCanceled.quantityReceived < rrCanceled.quantityDelivered ? "RR No: " + rrCanceled.rrNo + " - Quantity: -" + rrCanceled.quantityReceived + " (Canceled)" : "RR No: " + rrCanceled.rrNo + " - Quantity: -" + rrCanceled.quantityDelivered + " (Canceled)";
+                                rrListCanceledUl.appendChild(listed);
                             }
                         }
                     });
