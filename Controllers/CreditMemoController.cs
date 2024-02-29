@@ -465,7 +465,7 @@ namespace Accounting_System.Controllers
                                 Description = model.SalesInvoice.ProductName,
                                 AccountTitle = "1010201 AR-Trade Receivable",
                                 Debit = 0,
-                                Credit = model.CreditAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount),
+                                Credit = Math.Abs(model.CreditAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount)),
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
                             }
@@ -481,7 +481,7 @@ namespace Accounting_System.Controllers
                                     Description = model.SalesInvoice.ProductName,
                                     AccountTitle = "1010202 Deferred Creditable Withholding Tax",
                                     Debit = 0,
-                                    Credit = model.WithHoldingTaxAmount,
+                                    Credit = Math.Abs(model.WithHoldingTaxAmount),
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -497,7 +497,7 @@ namespace Accounting_System.Controllers
                                     Description = model.SalesInvoice.ProductName,
                                     AccountTitle = "1010203 Deferred Creditable Withholding Vat",
                                     Debit = 0,
-                                    Credit = model.WithHoldingVatAmount,
+                                    Credit = Math.Abs(model.WithHoldingVatAmount),
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -513,8 +513,8 @@ namespace Accounting_System.Controllers
                                     Description = model.SalesInvoice.ProductName,
                                     AccountTitle = "4010101 Sales - Biodiesel",
                                     Debit = model.VatableSales < 0
-                                                ? model.VatableSales
-                                                : model.CreditAmount,
+                                                ? Math.Abs(model.VatableSales)
+                                                : Math.Abs(model.CreditAmount),
                                     CreatedBy = model.CreatedBy,
                                     Credit = 0,
                                     CreatedDate = model.CreatedDate
@@ -531,8 +531,8 @@ namespace Accounting_System.Controllers
                                     Description = model.SalesInvoice.ProductName,
                                     AccountTitle = "4010102 Sales - Econogas",
                                     Debit = model.VatableSales < 0
-                                                ? model.VatableSales
-                                                : model.CreditAmount,
+                                                ? Math.Abs(model.VatableSales)
+                                                : Math.Abs(model.CreditAmount),
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
@@ -549,8 +549,8 @@ namespace Accounting_System.Controllers
                                     Description = model.SalesInvoice.ProductName,
                                     AccountTitle = "4010103 Sales - Envirogas",
                                     Debit = model.VatableSales < 0
-                                                ? model.VatableSales
-                                                : model.CreditAmount,
+                                                ? Math.Abs(model.VatableSales)
+                                                : Math.Abs(model.CreditAmount),
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
@@ -567,7 +567,7 @@ namespace Accounting_System.Controllers
                                     Reference = model.CMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountTitle = "2010301 Vat Output",
-                                    Debit = model.VatAmount,
+                                    Debit = Math.Abs(model.VatAmount),
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
@@ -591,7 +591,7 @@ namespace Accounting_System.Controllers
                                     Description = model.StatementOfAccount.Service.Name,
                                     AccountTitle = "1010204 AR-Non Trade Receivable",
                                     Debit = 0,
-                                    Credit = model.CreditAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount),
+                                    Credit = Math.Abs(model.CreditAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount)),
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -606,7 +606,7 @@ namespace Accounting_System.Controllers
                                     Description = model.StatementOfAccount.Service.Name,
                                     AccountTitle = "1010202 Deferred Creditable Withholding Tax",
                                     Debit = 0,
-                                    Credit = model.WithHoldingTaxAmount,
+                                    Credit = Math.Abs(model.WithHoldingTaxAmount),
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -622,7 +622,7 @@ namespace Accounting_System.Controllers
                                     Description = model.StatementOfAccount.Service.Name,
                                     AccountTitle = "1010203 Deferred Creditable Withholding Vat",
                                     Debit = 0,
-                                    Credit = model.WithHoldingVatAmount,
+                                    Credit = Math.Abs(model.WithHoldingVatAmount),
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
@@ -637,7 +637,7 @@ namespace Accounting_System.Controllers
                                 Reference = model.CMNo,
                                 Description = model.StatementOfAccount.Service.Name,
                                 AccountTitle = model.StatementOfAccount.Service.CurrentAndPrevious,
-                                Debit = model.CurrentAndPreviousAmount / 1.12m,
+                                Debit = Math.Abs(model.CurrentAndPreviousAmount / 1.12m),
                                 Credit = 0,
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
@@ -653,7 +653,7 @@ namespace Accounting_System.Controllers
                                     Reference = model.CMNo,
                                     Description = model.StatementOfAccount.Service.Name,
                                     AccountTitle = model.StatementOfAccount.Service.Unearned,
-                                    Debit = model.UnearnedAmount / 1.12m,
+                                    Debit = Math.Abs(model.UnearnedAmount / 1.12m),
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
@@ -670,7 +670,7 @@ namespace Accounting_System.Controllers
                                     Reference = model.CMNo,
                                     Description = model.StatementOfAccount.Service.Name,
                                     AccountTitle = "2010304 Deferred Vat Output",
-                                    Debit = model.VatAmount,
+                                    Debit = Math.Abs(model.VatAmount),
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
