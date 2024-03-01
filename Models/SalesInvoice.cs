@@ -128,5 +128,9 @@ namespace Accounting_System.Models
         public bool IsPaid { get; set; }
 
         public bool IsTaxAndVatPaid { get; set; }
+
+        [Display(Name = "Due Date")]
+        [Column(TypeName = "Date")]
+        public DateTime DueDate { get; set; }
     }
 }

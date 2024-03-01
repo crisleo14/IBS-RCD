@@ -77,5 +77,52 @@ namespace Accounting_System.Repository
                 throw new ArgumentException("Invalid id value. The id must be greater than 0.");
             }
         }
+
+        public async Task<DateTime> ComputeDueDateAsync(SalesInvoice model, DateTime date)
+        {
+
+            if (model != null)
+            {
+                DateTime dueDate;
+
+                switch (model.Terms)
+                {
+                    case "7D":
+                        return date.AddDays(7);
+
+                    case "15D":
+                        return date.AddDays(15);
+
+                    case "30D":
+                        return date.AddDays(30);
+
+                    case "M15":
+                        return date.AddMonths(1).AddDays(15 - date.Day);
+
+                    case "M30":
+                        if (date.Month == 1)
+                        {
+                            dueDate = new DateTime(date.Year, date.Month, 1).AddMonths(2).AddDays(-1);
+                        }
+                        else
+                        {
+                            dueDate = new DateTime(date.Year, date.Month, 1).AddMonths(2).AddDays(-1);
+
+                            if (dueDate.Day == 31)
+                            {
+                                dueDate = dueDate.AddDays(-1);
+                            }
+                        }
+                        return dueDate;
+
+                    default:
+                        return date;
+                }
+            }
+            else
+            {
+                throw new ArgumentException("No record found.");
+            }
+        }
     }
 }
