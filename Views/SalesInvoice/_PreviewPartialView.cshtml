@@ -53,10 +53,10 @@
                                 <td class="w-25 text-nowrap">
 
                                     <b>Invoice Date:</b>
-                                    &nbsp; <span id="invoiceDate">@Html.DisplayFor(model => model.TransactionDate)</span>
+                                    &nbsp; <span>@Model.TransactionDate.ToString("MM/dd/yyyy")</span>
                                     <br />
-                                    <b>Terms:</b>&nbsp;<span id="terms">@Html.DisplayFor(model => model.Terms)</span>&nbsp;<br />
-                                    <b>Due Date:</b>&nbsp; <span id="dueDate"></span><br />
+                                    <b>Terms:</b>&nbsp;<span>@Html.DisplayFor(model => model.Terms)</span>&nbsp;<br />
+                                    <b>Due Date:</b>&nbsp; <span>@Model.DueDate.ToString("MM/dd/yyyy")</span><br />
 
                                     <b>Other Ref No.:</b>&nbsp; @Html.DisplayFor(model => model.OtherRefNo) &nbsp;
                                 </td>
@@ -324,57 +324,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        var invoiceDate = new Date(document.getElementById('invoiceDate').innerText);
-        var options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-        var formattedInvoiceDate = invoiceDate.toLocaleDateString('en-US', options);
-        document.getElementById('invoiceDate').innerText = formattedInvoiceDate;
-    });
-</script>
-<script>
-    // Get the transaction date value from the HTML element
-    var transactionDate = document.getElementById('invoiceDate').innerText;
-
-    // Convert the transaction date string to a Date object
-    var dateObject = new Date(transactionDate);
-
-    // Get the terms value from the HTML element
-    var terms = document.getElementById('terms').innerText;
-
-    // Convert the terms to an integer
-    var termsInt = parseInt(terms);
-
-    // Add the terms to the transaction date
-    if (terms == "COD") {
-        dateObject.setDate(dateObject.getDate());
-    } else if (terms == "M30") {
-        console.log(dateObject.getMonth());
-        if (dateObject.getDate() === 31) {
-            // If the transaction date is 31st, set due date to 30th of next month
-            dateObject.setDate(dateObject.getDate() + 30); // Move to the next next month
-        } else if (dateObject.getMonth() === 0) {
-            dateObject.setMonth(dateObject.getMonth() + 2); // Move to the next month
-            dateObject.setDate(0);
-        } else {
-            dateObject.setMonth(dateObject.getMonth() + 1); // Move to the next month
-            dateObject.setDate(30);
-        }
-    }
-    else if (terms == "M15") {
-        dateObject.setMonth(dateObject.getMonth() + 1);
-        dateObject.setDate(15);
-    } else {
-        dateObject.setDate(dateObject.getDate() + termsInt);
-    }
-
-    // Format the date as mm/dd/yyyy
-    var formattedDate =
-        (dateObject.getMonth() + 1).toString().padStart(2, '0') + '/' +
-        dateObject.getDate().toString().padStart(2, '0') + '/' +
-        dateObject.getFullYear();
-
-    // Update the HTML to display the computed date as the due date
-    document.getElementById('dueDate').innerText = formattedDate;
-</script>

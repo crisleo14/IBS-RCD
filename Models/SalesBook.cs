@@ -57,5 +57,8 @@ namespace Accounting_System.Models
 
         [Display(Name = "Created Date")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        [Display(Name = "Due Date")]
+        public string DueDate { get; set; }
     }
 }

@@ -113,6 +113,7 @@ namespace Accounting_System.Controllers
                 sales.CreatedBy = _userManager.GetUserName(this.User);
                 sales.SINo = generateCRNo;
                 sales.Amount = sales.Quantity * sales.UnitPrice;
+                sales.DueDate = await _salesInvoiceRepo.ComputeDueDateAsync(sales, sales.TransactionDate);
                 if (sales.Amount >= sales.Discount)
                 {
                     if (existingCustomers.CustomerType == "Vatable")
