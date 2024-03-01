@@ -481,6 +481,8 @@ namespace Accounting_System.Controllers
                     model.IsCanceled = true;
                     model.CanceledBy = _userManager.GetUserName(this.User);
                     model.CanceledDate = DateTime.Now;
+                    model.QuantityDelivered = 0;
+                    model.QuantityReceived = 0;
 
                     #region --Audit Trail Recording
 
@@ -515,7 +517,12 @@ namespace Accounting_System.Controllers
 
             var rrNotPosted = await _dbContext
                 .ReceivingReports
-                .Where(rr => rr.PONo == po.PONo && !rr.IsPosted)
+                .Where(rr => rr.PONo == po.PONo && !rr.IsPosted && !rr.IsCanceled)
+                .ToListAsync(cancellationToken);
+
+            var rrCanceled = await _dbContext
+                .ReceivingReports
+                .Where(rr => rr.PONo == po.PONo && rr.IsCanceled)
                 .ToListAsync(cancellationToken);
 
             if (po != null)
@@ -526,7 +533,8 @@ namespace Accounting_System.Controllers
                     poQuantity = po.Quantity.ToString(),
                     rrList = rr,
                     rrListPostedOnly = rrPostedOnly,
-                    rrListNotPosted = rrNotPosted
+                    rrListNotPosted = rrNotPosted,
+                    rrListCanceled = rrCanceled
                 });
             }
             else

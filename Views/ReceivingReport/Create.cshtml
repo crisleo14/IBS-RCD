@@ -148,14 +148,14 @@
                             for (var i = 0; i < rrListPostedOnly.length; i++) {
                                 var rrPostedOnly = rrListPostedOnly[i];
                                 var list = document.createElement("li");
-                                list.textContent = "RR No: " + rrPostedOnly.rrNo + " - Quantity: -" + rrPostedOnly.quantityReceived;
+                                list.textContent = rrPostedOnly.quantityReceived < rrPostedOnly.quantityDelivered ? "RR No: " + rrPostedOnly.rrNo + " - Quantity: -" + rrPostedOnly.quantityReceived : "RR No: " + rrPostedOnly.rrNo + " - Quantity: -" + rrPostedOnly.quantityDelivered;
                                 rrListPostedOnlyUl.appendChild(list);
                             }
 
                             for (var i = 0; i < rrListNotPosted.length; i++) {
                                 var rrNotPosted = rrListNotPosted[i];
                                 var li = document.createElement("li");
-                                li.textContent = "RR No: " + rrNotPosted.rrNo + " - Quantity: -" + rrNotPosted.quantityReceived;
+                                li.textContent = rrNotPosted.quantityReceived < rrNotPosted.quantityDelivered ? "RR No: " + rrNotPosted.rrNo + " - Quantity: -" + rrNotPosted.quantityReceived : "RR No: " + rrNotPosted.rrNo + " - Quantity: -" + rrNotPosted.quantityDelivered;
                                 rrListNotPostedUl.appendChild(li);
                             }
 
