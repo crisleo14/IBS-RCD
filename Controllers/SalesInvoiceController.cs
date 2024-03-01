@@ -420,6 +420,7 @@ namespace Accounting_System.Controllers
                         sales.NetSales = model.NetDiscount;
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
+                        sales.DueDate = model.DueDate.ToShortDateString();
                     }
                     else if (model.CustomerType == "Exempt")
                     {
@@ -435,6 +436,7 @@ namespace Accounting_System.Controllers
                         sales.NetSales = model.NetDiscount;
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
+                        sales.DueDate = model.DueDate.ToShortDateString();
                     }
                     else
                     {
@@ -450,6 +452,7 @@ namespace Accounting_System.Controllers
                         sales.NetSales = model.NetDiscount;
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
+                        sales.DueDate = model.DueDate.ToShortDateString();
                     }
 
                     await _dbContext.AddAsync(sales, cancellationToken);
