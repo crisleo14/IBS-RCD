@@ -61,7 +61,14 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
         <thead>
             <tr class="table-bordered">
                 <th>
+                @if (ViewBag.SelectedAging != "DueDate")
+                {
                     @Html.DisplayNameFor(model => model.Date)
+                }
+                else
+                {
+                    @Html.DisplayNameFor(model => model.DueDate)
+                }
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.SupplierName)
@@ -104,7 +111,13 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
             {
                 <tr class="align-text-bottom">
                     <td>
-                        @Html.DisplayFor(model => purchase.Date)
+                    @if (ViewBag.SelectedAging != "DueDate")
+                        {
+                            @Html.DisplayFor(model => purchase.Date)
+                        }else
+                        {
+                            @Html.DisplayFor(model => purchase.DueDate)
+                        }
                     </td>
                     <td>
                         @Html.DisplayFor(model => purchase.SupplierName)

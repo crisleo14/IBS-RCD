@@ -67,22 +67,35 @@ namespace Accounting_System.Repository
             return cashReceiptBooks;
         }
 
-        public List<PurchaseJournalBook> GetPurchaseBooks(string dateFrom, string dateTo)
+        public List<PurchaseJournalBook> GetPurchaseBooks(string dateFrom, string dateTo, string? selectedAging)
         {
             var fromDate = DateTime.Parse(dateFrom);
             var toDate = DateTime.Parse(dateTo);
+            List<PurchaseJournalBook> purchaseBook = new List<PurchaseJournalBook>();
 
             if (fromDate > toDate)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
 
-            var purchaseBook = _dbContext
+            if (selectedAging != "DueDate")
+            {
+              purchaseBook = _dbContext
              .PurchaseJournalBooks
              .AsEnumerable()
              .Where(p => DateTime.Parse(p.Date) >= fromDate && DateTime.Parse(p.Date) <= toDate)
              .OrderBy(s => s.Id)
              .ToList();
+            }
+            else
+            {
+              purchaseBook = _dbContext
+             .PurchaseJournalBooks
+             .AsEnumerable()
+             .Where(p => DateTime.Parse(p.DueDate) >= fromDate && DateTime.Parse(p.DueDate) <= toDate)
+             .OrderBy(s => s.Id)
+             .ToList();
+            }
 
             return purchaseBook;
         }

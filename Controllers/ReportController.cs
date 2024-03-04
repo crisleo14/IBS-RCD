@@ -85,7 +85,7 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public IActionResult PurchaseBookReport(ViewModelBook model)
+        public IActionResult PurchaseBookReport(ViewModelBook model, string? selectedAging)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -93,12 +93,13 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var purchaseOrders = _reportRepo.GetPurchaseBooks(model.DateFrom, model.DateTo);
+                    var purchaseOrders = _reportRepo.GetPurchaseBooks(model.DateFrom, model.DateTo, selectedAging);
                     var lastRecord = purchaseOrders.LastOrDefault();
                     if (lastRecord != null)
                     {
                         ViewBag.LastRecord = lastRecord.CreatedDate;
                     }
+                        ViewBag.SelectedAging = selectedAging;
 
                     return View(purchaseOrders);
                 }
