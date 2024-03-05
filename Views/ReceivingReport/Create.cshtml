@@ -162,7 +162,7 @@
                             for (var i = 0; i < rrListCanceled.length; i++) {
                                 var rrCanceled = rrListCanceled[i];
                                 var listed = document.createElement("li");
-                                listed.textContent = rrCanceled.quantityReceived < rrCanceled.quantityDelivered ? "RR No: " + rrCanceled.rrNo + " - Quantity: -" + rrCanceled.quantityReceived + " (Canceled)" : "RR No: " + rrCanceled.rrNo + " - Quantity: -" + rrCanceled.quantityDelivered + " (Canceled)";
+                                listed.textContent = rrCanceled.quantityReceived < rrCanceled.quantityDelivered ? "RR No: " + rrCanceled.rrNo + " - Quantity: -" + rrCanceled.canceledQuantity + " (Canceled)" : "RR No: " + rrCanceled.rrNo + " - Quantity: -" + rrCanceled.canceledQuantity + " (Canceled)";
                                 rrListCanceledUl.appendChild(listed);
                             }
                         }

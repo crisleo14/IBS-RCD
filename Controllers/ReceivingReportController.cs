@@ -481,6 +481,7 @@ namespace Accounting_System.Controllers
                     model.IsCanceled = true;
                     model.CanceledBy = _userManager.GetUserName(this.User);
                     model.CanceledDate = DateTime.Now;
+                    model.CanceledQuantity = model.QuantityDelivered < model.QuantityReceived ? model.QuantityDelivered : model.QuantityReceived;
                     model.QuantityDelivered = 0;
                     model.QuantityReceived = 0;
 
