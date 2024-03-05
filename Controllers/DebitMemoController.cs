@@ -41,17 +41,19 @@ namespace Accounting_System.Controllers
         {
             var viewModel = new DebitMemo();
             viewModel.SalesInvoices = await _dbContext.SalesInvoices
-                .Select(s => new SelectListItem
+                .Where(si => si.IsPosted)
+                .Select(si => new SelectListItem
                 {
-                    Value = s.Id.ToString(),
-                    Text = s.SINo
+                    Value = si.Id.ToString(),
+                    Text = si.SINo
                 })
                 .ToListAsync(cancellationToken);
             viewModel.StatementOfAccounts = await _dbContext.StatementOfAccounts
-                .Select(s => new SelectListItem
+                .Where(soa => soa.IsPosted)
+                .Select(soa => new SelectListItem
                 {
-                    Value = s.Id.ToString(),
-                    Text = s.SOANo
+                    Value = soa.Id.ToString(),
+                    Text = soa.SOANo
                 })
                 .ToListAsync(cancellationToken);
 
