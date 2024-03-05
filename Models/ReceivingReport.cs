@@ -89,5 +89,7 @@ namespace Accounting_System.Models
 
         [Column(TypeName = "timestamp without time zone")]
         public DateTime PaidDate { get; set; }
+
+        public int CanceledQuantity { get; set; }
     }
 }
