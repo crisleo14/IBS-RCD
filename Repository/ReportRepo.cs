@@ -33,6 +33,15 @@ namespace Accounting_System.Repository
                  .OrderBy(s => s.Id)
                  .ToList();
             }
+            else if (selectedDocument == "DueDate")
+            {
+                salesBooks = _dbContext
+                 .SalesBooks
+                 .AsEnumerable()
+                 .Where(s => s.DueDate >= fromDate && s.DueDate <= toDate)
+                 .OrderBy(s => s.Id)
+                 .ToList();
+            }
             else
             {
                 salesBooks = _dbContext

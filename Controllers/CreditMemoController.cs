@@ -369,7 +369,7 @@ namespace Accounting_System.Controllers
                         sales.NetSales = model.VatableSales;
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
-                        sales.DueDate = existingSI.DueDate != null ? existingSI?.DueDate.ToShortDateString() : existingSI?.TransactionDate.ToShortDateString();
+                        sales.DueDate = existingSI?.DueDate;
                     }
                     else if (model.SalesInvoice.CustomerType == "Exempt")
                     {
@@ -385,7 +385,7 @@ namespace Accounting_System.Controllers
                         sales.NetSales = model.VatableSales;
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
-                        sales.DueDate = existingSI.DueDate != null ? existingSI?.DueDate.ToShortDateString() : existingSI?.TransactionDate.ToShortDateString();
+                        sales.DueDate = existingSI?.DueDate;
                     }
                     else
                     {
@@ -401,7 +401,7 @@ namespace Accounting_System.Controllers
                         sales.NetSales = model.VatableSales;
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
-                        sales.DueDate = existingSI.DueDate != null ? existingSI?.DueDate.ToShortDateString() : existingSI?.TransactionDate.ToShortDateString();
+                        sales.DueDate = existingSI?.DueDate;
                     }
                 }
                 if (model.SOANo != null)
@@ -421,7 +421,7 @@ namespace Accounting_System.Controllers
                         sales.NetSales = model.VatableSales;
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
-                        sales.DueDate = existingSOA.DueDate != null ? existingSOA?.DueDate.ToShortDateString() : existingSOA?.CreatedDate.ToShortDateString();
+                        sales.DueDate = existingSOA?.DueDate;
                     }
                     else if (model.StatementOfAccount.Customer.CustomerType == "Exempt")
                     {
@@ -437,7 +437,7 @@ namespace Accounting_System.Controllers
                         sales.NetSales = model.VatableSales;
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
-                        sales.DueDate = existingSOA.DueDate != null ? existingSOA?.DueDate.ToShortDateString() : existingSOA?.CreatedDate.ToShortDateString();
+                        sales.DueDate = existingSOA?.DueDate;
                     }
                     else
                     {
@@ -453,7 +453,7 @@ namespace Accounting_System.Controllers
                         sales.NetSales = model.VatableSales;
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
-                        sales.DueDate = existingSOA.DueDate != null ? existingSOA?.DueDate.ToShortDateString() : existingSOA?.CreatedDate.ToShortDateString();
+                        sales.DueDate = existingSOA?.DueDate;
                     }
                 }
                 await _dbContext.AddAsync(sales, cancellationToken);
