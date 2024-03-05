@@ -41,6 +41,7 @@ namespace Accounting_System.Controllers
         {
             var viewModel = new CreditMemo();
             viewModel.Invoices = await _dbContext.SalesInvoices
+                .Where(si => si.IsPosted)
                 .Select(si => new SelectListItem
                 {
                     Value = si.Id.ToString(),
@@ -48,6 +49,7 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
             viewModel.Soa = await _dbContext.StatementOfAccounts
+                .Where(soa => soa.IsPosted)
                 .Select(soa => new SelectListItem
                 {
                     Value = soa.Id.ToString(),
