@@ -63,7 +63,14 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
         <thead>
             <tr class="table-bordered">
                 <th>
+                @if (ViewBag.SelectedDocument != "DueDate")
+                {
                     @Html.DisplayNameFor(model => model.TransactionDate)
+                }
+                else
+                {
+                    @Html.DisplayNameFor(model => model.DueDate)
+                }
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.SerialNo)
@@ -109,7 +116,14 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
             {
                 <tr class="align-text-bottom">
                     <td>
+                    @if (ViewBag.SelectedDocument != "DueDate")
+                    {
                         @Html.DisplayFor(model => invoice.TransactionDate)
+                    }
+                    else
+                    {
+                        @Html.DisplayFor(model => invoice.DueDate)
+                    }
                     </td>
                     <td>
                         @Html.DisplayFor(model => invoice.SerialNo)

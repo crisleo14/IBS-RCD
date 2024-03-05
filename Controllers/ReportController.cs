@@ -35,6 +35,7 @@ namespace Accounting_System.Controllers
                     {
                         ViewBag.LastRecord = lastRecord.CreatedDate;
                     }
+                        ViewBag.SelectedDocument = selectedDocument;
 
                     return View(salesBook);
                 }
