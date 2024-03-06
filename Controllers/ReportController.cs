@@ -86,7 +86,7 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public IActionResult PurchaseBookReport(ViewModelBook model, string? selectedAging)
+        public IActionResult PurchaseBookReport(ViewModelBook model, string? selectedFiltering)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -94,13 +94,18 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var purchaseOrders = _reportRepo.GetPurchaseBooks(model.DateFrom, model.DateTo, selectedAging);
+                    if (selectedFiltering == "UnpostedRR" || selectedFiltering == "POLiquidation")
+                    {
+                        return RedirectToAction("GetRR", new { DateFrom = model.DateFrom, DateTo = model.DateTo, selectedFiltering });
+                    }
+
+                    var purchaseOrders = _reportRepo.GetPurchaseBooks(model.DateFrom, model.DateTo, selectedFiltering);
                     var lastRecord = purchaseOrders.LastOrDefault();
                     if (lastRecord != null)
                     {
                         ViewBag.LastRecord = lastRecord.CreatedDate;
                     }
-                        ViewBag.SelectedAging = selectedAging;
+                        ViewBag.SelectedFiltering = selectedFiltering;
 
                     return View(purchaseOrders);
                 }
@@ -112,6 +117,16 @@ namespace Accounting_System.Controllers
             }
 
             return View(model);
+        }
+
+        public IActionResult GetRR(string dateFrom, string dateTo, string selectedFiltering)
+        {
+            ViewBag.DateFrom = dateFrom;
+            ViewBag.DateTo = dateTo;
+            ViewBag.SelectedFiltering = selectedFiltering;
+
+            var receivingReport = _reportRepo.GetReceivingReport(dateFrom, dateTo, selectedFiltering);
+            return View(receivingReport);
         }
 
         public IActionResult InventoryBook()
