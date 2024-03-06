@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Accounting_System.Models.PurchaseJournalBook>
+﻿@model IEnumerable<Accounting_System.Models.ReceivingReport>
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
@@ -33,7 +33,13 @@
     int numberOfRecords = 0;
     decimal amountFieldControlTotal = 0;
 }
+<style>
+    .container{
+        max-width: none;
+    }
+</style>
 <br class="br-top" />
+<div class="p-4">
 <pre>
 TAXPAYER'S NAME: Filpride Resources Inc.
 TIN: 000-216-589-00000
@@ -44,165 +50,211 @@ Acknowledgement Certificate Control No.:
 Date Issued:
 </pre>
 
-<pre id="resultPre">
-Accounting Books File Attributes/Layout Definition
-File Name: Purchase Journal Book Report
-File Type: Text File
-Number of Records:                  @numberOfRecords
-Amount Field Control Total:         @amountFieldControlTotal
-Period Covered:                     @dateFrom to @dateTo
-Transaction cut-off Date & Time:    @lastRecord
-Extracted By:                       @UserManager.GetUserName(User).ToUpper()
+@if(ViewBag.SelectedFiltering == "UnpostedRR")
+{
+    <h3><b>Unposted RR</b></h3>
+}
+else
+{
+<h3><b>PO Liquidation for Posted RR</b></h3>
+}
 
-</pre>
+<table class="table-hover w-100" style="margin-top:20px;">
+    <thead>
+        <tr class="table-bordered">
+            <th>
+                @Html.DisplayNameFor(model => model.PONo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RRNo)
+            </th>
+            <th>
+                RR Date
+            </th>
+            <th>
+                Supplier Name
+            </th>
+            <th>
+                Supplier TIN
+            </th>
+            <th>
+                Supplier Address
+            </th>
+            <th>
+                Description
+            </th>
+            <th>
+                Quantity
+            </th>
+            <th class="text-end">
+                Amount
+            </th>
+            <th class="text-end">
+                Vat Amount
+            </th>
+            <th class="text-end">
+                Def VAT Amount
+            </th>
+            <th class="text-end">
+                WHT Amount
+            </th>
+            <th class="text-end">
+                Net Purchases
+            </th>
+        </tr>
+    </thead>
+    <tbody>
 
-<h3><b>PURCHASE BOOK</b></h3>
-    <table class="table-hover w-100" style="margin-top:20px;">
-        <thead>
-            <tr class="table-bordered">
-                <th>
-                @if (ViewBag.SelectedFiltering != "DueDate")
-                {
-                    @Html.DisplayNameFor(model => model.Date)
-                }
-                else
-                {
-                    @Html.DisplayNameFor(model => model.DueDate)
-                }
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.SupplierName)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.SupplierTin)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.SupplierAddress)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.PONo)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.DocumentNo)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.Description)
-                </th>
-                <th class="text-end">
-                    Amount
-                </th>
-                <th class="text-end">
-                    Vat Amount
-                </th>
-                <th class="text-end">
-                    Def VAT Amount
-                </th>
-                <th class="text-end">
-                    @Html.DisplayNameFor(model => model.WhtAmount)
-                </th>
-                <th class="text-end">
-                    Net Purchases
-                </th>
+        @foreach (var purchase in Model)
+        {
+            <tr class="align-text-bottom">
+                <td>
+                    @Html.DisplayFor(model => purchase.PONo)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => purchase.RRNo)
+                </td>
+                <td>
+                        @purchase.Date.ToString("MM/dd/yyyy")
+                </td>
+                <td>
+                    @Html.DisplayFor(model => purchase.PurchaseOrder.Supplier.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => purchase.PurchaseOrder.Supplier.TinNo)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => purchase.PurchaseOrder.Supplier.Address)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => purchase.PurchaseOrder.Product.Name)
+                </td>
+                <td>
+                    @{
+                    var quantity = purchase.QuantityDelivered > purchase.QuantityReceived ? purchase.QuantityReceived : purchase.QuantityDelivered;
+                    }
+                    @quantity
+                </td>
+                <td class="text-end">
+                    @Html.DisplayFor(model => purchase.Amount)
+                </td>
+                <td class="text-end">
+                    @Html.DisplayFor(model => purchase.VatAmount)
+                </td>
+                <td class="text-end">
+                    0.00
+                </td>
+                <td class="text-end">
+                    @Html.DisplayFor(model => purchase.EwtAmount)
+                </td>
+                <td class="text-end">
+                    @Html.DisplayFor(model => purchase.NetAmount)
+                </td>
+
             </tr>
-        </thead>
-        <tbody>
 
-            @foreach (var purchase in Model)
-            {
-                <tr class="align-text-bottom">
-                    <td>
-                    @if (ViewBag.SelectedFiltering != "DueDate")
-                        {
-                            @Html.DisplayFor(model => purchase.Date)
-                        }else
-                        {
-                            @Html.DisplayFor(model => purchase.DueDate)
-                        }
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => purchase.SupplierName)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => purchase.SupplierTin)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => purchase.SupplierAddress)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => purchase.PONo)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => purchase.DocumentNo)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => purchase.Description)
-                    </td>
-                    <td class="text-end">
-                        @Html.DisplayFor(model => purchase.Amount)
-                    </td>
-                    <td class="text-end">
-                        @Html.DisplayFor(model => purchase.VatAmount)
-                    </td>
-                    <td class="text-end">
-                        0.00
-                    </td>
-                    <td class="text-end">
-                        @Html.DisplayFor(model => purchase.WhtAmount)
-                    </td>
-                    <td class="text-end">
-                        @Html.DisplayFor(model => purchase.NetPurchases)
-                    </td>
+            totalAmount += purchase.Amount;
+            totalVatableAmount += purchase.VatAmount;
+            totalDefAmount += 0;
+            totalWthAmount += purchase.EwtAmount;
+            totalNetPurchases += purchase.NetAmount;
+        }
+        <tr class="align-text-bottom" style="border-top: 2px solid black;">
+            @{
+                var formattedTotalAmount = String.Format("{0:n}", totalAmount);
+                var formattedTotalVatAmount = String.Format("{0:n}", totalVatableAmount);
+                var formattedTotalDefAmount = String.Format("{0:n}", totalDefAmount);
+                var formattedTotalWthAmount = String.Format("{0:n}", totalWthAmount);
+                var formattedTotalNetPurchases = String.Format("{0:n}", totalNetPurchases);
 
-                </tr>
-
-                totalAmount += purchase.Amount;
-                totalVatableAmount += purchase.VatAmount;
-                totalDefAmount += purchase.Discount;
-                totalWthAmount += purchase.WhtAmount;
-                totalNetPurchases += purchase.NetPurchases;
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="text-center"><b>TOTAL:</b></td>
+                // <td class="text-end">@totalQuantities</td>
+                <td class="text-end">@formattedTotalAmount</td>
+                <td class="text-end">@formattedTotalVatAmount</td>
+                <td class="text-end">@formattedTotalDefAmount</td>
+                <td class="text-end">@formattedTotalWthAmount</td>
+                <td class="text-end"><div>@formattedTotalNetPurchases</div></td>
             }
-            <tr class="align-text-bottom" style="border-top: 2px solid black;">
+        </tr>
+    </tbody>
+</table>
+
+    @if (ViewBag.SelectedFiltering == "POLiquidation")
+    {
+        <table class="w-25 table-bordered text-center">
+            <thead>
+                <tr>
+                    <th>PO No.</th>
+                    <th>Quantity</th>
+                    <th class="text-center">Sub Total</th>
+                </tr>
+            </thead>
+            <tbody>
                 @{
-                    var formattedTotalAmount = String.Format("{0:n}", totalAmount);
-                    var formattedTotalVatAmount = String.Format("{0:n}", totalVatableAmount);
-                    var formattedTotalDefAmount = String.Format("{0:n}", totalDefAmount);
-                    var formattedTotalWthAmount = String.Format("{0:n}", totalWthAmount);
-                    var formattedTotalNetPurchases = String.Format("{0:n}", totalNetPurchases);
+                    var total = 0;
+                    var distinctPO = Model.Select(purchase => purchase.PONo).Distinct().ToList();
+                    foreach (var poNumber in distinctPO)
+                    {
+                        var purchasesWithSamePONo = Model.Where(purchase => purchase.PONo == poNumber).ToList();
+                        
+                        foreach (var purchase in purchasesWithSamePONo)
+                        {
+                            var quantity = purchase.QuantityDelivered > purchase.QuantityReceived ? purchase.QuantityReceived : purchase.QuantityDelivered;
 
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td class="text-center"><b>TOTAL:</b></td>
-                    // <td class="text-end">@totalQuantities</td>
-                    <td class="text-end">@formattedTotalAmount</td>
-                    <td class="text-end">@formattedTotalVatAmount</td>
-                    <td class="text-end">@formattedTotalDefAmount</td>
-                    <td class="text-end">@formattedTotalWthAmount</td>
-                    <td class="text-end"><div>@formattedTotalNetPurchases</div></td>
+                            var subTotal = purchasesWithSamePONo.Sum(purchase => purchase.QuantityDelivered > purchase.QuantityReceived ? purchase.QuantityReceived : purchase.QuantityDelivered);
+
+                            total += quantity;
+                            <tr>
+                                @if (purchase == purchasesWithSamePONo.First())
+                                {
+                                    <td rowspan="@purchasesWithSamePONo.Count">@Html.DisplayFor(model => purchase.PONo)</td>
+                                }
+                                <td>
+                                    @quantity
+                                </td>
+                                @if (purchase == purchasesWithSamePONo.First())
+                                {
+                                    <td rowspan="@purchasesWithSamePONo.Count">
+                                        @subTotal
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
                 }
-            </tr>
-        </tbody>
-    </table>
+                <tr>
+                    <td></td>
+                    <th>Grand Total</th>
+                    <td>@total</td>
+                </tr>
+            </tbody>
 
-    <p style="line-height: 1; margin-top:25px;" class="text-start">
-        <em>
-            <b>Software Name :</b> Accounting Administration System (AAS)
-            <br />
-            <b>Version :</b> v1.0
-            <br />
-            <b>Printed By :</b> @UserManager.GetUserName(User).ToUpper()
-            <br />
-            <b>Date & Time Printed :</b> @DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")
-        </em>
-    </p>
+        </table>
+    }
 
-    <a class="btn btn-success" onclick="printPage()" id="printButton" style="margin-top:10px;">Print</a>
-    <a asp-action="PurchaseBook" class="btn" id="otherButton" style="margin-top:10px;">Back</a>
+<p style="line-height: 1; margin-top:25px;" class="text-start">
+    <em>
+        <b>Software Name :</b> Accounting Administration System (AAS)
+        <br />
+        <b>Version :</b> v1.0
+        <br />
+        <b>Printed By :</b> @UserManager.GetUserName(User).ToUpper()
+        <br />
+        <b>Date & Time Printed :</b> @DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")
+    </em>
+</p>
 
-@section Scripts{
+<a class="btn btn-success" onclick="printPage()" id="printButton" style="margin-top:10px;">Print</a>
+<a asp-action="PurchaseBook" class="btn" id="otherButton" style="margin-top:10px;">Back</a>
+</div>
+@section Scripts {
     <script>
         function printPage() {
             // Call the print function

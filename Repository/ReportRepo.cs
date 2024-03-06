@@ -76,7 +76,7 @@ namespace Accounting_System.Repository
             return cashReceiptBooks;
         }
 
-        public List<PurchaseJournalBook> GetPurchaseBooks(string dateFrom, string dateTo, string? selectedAging)
+        public List<PurchaseJournalBook> GetPurchaseBooks(string dateFrom, string dateTo, string? selectedFiltering)
         {
             var fromDate = DateTime.Parse(dateFrom);
             var toDate = DateTime.Parse(dateTo);
@@ -87,7 +87,7 @@ namespace Accounting_System.Repository
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
 
-            if (selectedAging != "DueDate")
+            if (selectedFiltering != "DueDate")
             {
               purchaseBook = _dbContext
              .PurchaseJournalBooks
@@ -108,6 +108,49 @@ namespace Accounting_System.Repository
 
             return purchaseBook;
         }
+
+        public List<ReceivingReport> GetReceivingReport(string dateFrom, string dateTo, string? selectedFiltering)
+        {
+            var fromDate = DateTime.Parse(dateFrom);
+            var toDate = DateTime.Parse(dateTo);
+
+            if (fromDate > toDate)
+            {
+                throw new ArgumentException("Date From must be greater than Date To !");
+            }
+
+            List<ReceivingReport> receivingReport = new List<ReceivingReport>();
+
+            if (selectedFiltering == "UnpostedRR")
+            {
+                receivingReport = _dbContext
+                 .ReceivingReports
+                 .Include(rr => rr.PurchaseOrder)
+                 .ThenInclude(po => po.Supplier)
+                 .Include(rr => rr.PurchaseOrder)
+                 .ThenInclude(po => po.Product)
+                 .AsEnumerable()
+                 .Where(rr => rr.Date >= fromDate && rr.Date <= toDate && !rr.IsPosted)
+                 .OrderBy(rr => rr.Id)
+                 .ToList();
+            }
+            else
+            {
+                receivingReport = _dbContext
+                 .ReceivingReports
+                 .Include(rr => rr.PurchaseOrder)
+                 .ThenInclude(po => po.Supplier)
+                 .Include(rr => rr.PurchaseOrder)
+                 .ThenInclude(po => po.Product)
+                 .AsEnumerable()
+                 .Where(rr => rr.DueDate >= fromDate && rr.DueDate <= toDate && rr.IsPosted)
+                 .OrderBy(rr => rr.Id)
+                 .ToList();
+            }
+
+            return receivingReport;
+        }
+
 
         public List<InventoryBook> GetInventoryBooks(string dateFrom, string dateTo)
         {
