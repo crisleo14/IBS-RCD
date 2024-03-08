@@ -75,6 +75,19 @@ body {
         display: none;
         visibility: hidden;
     }
+    body {
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        margin: 0;
+        padding: 0;
+        max-width: 100%;
+    }
+    main {
+        margin: 0;
+        padding: 0;
+    }
 }
 
 .underline {
