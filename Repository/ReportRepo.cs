@@ -1,6 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 
 namespace Accounting_System.Repository
 {
@@ -30,7 +31,7 @@ namespace Accounting_System.Repository
                  .SalesBooks
                  .AsEnumerable()
                  .Where(s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate)
-                 .OrderBy(s => s.Id)
+                 .OrderBy(s => s.TransactionDate)
                  .ToList();
             }
             else if (selectedDocument == "DueDate")
@@ -39,7 +40,7 @@ namespace Accounting_System.Repository
                  .SalesBooks
                  .AsEnumerable()
                  .Where(s => s.DueDate >= fromDate && s.DueDate <= toDate)
-                 .OrderBy(s => s.Id)
+                 .OrderBy(s => s.DueDate)
                  .ToList();
             }
             else
@@ -48,7 +49,7 @@ namespace Accounting_System.Repository
                  .SalesBooks
                  .AsEnumerable()
                  .Where(s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate && s.SerialNo.Contains(selectedDocument))
-                 .OrderBy(s => s.Id)
+                 .OrderBy(s => s.TransactionDate)
                  .ToList();   
             }
 
@@ -87,24 +88,14 @@ namespace Accounting_System.Repository
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
 
-            if (selectedFiltering != "DueDate")
-            {
-              purchaseBook = _dbContext
+            string orderBy = selectedFiltering == "DueDate" ? orderBy = "s.DueDate" : selectedFiltering == "POLiquidation" || selectedFiltering == "UnpostedRR" ? orderBy = "s.Id" : orderBy = "s.Date";
+
+            purchaseBook = _dbContext
              .PurchaseJournalBooks
              .AsEnumerable()
-             .Where(p => DateTime.Parse(p.Date) >= fromDate && DateTime.Parse(p.Date) <= toDate)
-             .OrderBy(s => s.Id)
+             .Where(p => DateTime.Parse(selectedFiltering == "DueDate" || selectedFiltering == "POLiquidation" ? p.DueDate : p.Date) >= fromDate && DateTime.Parse(p.Date) <= toDate)
+             .OrderBy(s => orderBy)
              .ToList();
-            }
-            else
-            {
-              purchaseBook = _dbContext
-             .PurchaseJournalBooks
-             .AsEnumerable()
-             .Where(p => DateTime.Parse(p.DueDate) >= fromDate && DateTime.Parse(p.DueDate) <= toDate)
-             .OrderBy(s => s.Id)
-             .ToList();
-            }
 
             return purchaseBook;
         }
@@ -186,7 +177,7 @@ namespace Accounting_System.Repository
              .GeneralLedgerBooks
              .AsEnumerable()
              .Where(i => DateTime.Parse(i.Date) >= fromDate && DateTime.Parse(i.Date) <= toDate)
-             .OrderBy(i => i.Id)
+             .OrderBy(i => i.Date)
              .ToList();
 
             return generalLedgerBooks;
