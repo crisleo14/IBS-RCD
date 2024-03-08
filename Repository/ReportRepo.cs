@@ -265,25 +265,5 @@ namespace Accounting_System.Repository
                 .Products
                 .ToListAsync();
         }
-
-        public List<PurchaseJournalBook> GetMaturityAging(string dateFrom, string dateTo)
-        {
-            var fromDate = DateTime.Parse(dateFrom);
-            var toDate = DateTime.Parse(dateTo);
-
-            if (fromDate > toDate)
-            {
-                throw new ArgumentException("Date From must be greater than Date To !");
-            }
-
-            var maturityAging = _dbContext
-             .PurchaseJournalBooks
-             .AsEnumerable()
-             .Where(p => DateTime.Parse(p.DueDate) >= fromDate && DateTime.Parse(p.DueDate) <= toDate)
-             .OrderBy(s => s.Id)
-             .ToList();
-
-            return maturityAging;
-        }
     }
 }

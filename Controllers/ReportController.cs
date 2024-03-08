@@ -302,37 +302,5 @@ namespace Accounting_System.Controllers
 
             return View(products);
         }
-
-        public IActionResult MaturityAging()
-        {
-            return View();
-        }
-
-        public IActionResult MaturityAgingReport(ViewModelBook model)
-        {
-            ViewBag.DateFrom = model.DateFrom;
-            ViewBag.DateTo = model.DateTo;
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    var maturityAging = _reportRepo.GetMaturityAging(model.DateFrom, model.DateTo);
-                    var lastRecord = maturityAging.LastOrDefault();
-                    if (lastRecord != null)
-                    {
-                        ViewBag.LastRecord = lastRecord.CreatedDate;
-                    }
-
-                    return View(maturityAging);
-                }
-                catch (Exception ex)
-                {
-                    TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(MaturityAging));
-                }
-            }
-
-            return View(model);
-        }
     }
 }
