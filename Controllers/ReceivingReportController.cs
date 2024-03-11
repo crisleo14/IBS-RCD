@@ -487,13 +487,13 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.CanceledBy, $"Canceled receiving# {model.RRNo}", "Receiving Report");
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled receiving# {model.RRNo}", "Receiving Report");
                     await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Receiving Report has been Canceled.";
+                    TempData["success"] = "Receiving Report has been Cancelled.";
                 }
                 return RedirectToAction("Index");
             }

@@ -316,13 +316,13 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.CanceledBy, $"Canceled purchase order# {model.PONo}", "Purchase Order");
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled purchase order# {model.PONo}", "Purchase Order");
                     await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Purchase Order has been Canceled.";
+                    TempData["success"] = "Purchase Order has been Cancelled.";
                 }
                 return RedirectToAction("Index");
             }

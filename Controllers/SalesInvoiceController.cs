@@ -643,17 +643,17 @@ namespace Accounting_System.Controllers
                     model.IsCanceled = true;
                     model.CanceledBy = _userManager.GetUserName(this.User);
                     model.CanceledDate = DateTime.Now;
-                    model.Status = "Canceled";
+                    model.Status = "Cancelled";
 
                     #region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.CanceledBy, $"Canceled invoice# {model.SINo}", "Sales Invoice");
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled invoice# {model.SINo}", "Sales Invoice");
                     await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Sales Invoice has been Canceled.";
+                    TempData["success"] = "Sales Invoice has been Cancelled.";
                 }
                 return RedirectToAction("Index");
             }

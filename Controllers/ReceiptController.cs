@@ -1134,13 +1134,13 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.CanceledBy, $"Canceled collection receipt# {model.CRNo}", "Collection Receipt");
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled collection receipt# {model.CRNo}", "Collection Receipt");
                     await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Collection Receipt has been Canceled.";
+                    TempData["success"] = "Collection Receipt has been Cancelled.";
                 }
                 return RedirectToAction("CollectionIndex");
             }
@@ -1832,13 +1832,13 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.CanceledBy, $"Canceled official receipt# {model.ORNo}", "Official Receipt");
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled official receipt# {model.ORNo}", "Official Receipt");
                     await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Official Receipt has been Canceled.";
+                    TempData["success"] = "Official Receipt has been Cancelled.";
                 }
                 return RedirectToAction("OfficialIndex");
             }

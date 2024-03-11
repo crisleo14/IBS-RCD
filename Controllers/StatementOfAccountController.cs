@@ -635,13 +635,13 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.CanceledBy, $"Canceled statement of account# {model.SOANo}", "Statement Of Account");
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled statement of account# {model.SOANo}", "Statement Of Account");
                     await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Statement of Account has been canceled.";
+                    TempData["success"] = "Statement of Account has been Cancelled.";
                 }
                 return RedirectToAction("Index");
             }

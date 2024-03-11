@@ -643,13 +643,13 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.CanceledBy, $"Canceled debit memo# {model.DMNo}", "Debit Memo");
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled debit memo# {model.DMNo}", "Debit Memo");
                     await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Debit Memo has been Canceled.";
+                    TempData["success"] = "Debit Memo has been Cancelled.";
                 }
                 return RedirectToAction("Index");
             }
