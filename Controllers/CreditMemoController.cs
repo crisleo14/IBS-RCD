@@ -757,13 +757,13 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.CanceledBy, $"Canceled credit memo# {model.CMNo}", "Credit Memo");
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled credit memo# {model.CMNo}", "Credit Memo");
                     await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Credit Memo has been Canceled.";
+                    TempData["success"] = "Credit Memo has been Cancelled.";
                 }
                 return RedirectToAction("Index");
             }
