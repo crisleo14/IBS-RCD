@@ -29,6 +29,7 @@
     decimal totalDefAmount = 0;
     decimal totalWthAmount = 0;
     decimal totalNetPurchases = 0;
+    decimal totalQuantity = 0;
 
     int numberOfRecords = 0;
     decimal amountFieldControlTotal = 0;
@@ -129,7 +130,7 @@ else
                 <td>
                     @Html.DisplayFor(model => purchase.PurchaseOrder.Product.Name)
                 </td>
-                <td>
+                <td class="text-end">
                     @{
                     var quantity = purchase.QuantityDelivered > purchase.QuantityReceived ? purchase.QuantityReceived : purchase.QuantityDelivered;
                     }
@@ -154,6 +155,7 @@ else
             </tr>
 
             totalAmount += purchase.Amount;
+            totalQuantity += quantity;
             totalVatableAmount += purchase.VatAmount;
             totalDefAmount += 0;
             totalWthAmount += purchase.EwtAmount;
@@ -161,13 +163,6 @@ else
         }
         <tr class="align-text-bottom" style="border-top: 2px solid black;">
             @{
-                var formattedTotalAmount = String.Format("{0:n}", totalAmount);
-                var formattedTotalVatAmount = String.Format("{0:n}", totalVatableAmount);
-                var formattedTotalDefAmount = String.Format("{0:n}", totalDefAmount);
-                var formattedTotalWthAmount = String.Format("{0:n}", totalWthAmount);
-                var formattedTotalNetPurchases = String.Format("{0:n}", totalNetPurchases);
-
-                <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
@@ -175,16 +170,16 @@ else
                 <td></td>
                 <td></td>
                 <td class="text-center"><b>TOTAL:</b></td>
-                // <td class="text-end">@totalQuantities</td>
-                <td class="text-end">@formattedTotalAmount</td>
-                <td class="text-end">@formattedTotalVatAmount</td>
-                <td class="text-end">@formattedTotalDefAmount</td>
-                <td class="text-end">@formattedTotalWthAmount</td>
-                <td class="text-end"><div>@formattedTotalNetPurchases</div></td>
+                <td class="text-end">@totalQuantity.ToString("N2")</td>
+                <td class="text-end">@totalAmount.ToString("N2")</td>
+                <td class="text-end">@totalVatableAmount.ToString("N2")</td>
+                <td class="text-end">@totalDefAmount.ToString("N2")</td>
+                <td class="text-end">@totalWthAmount.ToString("N2")</td>
+                <td class="text-end">@totalNetPurchases.ToString("N2")</td>
             }
         </tr>
     </tbody>
-</table>
+</table> 
 
     @if (ViewBag.SelectedFiltering == "POLiquidation")
     {
@@ -192,6 +187,7 @@ else
             <thead>
                 <tr>
                     <th>PO No.</th>
+                    <th>RR No.</th>
                     <th>Quantity</th>
                     <th class="text-center">Sub Total</th>
                 </tr>
@@ -217,6 +213,9 @@ else
                                     <td rowspan="@purchasesWithSamePONo.Count">@Html.DisplayFor(model => purchase.PONo)</td>
                                 }
                                 <td>
+                                    @Html.DisplayFor(model => purchase.RRNo)
+                                </td>
+                                <td>
                                     @quantity
                                 </td>
                                 @if (purchase == purchasesWithSamePONo.First())
@@ -230,6 +229,7 @@ else
                     }
                 }
                 <tr>
+                    <td></td>
                     <td></td>
                     <th>Grand Total</th>
                     <td>@total</td>
@@ -405,10 +405,10 @@ else
         // Get the pre tag element
         var resultPre = document.getElementById('resultPre');
 
-        console.log("@formattedTotalAmount");
+        console.log("@totalAmount");
         // Replace the placeholder in the HTML with the actual number of records
         resultPre.innerHTML = resultPre.innerHTML.replace('@numberOfRecords', (allTrElements.length - 1));
-        resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@formattedTotalAmount");
+        resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@totalAmount");
 
     </script>
 
