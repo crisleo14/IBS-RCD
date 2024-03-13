@@ -130,7 +130,7 @@ namespace Accounting_System.Controllers
                         model.CurrentAndPreviousAmount += model.Amount[i];
                     }
                 }
-                model.Total = model.CurrentAndPreviousAmount + model.VatAmount;
+                model.Total = model.CurrentAndPreviousAmount;
 
                 if (customer.CustomerType == "Vatable")
                 {
@@ -571,7 +571,7 @@ namespace Accounting_System.Controllers
                                         Description = model.Service.Name,
                                         AccountTitle = model.Service.CurrentAndPrevious,
                                         Debit = 0,
-                                        Credit = viewModelSOA.Total - viewModelSOA.VatAmount,
+                                        Credit = viewModelSOA.Total / 1.12m,
                                         CreatedBy = model.CreatedBy,
                                         CreatedDate = model.CreatedDate
                                     }
