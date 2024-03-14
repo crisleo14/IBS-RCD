@@ -201,10 +201,32 @@ else if (Model.Source == "Statement Of Account")
         <tbody>
             <tr style="height:80px;">
                 <td>@Html.DisplayFor(model => model.SOANo)</td>
-                <td>@Model.StatementOfAccount.CreatedDate.ToShortDateString()</td>
+                <td class="pt-2">
+                    @for (int i = 0; i < Model.Period.Length; i++)
+                    {
+                        if (Model.CreatedDate >= Model.Period[i])
+                        {
+                            <p style="line-height:15px">
+                                @Model.Period[i].ToString("MMMM yyyy")
+                            </p>
+                        }else
+                        {
+                            <p style="line-height:15px">
+                                @Model.Period[i].ToString("MMMM yyyy")
+                            </p>
+                        }
+                    }
+                </td>
                 <td>@Html.DisplayFor(model => model.StatementOfAccount.Service.Name)</td>
                 <td>@Html.DisplayFor(model => model.Description)</td>
-                <td>@Html.DisplayFor(model => model.CreditAmount)</td>
+                <td class="pt-2">
+                    @for (int i = 0; i < Model.Amount.Length; i++)
+                    {
+                        <p style="line-height:15px">
+                            @Html.DisplayFor(model => model.Amount[i])
+                        </p>
+                    }
+                </td>
             </tr>
 
         </tbody>

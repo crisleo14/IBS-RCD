@@ -40,17 +40,14 @@
                     <option></option>
                 </select>
                     <span asp-validation-for="SalesInvoiceId" class="text-danger"></span>
-                    @{
-                        var requiredField = Model.Source == "Statement of Account" ? "required" : "";
-                    }
             <div class="form-group mt-3">
                 <label asp-for="AdjustedPrice" class="control-label"></label>
-                <input asp-for="AdjustedPrice" class="form-control moneyInput" required/>
+                <input asp-for="AdjustedPrice" class="form-control moneyInput" required />
                 <span asp-validation-for="AdjustedPrice" class="text-danger"></span>
             </div>
             <div class="form-group mb-3 mt-3">
                 <label  class="control-label">Quantity</label>
-                <input asp-for="Quantity" type="number" class="form-control" required/>
+                <input asp-for="Quantity" type="number" class="form-control" required />
                 <span asp-validation-for="Quantity" class="text-danger"></span>
             </div>
             </div>

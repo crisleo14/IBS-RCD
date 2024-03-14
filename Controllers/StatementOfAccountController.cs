@@ -221,7 +221,7 @@ namespace Accounting_System.Controllers
             return RedirectToAction("Generate", new { id = id });
         }
 
-        public async Task<IActionResult> Post(int id, CancellationToken cancellationToken, ViewModelSOA viewModelSOA)
+        public async Task<IActionResult> Post(int id, CancellationToken cancellationToken, ViewModelDMCM viewModelSOA)
         {
             var model = await _statementOfAccountRepo.FindSOA(id, cancellationToken);
 
