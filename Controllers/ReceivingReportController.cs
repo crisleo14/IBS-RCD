@@ -405,7 +405,7 @@ namespace Accounting_System.Controllers
                                 Amount = model.Amount,
                                 VatAmount = model.VatAmount,
                                 WhtAmount = model.EwtAmount,
-                                NetPurchases = model.Amount - model.EwtAmount,
+                                NetPurchases = model.NetAmount,
                                 CreatedBy = model.CreatedBy,
                                 PONo = model.PurchaseOrder.PONo,
                                 DueDate = model.DueDate.ToShortDateString()
