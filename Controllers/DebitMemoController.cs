@@ -90,6 +90,7 @@ namespace Accounting_System.Controllers
 
                 model.SeriesNumber = getLastNumber;
                 model.DMNo = generateDMNo;
+                model.CreatedBy = _userManager.GetUserName(this.User);
 
                 if (model.Source == "Sales Invoice")
                 {
@@ -98,7 +99,7 @@ namespace Accounting_System.Controllers
                     var existingSalesInvoice = await _dbContext.SalesInvoices
                                                .FirstOrDefaultAsync(si => si.Id == model.SalesInvoiceId, cancellationToken);
 
-                    model.DebitAmount = model.Quantity * model.AdjustedPrice;
+                    model.DebitAmount = (decimal)(model.Quantity * model.AdjustedPrice);
 
                     if (existingSalesInvoice.CustomerType == "Vatable")
                     {
@@ -174,7 +175,6 @@ namespace Accounting_System.Controllers
                     }
                 }
 
-                model.CreatedBy = _userManager.GetUserName(this.User);
                 await _dbContext.AddAsync(model, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -220,7 +220,7 @@ namespace Accounting_System.Controllers
             return RedirectToAction("Print", new { id = id });
         }
 
-        public async Task<IActionResult> Post(int id, CancellationToken cancellationToken, ViewModelSOA viewModelSOA)
+        public async Task<IActionResult> Post(int id, CancellationToken cancellationToken, ViewModelDMCM viewModelDMCM)
         {
             var model = await _debitMemoRepo.FindDM(id, cancellationToken);
 
@@ -442,22 +442,22 @@ namespace Accounting_System.Controllers
 
                             if (existingSOA.Customer.CustomerType == "Vatable")
                             {
-                                viewModelSOA.Total = model.Amount[i];
-                                viewModelSOA.NetAmount = (model.Amount[i] - existingSOA.Discount) / 1.12m;
-                                viewModelSOA.VatAmount = (model.Amount[i] - existingSOA.Discount) - viewModelSOA.NetAmount;
-                                viewModelSOA.WithholdingTaxAmount = viewModelSOA.NetAmount * (services.Percent / 100m);
+                                viewModelDMCM.Total = model.Amount[i];
+                                viewModelDMCM.NetAmount = (model.Amount[i] - existingSOA.Discount) / 1.12m;
+                                viewModelDMCM.VatAmount = (model.Amount[i] - existingSOA.Discount) - viewModelDMCM.NetAmount;
+                                viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (services.Percent / 100m);
                                 if (existingSOA.Customer.WithHoldingVat)
                                 {
-                                    viewModelSOA.WithholdingVatAmount = viewModelSOA.NetAmount * 0.05m;
+                                    viewModelDMCM.WithholdingVatAmount = viewModelDMCM.NetAmount * 0.05m;
                                 }
                             }
                             else
                             {
-                                viewModelSOA.NetAmount = model.Amount[i] - existingSOA.Discount;
-                                viewModelSOA.WithholdingTaxAmount = viewModelSOA.NetAmount * (services.Percent / 100m);
+                                viewModelDMCM.NetAmount = model.Amount[i] - existingSOA.Discount;
+                                viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (services.Percent / 100m);
                                 if (existingSOA.Customer.WithHoldingVat)
                                 {
-                                    viewModelSOA.WithholdingVatAmount = viewModelSOA.NetAmount * 0.05m;
+                                    viewModelDMCM.WithholdingVatAmount = viewModelDMCM.NetAmount * 0.05m;
                                 }
                             }
 
@@ -465,13 +465,13 @@ namespace Accounting_System.Controllers
                             {
                                 var total = Math.Round(model.Amount[i] / 1.12m, 2);
 
-                                var roundedNetAmount = Math.Round(viewModelSOA.NetAmount, 2);
+                                var roundedNetAmount = Math.Round(viewModelDMCM.NetAmount, 2);
 
                                 if (roundedNetAmount > total)
                                 {
-                                    var shortAmount = viewModelSOA.NetAmount - total;
+                                    var shortAmount = viewModelDMCM.NetAmount - total;
 
-                                    viewModelSOA.Amount[i] += shortAmount;
+                                    viewModelDMCM.Amount[i] += shortAmount;
                                 }
                             }
 
@@ -653,11 +653,11 @@ namespace Accounting_System.Controllers
                                     sales.TinNo = model.SOA.Customer.TinNo;
                                     sales.Address = model.SOA.Customer.Address;
                                     sales.Description = model.SOA.Service.Name;
-                                    sales.Amount = viewModelSOA.Total;
-                                    sales.VatAmount = viewModelSOA.VatAmount;
-                                    sales.VatableSales = viewModelSOA.Total / 1.12m;
+                                    sales.Amount = viewModelDMCM.Total;
+                                    sales.VatAmount = viewModelDMCM.VatAmount;
+                                    sales.VatableSales = viewModelDMCM.Total / 1.12m;
                                     //sales.Discount = model.Discount;
-                                    sales.NetSales = viewModelSOA.NetAmount;
+                                    sales.NetSales = viewModelDMCM.NetAmount;
                                     sales.CreatedBy = model.CreatedBy;
                                     sales.CreatedDate = model.CreatedDate;
                                     sales.DueDate = existingSOA?.DueDate;
@@ -670,10 +670,10 @@ namespace Accounting_System.Controllers
                                     sales.TinNo = model.SOA.Customer.TinNo;
                                     sales.Address = model.SOA.Customer.Address;
                                     sales.Description = model.SOA.Service.Name;
-                                    sales.Amount = viewModelSOA.Total;
-                                    sales.VatExemptSales = viewModelSOA.Total;
+                                    sales.Amount = viewModelDMCM.Total;
+                                    sales.VatExemptSales = viewModelDMCM.Total;
                                     //sales.Discount = model.Discount;
-                                    sales.NetSales = viewModelSOA.NetAmount;
+                                    sales.NetSales = viewModelDMCM.NetAmount;
                                     sales.CreatedBy = model.CreatedBy;
                                     sales.CreatedDate = model.CreatedDate;
                                     sales.DueDate = existingSOA?.DueDate;
@@ -686,10 +686,10 @@ namespace Accounting_System.Controllers
                                     sales.TinNo = model.SOA.Customer.TinNo;
                                     sales.Address = model.SOA.Customer.Address;
                                     sales.Description = model.SOA.Service.Name;
-                                    sales.Amount = viewModelSOA.Total;
-                                    sales.ZeroRated = viewModelSOA.Total;
+                                    sales.Amount = viewModelDMCM.Total;
+                                    sales.ZeroRated = viewModelDMCM.Total;
                                     //sales.Discount = model.Discount;
-                                    sales.NetSales = viewModelSOA.NetAmount;
+                                    sales.NetSales = viewModelDMCM.NetAmount;
                                     sales.CreatedBy = model.CreatedBy;
                                     sales.CreatedDate = model.CreatedDate;
                                     sales.DueDate = existingSOA?.DueDate;
@@ -709,13 +709,13 @@ namespace Accounting_System.Controllers
                                             Reference = model.DMNo,
                                             Description = model.SOA.Service.Name,
                                             AccountTitle = "1010204 AR-Non Trade Receivable",
-                                            Debit = viewModelSOA.Total - (viewModelSOA.WithholdingTaxAmount + viewModelSOA.WithholdingVatAmount),
+                                            Debit = viewModelDMCM.Total - (viewModelDMCM.WithholdingTaxAmount + viewModelDMCM.WithholdingVatAmount),
                                             Credit = 0,
                                             CreatedBy = model.CreatedBy,
                                             CreatedDate = model.CreatedDate
                                         }
                                     );
-                                if (viewModelSOA.WithholdingTaxAmount > 0)
+                                if (viewModelDMCM.WithholdingTaxAmount > 0)
                                 {
                                     ledgers.Add(
                                         new GeneralLedgerBook
@@ -724,14 +724,14 @@ namespace Accounting_System.Controllers
                                             Reference = model.DMNo,
                                             Description = model.SOA.Service.Name,
                                             AccountTitle = "1010202 Deferred Creditable Withholding Tax",
-                                            Debit = viewModelSOA.WithholdingTaxAmount,
+                                            Debit = viewModelDMCM.WithholdingTaxAmount,
                                             Credit = 0,
                                             CreatedBy = model.CreatedBy,
                                             CreatedDate = model.CreatedDate
                                         }
                                     );
                                 }
-                                if (viewModelSOA.WithholdingVatAmount > 0)
+                                if (viewModelDMCM.WithholdingVatAmount > 0)
                                 {
                                     ledgers.Add(
                                         new GeneralLedgerBook
@@ -740,7 +740,7 @@ namespace Accounting_System.Controllers
                                             Reference = model.DMNo,
                                             Description = model.SOA.Service.Name,
                                             AccountTitle = "1010203 Deferred Creditable Withholding Vat",
-                                            Debit = viewModelSOA.WithholdingVatAmount,
+                                            Debit = viewModelDMCM.WithholdingVatAmount,
                                             Credit = 0,
                                             CreatedBy = model.CreatedBy,
                                             CreatedDate = model.CreatedDate
@@ -748,7 +748,7 @@ namespace Accounting_System.Controllers
                                     );
                                 }
 
-                                if (viewModelSOA.Total > 0)
+                                if (viewModelDMCM.Total > 0)
                                 {
                                     ledgers.Add(new GeneralLedgerBook
                                     {
@@ -757,13 +757,13 @@ namespace Accounting_System.Controllers
                                         Description = model.SOA.Service.Name,
                                         AccountTitle = model.SOA.Service.CurrentAndPrevious,
                                         Debit = 0,
-                                        Credit = viewModelSOA.Total / 1.12m,
+                                        Credit = viewModelDMCM.Total / 1.12m,
                                         CreatedBy = model.CreatedBy,
                                         CreatedDate = model.CreatedDate
                                     });
                                 }
 
-                                if (viewModelSOA.VatAmount > 0)
+                                if (viewModelDMCM.VatAmount > 0)
                                 {
                                     ledgers.Add(
                                         new GeneralLedgerBook
@@ -773,7 +773,7 @@ namespace Accounting_System.Controllers
                                             Description = model.SOA.Service.Name,
                                             AccountTitle = "2010304 Deferred Vat Output",
                                             Debit = 0,
-                                            Credit = viewModelSOA.VatAmount,
+                                            Credit = viewModelDMCM.VatAmount,
                                             CreatedBy = model.CreatedBy,
                                             CreatedDate = model.CreatedDate
                                         }

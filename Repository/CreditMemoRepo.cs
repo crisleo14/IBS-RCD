@@ -101,5 +101,21 @@ namespace Accounting_System.Repository
                 throw new ArgumentException("Invalid id value. The id must be greater than 0.");
             }
         }
+
+        public async Task<Services> GetServicesAsync(int id, CancellationToken cancellationToken = default)
+        {
+            var services = await _dbContext
+                .Services
+                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+
+            if (services != null)
+            {
+                return services;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
+            }
+        }
     }
 }

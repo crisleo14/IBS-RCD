@@ -2,7 +2,7 @@
 
 namespace Accounting_System.Models
 {
-    public class ViewModelSOA
+    public class ViewModelDMCM
     {
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal NetAmount { get; set; }
