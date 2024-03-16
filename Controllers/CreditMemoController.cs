@@ -62,7 +62,7 @@ namespace Accounting_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreditMemo model, DateTime[] period, CancellationToken cancellationToken)
+        public async Task<IActionResult> Create(CreditMemo model, DateTime[] period, CancellationToken cancellationToken, decimal[]? amount)
         {
             model.Invoices = await _dbContext.SalesInvoices
                 .Select(si => new SelectListItem
@@ -159,11 +159,16 @@ namespace Accounting_System.Controllers
 
                     #region --CM Entries function
 
+                    for (int i = 0; i < amount.Length; i++)
+                    {
+                        model.Amount[i] = -amount[i];
+                    }
+
                     for (int i = 0; i < period.Length; i++)
                     {
                         if (model.CreatedDate >= period[i])
                         {
-                            model.CurrentAndPreviousAmount += -model.Amount[i];
+                            model.CurrentAndPreviousAmount += model.Amount[i];
                         }
                     }
 
@@ -351,7 +356,7 @@ namespace Accounting_System.Controllers
 
                     #endregion --Retrieval of Services
 
-                    #region --Retrieval of SI and SOA
+                    #region --Retrieval of SI and SOA--
 
                     var existingSI = await _dbContext.SalesInvoices
                                                 .FirstOrDefaultAsync(si => si.Id == model.SIId, cancellationToken);
@@ -359,7 +364,7 @@ namespace Accounting_System.Controllers
                                                 .Include(soa => soa.Customer)
                                                 .FirstOrDefaultAsync(si => si.Id == model.SOAId, cancellationToken);
 
-                    #endregion --Retrieval of SI and SOA
+                    #endregion --Retrieval of SI and SOA--
 
                     if (model.SIId != null)
                     {
@@ -549,6 +554,10 @@ namespace Accounting_System.Controllers
 
                     if (model.SOAId != null)
                     {
+                        for (int i = 0; i < model.Amount.Length; i++)
+                        {
+                                model.Amount[i] = model.Amount[i];
+                        }
                         for (int i = 0; i < model.Period.Length; i++)
                         {
                             #region --SOA Computation--
@@ -594,59 +603,64 @@ namespace Accounting_System.Controllers
                             {
                                 #region --Sales Book Recording
 
-                                var sales = new SalesBook();
+                                if (model.Amount[i] < 0.00m)
+                                {
+                                    var sales = new SalesBook();
 
-                                if (model.StatementOfAccount.Customer.CustomerType == "Vatable")
-                                {
-                                    sales.TransactionDate = model.Date.ToShortDateString();
-                                    sales.SerialNo = model.CMNo;
-                                    sales.SoldTo = model.StatementOfAccount.Customer.Name;
-                                    sales.TinNo = model.StatementOfAccount.Customer.TinNo;
-                                    sales.Address = model.StatementOfAccount.Customer.Address;
-                                    sales.Description = model.StatementOfAccount.Service.Name;
-                                    sales.Amount = model.CreditAmount;
-                                    sales.VatAmount = model.VatAmount;
-                                    sales.VatableSales = model.VatableSales;
-                                    //sales.Discount = model.Discount;
-                                    sales.NetSales = model.VatableSales;
-                                    sales.CreatedBy = model.CreatedBy;
-                                    sales.CreatedDate = model.CreatedDate;
-                                    sales.DueDate = existingSOA?.DueDate;
+                                    if (model.StatementOfAccount.Customer.CustomerType == "Vatable")
+                                    {
+                                        sales.TransactionDate = model.Date.ToShortDateString();
+                                        sales.SerialNo = model.CMNo;
+                                        sales.SoldTo = model.StatementOfAccount.Customer.Name;
+                                        sales.TinNo = model.StatementOfAccount.Customer.TinNo;
+                                        sales.Address = model.StatementOfAccount.Customer.Address;
+                                        sales.Description = model.StatementOfAccount.Service.Name;
+                                        sales.Amount = model.CreditAmount;
+                                        sales.VatAmount = model.VatAmount;
+                                        sales.VatableSales = model.VatableSales;
+                                        //sales.Discount = model.Discount;
+                                        sales.NetSales = model.VatableSales;
+                                        sales.CreatedBy = model.CreatedBy;
+                                        sales.CreatedDate = model.CreatedDate;
+                                        sales.DueDate = existingSOA?.DueDate;
+                                        sales.DocumentId = model.SOAId;
+                                    }
+                                    else if (model.StatementOfAccount.Customer.CustomerType == "Exempt")
+                                    {
+                                        sales.TransactionDate = model.Date.ToShortDateString();
+                                        sales.SerialNo = model.CMNo;
+                                        sales.SoldTo = model.StatementOfAccount.Customer.Name;
+                                        sales.TinNo = model.StatementOfAccount.Customer.TinNo;
+                                        sales.Address = model.StatementOfAccount.Customer.Address;
+                                        sales.Description = model.StatementOfAccount.Service.Name;
+                                        sales.Amount = model.CreditAmount;
+                                        sales.VatExemptSales = model.CreditAmount;
+                                        //sales.Discount = model.Discount;
+                                        sales.NetSales = model.VatableSales;
+                                        sales.CreatedBy = model.CreatedBy;
+                                        sales.CreatedDate = model.CreatedDate;
+                                        sales.DueDate = existingSOA?.DueDate;
+                                        sales.DocumentId = model.SOAId;
+                                    }
+                                    else
+                                    {
+                                        sales.TransactionDate = model.Date.ToShortDateString();
+                                        sales.SerialNo = model.CMNo;
+                                        sales.SoldTo = model.StatementOfAccount.Customer.Name;
+                                        sales.TinNo = model.StatementOfAccount.Customer.TinNo;
+                                        sales.Address = model.StatementOfAccount.Customer.Address;
+                                        sales.Description = model.StatementOfAccount.Service.Name;
+                                        sales.Amount = model.CreditAmount;
+                                        sales.ZeroRated = model.CreditAmount;
+                                        //sales.Discount = model.Discount;
+                                        sales.NetSales = model.VatableSales;
+                                        sales.CreatedBy = model.CreatedBy;
+                                        sales.CreatedDate = model.CreatedDate;
+                                        sales.DueDate = existingSOA?.DueDate;
+                                        sales.DocumentId = model.SOAId;
+                                    }
+                                    await _dbContext.AddAsync(sales, cancellationToken);
                                 }
-                                else if (model.StatementOfAccount.Customer.CustomerType == "Exempt")
-                                {
-                                    sales.TransactionDate = model.Date.ToShortDateString();
-                                    sales.SerialNo = model.CMNo;
-                                    sales.SoldTo = model.StatementOfAccount.Customer.Name;
-                                    sales.TinNo = model.StatementOfAccount.Customer.TinNo;
-                                    sales.Address = model.StatementOfAccount.Customer.Address;
-                                    sales.Description = model.StatementOfAccount.Service.Name;
-                                    sales.Amount = model.CreditAmount;
-                                    sales.VatExemptSales = model.CreditAmount;
-                                    //sales.Discount = model.Discount;
-                                    sales.NetSales = model.VatableSales;
-                                    sales.CreatedBy = model.CreatedBy;
-                                    sales.CreatedDate = model.CreatedDate;
-                                    sales.DueDate = existingSOA?.DueDate;
-                                }
-                                else
-                                {
-                                    sales.TransactionDate = model.Date.ToShortDateString();
-                                    sales.SerialNo = model.CMNo;
-                                    sales.SoldTo = model.StatementOfAccount.Customer.Name;
-                                    sales.TinNo = model.StatementOfAccount.Customer.TinNo;
-                                    sales.Address = model.StatementOfAccount.Customer.Address;
-                                    sales.Description = model.StatementOfAccount.Service.Name;
-                                    sales.Amount = model.CreditAmount;
-                                    sales.ZeroRated = model.CreditAmount;
-                                    //sales.Discount = model.Discount;
-                                    sales.NetSales = model.VatableSales;
-                                    sales.CreatedBy = model.CreatedBy;
-                                    sales.CreatedDate = model.CreatedDate;
-                                    sales.DueDate = existingSOA?.DueDate;
-                                }
-
-                                await _dbContext.AddAsync(sales, cancellationToken);
 
                                 #endregion --Sales Book Recording
 
@@ -757,58 +771,64 @@ namespace Accounting_System.Controllers
                             {
                                 #region --Sales Book Recording(SOA)--
 
-                                var sales = new SalesBook();
+                                if (model.Amount[i] < 0.00m)
+                                {
+                                    var sales = new SalesBook();
 
-                                if (model.StatementOfAccount.Customer.CustomerType == "Vatable")
-                                {
-                                    sales.TransactionDate = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString();
-                                    sales.SerialNo = model.CMNo;
-                                    sales.SoldTo = model.StatementOfAccount.Customer.Name;
-                                    sales.TinNo = model.StatementOfAccount.Customer.TinNo;
-                                    sales.Address = model.StatementOfAccount.Customer.Address;
-                                    sales.Description = model.StatementOfAccount.Service.Name;
-                                    sales.Amount = viewModelDMCM.Total;
-                                    sales.VatAmount = viewModelDMCM.VatAmount;
-                                    sales.VatableSales = viewModelDMCM.Total / 1.12m;
-                                    //sales.Discount = model.Discount;
-                                    sales.NetSales = viewModelDMCM.NetAmount;
-                                    sales.CreatedBy = model.CreatedBy;
-                                    sales.CreatedDate = model.CreatedDate;
-                                    sales.DueDate = existingSOA?.DueDate;
+                                    if (model.StatementOfAccount.Customer.CustomerType == "Vatable")
+                                    {
+                                        sales.TransactionDate = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString();
+                                        sales.SerialNo = model.CMNo;
+                                        sales.SoldTo = model.StatementOfAccount.Customer.Name;
+                                        sales.TinNo = model.StatementOfAccount.Customer.TinNo;
+                                        sales.Address = model.StatementOfAccount.Customer.Address;
+                                        sales.Description = model.StatementOfAccount.Service.Name;
+                                        sales.Amount = viewModelDMCM.Total;
+                                        sales.VatAmount = viewModelDMCM.VatAmount;
+                                        sales.VatableSales = viewModelDMCM.Total / 1.12m;
+                                        //sales.Discount = model.Discount;
+                                        sales.NetSales = viewModelDMCM.NetAmount;
+                                        sales.CreatedBy = model.CreatedBy;
+                                        sales.CreatedDate = model.CreatedDate;
+                                        sales.DueDate = existingSOA?.DueDate;
+                                        sales.DocumentId = model.SOAId;
+                                    }
+                                    else if (model.StatementOfAccount.Customer.CustomerType == "Exempt")
+                                    {
+                                        sales.TransactionDate = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString();
+                                        sales.SerialNo = model.CMNo;
+                                        sales.SoldTo = model.StatementOfAccount.Customer.Name;
+                                        sales.TinNo = model.StatementOfAccount.Customer.TinNo;
+                                        sales.Address = model.StatementOfAccount.Customer.Address;
+                                        sales.Description = model.StatementOfAccount.Service.Name;
+                                        sales.Amount = viewModelDMCM.Total;
+                                        sales.VatExemptSales = viewModelDMCM.Total;
+                                        //sales.Discount = model.Discount;
+                                        sales.NetSales = viewModelDMCM.NetAmount;
+                                        sales.CreatedBy = model.CreatedBy;
+                                        sales.CreatedDate = model.CreatedDate;
+                                        sales.DueDate = existingSOA?.DueDate;
+                                        sales.DocumentId = model.SOAId;
+                                    }
+                                    else
+                                    {
+                                        sales.TransactionDate = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString();
+                                        sales.SerialNo = model.CMNo;
+                                        sales.SoldTo = model.StatementOfAccount.Customer.Name;
+                                        sales.TinNo = model.StatementOfAccount.Customer.TinNo;
+                                        sales.Address = model.StatementOfAccount.Customer.Address;
+                                        sales.Description = model.StatementOfAccount.Service.Name;
+                                        sales.Amount = viewModelDMCM.Total;
+                                        sales.ZeroRated = viewModelDMCM.Total;
+                                        //sales.Discount = model.Discount;
+                                        sales.NetSales = viewModelDMCM.NetAmount;
+                                        sales.CreatedBy = model.CreatedBy;
+                                        sales.CreatedDate = model.CreatedDate;
+                                        sales.DueDate = existingSOA?.DueDate;
+                                        sales.DocumentId = model.SOAId;
+                                    }
+                                    await _dbContext.AddAsync(sales, cancellationToken);
                                 }
-                                else if (model.StatementOfAccount.Customer.CustomerType == "Exempt")
-                                {
-                                    sales.TransactionDate = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString();
-                                    sales.SerialNo = model.CMNo;
-                                    sales.SoldTo = model.StatementOfAccount.Customer.Name;
-                                    sales.TinNo = model.StatementOfAccount.Customer.TinNo;
-                                    sales.Address = model.StatementOfAccount.Customer.Address;
-                                    sales.Description = model.StatementOfAccount.Service.Name;
-                                    sales.Amount = viewModelDMCM.Total;
-                                    sales.VatExemptSales = viewModelDMCM.Total;
-                                    //sales.Discount = model.Discount;
-                                    sales.NetSales = viewModelDMCM.NetAmount;
-                                    sales.CreatedBy = model.CreatedBy;
-                                    sales.CreatedDate = model.CreatedDate;
-                                    sales.DueDate = existingSOA?.DueDate;
-                                }
-                                else
-                                {
-                                    sales.TransactionDate = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString();
-                                    sales.SerialNo = model.CMNo;
-                                    sales.SoldTo = model.StatementOfAccount.Customer.Name;
-                                    sales.TinNo = model.StatementOfAccount.Customer.TinNo;
-                                    sales.Address = model.StatementOfAccount.Customer.Address;
-                                    sales.Description = model.StatementOfAccount.Service.Name;
-                                    sales.Amount = viewModelDMCM.Total;
-                                    sales.ZeroRated = viewModelDMCM.Total;
-                                    //sales.Discount = model.Discount;
-                                    sales.NetSales = viewModelDMCM.NetAmount;
-                                    sales.CreatedBy = model.CreatedBy;
-                                    sales.CreatedDate = model.CreatedDate;
-                                    sales.DueDate = existingSOA?.DueDate;
-                                }
-                                await _dbContext.AddAsync(sales, cancellationToken);
 
                                 #endregion --Sales Book Recording(SOA)--
 

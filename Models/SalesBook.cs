@@ -61,5 +61,7 @@ namespace Accounting_System.Models
         [Display(Name = "Due Date")]
         [Column(TypeName = "date")]
         public DateTime? DueDate { get; set; }
+
+        public int? DocumentId { get; set; }
     }
 }

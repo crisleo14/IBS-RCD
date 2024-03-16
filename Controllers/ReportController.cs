@@ -2,6 +2,9 @@
 using Accounting_System.Models;
 using Accounting_System.Repository;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using System.Threading;
 
 namespace Accounting_System.Controllers
 {
@@ -16,12 +19,22 @@ namespace Accounting_System.Controllers
             _reportRepo = reportRepo;
         }
 
-        public IActionResult SalesBook()
+        public async Task<IActionResult> SalesBook()
         {
-            return View();
+            var viewModel = new ViewModelBook();
+            viewModel.SOA = await _dbContext.StatementOfAccounts
+                .Where(soa => soa.IsPosted)
+                .Select(soa => new SelectListItem
+                {
+                    Value = soa.Id.ToString(),
+                    Text = soa.SOANo
+                })
+                .ToListAsync();
+
+            return View(viewModel);
         }
 
-        public IActionResult SalesBookReport(ViewModelBook model, string? selectedDocument)
+        public IActionResult SalesBookReport(ViewModelBook model, string? selectedDocument, string? soaList)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -29,6 +42,11 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
+                    if (soaList != null)
+                    {
+                        return RedirectToAction("TransactionReportsInSOA", new { soaList = soaList});
+                    }
+
                     var salesBook = _reportRepo.GetSalesBooks(model.DateFrom, model.DateTo, selectedDocument);
                     var lastRecord = salesBook.LastOrDefault();
                     if (lastRecord != null)
@@ -47,6 +65,15 @@ namespace Accounting_System.Controllers
             }
 
             return View(model);
+        }
+
+        public async Task<IActionResult> TransactionReportsInSOA(int? soaList)
+        {
+            var sales = await _dbContext
+                .SalesBooks
+                .Where(s => s.DocumentId == soaList)
+                .ToListAsync();
+            return View(sales);
         }
 
         public IActionResult CashReceiptBook()

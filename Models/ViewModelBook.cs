@@ -1,15 +1,19 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Accounting_System.Models
 {
     public class ViewModelBook
     {
-        [Required]
         [Display(Name = "Date From")]
-        public string DateFrom { get; set; }
+        public string? DateFrom { get; set; }
 
-        [Required]
         [Display(Name = "Date To")]
-        public string DateTo { get; set; }
+        public string? DateTo { get; set; }
+
+        //Additional filter/sorting can use for all reports
+        [NotMapped]
+        public List<SelectListItem>? SOA { get; set; }
     }
 }
