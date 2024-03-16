@@ -436,6 +436,10 @@ namespace Accounting_System.Controllers
 
                     if (model.SOAId != null)
                     {
+                        for (int i = 0; i < model.Amount.Length; i++)
+                        {
+                            model.Amount[i] = model.Amount[i];
+                        }
                         for (int i = 0; i < model.Period.Length; i++)
                         {
                             #region --SOA Computation--
@@ -481,161 +485,167 @@ namespace Accounting_System.Controllers
                             {
                                 #region --Sales Book Recording(SOA)--
 
-                                var sales = new SalesBook();
+                                if (model.Amount[i] > 0)
+                                {
+                                    var sales = new SalesBook();
 
-                                if (model.SOA.Customer.CustomerType == "Vatable")
-                                {
-                                    sales.TransactionDate = model.Date.ToShortDateString();
-                                    sales.SerialNo = model.DMNo;
-                                    sales.SoldTo = model.SOA.Customer.Name;
-                                    sales.TinNo = model.SOA.Customer.TinNo;
-                                    sales.Address = model.SOA.Customer.Address;
-                                    sales.Description = model.SOA.Service.Name;
-                                    sales.Amount = model.DebitAmount;
-                                    sales.VatAmount = model.VatAmount;
-                                    sales.VatableSales = model.VatableSales;
-                                    //sales.Discount = model.Discount;
-                                    sales.NetSales = model.VatableSales;
-                                    sales.CreatedBy = model.CreatedBy;
-                                    sales.CreatedDate = model.CreatedDate;
-                                    sales.DueDate = existingSOA?.DueDate;
+                                    if (model.SOA.Customer.CustomerType == "Vatable")
+                                    {
+                                        sales.TransactionDate = model.Date.ToShortDateString();
+                                        sales.SerialNo = model.DMNo;
+                                        sales.SoldTo = model.SOA.Customer.Name;
+                                        sales.TinNo = model.SOA.Customer.TinNo;
+                                        sales.Address = model.SOA.Customer.Address;
+                                        sales.Description = model.SOA.Service.Name;
+                                        sales.Amount = model.DebitAmount;
+                                        sales.VatAmount = model.VatAmount;
+                                        sales.VatableSales = model.VatableSales;
+                                        //sales.Discount = model.Discount;
+                                        sales.NetSales = model.VatableSales;
+                                        sales.CreatedBy = model.CreatedBy;
+                                        sales.CreatedDate = model.CreatedDate;
+                                        sales.DueDate = existingSOA?.DueDate;
+                                        sales.DocumentId = existingSOA.Id;
+                                    }
+                                    else if (model.SOA.Customer.CustomerType == "Exempt")
+                                    {
+                                        sales.TransactionDate = model.Date.ToShortDateString();
+                                        sales.SerialNo = model.DMNo;
+                                        sales.SoldTo = model.SOA.Customer.Name;
+                                        sales.TinNo = model.SOA.Customer.TinNo;
+                                        sales.Address = model.SOA.Customer.Address;
+                                        sales.Description = model.SOA.Service.Name;
+                                        sales.Amount = model.DebitAmount;
+                                        sales.VatExemptSales = model.DebitAmount;
+                                        //sales.Discount = model.Discount;
+                                        sales.NetSales = model.VatableSales;
+                                        sales.CreatedBy = model.CreatedBy;
+                                        sales.CreatedDate = model.CreatedDate;
+                                        sales.DueDate = existingSOA?.DueDate;
+                                        sales.DocumentId = existingSOA.Id;
+                                    }
+                                    else
+                                    {
+                                        sales.TransactionDate = model.Date.ToShortDateString();
+                                        sales.SerialNo = model.DMNo;
+                                        sales.SoldTo = model.SOA.Customer.Name;
+                                        sales.TinNo = model.SOA.Customer.TinNo;
+                                        sales.Address = model.SOA.Customer.Address;
+                                        sales.Description = model.SOA.Service.Name;
+                                        sales.Amount = model.DebitAmount;
+                                        sales.ZeroRated = model.DebitAmount;
+                                        //sales.Discount = model.Discount;
+                                        sales.NetSales = model.VatableSales;
+                                        sales.CreatedBy = model.CreatedBy;
+                                        sales.CreatedDate = model.CreatedDate;
+                                        sales.DueDate = existingSOA?.DueDate;
+                                        sales.DocumentId = existingSOA.Id;
+                                    }
+                                    await _dbContext.AddAsync(sales, cancellationToken);
                                 }
-                                else if (model.SOA.Customer.CustomerType == "Exempt")
-                                {
-                                    sales.TransactionDate = model.Date.ToShortDateString();
-                                    sales.SerialNo = model.DMNo;
-                                    sales.SoldTo = model.SOA.Customer.Name;
-                                    sales.TinNo = model.SOA.Customer.TinNo;
-                                    sales.Address = model.SOA.Customer.Address;
-                                    sales.Description = model.SOA.Service.Name;
-                                    sales.Amount = model.DebitAmount;
-                                    sales.VatExemptSales = model.DebitAmount;
-                                    //sales.Discount = model.Discount;
-                                    sales.NetSales = model.VatableSales;
-                                    sales.CreatedBy = model.CreatedBy;
-                                    sales.CreatedDate = model.CreatedDate;
-                                    sales.DueDate = existingSOA?.DueDate;
-                                }
-                                else
-                                {
-                                    sales.TransactionDate = model.Date.ToShortDateString();
-                                    sales.SerialNo = model.DMNo;
-                                    sales.SoldTo = model.SOA.Customer.Name;
-                                    sales.TinNo = model.SOA.Customer.TinNo;
-                                    sales.Address = model.SOA.Customer.Address;
-                                    sales.Description = model.SOA.Service.Name;
-                                    sales.Amount = model.DebitAmount;
-                                    sales.ZeroRated = model.DebitAmount;
-                                    //sales.Discount = model.Discount;
-                                    sales.NetSales = model.VatableSales;
-                                    sales.CreatedBy = model.CreatedBy;
-                                    sales.CreatedDate = model.CreatedDate;
-                                    sales.DueDate = existingSOA?.DueDate;
-                                }
-                                await _dbContext.AddAsync(sales, cancellationToken);
 
                                 #endregion --Sales Book Recording(SOA)--
 
                                 #region --General Ledger Book Recording(SOA)--
 
-                                var ledgers = new List<GeneralLedgerBook>();
+                                //var ledgers = new List<GeneralLedgerBook>();
 
-                                ledgers.Add(
-                                        new GeneralLedgerBook
-                                        {
-                                            Date = model.Date.ToShortDateString(),
-                                            Reference = model.DMNo,
-                                            Description = model.SOA.Service.Name,
-                                            AccountTitle = "1010204 AR-Non Trade Receivable",
-                                            Debit = model.DebitAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount),
-                                            Credit = 0,
-                                            CreatedBy = model.CreatedBy,
-                                            CreatedDate = model.CreatedDate
-                                        }
-                                    );
-                                if (model.WithHoldingTaxAmount > 0)
-                                {
-                                    ledgers.Add(
-                                        new GeneralLedgerBook
-                                        {
-                                            Date = model.Date.ToShortDateString(),
-                                            Reference = model.DMNo,
-                                            Description = model.SOA.Service.Name,
-                                            AccountTitle = "1010202 Deferred Creditable Withholding Tax",
-                                            Debit = model.WithHoldingTaxAmount,
-                                            Credit = 0,
-                                            CreatedBy = model.CreatedBy,
-                                            CreatedDate = model.CreatedDate
-                                        }
-                                    );
-                                }
-                                if (model.WithHoldingVatAmount > 0)
-                                {
-                                    ledgers.Add(
-                                        new GeneralLedgerBook
-                                        {
-                                            Date = model.Date.ToShortDateString(),
-                                            Reference = model.DMNo,
-                                            Description = model.SOA.Service.Name,
-                                            AccountTitle = "1010203 Deferred Creditable Withholding Vat",
-                                            Debit = model.WithHoldingVatAmount,
-                                            Credit = 0,
-                                            CreatedBy = model.CreatedBy,
-                                            CreatedDate = model.CreatedDate
-                                        }
-                                    );
-                                }
+                                //ledgers.Add(
+                                //        new GeneralLedgerBook
+                                //        {
+                                //            Date = model.Date.ToShortDateString(),
+                                //            Reference = model.DMNo,
+                                //            Description = model.SOA.Service.Name,
+                                //            AccountTitle = "1010204 AR-Non Trade Receivable",
+                                //            Debit = model.DebitAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount),
+                                //            Credit = 0,
+                                //            CreatedBy = model.CreatedBy,
+                                //            CreatedDate = model.CreatedDate
+                                //        }
+                                //    );
+                                //if (model.WithHoldingTaxAmount > 0)
+                                //{
+                                //    ledgers.Add(
+                                //        new GeneralLedgerBook
+                                //        {
+                                //            Date = model.Date.ToShortDateString(),
+                                //            Reference = model.DMNo,
+                                //            Description = model.SOA.Service.Name,
+                                //            AccountTitle = "1010202 Deferred Creditable Withholding Tax",
+                                //            Debit = model.WithHoldingTaxAmount,
+                                //            Credit = 0,
+                                //            CreatedBy = model.CreatedBy,
+                                //            CreatedDate = model.CreatedDate
+                                //        }
+                                //    );
+                                //}
+                                //if (model.WithHoldingVatAmount > 0)
+                                //{
+                                //    ledgers.Add(
+                                //        new GeneralLedgerBook
+                                //        {
+                                //            Date = model.Date.ToShortDateString(),
+                                //            Reference = model.DMNo,
+                                //            Description = model.SOA.Service.Name,
+                                //            AccountTitle = "1010203 Deferred Creditable Withholding Vat",
+                                //            Debit = model.WithHoldingVatAmount,
+                                //            Credit = 0,
+                                //            CreatedBy = model.CreatedBy,
+                                //            CreatedDate = model.CreatedDate
+                                //        }
+                                //    );
+                                //}
 
-                                if (model.CurrentAndPreviousAmount > 0)
-                                {
-                                    ledgers.Add(new GeneralLedgerBook
-                                    {
-                                        Date = model.Date.ToShortDateString(),
-                                        Reference = model.DMNo,
-                                        Description = model.SOA.Service.Name,
-                                        AccountTitle = model.SOA.Service.CurrentAndPrevious,
-                                        Debit = 0,
-                                        Credit = model.CurrentAndPreviousAmount / 1.12m,
-                                        CreatedBy = model.CreatedBy,
-                                        CreatedDate = model.CreatedDate
-                                    });
-                                }
+                                //if (model.CurrentAndPreviousAmount > 0)
+                                //{
+                                //    ledgers.Add(new GeneralLedgerBook
+                                //    {
+                                //        Date = model.Date.ToShortDateString(),
+                                //        Reference = model.DMNo,
+                                //        Description = model.SOA.Service.Name,
+                                //        AccountTitle = model.SOA.Service.CurrentAndPrevious,
+                                //        Debit = 0,
+                                //        Credit = model.CurrentAndPreviousAmount / 1.12m,
+                                //        CreatedBy = model.CreatedBy,
+                                //        CreatedDate = model.CreatedDate
+                                //    });
+                                //}
 
-                                if (model.UnearnedAmount > 0)
-                                {
-                                    ledgers.Add(
-                                        new GeneralLedgerBook
-                                        {
-                                            Date = model.Date.ToShortDateString(),
-                                            Reference = model.DMNo,
-                                            Description = model.SOA.Service.Name,
-                                            AccountTitle = model.SOA.Service.Unearned,
-                                            Debit = 0,
-                                            Credit = model.UnearnedAmount / 1.12m,
-                                            CreatedBy = model.CreatedBy,
-                                            CreatedDate = model.CreatedDate
-                                        }
-                                    );
-                                }
+                                //if (model.UnearnedAmount > 0)
+                                //{
+                                //    ledgers.Add(
+                                //        new GeneralLedgerBook
+                                //        {
+                                //            Date = model.Date.ToShortDateString(),
+                                //            Reference = model.DMNo,
+                                //            Description = model.SOA.Service.Name,
+                                //            AccountTitle = model.SOA.Service.Unearned,
+                                //            Debit = 0,
+                                //            Credit = model.UnearnedAmount / 1.12m,
+                                //            CreatedBy = model.CreatedBy,
+                                //            CreatedDate = model.CreatedDate
+                                //        }
+                                //    );
+                                //}
 
-                                if (model.VatAmount > 0)
-                                {
-                                    ledgers.Add(
-                                        new GeneralLedgerBook
-                                        {
-                                            Date = model.Date.ToShortDateString(),
-                                            Reference = model.DMNo,
-                                            Description = model.SOA.Service.Name,
-                                            AccountTitle = "2010304 Deferred Vat Output",
-                                            Debit = 0,
-                                            Credit = model.VatAmount,
-                                            CreatedBy = model.CreatedBy,
-                                            CreatedDate = model.CreatedDate
-                                        }
-                                    );
-                                }
+                                //if (model.VatAmount > 0)
+                                //{
+                                //    ledgers.Add(
+                                //        new GeneralLedgerBook
+                                //        {
+                                //            Date = model.Date.ToShortDateString(),
+                                //            Reference = model.DMNo,
+                                //            Description = model.SOA.Service.Name,
+                                //            AccountTitle = "2010304 Deferred Vat Output",
+                                //            Debit = 0,
+                                //            Credit = model.VatAmount,
+                                //            CreatedBy = model.CreatedBy,
+                                //            CreatedDate = model.CreatedDate
+                                //        }
+                                //    );
+                                //}
 
-                                await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
+                                //await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
 
                                 #endregion --General Ledger Book Recording(SOA)--
                             }
@@ -643,144 +653,150 @@ namespace Accounting_System.Controllers
                             {
                                 #region --Sales Book Recording(SOA)--
 
-                                var sales = new SalesBook();
+                                if (model.Amount[i] > 0)
+                                {
+                                    var sales = new SalesBook();
 
-                                if (model.SOA.Customer.CustomerType == "Vatable")
-                                {
-                                    sales.TransactionDate = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString();
-                                    sales.SerialNo = model.DMNo;
-                                    sales.SoldTo = model.SOA.Customer.Name;
-                                    sales.TinNo = model.SOA.Customer.TinNo;
-                                    sales.Address = model.SOA.Customer.Address;
-                                    sales.Description = model.SOA.Service.Name;
-                                    sales.Amount = viewModelDMCM.Total;
-                                    sales.VatAmount = viewModelDMCM.VatAmount;
-                                    sales.VatableSales = viewModelDMCM.Total / 1.12m;
-                                    //sales.Discount = model.Discount;
-                                    sales.NetSales = viewModelDMCM.NetAmount;
-                                    sales.CreatedBy = model.CreatedBy;
-                                    sales.CreatedDate = model.CreatedDate;
-                                    sales.DueDate = existingSOA?.DueDate;
+                                    if (model.SOA.Customer.CustomerType == "Vatable")
+                                    {
+                                        sales.TransactionDate = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString();
+                                        sales.SerialNo = model.DMNo;
+                                        sales.SoldTo = model.SOA.Customer.Name;
+                                        sales.TinNo = model.SOA.Customer.TinNo;
+                                        sales.Address = model.SOA.Customer.Address;
+                                        sales.Description = model.SOA.Service.Name;
+                                        sales.Amount = viewModelDMCM.Total;
+                                        sales.VatAmount = viewModelDMCM.VatAmount;
+                                        sales.VatableSales = viewModelDMCM.Total / 1.12m;
+                                        //sales.Discount = model.Discount;
+                                        sales.NetSales = viewModelDMCM.NetAmount;
+                                        sales.CreatedBy = model.CreatedBy;
+                                        sales.CreatedDate = model.CreatedDate;
+                                        sales.DueDate = existingSOA?.DueDate;
+                                        sales.DocumentId = existingSOA.Id;
+                                    }
+                                    else if (model.SOA.Customer.CustomerType == "Exempt")
+                                    {
+                                        sales.TransactionDate = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString();
+                                        sales.SerialNo = model.DMNo;
+                                        sales.SoldTo = model.SOA.Customer.Name;
+                                        sales.TinNo = model.SOA.Customer.TinNo;
+                                        sales.Address = model.SOA.Customer.Address;
+                                        sales.Description = model.SOA.Service.Name;
+                                        sales.Amount = viewModelDMCM.Total;
+                                        sales.VatExemptSales = viewModelDMCM.Total;
+                                        //sales.Discount = model.Discount;
+                                        sales.NetSales = viewModelDMCM.NetAmount;
+                                        sales.CreatedBy = model.CreatedBy;
+                                        sales.CreatedDate = model.CreatedDate;
+                                        sales.DueDate = existingSOA?.DueDate;
+                                        sales.DocumentId = existingSOA.Id;
+                                    }
+                                    else
+                                    {
+                                        sales.TransactionDate = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString();
+                                        sales.SerialNo = model.DMNo;
+                                        sales.SoldTo = model.SOA.Customer.Name;
+                                        sales.TinNo = model.SOA.Customer.TinNo;
+                                        sales.Address = model.SOA.Customer.Address;
+                                        sales.Description = model.SOA.Service.Name;
+                                        sales.Amount = viewModelDMCM.Total;
+                                        sales.ZeroRated = viewModelDMCM.Total;
+                                        //sales.Discount = model.Discount;
+                                        sales.NetSales = viewModelDMCM.NetAmount;
+                                        sales.CreatedBy = model.CreatedBy;
+                                        sales.CreatedDate = model.CreatedDate;
+                                        sales.DueDate = existingSOA?.DueDate;
+                                        sales.DocumentId = existingSOA.Id;
+                                    }
+                                    await _dbContext.AddAsync(sales, cancellationToken);
                                 }
-                                else if (model.SOA.Customer.CustomerType == "Exempt")
-                                {
-                                    sales.TransactionDate = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString();
-                                    sales.SerialNo = model.DMNo;
-                                    sales.SoldTo = model.SOA.Customer.Name;
-                                    sales.TinNo = model.SOA.Customer.TinNo;
-                                    sales.Address = model.SOA.Customer.Address;
-                                    sales.Description = model.SOA.Service.Name;
-                                    sales.Amount = viewModelDMCM.Total;
-                                    sales.VatExemptSales = viewModelDMCM.Total;
-                                    //sales.Discount = model.Discount;
-                                    sales.NetSales = viewModelDMCM.NetAmount;
-                                    sales.CreatedBy = model.CreatedBy;
-                                    sales.CreatedDate = model.CreatedDate;
-                                    sales.DueDate = existingSOA?.DueDate;
-                                }
-                                else
-                                {
-                                    sales.TransactionDate = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString();
-                                    sales.SerialNo = model.DMNo;
-                                    sales.SoldTo = model.SOA.Customer.Name;
-                                    sales.TinNo = model.SOA.Customer.TinNo;
-                                    sales.Address = model.SOA.Customer.Address;
-                                    sales.Description = model.SOA.Service.Name;
-                                    sales.Amount = viewModelDMCM.Total;
-                                    sales.ZeroRated = viewModelDMCM.Total;
-                                    //sales.Discount = model.Discount;
-                                    sales.NetSales = viewModelDMCM.NetAmount;
-                                    sales.CreatedBy = model.CreatedBy;
-                                    sales.CreatedDate = model.CreatedDate;
-                                    sales.DueDate = existingSOA?.DueDate;
-                                }
-                                await _dbContext.AddAsync(sales, cancellationToken);
 
                                 #endregion --Sales Book Recording(SOA)--
 
                                 #region --General Ledger Book Recording(SOA)--
 
-                                var ledgers = new List<GeneralLedgerBook>();
+                                //var ledgers = new List<GeneralLedgerBook>();
 
-                                ledgers.Add(
-                                        new GeneralLedgerBook
-                                        {
-                                            Date = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString(),
-                                            Reference = model.DMNo,
-                                            Description = model.SOA.Service.Name,
-                                            AccountTitle = "1010204 AR-Non Trade Receivable",
-                                            Debit = viewModelDMCM.Total - (viewModelDMCM.WithholdingTaxAmount + viewModelDMCM.WithholdingVatAmount),
-                                            Credit = 0,
-                                            CreatedBy = model.CreatedBy,
-                                            CreatedDate = model.CreatedDate
-                                        }
-                                    );
-                                if (viewModelDMCM.WithholdingTaxAmount > 0)
-                                {
-                                    ledgers.Add(
-                                        new GeneralLedgerBook
-                                        {
-                                            Date = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString(),
-                                            Reference = model.DMNo,
-                                            Description = model.SOA.Service.Name,
-                                            AccountTitle = "1010202 Deferred Creditable Withholding Tax",
-                                            Debit = viewModelDMCM.WithholdingTaxAmount,
-                                            Credit = 0,
-                                            CreatedBy = model.CreatedBy,
-                                            CreatedDate = model.CreatedDate
-                                        }
-                                    );
-                                }
-                                if (viewModelDMCM.WithholdingVatAmount > 0)
-                                {
-                                    ledgers.Add(
-                                        new GeneralLedgerBook
-                                        {
-                                            Date = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString(),
-                                            Reference = model.DMNo,
-                                            Description = model.SOA.Service.Name,
-                                            AccountTitle = "1010203 Deferred Creditable Withholding Vat",
-                                            Debit = viewModelDMCM.WithholdingVatAmount,
-                                            Credit = 0,
-                                            CreatedBy = model.CreatedBy,
-                                            CreatedDate = model.CreatedDate
-                                        }
-                                    );
-                                }
+                                //ledgers.Add(
+                                //        new GeneralLedgerBook
+                                //        {
+                                //            Date = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString(),
+                                //            Reference = model.DMNo,
+                                //            Description = model.SOA.Service.Name,
+                                //            AccountTitle = "1010204 AR-Non Trade Receivable",
+                                //            Debit = viewModelDMCM.Total - (viewModelDMCM.WithholdingTaxAmount + viewModelDMCM.WithholdingVatAmount),
+                                //            Credit = 0,
+                                //            CreatedBy = model.CreatedBy,
+                                //            CreatedDate = model.CreatedDate
+                                //        }
+                                //    );
+                                //if (viewModelDMCM.WithholdingTaxAmount > 0)
+                                //{
+                                //    ledgers.Add(
+                                //        new GeneralLedgerBook
+                                //        {
+                                //            Date = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString(),
+                                //            Reference = model.DMNo,
+                                //            Description = model.SOA.Service.Name,
+                                //            AccountTitle = "1010202 Deferred Creditable Withholding Tax",
+                                //            Debit = viewModelDMCM.WithholdingTaxAmount,
+                                //            Credit = 0,
+                                //            CreatedBy = model.CreatedBy,
+                                //            CreatedDate = model.CreatedDate
+                                //        }
+                                //    );
+                                //}
+                                //if (viewModelDMCM.WithholdingVatAmount > 0)
+                                //{
+                                //    ledgers.Add(
+                                //        new GeneralLedgerBook
+                                //        {
+                                //            Date = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString(),
+                                //            Reference = model.DMNo,
+                                //            Description = model.SOA.Service.Name,
+                                //            AccountTitle = "1010203 Deferred Creditable Withholding Vat",
+                                //            Debit = viewModelDMCM.WithholdingVatAmount,
+                                //            Credit = 0,
+                                //            CreatedBy = model.CreatedBy,
+                                //            CreatedDate = model.CreatedDate
+                                //        }
+                                //    );
+                                //}
 
-                                if (viewModelDMCM.Total > 0)
-                                {
-                                    ledgers.Add(new GeneralLedgerBook
-                                    {
-                                        Date = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString(),
-                                        Reference = model.DMNo,
-                                        Description = model.SOA.Service.Name,
-                                        AccountTitle = model.SOA.Service.CurrentAndPrevious,
-                                        Debit = 0,
-                                        Credit = viewModelDMCM.Total / 1.12m,
-                                        CreatedBy = model.CreatedBy,
-                                        CreatedDate = model.CreatedDate
-                                    });
-                                }
+                                //if (viewModelDMCM.Total > 0)
+                                //{
+                                //    ledgers.Add(new GeneralLedgerBook
+                                //    {
+                                //        Date = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString(),
+                                //        Reference = model.DMNo,
+                                //        Description = model.SOA.Service.Name,
+                                //        AccountTitle = model.SOA.Service.CurrentAndPrevious,
+                                //        Debit = 0,
+                                //        Credit = viewModelDMCM.Total / 1.12m,
+                                //        CreatedBy = model.CreatedBy,
+                                //        CreatedDate = model.CreatedDate
+                                //    });
+                                //}
 
-                                if (viewModelDMCM.VatAmount > 0)
-                                {
-                                    ledgers.Add(
-                                        new GeneralLedgerBook
-                                        {
-                                            Date = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString(),
-                                            Reference = model.DMNo,
-                                            Description = model.SOA.Service.Name,
-                                            AccountTitle = "2010304 Deferred Vat Output",
-                                            Debit = 0,
-                                            Credit = viewModelDMCM.VatAmount,
-                                            CreatedBy = model.CreatedBy,
-                                            CreatedDate = model.CreatedDate
-                                        }
-                                    );
-                                }
+                                //if (viewModelDMCM.VatAmount > 0)
+                                //{
+                                //    ledgers.Add(
+                                //        new GeneralLedgerBook
+                                //        {
+                                //            Date = model.Period[i].AddMonths(1).AddDays(-1).ToShortDateString(),
+                                //            Reference = model.DMNo,
+                                //            Description = model.SOA.Service.Name,
+                                //            AccountTitle = "2010304 Deferred Vat Output",
+                                //            Debit = 0,
+                                //            Credit = viewModelDMCM.VatAmount,
+                                //            CreatedBy = model.CreatedBy,
+                                //            CreatedDate = model.CreatedDate
+                                //        }
+                                //    );
+                                //}
 
-                                await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
+                                //await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
 
                                 #endregion --General Ledger Book Recording(SOA)--
                             }
