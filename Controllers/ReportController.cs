@@ -108,12 +108,22 @@ namespace Accounting_System.Controllers
             return View(model);
         }
 
-        public IActionResult PurchaseBook()
+        public async Task<IActionResult> PurchaseBook()
         {
-            return View();
+            var viewModel = new ViewModelBook();
+            viewModel.PO = await _dbContext.PurchaseOrders
+                .Where(po => po.IsPosted)
+                .Select(po => new SelectListItem
+                {
+                    Value = po.Id.ToString(),
+                    Text = po.PONo
+                })
+                .ToListAsync();
+
+            return View(viewModel);
         }
 
-        public IActionResult PurchaseBookReport(ViewModelBook model, string? selectedFiltering)
+        public IActionResult PurchaseBookReport(ViewModelBook model, string? selectedFiltering, string? poListFrom, string? poListTo)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -121,6 +131,11 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
+                    if (poListFrom != null && poListTo != null)
+                    {
+                        return RedirectToAction("POLiquidationPerPO", new { poListFrom = poListFrom, poListTo = poListTo });
+                    }
+
                     if (selectedFiltering == "UnpostedRR" || selectedFiltering == "POLiquidation")
                     {
                         return RedirectToAction("GetRR", new { DateFrom = model.DateFrom, DateTo = model.DateTo, selectedFiltering });
@@ -154,6 +169,28 @@ namespace Accounting_System.Controllers
 
             var receivingReport = _reportRepo.GetReceivingReport(dateFrom, dateTo, selectedFiltering);
             return View(receivingReport);
+        }
+        public IActionResult POLiquidationPerPO(int? poListFrom, int? poListTo)
+        {
+            var from = poListFrom;
+            var to = poListTo;
+
+            if (poListFrom > poListTo)
+            {
+                throw new ArgumentException("Date From must be greater than Date To !");
+            }
+
+            var po = _dbContext
+                 .ReceivingReports
+                 .Include(rr => rr.PurchaseOrder)
+                 .ThenInclude(po => po.Supplier)
+                 .Include(rr => rr.PurchaseOrder)
+                 .ThenInclude(po => po.Product)
+                 .AsEnumerable()
+                 .Where(rr => rr.POId >= from && rr.POId <= to && rr.IsPosted)
+                 .OrderBy(rr => rr.POId)
+                 .ToList();
+            return View(po);
         }
 
         public IActionResult InventoryBook()

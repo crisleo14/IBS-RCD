@@ -15,5 +15,8 @@ namespace Accounting_System.Models
         //Additional filter/sorting can use for all reports
         [NotMapped]
         public List<SelectListItem>? SOA { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? PO { get; set; }
     }
 }
