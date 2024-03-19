@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Accounting_System.Controllers
 {
@@ -63,8 +64,49 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(DebitMemo model, DateTime[] period, CancellationToken cancellationToken)
         {
+            model.SalesInvoices = await _dbContext.SalesInvoices
+                .Where(si => si.IsPosted)
+                .Select(si => new SelectListItem
+                {
+                    Value = si.Id.ToString(),
+                    Text = si.SINo
+                })
+                .ToListAsync(cancellationToken);
+            model.StatementOfAccounts = await _dbContext.StatementOfAccounts
+                .Where(soa => soa.IsPosted)
+                .Select(soa => new SelectListItem
+                {
+                    Value = soa.Id.ToString(),
+                    Text = soa.SOANo
+                })
+                .ToListAsync(cancellationToken);
             if (ModelState.IsValid)
             {
+                if (model.SalesInvoiceId != null)
+                {
+                    var existingSIDMs = _dbContext.DebitMemos
+                                  .Where(si => si.SalesInvoiceId == model.SalesInvoiceId && !si.IsPosted)
+                                  .OrderBy(s => s.Id)
+                                  .ToList();
+                    if (existingSIDMs.Count > 0)
+                    {
+                        ModelState.AddModelError("", "You have a unposted DM for SI. Post that one first before starting a new one.");
+                        return View(model);
+                    }
+                }
+                else
+                {
+                    var existingSOADMs = _dbContext.DebitMemos
+                                  .Where(si => si.SOAId == model.SOAId && !si.IsPosted)
+                                  .OrderBy(s => s.Id)
+                                  .ToList();
+                    if (existingSOADMs.Count > 0)
+                    {
+                        ModelState.AddModelError("", "You have a unposted DM for SOA. Post that one first before starting a new one.");
+                        return View(model);
+                    }
+                }
+
                 #region --Validating the series-- 
 
                 var getLastNumber = await _debitMemoRepo.GetLastSeriesNumber(cancellationToken);

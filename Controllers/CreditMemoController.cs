@@ -65,6 +65,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Create(CreditMemo model, DateTime[] period, CancellationToken cancellationToken, decimal[]? amount)
         {
             model.Invoices = await _dbContext.SalesInvoices
+                .Where(si => si.IsPosted)
                 .Select(si => new SelectListItem
                 {
                     Value = si.Id.ToString(),
@@ -72,14 +73,42 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
             model.Soa = await _dbContext.StatementOfAccounts
+                .Where(soa => soa.IsPosted)
                 .Select(soa => new SelectListItem
                 {
                     Value = soa.Id.ToString(),
                     Text = soa.SOANo
                 })
                 .ToListAsync(cancellationToken);
+
             if (ModelState.IsValid)
             {
+
+                if (model.SIId != null)
+                {
+                    var existingSIDMs = _dbContext.CreditMemos
+                                      .Where(si => si.SIId == model.SIId && !si.IsPosted)
+                                      .OrderBy(s => s.Id)
+                                      .ToList();
+                    if (existingSIDMs.Count > 0)
+                    {
+                        ModelState.AddModelError("", "You have a unposted DM for SI. Post that one first before starting a new one.");
+                        return View(model);
+                    }
+                }
+                else
+                {
+                    var existingSOADMs = _dbContext.CreditMemos
+                                      .Where(si => si.SOAId == model.SOAId && !si.IsPosted)
+                                      .OrderBy(s => s.Id)
+                                      .ToList();
+                    if (existingSOADMs.Count > 0)
+                    {
+                        ModelState.AddModelError("", "You have a unposted DM for SOA. Post that one first before starting a new one.");
+                        return View(model);
+                    }
+                }
+
                 #region --Validating the series-- 
 
                 var getLastNumber = await _creditMemoRepo.GetLastSeriesNumber(cancellationToken);
