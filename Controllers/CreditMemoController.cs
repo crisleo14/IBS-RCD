@@ -378,25 +378,15 @@ namespace Accounting_System.Controllers
                     model.PostedBy = _userManager.GetUserName(this.User);
                     model.PostedDate = DateTime.Now;
 
-
-                    #region --Retrieval of Services
-
-                    var services = await _creditMemoRepo.GetServicesAsync(model.ServicesId, cancellationToken);
-
-                    #endregion --Retrieval of Services
-
-                    #region --Retrieval of SI and SOA--
-
-                    var existingSI = await _dbContext.SalesInvoices
-                                                .FirstOrDefaultAsync(si => si.Id == model.SIId, cancellationToken);
-                    var existingSOA = await _dbContext.StatementOfAccounts
-                                                .Include(soa => soa.Customer)
-                                                .FirstOrDefaultAsync(si => si.Id == model.SOAId, cancellationToken);
-
-                    #endregion --Retrieval of SI and SOA--
-
                     if (model.SIId != null)
                     {
+                        #region --Retrieval of SI and SOA--
+
+                        var existingSI = await _dbContext.SalesInvoices
+                                                    .FirstOrDefaultAsync(si => si.Id == model.SIId, cancellationToken);
+
+                        #endregion --Retrieval of SI and SOA--
+
                         #region --Sales Book Recording(SI)--
 
                         var sales = new SalesBook();
@@ -583,6 +573,16 @@ namespace Accounting_System.Controllers
 
                     if (model.SOAId != null)
                     {
+                        var existingSOA = await _dbContext.StatementOfAccounts
+                                                .Include(soa => soa.Customer)
+                                                .FirstOrDefaultAsync(si => si.Id == model.SOAId, cancellationToken);
+
+                        #region --Retrieval of Services
+
+                        var services = await _creditMemoRepo.GetServicesAsync(model.ServicesId, cancellationToken);
+
+                        #endregion --Retrieval of Services
+
                         for (int i = 0; i < model.Amount.Length; i++)
                         {
                                 model.Amount[i] = model.Amount[i];
