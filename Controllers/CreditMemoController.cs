@@ -92,7 +92,7 @@ namespace Accounting_System.Controllers
                                   .ToList();
                     if (existingSIDMs.Count > 0)
                     {
-                        ModelState.AddModelError("", $"You have a unposted DM for SI. Post that one first before starting a new one. DM#{existingSIDMs.First().DMNo}");
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. DM#{existingSIDMs.First().DMNo}");
                         return View(model);
                     }
 
@@ -102,7 +102,7 @@ namespace Accounting_System.Controllers
                                       .ToList();
                     if (existingSICMs.Count > 0)
                     {
-                        ModelState.AddModelError("", $"You have a unposted CM for SI. Post that one first before starting a new one. CM#{existingSICMs.First().CMNo}");
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. CM#{existingSICMs.First().CMNo}");
                         return View(model);
                     }
                 }
@@ -114,7 +114,7 @@ namespace Accounting_System.Controllers
                                   .ToList();
                     if (existingSOADMs.Count > 0)
                     {
-                        ModelState.AddModelError("", $"You have a unposted DM for SOA. Post that one first before starting a new one. DM#{existingSOADMs.First().DMNo}");
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. DM#{existingSOADMs.First().DMNo}");
                         return View(model);
                     }
 
@@ -124,7 +124,7 @@ namespace Accounting_System.Controllers
                                       .ToList();
                     if (existingSOACMs.Count > 0)
                     {
-                        ModelState.AddModelError("", $"You have a unposted CM for SOA. Post that one first before starting a new one. CM#{existingSOACMs.First().CMNo}");
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. CM#{existingSOACMs.First().CMNo}");
                         return View(model);
                     }
                 }
