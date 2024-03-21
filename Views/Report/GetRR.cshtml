@@ -30,6 +30,11 @@
     decimal totalWthAmount = 0;
     decimal totalNetPurchases = 0;
     decimal totalQuantity = 0;
+    decimal amount = 0;
+    decimal vatableAmount = 0;
+    decimal wthAmount = 0;
+    decimal netPurchases = 0;
+    decimal subTotalQTY = 0;
 
     int numberOfRecords = 0;
     decimal amountFieldControlTotal = 0;
@@ -61,183 +66,234 @@ else
 }
 
 <table class="table-hover w-100" style="margin-top:20px;">
-    <thead>
-        <tr class="table-bordered">
-            <th>
-                @Html.DisplayNameFor(model => model.PONo)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RRNo)
-            </th>
-            <th>
-                RR Date
-            </th>
-            <th>
-                Supplier Name
-            </th>
-            <th>
-                Supplier TIN
-            </th>
-            <th>
-                Supplier Address
-            </th>
-            <th>
-                Description
-            </th>
-            <th>
-                Quantity
-            </th>
-            <th class="text-end">
-                Amount
-            </th>
-            <th class="text-end">
-                Vat Amount
-            </th>
-            <th class="text-end">
-                Def VAT Amount
-            </th>
-            <th class="text-end">
-                WHT Amount
-            </th>
-            <th class="text-end">
-                Net Purchases
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-
-        @foreach (var purchase in Model)
-        {
-            <tr class="align-text-bottom">
-                <td>
-                    @Html.DisplayFor(model => purchase.PONo)
-                </td>
-                <td>
-                    @Html.DisplayFor(model => purchase.RRNo)
-                </td>
-                <td>
-                        @purchase.Date.ToString("MM/dd/yyyy")
-                </td>
-                <td>
-                    @Html.DisplayFor(model => purchase.PurchaseOrder.Supplier.Name)
-                </td>
-                <td>
-                    @Html.DisplayFor(model => purchase.PurchaseOrder.Supplier.TinNo)
-                </td>
-                <td>
-                    @Html.DisplayFor(model => purchase.PurchaseOrder.Supplier.Address)
-                </td>
-                <td>
-                    @Html.DisplayFor(model => purchase.PurchaseOrder.Product.Name)
-                </td>
-                <td class="text-end">
-                    @{
-                    var quantity = purchase.QuantityDelivered > purchase.QuantityReceived ? purchase.QuantityReceived : purchase.QuantityDelivered;
-                    }
-                    @quantity
-                </td>
-                <td class="text-end">
-                    @Html.DisplayFor(model => purchase.Amount)
-                </td>
-                <td class="text-end">
-                    @Html.DisplayFor(model => purchase.VatAmount)
-                </td>
-                <td class="text-end">
-                    0.00
-                </td>
-                <td class="text-end">
-                    @Html.DisplayFor(model => purchase.EwtAmount)
-                </td>
-                <td class="text-end">
-                    @Html.DisplayFor(model => purchase.NetAmount)
-                </td>
-
+        <thead>
+            <tr class="table-bordered">
+                <th>
+                    @Html.DisplayNameFor(model => model.PONo)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.RRNo)
+                </th>
+                <th>
+                    RR Date
+                </th>
+                <th>
+                    Supplier Name
+                </th>
+                <th>
+                    Supplier TIN
+                </th>
+                <th>
+                    Supplier Address
+                </th>
+                <th>
+                    Description
+                </th>
+                <th>
+                    Quantity
+                </th>
+                <th class="text-end">
+                    Amount
+                </th>
+                <th class="text-end">
+                    Vat Amount
+                </th>
+                <th class="text-end">
+                    Def VAT Amount
+                </th>
+                <th class="text-end">
+                    WHT Amount
+                </th>
+                <th class="text-end">
+                    Net Purchases
+                </th>
             </tr>
-
-            totalAmount += purchase.Amount;
-            totalQuantity += quantity;
-            totalVatableAmount += purchase.VatAmount;
-            totalDefAmount += 0;
-            totalWthAmount += purchase.EwtAmount;
-            totalNetPurchases += purchase.NetAmount;
-        }
-        <tr class="align-text-bottom" style="border-top: 2px solid black;">
+        </thead>
+    @if (ViewBag.SelectedFiltering == "POLiquidation")
+    {
+        <tbody>
             @{
+                decimal quantity = 0;
+                var distinctPO = Model.Select(purchase => purchase.PONo).Distinct().ToList();
+                foreach (var poNumber in distinctPO)
+                {
+                    var purchasesWithSamePONo = Model.Where(purchase => purchase.PONo == poNumber).ToList();
+
+                    foreach (var po in purchasesWithSamePONo)
+                    {
+                        amount = purchasesWithSamePONo.Sum(po => po.Amount);
+                        quantity = po.QuantityDelivered > po.QuantityReceived ? po.QuantityReceived : po.QuantityDelivered;
+                        subTotalQTY = purchasesWithSamePONo.Sum(purchase => purchase.QuantityDelivered > purchase.QuantityReceived ? purchase.QuantityReceived : purchase.QuantityDelivered);
+                        vatableAmount = purchasesWithSamePONo.Sum(po => po.VatAmount);
+                        wthAmount = purchasesWithSamePONo.Sum(po => po.EwtAmount);
+                        netPurchases = purchasesWithSamePONo.Sum(po => po.NetAmount);
+
+                        totalAmount += po.Amount;
+                        totalQuantity += subTotalQTY;
+                        totalVatableAmount += po.VatAmount;
+                        totalDefAmount += 0;
+                        totalWthAmount += po.EwtAmount;
+                        totalNetPurchases += po.NetAmount;
+
+                        <tr class="align-text-bottom">
+                            @if (po == purchasesWithSamePONo.First())
+                            {
+                                <td rowspan="@purchasesWithSamePONo.Count"> @Html.DisplayFor(model => po.PONo) </td>
+                            }
+                            <td>
+                                @Html.DisplayFor(model => po.RRNo)
+                            </td>
+                            <td>
+                                @po.Date.ToString("MM/dd/yyyy")
+                            </td>
+                            <td>
+                                @Html.DisplayFor(model => po.PurchaseOrder.Supplier.Name)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(model => po.PurchaseOrder.Supplier.TinNo)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(model => po.PurchaseOrder.Supplier.Address)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(model => po.PurchaseOrder.Product.Name)
+                            </td>
+                            <td class="text-end">
+                                @quantity
+                            </td>
+                            <td class="text-end">
+                                @Html.DisplayFor(model => po.Amount)
+                            </td>
+                            <td class="text-end">
+                                @Html.DisplayFor(model => po.VatAmount)
+                            </td>
+                            <td class="text-end">
+                                0.00
+                            </td>
+                            <td class="text-end">
+                                @Html.DisplayFor(model => po.EwtAmount)
+                            </td>
+                            <td class="text-end">
+                                @Html.DisplayFor(model => po.NetAmount)
+                            </td>
+                        </tr>
+                    }
+                    @if (purchasesWithSamePONo.Any())
+                    {
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td class="text-center"><b>SUB TOTAL:</b></td>
+                            <td class="text-end">@subTotalQTY</td>
+                            <td class="text-end">@amount.ToString("N2")</td>
+                            <td class="text-end">@vatableAmount.ToString("N2")</td>
+                            <td class="text-end">@totalDefAmount.ToString("N2")</td>
+                            <td class="text-end">@wthAmount.ToString("N2")</td>
+                            <td class="text-end">@netPurchases.ToString("N2")</td>
+                        </tr>
+                    }
+                }
+            }
+            <tr class="align-text-bottom" style="border-top: 2px solid black;">
                 <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
-                <td class="text-center"><b>TOTAL:</b></td>
+                <td class="text-center"><b>GRAND TOTAL:</b></td>
                 <td class="text-end">@totalQuantity</td>
                 <td class="text-end">@totalAmount.ToString("N2")</td>
                 <td class="text-end">@totalVatableAmount.ToString("N2")</td>
                 <td class="text-end">@totalDefAmount.ToString("N2")</td>
                 <td class="text-end">@totalWthAmount.ToString("N2")</td>
                 <td class="text-end">@totalNetPurchases.ToString("N2")</td>
-            }
-        </tr>
-    </tbody>
-</table> 
-
-    @if (ViewBag.SelectedFiltering == "POLiquidation")
-    {
-        <table class="w-25 table-bordered text-center">
-            <thead>
-                <tr>
-                    <th>PO No.</th>
-                    <th>RR No.</th>
-                    <th>Quantity</th>
-                    <th class="text-center">Sub Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                @{
-                    var total = 0;
-                    var distinctPO = Model.Select(purchase => purchase.PONo).Distinct().ToList();
-                    foreach (var poNumber in distinctPO)
-                    {
-                        var purchasesWithSamePONo = Model.Where(purchase => purchase.PONo == poNumber).ToList();
-                        
-                        foreach (var purchase in purchasesWithSamePONo)
-                        {
-                            var quantity = purchase.QuantityDelivered > purchase.QuantityReceived ? purchase.QuantityReceived : purchase.QuantityDelivered;
-
-                            var subTotal = purchasesWithSamePONo.Sum(purchase => purchase.QuantityDelivered > purchase.QuantityReceived ? purchase.QuantityReceived : purchase.QuantityDelivered);
-
-                            total += quantity;
-                            <tr>
-                                @if (purchase == purchasesWithSamePONo.First())
-                                {
-                                    <td rowspan="@purchasesWithSamePONo.Count">@Html.DisplayFor(model => purchase.PONo)</td>
-                                }
-                                <td>
-                                    @Html.DisplayFor(model => purchase.RRNo)
-                                </td>
-                                <td>
-                                    @quantity
-                                </td>
-                                @if (purchase == purchasesWithSamePONo.First())
-                                {
-                                    <td rowspan="@purchasesWithSamePONo.Count">
-                                        @subTotal
-                                    </td>
-                                }
-                            </tr>
-                        }
-                    }
-                }
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <th>Grand Total</th>
-                    <td>@total</td>
-                </tr>
-            </tbody>
-
-        </table>
+            </tr>
+        </tbody>
     }
+    else
+    {
+        <tbody>
+
+            @foreach (var purchase in Model)
+            {
+                <tr class="align-text-bottom">
+                    <td>
+                        @Html.DisplayFor(model => purchase.PONo)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => purchase.RRNo)
+                    </td>
+                    <td>
+                        @purchase.Date.ToString("MM/dd/yyyy")
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => purchase.PurchaseOrder.Supplier.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => purchase.PurchaseOrder.Supplier.TinNo)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => purchase.PurchaseOrder.Supplier.Address)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => purchase.PurchaseOrder.Product.Name)
+                    </td>
+                    <td class="text-end">
+                        @{
+                            var quantity = purchase.QuantityDelivered > purchase.QuantityReceived ? purchase.QuantityReceived : purchase.QuantityDelivered;
+                        }
+                        @quantity
+                    </td>
+                    <td class="text-end">
+                        @Html.DisplayFor(model => purchase.Amount)
+                    </td>
+                    <td class="text-end">
+                        @Html.DisplayFor(model => purchase.VatAmount)
+                    </td>
+                    <td class="text-end">
+                        0.00
+                    </td>
+                    <td class="text-end">
+                        @Html.DisplayFor(model => purchase.EwtAmount)
+                    </td>
+                    <td class="text-end">
+                        @Html.DisplayFor(model => purchase.NetAmount)
+                    </td>
+
+                </tr>
+
+                totalAmount += purchase.Amount;
+                totalQuantity += quantity;
+                totalVatableAmount += purchase.VatAmount;
+                totalDefAmount += 0;
+                totalWthAmount += purchase.EwtAmount;
+                totalNetPurchases += purchase.NetAmount;
+            }
+            <tr class="align-text-bottom" style="border-top: 2px solid black;">
+                @{
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="text-center"><b>TOTAL:</b></td>
+                    <td class="text-end">@totalQuantity</td>
+                    <td class="text-end">@totalAmount.ToString("N2")</td>
+                    <td class="text-end">@totalVatableAmount.ToString("N2")</td>
+                    <td class="text-end">@totalDefAmount.ToString("N2")</td>
+                    <td class="text-end">@totalWthAmount.ToString("N2")</td>
+                    <td class="text-end">@totalNetPurchases.ToString("N2")</td>
+                }
+            </tr>
+        </tbody>
+    }
+    </table>
 
 <p style="line-height: 1; margin-top:25px;" class="text-start">
     <em>
