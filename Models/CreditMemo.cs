@@ -38,7 +38,7 @@ namespace Accounting_System.Models
 
         public string Description { get; set; }
 
-        [Display(Name = "Adjusted Price")]
+        [Display(Name = "Price Adjustment")]
         [Range(1, int.MaxValue, ErrorMessage = "Adjusted Price should be greater than 0")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal? AdjustedPrice { get; set; }
