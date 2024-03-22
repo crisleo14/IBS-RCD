@@ -900,7 +900,7 @@ namespace Accounting_System.Controllers
                                                 CreatedDate = model.CreatedDate
                                             }
                                         );
-                                    if (viewModelDMCM.WithholdingTaxAmount > 0)
+                                    if (viewModelDMCM.WithholdingTaxAmount < 0)
                                     {
                                         ledgers.Add(
                                             new GeneralLedgerBook
@@ -916,7 +916,7 @@ namespace Accounting_System.Controllers
                                             }
                                         );
                                     }
-                                    if (viewModelDMCM.WithholdingVatAmount > 0)
+                                    if (viewModelDMCM.WithholdingVatAmount < 0)
                                     {
                                         ledgers.Add(
                                             new GeneralLedgerBook
@@ -933,7 +933,7 @@ namespace Accounting_System.Controllers
                                         );
                                     }
 
-                                    if (viewModelDMCM.Total > 0)
+                                    if (viewModelDMCM.Total < 0)
                                     {
                                         ledgers.Add(new GeneralLedgerBook
                                         {
@@ -948,7 +948,7 @@ namespace Accounting_System.Controllers
                                         });
                                     }
 
-                                    if (viewModelDMCM.VatAmount > 0)
+                                    if (viewModelDMCM.VatAmount < 0)
                                     {
                                         ledgers.Add(
                                             new GeneralLedgerBook
