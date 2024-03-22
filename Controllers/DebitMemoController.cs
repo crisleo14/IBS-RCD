@@ -323,6 +323,7 @@ namespace Accounting_System.Controllers
                             sales.CreatedBy = model.CreatedBy;
                             sales.CreatedDate = model.CreatedDate;
                             sales.DueDate = existingSI?.DueDate;
+                            sales.DocumentId = model.SalesInvoiceId;
                         }
                         else if (model.SalesInvoice.CustomerType == "Exempt")
                         {
@@ -339,6 +340,7 @@ namespace Accounting_System.Controllers
                             sales.CreatedBy = model.CreatedBy;
                             sales.CreatedDate = model.CreatedDate;
                             sales.DueDate = existingSI?.DueDate;
+                            sales.DocumentId = model.SalesInvoiceId;
                         }
                         else
                         {
@@ -355,6 +357,7 @@ namespace Accounting_System.Controllers
                             sales.CreatedBy = model.CreatedBy;
                             sales.CreatedDate = model.CreatedDate;
                             sales.DueDate = existingSI?.DueDate;
+                            sales.DocumentId = model.SalesInvoiceId;
                         }
                         await _dbContext.AddAsync(sales, cancellationToken);
 

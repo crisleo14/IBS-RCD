@@ -421,6 +421,7 @@ namespace Accounting_System.Controllers
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
                         sales.DueDate = model.DueDate;
+                        sales.DocumentId = model.Id;
                     }
                     else if (model.CustomerType == "Exempt")
                     {
@@ -437,6 +438,7 @@ namespace Accounting_System.Controllers
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
                         sales.DueDate = model.DueDate;
+                        sales.DocumentId = model.Id;
                     }
                     else
                     {
@@ -453,6 +455,7 @@ namespace Accounting_System.Controllers
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
                         sales.DueDate = model.DueDate;
+                        sales.DocumentId = model.Id;
                     }
 
                     await _dbContext.AddAsync(sales, cancellationToken);
