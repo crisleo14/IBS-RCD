@@ -78,19 +78,25 @@
                 <td>@Html.DisplayFor(model => model.Service.Name)</td>
 
                 <td class="pt-3">
-                    @for (int i = 0; i < Model.Period.Length; i++)
+                    @for (int i = 0; i < Model.Amount.Length; i++)
                     {
-                        <p style="line-height:15px">
-                            @Model.Period[i].ToString("MMMM yyyy")
-                        </p>
+                        if (Model.Amount[i] > 0m)
+                        {
+                            <p style="line-height:15px">
+                                @Model.Period[i].ToString("MMMM yyyy")
+                            </p>
+                        }
                     }
                 </td>
                 <td class="pt-3">
                     @for (int i = 0; i < Model.Amount.Length; i++)
                     {
-                        <p style="line-height:15px">
-                            @Html.DisplayFor(model => model.Amount[i])
-                        </p>
+                        if (Model.Amount[i] > 0m)
+                        {
+                            <p style="line-height:15px">
+                                @Html.DisplayFor(model => model.Amount[i])
+                            </p>
+                        }
                     }
                 </td>
 

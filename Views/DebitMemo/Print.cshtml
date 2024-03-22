@@ -193,22 +193,28 @@ else if (Model.Source == "Statement Of Account")
             <tr style="height:80px;">
                 <td>@Html.DisplayFor(model => model.SOA.SOANo)</td>
                 <td class="pt-2">
-                    @for (int i = 0; i < Model.Period.Length; i++)
+                    @for (int i = 0; i < Model.Amount.Length; i++)
+                    {
+                        if (Model.Amount[i] > 0m)
                         {
                             <p style="line-height:15px">
                                 @Model.Period[i].ToString("MMMM yyyy")
                             </p>
                         }
+                    }
                 </td>
                 <td>@Html.DisplayFor(model => model.SOA.Service.Name)</td>
                 <td>@Html.DisplayFor(model => model.Description)</td>
                 <td class="pt-2">
                     @for (int i = 0; i < Model.Amount.Length; i++)
+                    {
+                        if (Model.Amount[i] > 0m)
                         {
                             <p style="line-height:15px">
                                 @Html.DisplayFor(model => model.Amount[i])
                             </p>
                         }
+                    }
                 </td>
             </tr>
         </tbody>
