@@ -30,11 +30,19 @@ namespace Accounting_System.Controllers
                     Text = soa.SOANo
                 })
                 .ToListAsync();
+            viewModel.SI = await _dbContext.SalesInvoices
+                .Where(si => si.IsPosted)
+                .Select(soa => new SelectListItem
+                {
+                    Value = soa.Id.ToString(),
+                    Text = soa.SINo
+                })
+                .ToListAsync();
 
             return View(viewModel);
         }
 
-        public IActionResult SalesBookReport(ViewModelBook model, string? selectedDocument, string? soaList)
+        public IActionResult SalesBookReport(ViewModelBook model, string? selectedDocument, string? soaList, string? siList)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -42,9 +50,10 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    if (soaList != null)
+                    if (soaList != null || siList != null)
                     {
-                        return RedirectToAction("TransactionReportsInSOA", new { soaList = soaList});
+                        var id = siList != null ? siList : soaList;
+                        return RedirectToAction("TransactionReportsInSOA", new { id = id });
                     }
 
                     var salesBook = _reportRepo.GetSalesBooks(model.DateFrom, model.DateTo, selectedDocument);
@@ -67,12 +76,13 @@ namespace Accounting_System.Controllers
             return View(model);
         }
 
-        public async Task<IActionResult> TransactionReportsInSOA(int? soaList)
+        public async Task<IActionResult> TransactionReportsInSOA(int? id)
         {
-            var sales = await _dbContext
-                .SalesBooks
-                .Where(s => s.DocumentId == soaList)
-                .ToListAsync();
+                var sales = await _dbContext
+                    .SalesBooks
+                    .Where(s => s.DocumentId == id)
+                    .ToListAsync();
+
             return View(sales);
         }
 
