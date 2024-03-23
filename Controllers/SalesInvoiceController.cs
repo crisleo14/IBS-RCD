@@ -417,7 +417,7 @@ namespace Accounting_System.Controllers
                         sales.VatAmount = model.VatAmount;
                         sales.VatableSales = model.VatableSales;
                         sales.Discount = model.Discount;
-                        sales.NetSales = model.NetDiscount;
+                        sales.NetSales = model.NetDiscount / 1.12m;
                         sales.CreatedBy = model.CreatedBy;
                         sales.CreatedDate = model.CreatedDate;
                         sales.DueDate = model.DueDate;
