@@ -145,6 +145,11 @@ namespace Accounting_System.Controllers
                     {
                         return RedirectToAction("POLiquidationPerPO", new { poListFrom = poListFrom, poListTo = poListTo });
                     }
+                    else if (poListFrom == null && poListTo != null || poListFrom != null && poListTo == null)
+                    {
+                        TempData["error"] = "Please fill the two select list in PO Liquidation Per PO, lowest to highest";
+                        return RedirectToAction("PurchaseBook");
+                    }
 
                     if (selectedFiltering == "UnpostedRR" || selectedFiltering == "POLiquidation")
                     {
@@ -177,6 +182,16 @@ namespace Accounting_System.Controllers
             ViewBag.DateTo = dateTo;
             ViewBag.SelectedFiltering = selectedFiltering;
 
+            if (dateFrom == null && dateTo == null)
+            {
+                TempData["error"] = "Please input Date From and Date To";
+                return RedirectToAction("PurchaseBook");
+            }else if (dateFrom == null)
+            {
+                TempData["error"] = "Please input Date To";
+                return RedirectToAction("PurchaseBook");
+            }
+
             var receivingReport = _reportRepo.GetReceivingReport(dateFrom, dateTo, selectedFiltering);
             return View(receivingReport);
         }
@@ -187,7 +202,8 @@ namespace Accounting_System.Controllers
 
             if (poListFrom > poListTo)
             {
-                throw new ArgumentException("Date From must be greater than Date To !");
+                TempData["error"] = "Please input lowest to highest PO#!";
+                return RedirectToAction("PurchaseBook");
             }
 
             var po = _dbContext
