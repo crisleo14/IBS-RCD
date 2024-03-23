@@ -87,44 +87,44 @@ namespace Accounting_System.Controllers
                 if (model.SIId != null)
                 {
                     var existingSIDMs = _dbContext.DebitMemos
-                                  .Where(si => si.SalesInvoiceId == model.SIId && !si.IsPosted)
+                                  .Where(si => si.SalesInvoiceId == model.SIId && !si.IsPosted && !si.IsCanceled)
                                   .OrderBy(s => s.Id)
                                   .ToList();
                     if (existingSIDMs.Count > 0)
                     {
-                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. DM#{existingSIDMs.First().DMNo}");
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSIDMs.First().DMNo}");
                         return View(model);
                     }
 
                     var existingSICMs = _dbContext.CreditMemos
-                                      .Where(si => si.SIId == model.SIId && !si.IsPosted)
+                                      .Where(si => si.SIId == model.SIId && !si.IsPosted && !si.IsCanceled)
                                       .OrderBy(s => s.Id)
                                       .ToList();
                     if (existingSICMs.Count > 0)
                     {
-                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. CM#{existingSICMs.First().CMNo}");
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSICMs.First().CMNo}");
                         return View(model);
                     }
                 }
                 else
                 {
                     var existingSOADMs = _dbContext.DebitMemos
-                                  .Where(si => si.SOAId == model.SOAId && !si.IsPosted)
+                                  .Where(si => si.SOAId == model.SOAId && !si.IsPosted && !si.IsCanceled)
                                   .OrderBy(s => s.Id)
                                   .ToList();
                     if (existingSOADMs.Count > 0)
                     {
-                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. DM#{existingSOADMs.First().DMNo}");
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSOADMs.First().DMNo}");
                         return View(model);
                     }
 
                     var existingSOACMs = _dbContext.CreditMemos
-                                      .Where(si => si.SOAId == model.SOAId && !si.IsPosted)
+                                      .Where(si => si.SOAId == model.SOAId && !si.IsPosted && !si.IsCanceled)
                                       .OrderBy(s => s.Id)
                                       .ToList();
                     if (existingSOACMs.Count > 0)
                     {
-                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. CM#{existingSOACMs.First().CMNo}");
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSOACMs.First().CMNo}");
                         return View(model);
                     }
                 }
@@ -716,78 +716,96 @@ namespace Accounting_System.Controllers
 
                                 var ledgers = new List<GeneralLedgerBook>();
 
+                                
                                 ledgers.Add(
                                         new GeneralLedgerBook
                                         {
-                                            Date = viewModelDMCM.Period.ToShortDateString(),
+                                            Date = model.Date.ToShortDateString(),
                                             Reference = model.CMNo,
                                             Description = model.StatementOfAccount.Service.Name,
                                             AccountTitle = "1010204 AR-Non Trade Receivable",
-                                            Debit = viewModelDMCM.Total - (viewModelDMCM.WithholdingTaxAmount + viewModelDMCM.WithholdingVatAmount),
-                                            Credit = 0,
+                                            Debit = 0,
+                                            Credit = Math.Abs(model.CreditAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount)),
                                             CreatedBy = model.CreatedBy,
                                             CreatedDate = model.CreatedDate
                                         }
                                     );
-                                if (viewModelDMCM.WithholdingTaxAmount < 0)
+                                if (model.WithHoldingTaxAmount < 0)
                                 {
                                     ledgers.Add(
                                         new GeneralLedgerBook
                                         {
-                                            Date = viewModelDMCM.Period.ToShortDateString(),
+                                            Date = model.Date.ToShortDateString(),
                                             Reference = model.CMNo,
                                             Description = model.StatementOfAccount.Service.Name,
                                             AccountTitle = "1010202 Deferred Creditable Withholding Tax",
-                                            Debit = viewModelDMCM.WithholdingTaxAmount,
-                                            Credit = 0,
+                                            Debit = 0,
+                                            Credit = Math.Abs(model.WithHoldingTaxAmount),
                                             CreatedBy = model.CreatedBy,
                                             CreatedDate = model.CreatedDate
                                         }
                                     );
                                 }
-                                if (viewModelDMCM.WithholdingVatAmount < 0)
+                                if (model.WithHoldingVatAmount < 0)
                                 {
                                     ledgers.Add(
                                         new GeneralLedgerBook
                                         {
-                                            Date = viewModelDMCM.Period.ToShortDateString(),
+                                            Date = model.Date.ToShortDateString(),
                                             Reference = model.CMNo,
                                             Description = model.StatementOfAccount.Service.Name,
                                             AccountTitle = "1010203 Deferred Creditable Withholding Vat",
-                                            Debit = viewModelDMCM.WithholdingVatAmount,
-                                            Credit = 0,
+                                            Debit = 0,
+                                            Credit = Math.Abs(model.WithHoldingVatAmount),
                                             CreatedBy = model.CreatedBy,
                                             CreatedDate = model.CreatedDate
                                         }
                                     );
                                 }
 
-                                if (viewModelDMCM.Total < 0)
+                                if (model.CurrentAndPreviousAmount < 0)
                                 {
                                     ledgers.Add(new GeneralLedgerBook
                                     {
-                                        Date = viewModelDMCM.Period.ToShortDateString(),
+                                        Date = model.Date.ToShortDateString(),
                                         Reference = model.CMNo,
                                         Description = model.StatementOfAccount.Service.Name,
                                         AccountTitle = model.StatementOfAccount.Service.CurrentAndPrevious,
-                                        Debit = 0,
-                                        Credit = viewModelDMCM.Total / 1.12m,
+                                        Debit = Math.Abs(model.CurrentAndPreviousAmount / 1.12m),
+                                        Credit = 0,
                                         CreatedBy = model.CreatedBy,
                                         CreatedDate = model.CreatedDate
                                     });
                                 }
 
-                                if (viewModelDMCM.VatAmount < 0)
+                                if (model.UnearnedAmount < 0)
                                 {
                                     ledgers.Add(
                                         new GeneralLedgerBook
                                         {
-                                            Date = viewModelDMCM.Period.ToShortDateString(),
+                                            Date = model.Date.ToShortDateString(),
+                                            Reference = model.CMNo,
+                                            Description = model.StatementOfAccount.Service.Name,
+                                            AccountTitle = model.StatementOfAccount.Service.Unearned,
+                                            Debit = Math.Abs(model.UnearnedAmount / 1.12m),
+                                            Credit = 0,
+                                            CreatedBy = model.CreatedBy,
+                                            CreatedDate = model.CreatedDate
+                                        }
+                                    );
+                                }
+
+                                if (model.VatAmount < 0)
+                                {
+                                    ledgers.Add(
+                                        new GeneralLedgerBook
+                                        {
+                                            Date = model.Date.ToShortDateString(),
                                             Reference = model.CMNo,
                                             Description = model.StatementOfAccount.Service.Name,
                                             AccountTitle = "2010304 Deferred Vat Output",
-                                            Debit = 0,
-                                            Credit = viewModelDMCM.VatAmount,
+                                            Debit = Math.Abs(model.VatAmount),
+                                            Credit = 0,
                                             CreatedBy = model.CreatedBy,
                                             CreatedDate = model.CreatedDate
                                         }

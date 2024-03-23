@@ -85,44 +85,44 @@ namespace Accounting_System.Controllers
                 if (model.SalesInvoiceId != null)
                 {
                     var existingSIDMs = _dbContext.DebitMemos
-                                  .Where(si => si.SalesInvoiceId == model.SalesInvoiceId && !si.IsPosted)
+                                  .Where(si => si.SalesInvoiceId == model.SalesInvoiceId && !si.IsPosted && !si.IsCanceled)
                                   .OrderBy(s => s.Id)
                                   .ToList();
                     if (existingSIDMs.Count > 0)
                     {
-                        ModelState.AddModelError("", $"You have a unposted DM for SI. Post that one first before starting a new one. DM#{existingSIDMs.First().DMNo}");
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSIDMs.First().DMNo}");
                         return View(model);
                     }
 
                     var existingSICMs = _dbContext.CreditMemos
-                                      .Where(si => si.SIId == model.SalesInvoiceId && !si.IsPosted)
+                                      .Where(si => si.SIId == model.SalesInvoiceId && !si.IsPosted && !si.IsCanceled)
                                       .OrderBy(s => s.Id)
                                       .ToList();
                     if (existingSICMs.Count > 0)
                     {
-                        ModelState.AddModelError("", $"You have a unposted CM for SI. Post that one first before starting a new one. CM#{existingSICMs.First().CMNo}");
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSICMs.First().CMNo}");
                         return View(model);
                     }
                 }
                 else
                 {
                     var existingSOADMs = _dbContext.DebitMemos
-                                  .Where(si => si.SOAId == model.SOAId && !si.IsPosted)
+                                  .Where(si => si.SOAId == model.SOAId && !si.IsPosted && !si.IsCanceled)
                                   .OrderBy(s => s.Id)
                                   .ToList();
                     if (existingSOADMs.Count > 0)
                     {
-                        ModelState.AddModelError("", $"You have a unposted DM for SOA. Post that one first before starting a new one. DM#{existingSOADMs.First().DMNo}");
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSOADMs.First().DMNo}");
                         return View(model);
                     }
 
                     var existingSOACMs = _dbContext.CreditMemos
-                                      .Where(si => si.SOAId == model.SOAId && !si.IsPosted)
+                                      .Where(si => si.SOAId == model.SOAId && !si.IsPosted && !si.IsCanceled)
                                       .OrderBy(s => s.Id)
                                       .ToList();
                     if (existingSOACMs.Count > 0)
                     {
-                        ModelState.AddModelError("", $"You have a unposted CM for SOA. Post that one first before starting a new one. CM#{existingSOACMs.First().CMNo}");
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSOACMs.First().CMNo}");
                         return View(model);
                     }
                 }
