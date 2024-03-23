@@ -25,16 +25,7 @@ namespace Accounting_System.Repository
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
 
-            if (selectedDocument == null)
-            {
-                salesBooks = _dbContext
-                 .SalesBooks
-                 .AsEnumerable()
-                 .Where(s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate)
-                 .OrderBy(s => s.TransactionDate)
-                 .ToList();
-            }
-            else if (selectedDocument == "DueDate")
+            if (selectedDocument == "DueDate")
             {
                 salesBooks = _dbContext
                  .SalesBooks
@@ -43,14 +34,23 @@ namespace Accounting_System.Repository
                  .OrderBy(s => s.DueDate)
                  .ToList();
             }
-            else
+            else if (selectedDocument == "UnpostedRR" || selectedDocument == "POLiquidation")
             {
                 salesBooks = _dbContext
                  .SalesBooks
                  .AsEnumerable()
                  .Where(s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate && s.SerialNo.Contains(selectedDocument))
                  .OrderBy(s => s.TransactionDate)
-                 .ToList();   
+                 .ToList();
+            }
+            else
+            {
+                salesBooks = _dbContext
+                .SalesBooks
+                .AsEnumerable()
+                .Where(s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate)
+                .OrderBy(s => s.TransactionDate)
+                .ToList();
             }
 
             return salesBooks;
@@ -125,7 +125,7 @@ namespace Accounting_System.Repository
                  .OrderBy(rr => rr.Id)
                  .ToList();
             }
-            else
+            else if (selectedFiltering == "POLiquidation")
             {
                 receivingReport = _dbContext
                  .ReceivingReports
