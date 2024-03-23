@@ -9,9 +9,9 @@
 <partial name="_Notification">
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-primary rounded-3">Create New</a>
 </p>
-<table class="table">
+<table class="table table-hover" id="myOwnTable">
     <thead>
         <tr>
             <th>
@@ -57,9 +57,9 @@
                 @Html.DisplayFor(modelItem => item.VatType)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                <a asp-action="Edit" class="btn btn-light" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" class="btn btn-light" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" class="btn btn-lights" asp-route-id="@item.Id">Delete</a>
             </td>
         </tr>
 }

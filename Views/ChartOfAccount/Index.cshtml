@@ -7,9 +7,9 @@
 <h1>List</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-primary rounded-3">Create New</a>
 </p>
-<table class="table" id="myTable">
+<table class="table table-hover" id="myOwnTable">
     <thead>
         <tr>
             <th>
@@ -49,8 +49,8 @@
                 @Html.DisplayFor(modelItem => item.Level)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a>
+                <a asp-action="Edit" class="btn btn-light" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" class="btn btn-light" asp-route-id="@item.Id">Details</a>
             </td>
         </tr>
 }
