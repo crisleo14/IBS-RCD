@@ -613,7 +613,7 @@ namespace Accounting_System.Controllers
                             {
                                 #region --SOA Computation--
 
-                                viewModelDMCM.Period = model.CreatedDate >= model.Period[i] ? model.CreatedDate.AddMonths(1).AddDays(-1) : model.Period[i].AddMonths(1).AddDays(-1);
+                                viewModelDMCM.Period = model.CreatedDate >= model.Period[i] ? model.CreatedDate : model.Period[i].AddMonths(1).AddDays(-1);
 
                                 if (existingSOA.Customer.CustomerType == "Vatable")
                                 {
