@@ -34,7 +34,7 @@
                     <input asp-for="Date" type="Date" class="form-control" />
                     <span asp-validation-for="Date" class="text-danger"></span>
                 </div>
-                <div class="form-group mb-3" id="siList" style="display: none;">
+                <div class="form-group mb-3" id="siList">
                     <label asp-for="SIId" class="control-label"></label>
                     <select asp-for="SIId" asp-items="@Model.Invoices" class="form-control js-select2" style="width:100%" required>
                         <option></option>
@@ -113,33 +113,52 @@
             document.getElementById("Date").value = myDate;
         </script>
         <script>
+            window.onload = function () {
+                var inlineRadio1 = document.getElementById('inlineRadio1');
+                var inlineRadio2 = document.getElementById('inlineRadio2');
+
+                // Check the default radio button on page load
+                if (inlineRadio1.checked) {
+                    document.getElementById('siList').style.display = 'block';
+                    document.getElementById('soaList').style.display = 'none';
+                } else if (inlineRadio2.checked) {
+                    document.getElementById('siList').style.display = 'none';
+                    document.getElementById('soaList').style.display = 'block';
+                }
+            };
+
             function toggleSelect(id) {
                 var siList = document.getElementById('siList');
                 var soaList = document.getElementById('soaList');
-
-                console.log(id)
+                var inlineRadio1 = document.getElementById('inlineRadio1');
+                var inlineRadio2 = document.getElementById('inlineRadio2');
 
                 if (id === 'siList') {
                     siList.style.display = 'block';
                     soaList.style.display = 'none';
+                    inlineRadio1.checked = true;
+                    inlineRadio2.checked = false;
                 } else if (id === 'soaList') {
                     siList.style.display = 'none';
                     soaList.style.display = 'block';
+                    inlineRadio1.checked = false;
+                    inlineRadio2.checked = true;
                 }
             }
         </script>
         <script>
-            $("#SOAId").change(function () {
-                var soaId = $(this).val();
-                console.log(soaId); // Add this line for debugging
-                if (soaId !== "") {
-                    // Make an AJAX request to get the customer details based on the selected CustomerId
+            var selectedSOAId = "";
+
+            $(document).ready(function () {
+                // Check the selected SOA ID on page load
+                selectedSOAId = $("#SOAId").val();
+                if (selectedSOAId !== "") {
+                    // Make an AJAX request to get the SOA details based on the selected SOAId
                     $.ajax({
                         url: "/CreditMemo/GetSOADetails", // Replace with the actual controller and action names
                         method: "GET",
-                        data: { soaId: soaId },
+                        data: { soaId: selectedSOAId },
                         success: function (data) {
-                            
                             if (data) {
                                 $("#periodContainer").empty(); // Clear previous entries
                                 $("#amountContainer").empty(); // Clear previous entries
@@ -153,15 +172,59 @@
                                     $("#amountContainer").append('<input name="amount" class="form-control moneyInput mb-3" id="' + amountInputId + '" value="' + 0 + '" />');
                                 });
                             } else {
-                                // Clear the fields if no customer is selected
+                                // Clear the fields if no SOA is selected
                                 $("#periodContainer").empty();
                                 $("#amountContainer").empty();
                             }
                             console.log(data);
+                        },
+                        error: function () {
+                            // If there's an error, retain the selected SOA ID and keep the input fields
+                            $("#SOAId").val(selectedSOAId);
+                            console.log("Error occurred. Retaining selected SOA ID and input fields.");
+                        }
+                    });
+                }
+            });
+
+            $("#SOAId").change(function () {
+                selectedSOAId = $(this).val();
+                var soaId = selectedSOAId;
+                console.log(soaId); // Add this line for debugging
+                if (soaId !== "") {
+                    // Make an AJAX request to get the SOA details based on the selected SOAId
+                    $.ajax({
+                        url: "/CreditMemo/GetSOADetails", // Replace with the actual controller and action names
+                        method: "GET",
+                        data: { soaId: soaId },
+                        success: function (data) {
+                            if (data) {
+                                $("#periodContainer").empty(); // Clear previous entries
+                                $("#amountContainer").empty(); // Clear previous entries
+                                data.period.forEach(function (period, index) {
+                                    var periodInputId = "period_" + index;
+                                    var formattedPeriod = formatDate(period); // Format the period here
+                                    $("#periodContainer").append('<input name="period" type="text" class="form-control mb-3" id="' + periodInputId + '" value="' + formattedPeriod + '" readonly/>');
+                                });
+                                data.amount.forEach(function (amount, index) {
+                                    var amountInputId = "amount_" + index;
+                                    $("#amountContainer").append('<input name="amount" class="form-control moneyInput mb-3" id="' + amountInputId + '" value="' + 0 + '" />');
+                                });
+                            } else {
+                                // Clear the fields if no SOA is selected
+                                $("#periodContainer").empty();
+                                $("#amountContainer").empty();
+                            }
+                            console.log(data);
+                        },
+                        error: function () {
+                            // If there's an error, retain the selected SOA ID and keep the input fields
+                            $("#SOAId").val(selectedSOAId);
+                            console.log("Error occurred. Retaining selected SOA ID and input fields.");
                         }
                     });
                 } else {
-                    // Clear the fields if no customer is selected
+                    // Clear the fields if no SOA is selected
                     $("#periodContainer").empty();
                     $("#amountContainer").empty();
                 }
@@ -174,4 +237,5 @@
                 return formattedDate;
             }
         </script>
+
     }
