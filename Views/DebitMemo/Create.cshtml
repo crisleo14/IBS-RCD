@@ -36,7 +36,7 @@
             </div>
             <div class="form-group" id="siList">
                 <label asp-for="SalesInvoiceId" class="control-label"></label>
-                <select asp-for="SalesInvoiceId" asp-items="@Model.SalesInvoices" class="form-control js-select2" style="width:100%" required>
+                <select asp-for="SalesInvoiceId" asp-items="@Model.SalesInvoices" class="form-control js-dmcm-select2" style="width:100%" required>
                     <option></option>
                 </select>
                     <span asp-validation-for="SalesInvoiceId" class="text-danger"></span>
@@ -53,7 +53,7 @@
             </div>
             <div class="form-group" id="soaList" style="display: none;">
                 <label asp-for="SOAId" class="control-label"></label>
-                    <select asp-for="SOAId" asp-items="@Model.StatementOfAccounts" class="form-control js-select2" style="width:100%" required>
+                    <select asp-for="SOAId" asp-items="@Model.StatementOfAccounts" class="form-control js-dmcm-select2" style="width:100%" required>
                     <option></option>
                 </select>
                     <span asp-validation-for="SOAId" class="text-danger"></span>
@@ -145,57 +145,17 @@
             }
         </script>
         <script>
-            var selectedSOAId = "";
-
-            $(document).ready(function () {
-                // Check the selected SOA ID on page load
-                selectedSOAId = $("#SOAId").val();
-                if (selectedSOAId !== "") {
-                    // Make an AJAX request to get the SOA details based on the selected SOAId
-                    $.ajax({
-                        url: "/CreditMemo/GetSOADetails", // Replace with the actual controller and action names
-                        method: "GET",
-                        data: { soaId: selectedSOAId },
-                        success: function (data) {
-                            if (data) {
-                                $("#periodContainer").empty(); // Clear previous entries
-                                $("#amountContainer").empty(); // Clear previous entries
-                                data.period.forEach(function (period, index) {
-                                    var periodInputId = "period_" + index;
-                                    var formattedPeriod = formatDate(period); // Format the period here
-                                    $("#periodContainer").append('<input name="period" type="text" class="form-control mb-3" id="' + periodInputId + '" value="' + formattedPeriod + '" readonly/>');
-                                });
-                                data.amount.forEach(function (amount, index) {
-                                    var amountInputId = "amount_" + index;
-                                    $("#amountContainer").append('<input name="amount" class="form-control moneyInput mb-3" id="' + amountInputId + '" value="' + 0 + '" />');
-                                });
-                            } else {
-                                // Clear the fields if no SOA is selected
-                                $("#periodContainer").empty();
-                                $("#amountContainer").empty();
-                            }
-                            console.log(data);
-                        },
-                        error: function () {
-                            // If there's an error, retain the selected SOA ID and keep the input fields
-                            $("#SOAId").val(selectedSOAId);
-                            console.log("Error occurred. Retaining selected SOA ID and input fields.");
-                        }
-                    });
-                }
-            });
-
             $("#SOAId").change(function () {
-                selectedSOAId = $(this).val();
-                var soaId = selectedSOAId;
+                var soaId = $(this).val();
                 console.log(soaId); // Add this line for debugging
                 if (soaId !== "") {
-                    // Make an AJAX request to get the SOA details based on the selected SOAId
+                    // Make an AJAX request to get the customer details based on the selected CustomerId
                     $.ajax({
                         url: "/CreditMemo/GetSOADetails", // Replace with the actual controller and action names
                         method: "GET",
                         data: { soaId: soaId },
                         success: function (data) {
+
                             if (data) {
                                 $("#periodContainer").empty(); // Clear previous entries
                                 $("#amountContainer").empty(); // Clear previous entries
@@ -209,20 +169,15 @@
                                     $("#amountContainer").append('<input name="amount" class="form-control moneyInput mb-3" id="' + amountInputId + '" value="' + 0 + '" />');
                                 });
                             } else {
-                                // Clear the fields if no SOA is selected
+                                // Clear the fields if no customer is selected
                                 $("#periodContainer").empty();
                                 $("#amountContainer").empty();
                             }
                             console.log(data);
-                        },
-                        error: function () {
-                            // If there's an error, retain the selected SOA ID and keep the input fields
-                            $("#SOAId").val(selectedSOAId);
-                            console.log("Error occurred. Retaining selected SOA ID and input fields.");
                         }
                     });
                 } else {
-                    // Clear the fields if no SOA is selected
+                    // Clear the fields if no customer is selected
                     $("#periodContainer").empty();
                     $("#amountContainer").empty();
                 }

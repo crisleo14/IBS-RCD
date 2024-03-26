@@ -18,6 +18,18 @@ $(document).ready(function () {
         width: 'resolve'
     });
 });
+$(document).ready(function () {
+    // Initialize Select2
+    $('.js-dmcm-select2').select2({
+        placeholder: "Select an option",
+        allowClear: true,
+        width: 'resolve'
+    });
+
+    // Clear the selected value when the page is loaded
+    $('.js-dmcm-select2').val(null).trigger('change');
+});
+
 
 //sorting and paginatio with search can used in all modules
 $(document).ready(function () {
