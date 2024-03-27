@@ -2,6 +2,7 @@
 using Accounting_System.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Accounting_System.Repository
 {
@@ -18,40 +19,38 @@ namespace Accounting_System.Repository
         {
             var fromDate = DateTime.Parse(dateFrom);
             var toDate = DateTime.Parse(dateTo);
-            List<SalesBook> salesBooks = new List<SalesBook>();
 
             if (fromDate > toDate)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
 
-            if (selectedDocument == "DueDate")
+            Func<SalesBook, object> orderBy = null;
+            Func<SalesBook, bool> query = null;
+
+            switch (selectedDocument)
             {
-                salesBooks = _dbContext
-                 .SalesBooks
-                 .AsEnumerable()
-                 .Where(s => s.DueDate >= fromDate && s.DueDate <= toDate)
-                 .OrderBy(s => s.DueDate)
-                 .ToList();
+                case "UnpostedRR":
+                case "POLiquidation":
+                    query = s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate && s.SerialNo.Contains(selectedDocument);
+                    break;
+                case "DueDate":
+                    orderBy = s => s.DueDate;
+                    query = s => s.DueDate >= fromDate && s.DueDate <= toDate;
+                    break;
+                default:
+                    orderBy = s => DateTime.Parse(s.TransactionDate);
+                    query = s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate;
+                    break;
             }
-            else if (selectedDocument == "UnpostedRR" || selectedDocument == "POLiquidation")
-            {
-                salesBooks = _dbContext
-                 .SalesBooks
-                 .AsEnumerable()
-                 .Where(s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate && s.SerialNo.Contains(selectedDocument))
-                 .OrderBy(s => s.TransactionDate)
-                 .ToList();
-            }
-            else
-            {
-                salesBooks = _dbContext
+
+            // Add a null check for orderBy
+            var salesBooks = _dbContext
                 .SalesBooks
                 .AsEnumerable()
-                .Where(s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate)
-                .OrderBy(s => s.TransactionDate)
+                .Where(query)
+                .OrderBy(orderBy ?? (Func<SalesBook, object>)(s => DateTime.Parse(s.TransactionDate)))
                 .ToList();
-            }
 
             return salesBooks;
 
@@ -92,7 +91,7 @@ namespace Accounting_System.Repository
 
             switch (selectedFiltering)
             {
-                case "TransactionDate":
+                case "RRDate":
                     orderBy = p => DateTime.Parse(p.Date);
                     break;
                 case "DueDate":

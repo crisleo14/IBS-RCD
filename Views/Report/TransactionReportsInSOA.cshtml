@@ -25,8 +25,25 @@
     DateTime now = DateTime.Now;
     decimal total = 0;
 }
+<style>
+    body {
+        margin: 0 100 0 0;
+        padding: 0;
+    }
+
+    .container {
+        margin: 0;
+        padding: 0;
+        max-width: 100%;
+    }
+
+    main {
+        margin: 0;
+        padding: 0;
+    }
+</style>
 <br class="br-top" />
-<div>
+<div class="mx-5">
 <pre>
 TAXPAYER'S NAME: Filpride Resources Inc.
 TIN: 000-216-589-00000
@@ -36,7 +53,14 @@ Accounting System: Accounting Administration System
 Acknowledgement Certificate Control No.:
 Date Issued:
 </pre>
-    <h3><b>Reports of transaction based on entries per SOA</b></h3>
+    @if(ViewBag.SOAList != null)
+    {
+        <h3><b>Reports of transaction based on entries per SOA</b></h3>
+    }
+    else if (ViewBag.SIList != null)
+    {
+        <h3><b>Reports of transaction based on entries per SI</b></h3>
+    }
 
     <table class="table table-hover" style="margin-top:20px;">
         <thead>
