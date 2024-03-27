@@ -190,12 +190,23 @@ namespace Accounting_System.Repository
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
 
+            Func<GeneralLedgerBook, object> orderBy;
+
+            if (dateFrom != null && dateTo != null)
+            {
+                orderBy = i => DateTime.Parse(i.Date);
+            }
+            else
+            {
+                orderBy = i => i.Date; // Default ordering function
+            }
+
             var generalLedgerBooks = _dbContext
-             .GeneralLedgerBooks
-             .AsEnumerable()
-             .Where(i => DateTime.Parse(i.Date) >= fromDate && DateTime.Parse(i.Date) <= toDate)
-             .OrderBy(i => i.Date)
-             .ToList();
+                .GeneralLedgerBooks
+                .AsEnumerable()
+                .Where(i => DateTime.Parse(i.Date) >= fromDate && DateTime.Parse(i.Date) <= toDate)
+                .OrderBy(orderBy)
+                .ToList();
 
             return generalLedgerBooks;
         }
