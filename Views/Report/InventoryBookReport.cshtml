@@ -31,7 +31,25 @@
     int numberOfRecords = 0;
     decimal amountFieldControlTotal = 0;
 }
+<style>
+    body {
+        margin: 0 100 0 0;
+        padding: 0;
+    }
+
+    .container {
+        margin: 0;
+        padding: 0;
+    }
+
+    main {
+        margin: 0;
+        padding: 0;
+        max-width: 100%;
+    }
+</style>
 <br class="br-top" />
+<div class="mx-5">
 <pre>
 TAXPAYER'S NAME: Filpride Resources Inc.
 TIN: 000-216-589-00000
@@ -145,7 +163,7 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
 
     <a class="btn btn-success" onclick="printPage()" id="printButton" style="margin-top:25px;">Print</a>
     <a asp-action="InventoryBook" class="btn" id="otherButton" style="margin-top:25px;">Back</a>
-
+</div>
 @section Scripts{
     <script>
         function printPage() {

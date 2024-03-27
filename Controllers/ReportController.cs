@@ -52,8 +52,7 @@ namespace Accounting_System.Controllers
                 {
                     if (soaList != null || siList != null)
                     {
-                        var id = siList != null ? siList : soaList;
-                        return RedirectToAction("TransactionReportsInSOA", new { id = id });
+                        return RedirectToAction("TransactionReportsInSOA", new { soaList = soaList, siList = siList});
                     }
 
                     var salesBook = _reportRepo.GetSalesBooks(model.DateFrom, model.DateTo, selectedDocument);
@@ -76,8 +75,11 @@ namespace Accounting_System.Controllers
             return View(model);
         }
 
-        public async Task<IActionResult> TransactionReportsInSOA(int? id)
+        public async Task<IActionResult> TransactionReportsInSOA(int? siList, int? soaList)
         {
+            ViewBag.SIList = siList;
+            ViewBag.SOAList = soaList;
+            var id = siList != null ? siList : soaList;
                 var sales = await _dbContext
                     .SalesBooks
                     .Where(s => s.DocumentId == id)
