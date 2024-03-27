@@ -88,14 +88,32 @@ namespace Accounting_System.Repository
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
 
-            string orderBy = selectedFiltering == "DueDate" ? orderBy = "s.DueDate" : selectedFiltering == "POLiquidation" || selectedFiltering == "UnpostedRR" ? orderBy = "s.Id" : orderBy = "s.Date";
+            Func<PurchaseJournalBook, object> orderBy;
+
+            switch (selectedFiltering)
+            {
+                case "TransactionDate":
+                    orderBy = p => DateTime.Parse(p.Date);
+                    break;
+                case "DueDate":
+                    orderBy = p => DateTime.Parse(p.DueDate);
+                    break;
+                case "POLiquidation":
+                case "UnpostedRR":
+                    orderBy = p => p.Id;
+                    break;
+                default:
+                    orderBy = p => DateTime.Parse(p.Date);
+                    break;
+            }
 
             purchaseBook = _dbContext
-             .PurchaseJournalBooks
-             .AsEnumerable()
-             .Where(p => DateTime.Parse(selectedFiltering == "DueDate" || selectedFiltering == "POLiquidation" ? p.DueDate : p.Date) >= fromDate && DateTime.Parse(p.Date) <= toDate)
-             .OrderBy(s => orderBy)
-             .ToList();
+                .PurchaseJournalBooks
+                .AsEnumerable()
+                .Where(p => DateTime.Parse(selectedFiltering == "DueDate" || selectedFiltering == "POLiquidation" ? p.DueDate : p.Date) >= fromDate &&
+                            DateTime.Parse(selectedFiltering == "DueDate" || selectedFiltering == "POLiquidation" ? p.DueDate : p.Date) <= toDate)
+                .OrderBy(orderBy)
+                .ToList();
 
             return purchaseBook;
         }

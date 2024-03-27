@@ -113,10 +113,10 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                     <td>
                     @if (ViewBag.SelectedFiltering != "DueDate")
                         {
-                            @Html.DisplayFor(model => purchase.Date)
+                            @purchase.Date
                         }else
                         {
-                            @Html.DisplayFor(model => purchase.DueDate)
+                            @purchase.DueDate
                         }
                     </td>
                     <td>

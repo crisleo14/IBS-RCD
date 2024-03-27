@@ -24,10 +24,11 @@
                     <span asp-validation-for="DateTo" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label class="control-label">Select type of document(Optional)</label>
+                    <label class="control-label">Select type of reports</label>
                     <select name="selectedFiltering" class="form-control js-select2">
                         <option value="" selected="Disabled">--Select an option--</option>
-                        <option value="DueDate">Due Date</option>
+                        <option value="TransactionDate">Purchase Book based on RR Date</option>
+                        <option value="DueDate">Purchase Book based on Due Date</option>
                         <option value="UnpostedRR">Unposted RR (Show Quantity)</option>
                         <option value="POLiquidation">PO Liquidation (Based on Due Date)</option>
                     </select>
@@ -36,12 +37,13 @@
 
                 <div class="col-md-4">
                 <div class="form-group mb-3">
-                    <label class="control-label">PO Liquidation Per PO</label>
+                    <p class="control-label">PO Liquidation Per PO<br />PO# From:</p>
                     <select name="poListFrom" class="form-control js-select2" asp-items="@Model.PO">
                         <option></option>
                     </select>
                 </div>
                 <div class="form-group mb-3">
+                    <label class="control-label">PO# To:</label>
                     <select name="poListTo" class="form-control js-select2" asp-items="@Model.PO">
                         <option></option>
                     </select>
