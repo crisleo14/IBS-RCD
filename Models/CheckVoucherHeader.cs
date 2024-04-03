@@ -14,16 +14,27 @@ namespace Accounting_System.Models
         public DateTime Date { get; set; }
 
         [Display(Name = "RR No")]
-        public int RRId { get; set; }
-
-        [ForeignKey("RRId")]
-        public ReceivingReport? ReceivingReport { get; set; }
+        [Column(TypeName = "varchar[]")]
+        public string[] RRNo { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? RR { get; set; }
 
-        [Display(Name = "RR No")]
-        public string? RRNo { get; set; }
+        [Display(Name = "PO No")]
+        [Column(TypeName = "varchar[]")]
+        public string[] PONo { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? PO { get; set; }
+
+        [Display(Name = "Supplier Id")]
+        public int? SupplierId { get; set; }
+
+        [ForeignKey("SupplierId")]
+        public Supplier? Supplier { get; set;}
+
+        [NotMapped]
+        public List<SelectListItem>? Suppliers { get; set; }
 
         public decimal Amount { get; set; }
 
@@ -36,5 +47,10 @@ namespace Accounting_System.Models
 
         [Display(Name = "Check #")]
         public string CheckNo { get; set; }
+
+        public string Category { get; set; }
+
+        [Display(Name = "Payee")]
+        public string Payee { get; set; }
     }
 }

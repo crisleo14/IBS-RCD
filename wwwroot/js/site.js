@@ -12,6 +12,14 @@
 //});
 
 $(document).ready(function () {
+    $('.js-multiple-not-retain-value').select2({
+        placeholder: "Select an option",
+        width: 'resolve'
+    });
+    $('.js-multiple-not-retain-value').val([]).trigger('change');
+});
+
+$(document).ready(function () {
     $('.js-select2').select2({
         placeholder: "Select an option",
         allowClear: true,
@@ -20,14 +28,14 @@ $(document).ready(function () {
 });
 $(document).ready(function () {
     // Initialize Select2
-    $('.js-dmcm-select2').select2({
+    $('.js-not-retain-value-select2').select2({
         placeholder: "Select an option",
         allowClear: true,
         width: 'resolve'
     });
 
     // Clear the selected value when the page is loaded
-    $('.js-dmcm-select2').val(null).trigger('change');
+    $('.js-not-retain-value-select2').val(null).trigger('change');
 });
 
 
