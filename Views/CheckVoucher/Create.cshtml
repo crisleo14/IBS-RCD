@@ -11,118 +11,94 @@
 <h4>Check Voucher</h4>
 <hr />
 <div class="row">
-        <form asp-action="Create">
-            <div class="col-md-4">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                <div class="form-group">
-                    <label asp-for="Header.Date" class="control-label"></label>
-                    <input asp-for="Header.Date" type="Date" class="form-control" />
-                    <span asp-validation-for="Header.Date" class="text-danger"></span>
-                </div>
-            <div class="form-group">
-                <label class="control-label">RR NO.</label>
-                    <select asp-for="Header.RRId" asp-items="@Model.Header.RR" class="form-select js-select2">
-                    <option></option>
-                </select>
-            </div>
-            <div class="form-group">
-                    <label asp-for="Header.Amount" class="control-label"></label>
-                    <input asp-for="Header.Amount" type="text" class="form-control" />
-                    <span asp-validation-for="Header.Amount" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Header.Bank" class="control-label"></label>
-                <input asp-for="Header.Bank" type="text" class="form-control" />
-                <span asp-validation-for="Header.Bank" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Header.CheckNo" class="control-label"></label>
-                <input asp-for="Header.CheckNo" type="number" class="form-control" />
-                <span asp-validation-for="Header.CheckNo" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Header.Particulars" class="control-label"></label>
-                <input asp-for="Header.Particulars" type="text" class="form-control" />
-                <span asp-validation-for="Header.Particulars" class="text-danger"></span>
+    <form asp-action="Create">
+        <div class="col-md-4">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <fieldset class="form-group">
+            <legend></legend>
+
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" asp-for="Header.Category" id="inlineRadio1" value="Trade" aria-labelledby="labelInlineRadio1" onclick="toggleSelect('tradeList')">
+                <label class="form-check-label" for="inlineRadio1" id="labelInlineRadio1">Trade</label>
             </div>
 
-            <br />
-            <div class="form-group">
-                <label class="control-label">Account No.</label>
-                    <select asp-for="Details.COAId" asp-items="@Model.Details.COA" class="form-select js-select2">
-                    <option></option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label asp-for="Details.Amount" class="control-label"></label>
-                <input asp-for="Details.Amount" type="text" class="form-control" />
-                <span asp-validation-for="Details.Amount" class="text-danger"></span>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" asp-for="Header.Category" id="inlineRadio2" value="Non-Trade" aria-labelledby="labelInlineRadio2" onclick="toggleSelect('nTradeList')">
+                <label class="form-check-label" for="inlineRadio2" id="labelInlineRadio2">Non-Trade</label>
             </div>
             <br />
-
+            <span asp-validation-for="Header.Category" class="text-danger"></span>
+        </fieldset>
+        <div class="form-group">
+            <label class="control-label">Supplier</label>
+            <select asp-for="Header.Supplier" asp-items="@Model.Header.Suppliers" class="form-select js-select2 GetPOList" id="supplierSelect">
+                <option></option>
+            </select>
+        </div>
+        <div class="form-group">
+                <label asp-for="Header.Payee" class="control-label"></label>
+                <input asp-for="Header.Payee" type="text" class="form-control" id="payeeInput"/>
+                <span asp-validation-for="Header.Payee" class="text-danger"></span>
+        </div>
+        <div id="nTradeList" style="display: none;">
+        <div class="form-group">
+            <label for="choicesPO">PO No.(press Enter to add another):</label>
+              <input type="text" id="choicesPO" name="choices" class="form-control">
+              <div id="selected-choicesPO" style="overflow-y: auto; max-height: 200px;" class="form-control"></div>
+        </div>
+        <div class="form-group">
+            <label for="choicesSI">SI No.(press Enter to add another):</label>
+              <input type="text" id="choicesSI" name="choices" class="form-control">
+              <div id="selected-choicesSI" style="overflow-y: auto; max-height: 200px;" class="form-control"></div>
+        </div>
+        </div>
+        <div id="tradeList">
+        <div class="form-group">
+            <label class="control-label">PO No.</label>
+            <select asp-for="Header.PONo" asp-items="@Model.Header.PO" class="form-select js-multiple-not-retain-value GetRRList" multiple="multiple" id="poSelect">
+                <option></option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="control-label">RR NO.</label>
+                <select asp-for="Header.RRNo" asp-items="@Model.Header.RR" class="form-select js-multiple-not-retain-value" multiple="multiple" id="rrSelect">
+                <option></option>
+            </select>
+        </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Header.Date" class="control-label"></label>
+            <input asp-for="Header.Date" type="Date" class="form-control" />
+            <span asp-validation-for="Header.Date" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+                <label asp-for="Header.Amount" class="control-label"></label>
+                <input asp-for="Header.Amount" type="text" class="form-control" />
+                <span asp-validation-for="Header.Amount" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Header.Bank" class="control-label"></label>
+            <input asp-for="Header.Bank" type="text" class="form-control" />
+            <span asp-validation-for="Header.Bank" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Header.CheckNo" class="control-label"></label>
+            <input asp-for="Header.CheckNo" type="number" class="form-control" />
+            <span asp-validation-for="Header.CheckNo" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Header.Particulars" class="control-label"></label>
+            <input asp-for="Header.Particulars" type="text" class="form-control" />
+            <span asp-validation-for="Header.Particulars" class="text-danger"></span>
+        </div>
 </div>
 
-            @* Table *@
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                <a asp-action="Create">+ Add</a>
-            </th>
-            <th class="w-25">
-                DEBIT
-            </th>
-            <th class="w-25">
-                CREDIT
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-@* @foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.CVNo)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SeriesNumber)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Date)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ReceivingReport.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RRNo)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Amount)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.AmountInWords)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Particulars)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Bank)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CheckNo)
-            </td>
-        </tr>
-} *@
-    </tbody>
-</table>
-
-            <br />
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-            </div>
-        </form>
+        <div class="form-group">
+            <input type="submit" value="Save" class="btn btn-primary" />
+            <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+        </div>
+    </form>
 </div>
-
 
 @section Scripts {
     @{
@@ -135,4 +111,173 @@
         // Set the default value of the input field
         document.getElementById("Date").value = myDate;
     </script>
+    <script>
+        $('#AccountTitle').select2({
+            dropdownParent: $('#AddAccEntry')
+        });
+    </script>
+        <script>
+            function toggleSelect(id) {
+                var tradeList = document.getElementById('tradeList');
+                var nTradeList = document.getElementById('nTradeList');
+
+                if (id === 'tradeList') {
+                    tradeList.style.display = 'block';
+                    nTradeList.style.display = 'none';
+                } else if (id === 'nTradeList') {
+                    tradeList.style.display = 'none';
+                    nTradeList.style.display = 'block';
+                }
+            }
+        </script>
+        <script>
+            $(document).ready(function () {
+                $('#supplierSelect').change(function () {
+                    $('#payeeInput').val($(this).find(':selected').text());
+                });
+            });
+        </script>
+        <script>
+            const choicesInputSI = document.getElementById('choicesSI');
+            const selectedChoicesContainerSI = document.getElementById('selected-choicesSI');
+
+            choicesInputSI.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault(); // Prevent the default form submission behavior
+
+                    const newChoiceSI = choicesInputSI.value.trim();
+                    if (newChoiceSI) {
+                        const newSpanSI = document.createElement('span');
+                        newSpanSI.textContent = newChoiceSI;
+                        newSpanSI.classList.add('choiceSI'); // Add a class for styling
+
+                        // Apply styling using the 'choice' class
+                        newSpanSI.style.backgroundColor = 'lightgray'; // Set background color to light gray
+                        newSpanSI.style.padding = '5px';                 // Add some padding
+                        newSpanSI.style.borderRadius = '20px';          // Set rounded corners (adjust value)
+                        newSpanSI.style.marginRight = '10px';        // Add margin to the right (adjust value)
+
+                        newSpanSI.addEventListener('click', () => selectedChoicesContainerSI.removeChild(newSpanSI));
+                        selectedChoicesContainerSI.appendChild(newSpanSI);
+                        choicesInputSI.value = '';
+
+                        // Scroll to the bottom of the container to show the latest added choice
+                        selectedChoicesContainerSI.scrollTop = selectedChoicesContainerSI.scrollHeight;
+                    }
+                }
+            });
+        </script>
+        <script>
+            const choicesInput = document.getElementById('choicesPO');
+            const selectedChoicesContainer = document.getElementById('selected-choicesPO');
+
+            choicesInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault(); // Prevent the default form submission behavior
+
+                    const newChoice = choicesInput.value.trim();
+                    if (newChoice) {
+                        const newSpan = document.createElement('span');
+                        newSpan.textContent = newChoice;
+                        newSpan.classList.add('choicePO'); // Add a class for styling
+
+                        // Apply styling using the 'choice' class
+                        newSpan.style.backgroundColor = 'lightgray'; // Set background color to light gray
+                        newSpan.style.padding = '5px';                 // Add some padding
+                        newSpan.style.borderRadius = '20px';          // Set rounded corners (adjust value)
+                        newSpan.style.marginRight = '10px';        // Add margin to the right (adjust value)
+
+                        newSpan.addEventListener('click', () => selectedChoicesContainer.removeChild(newSpan));
+                        selectedChoicesContainer.appendChild(newSpan);
+                        choicesInput.value = '';
+
+                        // Scroll to the bottom of the container to show the latest added choice
+                        selectedChoicesContainer.scrollTop = selectedChoicesContainer.scrollHeight;
+                    }
+                }
+            });
+        </script>
+        <script>
+            $(function () {
+                $(".GetPOList").change(function () {
+                    var suppId = $(this).val();
+                    console.log(suppId); // Add this line for debugging
+                    if (suppId !== "") {
+                        // Make an AJAX request to get the POs based on the selected SupplierId
+                        $.ajax({
+                            url: "/CheckVoucher/GetPOs",
+                            method: "GET",
+                            data: { supplierId: suppId }, // Corrected parameter name
+                            success: function (data) {
+                                console.log(data); // Log the returned data for debugging
+                                if (data) {
+                                    // Clear existing options
+                                    $("#poSelect").empty();
+                                    // Add new options based on the fetched data
+                                    $.each(data, function (index, po) {
+                                        console.log(po); // Log each PO for debugging
+                                        if (po && po.poNumber) { // Adjust property name to poNumber
+                                            $('#poSelect').append('<option value="' + po.id + '">' + po.poNumber + '</option>'); // Adjust property names
+                                        } else {
+                                            console.error("Invalid PO object:", po);
+                                        }
+                                    });
+                                } else {
+                                    // Clear the fields if no POs are found
+                                    $("#poSelect").empty();
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('Error fetching POs:', error);
+                            }
+                        });
+                    } else {
+                        // Clear the fields if no supplier is selected
+                        $("#poSelect").empty();
+                    }
+                });
+            });
+        </script>
+        <script>
+            $(function () {
+                $(".GetRRList").change(function () {
+                    var poIds = $(this).val(); // Get all selected POIds
+                    console.log(poIds); // Add this line for debugging
+                    if (poIds && poIds.length > 0) {
+                        // Make an AJAX request to get the RRs based on the selected POIds
+                        $.ajax({
+                            url: "/CheckVoucher/GetRRs",
+                            method: "GET",
+                            data: { poIds: poIds }, // Pass the array of POIds
+                            traditional: true, // Ensure jQuery sends the array properly
+                            success: function (data) {
+                                console.log(data); // Log the returned data for debugging
+                                if (data) {
+                                    // Clear existing options
+                                    $("#rrSelect").empty();
+                                    // Add new options based on the fetched data
+                                    $.each(data, function (index, rr) {
+                                        console.log(rr); // Log each RR for debugging
+                                        if (rr && rr.rrNumber) { // Adjust property name to RRNumber
+                                            $('#rrSelect').append('<option value="' + rr.Id + '">' + rr.rrNumber + '</option>'); // Adjust property names
+                                        } else {
+                                            console.error("Invalid RR object:", rr);
+                                        }
+                                    });
+                                } else {
+                                    // Clear the fields if no RRs are found
+                                    $("#rrSelect").empty();
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('Error fetching RRs:', error);
+                            }
+                        });
+                    } else {
+                        // Clear the fields if no POs are selected
+                        $("#rrSelect").empty();
+                    }
+                });
+            });
+        </script>
 }

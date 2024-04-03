@@ -38,43 +38,44 @@ namespace Accounting_System.Controllers
                 Details = new CheckVoucherDetail()
             };
 
-            viewModel.Header.RR = await _dbContext.ReceivingReports
-                .Select(s => new SelectListItem
-                {
-                    Value = s.Id.ToString(),
-                    Text = s.RRNo
-                })
-                .ToListAsync(cancellationToken);
+            //viewModel.Details.COA = await _dbContext.ChartOfAccounts
+            //    .Select(s => new SelectListItem
+            //    {
+            //        Value = s.Id.ToString(),
+            //        Text = s.Number + " " + s.Name
+            //    })
+            //    .ToListAsync(cancellationToken);
 
-            viewModel.Details.COA = await _dbContext.ChartOfAccounts
-                .Select(s => new SelectListItem
+            viewModel.Header.Suppliers = await _dbContext.Suppliers
+                .Select(sup => new SelectListItem
                 {
-                    Value = s.Id.ToString(),
-                    Text = s.Number + " " + s.Name
+                    Value = sup.Id.ToString(),
+                    Text = sup.Name
                 })
-                .ToListAsync(cancellationToken);
+                .ToListAsync();
 
             return View(viewModel);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CheckVoucherVM model, CancellationToken cancellationToken)
+        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken)
         {
-            model.Header.RR = await _dbContext.ReceivingReports
-               .Select(rr => new SelectListItem
-               {
-                   Value = rr.Id.ToString(),
-                   Text = rr.RRNo
-               })
-               .ToListAsync(cancellationToken);
 
-            model.Details.COA = await _dbContext.ChartOfAccounts
-                .Select(coa => new SelectListItem
+            //model.Details.COA = await _dbContext.ChartOfAccounts
+            //    .Select(s => new SelectListItem
+            //    {
+            //        Value = s.Id.ToString(),
+            //        Text = s.Number + " " + s.Name
+            //    })
+            //    .ToListAsync(cancellationToken);
+
+            model.Header.Suppliers = await _dbContext.Suppliers
+                .Select(sup => new SelectListItem
                 {
-                    Value = coa.Id.ToString(),
-                    Text = coa.Number + " " + coa.Name
+                    Value = sup.Id.ToString(),
+                    Text = sup.Name
                 })
-                .ToListAsync(cancellationToken);
+                .ToListAsync();
 
             if (ModelState.IsValid)
             {
@@ -104,11 +105,11 @@ namespace Accounting_System.Controllers
                 model.Header.CreatedBy = _userManager.GetUserName(this.User);
 
                 //CV Details Entry
-                model.Details.CreatedBy = _userManager.GetUserName(this.User);
+                //model.Details.CreatedBy = _userManager.GetUserName(this.User);
 
 
                 await _dbContext.AddAsync(model.Header, cancellationToken);  // Add CheckVoucherHeader to the context
-                _dbContext.Add(model.Details); // Add CheckVoucherDetails to the context
+                //_dbContext.Add(model.Details); // Add CheckVoucherDetails to the context
 
                 await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
                 return RedirectToAction("Index");
@@ -118,6 +119,34 @@ namespace Accounting_System.Controllers
                 TempData["error"] = "The information you submitted is not valid!";
                 return View(model);
             }
+        }
+        public async Task<IActionResult> GetPOs(int supplierId)
+        {
+            var purchaseOrders = await _dbContext.PurchaseOrders
+                .Where(po => po.SupplierId == supplierId)
+                .ToListAsync();
+
+            if (purchaseOrders != null && purchaseOrders.Count > 0)
+            {
+                var poList = purchaseOrders.Select(po => new { Id = po.Id, PONumber = po.PONo }).ToList();
+                return Json(poList);
+            }
+
+            return Json(null);
+        }
+        public async Task<IActionResult> GetRRs(int[] poIds)
+        {
+            var receivingReports = await _dbContext.ReceivingReports
+                .Where(rr => poIds.Contains(rr.POId))
+                .ToListAsync();
+
+            if (receivingReports != null && receivingReports.Count > 0)
+            {
+                var rrList = receivingReports.Select(rr => new { Id = rr.Id, RRNumber = rr.RRNo }).ToList();
+                return Json(rrList);
+            }
+
+            return Json(null);
         }
 
         [HttpGet]

@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240401094834_Add new field in CV named PONo, PO, RR, SupplierId, Supplier, and category")]
+    partial class AddnewfieldinCVnamedPONoPORRSupplierIdSupplierandcategory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -251,24 +254,20 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Payee")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("PostedBy")
                         .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("PostedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string[]>("RRNo")
-                        .IsRequired()
-                        .HasColumnType("varchar[]");
-
                     b.Property<long>("SeriesNumber")
                         .HasColumnType("bigint");
 
-                    b.Property<int?>("SupplierId")
+                    b.Property<string>("Supplier")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("SupplierId")
                         .HasColumnType("integer");
 
                     b.Property<string>("VoidedBy")
@@ -278,8 +277,6 @@ namespace Accounting_System.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("SupplierId");
 
                     b.ToTable("CheckVoucherHeaders");
                 });
@@ -2148,15 +2145,6 @@ namespace Accounting_System.Migrations
                         .IsRequired();
 
                     b.Navigation("ChartOfAccount");
-                });
-
-            modelBuilder.Entity("Accounting_System.Models.CheckVoucherHeader", b =>
-                {
-                    b.HasOne("Accounting_System.Models.Supplier", "Supplier")
-                        .WithMany()
-                        .HasForeignKey("SupplierId");
-
-                    b.Navigation("Supplier");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.CollectionReceipt", b =>

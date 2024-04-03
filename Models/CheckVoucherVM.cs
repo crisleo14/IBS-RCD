@@ -2,7 +2,7 @@
 {
     public class CheckVoucherVM
     {
-        public CheckVoucherHeader Header { get; set; }
-        public CheckVoucherDetail Details { get; set; }
+        public CheckVoucherHeader? Header { get; set; }
+        public CheckVoucherDetail? Details { get; set; }
     }
 }
