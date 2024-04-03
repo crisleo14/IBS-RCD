@@ -134,10 +134,10 @@ namespace Accounting_System.Controllers
 
             return Json(null);
         }
-        public async Task<IActionResult> GetRRs(int[] poIds)
+        public async Task<IActionResult> GetRRs(string[] poNumber)
         {
             var receivingReports = await _dbContext.ReceivingReports
-                .Where(rr => poIds.Contains(rr.POId))
+                .Where(rr => poNumber.Contains(rr.PONo))
                 .ToListAsync();
 
             if (receivingReports != null && receivingReports.Count > 0)

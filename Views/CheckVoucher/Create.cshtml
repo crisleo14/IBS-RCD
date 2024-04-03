@@ -217,7 +217,7 @@
                                     $.each(data, function (index, po) {
                                         console.log(po); // Log each PO for debugging
                                         if (po && po.poNumber) { // Adjust property name to poNumber
-                                            $('#poSelect').append('<option value="' + po.id + '">' + po.poNumber + '</option>'); // Adjust property names
+                                            $('#poSelect').append('<option value="' + po.poNumber + '">' + po.poNumber + '</option>'); // Adjust property names
                                         } else {
                                             console.error("Invalid PO object:", po);
                                         }
@@ -241,14 +241,14 @@
         <script>
             $(function () {
                 $(".GetRRList").change(function () {
-                    var poIds = $(this).val(); // Get all selected POIds
-                    console.log(poIds); // Add this line for debugging
-                    if (poIds && poIds.length > 0) {
+                    var poNumber = $(this).val(); // Get all selected POIds
+                    console.log(poNumber); // Add this line for debugging
+                    if (poNumber && poNumber.length > 0) {
                         // Make an AJAX request to get the RRs based on the selected POIds
                         $.ajax({
                             url: "/CheckVoucher/GetRRs",
                             method: "GET",
-                            data: { poIds: poIds }, // Pass the array of POIds
+                            data: { poNumber: poNumber }, // Pass the array of POIds
                             traditional: true, // Ensure jQuery sends the array properly
                             success: function (data) {
                                 console.log(data); // Log the returned data for debugging
@@ -259,7 +259,7 @@
                                     $.each(data, function (index, rr) {
                                         console.log(rr); // Log each RR for debugging
                                         if (rr && rr.rrNumber) { // Adjust property name to RRNumber
-                                            $('#rrSelect').append('<option value="' + rr.Id + '">' + rr.rrNumber + '</option>'); // Adjust property names
+                                            $('#rrSelect').append('<option value="' + rr.rrNumber + '">' + rr.rrNumber + '</option>'); // Adjust property names
                                         } else {
                                             console.error("Invalid RR object:", rr);
                                         }
