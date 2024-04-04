@@ -49,14 +49,9 @@
                 <br />
                 <div class="form-group">
                     <label class="control-label">Account No.</label>
-                    <select asp-for="Details.COAId" asp-items="@Model.Details.COA" class="form-select js-select2">
+                    <select asp-items="@Model.Details.COA" class="form-select js-select2">
                         <option></option>
                     </select>
-                </div>
-                <div class="form-group">
-                    <label asp-for="Details.Amount" class="control-label"></label>
-                    <input asp-for="Details.Amount" type="text" class="form-control" />
-                    <span asp-validation-for="Details.Amount" class="text-danger"></span>
                 </div>
                 <br />
 

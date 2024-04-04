@@ -31,7 +31,7 @@
         </fieldset>
         <div class="form-group">
             <label class="control-label">Supplier</label>
-            <select asp-for="Header.Supplier" asp-items="@Model.Header.Suppliers" class="form-select js-select2 GetPOList" id="supplierSelect">
+            <select asp-for="Header.SupplierId" asp-items="@Model.Header.Suppliers" class="form-select js-select2 GetPOList" id="supplierSelect">
                 <option></option>
             </select>
         </div>
@@ -92,13 +92,73 @@
             <span asp-validation-for="Header.Particulars" class="text-danger"></span>
         </div>
 </div>
-
+<br />
+            <div class="form-group">
+                <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#AddAccEntry">
+                    Add Entry
+                </button>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th class="w-50">Account No.</th>
+                            <th class="w-25">
+                                Debit
+                            </th>
+                            <th class="w-25">
+                                Credit
+                            </th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="accountingEntriesBody">
+                    </tbody>
+                </table>
+            </div>
+            <br />
         <div class="form-group">
             <input type="submit" value="Save" class="btn btn-primary" />
             <a asp-action="Index" class="btn btn-secondary">Back to List</a>
         </div>
     </form>
 </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="AddAccEntry" tabindex="-1" aria-labelledby="AddAccEntryLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="AddAccEntryLabel">Add Accounting Entry</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <div class="form-group">
+                            <label class="control-label">Account No.</label>
+                            <select asp-items="@Model.Details.COA" class="form-select" style="width: 100%" id="AccountNo">
+                                <option></option>
+                            </select>
+                            <span class="text-danger"></span>
+                        </div>
+                        <div class="form-group pt-4">
+                            <label class="control-label">Debit</label>
+                            <input id="Debit" value="0" class="form-control moneyInput" placeholder="0.00" />
+                            <span class="text-danger"></span>
+                        </div>
+                        <div class="form-group pt-4">
+                            <label class="control-label">Credit</label>
+                            <input id="Credit" value="0" class="form-control moneyInput" placeholder="0.00" />
+                            <span class="text-danger"></span>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAccountingEntry()">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 @section Scripts {
     @{
@@ -278,6 +338,54 @@
                         $("#rrSelect").empty();
                     }
                 });
+            });
+        </script>
+        <script>
+            function saveAccountingEntry() {
+                // Get the values from the modal inputs
+                var accountNumber = $("#AccountNo").val();
+                var accountNumberText = $("#AccountNo option:selected").text();
+                var debit = $("#Debit").val();
+                var credit = $("#Credit").val();
+
+                console.log(accountNumber);
+                console.log(accountNumberText);
+
+                // Create a new row with the text only and a hidden input for the value
+                var newRow = `<tr>
+                                            <td>
+                                                <input type='hidden' name='accountNumber' value='${accountNumber}' />
+                                                <input type='text' name='accountNumberText' value='${accountNumberText}' style='border:none' readonly />
+                                            </td>
+                                            <td><input name='debit' value='${debit}' style='border:none' readonly /></td>
+                                            <td><input name='credit' value='${credit}' style='border:none' readonly /></td>
+                                            <td><button type='button' class='btn btn-danger btn-sm' onclick='removeRow(this)'>Remove</button></td>
+                                         </tr>`;
+
+                // Append the new row to the table body
+                $("#accountingEntriesBody").append(newRow);
+
+                // Close the modal
+                $("#AddAccEntry").modal("hide");
+
+                // Clear the modal inputs
+                $("#AccountNo").val(""); // Reset the select to its default state
+                $("#AccountNo").trigger("change"); // Trigger change event for the select
+                $("#Debit").val("0");
+                $("#Credit").val("0");
+            }
+
+
+            // Function to remove the corresponding row
+            function removeRow(button) {
+                // Get the reference to the button's parent row and remove it
+                $(button).closest("tr").remove();
+            }
+
+        </script>
+        <script>
+            $('#AccountNo').select2({
+                dropdownParent: $('#AddAccEntry')
             });
         </script>
 }

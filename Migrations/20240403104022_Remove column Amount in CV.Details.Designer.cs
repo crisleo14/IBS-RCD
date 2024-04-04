@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240403104022_Remove column Amount in CV.Details")]
+    partial class RemovecolumnAmountinCVDetails
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -160,23 +163,26 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("COAId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("CreatedBy")
                         .HasColumnType("varchar(50)");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal>("Credit")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("Debit")
-                        .HasColumnType("numeric");
-
                     b.Property<string>("TransactionNo")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("COAId");
 
                     b.ToTable("CheckVoucherDetails");
                 });
@@ -2131,6 +2137,17 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text");
 
                     b.HasDiscriminator().HasValue("ApplicationUser");
+                });
+
+            modelBuilder.Entity("Accounting_System.Models.CheckVoucherDetail", b =>
+                {
+                    b.HasOne("Accounting_System.Models.ChartOfAccount", "ChartOfAccount")
+                        .WithMany()
+                        .HasForeignKey("COAId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChartOfAccount");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.CheckVoucherHeader", b =>
