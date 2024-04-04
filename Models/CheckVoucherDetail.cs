@@ -10,12 +10,6 @@ namespace Accounting_System.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [Display(Name = "COA No")]
-        public int COAId { get; set; }
-
-        [ForeignKey("COAId")]
-        public ChartOfAccount? ChartOfAccount { get; set; }
-
         [NotMapped]
         public List<SelectListItem>? COA { get; set; }
 
@@ -24,10 +18,11 @@ namespace Accounting_System.Models
 
         public string TransactionNo { get; set; } = " ";
 
-        public string Category { get; set; } = " ";
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal Debit { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal Amount { get; set; }
+        public decimal Credit { get; set; }
 
         [Display(Name = "Created By")]
         [Column(TypeName = "varchar(50)")]

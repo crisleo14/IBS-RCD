@@ -38,13 +38,13 @@ namespace Accounting_System.Controllers
                 Details = new CheckVoucherDetail()
             };
 
-            //viewModel.Details.COA = await _dbContext.ChartOfAccounts
-            //    .Select(s => new SelectListItem
-            //    {
-            //        Value = s.Id.ToString(),
-            //        Text = s.Number + " " + s.Name
-            //    })
-            //    .ToListAsync(cancellationToken);
+            viewModel.Details.COA = await _dbContext.ChartOfAccounts
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number,
+                    Text = s.Name
+                })
+                .ToListAsync(cancellationToken);
 
             viewModel.Header.Suppliers = await _dbContext.Suppliers
                 .Select(sup => new SelectListItem
@@ -58,16 +58,8 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken)
+        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit)
         {
-
-            //model.Details.COA = await _dbContext.ChartOfAccounts
-            //    .Select(s => new SelectListItem
-            //    {
-            //        Value = s.Id.ToString(),
-            //        Text = s.Number + " " + s.Name
-            //    })
-            //    .ToListAsync(cancellationToken);
 
             model.Header.Suppliers = await _dbContext.Suppliers
                 .Select(sup => new SelectListItem
@@ -106,10 +98,36 @@ namespace Accounting_System.Controllers
 
                 //CV Details Entry
                 //model.Details.CreatedBy = _userManager.GetUserName(this.User);
+                #region --CV Details Entry
 
+                var cvDetails = new List<CheckVoucherDetail>();
+
+                for (int i = 0; i < accountNumber.Length; i++)
+                {
+                    var currentAccountNumber = accountNumber[i];
+                    var currentAccountNumberText = accountNumberText[i];
+                    var currentDebit = debit[i];
+                    var currentCredit = credit[i];
+
+                    cvDetails.Add(
+                        new CheckVoucherDetail
+                        {
+                            AccountNo = currentAccountNumber,
+                            AccountName = currentAccountNumberText,
+                            TransactionNo = model.Header.CVNo,
+                            Debit = currentDebit,
+                            Credit = currentCredit,
+                            CreatedBy = _userManager.GetUserName(this.User),
+                            CreatedDate = DateTime.Today,
+                        }
+                    );
+
+                    await _dbContext.AddRangeAsync(cvDetails, cancellationToken);
+                }
+
+                #endregion --CV Details Entry
 
                 await _dbContext.AddAsync(model.Header, cancellationToken);  // Add CheckVoucherHeader to the context
-                //_dbContext.Add(model.Details); // Add CheckVoucherDetails to the context
 
                 await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
                 return RedirectToAction("Index");
