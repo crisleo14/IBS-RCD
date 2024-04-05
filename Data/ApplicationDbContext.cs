@@ -40,5 +40,6 @@ namespace Accounting_System.Data
         public DbSet<JournalBook> JournalBooks { get; set; }
         public DbSet<PurchaseJournalBook> PurchaseJournalBooks { get; set; }
         public DbSet<SalesBook> SalesBooks { get; set; }
+        public DbSet<BankAccount> BankAccounts { get; set; }
     }
 }

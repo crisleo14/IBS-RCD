@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240404081633_Add table named BankAccount and its neccessary fields")]
+    partial class AddtablenamedBankAccountanditsneccessaryfields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -60,21 +63,22 @@ namespace Accounting_System.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AccountName")
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("AmountInWords")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("AccountNo")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Bank")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("BankCode")
+                    b.Property<string>("Branch")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Branch")
+                    b.Property<string>("CheckNo")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -83,6 +87,9 @@ namespace Accounting_System.Migrations
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
 
                     b.HasKey("Id");
 
