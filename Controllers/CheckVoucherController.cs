@@ -53,12 +53,19 @@ namespace Accounting_System.Controllers
                     Text = sup.Name
                 })
                 .ToListAsync();
+            viewModel.Header.BankAccount = await _dbContext.BankAccounts
+                .Select(ba => new SelectListItem
+                {
+                    Value = ba.Id.ToString(),
+                    Text = ba.AccountName
+                })
+                .ToListAsync();
 
             return View(viewModel);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit)
+        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit, string[]? choicesSI, string[] choicesPO)
         {
 
             model.Header.Suppliers = await _dbContext.Suppliers
@@ -87,6 +94,11 @@ namespace Accounting_System.Controllers
                 else
                 {
                     TempData["success"] = "Check Voucher created successfully";
+                }
+
+                if (model.Header.Category == "Non-Trade" && choicesPO != null)
+                {
+                    model.Header.PONo = choicesPO;
                 }
 
                 //CV Header Entry

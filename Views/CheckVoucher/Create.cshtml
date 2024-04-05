@@ -78,8 +78,9 @@
         </div>
         <div class="form-group">
             <label asp-for="Header.Bank" class="control-label"></label>
-            <input asp-for="Header.Bank" type="text" class="form-control" />
-            <span asp-validation-for="Header.Bank" class="text-danger"></span>
+            <select asp-for="Header.Bank" asp-items="@Model.Header.BankAccount" class="form-select js-select2">
+                <option></option>
+            </select>
         </div>
         <div class="form-group">
             <label asp-for="Header.CheckNo" class="control-label"></label>

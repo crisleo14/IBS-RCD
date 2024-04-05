@@ -15,14 +15,18 @@ namespace Accounting_System.Models
 
         [Display(Name = "RR No")]
         [Column(TypeName = "varchar[]")]
-        public string[] RRNo { get; set; }
+        public string[]? RRNo { get; set; }
+
+        [Display(Name = "SI No")]
+        [Column(TypeName = "varchar[]")]
+        public string[]? SINo { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? RR { get; set; }
 
         [Display(Name = "PO No")]
         [Column(TypeName = "varchar[]")]
-        public string[] PONo { get; set; }
+        public string[]? PONo { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? PO { get; set; }
@@ -52,5 +56,8 @@ namespace Accounting_System.Models
 
         [Display(Name = "Payee")]
         public string Payee { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? BankAccount { get; set; }
     }
 }
