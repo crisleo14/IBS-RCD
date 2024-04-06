@@ -65,7 +65,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo)
+        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, string criteria)
         {
 
             model.Header.Suppliers = await _dbContext.Suppliers
@@ -116,6 +116,11 @@ namespace Accounting_System.Controllers
                     {
                         model.Header.SINo = inputs;
                     }
+                }
+
+                if (criteria != null)
+                {
+                    model.Header.Bank = criteria;
                 }
 
                 //CV Header Entry
@@ -183,7 +188,7 @@ namespace Accounting_System.Controllers
         }
         public async Task<IActionResult> GetRRs(string[] poNumber)
         {
-            var receivingReports = await _dbContext.ReceivingReports
+                var receivingReports = await _dbContext.ReceivingReports
                 .Where(rr => poNumber.Contains(rr.PONo))
                 .ToListAsync();
 

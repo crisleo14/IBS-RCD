@@ -58,6 +58,7 @@
             </select>
         </div>
         <div class="form-group">
+            <input type="hidden" id="criteriaInput" name="criteria" />
             <label class="control-label">RR NO.</label>
                 <select asp-for="Header.RRNo" asp-items="@Model.Header.RR" class="form-select js-multiple-not-retain-value" multiple="multiple" id="rrSelect">
                 <option></option>
@@ -115,7 +116,7 @@
             </div>
             <br />
         <div class="form-group">
-            <input type="submit" value="Save" class="btn btn-primary" />
+            <input type="submit" value="Save" class="btn btn-primary" id="submit"/>
             <a asp-action="Index" class="btn btn-secondary">Back to List</a>
         </div>
     </form>
@@ -239,37 +240,34 @@
         </script>
         <script>
             $(function () {
+                var criteria; // Variable to store the selected criteria
+
                 $(".GetRRList").change(function () {
                     var poNumber = $(this).val(); // Get all selected POIds
                     console.log(poNumber); // Add this line for debugging
                     if (poNumber && poNumber.length > 0) {
-                        // Make an AJAX request to get the RRs based on the selected POIds
-                        $.ajax({
-                            url: "/CheckVoucher/GetRRs",
-                            method: "GET",
-                            data: { poNumber: poNumber }, // Pass the array of POIds
-                            traditional: true, // Ensure jQuery sends the array properly
-                            success: function (data) {
-                                console.log(data); // Log the returned data for debugging
-                                if (data) {
-                                    // Clear existing options
-                                    $("#rrSelect").empty();
-                                    // Add new options based on the fetched data
-                                    $.each(data, function (index, rr) {
-                                        console.log(rr); // Log each RR for debugging
-                                        if (rr && rr.rrNumber) { // Adjust property name to RRNumber
-                                            $('#rrSelect').append('<option value="' + rr.rrNumber + '">' + rr.rrNumber + '</option>'); // Adjust property names
-                                        } else {
-                                            console.error("Invalid RR object:", rr);
-                                        }
-                                    });
-                                } else {
-                                    // Clear the fields if no RRs are found
-                                    $("#rrSelect").empty();
-                                }
+                        // Show SweetAlert to choose display criteria
+                        Swal.fire({
+                            title: 'Choose Display Criteria',
+                            text: 'Do you want to display records based on Due Date or Transaction Date?',
+                            input: 'select',
+                            inputOptions: {
+                                'Due Date': 'Due Date',
+                                'Transaction Date': 'Transaction Date'
                             },
-                            error: function (xhr, status, error) {
-                                console.error('Error fetching RRs:', error);
+                            inputPlaceholder: 'Select display criteria',
+                            showCancelButton: true,
+                            confirmButtonText: 'OK'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                criteria = result.value; // Store the selected criteria
+                                if (criteria) {
+                                    displayRecords(poNumber, criteria); // Pass criteria and PO numbers to displayRecords function
+                                } else {
+                                    console.error('Invalid display criteria');
+                                }
+                            } else {
+                                console.log('User canceled');
                             }
                         });
                     } else {
@@ -277,7 +275,67 @@
                         $("#rrSelect").empty();
                     }
                 });
+
+                $("#submit").click(function () {
+                    if (criteria) {
+                        // Pass stored criteria to the create action
+                        passCriteriaToCreate(criteria);
+                        // Add criteria value to the form before submitting
+                        $("#criteriaInput").val(criteria);
+                    } else {
+                        console.error('No criteria selected');
+                    }
+                });
             });
+
+            // Function to pass criteria to the 'Create' action using AJAX
+            function passCriteriaToCreate(criteria) {
+                $.ajax({
+                    url: "/CheckVoucher/Create",
+                    method: "POST",
+                    data: { criteria: criteria },
+                    success: function (data) {
+                        console.log('Criteria passed to Create action:', criteria);
+                        // You can handle the success response here if needed
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error passing criteria to Create action:', error);
+                        // You can handle the error response here if needed
+                    }
+                });
+            }
+
+            function displayRecords(poNumber, criteria) {
+                // Make an AJAX request to get the RRs based on the selected POIds and display criteria
+                $.ajax({
+                    url: "/CheckVoucher/GetRRs",
+                    method: "GET",
+                    data: { poNumber: poNumber }, // Pass PO numbers to controller
+                    traditional: true, // Ensure jQuery sends the array properly
+                    success: function (data) {
+                        console.log(data); // Log the returned data for debugging
+                        if (data) {
+                            // Clear existing options
+                            $("#rrSelect").empty();
+                            // Add new options based on the fetched data
+                            $.each(data, function (index, rr) {
+                                console.log(rr); // Log each RR for debugging
+                                if (rr && rr.rrNumber) { // Adjust property name to RRNumber
+                                    $('#rrSelect').append('<option value="' + rr.rrNumber + '">' + rr.rrNumber + '</option>'); // Adjust property names
+                                } else {
+                                    console.error("Invalid RR object:", rr);
+                                }
+                            });
+                        } else {
+                            // Clear the fields if no RRs are found
+                            $("#rrSelect").empty();
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching RRs:', error);
+                    }
+                });
+            }
         </script>
         <script>
             function saveAccountingEntry() {
