@@ -42,14 +42,12 @@
         </div>
         <div id="nTradeList" style="display: none;">
         <div class="form-group">
-            <label for="choicesPO">PO No.(press Enter to add another):</label>
-              <input type="text" id="choicesPO" name="choices" class="form-control">
-              <div id="selected-choicesPO" style="overflow-y: auto; max-height: 200px;" class="form-control"></div>
+            <label class="control-label">PO No.<span class="required">*</span></label>
+            <textarea name="poNo" class="form-control" placeholder="Enter PO No." style="height: 100px"></textarea>
         </div>
         <div class="form-group">
-            <label for="choicesSI">SI No.(press Enter to add another):</label>
-              <input type="text" id="choicesSI" name="choices" class="form-control">
-              <div id="selected-choicesSI" style="overflow-y: auto; max-height: 200px;" class="form-control"></div>
+            <label class="control-label">SI No.<span class="required">*</span></label>
+            <textarea name="siNo" class="form-control" placeholder="Enter SI No." style="height: 100px"></textarea>
         </div>
         </div>
         <div id="tradeList">
@@ -196,66 +194,6 @@
                 $('#supplierSelect').change(function () {
                     $('#payeeInput').val($(this).find(':selected').text());
                 });
-            });
-        </script>
-        <script>
-            const choicesInputSI = document.getElementById('choicesSI');
-            const selectedChoicesContainerSI = document.getElementById('selected-choicesSI');
-
-            choicesInputSI.addEventListener('keydown', (event) => {
-                if (event.key === 'Enter') {
-                    event.preventDefault(); // Prevent the default form submission behavior
-
-                    const newChoiceSI = choicesInputSI.value.trim();
-                    if (newChoiceSI) {
-                        const newSpanSI = document.createElement('span');
-                        newSpanSI.textContent = newChoiceSI;
-                        newSpanSI.classList.add('choiceSI'); // Add a class for styling
-
-                        // Apply styling using the 'choice' class
-                        newSpanSI.style.backgroundColor = 'lightgray'; // Set background color to light gray
-                        newSpanSI.style.padding = '5px';                 // Add some padding
-                        newSpanSI.style.borderRadius = '20px';          // Set rounded corners (adjust value)
-                        newSpanSI.style.marginRight = '10px';        // Add margin to the right (adjust value)
-
-                        newSpanSI.addEventListener('click', () => selectedChoicesContainerSI.removeChild(newSpanSI));
-                        selectedChoicesContainerSI.appendChild(newSpanSI);
-                        choicesInputSI.value = '';
-
-                        // Scroll to the bottom of the container to show the latest added choice
-                        selectedChoicesContainerSI.scrollTop = selectedChoicesContainerSI.scrollHeight;
-                    }
-                }
-            });
-        </script>
-        <script>
-            const choicesInput = document.getElementById('choicesPO');
-            const selectedChoicesContainer = document.getElementById('selected-choicesPO');
-
-            choicesInput.addEventListener('keydown', (event) => {
-                if (event.key === 'Enter') {
-                    event.preventDefault(); // Prevent the default form submission behavior
-
-                    const newChoice = choicesInput.value.trim();
-                    if (newChoice) {
-                        const newSpan = document.createElement('span');
-                        newSpan.textContent = newChoice;
-                        newSpan.classList.add('choicePO'); // Add a class for styling
-
-                        // Apply styling using the 'choice' class
-                        newSpan.style.backgroundColor = 'lightgray'; // Set background color to light gray
-                        newSpan.style.padding = '5px';                 // Add some padding
-                        newSpan.style.borderRadius = '20px';          // Set rounded corners (adjust value)
-                        newSpan.style.marginRight = '10px';        // Add margin to the right (adjust value)
-
-                        newSpan.addEventListener('click', () => selectedChoicesContainer.removeChild(newSpan));
-                        selectedChoicesContainer.appendChild(newSpan);
-                        choicesInput.value = '';
-
-                        // Scroll to the bottom of the container to show the latest added choice
-                        selectedChoicesContainer.scrollTop = selectedChoicesContainer.scrollHeight;
-                    }
-                }
             });
         </script>
         <script>
