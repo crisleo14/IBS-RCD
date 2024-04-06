@@ -65,7 +65,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit, string[]? choicesSI, string[] choicesPO)
+        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo)
         {
 
             model.Header.Suppliers = await _dbContext.Suppliers
@@ -96,9 +96,26 @@ namespace Accounting_System.Controllers
                     TempData["success"] = "Check Voucher created successfully";
                 }
 
-                if (model.Header.Category == "Non-Trade" && choicesPO != null)
+                if (poNo != null) 
                 {
-                    model.Header.PONo = choicesPO;
+                    string[] inputs = poNo.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    // Display each input
+                    for (int i = 0; i < inputs.Length; i++)
+                    {
+                        model.Header.PONo = inputs;
+                    }
+                }
+
+                if (siNo != null)
+                {
+                    string[] inputs = siNo.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    // Display each input
+                    for (int i = 0; i < inputs.Length; i++)
+                    {
+                        model.Header.SINo = inputs;
+                    }
                 }
 
                 //CV Header Entry
