@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240408101255_Remove column field named Bank in CV")]
+    partial class RemovecolumnfieldnamedBankinCV
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -232,9 +235,6 @@ namespace Accounting_System.Migrations
                     b.Property<string>("AmountInWords")
                         .HasColumnType("text");
 
-                    b.Property<int>("BankId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("CVNo")
                         .HasColumnType("text");
 
@@ -312,8 +312,6 @@ namespace Accounting_System.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BankId");
 
                     b.HasIndex("SupplierId");
 
@@ -2177,17 +2175,9 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.CheckVoucherHeader", b =>
                 {
-                    b.HasOne("Accounting_System.Models.BankAccount", "BankAccount")
-                        .WithMany()
-                        .HasForeignKey("BankId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Accounting_System.Models.Supplier", "Supplier")
                         .WithMany()
                         .HasForeignKey("SupplierId");
-
-                    b.Navigation("BankAccount");
 
                     b.Navigation("Supplier");
                 });

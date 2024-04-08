@@ -47,7 +47,9 @@ namespace Accounting_System.Models
 
         public string Particulars { get; set; }
 
-        public string Bank { get; set; }
+        public int BankId { get; set; }
+        [ForeignKey("BankId")]
+        public BankAccount? BankAccount { get; set; }
 
         [Display(Name = "Check #")]
         [Required(ErrorMessage = "The field is required")]
@@ -60,7 +62,7 @@ namespace Accounting_System.Models
         public string Payee { get; set; }
 
         [NotMapped]
-        public List<SelectListItem>? BankAccount { get; set; }
+        public List<SelectListItem>? BankAccounts { get; set; }
 
         public string? Criteria { get; set; }
     }

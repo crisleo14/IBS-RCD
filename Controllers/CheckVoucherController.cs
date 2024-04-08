@@ -55,7 +55,7 @@ namespace Accounting_System.Controllers
                     Text = sup.Name
                 })
                 .ToListAsync();
-            viewModel.Header.BankAccount = await _dbContext.BankAccounts
+            viewModel.Header.BankAccounts = await _dbContext.BankAccounts
                 .Select(ba => new SelectListItem
                 {
                     Value = ba.Id.ToString(),
@@ -77,7 +77,7 @@ namespace Accounting_System.Controllers
                     Text = sup.Name
                 })
                 .ToListAsync();
-            model.Header.BankAccount = await _dbContext.BankAccounts
+            model.Header.BankAccounts = await _dbContext.BankAccounts
                 .Select(ba => new SelectListItem
                 {
                     Value = ba.Id.ToString(),
