@@ -278,34 +278,29 @@
 
                 $("#submit").click(function () {
                     if (criteria) {
-                        // Pass stored criteria to the create action
-                        passCriteriaToCreate(criteria);
                         // Add criteria value to the form before submitting
                         $("#criteriaInput").val(criteria);
+
+                        $.ajax({
+                            url: "/CheckVoucher/Create",
+                            method: "POST",
+                            data: { criteria: criteria },
+                            success: function (data) {
+                                console.log('Criteria passed to Create action:', criteria);
+                                // You can handle the success response here if needed
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('Error passing criteria to Create action:', error);
+                                // You can handle the error response here if needed
+                            }
+                        });
                     } else {
                         console.error('No criteria selected');
                     }
                 });
             });
 
-            // Function to pass criteria to the 'Create' action using AJAX
-            function passCriteriaToCreate(criteria) {
-                $.ajax({
-                    url: "/CheckVoucher/Create",
-                    method: "POST",
-                    data: { criteria: criteria },
-                    success: function (data) {
-                        console.log('Criteria passed to Create action:', criteria);
-                        // You can handle the success response here if needed
-                    },
-                    error: function (xhr, status, error) {
-                        console.error('Error passing criteria to Create action:', error);
-                        // You can handle the error response here if needed
-                    }
-                });
-            }
-
-            function displayRecords(poNumber, criteria) {
+            function displayRecords(poNumber) {
                 // Make an AJAX request to get the RRs based on the selected POIds and display criteria
                 $.ajax({
                     url: "/CheckVoucher/GetRRs",
