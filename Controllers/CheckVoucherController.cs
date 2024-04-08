@@ -65,7 +65,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, string criteria)
+        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, string? criteria)
         {
 
             model.Header.Suppliers = await _dbContext.Suppliers
@@ -120,7 +120,7 @@ namespace Accounting_System.Controllers
 
                 if (criteria != null)
                 {
-                    model.Header.Bank = criteria;
+                    model.Header.Criteria = criteria;
                 }
 
                 //CV Header Entry

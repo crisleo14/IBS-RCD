@@ -59,5 +59,7 @@ namespace Accounting_System.Models
 
         [NotMapped]
         public List<SelectListItem>? BankAccount { get; set; }
+
+        public string? Criteria { get; set; }
     }
 }
