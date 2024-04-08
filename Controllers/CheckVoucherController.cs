@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Accounting_System.Controllers
 {
@@ -39,6 +40,7 @@ namespace Accounting_System.Controllers
             };
 
             viewModel.Details.COA = await _dbContext.ChartOfAccounts
+                .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)))
                 .Select(s => new SelectListItem
                 {
                     Value = s.Number,
