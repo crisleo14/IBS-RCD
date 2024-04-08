@@ -50,6 +50,8 @@ namespace Accounting_System.Models
         public string Bank { get; set; }
 
         [Display(Name = "Check #")]
+        [Required(ErrorMessage = "The field is required")]
+        [RegularExpression(@"^(?:\d+|DM\d{10})$", ErrorMessage = "Invalid format. Please enter either a CV number or 'DM' followed by a 10-digit number.")]
         public string CheckNo { get; set; }
 
         public string Category { get; set; }
