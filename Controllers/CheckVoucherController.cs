@@ -75,102 +75,129 @@ namespace Accounting_System.Controllers
                     Text = sup.Name
                 })
                 .ToListAsync();
-
-            if (ModelState.IsValid)
-            {
-                var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(cancellationToken);
-
-                if (getLastNumber > 9999999999)
+            model.Header.BankAccount = await _dbContext.BankAccounts
+                .Select(ba => new SelectListItem
                 {
-                    TempData["error"] = "You reached the maximum Series Number";
-                    return View(model);
-                }
+                    Value = ba.Id.ToString(),
+                    Text = ba.AccountName
+                })
+                .ToListAsync();
 
-                var totalRemainingSeries = 9999999999 - getLastNumber;
-                if (getLastNumber >= 9999999899)
+                if (ModelState.IsValid)
                 {
-                    TempData["warning"] = $"Check Voucher created successfully, Warning {totalRemainingSeries} series numbers remaining";
+                    #region --Validating series
+                    var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(cancellationToken);
+
+                    if (getLastNumber > 9999999999)
+                    {
+                        TempData["error"] = "You reached the maximum Series Number";
+                        return View(model);
+                    }
+
+                    var totalRemainingSeries = 9999999999 - getLastNumber;
+                    if (getLastNumber >= 9999999899)
+                    {
+                        TempData["warning"] = $"Check Voucher created successfully, Warning {totalRemainingSeries} series numbers remaining";
+                    }
+                    else
+                    {
+                        TempData["success"] = "Check Voucher created successfully";
+                    }
+                    #endregion --Validating series
+
+                    #region --Multiple input of SI and PO No.
+                    if (poNo != null)
+                    {
+                        string[] inputs = poNo.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+                        // Display each input
+                        for (int i = 0; i < inputs.Length; i++)
+                        {
+                            model.Header.PONo = inputs;
+                        }
+                    }
+
+                    if (siNo != null)
+                    {
+                        string[] inputs = siNo.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+                        // Display each input
+                        for (int i = 0; i < inputs.Length; i++)
+                        {
+                            model.Header.SINo = inputs;
+                        }
+                    }
+                    #endregion --Multiple input of SI and PO No.
+
+                    #region --Check if duplicate record
+                    if (model.Header.CheckNo != null && !model.Header.CheckNo.Contains("DM"))
+                    {
+                        var cv = await _dbContext
+                        .CheckVoucherHeaders
+                        .Where(cv => cv.CheckNo == model.Header.CheckNo)
+                        .ToListAsync(cancellationToken);
+                        if (cv.Any())
+                        {
+                            TempData["error"] = "Check No. Is already exist";
+                            return View(model);
+                        }
+                    }
+                    #endregion --Check if duplicate record
+
+                    #region --Saving the default entries
+
+                    if (criteria != null)
+                    {
+                        model.Header.Criteria = criteria;
+                    }
+                    //CV Header Entry
+                    var generateCVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken);
+
+                    model.Header.SeriesNumber = getLastNumber;
+                    model.Header.CVNo = generateCVNo;
+                    model.Header.CreatedBy = _userManager.GetUserName(this.User);
+
+                    #endregion --Saving the default entries
+                    //CV Details Entry
+                    //model.Details.CreatedBy = _userManager.GetUserName(this.User);
+                    #region --CV Details Entry
+
+                    var cvDetails = new List<CheckVoucherDetail>();
+
+                    for (int i = 0; i < accountNumber.Length; i++)
+                    {
+                        var currentAccountNumber = accountNumber[i];
+                        var currentAccountNumberText = accountNumberText[i];
+                        var currentDebit = debit[i];
+                        var currentCredit = credit[i];
+
+                        cvDetails.Add(
+                            new CheckVoucherDetail
+                            {
+                                AccountNo = currentAccountNumber,
+                                AccountName = currentAccountNumberText,
+                                TransactionNo = model.Header.CVNo,
+                                Debit = currentDebit,
+                                Credit = currentCredit,
+                                CreatedBy = _userManager.GetUserName(this.User),
+                                CreatedDate = DateTime.Today,
+                            }
+                        );
+
+                        await _dbContext.AddRangeAsync(cvDetails, cancellationToken);
+                    }
+
+                    #endregion --CV Details Entry
+
+                    await _dbContext.AddAsync(model.Header, cancellationToken);  // Add CheckVoucherHeader to the context
+                    await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
+                    return RedirectToAction("Index");
                 }
                 else
                 {
-                    TempData["success"] = "Check Voucher created successfully";
+                    TempData["error"] = "The information you submitted is not valid!";
+                    return View(model);
                 }
-
-                if (poNo != null) 
-                {
-                    string[] inputs = poNo.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-
-                    // Display each input
-                    for (int i = 0; i < inputs.Length; i++)
-                    {
-                        model.Header.PONo = inputs;
-                    }
-                }
-
-                if (siNo != null)
-                {
-                    string[] inputs = siNo.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-
-                    // Display each input
-                    for (int i = 0; i < inputs.Length; i++)
-                    {
-                        model.Header.SINo = inputs;
-                    }
-                }
-
-                if (criteria != null)
-                {
-                    model.Header.Criteria = criteria;
-                }
-
-                //CV Header Entry
-                var generateCVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken);
-                
-                model.Header.SeriesNumber = getLastNumber;
-                model.Header.CVNo = generateCVNo;
-                model.Header.CreatedBy = _userManager.GetUserName(this.User);
-
-                //CV Details Entry
-                //model.Details.CreatedBy = _userManager.GetUserName(this.User);
-                #region --CV Details Entry
-
-                var cvDetails = new List<CheckVoucherDetail>();
-
-                for (int i = 0; i < accountNumber.Length; i++)
-                {
-                    var currentAccountNumber = accountNumber[i];
-                    var currentAccountNumberText = accountNumberText[i];
-                    var currentDebit = debit[i];
-                    var currentCredit = credit[i];
-
-                    cvDetails.Add(
-                        new CheckVoucherDetail
-                        {
-                            AccountNo = currentAccountNumber,
-                            AccountName = currentAccountNumberText,
-                            TransactionNo = model.Header.CVNo,
-                            Debit = currentDebit,
-                            Credit = currentCredit,
-                            CreatedBy = _userManager.GetUserName(this.User),
-                            CreatedDate = DateTime.Today,
-                        }
-                    );
-
-                    await _dbContext.AddRangeAsync(cvDetails, cancellationToken);
-                }
-
-                #endregion --CV Details Entry
-
-                await _dbContext.AddAsync(model.Header, cancellationToken);  // Add CheckVoucherHeader to the context
-
-                await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
-                return RedirectToAction("Index");
-            }
-            else
-            {
-                TempData["error"] = "The information you submitted is not valid!";
-                return View(model);
-            }
         }
         public async Task<IActionResult> GetPOs(int supplierId)
         {
