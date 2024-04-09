@@ -47,6 +47,7 @@ namespace Accounting_System.Models
 
         public string Particulars { get; set; }
 
+        [Display(Name = "Bank Account Name")]
         public int BankId { get; set; }
         [ForeignKey("BankId")]
         public BankAccount? BankAccount { get; set; }
@@ -65,5 +66,8 @@ namespace Accounting_System.Models
         public List<SelectListItem>? BankAccounts { get; set; }
 
         public string? Criteria { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? COA { get; set; }
     }
 }

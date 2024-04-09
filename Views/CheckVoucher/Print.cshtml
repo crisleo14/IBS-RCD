@@ -1,9 +1,12 @@
-﻿@using Microsoft.AspNetCore.Identity
+﻿@model Accounting_System.Models.CheckVoucherVM
+@using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
 @{
     ViewData["Title"] = "Disbursment Voucher";
+    decimal totalDebit = 0m;
+    decimal totalCredit = 0m;
 }
 
 <br />
@@ -20,7 +23,7 @@
 
     <h3><span style="display: inline-block;"><b>DISBURSEMENT VOUCHER</b></span></h3>
     <div class="text-end" style="margin-top:-60px;">
-        <h6><b>No.&nbsp;@* CV0000000002 *@ CV0000000001</b></h6>
+        <h6><b>No.&nbsp;@Html.DisplayFor(model => model.Header.CVNo)</b></h6>
     </div>
 
 </div>
@@ -30,31 +33,72 @@
         <thead>
             <tr style="border: 1px solid black;">
                 <th colspan="2" style="padding-left:20px;">I. PAYEE DETAILS</th>
-                <td colspan="2" class="text-end"><b>Date : </b>11/16/2023</td>
+                <td colspan="2" class="text-end"><b>Date : </b>@Model.Header.Date.ToShortDateString()</td>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td style="width:5%; padding-left:20px;">Name :</td>
-                <td class="w-25">@* Supplier ABC *@ Insular Oil Corp</td>
-                <td style="width:7%;" class="text-nowrap">Other References:</td>
-                <td class="w-25"></td>
+                <td style="width:10%; padding-left:20px;">Name :</td>
+                <td >@Html.DisplayFor(model => model.Header.Supplier.Name)</td>
+                <td style="width:50%;" colspan="2" class="text-nowrap">Other References:</td>
             </tr>
             <tr>
                 <td style="padding-left:20px;">Address :</td>
-                <td>@* Quezon City *@ Bagumbayan, Quezon City</td>
-                <td>PO # :</td>
-                <td></td>
+                <td>@Html.DisplayFor(model => model.Header.Supplier.Address)</td>
+                <td style="width:5%;">PO # :</td>
+
+                <td>
+                    @for (int i = 0; i < Model.Header.PONo.Length; i++)
+                    {
+                        if (i != Model.Header.PONo.Length -1)
+                        {
+                            <span>@Model.Header.PONo[i],</span>
+                        }
+                        else
+                        {
+                            <span>@Model.Header.PONo[i]</span>
+                        }
+                    }
+                </td>
             </tr>
             <tr>
                 <td style="padding-left:20px;">TIN # :</td>
-                <td>@* 987-654-321-000 *@ 001-235-846-000</td>
+                <td>@Html.DisplayFor(model => model.Header.Supplier.TinNo)</td>
                 <td>SI # :</td>
-                <td></td>
+                <td>
+                    @if(Model.Header.Category == "Non-Trade")
+                    {
+                        @for (int i = 0; i < Model.Header.SINo.Length; i++)
+                        {
+                            if (i != Model.Header.SINo.Length - 1)
+                            {
+                                <span>@Model.Header.SINo[i],</span>
+                            }
+                            else
+                            {
+                                <span>@Model.Header.SINo[i]</span>
+                            }
+                        }
+                    }
+                    else if (Model.Header.Category == "Trade")
+                    {
+                        @for (int i = 0; i < Model.Header.RRNo.Length; i++)
+                        {
+                            if (i != Model.Header.RRNo.Length - 1)
+                            {
+                                <span>@Model.Header.RRNo[i],</span>
+                            }
+                            else
+                            {
+                                <span>@Model.Header.RRNo[i]</span>
+                            }
+                        }
+                    }
+                </td>
             </tr>
             <tr>
-                <td style="padding-left:20px;" class="text-nowrap">Business Style</td>
-                <td>@* XYZ Corp *@ Oil Industry</td>
+                <td style="padding-left:20px;" class="text-nowrap"></td>
+                <td></td>
                 <td></td>
                 <td></td>
             </tr>
@@ -71,22 +115,22 @@
         <tbody>
             <tr>
                 <td style="width:15%; padding-left:20px;">Payee :</td>
-                <td style="width:65%;">@* Supplier ABC *@ Insular Oil Corp</td>
-                <td class="text-end">@* 6,000.00 *@ 1,883.04</td>
+                <td style="width:65%;">@Html.DisplayFor(model => model.Header.Payee)</td>
+                <td class="text-end">1,883.04</td>
             </tr>
             <tr>
                 <td style="padding-left:20px;">Amount in Words :</td>
-                <td class="w-25">@* *** Six Thousand Pesos Only *** *@ *** One Thousand Eight Hundred Eighty Three Pesos Only ***</td>
+                <td class="w-25"> *** One Thousand Eight Hundred Eighty Three Pesos Only ***</td>
                 <td></td>
             </tr>
             <tr>
                 <td style="padding-left:20px;">Particulars :</td>
-                <td>@* Purchase of Storage Tank *@ Payment for payable</td>
+                <td>@Html.DisplayFor(model => model.Header.Particulars)</td>
                 <td></td>
             </tr>
             <tr>
                 <td style="padding-left:20px;">Check #:</td>
-                <td>123456789</td>
+                <td>@Html.DisplayFor(model => model.Header.CheckNo)</td>
                 <td></td>
             </tr>
         </tbody>
@@ -106,20 +150,23 @@
                 <th class="text-end">DEBIT</th>
                 <th class="text-end">CREDIT</th>
             </tr>
+            
+        @foreach (var cv in Model.Details)
+            {
             <tr>
-                <td style="width:60%; padding-left:20px;">@* 1020103  Equipment *@ 2010101 AP-Trade Payable</td>
-                <td class="text-end" style="width:7%;">@* 6,000.00 *@ 1,883.04</td>
-                <td style="width:7%;"></td>
-            </tr>
-            <tr style="border-bottom:double;">
-                <td style="padding-left:20px;">1010101  Cash In Bank</td>
-                <td></td>
-                <td class="text-end">@* 6,000.00 *@ 1,883.04</td>
-            </tr>
+                <td style="width:60%; padding-left:20px;">@Html.DisplayFor(model => cv.AccountName)</td>
+                <td class="text-end" style="width:7%;">@Html.DisplayFor(model => cv.Debit)</td>
+                <td class="text-end" style="width:7%;">@Html.DisplayFor(model => cv.Credit)</td>
+                </tr>
+                totalDebit += cv.Debit;
+                totalCredit += cv.Credit;
+            }
+
+            <tr style="border-bottom:double;"></tr>
             <tr>
                 <td></td>
-                <td class="text-end">@* 6,000.00 *@ 1,883.04</td>
-                <td class="text-end">@* 6,000.00 *@ 1,883.04</td>
+                <td class="text-end">@totalDebit.ToString("N2")</td>
+                <td class="text-end">@totalCredit.ToString("N2")</td>
             </tr>
         </tbody>
     </table>
@@ -156,14 +203,14 @@
 <br />
 
 <div class="text-center w-100" style="margin-top:20px;">
-    <p @* style="line-height: 1;" *@>
+    <p >
         <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br /><br />
         <span>Acknowledgement Certificate No:</span>
         <span style="display: inline-block;">AC_124_112023_000090</span>
         <span>&nbsp;&nbsp;Date Issued:</span>
         <span style="display: inline-block;">November 28, 2023</span><br />
         Series: CV0000000001 - CV9999999999
-        Date and Time Created:&nbsp; @* 11/16/2023 3:58:29 PM *@ 11/16/2023 2:20:08 PM
+        Date and Time Created:&nbsp; @Html.DisplayFor(model => model.Header.CreatedDate)
     </p>
 </div>
 <br />
@@ -182,13 +229,18 @@
     </p>
 </div>
 
-@* <div class="text-end">
-    ORIGINAL COPY
-</div> *@
-
-<div class="text-end">
-    REPRINT COPY
-</div>
+@if (!Model.Header.IsPrinted)
+{
+    <div class="text-end">
+        ORIGINAL COPY
+    </div>
+}
+else
+{
+    <div class="text-end">
+        REPRINT COPY
+    </div>
+}
 
 <div>
     <a class="btn btn-success" onclick="printPage()" id="printButton">Print</a>
