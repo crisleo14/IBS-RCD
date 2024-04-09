@@ -10,9 +10,6 @@ namespace Accounting_System.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [NotMapped]
-        public List<SelectListItem>? COA { get; set; }
-
         public string AccountNo { get; set; } = " ";
         public string AccountName { get; set; } = " ";
 
@@ -24,11 +21,5 @@ namespace Accounting_System.Models
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Credit { get; set; }
 
-        [Display(Name = "Created By")]
-        [Column(TypeName = "varchar(50)")]
-        public string? CreatedBy { get; set; }
-
-        [Display(Name = "Created Date")]
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
     }
 }

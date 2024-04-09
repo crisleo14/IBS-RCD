@@ -36,10 +36,10 @@ namespace Accounting_System.Controllers
             var viewModel = new CheckVoucherVM
             {
                 Header = new CheckVoucherHeader(),
-                Details = new CheckVoucherDetail()
+                Details = new List<CheckVoucherDetail>()
             };
 
-            viewModel.Details.COA = await _dbContext.ChartOfAccounts
+            viewModel.Header.COA = await _dbContext.ChartOfAccounts
                 .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)))
                 .Select(s => new SelectListItem
                 {
@@ -180,9 +180,7 @@ namespace Accounting_System.Controllers
                                 AccountName = currentAccountNumberText,
                                 TransactionNo = model.Header.CVNo,
                                 Debit = currentDebit,
-                                Credit = currentCredit,
-                                CreatedBy = _userManager.GetUserName(this.User),
-                                CreatedDate = DateTime.Today,
+                                Credit = currentCredit
                             }
                         );
 
@@ -231,10 +229,35 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public IActionResult Print()
+        public async Task<IActionResult> Print(int? id, CancellationToken cancellationToken)
         {
-            return View();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var header = await _dbContext.CheckVoucherHeaders
+                .Include(s => s.Supplier)
+                .FirstOrDefaultAsync(cvh => cvh.Id == id.Value, cancellationToken);
+
+            if (header == null)
+            {
+                return NotFound();
+            }
+
+            var details = await _dbContext.CheckVoucherDetails
+                .Where(cvd => cvd.TransactionNo == header.CVNo)
+                .ToListAsync(cancellationToken);
+
+            var viewModel = new CheckVoucherVM
+            {
+                Header = header,
+                Details = details
+            };
+
+            return View(viewModel);
         }
+
 
         public async Task<IActionResult> Printed(int id, CancellationToken cancellationToken)
         {
@@ -282,7 +305,9 @@ namespace Accounting_System.Controllers
             }
 
             var existingHeaderModel = await _dbContext.CheckVoucherHeaders.FindAsync(id, cancellationToken);
-            var existingDetailsModel = await _dbContext.CheckVoucherDetails.FindAsync(id, cancellationToken);
+            var existingDetailsModel = await _dbContext.CheckVoucherDetails
+                .Where(cvd => cvd.TransactionNo == existingHeaderModel.CVNo)
+                .ToListAsync();
 
             if (existingHeaderModel == null || existingDetailsModel == null)
             {
@@ -297,7 +322,7 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
 
-            existingDetailsModel.COA = await _dbContext.ChartOfAccounts
+            existingHeaderModel.COA = await _dbContext.ChartOfAccounts
                 .Select(coa => new SelectListItem
                 {
                     Value = coa.Id.ToString(),
@@ -322,7 +347,7 @@ namespace Accounting_System.Controllers
                })
                .ToListAsync(cancellationToken);
 
-            model.Details.COA = await _dbContext.ChartOfAccounts
+            model.Header.COA = await _dbContext.ChartOfAccounts
                 .Select(coa => new SelectListItem
                 {
                     Value = coa.Id.ToString(),
@@ -353,7 +378,9 @@ namespace Accounting_System.Controllers
                 }
 
                 var existingHeaderModel = await _dbContext.CheckVoucherHeaders.FindAsync(model.Header.Id, cancellationToken);
-                var existingDetailsModel = await _dbContext.CheckVoucherDetails.FindAsync(model.Details.Id, cancellationToken);
+                var existingDetailsModel = await _dbContext.CheckVoucherDetails
+                    .Where(cvd => cvd.TransactionNo == existingHeaderModel.CVNo)
+                    .ToListAsync();
 
                 if (existingHeaderModel == null)
                 {
@@ -370,9 +397,6 @@ namespace Accounting_System.Controllers
                 existingHeaderModel.SeriesNumber = model.Header.SeriesNumber;
                 existingHeaderModel.CVNo = model.Header.CVNo;
                 existingHeaderModel.CreatedBy = model.Header.CreatedBy;
-
-                //CV Details Entry
-                existingDetailsModel.CreatedBy = model.Details.CreatedBy;
 
                 await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
                 return RedirectToAction("Index");
