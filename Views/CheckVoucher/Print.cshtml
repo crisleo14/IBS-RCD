@@ -82,8 +82,17 @@
                     }
                     else if (Model.Header.Category == "Trade")
                     {
-                        @foreach (var item in ViewBag.SINoArray)
+                        bool isFirst = true;
+                        foreach (var item in ViewBag.SINoArray)
                         {
+                            if (isFirst)
+                            {
+                                isFirst = false;
+                            }
+                            else
+                            {
+                                <span>,</span>
+                            }
                             <span>@item</span>
                         }
                     }
