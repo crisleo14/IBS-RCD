@@ -249,6 +249,20 @@ namespace Accounting_System.Controllers
                 .Where(cvd => cvd.TransactionNo == header.CVNo)
                 .ToListAsync(cancellationToken);
 
+
+            var siArray = new string[header.RRNo.Length];
+            for (int i = 0; i < header.RRNo.Length; i++)
+            {
+                var rrValue = header.RRNo[i];
+
+                var rr = await _dbContext.ReceivingReports
+                            .FirstOrDefaultAsync(p => p.RRNo == rrValue);
+
+                siArray[i] = rr.SupplierInvoiceNumber;
+            }
+
+            ViewBag.SINoArray = siArray;
+
             var viewModel = new CheckVoucherVM
             {
                 Header = header,

@@ -82,16 +82,9 @@
                     }
                     else if (Model.Header.Category == "Trade")
                     {
-                        @for (int i = 0; i < Model.Header.RRNo.Length; i++)
+                        @foreach (var item in ViewBag.SINoArray)
                         {
-                            if (i != Model.Header.RRNo.Length - 1)
-                            {
-                                <span>@Model.Header.RRNo[i],</span>
-                            }
-                            else
-                            {
-                                <span>@Model.Header.RRNo[i]</span>
-                            }
+                            <span>@item</span>
                         }
                     }
                 </td>
