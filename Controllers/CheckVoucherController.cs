@@ -166,7 +166,34 @@ namespace Accounting_System.Controllers
 
                     var cvDetails = new List<CheckVoucherDetail>();
 
-                    for (int i = 0; i < accountNumber.Length; i++)
+                if (model.Header.Category == "Trade")
+                {
+                    cvDetails.Add(
+                        new CheckVoucherDetail
+                        {
+                            AccountNo = "2010101",
+                            AccountName = "AP-Trade Payable",
+                            TransactionNo = model.Header.CVNo,
+                            Debit = 0,
+                            Credit = 0
+                        }
+                    );
+                }
+                else if (model.Header.Category == "Non-Trade")
+                {
+                    cvDetails.Add(
+                        new CheckVoucherDetail
+                        {
+                            AccountNo = "2010102",
+                            AccountName = "AP-Non Trade Payable",
+                            TransactionNo = model.Header.CVNo,
+                            Debit = 0,
+                            Credit = 0
+                        }
+                    );
+                }
+
+                for (int i = 0; i < accountNumber.Length; i++)
                     {
                         var currentAccountNumber = accountNumber[i];
                         var currentAccountNumberText = accountNumberText[i];
@@ -183,13 +210,23 @@ namespace Accounting_System.Controllers
                                 Credit = currentCredit
                             }
                         );
-
-                        await _dbContext.AddRangeAsync(cvDetails, cancellationToken);
                     }
+                        cvDetails.Add(
+                            new CheckVoucherDetail
+                            {
+                                AccountNo = "1010101",
+                                AccountName = "Cash in Bank",
+                                TransactionNo = model.Header.CVNo,
+                                Debit = 0,
+                                Credit = 0
+                            }
+                        );
 
-                    #endregion --CV Details Entry
+                await _dbContext.AddRangeAsync(cvDetails, cancellationToken);
 
-                    await _dbContext.AddAsync(model.Header, cancellationToken);  // Add CheckVoucherHeader to the context
+                #endregion --CV Details Entry
+
+                await _dbContext.AddAsync(model.Header, cancellationToken);  // Add CheckVoucherHeader to the context
                     await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
                     return RedirectToAction("Index");
                 }
@@ -250,18 +287,21 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
 
-            var siArray = new string[header.RRNo.Length];
-            for (int i = 0; i < header.RRNo.Length; i++)
+            if (header.Category == "Trade")
             {
-                var rrValue = header.RRNo[i];
+                var siArray = new string[header.RRNo.Length];
+                for (int i = 0; i < header.RRNo.Length; i++)
+                {
+                    var rrValue = header.RRNo[i];
 
-                var rr = await _dbContext.ReceivingReports
-                            .FirstOrDefaultAsync(p => p.RRNo == rrValue);
+                    var rr = await _dbContext.ReceivingReports
+                                .FirstOrDefaultAsync(p => p.RRNo == rrValue);
 
-                siArray[i] = rr.SupplierInvoiceNumber;
+                    siArray[i] = rr.SupplierInvoiceNumber;
+                }
+
+                ViewBag.SINoArray = siArray;
             }
-
-            ViewBag.SINoArray = siArray;
 
             var viewModel = new CheckVoucherVM
             {
