@@ -500,5 +500,64 @@ namespace Accounting_System.Controllers
                 return View(model);
             }
         }
+
+        public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
+        {
+            var model = await _dbContext.CheckVoucherHeaders.FindAsync(id, cancellationToken);
+
+            if (model != null)
+            {
+                if (!model.IsVoided)
+                {
+                    model.IsVoided = true;
+                    model.VoidedBy = _userManager.GetUserName(this.User);
+                    model.VoidedDate = DateTime.Now;
+
+                    //await _generalRepo.RemoveRecords<CashReceiptBook>(crb => crb.RefNo == model.CRNo);
+                    //await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CRNo);
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.VoidedBy, $"Voided debit memo# {model.CVNo}", "Debit Memo");
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    TempData["success"] = "Debit Memo has been Voided.";
+                }
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
+
+        public async Task<IActionResult> Cancel(int id, CancellationToken cancellationToken)
+        {
+            var model = await _dbContext.CheckVoucherHeaders.FindAsync(id, cancellationToken);
+
+            if (model != null)
+            {
+                if (!model.IsCanceled)
+                {
+                    model.IsCanceled = true;
+                    model.CanceledBy = _userManager.GetUserName(this.User);
+                    model.CanceledDate = DateTime.Now;
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled credit memo# {model.CVNo}", "Credit Memo");
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    TempData["success"] = "Credit Memo has been Cancelled.";
+                }
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
     }
 }
