@@ -69,5 +69,13 @@ namespace Accounting_System.Models
 
         [NotMapped]
         public List<SelectListItem>? COA { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal TotalDebit { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal TotalCredit { get; set; }
     }
 }

@@ -5,8 +5,6 @@
 
 @{
     ViewData["Title"] = "Disbursment Voucher";
-    decimal totalDebit = 0m;
-    decimal totalCredit = 0m;
 }
 
 <br />
@@ -160,15 +158,13 @@
                 <td class="text-end" style="width:7%;">@Html.DisplayFor(model => cv.Debit)</td>
                 <td class="text-end" style="width:7%;">@Html.DisplayFor(model => cv.Credit)</td>
                 </tr>
-                totalDebit += cv.Debit;
-                totalCredit += cv.Credit;
             }
 
             <tr style="border-bottom:double;"></tr>
             <tr>
                 <td></td>
-                <td class="text-end">@totalDebit.ToString("N2")</td>
-                <td class="text-end">@totalCredit.ToString("N2")</td>
+                <td class="text-end">@Html.DisplayFor(model => model.Header.TotalDebit)</td>
+                <td class="text-end">@Html.DisplayFor(model => model.Header.TotalCredit)</td>
             </tr>
         </tbody>
     </table>

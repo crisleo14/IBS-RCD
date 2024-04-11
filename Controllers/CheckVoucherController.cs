@@ -146,54 +146,38 @@ namespace Accounting_System.Controllers
                     }
                     #endregion --Check if duplicate record
 
-                    #region --Saving the default entries
-
-                    if (criteria != null)
-                    {
-                        model.Header.Criteria = criteria;
-                    }
-                    //CV Header Entry
-                    var generateCVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken);
-
-                    model.Header.SeriesNumber = getLastNumber;
-                    model.Header.CVNo = generateCVNo;
-                    model.Header.CreatedBy = _userManager.GetUserName(this.User);
-
-                    #endregion --Saving the default entries
-                    //CV Details Entry
-                    //model.Details.CreatedBy = _userManager.GetUserName(this.User);
                     #region --CV Details Entry
-
+                    var generateCVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken);
                     var cvDetails = new List<CheckVoucherDetail>();
 
-                if (model.Header.Category == "Trade")
-                {
-                    cvDetails.Add(
-                        new CheckVoucherDetail
-                        {
-                            AccountNo = "2010101",
-                            AccountName = "AP-Trade Payable",
-                            TransactionNo = model.Header.CVNo,
-                            Debit = 0,
-                            Credit = 0
-                        }
-                    );
-                }
-                else if (model.Header.Category == "Non-Trade")
-                {
-                    cvDetails.Add(
-                        new CheckVoucherDetail
-                        {
-                            AccountNo = "2010102",
-                            AccountName = "AP-Non Trade Payable",
-                            TransactionNo = model.Header.CVNo,
-                            Debit = 0,
-                            Credit = 0
-                        }
-                    );
-                }
+                    if (model.Header.Category == "Trade")
+                    {
+                        cvDetails.Add(
+                            new CheckVoucherDetail
+                            {
+                                AccountNo = "2010101",
+                                AccountName = "AP-Trade Payable",
+                                TransactionNo = generateCVNo,
+                                Debit = 0,
+                                Credit = 0
+                            }
+                        );
+                    }
+                    else if (model.Header.Category == "Non-Trade")
+                    {
+                        cvDetails.Add(
+                            new CheckVoucherDetail
+                            {
+                                AccountNo = "2010102",
+                                AccountName = "AP-Non Trade Payable",
+                                TransactionNo = generateCVNo,
+                                Debit = 0,
+                                Credit = 0
+                            }
+                        );
+                    }
 
-                for (int i = 0; i < accountNumber.Length; i++)
+                    for (int i = 0; i < accountNumber.Length; i++)
                     {
                         var currentAccountNumber = accountNumber[i];
                         var currentAccountNumberText = accountNumberText[i];
@@ -205,7 +189,7 @@ namespace Accounting_System.Controllers
                             {
                                 AccountNo = currentAccountNumber,
                                 AccountName = currentAccountNumberText,
-                                TransactionNo = model.Header.CVNo,
+                                TransactionNo = generateCVNo,
                                 Debit = currentDebit,
                                 Credit = currentCredit
                             }
@@ -216,7 +200,7 @@ namespace Accounting_System.Controllers
                             {
                                 AccountNo = "1010101",
                                 AccountName = "Cash in Bank",
-                                TransactionNo = model.Header.CVNo,
+                                TransactionNo = generateCVNo,
                                 Debit = 0,
                                 Credit = 0
                             }
@@ -225,6 +209,27 @@ namespace Accounting_System.Controllers
                 await _dbContext.AddRangeAsync(cvDetails, cancellationToken);
 
                 #endregion --CV Details Entry
+
+                    #region --Saving the default entries
+
+                    if (criteria != null)
+                    {
+                        model.Header.Criteria = criteria;
+                    }
+
+                    //CV Header Entry
+                    var list = cvDetails.Where(cv => cv.TransactionNo == generateCVNo);
+
+                    model.Header.SeriesNumber = getLastNumber;
+                    model.Header.CVNo = generateCVNo;
+                    model.Header.CreatedBy = _userManager.GetUserName(this.User);
+                    model.Header.TotalDebit = list.Sum(cvd => cvd.Debit);
+                    model.Header.TotalCredit = list.Sum(cvd => cvd.Credit);
+
+                    #endregion --Saving the default entries
+
+                    //CV Details Entry
+                    //model.Details.CreatedBy = _userManager.GetUserName(this.User);
 
                 await _dbContext.AddAsync(model.Header, cancellationToken);  // Add CheckVoucherHeader to the context
                     await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
