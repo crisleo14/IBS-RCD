@@ -85,99 +85,133 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync();
 
-                if (ModelState.IsValid)
-                {
-                    #region --Validating series
-                    var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(cancellationToken);
+            if (ModelState.IsValid)
+            {
+                #region --Validating series
+                var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(cancellationToken);
 
-                    if (getLastNumber > 9999999999)
+                if (getLastNumber > 9999999999)
+                {
+                    TempData["error"] = "You reached the maximum Series Number";
+                    return View(model);
+                }
+
+                var totalRemainingSeries = 9999999999 - getLastNumber;
+                if (getLastNumber >= 9999999899)
+                {
+                    TempData["warning"] = $"Check Voucher created successfully, Warning {totalRemainingSeries} series numbers remaining";
+                }
+                else
+                {
+                    TempData["success"] = "Check Voucher created successfully";
+                }
+                #endregion --Validating series
+
+                #region --Multiple input of SI and PO No.
+                if (poNo != null)
+                {
+                    string[] inputs = poNo.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    // Display each input
+                    for (int i = 0; i < inputs.Length; i++)
                     {
-                        TempData["error"] = "You reached the maximum Series Number";
+                        model.Header.PONo = inputs;
+                    }
+                }
+
+                if (siNo != null)
+                {
+                    string[] inputs = siNo.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    // Display each input
+                    for (int i = 0; i < inputs.Length; i++)
+                    {
+                        model.Header.SINo = inputs;
+                    }
+                }
+                #endregion --Multiple input of SI and PO No.
+
+                #region --Check if duplicate record
+                if (model.Header.CheckNo != null && !model.Header.CheckNo.Contains("DM"))
+                {
+                    var cv = await _dbContext
+                    .CheckVoucherHeaders
+                    .Where(cv => cv.CheckNo == model.Header.CheckNo)
+                    .ToListAsync(cancellationToken);
+                    if (cv.Any())
+                    {
+                        TempData["error"] = "Check No. Is already exist";
                         return View(model);
                     }
+                }
+                #endregion --Check if duplicate record
 
-                    var totalRemainingSeries = 9999999999 - getLastNumber;
-                    if (getLastNumber >= 9999999899)
-                    {
-                        TempData["warning"] = $"Check Voucher created successfully, Warning {totalRemainingSeries} series numbers remaining";
-                    }
-                    else
-                    {
-                        TempData["success"] = "Check Voucher created successfully";
-                    }
-                    #endregion --Validating series
+                #region --Retrieve Supplier
 
-                    #region --Multiple input of SI and PO No.
-                    if (poNo != null)
-                    {
-                        string[] inputs = poNo.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                var supplier = await _dbContext
+                            .Suppliers
+                            .FirstOrDefaultAsync(po => po.Id == model.Header.SupplierId, cancellationToken);
 
-                        // Display each input
-                        for (int i = 0; i < inputs.Length; i++)
+                #endregion --Retrieve Supplier
+
+                #region --CV Details Entry
+                var generateCVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken);
+                var cvDetails = new List<CheckVoucherDetail>();
+                var totalNetAmountOfEWT = await _dbContext.ReceivingReports
+                                .Where(rr => model.Header.RRNo.Contains(rr.RRNo))
+                                .ToListAsync(cancellationToken);
+
+                if (model.Header.Category == "Trade")
+                {
+                    cvDetails.Add(
+                        new CheckVoucherDetail
                         {
-                            model.Header.PONo = inputs;
+                            AccountNo = "2010101",
+                            AccountName = "AP-Trade Payable",
+                            TransactionNo = generateCVNo,
+                            Debit = totalNetAmountOfEWT.Sum(rr => rr.NetAmountOfEWT),
+                            Credit = 0
                         }
-                    }
-
-                    if (siNo != null)
-                    {
-                        string[] inputs = siNo.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-
-                        // Display each input
-                        for (int i = 0; i < inputs.Length; i++)
+                    );
+                }
+                else if (model.Header.Category == "Non-Trade")
+                {
+                    cvDetails.Add(
+                        new CheckVoucherDetail
                         {
-                            model.Header.SINo = inputs;
+                            AccountNo = "2010102",
+                            AccountName = "AP-Non Trade Payable",
+                            TransactionNo = generateCVNo,
+                            Debit = 0,
+                            Credit = 0
                         }
-                    }
-                    #endregion --Multiple input of SI and PO No.
-
-                    #region --Check if duplicate record
-                    if (model.Header.CheckNo != null && !model.Header.CheckNo.Contains("DM"))
-                    {
-                        var cv = await _dbContext
-                        .CheckVoucherHeaders
-                        .Where(cv => cv.CheckNo == model.Header.CheckNo)
-                        .ToListAsync(cancellationToken);
-                        if (cv.Any())
+                    );
+                }
+                if (supplier.TaxType == "Withholding Tax")
+                {
+                    cvDetails.Add(
+                        new CheckVoucherDetail
                         {
-                            TempData["error"] = "Check No. Is already exist";
-                            return View(model);
+                            AccountNo = "2010302",
+                            AccountName = "Expanded Witholding Tax 1%",
+                            TransactionNo = generateCVNo,
+                            Debit = totalNetAmountOfEWT.Sum(rr => rr.NetAmount),
+                            Credit = 0
                         }
-                    }
-                    #endregion --Check if duplicate record
+                    );
+                    cvDetails.Add(
+                        new CheckVoucherDetail
+                        {
+                            AccountNo = "2010302",
+                            AccountName = "Expanded Witholding Tax 1%",
+                            TransactionNo = generateCVNo,
+                            Debit = 0,
+                            Credit = totalNetAmountOfEWT.Sum(rr => rr.NetAmount)
+                        }
+                    );
+                }
 
-                    #region --CV Details Entry
-                    var generateCVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken);
-                    var cvDetails = new List<CheckVoucherDetail>();
-
-                    if (model.Header.Category == "Trade")
-                    {
-                        cvDetails.Add(
-                            new CheckVoucherDetail
-                            {
-                                AccountNo = "2010101",
-                                AccountName = "AP-Trade Payable",
-                                TransactionNo = generateCVNo,
-                                Debit = 0,
-                                Credit = 0
-                            }
-                        );
-                    }
-                    else if (model.Header.Category == "Non-Trade")
-                    {
-                        cvDetails.Add(
-                            new CheckVoucherDetail
-                            {
-                                AccountNo = "2010102",
-                                AccountName = "AP-Non Trade Payable",
-                                TransactionNo = generateCVNo,
-                                Debit = 0,
-                                Credit = 0
-                            }
-                        );
-                    }
-
-                    for (int i = 0; i < accountNumber.Length; i++)
+                for (int i = 0; i < accountNumber.Length; i++)
                     {
                         var currentAccountNumber = accountNumber[i];
                         var currentAccountNumberText = accountNumberText[i];
@@ -202,7 +236,7 @@ namespace Accounting_System.Controllers
                                 AccountName = "Cash in Bank",
                                 TransactionNo = generateCVNo,
                                 Debit = 0,
-                                Credit = 0
+                                Credit = totalNetAmountOfEWT.Sum(rr => rr.NetAmountOfEWT)
                             }
                         );
 

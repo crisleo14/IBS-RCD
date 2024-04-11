@@ -91,5 +91,9 @@ namespace Accounting_System.Models
         public DateTime PaidDate { get; set; }
 
         public int CanceledQuantity { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal NetAmountOfEWT { get; set; }
     }
 }
