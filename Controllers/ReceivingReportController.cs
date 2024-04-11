@@ -137,6 +137,7 @@ namespace Accounting_System.Controllers
                 if (po.Supplier.TaxType == "Withholding Tax")
                 {
                     model.EwtAmount = model.NetAmount * .01m;
+                    model.NetAmountOfEWT = model.Amount - model.EwtAmount;
                 }
 
                 #region --Audit Trail Recording
