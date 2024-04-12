@@ -165,13 +165,6 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        // Get the current date in the format "YYYY-MM-DD" (required for the date input)
-        var myDate = new Date().toISOString().slice(0, 10);
-
-        // Set the default value of the input field
-        document.getElementById("Date").value = myDate;
-    </script>
-    <script>
         $('#AccountTitle').select2({
             dropdownParent: $('#AddAccEntry')
         });
@@ -241,35 +234,39 @@
         <script>
             $(function () {
                 var criteria; // Variable to store the selected criteria
+                var alertShown = false;
 
                 $(".GetRRList").change(function () {
                     var poNumber = $(this).val(); // Get all selected POIds
                     console.log(poNumber); // Add this line for debugging
                     if (poNumber && poNumber.length > 0) {
                         // Show SweetAlert to choose display criteria
-                        Swal.fire({
-                            title: 'Choose Display Criteria',
-                            text: 'Do you want to display records based on Due Date or Transaction Date?',
-                            input: 'select',
-                            inputOptions: {
-                                'Due Date': 'Due Date',
-                                'Transaction Date': 'Transaction Date'
-                            },
-                            inputPlaceholder: 'Select display criteria',
-                            showCancelButton: true,
-                            confirmButtonText: 'OK'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                criteria = result.value; // Store the selected criteria
-                                if (criteria) {
-                                    displayRecords(poNumber, criteria); // Pass criteria and PO numbers to displayRecords function
+                        if (!alertShown) {
+                            Swal.fire({
+                                title: 'Choose Display Criteria',
+                                text: 'Do you want to display records based on Due Date or Transaction Date?',
+                                input: 'select',
+                                inputOptions: {
+                                    'Due Date': 'Due Date',
+                                    'Transaction Date': 'Transaction Date'
+                                },
+                                inputPlaceholder: 'Select display criteria',
+                                showCancelButton: true,
+                                confirmButtonText: 'OK'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    criteria = result.value; // Store the selected criteria
+                                    if (criteria) {
+                                        displayRecords(poNumber, criteria); // Pass criteria and PO numbers to displayRecords function
+                                    } else {
+                                        console.error('Invalid display criteria');
+                                    }
                                 } else {
-                                    console.error('Invalid display criteria');
+                                    console.log('User canceled');
                                 }
-                            } else {
-                                console.log('User canceled');
-                            }
-                        });
+                            });
+                            alertShown = true;
+                        }
                     } else {
                         // Clear the fields if no POs are selected
                         $("#rrSelect").empty();
