@@ -266,6 +266,12 @@
                                 }
                             });
                             alertShown = true;
+                        } else {
+                            if (poNumber && poNumber.length > 0) {
+                                displayRecords(poNumber, criteria); // Pass PO number and criteria to displayRecords function
+                            } else {
+                                console.error('No PO number selected');
+                            }
                         }
                     } else {
                         // Clear the fields if no POs are selected
