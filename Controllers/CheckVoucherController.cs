@@ -26,9 +26,29 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
-            var cv = await _checkVoucherRepo.GetCheckVouchers(cancellationToken);
+            var headers = await _dbContext.CheckVoucherHeaders.OrderByDescending(cv => cv.Id).ToListAsync(cancellationToken);
 
-            return View(cv);
+            // Create a list to store CheckVoucherVM objectssw
+            var checkVoucherVMs = new List<CheckVoucherVM>();
+
+            // Retrieve details for each header
+            foreach (var header in headers)
+            {
+                var headerCVNo = header.CVNo;
+                var headerDetails = await _dbContext.CheckVoucherDetails.Where(d => d.TransactionNo == headerCVNo).ToListAsync(cancellationToken);
+
+                // Create a new CheckVoucherVM object for each header and its associated details
+                var checkVoucherVM = new CheckVoucherVM
+                {
+                    Header = header,
+                    Details = headerDetails
+                };
+
+                // Add the CheckVoucherVM object to the list
+                checkVoucherVMs.Add(checkVoucherVM);
+            }
+
+            return View(checkVoucherVMs);
         }
         [HttpGet]
         public async Task<IActionResult> Create(CancellationToken cancellationToken)
@@ -558,6 +578,52 @@ namespace Accounting_System.Controllers
             }
 
             return NotFound();
+        }
+
+        public async Task<IActionResult> Preview(int id, CancellationToken cancellationToken)
+        {
+            if (id != 0)
+            {
+                return Ok();
+            }
+
+            var header = await _dbContext.CheckVoucherHeaders
+                .Include(s => s.Supplier)
+                .FirstOrDefaultAsync(cvh => cvh.Id == id, cancellationToken);
+
+            if (header == null)
+            {
+                return NotFound();
+            }
+
+            var details = await _dbContext.CheckVoucherDetails
+                .Where(cvd => cvd.TransactionNo == header.CVNo)
+                .ToListAsync(cancellationToken);
+
+
+            if (header.Category == "Trade")
+            {
+                var siArray = new string[header.RRNo.Length];
+                for (int i = 0; i < header.RRNo.Length; i++)
+                {
+                    var rrValue = header.RRNo[i];
+
+                    var rr = await _dbContext.ReceivingReports
+                                .FirstOrDefaultAsync(p => p.RRNo == rrValue);
+
+                    siArray[i] = rr.SupplierInvoiceNumber;
+                }
+
+                ViewBag.SINoArray = siArray;
+            }
+
+            var viewModel = new CheckVoucherVM
+            {
+                Header = header,
+                Details = details
+            };
+
+            return PartialView("_PreviewCV", viewModel);
         }
     }
 }

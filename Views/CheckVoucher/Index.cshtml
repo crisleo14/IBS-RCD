@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Accounting_System.Models.CheckVoucherHeader>
+﻿@model IEnumerable<Accounting_System.Models.CheckVoucherVM>
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
@@ -16,22 +16,22 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.CVNo)
+                @Html.DisplayNameFor(model => model.Header.CVNo)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Date)
+                @Html.DisplayNameFor(model => model.Header.Date)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Payee)
+                @Html.DisplayNameFor(model => model.Header.Payee)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Amount)
+                @Html.DisplayNameFor(model => model.Header.Amount)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Particulars)
+                @Html.DisplayNameFor(model => model.Header.Particulars)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.CheckNo)
+                @Html.DisplayNameFor(model => model.Header.CheckNo)
             </th>
             <th></th>
         </tr>
@@ -40,54 +40,54 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.CVNo)
+                @Html.DisplayFor(modelItem => item.Header.CVNo)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Date)
+                @Html.DisplayFor(modelItem => item.Header.Date)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Payee)
+                @Html.DisplayFor(modelItem => item.Header.Payee)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Amount)
+                @Html.DisplayFor(modelItem => item.Header.Amount)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Particulars)
+                @Html.DisplayFor(modelItem => item.Header.Particulars)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.CheckNo)
+                @Html.DisplayFor(modelItem => item.Header.CheckNo)
             </td>
             <td>
-                @if (item.CreatedBy == UserManager.GetUserName(User))
+                @if (item.Header.CreatedBy == UserManager.GetUserName(User))
                 {
-                    if (!item.IsPosted && !item.IsVoided && !item.IsCanceled)
+                    if (!item.Header.IsPosted && !item.Header.IsVoided && !item.Header.IsCanceled)
                     {
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-light">Edit</a>
-                        @* <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#Preview-@item.Id" data-bs-url="@Url.Action($"Preview/{item.Id}")">
+                        <a asp-action="Edit" asp-route-id="@item.Header.Id" class="btn btn-light">Edit</a>
+                        <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#Preview-@item.Header.Id" data-bs-url="@Url.Action($"Preview/{item.Header.Id}")">
                             Preview
                         </button>
-                        @await Html.PartialAsync("_PreviewCredit",item) *@
-                        <a class="btn btn-light" onclick="confirmPost(@item.Id)">Post</a>
-                        <a class="btn btn-light" onclick="confirmCancel(@item.Id)">Cancel</a>
+                        @await Html.PartialAsync("_PreviewCV",item)
+                        <a class="btn btn-light" onclick="confirmPost(@item.Header.Id)">Post</a>
+                        <a class="btn btn-light" onclick="confirmCancel(@item.Header.Id)">Cancel</a>
                     }
-                    if (item.IsPosted && !item.IsVoided && !item.IsCanceled)
+                            if (item.Header.IsPosted && !item.Header.IsVoided && !item.Header.IsCanceled)
                     {
-                        <a asp-action="Print" asp-route-id="@item.Id" class="btn btn-light">Print</a>
-                        <a class="btn btn-light" onclick="confirmVoid(@item.Id)">Void</a>
+                        <a asp-action="Print" asp-route-id="@item..HeaderId" class="btn btn-light">Print</a>
+                        <a class="btn btn-light" onclick="confirmVoid(@item.Header.Id)">Void</a>
                     }
                 }
 
-                @if (item.IsVoided)
+                @if (item.Header.IsVoided)
                 {
                     <span class="badge rounded-pill bg-danger ">VOIDED</span>
                 }
-                else if (item.IsCanceled)
+                else if (item.Header.IsCanceled)
                 {
                     <span class="badge rounded-pill bg-warning ">CANCELLED</span>
                 }
                 else
                 {
-                    @if (item.CreatedBy != UserManager.GetUserName(User))
+                    @if (item.Header.CreatedBy != UserManager.GetUserName(User))
                     {
                         <span class="badge rounded-pill bg-info ">VALID</span>
                     }
@@ -97,6 +97,8 @@
 }
     </tbody>
 </table>
+
+
 @section Scripts{
     <script>
         function confirmPost(cvId) {
