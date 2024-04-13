@@ -1,0 +1,224 @@
+﻿@model Accounting_System.Models.CheckVoucherVM
+
+    <div class="modal fade" id="Preview-@Model.Header.Id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel-@Model.Header.Id">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="PreviewCMLabel">Preview</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <br />
+                    <div class="text-end">
+                        <img src="~/img/Filpride.jpg" height="" width="130px" />
+                    </div>
+                    <div class="text-center">
+                        <h2><u><b>&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b></u></h2>
+                        <p style="line-height: 1; margin-top:-7px;">
+                            57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone,<br />
+                            Kalaklan, Olongapo City, 2200 Zambales, Philippines<br />
+                            VAT Reg. TIN: 000-216-589-00000
+                        </p>
+
+                        <h3><span style="display: inline-block;"><b>DISBURSEMENT VOUCHER</b></span></h3>
+                        <div class="text-end" style="margin-top:-60px;">
+                            <h6><b>No.&nbsp;@Html.DisplayFor(model => model.Header.CVNo)</b></h6>
+                        </div>
+
+                    </div>
+
+                    <div class="table-responsive" style="margin-top:50px;">
+                        <table class="w-100">
+                            <thead>
+                                <tr style="border: 1px solid black;">
+                                    <th colspan="2" style="padding-left:20px;">I. PAYEE DETAILS</th>
+                                    <td colspan="2" class="text-end"><b>Date : </b>@Model.Header.Date.ToShortDateString()</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="width:10%; padding-left:20px;">Name :</td>
+                                    <td>@Html.DisplayFor(model => model.Header.Supplier.Name)</td>
+                                    <td style="width:50%;" colspan="2" class="text-nowrap">Other References:</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-left:20px;">Address :</td>
+                                    <td>@Html.DisplayFor(model => model.Header.Supplier.Address)</td>
+                                    <td style="width:5%;">PO # :</td>
+
+                                    <td>
+                                        @* @for (int i = 0; i < item.Header.PONo.Length; i++)
+                                    {
+                                    if (i != item.Header.PONo.Length - 1)
+                                    {
+                                    <span>@item.Header.PONo[i],</span>
+                                    }
+                                    else
+                                    {
+                                    <span>@item.Header.PONo[i]</span>
+                                    }
+                                    } *@
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-left:20px;">TIN # :</td>
+                                    <td>@Html.DisplayFor(model => model.Header.Supplier.TinNo)</td>
+                                    <td>SI # :</td>
+                                    <td>
+                                        @if (Model.Header.Category == "Non-Trade")
+                                        {
+                                            @for (int i = 0; i < Model.Header.SINo.Length; i++)
+                                            {
+                                                if (i != Model.Header.SINo.Length - 1)
+                                                {
+                                                    <span>@Model.Header.SINo[i],</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>@Model.Header.SINo[i]</span>
+                                                }
+                                            }
+                                        }
+                                        else if (Model.Header.Category == "Trade")
+                                        {
+                                            @* bool isFirst = true;
+                                    foreach (var items in ViewBag.SINoArray)
+                                    {
+                                    if (isFirst)
+                                    {
+                                    isFirst = false;
+                                    }
+                                    else
+                                    {
+                                    <span>,</span>
+                                    }
+                                    <span>@items</span>
+                                    } *@
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-left:20px;" class="text-nowrap"></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-responsive" style="margin-top:20px;">
+                        <table class="w-100">
+                            <thead>
+                                <tr style="border: 1px solid black;">
+                                    <th colspan="4" style="padding-left:20px;">II. CHECK DETAILS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="width:15%; padding-left:20px;">Payee :</td>
+                                    <td style="width:65%;">@Html.DisplayFor(model => model.Header.Payee)</td>
+                                    <td class="text-end">1,883.04</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-left:20px;">Amount in Words :</td>
+                                    <td class="w-25"> *** One Thousand Eight Hundred Eighty Three Pesos Only ***</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-left:20px;">Particulars :</td>
+                                    <td>@Html.DisplayFor(model => model.Header.Particulars)</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-left:20px;">Check #:</td>
+                                    <td>@Html.DisplayFor(model => model.Header.CheckNo)</td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-responsive" style="margin-top:20px;">
+                        <table class="w-100">
+                            <thead>
+                                <tr style="border: 1px solid black;">
+                                    <th colspan="4" style="padding-left:20px;">III. ACCOUNTING ENTRIES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding-left:20px;"></td>
+                                    <th class="text-end">DEBIT</th>
+                                    <th class="text-end">CREDIT</th>
+                                </tr>
+
+                                @foreach (var cv in Model.Details)
+                                {
+                                    <tr>
+                                        <td style="width:60%; padding-left:20px;">@Html.DisplayFor(model => cv.AccountNo)&nbsp;@Html.DisplayFor(model => cv.AccountName)</td>
+                                        <td class="text-end" style="width:7%;">@Html.DisplayFor(model => cv.Debit)</td>
+                                        <td class="text-end" style="width:7%;">@Html.DisplayFor(model => cv.Credit)</td>
+                                    </tr>
+                                }
+
+                                <tr style="border-bottom:double;"></tr>
+                                <tr>
+                                    <td></td>
+                                    <td class="text-end">@Html.DisplayFor(model => model.Header.TotalDebit)</td>
+                                    <td class="text-end">@Html.DisplayFor(model => model.Header.TotalCredit)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-responsive" style="margin-top:20px;">
+                        <table class="w-100">
+                            <tbody class="text-center">
+                                <tr>
+                                    <td>Prepared by :</td>
+                                    <td>Reviewed by </td>
+                                    <td>Approved by </td>
+                                </tr>
+                                <tr>
+                                    <td style="width:33%;">
+                                        <br />
+                                        <span class="underline" style="display: inline-block; width:60%;">&nbsp;</span> <br />
+
+                                    </td>
+                                    <td style="width:33%;">
+                                        <br />
+                                        <span class="underline" style="display: inline-block; width:60%;">&nbsp;</span> <br />
+
+                                    </td>
+                                    <td style="width:33%;">
+                                        <br />
+                                        <span class="underline" style="display: inline-block; width:60%;">&nbsp;</span> <br />
+
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <br />
+                    <div class="text-center w-100" style="margin-top:20px;">
+                        <p>
+                            <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br />
+                            <span>Acknowledgement Certificate No:</span>
+                            <span style="display: inline-block;">AC_124_112023_000090</span>
+                            <span>&nbsp;&nbsp;Date Issued:</span>
+                            <span style="display: inline-block;">November 28, 2023</span><br />
+                            Series: CM0000000001 - CM9999999999
+                        </p>
+                    </div>
+
+                    <br />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
