@@ -1,5 +1,5 @@
 ﻿@model Accounting_System.Models.CheckVoucherVM
-
+@using Humanizer
     <div class="modal fade" id="Preview-@Model.Header.Id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel-@Model.Header.Id">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
@@ -107,11 +107,49 @@
                                 <tr>
                                     <td style="width:15%; padding-left:20px;">Payee :</td>
                                     <td style="width:65%;">@Html.DisplayFor(model => model.Header.Payee)</td>
-                                    <td class="text-end">1,883.04</td>
+                                    <td class="text-end">@Model.Header.Amount</td>
                                 </tr>
                                 <tr>
                                     <td style="padding-left:20px;">Amount in Words :</td>
-                                    <td class="w-25"> *** One Thousand Eight Hundred Eighty Three Pesos Only ***</td>
+                                @{
+                                    decimal convertToWords = Model.Header.Amount;
+
+                                    int integerPart = Convert.ToInt32(Math.Floor(convertToWords));
+                                    decimal decimalPart = Math.Round((convertToWords - integerPart), 2);
+
+                                    // Convert integer part to words
+                                    string integerWords = integerPart.ToWords();
+                                    integerWords = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(integerWords.ToLower());
+
+                                    // Convert and format cents value
+                                    int cents = Convert.ToInt32(decimalPart * 100) % 100;
+                                    string centsWords = cents.ToWords(); // Use ToWords instead of string formatting
+                                    centsWords = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(centsWords.ToLower());
+
+                                    string upperCaseOne = integerWords;
+                                    string upperCaseTwo = centsWords;
+
+                                    // Combine words and formatting
+                                    string words;
+
+                                    if (cents > 0)
+                                    {
+                                        // If there is a decimal part, include "And" before it
+                                        words = $"{upperCaseOne} Pesos and {upperCaseTwo} Centavos Only";
+                                    }
+                                    else
+                                    {
+                                        // If there is no decimal part, exclude "And"
+                                        words = $"{upperCaseOne} Pesos Only";
+                                    }
+
+                                    // Capitalize first letters
+                                    // words = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(words.ToLower());
+
+                                    words = words.Replace(" And", "");
+                                    words = words.Replace("-", " ");
+                                }
+                                    <td class="w-25"> *** @words ***</td>
                                     <td></td>
                                 </tr>
                                 <tr>
