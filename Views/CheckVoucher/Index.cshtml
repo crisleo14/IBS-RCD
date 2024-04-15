@@ -72,7 +72,7 @@
                     }
                             if (item.Header.IsPosted && !item.Header.IsVoided && !item.Header.IsCanceled)
                     {
-                        <a asp-action="Print" asp-route-id="@item..HeaderId" class="btn btn-light">Print</a>
+                        <a asp-action="Print" asp-route-id="@item.Header.Id" class="btn btn-light">Print</a>
                         <a class="btn btn-light" onclick="confirmVoid(@item.Header.Id)">Void</a>
                     }
                 }
