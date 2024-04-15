@@ -64,6 +64,18 @@
                 <option></option>
             </select>
         </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th class="w-100">RR List</th>
+                    <th class="w-20">
+                        Amount
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="rrAmountList">
+            </tbody>
+        </table>
         </div>
         <div class="form-group">
             <label asp-for="Header.Date" class="control-label"></label>
@@ -338,7 +350,7 @@
         <script>
             function saveAccountingEntry() {
                 // Get the values from the modal inputs
-                var accountNumber = $("#AccountNo").val();
+                var accountNumber = $(".RRList").val();
                 var accountNumberText = $("#AccountNo option:selected").text();
                 var debit = $("#Debit").val();
                 var credit = $("#Credit").val();
@@ -381,6 +393,29 @@
         <script>
             $('#AccountNo').select2({
                 dropdownParent: $('#AddAccEntry')
+            });
+        </script>
+        <script>
+            $(document).ready(function () {
+                $("#rrSelect").change(function () {
+                    var rrSelect = $("#rrSelect").val();
+
+                    // Clear the table before adding new rows
+                    $(".rrAmountList").empty();
+
+                    // Loop through each selected option and add it to the table
+                    rrSelect.forEach(function (rrNo) {
+                        var rrSelectText = $("#rrSelect option[value='" + rrNo + "']").text();
+                        var newRow = `<tr>
+                                                <td>
+                                                    <input type='hidden' name='rrNo' value='${rrNo}' />
+                                                    <input type='text' name='rrNoText' value='${rrSelectText}' style='border:none' readonly />
+                                                </td>
+                                                <td><input type='text' name='amount' class='moneyInput' style='border:none' /></td>
+                                            </tr>`;
+                        $(".rrAmountList").append(newRow);
+                    });
+                });
             });
         </script>
 }
