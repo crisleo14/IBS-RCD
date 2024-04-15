@@ -26,7 +26,10 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
-            var headers = await _dbContext.CheckVoucherHeaders.OrderByDescending(cv => cv.Id).ToListAsync(cancellationToken);
+            var headers = await _dbContext.CheckVoucherHeaders
+                .Include(s => s.Supplier)
+                .OrderByDescending(cv => cv.Id)
+                .ToListAsync(cancellationToken);
 
             // Create a list to store CheckVoucherVM objectssw
             var checkVoucherVMs = new List<CheckVoucherVM>();
@@ -264,9 +267,27 @@ namespace Accounting_System.Controllers
 
                 #endregion --CV Details Entry
 
-                    #region --Saving the default entries
+                #region --CV SINo List
+                if (model.Header.Category == "Trade")
+                {
+                    var siArray = new string[model.Header.RRNo.Length];
+                    for (int i = 0; i < model.Header.RRNo.Length; i++)
+                    {
+                        var rrValue = model.Header.RRNo[i];
 
-                    if (criteria != null)
+                        var rr = await _dbContext.ReceivingReports
+                                    .FirstOrDefaultAsync(p => p.RRNo == rrValue);
+
+                        siArray[i] = rr.SupplierInvoiceNumber;
+                    }
+
+                    model.Header.SINo = siArray;
+                }
+                #endregion --CV Details Entry
+
+                #region --Saving the default entries
+
+                if (criteria != null)
                     {
                         model.Header.Criteria = criteria;
                     }
@@ -578,52 +599,6 @@ namespace Accounting_System.Controllers
             }
 
             return NotFound();
-        }
-
-        public async Task<IActionResult> Preview(int id, CancellationToken cancellationToken)
-        {
-            if (id != 0)
-            {
-                return Ok();
-            }
-
-            var header = await _dbContext.CheckVoucherHeaders
-                .Include(s => s.Supplier)
-                .FirstOrDefaultAsync(cvh => cvh.Id == id, cancellationToken);
-
-            if (header == null)
-            {
-                return NotFound();
-            }
-
-            var details = await _dbContext.CheckVoucherDetails
-                .Where(cvd => cvd.TransactionNo == header.CVNo)
-                .ToListAsync(cancellationToken);
-
-
-            if (header.Category == "Trade")
-            {
-                var siArray = new string[header.RRNo.Length];
-                for (int i = 0; i < header.RRNo.Length; i++)
-                {
-                    var rrValue = header.RRNo[i];
-
-                    var rr = await _dbContext.ReceivingReports
-                                .FirstOrDefaultAsync(p => p.RRNo == rrValue);
-
-                    siArray[i] = rr.SupplierInvoiceNumber;
-                }
-
-                ViewBag.SINoArray = siArray;
-            }
-
-            var viewModel = new CheckVoucherVM
-            {
-                Header = header,
-                Details = details
-            };
-
-            return PartialView("_PreviewCV", viewModel);
         }
     }
 }

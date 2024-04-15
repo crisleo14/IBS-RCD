@@ -47,58 +47,45 @@
                                 <tr>
                                     <td style="padding-left:20px;">Address :</td>
                                     <td>@Html.DisplayFor(model => model.Header.Supplier.Address)</td>
-                                    <td style="width:5%;">PO # :</td>
+                                    <td style="width:10%;">PO # :</td>
 
                                     <td>
-                                        @* @for (int i = 0; i < item.Header.PONo.Length; i++)
+                                    @if (Model.Header.PONo != null)
                                     {
-                                    if (i != item.Header.PONo.Length - 1)
-                                    {
-                                    <span>@item.Header.PONo[i],</span>
+                                        @for (int i = 0; i < Model.Header.PONo.Length; i++)
+                                        {
+                                            if (i != Model.Header.PONo.Length - 1)
+                                            {
+                                                <span>@Model.Header.PONo[i],</span>
+                                            }
+                                            else
+                                            {
+                                                <span>@Model.Header.PONo[i]</span>
+                                            }
+                                        }
                                     }
-                                    else
-                                    {
-                                    <span>@item.Header.PONo[i]</span>
-                                    }
-                                    } *@
-                                    </td>
+                                </td>
                                 </tr>
                                 <tr>
                                     <td style="padding-left:20px;">TIN # :</td>
                                     <td>@Html.DisplayFor(model => model.Header.Supplier.TinNo)</td>
                                     <td>SI # :</td>
                                     <td>
-                                        @if (Model.Header.Category == "Non-Trade")
+                                    @if (Model.Header.SINo != null)
+                                    {
+                                        @for (int i = 0; i < Model.Header.SINo.Length; i++)
                                         {
-                                            @for (int i = 0; i < Model.Header.SINo.Length; i++)
+                                            if (i != Model.Header.SINo.Length - 1)
                                             {
-                                                if (i != Model.Header.SINo.Length - 1)
-                                                {
-                                                    <span>@Model.Header.SINo[i],</span>
-                                                }
-                                                else
-                                                {
-                                                    <span>@Model.Header.SINo[i]</span>
-                                                }
+                                                <span>@Model.Header.SINo[i],</span>
+                                            }
+                                            else
+                                            {
+                                                <span>@Model.Header.SINo[i]</span>
                                             }
                                         }
-                                        else if (Model.Header.Category == "Trade")
-                                        {
-                                            @* bool isFirst = true;
-                                    foreach (var items in ViewBag.SINoArray)
-                                    {
-                                    if (isFirst)
-                                    {
-                                    isFirst = false;
                                     }
-                                    else
-                                    {
-                                    <span>,</span>
-                                    }
-                                    <span>@items</span>
-                                    } *@
-                                        }
-                                    </td>
+                                </td>
                                 </tr>
                                 <tr>
                                     <td style="padding-left:20px;" class="text-nowrap"></td>
@@ -221,4 +208,3 @@
             </div>
         </div>
     </div>
-}
