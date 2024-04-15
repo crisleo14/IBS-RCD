@@ -267,7 +267,7 @@ namespace Accounting_System.Controllers
 
                 #endregion --CV Details Entry
 
-                #region --CV SINo List
+                #region -- SINo Entry
                 if (model.Header.Category == "Trade")
                 {
                     var siArray = new string[model.Header.RRNo.Length];
@@ -283,7 +283,7 @@ namespace Accounting_System.Controllers
 
                     model.Header.SINo = siArray;
                 }
-                #endregion --CV Details Entry
+                #endregion -- SINo Entry
 
                 #region --Saving the default entries
 
