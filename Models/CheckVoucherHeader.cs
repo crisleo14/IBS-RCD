@@ -40,6 +40,7 @@ namespace Accounting_System.Models
         [NotMapped]
         public List<SelectListItem>? Suppliers { get; set; }
 
+        [Display(Name = "Total Amount")]
         public decimal Amount { get; set; }
 
         [Display(Name = "Amount in Words")]

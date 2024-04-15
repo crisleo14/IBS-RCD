@@ -90,7 +90,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, string? criteria)
+        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, string? criteria, decimal[] amount)
         {
 
             model.Header.Suppliers = await _dbContext.Suppliers
@@ -301,10 +301,29 @@ namespace Accounting_System.Controllers
                     model.Header.TotalDebit = list.Sum(cvd => cvd.Debit);
                     model.Header.TotalCredit = list.Sum(cvd => cvd.Credit);
 
-                    #endregion --Saving the default entries
+                #endregion --Saving the default entries
 
-                    //CV Details Entry
-                    //model.Details.CreatedBy = _userManager.GetUserName(this.User);
+                #region -- Partial payment of RR's
+                if (amount != null)
+                {
+                    var receivingReport = new ReceivingReport();
+                    for (int i = 0; i < model.Header.RRNo.Length; i++)
+                    {
+                        var rrValue = model.Header.RRNo[i];
+                        receivingReport = await _dbContext.ReceivingReports
+                                    .FirstOrDefaultAsync(p => p.RRNo == rrValue);
+
+                        receivingReport.AmountPaid += amount[i];
+
+                        if (receivingReport.Amount >= receivingReport.AmountPaid)
+                        {
+                            receivingReport.IsPaid = true;
+                            receivingReport.PaidDate = DateTime.Now;
+                        }
+                    }
+                }
+                
+                #endregion -- Partial payment of RR's
 
                 await _dbContext.AddAsync(model.Header, cancellationToken);  // Add CheckVoucherHeader to the context
                     await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method

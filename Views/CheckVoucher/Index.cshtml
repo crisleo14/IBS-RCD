@@ -43,7 +43,7 @@
                 @Html.DisplayFor(modelItem => item.Header.CVNo)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Header.Date)
+                @item.Header.Date.ToShortDateString()
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Header.Payee)
