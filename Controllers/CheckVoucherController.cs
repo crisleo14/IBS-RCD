@@ -205,7 +205,7 @@ namespace Accounting_System.Controllers
                             AccountNo = "2010102",
                             AccountName = "AP-Non Trade Payable",
                             TransactionNo = generateCVNo,
-                            Debit = 0,
+                            Debit = totalNetAmountOfEWT.Sum(rr => rr.NetAmountOfEWT),
                             Credit = 0
                         }
                     );
