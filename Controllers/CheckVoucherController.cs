@@ -315,7 +315,7 @@ namespace Accounting_System.Controllers
 
                         receivingReport.AmountPaid += amount[i];
 
-                        if (receivingReport.Amount >= receivingReport.AmountPaid)
+                        if (receivingReport.Amount <= receivingReport.AmountPaid)
                         {
                             receivingReport.IsPaid = true;
                             receivingReport.PaidDate = DateTime.Now;
