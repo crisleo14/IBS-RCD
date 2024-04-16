@@ -192,7 +192,7 @@ namespace Accounting_System.Controllers
                             AccountNo = "2010101",
                             AccountName = "AP-Trade Payable",
                             TransactionNo = generateCVNo,
-                            Debit = totalNetAmountOfEWT.Sum(rr => rr.NetAmountOfEWT),
+                            Debit = supplier.TaxType == "Withholding Tax" ? totalNetAmountOfEWT.Sum(rr => rr.NetAmountOfEWT) : totalNetAmountOfEWT.Sum(rr => rr.Amount),
                             Credit = 0
                         }
                     );
@@ -205,7 +205,7 @@ namespace Accounting_System.Controllers
                             AccountNo = "2010102",
                             AccountName = "AP-Non Trade Payable",
                             TransactionNo = generateCVNo,
-                            Debit = totalNetAmountOfEWT.Sum(rr => rr.NetAmountOfEWT),
+                            Debit = supplier.TaxType == "Withholding Tax" ? totalNetAmountOfEWT.Sum(rr => rr.NetAmountOfEWT) : totalNetAmountOfEWT.Sum(rr => rr.Amount),
                             Credit = 0
                         }
                     );
@@ -259,7 +259,7 @@ namespace Accounting_System.Controllers
                                 AccountName = "Cash in Bank",
                                 TransactionNo = generateCVNo,
                                 Debit = 0,
-                                Credit = totalNetAmountOfEWT.Sum(rr => rr.NetAmountOfEWT)
+                                Credit = supplier.TaxType == "Withholding Tax" ? totalNetAmountOfEWT.Sum(rr => rr.NetAmountOfEWT) : totalNetAmountOfEWT.Sum(rr => rr.Amount)
                             }
                         );
 
