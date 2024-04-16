@@ -352,7 +352,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetRRs(string[] poNumber)
         {
                 var receivingReports = await _dbContext.ReceivingReports
-                .Where(rr => poNumber.Contains(rr.PONo))
+                .Where(rr => poNumber.Contains(rr.PONo) && !rr.IsPaid)
                 .ToListAsync();
 
             if (receivingReports != null && receivingReports.Count > 0)
