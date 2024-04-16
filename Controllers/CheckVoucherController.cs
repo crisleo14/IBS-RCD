@@ -425,24 +425,42 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Post(int cvId, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.CheckVoucherHeaders.FindAsync(cvId, cancellationToken);
+            var modelHeader = await _dbContext.CheckVoucherHeaders.FindAsync(cvId, cancellationToken);
+            var modelDetails = await _dbContext.CheckVoucherDetails.Where(cvd => cvd.TransactionNo == modelHeader.CVNo).ToListAsync();
 
-            if (model != null)
+            if (modelHeader != null)
             {
-                if (!model.IsPosted)
+                if (!modelHeader.IsPosted)
                 {
-                    model.IsPosted = true;
+                    modelHeader.IsPosted = true;
+
+                    #region --General Ledger Book Recording(CV)--
+
+                    var ledgers = new List<GeneralLedgerBook>();
+                    foreach (var details in modelDetails)
+                    {
+                        ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = modelHeader.Date.ToShortDateString(),
+                                    Reference = modelHeader.CVNo,
+                                    Description = modelHeader.Particulars,
+                                    AccountTitle = details.AccountName,
+                                    Debit = details.Debit,
+                                    Credit = details.Credit,
+                                    CreatedBy = modelHeader.CreatedBy,
+                                    CreatedDate = modelHeader.CreatedDate
+                                }
+                            );
+                    }
+
+                    await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
+
+                    #endregion --General Ledger Book Recording(CV)--
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Check Voucher has been Posted.";
-
                 }
-                //else
-                //{
-                //    model.IsVoid = true;
-                //    await _dbContext.SaveChangesAsync();
-                //    TempData["success"] = "Purchase Order has been Voided.";
-                //}
                 return RedirectToAction(nameof(Index));
             }
 
