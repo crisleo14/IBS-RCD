@@ -31,7 +31,7 @@
         </fieldset>
         <div class="form-group">
             <label class="control-label">Supplier</label>
-            <select asp-for="Header.SupplierId" asp-items="@Model.Header.Suppliers" class="form-select js-select2 GetPOList" id="supplierSelect">
+            <select asp-for="Header.SupplierId" asp-items="@Model.Header.Suppliers" class="form-select js-select2 GetPOList supplier" id="supplierSelect">
                 <option></option>
             </select>
         </div>
@@ -123,6 +123,30 @@
                         </tr>
                     </thead>
                     <tbody id="accountingEntriesBody">
+                            <tr>
+                                <td><input type='text' value='2010101 AP-Trade Payable' id="accountNumberInput" class="w-100" style='border:none' readonly /></td>
+                                <td ><input type='text' name='netOfEWT' value='0.00' class="w-100 totalNetOfEWT" style='border:none' readonly /></td>
+                                <td>0.00</td>
+                                <td></td>
+                            </tr>
+                            <tr class="EWTDebit">
+                                <td><input type='text' value='Expanded Witholding Tax 1%' class="w-100" style='border:none' readonly /></td>
+                                <td><input type='text' name='expandedWTaxDebitAmount' value='0.00' class="w-100 totalEWT" style='border:none' readonly /></td>
+                                <td>0.00</td>
+                                <td></td>
+                            </tr>
+                            <tr class="EWTCredit">
+                                <td><input type='text' value='Expanded Witholding Tax 1%' class="w-100" style='border:none' readonly /></td>
+                                <td>0.00</td>
+                                <td><input type='text' name='expandedWTaxCreditAmount' value='0.00' class="w-100 totalEWT" style='border:none' readonly /></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td><input type='text' value='Cash in Bank' class="w-100" style='border:none' readonly /></td>
+                                <td>0.00</td>
+                                <td><input type='text' name='cashInBankDebitAmount' value='0.00' class="w-100 totalNetOfEWT" style='border:none' readonly /></td>
+                                <td></td>
+                            </tr>
                     </tbody>
                 </table>
             </div>
@@ -189,9 +213,11 @@
                 if (id === 'tradeList') {
                     tradeList.style.display = 'block';
                     nTradeList.style.display = 'none';
+                    accountNumberInput.value = "2010101 AP-Trade Payable";
                 } else if (id === 'nTradeList') {
                     tradeList.style.display = 'none';
                     nTradeList.style.display = 'block';
+                    accountNumberInput.value = "2010102 AP-Non Trade Payable";
                 }
             }
         </script>
@@ -350,7 +376,7 @@
         <script>
             function saveAccountingEntry() {
                 // Get the values from the modal inputs
-                var accountNumber = $(".RRList").val();
+                var accountNumber = $("#AccountNo").val();
                 var accountNumberText = $("#AccountNo option:selected").text();
                 var debit = $("#Debit").val();
                 var credit = $("#Credit").val();
@@ -411,11 +437,104 @@
                                                     <input type='hidden' name='rrNo' value='${rrNo}' />
                                                     <input type='text' name='rrNoText' value='${rrSelectText}' style='border:none' readonly />
                                                 </td>
-                                                <td><input type='text' name='amount' class='moneyInput' /></td>
+                                                <td><input type='text' name='amount' class='inputAmount' /></td>
                                             </tr>`;
                         $(".rrAmountList").append(newRow);
                     });
                 });
             });
         </script>
+        @* <script>
+            $(document).ready(function () {
+                $("#rrSelect").change(function () {
+                    updateAmounts();
+                });
+
+                $(document).on('input', '.inputAmount', function () {
+                    updateAmounts();
+                });
+
+                function updateAmounts() {
+                    var amountInputs = document.querySelectorAll('.inputAmount');
+                    var totalNetOfEWT = 0;
+                    var totalEWT = 0;
+                    amountInputs.forEach(function (input) {
+                        var rrAmount = parseFloat(input.value);
+                        var netOfVat = rrAmount / 1.12;
+                        var vat = netOfVat * 0.12;
+                        var ewt = netOfVat * 0.01;
+                        var rrAmountNetOfEWT = rrAmount - ewt;
+                        totalNetOfEWT += rrAmountNetOfEWT;
+                        totalEWT += ewt;
+                    });
+                    $(".totalNetOfEWT").val(totalNetOfEWT.toFixed(2));
+                    $(".totalEWT").val(totalEWT.toFixed(2));
+                }
+
+                $("#rrSelect").trigger("change");
+            });
+        </script> *@
+        <script>
+            $(function () {
+                $(".supplier").change(function () {
+                    var suppId = $(this).val();
+                    if (suppId !== "") {
+                        // Make an AJAX request to get the TaxType based on the selected SupplierId
+                        $.ajax({
+                            url: "/CheckVoucher/GetSI",
+                            method: "GET",
+                            data: { supplierId: suppId },
+                            success: function (data) {
+                                console.log(data); // Log the returned data for debugging
+                                if (data === "Withholding Tax") {
+                                    $(".EWTDebit, .EWTCredit").show(); // Show the EWT table rows
+                                } else {
+                                    $(".EWTDebit, .EWTCredit").hide(); // Hide the EWT table rows
+                                }
+                                $(document).ready(function () {
+                                    $("#rrSelect").change(function () {
+                                        updateAmounts();
+                                    });
+
+                                    $(document).on('input', '.inputAmount', function () {
+                                        updateAmounts();
+                                    });
+
+                                    function updateAmounts() {
+                                        var amountInputs = document.querySelectorAll('.inputAmount');
+                                        var totalNetOfEWT = 0;
+                                        var totalEWT = 0;
+                                        amountInputs.forEach(function (input) {
+                                            if (data === "Withholding Tax") {
+                                                var rrAmount = parseFloat(input.value);
+                                                var netOfVat = rrAmount / 1.12;
+                                                var vat = netOfVat * 0.12;
+                                                var ewt = netOfVat * 0.01;
+                                                var rrAmountNetOfEWT = rrAmount - ewt;
+                                                totalNetOfEWT += rrAmountNetOfEWT;
+                                                totalEWT += ewt;
+                                            } else {
+                                                var rrAmount = parseFloat(input.value);
+                                                totalNetOfEWT += rrAmount;
+                                            }
+                                        });
+                                        $(".totalNetOfEWT").val(totalNetOfEWT.toFixed(2));
+                                        $(".totalEWT").val(totalEWT.toFixed(2));
+                                    }
+
+                                    $("#rrSelect").trigger("change");
+                                });
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('Error fetching TaxType:', error);
+                            }
+                        });
+                    } else {
+                        // Clear the fields if no supplier is selected
+                        $(".EWTDebit, .EWTCredit").hide();
+                    }
+                });
+            });
+        </script>
+
 }

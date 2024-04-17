@@ -90,7 +90,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, string? criteria, decimal[] amount)
+        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, string? criteria, decimal[] amount, decimal netOfEWT, decimal expandedWTaxDebitAmount, decimal cashInBankDebitAmount)
         {
 
             model.Header.Suppliers = await _dbContext.Suppliers
@@ -184,6 +184,12 @@ namespace Accounting_System.Controllers
                                 .Where(rr => model.Header.RRNo.Contains(rr.RRNo))
                                 .ToListAsync(cancellationToken);
 
+                var totalAmount = 0m;
+                foreach (var total in amount)
+                {
+                    totalAmount += total;
+                }
+
                 if (model.Header.Category == "Trade")
                 {
                     cvDetails.Add(
@@ -192,7 +198,7 @@ namespace Accounting_System.Controllers
                             AccountNo = "2010101",
                             AccountName = "AP-Trade Payable",
                             TransactionNo = generateCVNo,
-                            Debit = supplier.TaxType == "Withholding Tax" ? totalNetAmountOfEWT.Sum(rr => rr.NetAmountOfEWT) : totalNetAmountOfEWT.Sum(rr => rr.Amount),
+                            Debit = supplier.TaxType == "Withholding Tax" ? netOfEWT : totalAmount,
                             Credit = 0
                         }
                     );
@@ -205,7 +211,7 @@ namespace Accounting_System.Controllers
                             AccountNo = "2010102",
                             AccountName = "AP-Non Trade Payable",
                             TransactionNo = generateCVNo,
-                            Debit = supplier.TaxType == "Withholding Tax" ? totalNetAmountOfEWT.Sum(rr => rr.NetAmountOfEWT) : totalNetAmountOfEWT.Sum(rr => rr.Amount),
+                            Debit = supplier.TaxType == "Withholding Tax" ? netOfEWT : totalAmount,
                             Credit = 0
                         }
                     );
@@ -218,7 +224,7 @@ namespace Accounting_System.Controllers
                             AccountNo = "2010302",
                             AccountName = "Expanded Witholding Tax 1%",
                             TransactionNo = generateCVNo,
-                            Debit = totalNetAmountOfEWT.Sum(rr => rr.NetAmount),
+                            Debit = expandedWTaxDebitAmount,
                             Credit = 0
                         }
                     );
@@ -229,7 +235,7 @@ namespace Accounting_System.Controllers
                             AccountName = "Expanded Witholding Tax 1%",
                             TransactionNo = generateCVNo,
                             Debit = 0,
-                            Credit = totalNetAmountOfEWT.Sum(rr => rr.NetAmount)
+                            Credit = expandedWTaxDebitAmount
                         }
                     );
                 }
@@ -259,7 +265,7 @@ namespace Accounting_System.Controllers
                                 AccountName = "Cash in Bank",
                                 TransactionNo = generateCVNo,
                                 Debit = 0,
-                                Credit = supplier.TaxType == "Withholding Tax" ? totalNetAmountOfEWT.Sum(rr => rr.NetAmountOfEWT) : totalNetAmountOfEWT.Sum(rr => rr.Amount)
+                                Credit = supplier.TaxType == "Withholding Tax" ? cashInBankDebitAmount : totalAmount
                             }
                         );
 
@@ -359,6 +365,19 @@ namespace Accounting_System.Controllers
             {
                 var rrList = receivingReports.Select(rr => new { Id = rr.Id, RRNumber = rr.RRNo }).ToList();
                 return Json(rrList);
+            }
+
+            return Json(null);
+        }
+        public IActionResult GetSI(int supplierId)
+        {
+            var supplier = _dbContext.Suppliers
+                .FirstOrDefault(po => po.Id == supplierId);
+
+            if (supplier != null)
+            {
+                var si = supplier.TaxType;
+                return Json(si);
             }
 
             return Json(null);
