@@ -10,6 +10,30 @@
 
 <h4>Check Voucher</h4>
 <hr />
+<table class="position-absolute" style="left:40%; width:25%; border:dotted 1px;">
+    <thead class="m-2">
+        <tr >
+            <th colspan="6" class="text-center py-4">REMAINING BALANCE</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th style="width:70%; padding-left:20px;">RR No's</th>
+            <th class="text-end" style="width:30%; padding-right:20px;">Balance</th>
+        </tr>
+    </tbody>
+    <tbody class="RRNumbers">
+    </tbody>
+    <tbody>
+        <tr style="border-bottom:double;">
+            <td class="pt-1"></td>
+        </tr>
+        <tr>
+            <td class="text-end fw-bold pb-4">Grand Total:</td>
+            <td class="text-end" id="grandTotal" style="padding-right:20px;">0.00</td>
+        </tr>
+    </tbody>
+</table>
 <div class="row">
     <form asp-action="Create">
         <div class="col-md-4">
@@ -428,52 +452,63 @@
 
                     // Clear the table before adding new rows
                     $(".rrAmountList").empty();
+                    $(".RRNumbers").empty();
 
                     // Loop through each selected option and add it to the table
                     rrSelect.forEach(function (rrNo) {
                         var rrSelectText = $("#rrSelect option[value='" + rrNo + "']").text();
                         var newRow = `<tr>
-                                                <td>
-                                                    <input type='hidden' name='rrNo' value='${rrNo}' />
-                                                    <input type='text' name='rrNoText' value='${rrSelectText}' style='border:none' readonly />
-                                                </td>
-                                                <td><input type='text' name='amount' class='inputAmount' /></td>
-                                            </tr>`;
+                                            <td>
+                                                <input type='hidden' name='rrNo' value='${rrNo}' />
+                                                <input type='text' name='rrNoText' value='${rrSelectText}' style='border:none' readonly />
+                                            </td>
+                                            <td><input type='text' name='amount' class='inputAmount' /></td>
+                                        </tr>`;
+                        var newRR = `<tr id='row_${rrNo}'>
+                                            <td style='padding-left:20px;'>
+                                                <input type='hidden' name='rrNumber' value='${rrNo}' />
+                                                <input type='text' name='rrNumberText' value='${rrSelectText}' style='border:none' readonly />
+                                            </td>
+                                            <td class="text-end" id='balance_${rrNo}' style='padding-right:20px;'>0.00</td>
+                                     </tr>`;
                         $(".rrAmountList").append(newRow);
+                        $(".RRNumbers").append(newRR);
+
+                        if (rrNo !== "") {
+                            // Make an AJAX request to get the balance based on the selected RRNo
+                            $.ajax({
+                                url: "/CheckVoucher/RRBalance",
+                                method: "GET",
+                                data: { rrNo: rrNo },
+                                success: function (data) {
+                                    if (data !== null) {
+                                        $("#balance_" + rrNo).text(data.toFixed(2));
+
+                                        calculateGrandTotal();
+                                    }
+                                },
+                                error: function (xhr, status, error) {
+                                    console.error('Error fetching balance:', error);
+                                }
+                            });
+                        }
                     });
                 });
             });
+
+            function calculateGrandTotal() {
+                var grandTotal = 0;
+
+                $(".RRNumbers tr").each(function () {
+                    var balance = parseFloat($(this).find("[id^='balance_']").text());
+                    grandTotal += balance;
+                });
+
+                // Update grand total in the table
+                $("#grandTotal").text(grandTotal.toFixed(2));
+            }
+
         </script>
-        @* <script>
-            $(document).ready(function () {
-                $("#rrSelect").change(function () {
-                    updateAmounts();
-                });
-
-                $(document).on('input', '.inputAmount', function () {
-                    updateAmounts();
-                });
-
-                function updateAmounts() {
-                    var amountInputs = document.querySelectorAll('.inputAmount');
-                    var totalNetOfEWT = 0;
-                    var totalEWT = 0;
-                    amountInputs.forEach(function (input) {
-                        var rrAmount = parseFloat(input.value);
-                        var netOfVat = rrAmount / 1.12;
-                        var vat = netOfVat * 0.12;
-                        var ewt = netOfVat * 0.01;
-                        var rrAmountNetOfEWT = rrAmount - ewt;
-                        totalNetOfEWT += rrAmountNetOfEWT;
-                        totalEWT += ewt;
-                    });
-                    $(".totalNetOfEWT").val(totalNetOfEWT.toFixed(2));
-                    $(".totalEWT").val(totalEWT.toFixed(2));
-                }
-
-                $("#rrSelect").trigger("change");
-            });
-        </script> *@
         <script>
             $(function () {
                 $(".supplier").change(function () {
