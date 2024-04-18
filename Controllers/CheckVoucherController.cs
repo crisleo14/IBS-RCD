@@ -382,6 +382,20 @@ namespace Accounting_System.Controllers
 
             return Json(null);
         }
+        public IActionResult RRBalance(string rrNo)
+        {
+            var receivingReport = _dbContext.ReceivingReports
+                .FirstOrDefault(rr => rr.RRNo == rrNo);
+            if (receivingReport != null)
+            {
+                var amount = receivingReport.Amount;
+                var amountPaid = receivingReport.AmountPaid;
+                var balance = amount - amountPaid;
+
+                return Json(balance);
+            }
+            return Json(null);
+        }
 
         [HttpGet]
         public async Task<IActionResult> Print(int? id, CancellationToken cancellationToken)
