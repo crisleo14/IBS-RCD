@@ -1,6 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Repository;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -17,11 +18,14 @@ namespace Accounting_System.Controllers
 
         private readonly CheckVoucherRepo _checkVoucherRepo;
 
-        public CheckVoucherController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, CheckVoucherRepo checkVoucherRepo)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+
+        public CheckVoucherController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, CheckVoucherRepo checkVoucherRepo, IWebHostEnvironment webHostEnvironment)
         {
             _dbContext = dbContext;
             _userManager = userManager;
             _checkVoucherRepo = checkVoucherRepo;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
@@ -90,7 +94,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, string? criteria, decimal[] amount, decimal netOfEWT, decimal expandedWTaxDebitAmount, decimal cashInBankDebitAmount)
+        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, string? criteria, decimal[] amount, decimal netOfEWT, decimal expandedWTaxDebitAmount, decimal cashInBankDebitAmount, IFormFile? file)
         {
 
             model.Header.Suppliers = await _dbContext.Suppliers
@@ -328,8 +332,29 @@ namespace Accounting_System.Controllers
                         }
                     }
                 }
-                
+
                 #endregion -- Partial payment of RR's
+
+                if (file != null || file.Length > 0)
+                {
+                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Supporting CV Files", model.Header.CVNo);
+
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    string fileName = Path.GetFileName(file.FileName);
+                    string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    //if necessary add field to store location path
+                    // model.Header.SupportingFilePath = fileSavePath
+                }
 
                 await _dbContext.AddAsync(model.Header, cancellationToken);  // Add CheckVoucherHeader to the context
                     await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
@@ -559,12 +584,12 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
 
-            
+
 
             if (ModelState.IsValid)
             {
-                var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(cancellationToken); 
-                
+                var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(cancellationToken);
+
                 if (getLastNumber > 9999999999)
                 {
                     TempData["error"] = "You reached the maximum Series Number";
@@ -597,7 +622,7 @@ namespace Accounting_System.Controllers
 
                 //CV Header Entry
                 var generateCVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken);
-                
+
                 existingHeaderModel.SeriesNumber = model.Header.SeriesNumber;
                 existingHeaderModel.CVNo = model.Header.CVNo;
                 existingHeaderModel.CreatedBy = model.Header.CreatedBy;
