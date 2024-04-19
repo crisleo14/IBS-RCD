@@ -94,7 +94,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, string? criteria, decimal[] amount, decimal netOfEWT, decimal expandedWTaxDebitAmount, decimal cashInBankDebitAmount, IFormFile? file)
+        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, decimal[] amount, decimal netOfEWT, decimal expandedWTaxDebitAmount, decimal cashInBankDebitAmount, IFormFile? file)
         {
 
             model.Header.Suppliers = await _dbContext.Suppliers
@@ -297,11 +297,6 @@ namespace Accounting_System.Controllers
 
                 #region --Saving the default entries
 
-                if (criteria != null)
-                    {
-                        model.Header.Criteria = criteria;
-                    }
-
                     //CV Header Entry
                     var list = cvDetails.Where(cv => cv.TransactionNo == generateCVNo);
 
@@ -314,7 +309,7 @@ namespace Accounting_System.Controllers
                 #endregion --Saving the default entries
 
                 #region -- Partial payment of RR's
-                if (amount != null)
+                if (amount != null && model.Header.Category == "Trade")
                 {
                     var receivingReport = new ReceivingReport();
                     for (int i = 0; i < model.Header.RRNo.Length; i++)
@@ -335,7 +330,7 @@ namespace Accounting_System.Controllers
 
                 #endregion -- Partial payment of RR's
 
-                if (file != null || file.Length > 0)
+                if (file != null && file.Length > 0)
                 {
                     string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Supporting CV Files", model.Header.CVNo);
 
@@ -380,10 +375,12 @@ namespace Accounting_System.Controllers
 
             return Json(null);
         }
-        public async Task<IActionResult> GetRRs(string[] poNumber)
+        public async Task<IActionResult> GetRRs(string[] poNumber, string? criteria)
         {
+
                 var receivingReports = await _dbContext.ReceivingReports
                 .Where(rr => poNumber.Contains(rr.PONo) && !rr.IsPaid)
+                .OrderBy(rr => criteria == "Transaction Date" ? rr.Date : rr.DueDate)
                 .ToListAsync();
 
             if (receivingReports != null && receivingReports.Count > 0)
