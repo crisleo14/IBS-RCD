@@ -29,8 +29,8 @@
             <td class="pt-1"></td>
         </tr>
         <tr>
-            <td class="text-end fw-bold pb-4">Grand Total:</td>
-            <td class="text-end" id="grandTotal" style="padding-right:20px;">0.00</td>
+            <td class="text-end fw-bold p-3">Grand Total:</td>
+            <td class="text-end p-3" id="grandTotal">0.00</td>
         </tr>
     </tbody>
 </table>
@@ -181,7 +181,7 @@
             </div>
             <br />
         <div class="form-group">
-            <input type="submit" value="Save" class="btn btn-primary" id="submit"/>
+            <input type="submit" value="Save" class="btn btn-primary"/>
             <a asp-action="Index" class="btn btn-secondary">Back to List</a>
         </div>
     </form>
@@ -345,37 +345,14 @@
                         $("#rrSelect").empty();
                     }
                 });
-
-                $("#submit").click(function () {
-                    if (criteria) {
-                        // Add criteria value to the form before submitting
-                        $("#criteriaInput").val(criteria);
-
-                        $.ajax({
-                            url: "/CheckVoucher/Create",
-                            method: "POST",
-                            data: { criteria: criteria },
-                            success: function (data) {
-                                console.log('Criteria passed to Create action:', criteria);
-                                // You can handle the success response here if needed
-                            },
-                            error: function (xhr, status, error) {
-                                console.error('Error passing criteria to Create action:', error);
-                                // You can handle the error response here if needed
-                            }
-                        });
-                    } else {
-                        console.error('No criteria selected');
-                    }
-                });
             });
 
-            function displayRecords(poNumber) {
+            function displayRecords(poNumber, criteria) {
                 // Make an AJAX request to get the RRs based on the selected POIds and display criteria
                 $.ajax({
                     url: "/CheckVoucher/GetRRs",
                     method: "GET",
-                    data: { poNumber: poNumber }, // Pass PO numbers to controller
+                    data: { poNumber: poNumber, criteria : criteria }, // Pass PO numbers to controller
                     traditional: true, // Ensure jQuery sends the array properly
                     success: function (data) {
                         console.log(data); // Log the returned data for debugging
