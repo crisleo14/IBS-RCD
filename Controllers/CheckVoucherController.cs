@@ -399,7 +399,9 @@ namespace Accounting_System.Controllers
             if (supplier != null)
             {
                 var si = supplier.TaxType;
-                return Json(si);
+                var address = supplier.Address;
+                var tinNo = supplier.TinNo;
+                return Json(new { TaxType = si, TinNo = tinNo, Address = address });
             }
 
             return Json(null);
@@ -412,9 +414,17 @@ namespace Accounting_System.Controllers
             {
                 var amount = receivingReport.Amount;
                 var amountPaid = receivingReport.AmountPaid;
+                var netAmount = receivingReport.NetAmount;
+                var vatAmount = receivingReport.VatAmount;
+                var ewtAmount = receivingReport.EwtAmount;
                 var balance = amount - amountPaid;
 
-                return Json(balance);
+                return Json(new { Amount = amount,
+                                AmountPaid = amountPaid,
+                                NetAmount = netAmount,
+                                VatAmount = vatAmount,
+                                EwtAmount = ewtAmount,
+                                Balance = balance });
             }
             return Json(null);
         }
