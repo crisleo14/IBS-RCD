@@ -15,7 +15,7 @@ namespace Accounting_System.Models
         public string? BankCode { get; set; }
 
         [Display(Name = "Account No")]
-        public int AccountNo { get; set; }
+        public string AccountNo { get; set; }
 
         [Display(Name = "Acoount Name")]
         public string AccountName { get; set; }

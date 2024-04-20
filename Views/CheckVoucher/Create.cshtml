@@ -36,10 +36,16 @@
                 <option></option>
             </select>
         </div>
-        <div class="form-group">
+        <div class="form-group pb-3">
                 <label asp-for="Header.Payee" class="control-label"></label>
                 <input asp-for="Header.Payee" type="text" class="form-control" id="payeeInput"/>
                 <span asp-validation-for="Header.Payee" class="text-danger"></span>
+        </div>
+        <div class="form-group pb-3">
+                <input type="text" class="form-control" id="supplierAddress" readonly/>
+        </div>
+        <div class="form-group">
+                <input type="text" class="form-control" id="supplierTinNo" readonly/>
         </div>
         <div id="nTradeList" style="display: none;">
         <div class="form-group">
@@ -111,7 +117,7 @@
         </div>
 </div>
         <div class="col-8">
-            <div class="row">
+            <div class="row pb-3">
             <table style="border:dotted 1px;">
                 <thead class="m-2">
                     <tr>
@@ -128,7 +134,7 @@
                         <th class="text-end" style="width:25%; padding-right:20px;">RR Amount Net of EWT</th>
                     </tr>
                 </tbody>
-                <tbody class="RRNumbers">
+                <tbody class="rrAmount">
                 </tbody>
                 <tbody>
                     <tr style="border-bottom:double;">
@@ -136,16 +142,16 @@
                     </tr>
                     <tr>
                         <td class="text-end fw-bold p-3">Grand Total:</td>
-                        <td class="text-end" id="grandTotal">0.00</td>
-                        <td class="text-end" id="grandTotalNetOfVat">0.00</td>
-                        <td class="text-end" id="grandTotalVat">0.00</td>
-                        <td class="text-end" id="grandTotalEWT">0.00</td>
-                        <td class="text-end" id="grandTotalRRAmountNetOfEWT" style="padding-right:20px;">0.00</td>
+                        <td class="text-end" id="grandTotalRRAmount">0.00</td>
+                        <td class="text-end" id="grandTotalNetAmount">0.00</td>
+                        <td class="text-end" id="grandTotalVatAmount">0.00</td>
+                        <td class="text-end" id="grandTotalEWTAmount">0.00</td>
+                        <td class="text-end" id="grandTotalNetOfEWT" style="padding-right:20px;">0.00</td>
                     </tr>
                 </tbody>
             </table>
             </div>
-            <div class="row">
+            <div class="row pb-3">
             <table style="border:dotted 1px;">
                 <thead class="m-2">
                     <tr>
@@ -162,7 +168,7 @@
                         <th class="text-end" style="width:25%; padding-right:20px;">RR Amount Net of EWT</th>
                     </tr>
                 </tbody>
-                <tbody class="RRNumbers">
+                <tbody class="payment">
                 </tbody>
                 <tbody>
                     <tr style="border-bottom:double;">
@@ -170,11 +176,11 @@
                     </tr>
                     <tr>
                         <td class="text-end fw-bold p-3">Grand Total:</td>
-                        <td class="text-end" id="grandTotal">0.00</td>
-                        <td class="text-end" id="grandTotalNetOfVat">0.00</td>
-                        <td class="text-end" id="grandTotalVat">0.00</td>
-                        <td class="text-end" id="grandTotalEWT">0.00</td>
-                        <td class="text-end" id="grandTotalRRAmountNetOfEWT" style="padding-right:20px;">0.00</td>
+                        <td class="text-end" id="">0.00</td>
+                        <td class="text-end" id="">0.00</td>
+                        <td class="text-end" id="">0.00</td>
+                        <td class="text-end" id="">0.00</td>
+                        <td class="text-end" id="" style="padding-right:20px;">0.00</td>
                     </tr>
                 </tbody>
             </table>
@@ -196,7 +202,7 @@
                         <th class="text-end" style="width:25%; padding-right:20px;">RR Amount Net of EWT</th>
                     </tr>
                 </tbody>
-                <tbody class="RRNumbers">
+                <tbody class="balance">
                 </tbody>
                 <tbody>
                     <tr style="border-bottom:double;">
@@ -516,7 +522,9 @@
 
                     // Clear the table before adding new rows
                     $(".rrAmountList").empty();
-                    $(".RRNumbers").empty();
+                    $(".rrAmount").empty();
+                    $(".payment").empty();
+                    $(".balance").empty();
 
                     // Loop through each selected option and add it to the table
                     rrSelect.forEach(function (rrNo) {
@@ -528,7 +536,29 @@
                                                         </td>
                                                         <td><input type='text' name='amount' class='inputAmount' /></td>
                                                     </tr>`;
-                        var newRR = `<tr id='row_${rrNo}'>
+                        var rrAmount = `<tr id='row_${rrNo}'>
+                                                            <td style='padding-left:20px;'>
+                                                                <input type='hidden' name='rrNumber' value='${rrNo}' />
+                                                                <input type='text' name='rrNumberText' value='${rrSelectText}' style='border:none' readonly />
+                                                            </td>
+                                                            <td class="text-end" id='amount_${rrNo}'>0.00</td>
+                                                            <td class="text-end" id='netAmount_${rrNo}'>0.00</td>
+                                                            <td class="text-end" id='vatAmount_${rrNo}'>0.00</td>
+                                                            <td class="text-end" id='ewtAmount_${rrNo}'>0.00</td>
+                                                            <td class="text-end" id='rrAmountNetOfEWT_${rrNo}' style="padding-right:20px;">0.00</td>
+                                                        </tr>`;
+                        var payment = `<tr id='row_${rrNo}'>
+                                                            <td style='padding-left:20px;'>
+                                                                <input type='hidden' name='rrNumber' value='${rrNo}' />
+                                                                <input type='text' name='rrNumberText' value='${rrSelectText}' style='border:none' readonly />
+                                                            </td>
+                                                            <td class="text-end" id=''>0.00</td>
+                                                            <td class="text-end" id=''>0.00</td>
+                                                            <td class="text-end" id=''>0.00</td>
+                                                            <td class="text-end" id=''>0.00</td>
+                                                            <td class="text-end" id='' style="padding-right:20px;">0.00</td>
+                                                        </tr>`;
+                        var balance = `<tr id='row_${rrNo}'>
                                                         <td style='padding-left:20px;'>
                                                             <input type='hidden' name='rrNumber' value='${rrNo}' />
                                                             <input type='text' name='rrNumberText' value='${rrSelectText}' style='border:none' readonly />
@@ -540,7 +570,9 @@
                                                         <td class="text-end" id='RRAmountNetOfEWT_${rrNo}' style="padding-right:20px;">0.00</td>
                                                  </tr>`;
                         $(".rrAmountList").append(newRow);
-                        $(".RRNumbers").append(newRR);
+                        $(".rrAmount").append(rrAmount);
+                        $(".payment").append(payment);
+                        $(".balance").append(balance);
 
                         if (rrNo !== "") {
                             // Make an AJAX request to get the balance based on the selected RRNo
@@ -549,19 +581,30 @@
                                 method: "GET",
                                 data: { rrNo: rrNo },
                                 success: function (data) {
-                                    if (data !== null) {
-                                        $("#balance_" + rrNo).text(data.toFixed(2));
-                                        var netOfVat = data / 1.12;
+                                    if (data.balance !== null) {
+                                        $("#balance_" + rrNo).text(data.balance.toFixed(2));
+                                        var netOfVat = data.balance / 1.12;
                                         $("#NetOfVat_" + rrNo).text(netOfVat.toFixed(2));
                                         var vat = netOfVat * 0.12;
                                         $("#Vat_" + rrNo).text(vat.toFixed(2));
                                         var ewt = netOfVat * 0.01;
                                         $("#EWT_" + rrNo).text(ewt.toFixed(2));
-                                        var netOfVat = data - ewt;
+                                        var netOfVat = data.balance - ewt;
                                         $("#RRAmountNetOfEWT_" + rrNo).text(netOfVat.toFixed(2));
 
                                         // Recalculate grand total
                                         calculateGrandTotal();
+                                    }
+                                    if (data !== null) {
+                                        $("#amount_" + rrNo).text(data.amount.toFixed(2));
+                                        $("#netAmount_" + rrNo).text(data.netAmount.toFixed(2));
+                                        $("#vatAmount_" + rrNo).text(data.vatAmount.toFixed(2));
+                                        $("#ewtAmount_" + rrNo).text(data.ewtAmount.toFixed(2));
+                                        var rrAmountNetOfEWT_ = data.amount - data.ewtAmount;
+                                        $("#rrAmountNetOfEWT_" + rrNo).text(rrAmountNetOfEWT_.toFixed(2));
+
+                                        // Recalculate grand total
+                                        calculateGrandTotalRRAmount()
                                     }
                                 },
                                 error: function (xhr, status, error) {
@@ -580,7 +623,7 @@
                 var grandTotalEWT = 0;
                 var grandTotalRRAmountNetOfEWT = 0;
 
-                $(".RRNumbers tr").each(function () {
+                $(".balance tr").each(function () {
                     var balance = parseFloat($(this).find("[id^='balance_']").text());
                     grandTotal += balance;
 
@@ -605,6 +648,38 @@
                 $("#grandTotalRRAmountNetOfEWT").text(grandTotalRRAmountNetOfEWT.toFixed(2));
             }
 
+            function calculateGrandTotalRRAmount() {
+                var grandTotalRRAmount = 0;
+                var grandTotalNetAmount = 0;
+                var grandTotalVatAmount = 0;
+                var grandTotalEWTAmount = 0;
+                var grandTotalNetOfEWT = 0;
+
+                $(".rrAmount tr").each(function () {
+                    var amount = parseFloat($(this).find("[id^='amount_']").text());
+                    grandTotalRRAmount += amount;
+
+                    var netAmount = parseFloat($(this).find("[id^='netAmount_']").text());
+                    grandTotalNetAmount += netAmount;
+
+                    var vatAmount = parseFloat($(this).find("[id^='vatAmount_']").text());
+                    grandTotalVatAmount += vatAmount;
+
+                    var ewtAmount = parseFloat($(this).find("[id^='ewtAmount_']").text());
+                    grandTotalEWTAmount += ewtAmount;
+
+                    var rrAmountNetOfEWT = parseFloat($(this).find("[id^='rrAmountNetOfEWT_']").text());
+                    grandTotalNetOfEWT += rrAmountNetOfEWT;
+                });
+
+                // Update grand total in the table
+                $("#grandTotalRRAmount").text(grandTotalRRAmount.toFixed(2));
+                $("#grandTotalNetAmount").text(grandTotalNetAmount.toFixed(2));
+                $("#grandTotalVatAmount").text(grandTotalVatAmount.toFixed(2));
+                $("#grandTotalEWTAmount").text(grandTotalEWTAmount.toFixed(2));
+                $("#grandTotalNetOfEWT").text(grandTotalNetOfEWT.toFixed(2));
+            }
+
         </script>
         <script>
             $(function () {
@@ -618,10 +693,20 @@
                             data: { supplierId: suppId },
                             success: function (data) {
                                 console.log(data); // Log the returned data for debugging
-                                if (data === "Withholding Tax") {
+                                if (data.taxType === "Withholding Tax") {
                                     $(".EWTDebit, .EWTCredit").show(); // Show the EWT table rows
                                 } else {
                                     $(".EWTDebit, .EWTCredit").hide(); // Hide the EWT table rows
+                                    $("#supplierAddress").val("");
+                                    $("#supplierTinNo").val("");
+                                }
+                                if(data !== null)
+                                {
+                                    $("#supplierAddress").val(data.address);
+                                    $("#supplierTinNo").val(data.tinNo);
+                                }else{
+                                    $("#supplierAddress").val("");
+                                    $("#supplierTinNo").val("");
                                 }
                                 $(document).ready(function () {
                                     $("#rrSelect").change(function () {
@@ -637,7 +722,7 @@
                                         var totalNetOfEWT = 0;
                                         var totalEWT = 0;
                                         amountInputs.forEach(function (input) {
-                                            if (data === "Withholding Tax") {
+                                            if (data.taxType === "Withholding Tax") {
                                                 var rrAmount = parseFloat(input.value);
                                                 var netOfVat = rrAmount / 1.12;
                                                 var vat = netOfVat * 0.12;
@@ -664,6 +749,8 @@
                     } else {
                         // Clear the fields if no supplier is selected
                         $(".EWTDebit, .EWTCredit").hide();
+                        $("#supplierAddress").val("");
+                        $("#supplierTinNo").val("");
                     }
                 });
             });

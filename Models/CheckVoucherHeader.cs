@@ -66,8 +66,6 @@ namespace Accounting_System.Models
         [NotMapped]
         public List<SelectListItem>? BankAccounts { get; set; }
 
-        public string? Criteria { get; set; }
-
         [NotMapped]
         public List<SelectListItem>? COA { get; set; }
 
