@@ -89,7 +89,7 @@
             <input asp-for="Header.Date" type="Date" class="form-control" />
             <span asp-validation-for="Header.Date" class="text-danger"></span>
         </div>
-        <div class="form-group">
+        <div class="form-group nTradeList" style="display: none;">
                 <label asp-for="Header.Amount" class="control-label"></label>
                 <input asp-for="Header.Amount" type="text" class="form-control" />
                 <span asp-validation-for="Header.Amount" class="text-danger"></span>
@@ -260,7 +260,7 @@
                             <tr>
                                 <td><input type='text' value='Cash in Bank' class="w-100" style='border:none' readonly /></td>
                                 <td>0.00</td>
-                                <td><input type='text' name='cashInBankDebitAmount' value='0.00' class="w-100 totalNetOfEWT" style='border:none' readonly /></td>
+                                <td><input type='text' name='cashInBankDebitAmount' class="w-100 totalNetOfEWT" style='border:none' value="0.00" readonly /></td>
                                 <td></td>
                             </tr>
                     </tbody>

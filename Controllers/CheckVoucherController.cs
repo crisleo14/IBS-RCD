@@ -206,42 +206,29 @@ namespace Accounting_System.Controllers
                             Credit = 0
                         }
                     );
-                }
-                else if (model.Header.Category == "Non-Trade")
-                {
-                    cvDetails.Add(
-                        new CheckVoucherDetail
-                        {
-                            AccountNo = "2010102",
-                            AccountName = "AP-Non Trade Payable",
-                            TransactionNo = generateCVNo,
-                            Debit = supplier.TaxType == "Withholding Tax" ? netOfEWT : totalAmount,
-                            Credit = 0
-                        }
-                    );
-                }
-                if (supplier.TaxType == "Withholding Tax")
-                {
-                    cvDetails.Add(
-                        new CheckVoucherDetail
-                        {
-                            AccountNo = "2010302",
-                            AccountName = "Expanded Witholding Tax 1%",
-                            TransactionNo = generateCVNo,
-                            Debit = expandedWTaxDebitAmount,
-                            Credit = 0
-                        }
-                    );
-                    cvDetails.Add(
-                        new CheckVoucherDetail
-                        {
-                            AccountNo = "2010302",
-                            AccountName = "Expanded Witholding Tax 1%",
-                            TransactionNo = generateCVNo,
-                            Debit = 0,
-                            Credit = expandedWTaxDebitAmount
-                        }
-                    );
+                    if (supplier.TaxType == "Withholding Tax")
+                    {
+                        cvDetails.Add(
+                            new CheckVoucherDetail
+                            {
+                                AccountNo = "2010302",
+                                AccountName = "Expanded Witholding Tax 1%",
+                                TransactionNo = generateCVNo,
+                                Debit = expandedWTaxDebitAmount,
+                                Credit = 0
+                            }
+                        );
+                        cvDetails.Add(
+                            new CheckVoucherDetail
+                            {
+                                AccountNo = "2010302",
+                                AccountName = "Expanded Witholding Tax 1%",
+                                TransactionNo = generateCVNo,
+                                Debit = 0,
+                                Credit = expandedWTaxDebitAmount
+                            }
+                        );
+                    }
                 }
 
                 for (int i = 0; i < accountNumber.Length; i++)
@@ -262,7 +249,10 @@ namespace Accounting_System.Controllers
                             }
                         );
                     }
-                        cvDetails.Add(
+
+                if (model.Header.Category == "Trade")
+                {
+                    cvDetails.Add(
                             new CheckVoucherDetail
                             {
                                 AccountNo = "1010101",
@@ -272,6 +262,20 @@ namespace Accounting_System.Controllers
                                 Credit = supplier.TaxType == "Withholding Tax" ? cashInBankDebitAmount : totalAmount
                             }
                         );
+                }else if (model.Header.Category == "Non-Trade")
+                {
+                    cvDetails.Add(
+                            new CheckVoucherDetail
+                            {
+                                AccountNo = "1010101",
+                                AccountName = "Cash in Bank",
+                                TransactionNo = generateCVNo,
+                                Debit = 0,
+                                Credit = model.Header.Amount
+                            }
+                        );
+                }
+                        
 
                 await _dbContext.AddRangeAsync(cvDetails, cancellationToken);
 
@@ -305,6 +309,10 @@ namespace Accounting_System.Controllers
                     model.Header.CreatedBy = _userManager.GetUserName(this.User);
                     model.Header.TotalDebit = list.Sum(cvd => cvd.Debit);
                     model.Header.TotalCredit = list.Sum(cvd => cvd.Credit);
+                if (cashInBankDebitAmount != 0) 
+                {
+                    model.Header.Amount = cashInBankDebitAmount;
+                }
 
                 #endregion --Saving the default entries
 
