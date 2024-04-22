@@ -557,7 +557,7 @@ namespace Accounting_System.Controllers
                             );
                     }
 
-                    await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
+                    await _dbContext.DisbursementBooks.AddRangeAsync(disbursement, cancellationToken);
 
                     #endregion --Disbursement Book Recording(CV)--
 
