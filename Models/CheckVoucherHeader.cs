@@ -76,5 +76,8 @@ namespace Accounting_System.Models
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]
         public decimal TotalCredit { get; set; }
+
+        [Column(TypeName = "date")]
+        public DateOnly CheckDate { get; set; }
     }
 }
