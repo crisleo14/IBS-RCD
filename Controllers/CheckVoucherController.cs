@@ -536,6 +536,7 @@ namespace Accounting_System.Controllers
                     var disbursement = new List<DisbursementBook>();
                     foreach (var details in modelDetails)
                     {
+                        var bank = _dbContext.BankAccounts.FirstOrDefault(model => model.Id == modelHeader.BankId);
                         disbursement.Add(
                                 new DisbursementBook
                                 {
@@ -544,10 +545,10 @@ namespace Accounting_System.Controllers
                                     Payee = modelHeader.Payee,
                                     Amount = modelHeader.Amount,
                                     Particulars = modelHeader.Particulars,
-                                    Bank = "none",
+                                    Bank = bank.Branch,
                                     CheckNo = modelHeader.CheckNo,
-                                    CheckDate = "none",
-                                    DateCleared = "none",
+                                    CheckDate = modelHeader.CheckDate.ToShortDateString(),
+                                    DateCleared = DateTime.Now.ToShortDateString(),
                                     ChartOfAccount = details.AccountName,
                                     Debit = details.Debit,
                                     Credit = details.Credit,
