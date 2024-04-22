@@ -531,6 +531,36 @@ namespace Accounting_System.Controllers
 
                     #endregion --General Ledger Book Recording(CV)--
 
+                    #region --Disbursement Book Recording(CV)--
+
+                    var disbursement = new List<DisbursementBook>();
+                    foreach (var details in modelDetails)
+                    {
+                        disbursement.Add(
+                                new DisbursementBook
+                                {
+                                    Date = modelHeader.Date.ToShortDateString(),
+                                    CVNo = modelHeader.CVNo,
+                                    Payee = modelHeader.Payee,
+                                    Amount = modelHeader.Amount,
+                                    Particulars = modelHeader.Particulars,
+                                    Bank = "none",
+                                    CheckNo = modelHeader.CheckNo,
+                                    CheckDate = "none",
+                                    DateCleared = "none",
+                                    ChartOfAccount = details.AccountName,
+                                    Debit = details.Debit,
+                                    Credit = details.Credit,
+                                    CreatedBy = modelHeader.CreatedBy,
+                                    CreatedDate = modelHeader.CreatedDate
+                                }
+                            );
+                    }
+
+                    await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
+
+                    #endregion --Disbursement Book Recording(CV)--
+
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Check Voucher has been Posted.";
                 }
