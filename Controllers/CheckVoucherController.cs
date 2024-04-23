@@ -71,7 +71,7 @@ namespace Accounting_System.Controllers
                 .Select(s => new SelectListItem
                 {
                     Value = s.Number,
-                    Text = s.Name
+                    Text = s.Number + " " + s.Name
                 })
                 .ToListAsync(cancellationToken);
 
@@ -86,7 +86,7 @@ namespace Accounting_System.Controllers
                 .Select(ba => new SelectListItem
                 {
                     Value = ba.Id.ToString(),
-                    Text = ba.AccountName
+                    Text = ba.AccountNo + " " + ba.AccountName
                 })
                 .ToListAsync();
 
