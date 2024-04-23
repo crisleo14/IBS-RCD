@@ -111,6 +111,14 @@ namespace Accounting_System.Controllers
                     Text = ba.AccountName
                 })
                 .ToListAsync();
+            model.Header.COA = await _dbContext.ChartOfAccounts
+                .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)))
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number,
+                    Text = s.Number + " " + s.Name
+                })
+                .ToListAsync(cancellationToken);
 
             if (ModelState.IsValid)
             {
@@ -312,6 +320,11 @@ namespace Accounting_System.Controllers
                 if (cashInBankDebitAmount != 0) 
                 {
                     model.Header.Amount = cashInBankDebitAmount;
+                }
+                if (model.Header.TotalDebit != model.Header.TotalCredit)
+                {
+                    TempData["error"] = "The debit and credit is not balance!";
+                    return View(model);
                 }
 
                 #endregion --Saving the default entries

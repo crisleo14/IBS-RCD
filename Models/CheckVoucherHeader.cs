@@ -11,6 +11,7 @@ namespace Accounting_System.Models
 
         public long SeriesNumber { get; set; }
 
+        [Display(Name = "Transaction Date")]
         public DateTime Date { get; set; }
 
         [Display(Name = "RR No")]
@@ -77,6 +78,7 @@ namespace Accounting_System.Models
         [Column(TypeName = "numeric(18,2)")]
         public decimal TotalCredit { get; set; }
 
+        [Display(Name = "Check Date")]
         [Column(TypeName = "date")]
         public DateOnly CheckDate { get; set; }
     }
