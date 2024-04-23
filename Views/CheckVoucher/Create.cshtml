@@ -32,7 +32,7 @@
         </fieldset>
         <div class="form-group">
             <label class="control-label">Supplier</label>
-            <select asp-for="Header.SupplierId" asp-items="@Model.Header.Suppliers" class="form-select js-select2 GetPOList supplier" id="supplierSelect">
+            <select asp-for="Header.SupplierId" asp-items="@Model.Header.Suppliers" class="form-select js-not-retain-value-select2 GetPOList supplier" id="supplierSelect">
                 <option></option>
             </select>
         </div>
