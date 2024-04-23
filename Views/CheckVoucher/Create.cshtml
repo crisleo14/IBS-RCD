@@ -244,19 +244,19 @@
                         </tr>
                     </thead>
                     <tbody id="accountingEntriesBody">
-                            <tr>
+                            <tr class="tradeList">
                                 <td><input type='text' value='2010101 AP-Trade Payable' class="w-100" style='border:none' readonly /></td>
                                 <td ><input type='text' name='netOfEWT' value='0.00' class="w-100 totalNetOfEWT" style='border:none' readonly /></td>
                                 <td>0.00</td>
                                 <td></td>
                             </tr>
-                            <tr class="EWTDebit">
+                            <tr class="EWTDebit tradeList">
                                 <td><input type='text' value='Expanded Witholding Tax 1%' class="w-100" style='border:none' readonly /></td>
                                 <td><input type='text' name='expandedWTaxDebitAmount' value='0.00' class="w-100 totalEWT" style='border:none' readonly /></td>
                                 <td>0.00</td>
                                 <td></td>
                             </tr>
-                            <tr class="EWTCredit">
+                            <tr class="EWTCredit tradeList">
                                 <td><input type='text' value='Expanded Witholding Tax 1%' class="w-100" style='border:none' readonly /></td>
                                 <td>0.00</td>
                                 <td><input type='text' name='expandedWTaxCreditAmount' value='0.00' class="w-100 totalEWT" style='border:none' readonly /></td>
@@ -342,7 +342,7 @@
 
                 if (className === 'tradeList') {
                     tradeLists.forEach(function (tradeList) {
-                        tradeList.style.display = 'block';
+                        tradeList.style.display = 'table-row';
                     });
                     nTradeLists.forEach(function (nTradeList) {
                         nTradeList.style.display = 'none';
