@@ -94,7 +94,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, decimal[] amount, decimal netOfEWT, decimal expandedWTaxDebitAmount, decimal cashInBankDebitAmount, IFormFile? file)
+        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, decimal[] amount, decimal netOfEWT, decimal expandedWTaxDebitAmount, decimal cashInBankAmount, IFormFile? file)
         {
 
             model.Header.Suppliers = await _dbContext.Suppliers
@@ -214,75 +214,61 @@ namespace Accounting_System.Controllers
                             Credit = 0
                         }
                     );
-                    if (supplier.TaxType == "Withholding Tax")
-                    {
-                        cvDetails.Add(
-                            new CheckVoucherDetail
-                            {
-                                AccountNo = "2010302",
-                                AccountName = "Expanded Witholding Tax 1%",
-                                TransactionNo = generateCVNo,
-                                Debit = expandedWTaxDebitAmount,
-                                Credit = 0
-                            }
-                        );
-                        cvDetails.Add(
-                            new CheckVoucherDetail
-                            {
-                                AccountNo = "2010302",
-                                AccountName = "Expanded Witholding Tax 1%",
-                                TransactionNo = generateCVNo,
-                                Debit = 0,
-                                Credit = expandedWTaxDebitAmount
-                            }
-                        );
-                    }
+                }
+
+                if (supplier.TaxType == "Withholding Tax")
+                {
+                    cvDetails.Add(
+                        new CheckVoucherDetail
+                        {
+                            AccountNo = "2010302",
+                            AccountName = "Expanded Witholding Tax 1%",
+                            TransactionNo = generateCVNo,
+                            Debit = expandedWTaxDebitAmount,
+                            Credit = 0
+                        }
+                    );
+                    cvDetails.Add(
+                        new CheckVoucherDetail
+                        {
+                            AccountNo = "2010302",
+                            AccountName = "Expanded Witholding Tax 1%",
+                            TransactionNo = generateCVNo,
+                            Debit = 0,
+                            Credit = expandedWTaxDebitAmount
+                        }
+                    );
                 }
 
                 for (int i = 0; i < accountNumber.Length; i++)
-                    {
-                        var currentAccountNumber = accountNumber[i];
-                        var currentAccountNumberText = accountNumberText[i];
-                        var currentDebit = debit[i];
-                        var currentCredit = credit[i];
-
-                        cvDetails.Add(
-                            new CheckVoucherDetail
-                            {
-                                AccountNo = currentAccountNumber,
-                                AccountName = currentAccountNumberText,
-                                TransactionNo = generateCVNo,
-                                Debit = currentDebit,
-                                Credit = currentCredit
-                            }
-                        );
-                    }
-
-                if (model.Header.Category == "Trade")
                 {
+                    var currentAccountNumber = accountNumber[i];
+                    var currentAccountNumberText = accountNumberText[i];
+                    var currentDebit = debit[i];
+                    var currentCredit = credit[i];
+
                     cvDetails.Add(
-                            new CheckVoucherDetail
-                            {
-                                AccountNo = "1010101",
-                                AccountName = "Cash in Bank",
-                                TransactionNo = generateCVNo,
-                                Debit = 0,
-                                Credit = supplier.TaxType == "Withholding Tax" ? cashInBankDebitAmount : totalAmount
-                            }
-                        );
-                }else if (model.Header.Category == "Non-Trade")
-                {
-                    cvDetails.Add(
-                            new CheckVoucherDetail
-                            {
-                                AccountNo = "1010101",
-                                AccountName = "Cash in Bank",
-                                TransactionNo = generateCVNo,
-                                Debit = 0,
-                                Credit = model.Header.Amount
-                            }
-                        );
+                        new CheckVoucherDetail
+                        {
+                            AccountNo = currentAccountNumber,
+                            AccountName = currentAccountNumberText,
+                            TransactionNo = generateCVNo,
+                            Debit = currentDebit,
+                            Credit = currentCredit
+                        }
+                    );
                 }
+
+                cvDetails.Add(
+                    new CheckVoucherDetail
+                    {
+                        AccountNo = "1010101",
+                        AccountName = "Cash in Bank",
+                        TransactionNo = generateCVNo,
+                        Debit = 0,
+                        Credit = cashInBankAmount
+                    }
+                );
                         
 
                 await _dbContext.AddRangeAsync(cvDetails, cancellationToken);
@@ -317,14 +303,15 @@ namespace Accounting_System.Controllers
                     model.Header.CreatedBy = _userManager.GetUserName(this.User);
                     model.Header.TotalDebit = list.Sum(cvd => cvd.Debit);
                     model.Header.TotalCredit = list.Sum(cvd => cvd.Credit);
-                if (cashInBankDebitAmount != 0) 
-                {
-                    model.Header.Amount = cashInBankDebitAmount;
-                }
+                
                 if (model.Header.TotalDebit != model.Header.TotalCredit)
                 {
-                    TempData["error"] = "The debit and credit is not balance!";
+                    TempData["error"] = "The debit and credit should be equal!";
                     return View(model);
+                }
+                if (cashInBankAmount != 0)
+                {
+                    model.Header.Amount = cashInBankAmount;
                 }
 
                 #endregion --Saving the default entries
