@@ -171,7 +171,7 @@ namespace Accounting_System.Controllers
                 {
                     var cv = await _dbContext
                     .CheckVoucherHeaders
-                    .Where(cv => cv.CheckNo == model.Header.CheckNo)
+                    .Where(cv => cv.CheckNo == model.Header.CheckNo && cv.BankId == model.Header.BankId)
                     .ToListAsync(cancellationToken);
                     if (cv.Any())
                     {
