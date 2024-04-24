@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240424091754_Add table named JournalVoucherHeaders")]
+    partial class AddtablenamedJournalVoucherHeaders
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -969,37 +972,6 @@ namespace Accounting_System.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("JournalBooks");
-                });
-
-            modelBuilder.Entity("Accounting_System.Models.JournalVoucherDetail", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("AccountNo")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("Credit")
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<decimal>("Debit")
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<string>("TransactionNo")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("journalVoucherDetails");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.JournalVoucherHeader", b =>
