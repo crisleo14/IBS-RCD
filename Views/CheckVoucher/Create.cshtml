@@ -181,11 +181,11 @@
                     </tr>
                     <tr>
                         <td class="text-end fw-bold p-3">Grand Total:</td>
-                        <td class="text-end" id="">0.00</td>
-                        <td class="text-end" id="">0.00</td>
-                        <td class="text-end" id="">0.00</td>
-                        <td class="text-end" id="">0.00</td>
-                        <td class="text-end" id="" style="padding-right:20px;">0.00</td>
+                        <td class="text-end" id="grandTotalPayment">0.00</td>
+                        <td class="text-end" id="grandTotalNetOfVatPayment">0.00</td>
+                        <td class="text-end" id="grandTotalVatPayment">0.00</td>
+                        <td class="text-end" id="grandTotalEWTPayment">0.00</td>
+                        <td class="text-end" id="grandTotalNetOfEWTPayment" style="padding-right:20px;">0.00</td>
                     </tr>
                 </tbody>
             </table>
@@ -633,6 +633,9 @@
                         $("#vatPayment_" + rrNo).text(vat.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                         $("#ewtPayment_" + rrNo).text(ewt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                         $("#rrAmountNetOfEWTPayment_" + rrNo).text(rrAmountNetOfEWT.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+                        //Recalculate grand Total computted payment
+                        calculateGrandTotalPayment();
                     });
 
                     if (rrNo !== "") {
@@ -643,6 +646,7 @@
                             data: { rrNo: rrNo },
                             success: function (data) {
                                 if (data.balance !== null) {
+                                    //compute balance
                                     $("#balance_" + rrNo).text(data.balance.toFixed(2));
                                     var netOfVat = data.balance / 1.12;
                                     $("#NetOfVat_" + rrNo).text(netOfVat.toFixed(2));
@@ -653,10 +657,11 @@
                                     var netOfVat = data.balance - ewt;
                                     $("#RRAmountNetOfEWT_" + rrNo).text(netOfVat.toFixed(2));
 
-                                    // Recalculate grand total
+                                    // Recalculate grand total of computted balance
                                     calculateGrandTotal();
                                 }
                                 if (data !== null) {
+                                    //compute / show existing RR
                                     $("#amount_" + rrNo).text(data.amount.toFixed(2));
                                     $("#netAmount_" + rrNo).text(data.netAmount.toFixed(2));
                                     $("#vatAmount_" + rrNo).text(data.vatAmount.toFixed(2));
@@ -664,7 +669,7 @@
                                     var rrAmountNetOfEWT_ = data.amount - data.ewtAmount;
                                     $("#rrAmountNetOfEWT_" + rrNo).text(rrAmountNetOfEWT_.toFixed(2));
 
-                                    // Recalculate grand total
+                                    // Recalculate grand total of existing RR
                                     calculateGrandTotalRRAmount()
                                 }
                             },
@@ -739,6 +744,43 @@
             $("#grandTotalVatAmount").text(grandTotalVatAmount.toFixed(2));
             $("#grandTotalEWTAmount").text(grandTotalEWTAmount.toFixed(2));
             $("#grandTotalNetOfEWT").text(grandTotalNetOfEWT.toFixed(2));
+        }
+
+        function calculateGrandTotalPayment() {
+            var grandTotalPayment = 0;
+            var grandTotalNetOfVatPayment = 0;
+            var grandTotalVatPayment = 0;
+            var grandTotalEWTPayment = 0;
+            var grandTotalNetOfEWTPayment = 0;
+
+            $(".payment tr").each(function () {
+                var paymentInput = $(this).find("[id^='payment_']").text();
+                var payment = parseFloat(paymentInput.replace(/,/g, '')) || 0;
+                grandTotalPayment += payment;
+
+                var netOfVatPaymentInput = $(this).find("[id^='netOfVatPayment_']").text();
+                var netOfVatPayment = parseFloat(netOfVatPaymentInput.replace(/,/g, '')) || 0;
+                grandTotalNetOfVatPayment += netOfVatPayment;
+
+                var vatPaymentInput = $(this).find("[id^='vatPayment_']").text();
+                var vatPayment = parseFloat(vatPaymentInput.replace(/,/g, '')) || 0;
+                grandTotalVatPayment += vatPayment;
+
+                var ewtPaymentInput = $(this).find("[id^='ewtPayment_']").text();
+                var ewtPayment = parseFloat(ewtPaymentInput.replace(/,/g, '')) || 0;
+                grandTotalEWTPayment += ewtPayment;
+
+                var rrAmountNetOfEWTPaymentInput = $(this).find("[id^='rrAmountNetOfEWTPayment_']").text();
+                var rrAmountNetOfEWTPayment = parseFloat(rrAmountNetOfEWTPaymentInput.replace(/,/g, '')) || 0;
+                grandTotalNetOfEWTPayment += rrAmountNetOfEWTPayment;
+            });
+
+            // Update grand total in the table
+            $("#grandTotalPayment").text(grandTotalPayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            $("#grandTotalNetOfVatPayment").text(grandTotalNetOfVatPayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            $("#grandTotalVatPayment").text(grandTotalVatPayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            $("#grandTotalEWTPayment").text(grandTotalEWTPayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            $("#grandTotalNetOfEWTPayment").text(grandTotalNetOfEWTPayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
         }
 
     </script>
