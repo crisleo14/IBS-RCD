@@ -1,5 +1,9 @@
 ﻿@model Accounting_System.Models.JournalVoucherVM
 @using Humanizer
+@{
+    var totalDebit = 0m;
+    var totalCredit = 0m;
+}
 <div class="modal fade" id="Preview-@Model.Header.Id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel-@Model.Header.Id">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
@@ -98,20 +102,20 @@
                                 <th class="text-end">DEBIT</th>
                                 <th class="text-end">CREDIT</th>
                             </tr>
+                            @foreach (var jvd in Model.Details)
+                            {
+                                <tr>
+                                    <td style="width:60%; padding-left:20px;">@Html.DisplayFor(model => jvd.AccountName)</td>
+                                    <td class="text-end" style="width:7%;">@Html.DisplayFor(model => jvd.Debit)</td>
+                                    <td class="text-end" style="width:7%;">@Html.DisplayFor(model => jvd.Credit)</td>
+                                </tr>
+                                totalDebit += jvd.Debit;
+                                totalCredit += jvd.Credit;
+                            }
                             <tr>
-                                <td style="width:60%; padding-left:20px;">5010105  Depreciation Expense</td>
-                                <td class="text-end" style="width:7%;">100.00</td>
-                                <td style="width:7%;"></td>
-                            </tr>
-                            <tr style="border-bottom:double;">
-                                <td style="padding-left:20px;">1020202  Accummulated Depreciation-Equipment</td>
-                                <td></td>
-                                <td class="text-end">100.00</td>
-                            </tr>
-                            <tr>
-                                <td></td>
-                                <td class="text-end">100.00</td>
-                                <td class="text-end">100.00</td>
+                                <th class="text-end">TOTAL</th>
+                                <th class="text-end">@totalDebit</th>
+                                <th class="text-end">@totalCredit</th>
                             </tr>
                         </tbody>
                     </table>
