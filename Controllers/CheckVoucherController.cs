@@ -94,7 +94,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, decimal[] amount, decimal netOfEWT, decimal expandedWTaxDebitAmount, decimal cashInBankAmount, IFormFile? file)
+        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, decimal[] amount, decimal netOfEWT, decimal expandedWTaxDebitAmount, decimal cashInBankAmount, IFormFile? file)
         {
 
             model.Header.Suppliers = await _dbContext.Suppliers
@@ -243,7 +243,8 @@ namespace Accounting_System.Controllers
                 for (int i = 0; i < accountNumber.Length; i++)
                 {
                     var currentAccountNumber = accountNumber[i];
-                    var currentAccountNumberText = accountNumberText[i];
+                    var accountTitle = await _dbContext.ChartOfAccounts
+                        .FirstOrDefaultAsync(coa => coa.Number == currentAccountNumber);
                     var currentDebit = debit[i];
                     var currentCredit = credit[i];
 
@@ -251,7 +252,7 @@ namespace Accounting_System.Controllers
                         new CheckVoucherDetail
                         {
                             AccountNo = currentAccountNumber,
-                            AccountName = currentAccountNumberText,
+                            AccountName = accountTitle.Name,
                             TransactionNo = generateCVNo,
                             Debit = currentDebit,
                             Credit = currentCredit

@@ -86,7 +86,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(JournalVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit)
+        public async Task<IActionResult> Create(JournalVoucherVM? model, CancellationToken cancellationToken, string[] accountNumber, decimal[]? debit, decimal[]? credit)
         {
             model.Header.COA = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == "4" || coa.Level == "5")
@@ -136,7 +136,8 @@ namespace Accounting_System.Controllers
                 for (int i = 0; i < accountNumber.Length; i++)
                 {
                     var currentAccountNumber = accountNumber[i];
-                    var currentAccountNumberText = accountNumberText[i];
+                    var accountTitle = await _dbContext.ChartOfAccounts
+                        .FirstOrDefaultAsync(coa => coa.Number == currentAccountNumber);
                     var currentDebit = debit[i];
                     var currentCredit = credit[i];
 
@@ -144,7 +145,7 @@ namespace Accounting_System.Controllers
                         new JournalVoucherDetail
                         {
                             AccountNo = currentAccountNumber,
-                            AccountName = currentAccountNumberText,
+                            AccountName = accountTitle.Name,
                             TransactionNo = generateJVNo,
                             Debit = currentDebit,
                             Credit = currentCredit
