@@ -86,7 +86,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(JournalVoucherVM? model, CancellationToken cancellationToken)
+        public async Task<IActionResult> Create(JournalVoucherVM? model, CancellationToken cancellationToken, string[] accountNumberText, string[] accountNumber, decimal[]? debit, decimal[]? credit)
         {
             model.Header.COA = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == "4" || coa.Level == "5")
@@ -131,87 +131,28 @@ namespace Accounting_System.Controllers
 
                 #region --CV Details Entry
                 var generateJVNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken);
-                //var cvDetails = new List<CheckVoucherDetail>();
-                //var totalNetAmountOfEWT = await _dbContext.ReceivingReports
-                //                .Where(rr => model.Header.RRNo.Contains(rr.RRNo))
-                //                .ToListAsync(cancellationToken);
+                var cvDetails = new List<JournalVoucherDetail>();
 
-                //var totalAmount = 0m;
-                //foreach (var total in amount)
-                //{
-                //    totalAmount += total;
-                //}
+                for (int i = 0; i < accountNumber.Length; i++)
+                {
+                    var currentAccountNumber = accountNumber[i];
+                    var currentAccountNumberText = accountNumberText[i];
+                    var currentDebit = debit[i];
+                    var currentCredit = credit[i];
 
-                //if (model.Header.Category == "Trade")
-                //{
-                //    cvDetails.Add(
-                //        new CheckVoucherDetail
-                //        {
-                //            AccountNo = "2010101",
-                //            AccountName = "AP-Trade Payable",
-                //            TransactionNo = generateCVNo,
-                //            Debit = supplier.TaxType == "Withholding Tax" ? netOfEWT : totalAmount,
-                //            Credit = 0
-                //        }
-                //    );
-                //}
+                    cvDetails.Add(
+                        new JournalVoucherDetail
+                        {
+                            AccountNo = currentAccountNumber,
+                            AccountName = currentAccountNumberText,
+                            TransactionNo = generateJVNo,
+                            Debit = currentDebit,
+                            Credit = currentCredit
+                        }
+                    );
+                }
 
-                //if (supplier.TaxType == "Withholding Tax")
-                //{
-                //    cvDetails.Add(
-                //        new CheckVoucherDetail
-                //        {
-                //            AccountNo = "2010302",
-                //            AccountName = "Expanded Witholding Tax 1%",
-                //            TransactionNo = generateCVNo,
-                //            Debit = expandedWTaxDebitAmount,
-                //            Credit = 0
-                //        }
-                //    );
-                //    cvDetails.Add(
-                //        new CheckVoucherDetail
-                //        {
-                //            AccountNo = "2010302",
-                //            AccountName = "Expanded Witholding Tax 1%",
-                //            TransactionNo = generateCVNo,
-                //            Debit = 0,
-                //            Credit = expandedWTaxDebitAmount
-                //        }
-                //    );
-                //}
-
-                //for (int i = 0; i < accountNumber.Length; i++)
-                //{
-                //    var currentAccountNumber = accountNumber[i];
-                //    var currentAccountNumberText = accountNumberText[i];
-                //    var currentDebit = debit[i];
-                //    var currentCredit = credit[i];
-
-                //    cvDetails.Add(
-                //        new CheckVoucherDetail
-                //        {
-                //            AccountNo = currentAccountNumber,
-                //            AccountName = currentAccountNumberText,
-                //            TransactionNo = generateCVNo,
-                //            Debit = currentDebit,
-                //            Credit = currentCredit
-                //        }
-                //    );
-                //}
-
-                //cvDetails.Add(
-                //    new CheckVoucherDetail
-                //    {
-                //        AccountNo = "1010101",
-                //        AccountName = "Cash in Bank",
-                //        TransactionNo = generateCVNo,
-                //        Debit = 0,
-                //        Credit = cashInBankAmount
-                //    }
-                //);
-
-
-                //await _dbContext.AddRangeAsync(cvDetails, cancellationToken);
+                await _dbContext.AddRangeAsync(cvDetails, cancellationToken);
 
                 #endregion --CV Details Entry
 
