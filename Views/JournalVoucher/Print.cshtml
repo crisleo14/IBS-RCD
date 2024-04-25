@@ -1,4 +1,5 @@
-﻿@using Microsoft.AspNetCore.Identity
+﻿@model Accounting_System.Models.JournalVoucherVM
+@using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
@@ -20,7 +21,7 @@
 
     <h3><span style="display: inline-block;"><b>JOURNAL VOUCHER</b></span></h3>
     <div class="text-end" style="margin-top:-60px;">
-        <h6><b>No.&nbsp;JV0000000001</b></h6>
+        <h6><b>No.&nbsp;@Html.DisplayFor(model => model.Header.JVNo)</b></h6>
     </div>
 
 </div>
@@ -32,47 +33,47 @@
                 <td></td>
                 <td></td>
                 <td></td>
-                <td class="w-25 text-end">Date : 11/17/2023</td>
+                <td class="w-25 text-end">Date : @Html.DisplayFor(model => model.Header.Date)</td>
             </tr>
             <tr>
-                <td>CATEGORY :</td>
-                <td></td>
+                <td>CATEGORY : </td>
+                <td>@Html.DisplayFor(model => model.Header.CheckVoucherHeader.Category)</td>
                 <td></td>
                 <td></td>
             </tr>
             <tr>
-                <td>REFERENCES:</td>
-                <td></td>
+                <td>REFERENCES: </td>
+                <td>@Html.DisplayFor(model => model.Header.References)</td>
                 <td></td>
                 <td></td>
             </tr>
             <tr>
                 <td>CV # :</td>
-                <td>CV0000000002</td>
+                <td>@Html.DisplayFor(model => model.Header.CheckVoucherHeader.CVNo)</td>
                 <td>CR # :</td>
                 <td></td>
             </tr>
             <tr>
                 <td>CHECK # :</td>
-                <td>123456789</td>
+                <td>@Html.DisplayFor(model => model.Header.CheckVoucherHeader.CheckNo)</td>
                 <td>AMOUNT :</td>
-                <td>-</td>
+                <td>@Html.DisplayFor(model => model.Header.CheckVoucherHeader.Amount)</td>
             </tr>
             <tr>
                 <td>CV DATE</td>
-                <td>11/16/2023</td>
+                <td>@Html.DisplayFor(model => model.Header.CheckVoucherHeader.CheckDate)</td>
                 <td>DATE :</td>
-                <td></td>
+                <td>@Model.Header.CheckVoucherHeader.Date.ToShortDateString()</td>
             </tr>
             <tr>
                 <td>PAYEE</td>
-                <td>Supplier ABC</td>
+                <td>@Html.DisplayFor(model => model.Header.CheckVoucherHeader.Payee)</td>
                 <td>JV Reason :</td>
-                <td>Depreciation</td>
+                <td>@Html.DisplayFor(model => model.Header.JVReason)</td>
             </tr>
             <tr>
                 <td>PARTICULARS:</td>
-                <td>Depreciation of storage tank</td>
+                <td>@Html.DisplayFor(model => model.Header.Particulars)</td>
                 <td></td>
                 <td></td>
             </tr>
@@ -143,7 +144,7 @@
 <br />
 
 <div class="text-center w-100" style="margin-top:20px;">
-    <p @* style="line-height: 1;" *@>
+    <p >
         <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br /><br />
         <span>Acknowledgement Certificate No:</span>
         <span style="display: inline-block;">AC_124_112023_000090</span>

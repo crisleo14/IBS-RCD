@@ -29,7 +29,8 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             var headers = await _dbContext.journalVoucherHeaders
-                .OrderByDescending(cv => cv.Id)
+                .Include(cvh => cvh.CheckVoucherHeader)
+                .OrderByDescending(jv => jv.Id)
                 .ToListAsync(cancellationToken);
 
             // Create a list to store CheckVoucherVM objectssw
