@@ -67,7 +67,7 @@
                                 <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#Preview-@item.Header.Id" data-bs-url="@Url.Action($"Preview/{item.Header.Id}")">
                                     Preview
                                 </button>
-                                @await Html.PartialAsync("_PreviewCV", item)
+                                @await Html.PartialAsync("_PreviewJV", item)
                                 <a class="btn btn-light" onclick="confirmPost(@item.Header.Id)">Post</a>
                                 <a class="btn btn-light" onclick="confirmCancel(@item.Header.Id)">Cancel</a>
                             }
@@ -102,8 +102,7 @@
 
     @section Scripts {
         <script>
-            function confirmPost(cvId) {
-                console.log(cvId);
+            function confirmPost(id) {
                 Swal.fire({
                     title: 'Are you sure?',
                     text: "You won't be able to revert this!",
@@ -115,7 +114,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // Replace with the actual URL that you want to redirect to
-                        var url = `/CheckVoucher/Post?cvId=${cvId}`;
+                        var url = `/JournalVoucher/Post?id=${id}`;
                         window.location.href = url;
                     }
                 })
@@ -135,7 +134,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // Replace with the actual URL that you want to redirect to
-                        var url = `/CheckVoucher/Void?Id=${Id}`;
+                        var url = `/JournalVoucher/Void?Id=${Id}`;
                         window.location.href = url;
                     }
                 })
@@ -155,7 +154,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // Replace with the actual URL that you want to redirect to
-                        var url = `/CheckVoucher/Cancel?Id=${Id}`;
+                        var url = `/JournalVoucher/Cancel?Id=${Id}`;
                         window.location.href = url;
                     }
                 })
