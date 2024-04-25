@@ -63,9 +63,9 @@
             </tr>
             <tr>
                 <td>CV DATE</td>
-                <td>@Html.DisplayFor(model => model.Header.CheckVoucherHeader.CheckDate)</td>
-                <td>DATE :</td>
                 <td>@Model.Header.CheckVoucherHeader.Date.ToShortDateString()</td>
+                <td>DATE :</td>
+                <td>@Html.DisplayFor(model => model.Header.CheckVoucherHeader.CheckDate)</td>
             </tr>
             <tr>
                 <td>PAYEE</td>
