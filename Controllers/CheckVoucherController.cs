@@ -67,7 +67,7 @@ namespace Accounting_System.Controllers
             };
 
             viewModel.Header.COA = await _dbContext.ChartOfAccounts
-                .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)))
+                .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)) && coa.Level == "4" || coa.Level == "5")
                 .Select(s => new SelectListItem
                 {
                     Value = s.Number,
@@ -112,7 +112,7 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync();
             model.Header.COA = await _dbContext.ChartOfAccounts
-                .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)))
+                .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)) && coa.Level == "4" || coa.Level == "5")
                 .Select(s => new SelectListItem
                 {
                     Value = s.Number,
