@@ -28,8 +28,10 @@ namespace Accounting_System.Models
 
         public string Particulars { get; set; }
 
+        [Display(Name = "CR No")]
         public string? CRNo { get; set; }
 
+        [Display(Name = "JV Reason")]
         public string JVReason { get; set; }
 
         [NotMapped]

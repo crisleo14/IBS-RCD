@@ -506,6 +506,8 @@ namespace Accounting_System.Controllers
                 if (!modelHeader.IsPosted)
                 {
                     modelHeader.IsPosted = true;
+                    modelHeader.PostedBy = _userManager.GetUserName(this.User);
+                    modelHeader.PostedDate = DateTime.Now;
 
                     #region --General Ledger Book Recording(CV)--
 
@@ -561,6 +563,13 @@ namespace Accounting_System.Controllers
                     await _dbContext.DisbursementBooks.AddRangeAsync(disbursement, cancellationToken);
 
                     #endregion --Disbursement Book Recording(CV)--
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(modelHeader.PostedBy, $"Posted check voucher# {modelHeader.CVNo}", "Check Voucher");
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Check Voucher has been Posted.";
@@ -700,13 +709,13 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.VoidedBy, $"Voided debit memo# {model.CVNo}", "Debit Memo");
+                    AuditTrail auditTrail = new(model.VoidedBy, $"Voided check voucher# {model.CVNo}", "Check Voucher");
                     await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Debit Memo has been Voided.";
+                    TempData["success"] = "Check Voucher has been Voided.";
                 }
                 return RedirectToAction("Index");
             }
@@ -728,13 +737,13 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled credit memo# {model.CVNo}", "Credit Memo");
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled check voucher# {model.CVNo}", "Check Voucher");
                     await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Credit Memo has been Cancelled.";
+                    TempData["success"] = "Check Voucher has been Cancelled.";
                 }
                 return RedirectToAction("Index");
             }

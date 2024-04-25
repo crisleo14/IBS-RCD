@@ -3,6 +3,7 @@ using Accounting_System.Models;
 using Accounting_System.Repository;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
 
@@ -14,13 +15,16 @@ namespace Accounting_System.Controllers
 
         private readonly UserManager<IdentityUser> _userManager;
 
+        private readonly JournalVoucherRepo _journalVoucherRepo;
+
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public JournalVoucherController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, IWebHostEnvironment webHostEnvironment)
+        public JournalVoucherController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, IWebHostEnvironment webHostEnvironment, JournalVoucherRepo journalVoucherRepo)
         {
             _dbContext = dbContext;
             _userManager = userManager;
             _webHostEnvironment = webHostEnvironment;
+            _journalVoucherRepo = journalVoucherRepo;
         }
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
@@ -50,13 +54,387 @@ namespace Accounting_System.Controllers
 
             return View(journalVoucherVMs);
         }
-        public IActionResult Create()
+        [HttpGet]
+        public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
-            return View();
+            var viewModel = new JournalVoucherVM
+            {
+                Header = new JournalVoucherHeader(),
+                Details = new List<JournalVoucherDetail>()
+            };
+
+            viewModel.Header.COA = await _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == "4" || coa.Level == "5")
+                .OrderBy(coa => coa.Id)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number,
+                    Text = s.Number + " " + s.Name
+                })
+                .ToListAsync(cancellationToken);
+            viewModel.Header.CheckVoucherHeaders = await _dbContext.CheckVoucherHeaders
+                .OrderBy(c => c.Id)
+                .Select(cvh => new SelectListItem
+                {
+                    Value = cvh.Id.ToString(),
+                    Text = cvh.CVNo
+                })
+                .ToListAsync(cancellationToken);
+
+            return View(viewModel);
         }
-        public IActionResult Print()
+
+        [HttpPost]
+        public async Task<IActionResult> Create(JournalVoucherVM? model, CancellationToken cancellationToken)
         {
-            return View();
+            model.Header.COA = await _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == "4" || coa.Level == "5")
+                .OrderBy(coa => coa.Id)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number,
+                    Text = s.Number + " " + s.Name
+                })
+                .ToListAsync(cancellationToken);
+
+            model.Header.CheckVoucherHeaders = await _dbContext.CheckVoucherHeaders
+                .OrderBy(c => c.Id)
+                .Select(cvh => new SelectListItem
+                {
+                    Value = cvh.Id.ToString(),
+                    Text = cvh.CVNo
+                })
+                .ToListAsync(cancellationToken);
+
+            if (ModelState.IsValid)
+            {
+                #region --Validating series
+                var getLastNumber = await _journalVoucherRepo.GetLastSeriesNumberJV(cancellationToken);
+
+                if (getLastNumber > 9999999999)
+                {
+                    TempData["error"] = "You reached the maximum Series Number";
+                    return View(model);
+                }
+
+                var totalRemainingSeries = 9999999999 - getLastNumber;
+                if (getLastNumber >= 9999999899)
+                {
+                    TempData["warning"] = $"Check Voucher created successfully, Warning {totalRemainingSeries} series numbers remaining";
+                }
+                else
+                {
+                    TempData["success"] = "Check Voucher created successfully";
+                }
+                #endregion --Validating series
+
+                #region --CV Details Entry
+                var generateJVNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken);
+                //var cvDetails = new List<CheckVoucherDetail>();
+                //var totalNetAmountOfEWT = await _dbContext.ReceivingReports
+                //                .Where(rr => model.Header.RRNo.Contains(rr.RRNo))
+                //                .ToListAsync(cancellationToken);
+
+                //var totalAmount = 0m;
+                //foreach (var total in amount)
+                //{
+                //    totalAmount += total;
+                //}
+
+                //if (model.Header.Category == "Trade")
+                //{
+                //    cvDetails.Add(
+                //        new CheckVoucherDetail
+                //        {
+                //            AccountNo = "2010101",
+                //            AccountName = "AP-Trade Payable",
+                //            TransactionNo = generateCVNo,
+                //            Debit = supplier.TaxType == "Withholding Tax" ? netOfEWT : totalAmount,
+                //            Credit = 0
+                //        }
+                //    );
+                //}
+
+                //if (supplier.TaxType == "Withholding Tax")
+                //{
+                //    cvDetails.Add(
+                //        new CheckVoucherDetail
+                //        {
+                //            AccountNo = "2010302",
+                //            AccountName = "Expanded Witholding Tax 1%",
+                //            TransactionNo = generateCVNo,
+                //            Debit = expandedWTaxDebitAmount,
+                //            Credit = 0
+                //        }
+                //    );
+                //    cvDetails.Add(
+                //        new CheckVoucherDetail
+                //        {
+                //            AccountNo = "2010302",
+                //            AccountName = "Expanded Witholding Tax 1%",
+                //            TransactionNo = generateCVNo,
+                //            Debit = 0,
+                //            Credit = expandedWTaxDebitAmount
+                //        }
+                //    );
+                //}
+
+                //for (int i = 0; i < accountNumber.Length; i++)
+                //{
+                //    var currentAccountNumber = accountNumber[i];
+                //    var currentAccountNumberText = accountNumberText[i];
+                //    var currentDebit = debit[i];
+                //    var currentCredit = credit[i];
+
+                //    cvDetails.Add(
+                //        new CheckVoucherDetail
+                //        {
+                //            AccountNo = currentAccountNumber,
+                //            AccountName = currentAccountNumberText,
+                //            TransactionNo = generateCVNo,
+                //            Debit = currentDebit,
+                //            Credit = currentCredit
+                //        }
+                //    );
+                //}
+
+                //cvDetails.Add(
+                //    new CheckVoucherDetail
+                //    {
+                //        AccountNo = "1010101",
+                //        AccountName = "Cash in Bank",
+                //        TransactionNo = generateCVNo,
+                //        Debit = 0,
+                //        Credit = cashInBankAmount
+                //    }
+                //);
+
+
+                //await _dbContext.AddRangeAsync(cvDetails, cancellationToken);
+
+                #endregion --CV Details Entry
+
+                #region --Saving the default entries
+
+                //JV Header Entry
+                model.Header.SeriesNumber = getLastNumber;
+                model.Header.JVNo = generateJVNo;
+                model.Header.CreatedBy = _userManager.GetUserName(this.User);
+                #endregion --Saving the default entries
+
+
+                await _dbContext.AddAsync(model.Header, cancellationToken);  // Add CheckVoucherHeader to the context
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                TempData["error"] = "The information you submitted is not valid!";
+                return View(model);
+            }
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Print(int? id, CancellationToken cancellationToken)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var header = await _dbContext.journalVoucherHeaders
+                .Include(cv => cv.CheckVoucherHeader)
+                .FirstOrDefaultAsync(jvh => jvh.Id == id.Value, cancellationToken);
+
+            if (header == null)
+            {
+                return NotFound();
+            }
+
+            var details = await _dbContext.journalVoucherDetails
+                .Where(jvd => jvd.TransactionNo == header.JVNo)
+                .ToListAsync(cancellationToken);
+
+
+            //if (header.Category == "Trade")
+            //{
+            //    var siArray = new string[header.RRNo.Length];
+            //    for (int i = 0; i < header.RRNo.Length; i++)
+            //    {
+            //        var rrValue = header.RRNo[i];
+
+            //        var rr = await _dbContext.ReceivingReports
+            //                    .FirstOrDefaultAsync(p => p.RRNo == rrValue);
+
+            //        siArray[i] = rr.SupplierInvoiceNumber;
+            //    }
+
+            //    ViewBag.SINoArray = siArray;
+            //}
+
+            var viewModel = new JournalVoucherVM
+            {
+                Header = header,
+                Details = details
+            };
+
+            return View(viewModel);
+        }
+
+
+        public async Task<IActionResult> Printed(int id, CancellationToken cancellationToken)
+        {
+            var jv = await _dbContext.journalVoucherHeaders.FindAsync(id, cancellationToken);
+            if (jv != null && !jv.IsPrinted)
+            {
+                jv.IsPrinted = true;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+            return RedirectToAction("Print", new { id = id });
+        }
+
+        public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
+        {
+            var modelHeader = await _dbContext.journalVoucherHeaders.FindAsync(id, cancellationToken);
+            var modelDetails = await _dbContext.journalVoucherDetails.Where(jvd => jvd.TransactionNo == modelHeader.JVNo).ToListAsync();
+
+            if (modelHeader != null)
+            {
+                if (!modelHeader.IsPosted)
+                {
+                    modelHeader.IsPosted = true;
+                    modelHeader.PostedBy = _userManager.GetUserName(this.User);
+                    modelHeader.PostedDate = DateTime.Now;
+
+                    #region --General Ledger Book Recording(CV)--
+
+                    //var ledgers = new List<GeneralLedgerBook>();
+                    //foreach (var details in modelDetails)
+                    //{
+                    //    ledgers.Add(
+                    //            new GeneralLedgerBook
+                    //            {
+                    //                Date = modelHeader.Date.ToShortDateString(),
+                    //                Reference = modelHeader.JVNo,
+                    //                Description = modelHeader.Particulars,
+                    //                AccountTitle = details.AccountName,
+                    //                Debit = details.Debit,
+                    //                Credit = details.Credit,
+                    //                CreatedBy = modelHeader.CreatedBy,
+                    //                CreatedDate = modelHeader.CreatedDate
+                    //            }
+                    //        );
+                    //}
+
+                    //await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
+
+                    #endregion --General Ledger Book Recording(CV)--
+
+                    #region --Disbursement Book Recording(CV)--
+
+                    //var disbursement = new List<DisbursementBook>();
+                    //foreach (var details in modelDetails)
+                    //{
+                    //    var bank = _dbContext.BankAccounts.FirstOrDefault(model => model.Id == modelHeader.BankId);
+                    //    disbursement.Add(
+                    //            new DisbursementBook
+                    //            {
+                    //                Date = modelHeader.Date.ToShortDateString(),
+                    //                CVNo = modelHeader.CVNo,
+                    //                Payee = modelHeader.Payee,
+                    //                Amount = modelHeader.Amount,
+                    //                Particulars = modelHeader.Particulars,
+                    //                Bank = bank.Branch,
+                    //                CheckNo = modelHeader.CheckNo,
+                    //                CheckDate = modelHeader.CheckDate.ToShortDateString(),
+                    //                DateCleared = DateTime.Now.ToShortDateString(),
+                    //                ChartOfAccount = details.AccountName,
+                    //                Debit = details.Debit,
+                    //                Credit = details.Credit,
+                    //                CreatedBy = modelHeader.CreatedBy,
+                    //                CreatedDate = modelHeader.CreatedDate
+                    //            }
+                    //        );
+                    //}
+
+                    //await _dbContext.DisbursementBooks.AddRangeAsync(disbursement, cancellationToken);
+
+                    #endregion --Disbursement Book Recording(CV)--
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(modelHeader.PostedBy, $"Posted journal voucher# {modelHeader.JVNo}", "Journal Voucher");
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    TempData["success"] = "Journal Voucher has been Posted.";
+                }
+                return RedirectToAction(nameof(Index));
+            }
+
+            return NotFound();
+        }
+        public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
+        {
+            var model = await _dbContext.journalVoucherHeaders.FindAsync(id, cancellationToken);
+
+            if (model != null)
+            {
+                if (!model.IsVoided)
+                {
+                    model.IsVoided = true;
+                    model.VoidedBy = _userManager.GetUserName(this.User);
+                    model.VoidedDate = DateTime.Now;
+
+                    //await _generalRepo.RemoveRecords<CashReceiptBook>(crb => crb.RefNo == model.CRNo);
+                    //await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CRNo);
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.VoidedBy, $"Voided journal voucher# {model.JVNo}", "Journal Voucher");
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    TempData["success"] = "Journal Voucher has been Voided.";
+                }
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
+
+        public async Task<IActionResult> Cancel(int id, CancellationToken cancellationToken)
+        {
+            var model = await _dbContext.journalVoucherHeaders.FindAsync(id, cancellationToken);
+
+            if (model != null)
+            {
+                if (!model.IsCanceled)
+                {
+                    model.IsCanceled = true;
+                    model.CanceledBy = _userManager.GetUserName(this.User);
+                    model.CanceledDate = DateTime.Now;
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled journal voucher# {model.JVNo}", "Journal Voucher");
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    TempData["success"] = "Journal Voucher has been Cancelled.";
+                }
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
+        }
+
+
     }
 }

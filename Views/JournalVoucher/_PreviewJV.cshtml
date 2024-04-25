@@ -1,0 +1,166 @@
+﻿@model Accounting_System.Models.JournalVoucherVM
+@using Humanizer
+<div class="modal fade" id="Preview-@Model.Header.Id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel-@Model.Header.Id">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="PreviewCMLabel">Preview</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+
+                <br />
+                <div class="text-end">
+                    <img src="~/img/Filpride.jpg" height="" width="130px" />
+                </div>
+                <div class="text-center">
+                    <h2><u><b>&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b></u></h2>
+                    <p style="line-height: 1; margin-top:-7px;">
+                        57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone,<br />
+                        Kalaklan, Olongapo City, 2200 Zambales, Philippines<br />
+                        VAT Reg. TIN: 000-216-589-00000
+                    </p>
+
+                    <h3><span style="display: inline-block;"><b>JOURNAL VOUCHER</b></span></h3>
+                    <div class="text-end" style="margin-top:-60px;">
+                        <h6><b>No.&nbsp;JV0000000001</b></h6>
+                    </div>
+
+                </div>
+
+                <div class="table-responsive" style="margin-top:50px;">
+                    <table class="w-100">
+                        <tbody>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="w-25 text-end">Date : 11/17/2023</td>
+                            </tr>
+                            <tr>
+                                <td>CATEGORY :</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>REFERENCES:</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>CV # :</td>
+                                <td>CV0000000002</td>
+                                <td>CR # :</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>CHECK # :</td>
+                                <td>123456789</td>
+                                <td>AMOUNT :</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td>CV DATE</td>
+                                <td>11/16/2023</td>
+                                <td>DATE :</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>PAYEE</td>
+                                <td>Supplier ABC</td>
+                                <td>JV Reason :</td>
+                                <td>Depreciation</td>
+                            </tr>
+                            <tr>
+                                <td>PARTICULARS:</td>
+                                <td>Depreciation of storage tank</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-responsive" style="margin-top:20px;">
+                    <table class="w-100">
+                        <thead>
+                            <tr style="border: 1px solid black;">
+                                <th colspan="4" style="padding-left:20px;">ACCOUNTING ENTRIES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding-left:20px;"><i>Account Name/Title</i></td>
+                                <th class="text-end">DEBIT</th>
+                                <th class="text-end">CREDIT</th>
+                            </tr>
+                            <tr>
+                                <td style="width:60%; padding-left:20px;">5010105  Depreciation Expense</td>
+                                <td class="text-end" style="width:7%;">100.00</td>
+                                <td style="width:7%;"></td>
+                            </tr>
+                            <tr style="border-bottom:double;">
+                                <td style="padding-left:20px;">1020202  Accummulated Depreciation-Equipment</td>
+                                <td></td>
+                                <td class="text-end">100.00</td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td class="text-end">100.00</td>
+                                <td class="text-end">100.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-responsive" style="margin-top:20px;">
+                    <table class="w-100">
+                        <tbody class="text-center">
+                            <tr>
+                                <td>Prepared by :</td>
+                                <td>Reviewed by </td>
+                                <td>Approved by </td>
+                            </tr>
+                            <tr>
+                                <td style="width:33%;">
+                                    <br />
+                                    <span class="underline" style="display: inline-block; width:60%;">&nbsp;</span> <br />
+
+                                </td>
+                                <td style="width:33%;">
+                                    <br />
+                                    <span class="underline" style="display: inline-block; width:60%;">&nbsp;</span> <br />
+
+                                </td>
+                                <td style="width:33%;">
+                                    <br />
+                                    <span class="underline" style="display: inline-block; width:60%;">&nbsp;</span> <br />
+
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <br />
+                <div class="text-center w-100" style="margin-top:20px;">
+                    <p>
+                        <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br />
+                        <span>Acknowledgement Certificate No:</span>
+                        <span style="display: inline-block;">AC_124_112023_000090</span>
+                        <span>&nbsp;&nbsp;Date Issued:</span>
+                        <span style="display: inline-block;">November 28, 2023</span><br />
+                        Series: CM0000000001 - CM9999999999
+                    </p>
+                </div>
+
+                <br />
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
