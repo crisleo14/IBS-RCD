@@ -140,8 +140,8 @@
                         <tr style="border-bottom:double;"></tr>
                         <tr>
                             <td>TOTAL</td>
-                            <td class="text-end"></td>
-                            <td class="text-end"></td>
+                            <td class="text-end" id="totalDebit"></td>
+                            <td class="text-end" id="totalCredit"></td>
                         </tr>
                     </tbody>
                 </table>
@@ -331,6 +331,8 @@
                                 $("#amount").text(data.amount);
                                 $("#particulars").text(data.particulars);
                                 $("#checkNo").text(data.checkNo);
+                                $("#totalDebit").text(data.totalDebit);
+                                $("#totalCredit").text(data.totalCredit);
                             } else {
                                 $("#supplierAddress").text("");
                                 $("#supplierTinNo").text("");
@@ -345,6 +347,8 @@
                                 $("#amount").text("");
                                 $("#particulars").text("");
                                 $("#checkNo").text("");
+                                $("#totalDebit").text("");
+                                $("#totalCredit").text("");
                             }
                             if (data.viewModel !== null) {
                                 
@@ -379,8 +383,9 @@
                     $("#amount").text("");
                     $("#particulars").text("");
                     $("#checkNo").text("");
-
                     $("#tableBody").empty();
+                    $("#totalDebit").text("");
+                    $("#totalCredit").text("");
                 }
             });
         });
