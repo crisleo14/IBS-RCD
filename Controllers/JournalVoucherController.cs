@@ -177,6 +177,60 @@ namespace Accounting_System.Controllers
             }
         }
 
+        public async Task<IActionResult> GetCV(int id)
+        {
+            var header = _dbContext.CheckVoucherHeaders
+                .Include(s => s.Supplier)
+                .FirstOrDefault(cvh => cvh.Id == id);
+
+            if (header == null)
+            {
+                return NotFound();
+            }
+
+            var details = await _dbContext.CheckVoucherDetails
+                .Where(cvd => cvd.TransactionNo == header.CVNo)
+                .ToListAsync();
+
+            var viewModel = new CheckVoucherVM
+            {
+                Header = header,
+                Details = details
+            };
+
+            if (viewModel != null)
+            {
+                var cvNo = viewModel.Header.CVNo;
+                var date = viewModel.Header.Date;
+                var name = viewModel.Header.Supplier.Name;
+                var address = viewModel.Header.Supplier.Address;
+                var tinNo = viewModel.Header.Supplier.TinNo;
+                var poNo = viewModel.Header.PONo;
+                var siNo = viewModel.Header.SINo;
+                var payee = viewModel.Header.Payee;
+                var amount = viewModel.Header.Amount;
+                var particulars = viewModel.Header.Particulars;
+                var checkNo = viewModel.Header.CheckNo;
+
+                return Json(new { CVNo = cvNo,
+                    Date = date, 
+                    Name = name, 
+                    Address = address, 
+                    TinNo = tinNo, 
+                    PONo = poNo, 
+                    SINo = siNo, 
+                    Payee = payee,
+                    Amount = amount,
+                    Particulars = particulars,
+                    CheckNo = checkNo,
+                    ViewModel = viewModel
+                });
+            }
+
+
+            return Json(null);
+        }
+
         [HttpGet]
         public async Task<IActionResult> Print(int? id, CancellationToken cancellationToken)
         {
