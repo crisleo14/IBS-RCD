@@ -406,16 +406,15 @@
         });
     </script>
     <script>
-        $(function () {
+        $(function criteria() {
             var criteria; // Variable to store the selected criteria
-            var alertShown = false;
 
             $(".GetRRList").change(function () {
                 var poNumber = $(this).val(); // Get all selected POIds
                 console.log(poNumber); // Add this line for debugging
                 if (poNumber && poNumber.length > 0) {
-                    // Show SweetAlert to choose display criteria
-                    if (!alertShown) {
+
+                    if (!criteria) {
                         Swal.fire({
                             title: 'Choose Criteria',
                             text: 'Do you want to display records based on Due Date or Transaction Date?',
@@ -425,6 +424,8 @@
                                 'Transaction Date': 'Transaction Date'
                             },
                             inputPlaceholder: 'Select display criteria',
+                            allowOutsideClick: false, // Prevent closing on outside click
+                            allowEscapeKey: false,  // Prevent closing with Esc key
                             showCancelButton: true,
                             confirmButtonText: 'OK'
                         }).then((result) => {
@@ -436,10 +437,10 @@
                                     console.error('Invalid display criteria');
                                 }
                             } else {
+                                showCriteriaSelectionAlert();
                                 console.log('User canceled');
                             }
                         });
-                        alertShown = true;
                     } else {
                         if (poNumber && poNumber.length > 0) {
                             displayRecords(poNumber, criteria); // Pass PO number and criteria to displayRecords function
