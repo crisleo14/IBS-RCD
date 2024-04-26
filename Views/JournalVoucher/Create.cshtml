@@ -29,7 +29,7 @@
     </div>
     <div class="form-group">
         <label class="control-label">CV No.</label>
-        <select asp-for="Header.CVId" asp-items="@Model.Header.CheckVoucherHeaders" class="form-select js-not-retain-value-select2">
+        <select asp-for="Header.CVId" asp-items="@Model.Header.CheckVoucherHeaders" class="form-select js-not-retain-value-select2 checkVoucher">
             <option></option>
         </select>
     </div>
@@ -49,7 +49,108 @@
         <span asp-validation-for="Header.JVReason" class="text-danger"></span>
     </div>
 </div>
+    <div class="col-8 tradeList">
+        <div class="row pb-3">
 
+            <div class="table-responsive">
+                <table class="w-100">
+                    <thead>
+                        <tr style="border: 1px solid black;">
+                            <th colspan="2" style="padding-left:20px;">I. PAYEE DETAILS</th>
+                            <th colspan="1" class="text-end"><b>Date : </b></th>
+                            <td id="date"></td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="width:11%; padding-left:20px;">Name :</td>
+                            <td id="name"></td>
+                            <td style="width:50%;" colspan="2" class="text-nowrap">Other References:</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left:20px;">Address :</td>
+                            <td id="address"></td>
+                            <td style="width:6%;">PO # :</td>
+                            <td id="poNo"></td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left:20px;">TIN # :</td>
+                            <td id="tinNo"></td>
+                            <td>SI # :</td>
+                            <td id="siNo"></td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left:20px;" class="text-nowrap"></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="table-responsive" style="margin-top:20px;">
+                <table class="w-100">
+                    <thead>
+                        <tr style="border: 1px solid black;">
+                            <th colspan="4" style="padding-left:20px;">II. CHECK DETAILS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="width:15%; padding-left:20px;">Payee :</td>
+                            <td style="width:65%;" id="payee"></td>
+                            <td class="text-end" id="amount"></td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left:20px;"></td>
+                            
+                            <td class="w-25"></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left:20px;">Particulars :</td>
+                            <td id="particulars"></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left:20px;">Check #:</td>
+                            <td id="checkNo"></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-responsive" style="margin-top:20px;">
+                <table class="w-100">
+                    <thead>
+                        <tr style="border: 1px solid black;">
+                            <th colspan="4" style="padding-left:20px;">III. ACCOUNTING ENTRIES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding-left:20px;"></td>
+                            <th class="text-end">DEBIT</th>
+                            <th class="text-end">CREDIT</th>
+                        </tr>
+                    </tbody>
+                    <tbody id="tableBody"></tbody>  
+                    <tbody>
+                        <tr style="border-bottom:double;"></tr>
+                        <tr>
+                            <td>TOTAL</td>
+                            <td class="text-end"></td>
+                            <td class="text-end"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <br />
     <div class="form-group">
         <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#AddAccEntry">
             Add Entry
@@ -205,6 +306,83 @@
     <script>
         $('#AccountNo').select2({
             dropdownParent: $('#AddAccEntry')
+        });
+    </script>
+    <script>
+        $(function () {
+            $(".checkVoucher").change(function () {
+                var cvId = $(this).val();
+                if (cvId !== "") {
+                    $.ajax({
+                        url: "/JournalVoucher/GetCV",
+                        method: "GET",
+                        data: { id: cvId },
+                        success: function (data) {
+                            if (data !== null) {
+                                $("#tableBody").empty();
+                                $("#cvNo").text(data.cvNo);
+                                $("#date").text(new Date(data.date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }));
+                                $("#name").text(data.name);
+                                $("#address").text(data.address);
+                                $("#tinNo").text(data.tinNo);
+                                $("#poNo").text(data.poNo);
+                                $("#siNo").text(data.siNo);
+                                $("#payee").text(data.payee);
+                                $("#amount").text(data.amount);
+                                $("#particulars").text(data.particulars);
+                                $("#checkNo").text(data.checkNo);
+                            } else {
+                                $("#supplierAddress").text("");
+                                $("#supplierTinNo").text("");
+                                $("#cvNo").text("");
+                                $("#date").text("");
+                                $("#name").text("");
+                                $("#address").text("");
+                                $("#tinNo").text("");
+                                $("#poNo").text("");
+                                $("#siNo").text("");
+                                $("#payee").text("");
+                                $("#amount").text("");
+                                $("#particulars").text("");
+                                $("#checkNo").text("");
+                            }
+                            if (data.viewModel !== null) {
+                                
+                                for (let i = 0; i < data.viewModel.details.length; i++) {
+                                    var row = $("<tr></tr>");
+                                    row.append("<td style='width:60%; padding-left:20px;'>" + data.viewModel.details[i].accountNo + " " + data.viewModel.details[i].accountName + "</td>");
+                                    row.append("<td class='text-end' style='width:7%;'>" + data.viewModel.details[i].debit + "</td>");
+                                    row.append("<td class='text-end' style='width:7%;'>" + data.viewModel.details[i].credit + "</td>");
+                                    $("#tableBody").append(row);
+                                }
+                            } 
+                            else 
+                            {
+                                console.error("Invalid data structure or lengths.");
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Error fetching TaxType:', error);
+                        }
+                    });
+                } else {
+                    $("#supplierAddress").text("");
+                    $("#supplierTinNo").text("");
+                    $("#cvNo").text("");
+                    $("#date").text("");
+                    $("#name").text("");
+                    $("#address").text("");
+                    $("#tinNo").text("");
+                    $("#poNo").text("");
+                    $("#siNo").text("");
+                    $("#payee").text("");
+                    $("#amount").text("");
+                    $("#particulars").text("");
+                    $("#checkNo").text("");
+
+                    $("#tableBody").empty();
+                }
+            });
         });
     </script>
 }
