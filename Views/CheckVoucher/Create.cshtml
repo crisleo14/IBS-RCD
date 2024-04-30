@@ -11,7 +11,7 @@
 <h4>Check Voucher</h4>
 <hr />
 
-<form asp-action="Create" method="post" enctype="multipart/form-data">
+<form asp-action="Create" method="post" enctype="multipart/form-data" id="myform">
  <div class="row">
       <div class="col-md-4">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -301,7 +301,7 @@
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                         <div class="form-group">
                             <label class="control-label">Account No.</label>
-                            <select asp-items="@Model.Header?.COA" class="form-select" style="width: 100%" id="AccountNo">
+                            <select asp-items="@Model.Header?.COA" class="form-select automaticEntry" style="width: 100%" id="AccountNo">
                                 <option></option>
                             </select>
                             <span class="text-danger"></span>
@@ -882,5 +882,88 @@
                 }
             });
         });
+    </script>
+    <script>
+        $(function automaticEntry() {
+            $(".automaticEntry").change(function () {
+                var coaNo = $(this).val(); // Get all selected POIds
+                if (coaNo && coaNo.length > 0) {
+                    if (coaNo === "1020104" || coaNo === "1020105" || coaNo === "5010105") {
+                        $("#AddAccEntry").modal("hide");
+                        Swal.fire({
+                            title: 'Automatic JV Entry',
+                            html:
+                                    'Do you want to automatic insert JV entry records based on CV?<br/><br/>' +
+                                'How many years? <br/><input id="inputYears" type="text" class="form-control" placeholder="Enter how many years"><br/>' +
+                                'When to start? <br/><input id="inputMonth" type="month" class="form-control">',
+                            allowOutsideClick: false, // Prevent closing on outside click
+                            allowEscapeKey: false,  // Prevent closing with Esc key
+                            showCancelButton: true,
+                            confirmButtonText: "Yes, confirm!",
+                            cancelButtonText: "No, N/A!",
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                    const howManyYears = document.getElementById('inputYears').value;
+                                    const month = document.getElementById('inputMonth').value;
+                                    $("#AddAccEntry").modal("show");
+                                if (howManyYears !== null && month !== null) {
+                                    var form = document.getElementById("myform");
+
+                                    form.appendChild(createHiddenInput("howManyYears", howManyYears));
+                                    form.appendChild(createHiddenInput("startMonth", month));
+                                } else {
+                                    console.error('Invalid');
+                                }
+                            } else {
+                                console.log('User canceled');
+                                $("#AddAccEntry").modal("show");
+                            }
+                        });
+                    }else if(coaNo === "1010501"){
+                        $("#AddAccEntry").modal("hide");
+                        Swal.fire({
+                            title: 'Automatic JV Entry',
+                            html:
+                                    'Do you want to automatic insert JV entry records based on CV?<br/><br/>' +
+                                'How many years? <br/><input id="inputYears" type="text" class="form-control" placeholder="Enter how many years"><br/>' +
+                                'When to start? <br/><input id="inputMonth" type="month" class="form-control">',
+                            allowOutsideClick: false, // Prevent closing on outside click
+                            allowEscapeKey: false,  // Prevent closing with Esc key
+                            showCancelButton: true,
+                            confirmButtonText: "Yes, confirm!",
+                            cancelButtonText: "No, N/A!",
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                    const howManyYears = document.getElementById('inputYears').value;
+                                    const month = document.getElementById('inputMonth').value;
+                                    $("#AddAccEntry").modal("show");
+                                if (howManyYears !== null && month !== null) {
+                                    var form = document.getElementById("myform");
+
+                                    form.appendChild(createHiddenInput("howManyYears", howManyYears));
+                                    form.appendChild(createHiddenInput("startMonth", month));
+                                } else {
+                                    console.error('Invalid');
+                                }
+                            } else {
+                                console.log('User canceled');
+                                $("#AddAccEntry").modal("show");
+                            }
+                        });
+                    }
+                } else {
+                    console.error('No coa number selected');
+                }
+            });
+        });
+
+        //for including input value in form
+        function createHiddenInput(name, value) {
+            var input = document.createElement("input");
+            input.type = "hidden";
+            input.name = name;
+            input.value = value;
+            return input;
+        }
     </script>
 }
