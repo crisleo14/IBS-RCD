@@ -82,11 +82,22 @@ namespace Accounting_System.Models
         [Column(TypeName = "date")]
         public DateOnly CheckDate { get; set; }
 
-        [Display(Name = "How many years?")]
-        public int? HowManyYears { get; set; }
-
-        [Display(Name = "When to start?")]
+        [Display(Name = "Start Date:")]
         [Column(TypeName = "date")]
-        public DateOnly? WhenToStart { get; set; }
+        public DateTime? StartDate { get; set; }
+
+        [Display(Name = "End Date:")]
+        [Column(TypeName = "date")]
+        public DateTime? EndDate { get; set; }
+
+        public int NumberOfMonths { get; set; }
+
+        public int NumberOfMonthsCreated { get; set; }
+
+        public DateTime? LastCreatedDate { get; set; }
+
+        public decimal AmountPerMonth { get; set; }
+
+        public bool IsComplete { get; set; }
     }
 }

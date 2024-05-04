@@ -94,7 +94,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, decimal[] amount, decimal netOfEWT, decimal expandedWTaxDebitAmount, decimal cashInBankAmount, IFormFile? file, int? howManyYears, DateOnly? startMonth)
+        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, decimal[] amount, decimal netOfEWT, decimal expandedWTaxDebitAmount, decimal cashInBankAmount, IFormFile? file, int? howManyYears, DateTime? startDate)
         {
 
             model.Header.Suppliers = await _dbContext.Suppliers
@@ -304,8 +304,7 @@ namespace Accounting_System.Controllers
                     model.Header.CreatedBy = _userManager.GetUserName(this.User);
                     model.Header.TotalDebit = list.Sum(cvd => cvd.Debit);
                     model.Header.TotalCredit = list.Sum(cvd => cvd.Credit);
-                    model.Header.HowManyYears = howManyYears;
-                    model.Header.WhenToStart = startMonth;
+                    model.Header.StartDate = startDate;
                 
                 if (model.Header.TotalDebit != model.Header.TotalCredit)
                 {
