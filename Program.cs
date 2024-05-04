@@ -1,8 +1,7 @@
 using Accounting_System.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 using Accounting_System.Repository;
-using Accounting_System.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +37,7 @@ builder.Services.AddScoped<ChartOfAccountRepo>();
 builder.Services.AddScoped<GeneralRepo>();
 builder.Services.AddScoped<BankAccountRepo>();
 builder.Services.AddScoped<JournalVoucherRepo>();
+builder.Services.AddHostedService<AutomatedEntries>();
 
 var app = builder.Build();
 
