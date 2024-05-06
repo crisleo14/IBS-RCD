@@ -35,10 +35,10 @@ namespace Accounting_System.Repository
 
                     if (cvList.Count != 0)
                     {
-                        foreach (var cv in cvList.ToList())
+                        foreach (var cv in cvList)
                         {
                             var accountEntries = await _dbContext.CheckVoucherDetails
-                                .Where(cvd => cvd.TransactionNo == cv.CVNo && (cvd.AccountNo.StartsWith("10201")))
+                                .Where(cvd => cvd.TransactionNo == cv.CVNo && (cvd.AccountNo.StartsWith("10201") || cvd.AccountNo.StartsWith("10105")))
                                 .ToListAsync();
 
                             foreach (var accountEntry in accountEntries)
@@ -92,9 +92,52 @@ namespace Accounting_System.Repository
                                     await _dbContext.SaveChangesAsync();
 
                                 }
-                                else if (accountEntry.AccountNo.StartsWith("Pr"))
+                                else if (accountEntry.AccountNo.StartsWith("10105"))
                                 {
                                     //Prepaid
+                                    cv.NumberOfMonthsCreated++;
+                                    cv.LastCreatedDate = DateTime.Now;
+
+                                    if (cv.NumberOfMonths == cv.NumberOfMonthsCreated)
+                                    {
+                                        cv.IsComplete = true;
+                                    }
+
+                                    var header = new JournalVoucherHeader
+                                    {
+                                        SeriesNumber = await _journalVoucherRepo.GetLastSeriesNumberJV(),
+                                        JVNo = await _journalVoucherRepo.GenerateJVNo(),
+                                        CVId = cv.Id,
+                                        JVReason = "Prepaid",
+                                        Particulars = $"Prepaid: CV Particulars {cv.Particulars} for the month of {DateTime.Now:MMMM yyyy}.",
+                                        Date = DateOnly.FromDateTime(DateTime.Now),
+                                        CreatedBy = cv.CreatedBy,
+                                        CreatedDate = DateTime.Now
+                                    };
+
+                                    var details = new List<JournalVoucherDetail>();
+
+                                    details.Add(new JournalVoucherDetail
+                                    {
+                                        AccountNo = "5010108",
+                                        AccountName = "Rental Expense",
+                                        TransactionNo = header.JVNo,
+                                        Debit = cv.AmountPerMonth,
+                                        Credit = 0
+                                    });
+
+                                    details.Add(new JournalVoucherDetail
+                                    {
+                                        AccountNo = "1010501",
+                                        AccountName = "Prepaid Expense",
+                                        TransactionNo = header.JVNo,
+                                        Debit = 0,
+                                        Credit = cv.AmountPerMonth
+                                    });
+
+                                    await _dbContext.AddAsync(header);
+                                    await _dbContext.AddRangeAsync(details);
+                                    await _dbContext.SaveChangesAsync();
                                 }
                                 else
                                 {
