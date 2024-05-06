@@ -888,38 +888,7 @@
             $(".automaticEntry").change(function () {
                 var coaNo = $(this).val(); // Get all selected POIds
                 if (coaNo && coaNo.length > 0) {
-                    if (coaNo.includes("10201")) {
-                        $("#AddAccEntry").modal("hide");
-                        Swal.fire({
-                            title: 'Automatic JV Entry',
-                            html:
-                                    'Do you want to automatic insert JV entry records based on CV?<br/><br/>' +
-                                'When to start? <br/><input id="startDate" type="month" class="form-control">' +
-                                'When to end? <br/><input id="endDate" type="month" class="form-control">',
-                            allowOutsideClick: false, // Prevent closing on outside click
-                            allowEscapeKey: false,  // Prevent closing with Esc key
-                            showCancelButton: true,
-                            confirmButtonText: "Yes, confirm!",
-                            cancelButtonText: "No, N/A!",
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                    const startDate = document.getElementById('startDate').value;
-                                    const endDate = document.getElementById('endDate').value;
-                                    $("#AddAccEntry").modal("show");
-                                if (startDate !== null && endDate !== null) {
-                                    var form = document.getElementById("myform");
-
-                                    form.appendChild(createHiddenInput("startDate", startDate));
-                                    form.appendChild(createHiddenInput("endDate", endDate));
-                                } else {
-                                    console.error('Invalid');
-                                }
-                            } else {
-                                console.log('User canceled');
-                                $("#AddAccEntry").modal("show");
-                            }
-                        });
-                    }else if(coaNo === "1010501"){
+                    if (coaNo.includes("10201") || coaNo.includes("10105")) {
                         $("#AddAccEntry").modal("hide");
                         Swal.fire({
                             title: 'Automatic JV Entry',

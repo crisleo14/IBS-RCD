@@ -307,7 +307,7 @@ namespace Accounting_System.Controllers
                 model.Header.StartDate = startDate;
                 model.Header.EndDate = endDate;
                 int computationPerMonth = 0;
-                foreach (var item in list.Where(cvd => cvd.AccountNo.Contains("10201")))
+                foreach (var item in list.Where(cvd => cvd.AccountNo.StartsWith("10201") || cvd.AccountNo.StartsWith("10105")))
                 {
                     var depreciationAmount = item.Debit != 0 ? item.Debit : item.Credit;
 
