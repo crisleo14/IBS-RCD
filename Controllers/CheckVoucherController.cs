@@ -306,7 +306,7 @@ namespace Accounting_System.Controllers
                 model.Header.TotalCredit = list.Sum(cvd => cvd.Credit);
                 model.Header.StartDate = startDate;
                 model.Header.EndDate = endDate;
-                foreach (var item in list.Where(cvd => cvd.AccountName.Contains("10201")))
+                foreach (var item in list.Where(cvd => cvd.AccountNo.Contains("10201")))
                 {
                     var depreciationAmount = item.Debit != 0 ? item.Debit : item.Credit;
 

@@ -888,7 +888,7 @@
             $(".automaticEntry").change(function () {
                 var coaNo = $(this).val(); // Get all selected POIds
                 if (coaNo && coaNo.length > 0) {
-                    if (coaNo === "1020104" || coaNo === "1020105" || coaNo === "5010105") {
+                    if (coaNo.includes("10201")) {
                         $("#AddAccEntry").modal("hide");
                         Swal.fire({
                             title: 'Automatic JV Entry',
