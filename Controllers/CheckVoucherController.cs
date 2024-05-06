@@ -94,7 +94,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, decimal[] amount, decimal netOfEWT, decimal expandedWTaxDebitAmount, decimal cashInBankAmount, IFormFile? file, int? howManyYears, DateTime? startDate)
+        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, decimal[] amount, decimal netOfEWT, decimal expandedWTaxDebitAmount, decimal cashInBankAmount, IFormFile? file, DateTime? startDate, DateTime? endDate)
         {
 
             model.Header.Suppliers = await _dbContext.Suppliers
@@ -297,15 +297,28 @@ namespace Accounting_System.Controllers
                 #region --Saving the default entries
 
                     //CV Header Entry
-                    var list = cvDetails.Where(cv => cv.TransactionNo == generateCVNo);
+                var list = cvDetails.Where(cv => cv.TransactionNo == generateCVNo).ToList();
 
-                    model.Header.SeriesNumber = getLastNumber;
-                    model.Header.CVNo = generateCVNo;
-                    model.Header.CreatedBy = _userManager.GetUserName(this.User);
-                    model.Header.TotalDebit = list.Sum(cvd => cvd.Debit);
-                    model.Header.TotalCredit = list.Sum(cvd => cvd.Credit);
-                    model.Header.StartDate = startDate;
-                
+                model.Header.SeriesNumber = getLastNumber;
+                model.Header.CVNo = generateCVNo;
+                model.Header.CreatedBy = _userManager.GetUserName(this.User);
+                model.Header.TotalDebit = list.Sum(cvd => cvd.Debit);
+                model.Header.TotalCredit = list.Sum(cvd => cvd.Credit);
+                model.Header.StartDate = startDate;
+                model.Header.EndDate = endDate;
+                foreach (var item in list.Where(cvd => cvd.AccountName.Contains("10201")))
+                {
+                    var depreciationAmount = item.Debit != 0 ? item.Debit : item.Credit;
+
+                    int year = model.Header.EndDate.Value.Year - model.Header.StartDate.Value.Year;
+                    int month = model.Header.EndDate.Value.Month - model.Header.StartDate.Value.Month;
+                    int result = (year * 12) + month;
+                    int computationPerMonth = result + 1;
+
+                    var amountPerMonth = depreciationAmount / computationPerMonth;
+                    model.Header.AmountPerMonth = amountPerMonth;
+                }
+
                 if (model.Header.TotalDebit != model.Header.TotalCredit)
                 {
                     TempData["error"] = "The debit and credit should be equal!";
@@ -438,9 +451,9 @@ namespace Accounting_System.Controllers
             }
             return Json(null);
         }
-        public IActionResult GetAutomaticEntry(string howManyYears, DateOnly month)
+        public IActionResult GetAutomaticEntry(DateTime startDate, DateTime? endDate)
         {
-            if (!string.IsNullOrEmpty(howManyYears) && month != default)
+            if (startDate != default && endDate != default)
             {
                 return Json(true);
             }

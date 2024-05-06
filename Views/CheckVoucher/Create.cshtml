@@ -894,8 +894,8 @@
                             title: 'Automatic JV Entry',
                             html:
                                     'Do you want to automatic insert JV entry records based on CV?<br/><br/>' +
-                                'How many years? <br/><input id="inputYears" type="text" class="form-control" placeholder="Enter how many years"><br/>' +
-                                'When to start? <br/><input id="inputMonth" type="month" class="form-control">',
+                                'When to start? <br/><input id="startDate" type="month" class="form-control">' +
+                                'When to end? <br/><input id="endDate" type="month" class="form-control">',
                             allowOutsideClick: false, // Prevent closing on outside click
                             allowEscapeKey: false,  // Prevent closing with Esc key
                             showCancelButton: true,
@@ -903,14 +903,14 @@
                             cancelButtonText: "No, N/A!",
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                    const howManyYears = document.getElementById('inputYears').value;
-                                    const month = document.getElementById('inputMonth').value;
+                                    const startDate = document.getElementById('startDate').value;
+                                    const endDate = document.getElementById('endDate').value;
                                     $("#AddAccEntry").modal("show");
-                                if (howManyYears !== null && month !== null) {
+                                if (startDate !== null && endDate !== null) {
                                     var form = document.getElementById("myform");
 
-                                    form.appendChild(createHiddenInput("howManyYears", howManyYears));
-                                    form.appendChild(createHiddenInput("startMonth", month));
+                                    form.appendChild(createHiddenInput("startDate", startDate));
+                                    form.appendChild(createHiddenInput("endDate", endDate));
                                 } else {
                                     console.error('Invalid');
                                 }
@@ -925,8 +925,8 @@
                             title: 'Automatic JV Entry',
                             html:
                                     'Do you want to automatic insert JV entry records based on CV?<br/><br/>' +
-                                'How many years? <br/><input id="inputYears" type="text" class="form-control" placeholder="Enter how many years"><br/>' +
-                                'When to start? <br/><input id="inputMonth" type="month" class="form-control">',
+                                'When to start? <br/><input id="startDate" type="month" class="form-control">' +
+                                'When to end? <br/><input id="endDate" type="month" class="form-control">',
                             allowOutsideClick: false, // Prevent closing on outside click
                             allowEscapeKey: false,  // Prevent closing with Esc key
                             showCancelButton: true,
@@ -934,14 +934,14 @@
                             cancelButtonText: "No, N/A!",
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                    const howManyYears = document.getElementById('inputYears').value;
-                                    const month = document.getElementById('inputMonth').value;
+                                    const startDate = document.getElementById('startDate').value;
+                                    const endDate = document.getElementById('endDate').value;
                                     $("#AddAccEntry").modal("show");
-                                if (howManyYears !== null && month !== null) {
+                                if (startDate !== null && endDate !== null) {
                                     var form = document.getElementById("myform");
 
-                                    form.appendChild(createHiddenInput("howManyYears", howManyYears));
-                                    form.appendChild(createHiddenInput("startMonth", month));
+                                    form.appendChild(createHiddenInput("startDate", startDate));
+                                    form.appendChild(createHiddenInput("endDate", endDate));
                                 } else {
                                     console.error('Invalid');
                                 }
