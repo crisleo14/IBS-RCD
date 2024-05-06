@@ -96,6 +96,7 @@ namespace Accounting_System.Models
 
         public DateTime? LastCreatedDate { get; set; }
 
+        [Column(TypeName = "numeric(18,2)")]
         public decimal AmountPerMonth { get; set; }
 
         public bool IsComplete { get; set; }
