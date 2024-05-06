@@ -12,6 +12,9 @@ namespace Accounting_System.Models
         public string Date { get; set; }
         public string Reference { get; set; }
 
+        [Display(Name = "Account Number")]
+        public string AccountNo { get; set; }
+
         [Display(Name = "Account Title")]
         public string AccountTitle { get; set; }
 
