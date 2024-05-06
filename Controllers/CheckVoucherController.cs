@@ -306,6 +306,7 @@ namespace Accounting_System.Controllers
                 model.Header.TotalCredit = list.Sum(cvd => cvd.Credit);
                 model.Header.StartDate = startDate;
                 model.Header.EndDate = endDate;
+                int computationPerMonth = 0;
                 foreach (var item in list.Where(cvd => cvd.AccountNo.Contains("10201")))
                 {
                     var depreciationAmount = item.Debit != 0 ? item.Debit : item.Credit;
@@ -313,11 +314,13 @@ namespace Accounting_System.Controllers
                     int year = model.Header.EndDate.Value.Year - model.Header.StartDate.Value.Year;
                     int month = model.Header.EndDate.Value.Month - model.Header.StartDate.Value.Month;
                     int result = (year * 12) + month;
-                    int computationPerMonth = result + 1;
+                    computationPerMonth = result + 1;
 
                     var amountPerMonth = depreciationAmount / computationPerMonth;
                     model.Header.AmountPerMonth = amountPerMonth;
+                    
                 }
+                model.Header.NumberOfMonths = computationPerMonth;
 
                 if (model.Header.TotalDebit != model.Header.TotalCredit)
                 {
