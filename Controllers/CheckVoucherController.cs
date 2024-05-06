@@ -547,6 +547,7 @@ namespace Accounting_System.Controllers
                                     Date = modelHeader.Date.ToShortDateString(),
                                     Reference = modelHeader.CVNo,
                                     Description = modelHeader.Particulars,
+                                    AccountNo = details.AccountNo,
                                     AccountTitle = details.AccountName,
                                     Debit = details.Debit,
                                     Credit = details.Credit,
