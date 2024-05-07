@@ -579,7 +579,7 @@ namespace Accounting_System.Controllers
                                     CheckNo = modelHeader.CheckNo,
                                     CheckDate = modelHeader.CheckDate.ToShortDateString(),
                                     DateCleared = DateTime.Now.ToShortDateString(),
-                                    ChartOfAccount = details.AccountName,
+                                    ChartOfAccount = details.AccountNo + " " +details.AccountName,
                                     Debit = details.Debit,
                                     Credit = details.Credit,
                                     CreatedBy = modelHeader.CreatedBy,
