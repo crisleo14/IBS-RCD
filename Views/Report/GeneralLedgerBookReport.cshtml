@@ -110,7 +110,10 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                         @Html.DisplayFor(model => ledger.Description)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => ledger.AccountTitle)
+                        @{
+                            var accountTitleConcat = $"{ledger.AccountNo + " " + ledger.AccountTitle}";
+                        }
+                        @accountTitleConcat
                     </td>
                     <td class="text-end">
                         @Html.DisplayFor(model => ledger.Debit)
