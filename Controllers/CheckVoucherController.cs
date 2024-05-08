@@ -417,10 +417,10 @@ namespace Accounting_System.Controllers
 
             return Json(null);
         }
-        public IActionResult GetSI(int supplierId)
+        public async Task<IActionResult> GetSI(int supplierId)
         {
-            var supplier = _dbContext.Suppliers
-                .FirstOrDefault(po => po.Id == supplierId);
+            var supplier = await _dbContext.Suppliers
+                .FirstOrDefaultAsync(po => po.Id == supplierId);
 
             if (supplier != null)
             {
@@ -432,10 +432,10 @@ namespace Accounting_System.Controllers
 
             return Json(null);
         }
-        public IActionResult RRBalance(string rrNo)
+        public async Task<IActionResult> RRBalance(string rrNo)
         {
-            var receivingReport = _dbContext.ReceivingReports
-                .FirstOrDefault(rr => rr.RRNo == rrNo);
+            var receivingReport = await _dbContext.ReceivingReports
+                .FirstOrDefaultAsync(rr => rr.RRNo == rrNo);
             if (receivingReport != null)
             {
                 var amount = receivingReport.Amount;
@@ -454,7 +454,7 @@ namespace Accounting_System.Controllers
             }
             return Json(null);
         }
-        public IActionResult GetAutomaticEntry(DateTime startDate, DateTime? endDate)
+        public async Task<IActionResult> GetAutomaticEntry(DateTime startDate, DateTime? endDate)
         {
             if (startDate != default && endDate != default)
             {
