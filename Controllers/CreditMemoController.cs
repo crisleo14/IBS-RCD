@@ -773,6 +773,10 @@ namespace Accounting_System.Controllers
                                     );
                                 }
 
+                                var split = model.StatementOfAccount.Service.CurrentAndPrevious.Split(" ");
+                                var serviceNo = split.First();
+                                var serviceName = split.Last();
+
                                 if (model.CurrentAndPreviousAmount < 0)
                                 {
                                     ledgers.Add(new GeneralLedgerBook
@@ -780,7 +784,8 @@ namespace Accounting_System.Controllers
                                         Date = model.Date.ToShortDateString(),
                                         Reference = model.CMNo,
                                         Description = model.StatementOfAccount.Service.Name,
-                                        AccountTitle = model.StatementOfAccount.Service.CurrentAndPrevious,
+                                        AccountNo = serviceNo,
+                                        AccountTitle = serviceName,
                                         Debit = Math.Abs(model.CurrentAndPreviousAmount / 1.12m),
                                         Credit = 0,
                                         CreatedBy = model.CreatedBy,
@@ -796,7 +801,8 @@ namespace Accounting_System.Controllers
                                             Date = model.Date.ToShortDateString(),
                                             Reference = model.CMNo,
                                             Description = model.StatementOfAccount.Service.Name,
-                                            AccountTitle = model.StatementOfAccount.Service.Unearned,
+                                            AccountNo = serviceNo,
+                                            AccountTitle = serviceName,
                                             Debit = Math.Abs(model.UnearnedAmount / 1.12m),
                                             Credit = 0,
                                             CreatedBy = model.CreatedBy,

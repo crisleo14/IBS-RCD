@@ -668,6 +668,10 @@ namespace Accounting_System.Controllers
                                     );
                                 }
 
+                                var split = model.SOA.Service.CurrentAndPrevious.Split(" ");
+                                var serviceNo = split.First();
+                                var serviceName = split.Last();
+
                                 if (viewModelDMCM.Total > 0)
                                 {
                                     ledgers.Add(new GeneralLedgerBook
@@ -675,7 +679,8 @@ namespace Accounting_System.Controllers
                                         Date = viewModelDMCM.Period.ToShortDateString(),
                                         Reference = model.DMNo,
                                         Description = model.SOA.Service.Name,
-                                        AccountTitle = model.SOA.Service.CurrentAndPrevious,
+                                        AccountNo = serviceNo,
+                                        AccountTitle = serviceName,
                                         Debit = 0,
                                         Credit = viewModelDMCM.Total / 1.12m,
                                         CreatedBy = model.CreatedBy,
