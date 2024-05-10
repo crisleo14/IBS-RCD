@@ -60,7 +60,7 @@ namespace Accounting_System.Controllers
                .ToListAsync(cancellationToken);
 
             viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == "4" || coa.Level == "5")
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
                 {
@@ -95,7 +95,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             model.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == "4" || coa.Level == "5")
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
                 {
@@ -258,7 +258,7 @@ namespace Accounting_System.Controllers
                .ToListAsync(cancellationToken);
 
             viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == "4" || coa.Level == "5")
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
                 {
@@ -301,7 +301,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             model.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == "4" || coa.Level == "5")
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
                 {
@@ -586,7 +586,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == "4" || coa.Level == "5")
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
                 {
@@ -1228,7 +1228,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == "4" || coa.Level == "5")
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
                 {

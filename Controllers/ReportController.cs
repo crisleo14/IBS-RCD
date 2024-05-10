@@ -12,11 +12,13 @@ namespace Accounting_System.Controllers
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly ReportRepo _reportRepo;
+        private readonly ChartOfAccountRepo _chartOfAccountRepo;
 
-        public ReportController(ApplicationDbContext dbContext, ReportRepo reportRepo)
+        public ReportController(ApplicationDbContext dbContext, ReportRepo reportRepo, ChartOfAccountRepo chartOfAccountRepo)
         {
             _dbContext = dbContext;
             _reportRepo = reportRepo;
+            _chartOfAccountRepo = chartOfAccountRepo;
         }
 
         public async Task<IActionResult> SalesBook()
@@ -393,6 +395,21 @@ namespace Accounting_System.Controllers
             var products = await _reportRepo.GetProductsAsync();
 
             return View(products);
+        }
+
+        public IActionResult SummaryOfChartOfAccount(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var summary = _chartOfAccountRepo
+                .GetSummaryReportView(cancellationToken);
+
+                return View(summary.OrderBy(x => x.AccountNumber));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
         }
     }
 }

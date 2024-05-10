@@ -20,7 +20,7 @@ namespace Accounting_System.Models
 
         public string? Type { get; set; }
         public string? Category { get; set; }
-        public string? Level { get; set; } = string.Empty;
+        public int? Level { get; set; }
 
         public string? Parent { get; set; }
 
