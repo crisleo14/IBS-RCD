@@ -96,7 +96,7 @@ namespace Accounting_System.Controllers
 
                     chartOfAccount.Type = existingCoa.Type;
                     chartOfAccount.Category = existingCoa.Category;
-                    chartOfAccount.Level = (Int32.Parse(existingCoa.Level) + 1).ToString();
+                    chartOfAccount.Level = existingCoa.Level + 1;
                     chartOfAccount.Parent = thirdLevel;
                 }
                 else
@@ -113,7 +113,7 @@ namespace Accounting_System.Controllers
 
                     chartOfAccount.Type = existingCoa.Type;
                     chartOfAccount.Category = existingCoa.Category;
-                    chartOfAccount.Level = (Int32.Parse(existingCoa.Level) + 1).ToString();
+                    chartOfAccount.Level = existingCoa.Level + 1;
                     chartOfAccount.Parent = fourthLevel;
                 }
 

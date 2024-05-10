@@ -51,5 +51,49 @@ namespace Accounting_System.Repository
                 return parent + "01";
             }
         }
+
+        public IEnumerable<ChartOfAccountSummary> GetSummaryReportView(CancellationToken cancellationToken = default)
+        {
+            var query = from c in _dbContext.ChartOfAccounts
+                        join gl in _dbContext.GeneralLedgerBooks on c.Number equals gl.AccountNo into glGroup
+                        from gl in glGroup.DefaultIfEmpty()
+                        group new { c, gl } by new { Level = c.Level, AccountNumber = c.Number, AccountName = c.Name, AccountType = c.Type, Parent = c.Parent } into g
+                        select new ChartOfAccountSummary
+                        {
+                            Level = g.Key.Level,
+                            AccountNumber = g.Key.AccountNumber,
+                            AccountName = g.Key.AccountName,
+                            AccountType = g.Key.AccountType,
+                            Parent = g.Key.Parent,
+                            Debit = g.Sum(x => x.gl.Debit),
+                            Credit = g.Sum(x => x.gl.Credit),
+                            Balance = g.Sum(x => x.gl.Debit) - g.Sum(x => x.gl.Credit),
+                            Children = new List<ChartOfAccountSummary>()
+                        };
+
+            // Dictionary to store account information by level and account number (key)
+            var accountDictionary = query.ToDictionary(x => new { x.Level, x.AccountNumber }, x => x);
+
+            // Loop through all levels (ascending order to include level 1)
+            foreach (var level in query.Select(x => x.Level).Distinct().OrderByDescending(x => x))
+            {
+                // Loop through accounts within the current level
+                foreach (var account in accountDictionary.Where(x => x.Key.Level == level))
+                {
+                    // Update parent account if it exists and handle potential null reference
+                    if (account.Value.Parent != null && accountDictionary.TryGetValue(new { Level = level - 1, AccountNumber = account.Value.Parent }, out var parentAccount))
+                    {
+                        parentAccount.Debit += account.Value.Debit;
+                        parentAccount.Credit += account.Value.Credit;
+                        parentAccount.Balance += account.Value.Balance;
+                        parentAccount.Children.Add(account.Value);
+                    }
+                }
+
+            }
+
+            // Return the modified accounts
+            return accountDictionary.Values.Where(x => x.Level == 1);
+        }
     }
 }

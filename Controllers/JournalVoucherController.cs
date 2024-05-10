@@ -65,7 +65,7 @@ namespace Accounting_System.Controllers
             };
 
             viewModel.Header.COA = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == "4" || coa.Level == "5")
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
                 {
@@ -89,7 +89,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Create(JournalVoucherVM? model, CancellationToken cancellationToken, string[] accountNumber, decimal[]? debit, decimal[]? credit)
         {
             model.Header.COA = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == "4" || coa.Level == "5")
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
                 {
