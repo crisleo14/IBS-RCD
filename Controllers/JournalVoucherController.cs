@@ -28,7 +28,7 @@ namespace Accounting_System.Controllers
         }
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
-            var headers = await _dbContext.journalVoucherHeaders
+            var headers = await _dbContext.JournalVoucherHeaders
                 .Include(cvh => cvh.CheckVoucherHeader)
                 .OrderByDescending(jv => jv.Id)
                 .ToListAsync(cancellationToken);
@@ -40,7 +40,7 @@ namespace Accounting_System.Controllers
             foreach (var header in headers)
             {
                 var headerJVNo = header.JVNo;
-                var headerDetails = await _dbContext.journalVoucherDetails.Where(d => d.TransactionNo == headerJVNo).ToListAsync(cancellationToken);
+                var headerDetails = await _dbContext.JournalVoucherDetails.Where(d => d.TransactionNo == headerJVNo).ToListAsync(cancellationToken);
 
                 // Create a new CheckVoucherVM object for each header and its associated details
                 var journalVoucherVM = new JournalVoucherVM
@@ -243,7 +243,7 @@ namespace Accounting_System.Controllers
                 return NotFound();
             }
 
-            var header = await _dbContext.journalVoucherHeaders
+            var header = await _dbContext.JournalVoucherHeaders
                 .Include(cv => cv.CheckVoucherHeader)
                 .FirstOrDefaultAsync(jvh => jvh.Id == id.Value, cancellationToken);
 
@@ -252,7 +252,7 @@ namespace Accounting_System.Controllers
                 return NotFound();
             }
 
-            var details = await _dbContext.journalVoucherDetails
+            var details = await _dbContext.JournalVoucherDetails
                 .Where(jvd => jvd.TransactionNo == header.JVNo)
                 .ToListAsync(cancellationToken);
 
@@ -285,7 +285,7 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Printed(int id, CancellationToken cancellationToken)
         {
-            var jv = await _dbContext.journalVoucherHeaders.FindAsync(id, cancellationToken);
+            var jv = await _dbContext.JournalVoucherHeaders.FindAsync(id, cancellationToken);
             if (jv != null && !jv.IsPrinted)
             {
                 jv.IsPrinted = true;
@@ -296,8 +296,8 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
         {
-            var modelHeader = await _dbContext.journalVoucherHeaders.FindAsync(id, cancellationToken);
-            var modelDetails = await _dbContext.journalVoucherDetails.Where(jvd => jvd.TransactionNo == modelHeader.JVNo).ToListAsync();
+            var modelHeader = await _dbContext.JournalVoucherHeaders.FindAsync(id, cancellationToken);
+            var modelDetails = await _dbContext.JournalVoucherDetails.Where(jvd => jvd.TransactionNo == modelHeader.JVNo).ToListAsync();
 
             if (modelHeader != null)
             {
@@ -373,7 +373,7 @@ namespace Accounting_System.Controllers
         }
         public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.journalVoucherHeaders.FindAsync(id, cancellationToken);
+            var model = await _dbContext.JournalVoucherHeaders.FindAsync(id, cancellationToken);
 
             if (model != null)
             {
@@ -404,7 +404,7 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Cancel(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.journalVoucherHeaders.FindAsync(id, cancellationToken);
+            var model = await _dbContext.JournalVoucherHeaders.FindAsync(id, cancellationToken);
 
             if (model != null)
             {
