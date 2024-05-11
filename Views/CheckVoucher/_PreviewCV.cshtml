@@ -73,6 +73,8 @@
                                     <td>
                                     @if (Model.Header.SINo != null)
                                     {
+                                        @if (Model.Header.Category == "Non-Trade")
+                                    {
                                         @for (int i = 0; i < Model.Header.SINo.Length; i++)
                                         {
                                             if (i != Model.Header.SINo.Length - 1)
@@ -84,6 +86,23 @@
                                                 <span>@Model.Header.SINo[i]</span>
                                             }
                                         }
+                                    }
+                                    else if (Model.Header.Category == "Trade")
+                                    {
+                                        bool isFirst = true;
+                                        foreach (var item in ViewBag.SINoArray)
+                                        {
+                                            if (isFirst)
+                                            {
+                                                isFirst = false;
+                                            }
+                                            else
+                                            {
+                                                <span>,</span>
+                                            }
+                                            <span>@item</span>
+                                        }
+                                    }
                                     }
                                 </td>
                                 </tr>
@@ -106,7 +125,7 @@
                             <tbody>
                                 <tr>
                                     <td style="width:15%; padding-left:20px;">Payee :</td>
-                                    <td style="width:65%;">@Html.DisplayFor(model => model.Header.Supplier.Name)</td>
+                                    <td style="width:65%;">@Html.DisplayFor(model => model.Header.Payee)</td>
                                     <td class="text-end">@Model.Header.Amount</td>
                                 </tr>
                                 <tr>

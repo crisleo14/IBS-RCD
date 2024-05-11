@@ -62,7 +62,7 @@ namespace Accounting_System.Repository
                                         JVReason = "Depreciation",
                                         Particulars = $"Depreciation of : CV Particulars {cv.Particulars} for the month of {DateTime.Now:MMMM yyyy}.",
                                         Date = DateOnly.FromDateTime(DateTime.Now),
-                                        CreatedBy = "System Generated",
+                                        CreatedBy = cv.CreatedBy,
                                         CreatedDate = DateTime.Now
                                     };
 
