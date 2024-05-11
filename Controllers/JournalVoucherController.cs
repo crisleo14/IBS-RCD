@@ -309,56 +309,50 @@ namespace Accounting_System.Controllers
 
                     #region --General Ledger Book Recording(CV)--
 
-                    //var ledgers = new List<GeneralLedgerBook>();
-                    //foreach (var details in modelDetails)
-                    //{
-                    //    ledgers.Add(
-                    //            new GeneralLedgerBook
-                    //            {
-                    //                Date = modelHeader.Date.ToShortDateString(),
-                    //                Reference = modelHeader.JVNo,
-                    //                Description = modelHeader.Particulars,
-                    //                AccountTitle = details.AccountName,
-                    //                Debit = details.Debit,
-                    //                Credit = details.Credit,
-                    //                CreatedBy = modelHeader.CreatedBy,
-                    //                CreatedDate = modelHeader.CreatedDate
-                    //            }
-                    //        );
-                    //}
+                    var ledgers = new List<GeneralLedgerBook>();
+                    foreach (var details in modelDetails)
+                    {
+                        ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = modelHeader.Date.ToShortDateString(),
+                                    Reference = modelHeader.JVNo,
+                                    Description = modelHeader.Particulars,
+                                    AccountNo = details.AccountNo,
+                                    AccountTitle = details.AccountName,
+                                    Debit = details.Debit,
+                                    Credit = details.Credit,
+                                    CreatedBy = modelHeader.CreatedBy,
+                                    CreatedDate = modelHeader.CreatedDate
+                                }
+                            );
+                    }
 
-                    //await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
+                    await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
 
                     #endregion --General Ledger Book Recording(CV)--
 
                     #region --Disbursement Book Recording(CV)--
 
-                    //var disbursement = new List<DisbursementBook>();
-                    //foreach (var details in modelDetails)
-                    //{
-                    //    var bank = _dbContext.BankAccounts.FirstOrDefault(model => model.Id == modelHeader.BankId);
-                    //    disbursement.Add(
-                    //            new DisbursementBook
-                    //            {
-                    //                Date = modelHeader.Date.ToShortDateString(),
-                    //                CVNo = modelHeader.CVNo,
-                    //                Payee = modelHeader.Payee,
-                    //                Amount = modelHeader.Amount,
-                    //                Particulars = modelHeader.Particulars,
-                    //                Bank = bank.Branch,
-                    //                CheckNo = modelHeader.CheckNo,
-                    //                CheckDate = modelHeader.CheckDate.ToShortDateString(),
-                    //                DateCleared = DateTime.Now.ToShortDateString(),
-                    //                ChartOfAccount = details.AccountName,
-                    //                Debit = details.Debit,
-                    //                Credit = details.Credit,
-                    //                CreatedBy = modelHeader.CreatedBy,
-                    //                CreatedDate = modelHeader.CreatedDate
-                    //            }
-                    //        );
-                    //}
+                    var journalBook = new List<JournalBook>();
+                    foreach (var details in modelDetails)
+                    {
+                        journalBook.Add(
+                                new JournalBook
+                                {
+                                    Date = modelHeader.Date.ToShortDateString(),
+                                    Reference = modelHeader.JVNo,
+                                    Description = modelHeader.Particulars,
+                                    AccountTitle = details.AccountNo + " " + details.AccountName,
+                                    Debit = details.Debit,
+                                    Credit = details.Credit,
+                                    CreatedBy = modelHeader.CreatedBy,
+                                    CreatedDate = modelHeader.CreatedDate
+                                }
+                            );
+                    }
 
-                    //await _dbContext.DisbursementBooks.AddRangeAsync(disbursement, cancellationToken);
+                    await _dbContext.JournalBooks.AddRangeAsync(journalBook, cancellationToken);
 
                     #endregion --Disbursement Book Recording(CV)--
 
