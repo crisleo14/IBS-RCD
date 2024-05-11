@@ -30,6 +30,7 @@ namespace Accounting_System.Controllers
         {
             var headers = await _dbContext.JournalVoucherHeaders
                 .Include(cvh => cvh.CheckVoucherHeader)
+                .ThenInclude(supplier => supplier.Supplier)
                 .OrderByDescending(jv => jv.Id)
                 .ToListAsync(cancellationToken);
 
@@ -245,6 +246,7 @@ namespace Accounting_System.Controllers
 
             var header = await _dbContext.JournalVoucherHeaders
                 .Include(cv => cv.CheckVoucherHeader)
+                .ThenInclude(supplier => supplier.Supplier)
                 .FirstOrDefaultAsync(jvh => jvh.Id == id.Value, cancellationToken);
 
             if (header == null)
