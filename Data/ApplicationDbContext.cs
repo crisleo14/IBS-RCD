@@ -30,8 +30,8 @@ namespace Accounting_System.Data
         public DbSet<CheckVoucherHeader> CheckVoucherHeaders { get; set; }
         public DbSet<CheckVoucherDetail> CheckVoucherDetails { get; set; }
         public DbSet<Offsetting> Offsettings { get; set; }
-        public DbSet<JournalVoucherHeader> journalVoucherHeaders { get; set; }
-        public DbSet<JournalVoucherDetail> journalVoucherDetails { get; set; }
+        public DbSet<JournalVoucherHeader> JournalVoucherHeaders { get; set; }
+        public DbSet<JournalVoucherDetail> JournalVoucherDetails { get; set; }
 
         // Book Context
         public DbSet<CashReceiptBook> CashReceiptBooks { get; set; }

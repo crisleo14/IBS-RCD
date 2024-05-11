@@ -16,14 +16,14 @@ namespace Accounting_System.Repository
         public async Task<List<JournalVoucherHeader>> GetJournalVouchers(CancellationToken cancellationToken = default)
         {
             return await _dbContext
-                .journalVoucherHeaders
+                .JournalVoucherHeaders
                 .OrderByDescending(cv => cv.Id)
                 .ToListAsync(cancellationToken);
         }
         public async Task<string> GenerateJVNo(CancellationToken cancellationToken = default)
         {
             var journalVoucher = await _dbContext
-                .journalVoucherHeaders
+                .JournalVoucherHeaders
                 .OrderByDescending(j => j.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -40,7 +40,7 @@ namespace Accounting_System.Repository
         public async Task<long> GetLastSeriesNumberJV(CancellationToken cancellationToken = default)
         {
             var lastNumber = await _dbContext
-                .journalVoucherHeaders
+                .JournalVoucherHeaders
                 .OrderByDescending(j => j.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 
