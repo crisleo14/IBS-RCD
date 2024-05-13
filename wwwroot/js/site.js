@@ -49,6 +49,7 @@ $(document).ready(function () {
     var table = $('#myOwnTable').DataTable({
         "stateSave": true
     });
+    table.order([0, 'desc']).draw();
 });
 
 
