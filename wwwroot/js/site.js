@@ -47,7 +47,8 @@ $(document).ready(function () {
 //myOwnTable in Print Invoice report
 $(document).ready(function () {
     var table = $('#myOwnTable').DataTable({
-        "stateSave": true
+        "stateSave": true,
+        "autoWidth": false
     });
     table.order([0, 'desc']).draw();
 });

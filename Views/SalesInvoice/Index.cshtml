@@ -12,25 +12,22 @@
         <table class="table table-hover" id="myOwnTable">
         <thead>
             <tr class="text-nowrap">
-                <th class="text-primary">
+                <th>
                         @Html.DisplayNameFor(model => model.SINo)
                 </th>
-                <th class="text-primary">
-                    @Html.DisplayNameFor(model => model.CustomerId)
-                </th>
-                <th class="text-primary">
+                <th>
                     @Html.DisplayNameFor(model => model.SoldTo)
                 </th>
-                <th class="text-primary">
+                <th>
                     @Html.DisplayNameFor(model => model.TransactionDate)
                 </th>
-                <th class="text-primary">
+                <th>
                     @Html.DisplayNameFor(model => model.Terms)
                 </th>
-                <th class="text-primary">
+                <th>
                     @Html.DisplayNameFor(model => model.Amount)
                 </th>
-                <th class="text-primary"></th>
+                <th style="width:300px;"></th>
             </tr>
         </thead>
         <tbody>
@@ -39,9 +36,6 @@
                 <tr class="align-text-bottom">
                     <td>
                             @Html.DisplayFor(model => invoice.SINo)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => invoice.CustomerId)
                     </td>
                     <td>
                         @Html.DisplayFor(model => invoice.SoldTo)

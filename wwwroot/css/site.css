@@ -118,3 +118,13 @@ input[type=number] {
     color:red;
     margin-left:2px;
 }
+
+#myOwnTable {
+    table-layout: fixed;
+}
+
+#myOwnTable td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
