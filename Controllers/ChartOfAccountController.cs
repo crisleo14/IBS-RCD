@@ -9,9 +9,11 @@ using Accounting_System.Data;
 using Accounting_System.Models;
 using Microsoft.AspNetCore.Identity;
 using Accounting_System.Repository;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Accounting_System.Controllers
 {
+    [Authorize]
     public class ChartOfAccountController : Controller
     {
         private readonly ApplicationDbContext _dbContext;

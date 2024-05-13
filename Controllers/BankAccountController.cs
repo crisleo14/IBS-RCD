@@ -1,6 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,7 @@ using System.Threading;
 
 namespace Accounting_System.Controllers
 {
+    [Authorize]
     public class BankAccountController : Controller
     {
         private readonly ApplicationDbContext _dbContext;

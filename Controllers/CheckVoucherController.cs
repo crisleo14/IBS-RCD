@@ -1,6 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +12,7 @@ using System.Linq;
 
 namespace Accounting_System.Controllers
 {
+    [Authorize]
     public class CheckVoucherController : Controller
     {
         private readonly ApplicationDbContext _dbContext;
