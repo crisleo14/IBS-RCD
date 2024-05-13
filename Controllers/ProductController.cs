@@ -29,7 +29,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             return _context.Products != null ?
-                        View(await _context.Products.OrderBy(p => p.Id).ToListAsync(cancellationToken)) :
+                        View(await _context.Products.OrderByDescending(p => p.Id).ToListAsync(cancellationToken)) :
                         Problem("Entity set 'ApplicationDbContext.Products'  is null.");
         }
 

@@ -36,7 +36,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             return _context.Suppliers != null ?
-                        View(await _context.Suppliers.OrderBy(s => s.Id).ToListAsync(cancellationToken)) :
+                        View(await _context.Suppliers.OrderByDescending(s => s.Id).ToListAsync(cancellationToken)) :
                         Problem("Entity set 'ApplicationDbContext.Suppliers'  is null.");
         }
 
