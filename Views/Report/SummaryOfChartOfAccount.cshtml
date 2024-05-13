@@ -59,7 +59,7 @@
                             {
                                 foreach (var fourthLevel in thirdLevel.Children.Where(x => x.Balance != 0))
                                 {
-                                    <tr class="fourth-level" style="display: none;" title="Click to expand/collapse">
+                                    <tr class="fourth-level" style="display: none;" onclick="toggleSubAccount(this)" title="Click to expand/collapse">
                                         <td style="padding-left: 60px;">
                                             <span class="account-name">
                                                 <i class="bi bi-arrow-return-right"></i> @fourthLevel.AccountNumber - @fourthLevel.AccountName
@@ -69,6 +69,23 @@
                                         <td>@fourthLevel.Credit.ToString("N2")</td>
                                         <td>@fourthLevel.Balance.ToString("N2")</td>
                                     </tr>
+
+                                    if (fourthLevel.Children.Any(c => c.Balance != 0))
+                                    {
+                                        foreach (var fifthLevel in fourthLevel.Children.Where(x => x.Balance != 0))
+                                        {
+                                            <tr class="fifth-level" style="display: none;" title="Click to expand/collapse">
+                                                <td style="padding-left: 80px;">
+                                                    <span class="account-name">
+                                                        <i class="bi bi-arrow-return-right"></i> @fifthLevel.AccountNumber - @fifthLevel.AccountName
+                                                    </span>
+                                                </td>
+                                                <td>@fifthLevel.Debit.ToString("N2")</td>
+                                                <td>@fifthLevel.Credit.ToString("N2")</td>
+                                                <td>@fifthLevel.Balance.ToString("N2")</td>
+                                            </tr>
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -91,8 +108,11 @@
             else if (nextRows.classList.contains('third-level')) {
                 childRows = row.parentNode.querySelectorAll('.' + row.classList[0] + ' ~ .third-level');
             }
-            else {
+            else if (nextRows.classList.contains('fourth-level')) {
                 childRows = row.parentNode.querySelectorAll('.' + row.classList[0] + ' ~ .fourth-level');
+            }
+            else {
+                childRows = row.parentNode.querySelectorAll('.' + row.classList[0] + ' ~ .fifth-level');
             }
             childRows.forEach(childRow => {
                 childRow.style.display = childRow.style.display === 'none' ? 'table-row' : 'none';
