@@ -1,9 +1,11 @@
 ﻿using Accounting_System.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Controllers
 {
+    [Authorize]
     public class InventoryController : Controller
     {
         private readonly ApplicationDbContext _dbContext;

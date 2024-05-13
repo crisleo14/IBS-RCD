@@ -8,9 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using Accounting_System.Data;
 using Accounting_System.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Accounting_System.Controllers
 {
+    [Authorize]
     public class ProductController : Controller
     {
         private readonly ApplicationDbContext _context;
