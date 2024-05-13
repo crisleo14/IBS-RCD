@@ -646,20 +646,25 @@
                             method: "GET",
                             data: { rrNo: rrNo },
                             success: function (data) {
-                                if (data.balance !== null) {
-                                    //compute balance
-                                    $("#balance_" + rrNo).text(data.balance.toFixed(2));
-                                    var netOfVat = data.balance / 1.12;
-                                    $("#NetOfVat_" + rrNo).text(netOfVat.toFixed(2));
-                                    var vat = netOfVat * 0.12;
-                                    $("#Vat_" + rrNo).text(vat.toFixed(2));
-                                    var ewt = netOfVat * 0.01;
-                                    $("#EWT_" + rrNo).text(ewt.toFixed(2));
-                                    var netOfVat = data.balance - ewt;
-                                    $("#RRAmountNetOfEWT_" + rrNo).text(netOfVat.toFixed(2));
+                                if (data.balance !== null) {                              
+                                    $("#paymentAmount_" + rrNo).on('input', function () {
+                                        var inputValue = $(this).val();
+                                        var balance = data.amount - inputValue;
 
-                                    // Recalculate grand total of computted balance
-                                    calculateGrandTotal();
+                                        var netOfVat = balance / 1.12;
+                                        var vat = netOfVat * 0.12;
+                                        var ewt = netOfVat * 0.01;
+                                        var rrAmountNetOfEWT = balance - ewt;
+
+                                        $("#balance_" + rrNo).text(balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                                        $("#NetOfVat_" + rrNo).text(netOfVat.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                                        $("#Vat_" + rrNo).text(vat.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                                        $("#EWT_" + rrNo).text(ewt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                                        $("#RRAmountNetOfEWT_" + rrNo).text(rrAmountNetOfEWT.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+                                        //Recalculate grand Total computted
+                                        calculateGrandTotal();
+                                    });
                                 }
                                 if (data !== null) {
                                     //compute / show existing RR
@@ -683,6 +688,7 @@
             });
         });
 
+        //Compute Grand Total Balance
         function calculateGrandTotal() {
             var grandTotal = 0;
             var grandTotalNetOfVat = 0;
