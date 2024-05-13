@@ -93,7 +93,6 @@ namespace Accounting_System.Repository
                 .CollectionReceipts
                 .Include(cr => cr.SalesInvoice)
                 .ThenInclude(s => s.Customer)
-                .OrderByDescending(cr => cr.Id)
                 .ToListAsync(cancellationToken);
         }
 
@@ -105,7 +104,6 @@ namespace Accounting_System.Repository
                 .ThenInclude(s => s.Service)
                 .Include(soa => soa.StatementOfAccount)
                 .ThenInclude(c => c.Customer)
-                .OrderByDescending(cr => cr.Id)
                 .ToListAsync(cancellationToken);
         }
 

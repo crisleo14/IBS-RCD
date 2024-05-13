@@ -35,7 +35,6 @@ namespace Accounting_System.Controllers
                 .ThenInclude(s => s.Supplier)
                 .Include(p => p.PurchaseOrder)
                 .ThenInclude(prod => prod.Product)
-                .OrderByDescending(r => r.Id)
                 .ToListAsync(cancellationToken);
 
             return View(rr);

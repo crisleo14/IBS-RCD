@@ -19,7 +19,6 @@ namespace Accounting_System.Repository
             return await _dbContext
                 .SalesInvoices
                 .Include(c => c.Customer)
-                .OrderByDescending(s => s.Id)
                 .ToListAsync(cancellationToken);
         }
 

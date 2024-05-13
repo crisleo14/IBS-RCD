@@ -17,7 +17,6 @@ namespace Accounting_System.Repository
         {
             return await _dbContext
                 .BankAccounts
-                .OrderByDescending(b => b.Id)
                 .ToListAsync(cancellationToken);
         }
 
