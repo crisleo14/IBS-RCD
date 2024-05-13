@@ -33,7 +33,6 @@ namespace Accounting_System.Controllers
                 .ThenInclude(soa => soa.Customer)
                 .Include(cm => cm.StatementOfAccount)
                 .ThenInclude(soa => soa.Service)
-                .OrderByDescending(cm => cm.Id) 
                 .ToListAsync(cancellationToken);
 
             return View(cm);

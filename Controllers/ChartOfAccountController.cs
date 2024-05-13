@@ -33,7 +33,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             return _dbContext.ChartOfAccounts != null ?
-                        View(await _dbContext.ChartOfAccounts.OrderByDescending(coa => coa.Number).ToListAsync(cancellationToken)) :
+                        View(await _dbContext.ChartOfAccounts.ToListAsync(cancellationToken)) :
                         Problem("Entity set 'ApplicationDbContext.ChartOfAccounts'  is null.");
         }
 

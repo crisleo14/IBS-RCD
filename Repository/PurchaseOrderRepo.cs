@@ -19,7 +19,6 @@ namespace Accounting_System.Repository
                 .PurchaseOrders
                 .Include(p => p.Supplier)
                 .Include(p => p.Product)
-                .OrderByDescending(s => s.Id)
                 .ToListAsync(cancellationToken);
         }
 

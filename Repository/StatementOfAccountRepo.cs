@@ -18,7 +18,6 @@ namespace Accounting_System.Repository
         {
             return await _dbContext
                 .StatementOfAccounts
-                .OrderByDescending(a => a.Id)
                 .Include(soa => soa.Customer)
                 .Include(soa => soa.Service)
                 .ToListAsync(cancellationToken);

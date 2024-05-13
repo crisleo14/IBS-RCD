@@ -33,7 +33,6 @@ namespace Accounting_System.Controllers
             var headers = await _dbContext.JournalVoucherHeaders
                 .Include(cvh => cvh.CheckVoucherHeader)
                 .ThenInclude(supplier => supplier.Supplier)
-                .OrderByDescending(jv => jv.Id)
                 .ToListAsync(cancellationToken);
 
             // Create a list to store CheckVoucherVM objectssw
