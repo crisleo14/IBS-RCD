@@ -26,5 +26,9 @@ namespace Accounting_System.Models
 
         [Display(Name = "Created Date")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        public string? AccountNoCOA { get; set; }
+
+        public long SeriesNumber { get; set; }
     }
 }
