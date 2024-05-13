@@ -134,6 +134,8 @@ namespace Accounting_System.Controllers
                 var generateJVNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken);
                 var cvDetails = new List<JournalVoucherDetail>();
 
+                var totalDebit = 0m;
+                var totalCredit = 0m;
                 for (int i = 0; i < accountNumber.Length; i++)
                 {
                     var currentAccountNumber = accountNumber[i];
@@ -141,6 +143,8 @@ namespace Accounting_System.Controllers
                         .FirstOrDefaultAsync(coa => coa.Number == currentAccountNumber);
                     var currentDebit = debit[i];
                     var currentCredit = credit[i];
+                     totalDebit += debit[i];
+                     totalCredit += credit[i];
 
                     cvDetails.Add(
                         new JournalVoucherDetail
@@ -152,6 +156,11 @@ namespace Accounting_System.Controllers
                             Credit = currentCredit
                         }
                     );
+                }
+                if (totalDebit != totalCredit)
+                {
+                    TempData["error"] = "The debit and credit should be equal!";
+                    return View(model);
                 }
 
                 await _dbContext.AddRangeAsync(cvDetails, cancellationToken);
