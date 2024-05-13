@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using System.Linq;
 
 namespace Accounting_System.Controllers
@@ -44,6 +45,21 @@ namespace Accounting_System.Controllers
                 var headerCVNo = header.CVNo;
                 var headerDetails = await _dbContext.CheckVoucherDetails.Where(d => d.TransactionNo == headerCVNo).ToListAsync(cancellationToken);
 
+                if (header.Category == "Trade")
+                {
+                    var siArray = new string[header.RRNo.Length];
+                    for (int i = 0; i < header.RRNo.Length; i++)
+                    {
+                        var rrValue = header.RRNo[i];
+
+                        var rr = await _dbContext.ReceivingReports
+                                    .FirstOrDefaultAsync(p => p.RRNo == rrValue);
+
+                        siArray[i] = rr.SupplierInvoiceNumber;
+                    }
+
+                    ViewBag.SINoArray = siArray;
+                }
                 // Create a new CheckVoucherVM object for each header and its associated details
                 var checkVoucherVM = new CheckVoucherVM
                 {
@@ -94,7 +110,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, decimal[] amount, decimal netOfEWT, decimal expandedWTaxDebitAmount, decimal cashInBankAmount, IFormFile? file, DateTime? startDate, DateTime? endDate)
+        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, decimal[] amount, decimal netOfEWT, decimal expandedWTaxDebitAmount, decimal cashInBankAmount, IFormFile? file, DateTime? startDate, DateTime? endDate, string? accountNoAndTitle)
         {
 
             model.Header.Suppliers = await _dbContext.Suppliers
@@ -260,11 +276,21 @@ namespace Accounting_System.Controllers
                     );
                 }
 
+                string accountNo = "";
+                string accountName = "";
+                if (accountNoAndTitle != null)
+                {
+                    string[] words = accountNoAndTitle.Split(" ");
+                    string[] remainingWords = words.Skip(1).ToArray();
+                     accountNo = words.First();
+                     accountName = string.Join(" ", remainingWords);
+                }
+                
                 cvDetails.Add(
                     new CheckVoucherDetail
                     {
-                        AccountNo = "1010101",
-                        AccountName = "Cash in Bank",
+                        AccountNo = accountNo,
+                        AccountName = accountName,
                         TransactionNo = generateCVNo,
                         Debit = 0,
                         Credit = cashInBankAmount
@@ -454,6 +480,17 @@ namespace Accounting_System.Controllers
             }
             return Json(null);
         }
+
+        public async Task<IActionResult> GetBankAccount(int bankId)
+        {
+            if (bankId != 0)
+            {
+                var existingBankAccount = await _dbContext.BankAccounts.FindAsync(bankId);
+                return Json ( new { AccountNoCOA = existingBankAccount.AccountNoCOA, AccountNo = existingBankAccount.AccountNo, AccountName = existingBankAccount.AccountName });
+            }
+            return Json(null);
+        }
+
         public async Task<IActionResult> GetAutomaticEntry(DateTime startDate, DateTime? endDate)
         {
             if (startDate != default && endDate != default)
