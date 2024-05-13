@@ -37,11 +37,52 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(BankAccount model)
+        public async Task<IActionResult> Create(BankAccount model, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
+                var checkLastAccountNo = await _dbContext
+                .BankAccounts
+                .OrderBy(bank => bank.Id)
+                .LastOrDefaultAsync(cancellationToken);
+
+                #region -- Generate AccountNo --
+                var generatedAccountNo = 0L;
+                if (checkLastAccountNo != null)
+                {
+                    // Increment the last serial by one and return it
+                    generatedAccountNo = checkLastAccountNo.SeriesNumber + 1L;
+                }
+                else
+                {
+                    // If there are no existing records, you can start with a default value like 1
+                    generatedAccountNo = 1L;
+                }
+                model.SeriesNumber = generatedAccountNo;
+                model.AccountNoCOA = "1010101" + generatedAccountNo.ToString("D2");
+                #endregion -- Generate AccountNo --
+
                 model.CreatedBy = _userManager.GetUserName(this.User);
+
+                #region -- COA Entry --
+
+                var coa = new ChartOfAccount
+                {
+                    IsMain = false,
+                    Number = model.AccountNoCOA,
+                    Name = "Cash in Bank" + " - " + model.AccountNo + " " + model.AccountName,
+                    Type = "Asset",
+                    Category = "Debit",
+                    Parent = "1010101",
+                    CreatedBy = _userManager.GetUserName(this.User),
+                    CreatedDate = DateTime.Now,
+                    Level = 5
+                };
+
+                await _dbContext.ChartOfAccounts.AddAsync(coa, cancellationToken);
+
+                #endregion -- COA Entry --
+
                 _dbContext.Add(model);
                 _dbContext.SaveChanges();
                 TempData["success"] = "Successfully created";
