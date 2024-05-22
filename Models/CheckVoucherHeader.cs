@@ -41,28 +41,23 @@ namespace Accounting_System.Models
         [NotMapped]
         public List<SelectListItem>? Suppliers { get; set; }
 
-        [Display(Name = "Total Amount")]
         public decimal Amount { get; set; }
 
-        [Display(Name = "Amount in Words")]
-        public string? AmountInWords { get; set; }
-
-        public string Particulars { get; set; }
+        public string? Particulars { get; set; }
 
         [Display(Name = "Bank Account Name")]
-        public int BankId { get; set; }
+        public int? BankId { get; set; }
         [ForeignKey("BankId")]
         public BankAccount? BankAccount { get; set; }
 
         [Display(Name = "Check #")]
-        [Required(ErrorMessage = "The field is required")]
         [RegularExpression(@"^(?:\d{10,}|DM\d{10})$", ErrorMessage = "Invalid format. Please enter either a 'DM' followed by a 10-digits or CV number minimum 10 digits.")]
-        public string CheckNo { get; set; }
+        public string? CheckNo { get; set; }
 
         public string Category { get; set; }
 
         [Display(Name = "Payee")]
-        public string Payee { get; set; }
+        public string? Payee { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? BankAccounts { get; set; }
@@ -100,5 +95,14 @@ namespace Accounting_System.Models
         public decimal AmountPerMonth { get; set; }
 
         public bool IsComplete { get; set; }
+
+        public string? AccruedType { get; set; }
+
+        public string? Reference { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? CheckVouchers { get; set; }
+
+        public long Sequence { get; set; }
     }
 }
