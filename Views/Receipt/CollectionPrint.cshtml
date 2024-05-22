@@ -158,7 +158,7 @@
                 <td class="text-center"></td>
                 <td class="text-center"></td>
                 <td class="text-center">
-                    @if (Model.CashAmount != null)
+                    @if (Model.CashAmount != 0)
                     {
                         <p style="height: 9px;">@Html.DisplayFor(model => model.CashAmount)</p>
                     }
@@ -336,9 +336,9 @@
     <p @* style="line-height: 1;" *@>
         <em class="p-4"><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong><br /></em>
         <span>Acknowledgement Certificate No:</span>
-        <span style="display: inline-block;">AC_124_112023_000090</span>
+        <span style="display: inline-block;"></span>
         <span>&nbsp;&nbsp;Date Issued:</span>
-        <span style="display: inline-block;">November 28, 2023</span><br />
+        <span style="display: inline-block;"></span><br />
         Series: CR0000000001 - CR9999999999
         Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
     </p>
