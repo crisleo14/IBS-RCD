@@ -1,32 +1,31 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Microsoft.EntityFrameworkCore;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 namespace Accounting_System.Repository
 {
-    public class StatementOfAccountRepo
+    public class ServiceInvoiceRepo
     {
         private readonly ApplicationDbContext _dbContext;
 
-        public StatementOfAccountRepo(ApplicationDbContext dbContext)
+        public ServiceInvoiceRepo(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
         }
 
-        public async Task<List<StatementOfAccount>> GetSOAListAsync(CancellationToken cancellationToken = default)
+        public async Task<List<ServiceInvoice>> GetSvListAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext
-                .StatementOfAccounts
-                .Include(soa => soa.Customer)
-                .Include(soa => soa.Service)
+                .ServiceInvoices
+                .Include(sv => sv.Customer)
+                .Include(sv => sv.Service)
                 .ToListAsync(cancellationToken);
         }
 
         public async Task<long> GetLastSeriesNumber(CancellationToken cancellationToken = default)
         {
             var lastInvoice = await _dbContext
-                .StatementOfAccounts
+                .ServiceInvoices
                 .OrderByDescending(s => s.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -42,17 +41,17 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<string> GenerateSOANo(CancellationToken cancellationToken = default)
+        public async Task<string> GenerateSvNo(CancellationToken cancellationToken = default)
         {
-            var statementOfAccount = await _dbContext
-                .StatementOfAccounts
+            var serviceInvoice = await _dbContext
+                .ServiceInvoices
                 .OrderByDescending(s => s.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (statementOfAccount != null)
+            if (serviceInvoice != null)
             {
-                var generatedSOA = statementOfAccount.SeriesNumber + 1;
-                return $"SV{generatedSOA.ToString("D10")}";
+                var generatedInvoice = serviceInvoice.SeriesNumber + 1;
+                return $"SV{generatedInvoice.ToString("D10")}";
             }
             else
             {
@@ -60,17 +59,17 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<StatementOfAccount> FindSOA(int id, CancellationToken cancellationToken = default)
+        public async Task<ServiceInvoice> FindSv(int id, CancellationToken cancellationToken = default)
         {
-            var statementOfAccount = await _dbContext
-                .StatementOfAccounts
+            var serviceInvoice = await _dbContext
+                .ServiceInvoices
                 .Include(s => s.Customer)
                 .Include(s => s.Service)
                 .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
 
-            if (statementOfAccount != null)
+            if (serviceInvoice != null)
             {
-                return statementOfAccount;
+                return serviceInvoice;
             }
             else
             {
@@ -78,7 +77,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<Services> GetServicesAsync(int id, CancellationToken  cancellationToken = default)
+        public async Task<Services> GetServicesAsync(int id, CancellationToken cancellationToken = default)
         {
             var services = await _dbContext
                 .Services

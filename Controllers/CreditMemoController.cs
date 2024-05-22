@@ -49,12 +49,12 @@ namespace Accounting_System.Controllers
                     Text = si.SINo
                 })
                 .ToListAsync(cancellationToken);
-            viewModel.Soa = await _dbContext.StatementOfAccounts
+            viewModel.Soa = await _dbContext.ServiceInvoices
                 .Where(soa => soa.IsPosted)
                 .Select(soa => new SelectListItem
                 {
                     Value = soa.Id.ToString(),
-                    Text = soa.SOANo
+                    Text = soa.SVNo
                 })
                 .ToListAsync(cancellationToken);
 
@@ -73,12 +73,12 @@ namespace Accounting_System.Controllers
                     Text = si.SINo
                 })
                 .ToListAsync(cancellationToken);
-            model.Soa = await _dbContext.StatementOfAccounts
+            model.Soa = await _dbContext.ServiceInvoices
                 .Where(soa => soa.IsPosted)
                 .Select(soa => new SelectListItem
                 {
                     Value = soa.Id.ToString(),
-                    Text = soa.SOANo
+                    Text = soa.SVNo
                 })
                 .ToListAsync(cancellationToken);
 
@@ -186,14 +186,14 @@ namespace Accounting_System.Controllers
                     {
                         model.TotalSales = model.CreditAmount;
                     }
-                    
+
                 }
                 else if (model.Source == "Statement Of Account")
                 {
                     model.SIId = null;
                     model.SOANo = await _creditMemoRepo.GetSOANoAsync(model.SOAId, cancellationToken);
 
-                    var existingSoa = await _dbContext.StatementOfAccounts
+                    var existingSoa = await _dbContext.ServiceInvoices
                         .Include(soa => soa.Customer)
                         .FirstOrDefaultAsync(soa => soa.Id == model.SOAId, cancellationToken);
 
@@ -222,7 +222,7 @@ namespace Accounting_System.Controllers
                     #endregion ----CM Entries function
 
                     model.CreditAmount = model.CurrentAndPreviousAmount;
-                    
+
 
                     if (existingSoa.Customer.CustomerType == "Vatable")
                     {
@@ -273,11 +273,11 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
 
-            creditMemo.Soa = await _dbContext.StatementOfAccounts
+            creditMemo.Soa = await _dbContext.ServiceInvoices
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
-                    Text = s.SOANo
+                    Text = s.SVNo
                 })
                 .ToListAsync(cancellationToken);
 
@@ -325,7 +325,7 @@ namespace Accounting_System.Controllers
                     existingModel.SIId = null;
                     existingModel.SOAId = model.SOAId;
 
-                    var existingSoa = await _dbContext.StatementOfAccounts
+                    var existingSoa = await _dbContext.ServiceInvoices
                         .Include(soa => soa.Customer)
                         .FirstOrDefaultAsync(soa => soa.Id == existingModel.SOAId, cancellationToken);
 
@@ -601,7 +601,7 @@ namespace Accounting_System.Controllers
 
                     if (model.SOAId != null)
                     {
-                        var existingSOA = await _dbContext.StatementOfAccounts
+                        var existingSOA = await _dbContext.ServiceInvoices
                                                 .Include(soa => soa.Customer)
                                                 .FirstOrDefaultAsync(si => si.Id == model.SOAId, cancellationToken);
 
@@ -613,7 +613,7 @@ namespace Accounting_System.Controllers
 
                         for (int i = 0; i < model.Amount.Length; i++)
                         {
-                                model.Amount[i] = model.Amount[i];
+                            model.Amount[i] = model.Amount[i];
                         }
                         for (int i = 0; i < model.Period.Length; i++)
                         {
@@ -654,7 +654,7 @@ namespace Accounting_System.Controllers
                                     {
                                         var shortAmount = viewModelDMCM.NetAmount - total;
 
-                                        viewModelDMCM.Amount[i] += shortAmount;
+                                        viewModelDMCM.Amount += shortAmount;
                                     }
                                 }
 
@@ -724,7 +724,7 @@ namespace Accounting_System.Controllers
 
                                 var ledgers = new List<GeneralLedgerBook>();
 
-                                
+
                                 ledgers.Add(
                                         new GeneralLedgerBook
                                         {
@@ -774,7 +774,7 @@ namespace Accounting_System.Controllers
                                     );
                                 }
 
-                                var split = model.StatementOfAccount.Service.CurrentAndPrevious.Split(" ");
+                                var split = model.StatementOfAccount.Service.CurrentAndPreviousTitle.Split(" ");
                                 var serviceNo = split.First();
                                 var serviceName = split.Last();
 
@@ -913,7 +913,7 @@ namespace Accounting_System.Controllers
 
             return NotFound();
         }
- 
+
         public async Task<IActionResult> Preview(int id, CancellationToken cancellationToken)
         {
             var cm = await _creditMemoRepo.FindCM(id, cancellationToken);
@@ -923,7 +923,7 @@ namespace Accounting_System.Controllers
         [HttpGet]
         public async Task<JsonResult> GetSOADetails(int soaId, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.StatementOfAccounts.FirstOrDefaultAsync(soa => soa.Id == soaId, cancellationToken);
+            var model = await _dbContext.ServiceInvoices.FirstOrDefaultAsync(soa => soa.Id == soaId, cancellationToken);
             if (model != null)
             {
                 return Json(new

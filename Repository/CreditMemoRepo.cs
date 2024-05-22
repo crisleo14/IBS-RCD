@@ -71,9 +71,9 @@ namespace Accounting_System.Repository
             if (id != 0)
             {
                 var soa = await _dbContext
-                                .StatementOfAccounts
+                                .ServiceInvoices
                                 .FirstOrDefaultAsync(po => po.Id == id, cancellationToken);
-                return soa.SOANo;
+                return soa.SVNo;
             }
             else
             {

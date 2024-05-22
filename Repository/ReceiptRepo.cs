@@ -179,7 +179,7 @@ namespace Accounting_System.Repository
         public async Task<int> UpdateSoa(int id, decimal paidAmount, decimal offsetAmount, CancellationToken cancellationToken = default)
         {
             var soa = await _dbContext
-                .StatementOfAccounts
+                .ServiceInvoices
                 .FirstOrDefaultAsync(si => si.Id == id, cancellationToken);
 
             if (soa != null)

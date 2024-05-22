@@ -4,10 +4,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Accounting_System.Models
 {
-    public class StatementOfAccount : BaseEntity
+    public class ServiceInvoice : BaseEntity
     {
         [Column(TypeName = "varchar(12)")]
-        public string? SOANo { get; set; }
+        public string? SVNo { get; set; }
 
         public long SeriesNumber { get; set; }
 
@@ -39,11 +39,12 @@ namespace Accounting_System.Models
         public DateTime DueDate { get; set; }
 
         [Required]
-        public DateTime[] Period { get; set; }
+        [Column(TypeName = "date")]
+        public DateTime Period { get; set; }
 
         [Required(ErrorMessage = "The Amount is required.")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal[] Amount { get; set; }
+        public decimal Amount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]

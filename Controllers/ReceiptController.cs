@@ -282,21 +282,21 @@ namespace Accounting_System.Controllers
                })
                .ToListAsync(cancellationToken);
 
-            model.StatementOfAccounts = await _dbContext.StatementOfAccounts
+            model.StatementOfAccounts = await _dbContext.ServiceInvoices
                 .Where(s => !s.IsPaid && s.Customer.Number == model.CustomerNo)
                 .OrderBy(si => si.Id)
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
-                    Text = s.SOANo
+                    Text = s.SVNo
                 })
                 .ToListAsync(cancellationToken);
 
-            model.StatementOfAccounts = await _dbContext.StatementOfAccounts
+            model.StatementOfAccounts = await _dbContext.ServiceInvoices
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
-                    Text = s.SOANo
+                    Text = s.SVNo
                 })
                 .ToListAsync(cancellationToken);
 
@@ -341,14 +341,14 @@ namespace Accounting_System.Controllers
                     TempData["error"] = "Please input atleast one type form of payment";
                     return View(model);
                 }
-                var existingSOA = await _dbContext.StatementOfAccounts
+                var existingSOA = await _dbContext.ServiceInvoices
                                                .FirstOrDefaultAsync(s => s.Id == model.SOAId, cancellationToken);
 
                 var generateORNo = await _receiptRepo.GenerateORNo(cancellationToken);
 
                 model.SeriesNumber = getLastNumber;
                 model.ORNo = generateORNo;
-                model.SOANo = existingSOA.SOANo;
+                model.SOANo = existingSOA.SVNo;
                 model.Total = computeTotalInModelIfZero;
                 model.CreatedBy = _userManager.GetUserName(this.User);
 
@@ -428,7 +428,7 @@ namespace Accounting_System.Controllers
                         {
                             AccountNo = currentAccountTitle,
                             Source = model.ORNo,
-                            Reference = existingSOA.SOANo,
+                            Reference = existingSOA.SVNo,
                             Amount = currentAccountAmount,
                             CreatedBy = model.CreatedBy,
                             CreatedDate = model.CreatedDate
@@ -1158,7 +1158,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetStatementOfAccount(int customerNo, CancellationToken cancellationToken)
         {
             var soa = await _dbContext
-                .StatementOfAccounts
+                .ServiceInvoices
                 .Where(s => s.Customer.Number == customerNo && !s.IsPaid)
                 .OrderBy(s => s.Id)
                 .ToListAsync(cancellationToken);
@@ -1166,7 +1166,7 @@ namespace Accounting_System.Controllers
             var soaList = soa.Select(si => new SelectListItem
             {
                 Value = si.Id.ToString(),   // Replace with your actual ID property
-                Text = si.SOANo              // Replace with your actual property for display text
+                Text = si.SVNo              // Replace with your actual property for display text
             }).ToList();
 
             return Json(soaList);
@@ -1176,7 +1176,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetSOADetails(int soaNo, CancellationToken cancellationToken)
         {
             var soa = await _dbContext
-                .StatementOfAccounts
+                .ServiceInvoices
                 .FirstOrDefaultAsync(s => s.Id == soaNo, cancellationToken);
 
             if (soa != null)
@@ -1217,13 +1217,13 @@ namespace Accounting_System.Controllers
                })
                .ToListAsync(cancellationToken);
 
-            existingModel.StatementOfAccounts = await _dbContext.StatementOfAccounts
+            existingModel.StatementOfAccounts = await _dbContext.ServiceInvoices
                 .Where(s => !s.IsPaid && s.Customer.Number == existingModel.CustomerNo)
                 .OrderBy(si => si.Id)
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
-                    Text = s.SOANo
+                    Text = s.SVNo
                 })
                 .ToListAsync(cancellationToken);
 
@@ -1610,7 +1610,7 @@ namespace Accounting_System.Controllers
                             Bank = "--",
                             CheckNo = "--",
                             COA = "1010101 Cash in Bank",
-                            Particulars = model.StatementOfAccount.SOANo,
+                            Particulars = model.StatementOfAccount.SVNo,
                             Debit = model.CashAmount + model.CheckAmount,
                             Credit = 0,
                             CreatedBy = model.CreatedBy,
@@ -1630,7 +1630,7 @@ namespace Accounting_System.Controllers
                                 Bank = "--",
                                 CheckNo = "--",
                                 COA = "1010604 Creditable Withholding Tax",
-                                Particulars = model.StatementOfAccount.SOANo,
+                                Particulars = model.StatementOfAccount.SVNo,
                                 Debit = model.EWT,
                                 Credit = 0,
                                 CreatedBy = model.CreatedBy,
@@ -1650,7 +1650,7 @@ namespace Accounting_System.Controllers
                                 Bank = "--",
                                 CheckNo = "--",
                                 COA = "1010605 Creditable Withholding Vat",
-                                Particulars = model.StatementOfAccount.SOANo,
+                                Particulars = model.StatementOfAccount.SVNo,
                                 Debit = model.WVAT,
                                 Credit = 0,
                                 CreatedBy = model.CreatedBy,
@@ -1670,7 +1670,7 @@ namespace Accounting_System.Controllers
                                 Bank = "--",
                                 CheckNo = "--",
                                 COA = "2010304 Deferred Vat Output",
-                                Particulars = model.StatementOfAccount.SOANo,
+                                Particulars = model.StatementOfAccount.SVNo,
                                 Debit = (model.Total / 1.12m) * 0.12m,
                                 Credit = 0,
                                 CreatedBy = model.CreatedBy,
@@ -1692,7 +1692,7 @@ namespace Accounting_System.Controllers
                                     Bank = "--",
                                     CheckNo = "--",
                                     COA = item.AccountNo,
-                                    Particulars = model.StatementOfAccount.SOANo,
+                                    Particulars = model.StatementOfAccount.SVNo,
                                     Debit = item.Amount,
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
@@ -1711,7 +1711,7 @@ namespace Accounting_System.Controllers
                         Bank = "--",
                         CheckNo = "--",
                         COA = "1010204 AR-Non Trade Receivable",
-                        Particulars = model.StatementOfAccount.SOANo,
+                        Particulars = model.StatementOfAccount.SVNo,
                         Debit = 0,
                         Credit = model.CashAmount + model.CheckAmount + offsetAmount,
                         CreatedBy = model.CreatedBy,
@@ -1730,7 +1730,7 @@ namespace Accounting_System.Controllers
                                 Bank = "--",
                                 CheckNo = "--",
                                 COA = "1010202 Deferred Creditable Withholding Tax",
-                                Particulars = model.StatementOfAccount.SOANo,
+                                Particulars = model.StatementOfAccount.SVNo,
                                 Debit = 0,
                                 Credit = model.EWT,
                                 CreatedBy = model.CreatedBy,
@@ -1750,7 +1750,7 @@ namespace Accounting_System.Controllers
                                 Bank = "--",
                                 CheckNo = "--",
                                 COA = "1010203 Deferred Creditable Withholding Vat",
-                                Particulars = model.StatementOfAccount.SOANo,
+                                Particulars = model.StatementOfAccount.SVNo,
                                 Debit = 0,
                                 Credit = model.WVAT,
                                 CreatedBy = model.CreatedBy,
@@ -1770,7 +1770,7 @@ namespace Accounting_System.Controllers
                                 Bank = "--",
                                 CheckNo = "--",
                                 COA = "2010301 Vat Output",
-                                Particulars = model.StatementOfAccount.SOANo,
+                                Particulars = model.StatementOfAccount.SVNo,
                                 Debit = 0,
                                 Credit = (model.Total / 1.12m) * 0.12m,
                                 CreatedBy = model.CreatedBy,
