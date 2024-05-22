@@ -52,11 +52,11 @@ namespace Accounting_System.Repository
             if (statementOfAccount != null)
             {
                 var generatedSOA = statementOfAccount.SeriesNumber + 1;
-                return $"SOA{generatedSOA.ToString("D10")}";
+                return $"SV{generatedSOA.ToString("D10")}";
             }
             else
             {
-                return $"SOA{1.ToString("D10")}";
+                return $"SV{1.ToString("D10")}";
             }
         }
 
