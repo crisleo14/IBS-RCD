@@ -22,7 +22,7 @@
             <td class="text-end" style="padding: 0 !important;"><h6 class="series"><b>No.&nbsp;@Html.DisplayFor(model => model.SOANo)</b></h6></td>
         </tr>
         <tr>
-            <td class="text-center" style="padding: 0 !important;"><h3 class="module-name"><b>STATEMENT OF ACCOUNT</b></h3></td>
+            <td class="text-center" style="padding: 0 !important;"><h3 class="module-name"><b>SERVICE INVOICE</b></h3></td>
         </tr>
     </tbody>
 </table>
@@ -99,23 +99,9 @@
     </table>
 </div>
 
-@if (Model.Customer.WithHoldingVat)
-{
     <p style="line-height: 1; margin-top:20px;">
-        Creditable Withholding Tax with the amount of <b>@Html.DisplayFor(model => model.WithholdingTaxAmount)</b> is computed for this statement of account.<br />
-        Creditable Withholding Vat with the amount of <b>@Html.DisplayFor(model => model.WithholdingVatAmount)</b> is computed for this statement of account.<br />
         Please attach BIR Form 2306 and 2307 to your payment if you deducted Expanded Withholding Tax and Vat.
     </p>
-}
-else
-{
-    <p style="line-height: 1; margin-top:20px;">
-        Creditable Withholding Tax with the amount of <b>@Html.DisplayFor(model => model.WithholdingTaxAmount)</b> is computed for this statement of account.<br />
-        Please attach BIR Form 2307 to your payment if you deducted Expanded Withholding Tax.
-    </p>
-}
-
-
 
 <div style="margin-top:20px;">
     <table class="w-100">
@@ -135,7 +121,6 @@ else
                                         <p class="mb-0">@Html.DisplayFor(model => model.NetAmount)</p>
                                     }
                                 </td>
-
                             </tr>
                             <tr>
                                 <td><p style="margin-left:8%;" class="mb-0"><b>Zero-Rated Sales: </b></p></td>
