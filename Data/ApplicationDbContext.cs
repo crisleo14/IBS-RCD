@@ -20,7 +20,6 @@ namespace Accounting_System.Data
         public DbSet<Inventory> Inventories { get; set; }
         public DbSet<ServiceInvoice> ServiceInvoices { get; set; }
         public DbSet<CollectionReceipt> CollectionReceipts { get; set; }
-        public DbSet<OfficialReceipt> OfficialReceipts { get; set; }
         public DbSet<Services> Services { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
         public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
