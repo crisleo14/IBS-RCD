@@ -26,12 +26,12 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> SalesBook()
         {
             var viewModel = new ViewModelBook();
-            viewModel.SOA = await _dbContext.StatementOfAccounts
+            viewModel.SOA = await _dbContext.ServiceInvoices
                 .Where(soa => soa.IsPosted)
                 .Select(soa => new SelectListItem
                 {
                     Value = soa.Id.ToString(),
-                    Text = soa.SOANo
+                    Text = soa.SVNo
                 })
                 .ToListAsync();
             viewModel.SI = await _dbContext.SalesInvoices

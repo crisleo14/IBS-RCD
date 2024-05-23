@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240522090543_AddCurrentNoAndAddUnearnedNoInServiceInvoice")]
+    partial class AddCurrentNoAndAddUnearnedNoInServiceInvoice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -392,7 +395,7 @@ namespace Accounting_System.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("CustomerId")
+                    b.Property<int>("CustomerNo")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("Date")
@@ -453,17 +456,11 @@ namespace Accounting_System.Migrations
                     b.Property<string>("SINo")
                         .HasColumnType("varchar(12)");
 
-                    b.Property<string>("SVNo")
-                        .HasColumnType("varchar(12)");
-
-                    b.Property<int?>("SalesInvoiceId")
+                    b.Property<int>("SalesInvoiceId")
                         .HasColumnType("integer");
 
                     b.Property<long>("SeriesNumber")
                         .HasColumnType("bigint");
-
-                    b.Property<int?>("ServiceInvoiceId")
-                        .HasColumnType("integer");
 
                     b.Property<decimal>("Total")
                         .HasColumnType("numeric");
@@ -480,8 +477,6 @@ namespace Accounting_System.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("SalesInvoiceId");
-
-                    b.HasIndex("ServiceInvoiceId");
 
                     b.ToTable("CollectionReceipts");
                 });
@@ -1186,6 +1181,112 @@ namespace Accounting_System.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Ledgers");
+                });
+
+            modelBuilder.Entity("Accounting_System.Models.OfficialReceipt", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CanceledBy")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("CanceledDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("CashAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("CheckAmount")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime?>("CheckDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CheckNo")
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CustomerNo")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("EWT")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("F2306FilePath")
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("F2307FilePath")
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<bool>("IsCanceled")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsCertificateUpload")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPosted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPrinted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsVoided")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ORNo")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PostedBy")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("PostedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReferenceNo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("text");
+
+                    b.Property<int>("SOAId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SOANo")
+                        .HasColumnType("varchar(13)");
+
+                    b.Property<long>("SeriesNumber")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("VoidedBy")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("VoidedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("WVAT")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SOAId");
+
+                    b.ToTable("OfficialReceipts");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.Offsetting", b =>
@@ -1914,9 +2015,11 @@ namespace Accounting_System.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CurrentAndPreviousNo")
+                        .IsRequired()
                         .HasColumnType("varchar(20)");
 
                     b.Property<string>("CurrentAndPreviousTitle")
+                        .IsRequired()
                         .HasColumnType("varchar(50)");
 
                     b.Property<string>("Name")
@@ -1930,9 +2033,11 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("UnearnedNo")
+                        .IsRequired()
                         .HasColumnType("varchar(20)");
 
                     b.Property<string>("UnearnedTitle")
+                        .IsRequired()
                         .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
@@ -2244,15 +2349,11 @@ namespace Accounting_System.Migrations
                 {
                     b.HasOne("Accounting_System.Models.SalesInvoice", "SalesInvoice")
                         .WithMany()
-                        .HasForeignKey("SalesInvoiceId");
-
-                    b.HasOne("Accounting_System.Models.ServiceInvoice", "ServiceInvoice")
-                        .WithMany()
-                        .HasForeignKey("ServiceInvoiceId");
+                        .HasForeignKey("SalesInvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("SalesInvoice");
-
-                    b.Navigation("ServiceInvoice");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.CreditMemo", b =>
@@ -2305,6 +2406,17 @@ namespace Accounting_System.Migrations
                         .IsRequired();
 
                     b.Navigation("CheckVoucherHeader");
+                });
+
+            modelBuilder.Entity("Accounting_System.Models.OfficialReceipt", b =>
+                {
+                    b.HasOne("Accounting_System.Models.ServiceInvoice", "StatementOfAccount")
+                        .WithMany()
+                        .HasForeignKey("SOAId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("StatementOfAccount");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.PurchaseOrder", b =>

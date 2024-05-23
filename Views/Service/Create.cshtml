@@ -16,19 +16,19 @@
                 </div>
 
                 <div class="form-group mb-3">
-                    <label asp-for="CurrentAndPrevious" class="form-label">Current and Previous Title</label>
-                    <select asp-for="CurrentAndPrevious" asp-items="@Model.CurrentAndPreviousTitles" class="form-select js-select2" required>
+                    <label asp-for="CurrentAndPreviousTitle" class="form-label">Current and Previous Title</label>
+                    <select asp-for="CurrentAndPreviousId" asp-items="@Model.CurrentAndPreviousTitles" class="form-select js-select2" required>
                         <option value="">-- Select a title --</option>
                     </select>
-                    <span asp-validation-for="CurrentAndPrevious" class="text-danger"></span>
+                    <span asp-validation-for="CurrentAndPreviousTitle" class="text-danger"></span>
                 </div>
 
                 <div class="form-group mb-3">
-                    <label asp-for="Unearned" class="form-label">Unearned Title</label>
-                    <select asp-for="Unearned" asp-items="@Model.UnearnedTitle" class="form-select js-select2" required>
+                    <label asp-for="UnearnedTitle" class="form-label">Unearned Title</label>
+                    <select asp-for="UnearnedId" asp-items="@Model.UnearnedTitles" class="form-select js-select2" required>
                         <option value="">-- Select a title --</option>
                     </select>
-                    <span asp-validation-for="Unearned" class="text-danger"></span>
+                    <span asp-validation-for="UnearnedTitle" class="text-danger"></span>
                 </div>
 
                 <div class="input-group mb-3">

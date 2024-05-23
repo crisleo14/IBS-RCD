@@ -8,7 +8,7 @@ namespace Accounting_System.Models
         public decimal NetAmount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal[] Amount { get; set; }
+        public decimal Amount { get; set; }
 
         public DateTime Period { get; set; }
 

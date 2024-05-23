@@ -13,18 +13,30 @@ namespace Accounting_System.Models
         [Display(Name = "Service No")]
         public int Number { get; set; }
 
+        [Column(TypeName = "varchar(20)")]
+        public string? CurrentAndPreviousNo { get; set; }
+
         [Display(Name = "Current and Previous")]
         [Column(TypeName = "varchar(50)")]
-        public string CurrentAndPrevious { get; set; }
+        public string? CurrentAndPreviousTitle { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? CurrentAndPreviousTitles { get; set; }
 
-        [Column(TypeName = "varchar(50)")]
-        public string Unearned { get; set; }
+        [NotMapped]
+        public int CurrentAndPreviousId { get; set; }
 
         [NotMapped]
-        public List<SelectListItem>? UnearnedTitle { get; set; }
+        public int UnearnedId { get; set; }
+
+        [Column(TypeName = "varchar(50)")]
+        public string? UnearnedTitle { get; set; }
+
+        [Column(TypeName = "varchar(20)")]
+        public string? UnearnedNo { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? UnearnedTitles { get; set; }
 
         [Required]
         [Display(Name = "Service Name")]

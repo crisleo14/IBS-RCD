@@ -1,11 +1,11 @@
-﻿@model IEnumerable<Accounting_System.Models.StatementOfAccount>
+﻿@model IEnumerable<Accounting_System.Models.ServiceInvoice>
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var model = new StatementOfAccount();
+    var model = new ServiceInvoice();
 }
 <partial name="_Notification">
 <h1>Service Invoice</h1>
@@ -17,7 +17,7 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.SOANo)
+                @Html.DisplayNameFor(model => model.SVNo)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Customer)
@@ -32,7 +32,7 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.SOANo)
+                @Html.DisplayFor(modelItem => item.SVNo)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Customer.Name)
@@ -102,7 +102,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // Replace with the actual URL that you want to redirect to
-                        var url = `/StatementOfAccount/Post?id=${id}`;
+                        var url = `/ServiceInvoice/Post?id=${id}`;
                         window.location.href = url;
                     }
                 })
@@ -122,7 +122,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // Replace with the actual URL that you want to redirect to
-                        var url = `/StatementOfAccount/Void?id=${id}`;
+                        var url = `/ServiceInvoice/Void?id=${id}`;
                         window.location.href = url;
                     }
                 })
@@ -142,7 +142,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // Replace with the actual URL that you want to redirect to
-                        var url = `/StatementOfAccount/Cancel?id=${id}`;
+                        var url = `/ServiceInvoice/Cancel?id=${id}`;
                         window.location.href = url;
                     }
                 })

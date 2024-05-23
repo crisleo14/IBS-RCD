@@ -10,10 +10,9 @@ namespace Accounting_System.Models
         [Column(TypeName = "varchar(12)")]
         public string? CRNo { get; set; }
 
-        //Invoice Property
+        //Sales Invoice Property
 
-        [Required(ErrorMessage = "Invoice is required.")]
-        public int SalesInvoiceId { get; set; }
+        public int? SalesInvoiceId { get; set; }
 
         [Display(Name = "Sales Invoice No.")]
         [Column(TypeName = "varchar(12)")]
@@ -23,7 +22,21 @@ namespace Accounting_System.Models
         public SalesInvoice? SalesInvoice { get; set; }
 
         [NotMapped]
-        public List<SelectListItem>? Invoices { get; set; }
+        public List<SelectListItem>? SalesInvoices { get; set; }
+
+        //Service Invoice Property
+
+        public int? ServiceInvoiceId { get; set; }
+
+        [Display(Name = "Sales Invoice No.")]
+        [Column(TypeName = "varchar(12)")]
+        public string? SVNo { get; set; }
+
+        [ForeignKey("ServiceInvoiceId")]
+        public ServiceInvoice? ServiceInvoice { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? ServiceInvoices { get; set; }
 
         //Customer Property
 
@@ -31,7 +44,7 @@ namespace Accounting_System.Models
         public List<SelectListItem>? Customers { get; set; }
 
         [Required(ErrorMessage = "Customer is required.")]
-        public int CustomerNo { get; set; }
+        public int CustomerId { get; set; }
 
         //COA Property
 

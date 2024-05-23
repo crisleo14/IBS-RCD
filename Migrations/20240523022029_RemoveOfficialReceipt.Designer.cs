@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240523022029_RemoveOfficialReceipt")]
+    partial class RemoveOfficialReceipt
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -392,7 +395,7 @@ namespace Accounting_System.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("CustomerId")
+                    b.Property<int>("CustomerNo")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("Date")
@@ -453,17 +456,11 @@ namespace Accounting_System.Migrations
                     b.Property<string>("SINo")
                         .HasColumnType("varchar(12)");
 
-                    b.Property<string>("SVNo")
-                        .HasColumnType("varchar(12)");
-
-                    b.Property<int?>("SalesInvoiceId")
+                    b.Property<int>("SalesInvoiceId")
                         .HasColumnType("integer");
 
                     b.Property<long>("SeriesNumber")
                         .HasColumnType("bigint");
-
-                    b.Property<int?>("ServiceInvoiceId")
-                        .HasColumnType("integer");
 
                     b.Property<decimal>("Total")
                         .HasColumnType("numeric");
@@ -480,8 +477,6 @@ namespace Accounting_System.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("SalesInvoiceId");
-
-                    b.HasIndex("ServiceInvoiceId");
 
                     b.ToTable("CollectionReceipts");
                 });
@@ -2244,15 +2239,11 @@ namespace Accounting_System.Migrations
                 {
                     b.HasOne("Accounting_System.Models.SalesInvoice", "SalesInvoice")
                         .WithMany()
-                        .HasForeignKey("SalesInvoiceId");
-
-                    b.HasOne("Accounting_System.Models.ServiceInvoice", "ServiceInvoice")
-                        .WithMany()
-                        .HasForeignKey("ServiceInvoiceId");
+                        .HasForeignKey("SalesInvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("SalesInvoice");
-
-                    b.Navigation("ServiceInvoice");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.CreditMemo", b =>

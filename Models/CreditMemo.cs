@@ -28,7 +28,7 @@ namespace Accounting_System.Models
         public int? SOAId { get; set; }
 
         [ForeignKey("SOAId")]
-        public StatementOfAccount? StatementOfAccount { get; set; }
+        public ServiceInvoice? StatementOfAccount { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? Soa { get; set; }
