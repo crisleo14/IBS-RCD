@@ -130,7 +130,7 @@ namespace Accounting_System.Controllers
                     }
                 }
 
-                #region --Validating the series-- 
+                #region --Validating the series--
 
                 var getLastNumber = await _creditMemoRepo.GetLastSeriesNumber(cancellationToken);
 
@@ -149,7 +149,7 @@ namespace Accounting_System.Controllers
                     TempData["success"] = "Credit Memo created successfully";
                 }
 
-                #endregion --Validating the series-- 
+                #endregion --Validating the series--
 
                 var generatedCM = await _creditMemoRepo.GenerateCMNo(cancellationToken);
 
@@ -241,6 +241,13 @@ namespace Accounting_System.Controllers
                         model.TotalSales = model.CreditAmount;
                     }
                 }
+
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(model.CreatedBy, $"Create new credit memo# {model.CMNo}", "Credit Memo");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
 
                 await _dbContext.AddAsync(model, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -378,6 +385,14 @@ namespace Accounting_System.Controllers
             var cm = await _dbContext.CreditMemos.FindAsync(id, cancellationToken);
             if (cm != null && !cm.IsPrinted)
             {
+                #region --Audit Trail Recording
+
+                var printedBy = _userManager.GetUserName(this.User);
+                AuditTrail auditTrail = new(printedBy, $"Printed original copy of cm# {cm.CMNo}", "Credit Memo");
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                #endregion --Audit Trail Recording
+
                 cm.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }
