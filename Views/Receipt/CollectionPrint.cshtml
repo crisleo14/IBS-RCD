@@ -33,14 +33,54 @@
     <table class="table-bordered w-100">
         <tbody>
             <tr>
-                <td colspan="2" style="padding-left:10px;">Received from: &nbsp;@Html.DisplayFor(model => model.SalesInvoice.SoldTo)</td>
+                <td colspan="2" style="padding-left:10px;">
+                    Received from: &nbsp;
+                    @if (Model.SalesInvoiceId != null)
+                    {
+                        @Html.DisplayFor(model => model.SalesInvoice.SoldTo)
+                    }
+                    else
+                    {
+                        @Html.DisplayFor(model => model.ServiceInvoice.Customer.Name)
+                    }
+                </td>
             </tr>
             <tr>
-                <td colspan="2" class="w-50" style="padding-left:10px;">Address: &nbsp;@Html.DisplayFor(model => model.SalesInvoice.Address)</td>
+                <td colspan="2" class="w-50" style="padding-left:10px;">
+                    Address: &nbsp;
+                    @if (Model.SalesInvoiceId != null)
+                    {
+                        @Html.DisplayFor(model => model.SalesInvoice.Address)
+                    }
+                    else
+                    {
+                        @Html.DisplayFor(model => model.ServiceInvoice.Customer.Address)
+                    }
+                </td>
             </tr>
             <tr>
-                <td style="padding-left:10px;">TIN: &nbsp;@Html.DisplayFor(model => model.SalesInvoice.TinNo)</td>
-                <td style="padding-left:10px;">Buss. Style: &nbsp;@Html.DisplayFor(model => model.SalesInvoice.BusinessStyle)</td>
+                <td style="padding-left:10px;">
+                    TIN: &nbsp;
+                    @if (Model.SalesInvoiceId != null)
+                    {
+                        @Html.DisplayFor(model => model.SalesInvoice.TinNo)
+                    }
+                    else
+                    {
+                        @Html.DisplayFor(model => model.ServiceInvoice.Customer.TinNo)
+                    }
+                </td>
+                <td style="padding-left:10px;">
+                    Buss. Style: &nbsp;
+                    @if (Model.SalesInvoiceId != null)
+                    {
+                        @Html.DisplayFor(model => model.SalesInvoice.BusinessStyle)
+                    }
+                    else
+                    {
+                        @Html.DisplayFor(model => model.ServiceInvoice.Customer.BusinessStyle)
+                    }
+                </td>
             </tr>
             @{
                 decimal convertToWords = Model.Total;
@@ -88,7 +128,17 @@
                 <td style="padding-left:10px;">(₱&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  @Html.DisplayFor(model => model.Total))</td>
             </tr>
             <tr>
-                <td colspan="2" style="padding-left:10px;">IN FULL/PARTIAL payment of: @Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
+                <td colspan="2" style="padding-left:10px;">
+                    IN FULL/PARTIAL payment of:
+                    @if (Model.SalesInvoiceId != null)
+                    {
+                        @Html.DisplayFor(model => model.SalesInvoice.SINo)
+                    }
+                    else
+                    {
+                        @Html.DisplayFor(model => model.ServiceInvoice.SVNo)
+                    }
+                </td>
             </tr>
             <tr>
                 <td colspan="2">&nbsp;</td>
@@ -108,8 +158,26 @@
                 <td class="text-center" style="width:33%">AMOUNT</td>
             </tr>
             <tr class="text-center">
-                <td style="width:33%">@Model.SalesInvoice.TransactionDate.ToShortDateString()</td>
-                <td style="width:33%">@Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
+                <td style="width:33%">
+                    @if (Model.SalesInvoiceId != null)
+                    {
+                        @Model.SalesInvoice.TransactionDate.ToShortDateString()
+                    }
+                    else
+                    {
+                        @Model.ServiceInvoice.CreatedDate.ToShortDateString()
+                    }
+                </td>
+                <td style="width:33%">
+                    @if (Model.SalesInvoiceId != null)
+                    {
+                        @Html.DisplayFor(model => model.SalesInvoice.SINo)
+                    }
+                    else
+                    {
+                        @Html.DisplayFor(model => model.ServiceInvoice.SVNo)
+                    }
+                </td>
                 <td style="width:33%">@Html.DisplayFor(model => model.Total)</td>
             </tr>
             <tr>
@@ -158,7 +226,7 @@
                 <td class="text-center"></td>
                 <td class="text-center"></td>
                 <td class="text-center">
-                    @if (Model.CashAmount != 0)
+                    @if (Model.CashAmount != null)
                     {
                         <p style="height: 9px;">@Html.DisplayFor(model => model.CashAmount)</p>
                     }
@@ -166,7 +234,7 @@
                     {
                         <p></p>
                     }
-                    </td>
+                </td>
             </tr>
 
             <tr>
@@ -336,11 +404,10 @@
     <p @* style="line-height: 1;" *@>
         <em class="p-4"><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong><br /></em>
         <span>Acknowledgement Certificate No:</span>
-        <span style="display: inline-block;"></span>
+        <span style="display: inline-block;">AC_124_112023_000090</span>
         <span>&nbsp;&nbsp;Date Issued:</span>
-        <span style="display: inline-block;"></span><br />
+        <span style="display: inline-block;">November 28, 2023</span><br />
         Series: CR0000000001 - CR9999999999
-        Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
     </p>
 </div>
 
