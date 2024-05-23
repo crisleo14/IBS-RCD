@@ -234,6 +234,13 @@ namespace Accounting_System.Controllers
                     }
                 }
 
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(model.CreatedBy, $"Create new debit memo# {model.DMNo}", "Debit Memo");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
                 await _dbContext.AddAsync(model, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -273,6 +280,14 @@ namespace Accounting_System.Controllers
             var findIdOfDM = await _debitMemoRepo.FindDM(id, cancellationToken);
             if (findIdOfDM != null && !findIdOfDM.IsPrinted)
             {
+                #region --Audit Trail Recording
+
+                var printedBy = _userManager.GetUserName(this.User);
+                AuditTrail auditTrail = new(printedBy, $"Printed original copy of dm# {findIdOfDM.DMNo}", "Debit Memo");
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                #endregion --Audit Trail Recording
+
                 findIdOfDM.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }

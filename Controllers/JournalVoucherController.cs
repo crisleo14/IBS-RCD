@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System.Threading;
 
 namespace Accounting_System.Controllers
 {
@@ -144,8 +143,8 @@ namespace Accounting_System.Controllers
                         .FirstOrDefaultAsync(coa => coa.Number == currentAccountNumber);
                     var currentDebit = debit[i];
                     var currentCredit = credit[i];
-                     totalDebit += debit[i];
-                     totalCredit += credit[i];
+                    totalDebit += debit[i];
+                    totalCredit += credit[i];
 
                     cvDetails.Add(
                         new JournalVoucherDetail
@@ -175,6 +174,13 @@ namespace Accounting_System.Controllers
                 model.Header.JVNo = generateJVNo;
                 model.Header.CreatedBy = _userManager.GetUserName(this.User);
                 #endregion --Saving the default entries
+
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(model.Header.CreatedBy, $"Create new journal voucher# {model.Header.JVNo}", "Journal Voucher");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
 
 
                 await _dbContext.AddAsync(model.Header, cancellationToken);  // Add CheckVoucherHeader to the context
@@ -225,13 +231,15 @@ namespace Accounting_System.Controllers
                 var totalDebit = viewModel.Header.TotalDebit;
                 var totalCredit = viewModel.Header.TotalCredit;
 
-                return Json(new { CVNo = cvNo,
-                    Date = date, 
-                    Name = name, 
-                    Address = address, 
-                    TinNo = tinNo, 
-                    PONo = poNo, 
-                    SINo = siNo, 
+                return Json(new
+                {
+                    CVNo = cvNo,
+                    Date = date,
+                    Name = name,
+                    Address = address,
+                    TinNo = tinNo,
+                    PONo = poNo,
+                    SINo = siNo,
                     Payee = payee,
                     Amount = amount,
                     Particulars = particulars,
@@ -300,6 +308,14 @@ namespace Accounting_System.Controllers
             var jv = await _dbContext.JournalVoucherHeaders.FindAsync(id, cancellationToken);
             if (jv != null && !jv.IsPrinted)
             {
+                #region --Audit Trail Recording
+
+                var printedBy = _userManager.GetUserName(this.User);
+                AuditTrail auditTrail = new(printedBy, $"Printed original copy of jv# {jv.JVNo}", "Journal Vouchers");
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                #endregion --Audit Trail Recording
+
                 jv.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }

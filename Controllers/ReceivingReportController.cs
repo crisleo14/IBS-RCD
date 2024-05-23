@@ -129,7 +129,7 @@ namespace Accounting_System.Controllers
                 }
                 else
                 {
-                    model.Amount = model.QuantityDelivered < model.QuantityReceived ? model.QuantityDelivered * po.Price  : model.QuantityReceived * po.Price;
+                    model.Amount = model.QuantityDelivered < model.QuantityReceived ? model.QuantityDelivered * po.Price : model.QuantityReceived * po.Price;
                     model.NetAmount = model.Amount;
                 }
 
@@ -193,7 +193,7 @@ namespace Accounting_System.Controllers
                     Text = s.PONo
                 })
                 .ToListAsync(cancellationToken);
-            
+
             if (ModelState.IsValid)
             {
                 if (existingModel == null)
@@ -282,6 +282,14 @@ namespace Accounting_System.Controllers
             var rr = await _dbContext.ReceivingReports.FindAsync(id, cancellationToken);
             if (rr != null && !rr.IsPrinted)
             {
+                #region --Audit Trail Recording
+
+                var printedBy = _userManager.GetUserName(this.User);
+                AuditTrail auditTrail = new(printedBy, $"Printed original copy of rr# {rr.RRNo}", "Receiving Report");
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                #endregion --Audit Trail Recording
+
                 rr.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }
@@ -290,7 +298,8 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
         {
-            try {
+            try
+            {
                 var model = await _receivingReportRepo.FindRR(id, cancellationToken);
 
                 if (model != null)
@@ -400,22 +409,22 @@ namespace Accounting_System.Controllers
 
                         var purchaseBook = new List<PurchaseJournalBook>();
 
-                            purchaseBook.Add(new PurchaseJournalBook
-                            {
-                                Date = model.Date.ToShortDateString(),
-                                SupplierName = model.PurchaseOrder.Supplier.Name,
-                                SupplierTin = model.PurchaseOrder.Supplier.TinNo,
-                                SupplierAddress = model.PurchaseOrder.Supplier.Address,
-                                DocumentNo = model.RRNo,
-                                Description = model.PurchaseOrder.Product.Name,
-                                Amount = model.Amount,
-                                VatAmount = model.VatAmount,
-                                WhtAmount = model.EwtAmount,
-                                NetPurchases = model.NetAmount,
-                                CreatedBy = model.CreatedBy,
-                                PONo = model.PurchaseOrder.PONo,
-                                DueDate = model.DueDate.ToShortDateString()
-                            });
+                        purchaseBook.Add(new PurchaseJournalBook
+                        {
+                            Date = model.Date.ToShortDateString(),
+                            SupplierName = model.PurchaseOrder.Supplier.Name,
+                            SupplierTin = model.PurchaseOrder.Supplier.TinNo,
+                            SupplierAddress = model.PurchaseOrder.Supplier.Address,
+                            DocumentNo = model.RRNo,
+                            Description = model.PurchaseOrder.Product.Name,
+                            Amount = model.Amount,
+                            VatAmount = model.VatAmount,
+                            WhtAmount = model.EwtAmount,
+                            NetPurchases = model.NetAmount,
+                            CreatedBy = model.CreatedBy,
+                            PONo = model.PurchaseOrder.PONo,
+                            DueDate = model.DueDate.ToShortDateString()
+                        });
 
                         await _dbContext.AddRangeAsync(purchaseBook, cancellationToken);
                         #endregion --Purchase Book Recording

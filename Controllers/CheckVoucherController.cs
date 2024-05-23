@@ -2,13 +2,10 @@
 using Accounting_System.Models;
 using Accounting_System.Repository;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
-using System.Linq;
 
 namespace Accounting_System.Controllers
 {
@@ -233,7 +230,7 @@ namespace Accounting_System.Controllers
 
                 #endregion --Retrieve Supplier
 
-                #region -- Accrued entries -- 
+                #region -- Accrued entries --
 
                 if (existingCV != null && model.Header.AccruedType == "Payment")
                 {
@@ -243,7 +240,7 @@ namespace Accounting_System.Controllers
                     model.Header.Sequence = getLastSequence;
                 }
 
-                #endregion -- Accrued entrires -- 
+                #endregion -- Accrued entrires --
 
                 #region --CV Details Entry
                 var generateCVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken);
@@ -353,8 +350,8 @@ namespace Accounting_System.Controllers
                 {
                     string[] words = accountNoAndTitle.Split(" ");
                     string[] remainingWords = words.Skip(1).ToArray();
-                     accountNo = words.First();
-                     accountName = string.Join(" ", remainingWords);
+                    accountNo = words.First();
+                    accountName = string.Join(" ", remainingWords);
                 }
 
                 if (model.Header.AccruedType != "Invoicing")
@@ -369,7 +366,7 @@ namespace Accounting_System.Controllers
                             Credit = cashInBankAmount
                         }
                     );
-                }     
+                }
 
                 await _dbContext.AddRangeAsync(cvDetails, cancellationToken);
 
@@ -395,7 +392,7 @@ namespace Accounting_System.Controllers
 
                 #region --Saving the default entries
 
-                    //CV Header Entry
+                //CV Header Entry
                 var list = cvDetails.Where(cv => cv.TransactionNo == generateCVNo).ToList();
 
                 model.Header.SeriesNumber = getLastNumber;
@@ -417,7 +414,7 @@ namespace Accounting_System.Controllers
 
                     var amountPerMonth = depreciationAmount / computationPerMonth;
                     model.Header.AmountPerMonth = amountPerMonth;
-                    
+
                 }
                 model.Header.NumberOfMonths = computationPerMonth;
 
@@ -477,17 +474,24 @@ namespace Accounting_System.Controllers
                     // model.Header.SupportingFilePath = fileSavePath
                 }
 
-                    await _dbContext.AddAsync(model.Header, cancellationToken);  // Add CheckVoucherHeader to the context
-                    await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
-                    return RedirectToAction("Index");
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(model.Header.CreatedBy, $"Create new check voucher# {model.Header.CVNo}", "Check Voucher");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
+                await _dbContext.AddAsync(model.Header, cancellationToken);  // Add CheckVoucherHeader to the context
+                await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
+                return RedirectToAction("Index");
                 #endregion -- Uploading file --
 
-                }
-                else
-                {
-                    TempData["error"] = "The information you submitted is not valid!";
-                    return View(model);
-                }
+            }
+            else
+            {
+                TempData["error"] = "The information you submitted is not valid!";
+                return View(model);
+            }
         }
         public async Task<IActionResult> GetPOs(int supplierId)
         {
@@ -506,10 +510,10 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetRRs(string[] poNumber, string? criteria)
         {
 
-                var receivingReports = await _dbContext.ReceivingReports
-                .Where(rr => poNumber.Contains(rr.PONo) && !rr.IsPaid)
-                .OrderBy(rr => criteria == "Transaction Date" ? rr.Date : rr.DueDate)
-                .ToListAsync();
+            var receivingReports = await _dbContext.ReceivingReports
+            .Where(rr => poNumber.Contains(rr.PONo) && !rr.IsPaid)
+            .OrderBy(rr => criteria == "Transaction Date" ? rr.Date : rr.DueDate)
+            .ToListAsync();
 
             if (receivingReports != null && receivingReports.Count > 0)
             {
@@ -540,7 +544,7 @@ namespace Accounting_System.Controllers
                 {
                     name = supplier.Name;
                 }
-                return Json(new { TaxType = si, TinNo = tinNo, Address = address , Name = name });
+                return Json(new { TaxType = si, TinNo = tinNo, Address = address, Name = name });
             }
 
             return Json(null);
@@ -558,12 +562,15 @@ namespace Accounting_System.Controllers
                 var ewtAmount = receivingReport.EwtAmount;
                 var balance = amount - amountPaid;
 
-                return Json(new { Amount = amount,
-                                AmountPaid = amountPaid,
-                                NetAmount = netAmount,
-                                VatAmount = vatAmount,
-                                EwtAmount = ewtAmount,
-                                Balance = balance });
+                return Json(new
+                {
+                    Amount = amount,
+                    AmountPaid = amountPaid,
+                    NetAmount = netAmount,
+                    VatAmount = vatAmount,
+                    EwtAmount = ewtAmount,
+                    Balance = balance
+                });
             }
             return Json(null);
         }
@@ -573,7 +580,7 @@ namespace Accounting_System.Controllers
             if (bankId != 0)
             {
                 var existingBankAccount = await _dbContext.BankAccounts.FindAsync(bankId);
-                return Json ( new { AccountNoCOA = existingBankAccount.AccountNoCOA, AccountNo = existingBankAccount.AccountNo, AccountName = existingBankAccount.AccountName });
+                return Json(new { AccountNoCOA = existingBankAccount.AccountNoCOA, AccountNo = existingBankAccount.AccountNo, AccountName = existingBankAccount.AccountName });
             }
             return Json(null);
         }
@@ -650,6 +657,14 @@ namespace Accounting_System.Controllers
             var cv = await _dbContext.CheckVoucherHeaders.FindAsync(id, cancellationToken);
             if (cv != null && !cv.IsPrinted)
             {
+                #region --Audit Trail Recording
+
+                var printedBy = _userManager.GetUserName(this.User);
+                AuditTrail auditTrail = new(printedBy, $"Printed original copy of cv# {cv.CVNo}", "Check Vouchers");
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                #endregion --Audit Trail Recording
+
                 cv.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }
@@ -712,7 +727,7 @@ namespace Accounting_System.Controllers
                                     CheckNo = modelHeader.CheckNo,
                                     CheckDate = modelHeader.CheckDate.ToShortDateString(),
                                     DateCleared = DateTime.Now.ToShortDateString(),
-                                    ChartOfAccount = details.AccountNo + " " +details.AccountName,
+                                    ChartOfAccount = details.AccountNo + " " + details.AccountName,
                                     Debit = details.Debit,
                                     Credit = details.Credit,
                                     CreatedBy = modelHeader.CreatedBy,
