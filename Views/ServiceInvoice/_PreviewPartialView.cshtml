@@ -1,14 +1,14 @@
-﻿@model Accounting_System.Models.StatementOfAccount
+﻿@model Accounting_System.Models.ServiceInvoice
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
 
-<div class="modal fade" id="Preview-@Model.Id" data-bs-backdrop="static" aria-labelledby="PreviewSOALabel" aria-hidden="true">
+<div class="modal fade" id="Preview-@Model.Id" data-bs-backdrop="static" aria-labelledby="PreviewSvLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="PreviewSOALabel">Preview</h5>
+                <h5 class="modal-title" id="PreviewSvLabel">Preview</h5>
                 <button type="button" class="close" data-bs-dismiss="modal" aria-label="close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -30,7 +30,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td class="text-end" style="padding: 0 !important;"><h6 class="series"><b>No.&nbsp;@Html.DisplayFor(model => model.SOANo)</b></h6></td>
+                            <td class="text-end" style="padding: 0 !important;"><h6 class="series"><b>No.&nbsp;@Html.DisplayFor(model => model.SVNo)</b></h6></td>
                         </tr>
                         <tr>
                             <td class="text-center" style="padding: 0 !important;"><h3 class="module-name"><b>SERVICE INVOICE</b></h3></td>
@@ -43,7 +43,7 @@
                         <tbody>
                             <tr>
                                 <td>
-                                    <span><b>Customer:</b></span>
+                                    <span><b>Billed To:</b></span>
                                     &nbsp; @Html.DisplayFor(model => model.Customer.Name) &nbsp;<br />
 
                                     <span><b>Address:</b></span>
@@ -59,10 +59,10 @@
                                 <td class="w-25 text-nowrap">
 
                                     <b>SOA Date:</b>
-                                    &nbsp; <span id="soaDate">@Model.CreatedDate.ToShortDateString()</span>
+                                    &nbsp; <span>@Model.CreatedDate.ToShortDateString()</span>
                                     <br />
-                                    <b>Terms:</b>&nbsp;<span id="terms"></span>&nbsp;<br />
-                                    <b>Due Date:</b>&nbsp; <span id="dueDate">@Model.DueDate.ToShortDateString()</span><br />
+                                    <b>Terms:</b>&nbsp;<span></span>&nbsp;<br />
+                                    <b>Due Date:</b>&nbsp; <span>@Model.DueDate.ToShortDateString()</span><br />
                                 </td>
                             </tr>
                         </tbody>
@@ -82,26 +82,14 @@
                                 <td>@Html.DisplayFor(model => model.Service.Name)</td>
 
                                 <td class="pt-2">
-                                    @for (int i = 0; i < Model.Amount.Length; i++)
-                                    {
-                                        if (Model.Amount[i] > 0m)
-                                        {
-                                            <p style="line-height:15px">
-                                                @Model.Period[i].ToString("MMMM yyyy")
-                                            </p>
-                                        }
-                                    }
+                                    <p style="line-height:15px">
+                                        @Model.Period.ToString("MMMM yyyy")
+                                    </p>
                                 </td>
                                 <td class="pt-2">
-                                    @for (int i = 0; i < Model.Amount.Length; i++)
-                                    {
-                                        if (Model.Amount[i] > 0m)
-                                        {
-                                            <p style="line-height:15px">
-                                                @Html.DisplayFor(model => model.Amount[i])
-                                            </p>
-                                        }
-                                    }
+                                    <p style="line-height:15px">
+                                        @Html.DisplayFor(model => model.Amount)
+                                    </p>
                                 </td>
 
                             </tr>
@@ -215,7 +203,7 @@
                     <span style="display: inline-block;">AC_124_112023_000090</span>
                     <span>&nbsp;&nbsp;Date Issued:</span>
                     <span style="display: inline-block;">November 28, 2023</span><br />
-                    Series: SI0000000001 - SI9999999999
+                    Series: SV0000000001 - SV9999999999
                     Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
                 </p>
 

@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Accounting_System.Data;
+using Accounting_System.Models;
+using Accounting_System.Repository;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Accounting_System.Data;
-using Accounting_System.Models;
-using Microsoft.AspNetCore.Identity;
-using Accounting_System.Repository;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Accounting_System.Controllers
 {
@@ -65,17 +61,17 @@ namespace Accounting_System.Controllers
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number + " " + s.Name,
+                    Value = s.Id.ToString(),
                     Text = s.Number + " " + s.Name
                 })
                 .ToListAsync(cancellationToken);
 
-            viewModel.UnearnedTitle = await _dbContext.ChartOfAccounts
+            viewModel.UnearnedTitles = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number + " " + s.Name,
+                    Value = s.Id.ToString(),
                     Text = s.Number + " " + s.Name
                 })
                 .ToListAsync(cancellationToken);
@@ -88,7 +84,7 @@ namespace Accounting_System.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create( Services services, CancellationToken cancellationToken)
+        public async Task<IActionResult> Create(Services services, CancellationToken cancellationToken)
         {
 
             services.CurrentAndPreviousTitles = await _dbContext.ChartOfAccounts
@@ -96,25 +92,37 @@ namespace Accounting_System.Controllers
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
                 {
-                    Value = (s.Number + " " + s.Name).ToString(),
+                    Value = s.Id.ToString(),
                     Text = s.Number + " " + s.Name
                 })
                 .ToListAsync(cancellationToken);
 
-            services.UnearnedTitle = await _dbContext.ChartOfAccounts
+            services.UnearnedTitles = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .OrderBy(coa => coa.Id)
                 .Select(s => new SelectListItem
                 {
-                    Value = (s.Number + " " + s.Name).ToString(),
+                    Value = s.Id.ToString(),
                     Text = s.Number + " " + s.Name
                 })
                 .ToListAsync(cancellationToken);
 
             if (ModelState.IsValid)
             {
+                var currentAndPrevious = await _dbContext.ChartOfAccounts
+                    .FindAsync(services.CurrentAndPreviousId, cancellationToken);
+
+                var unearned = await _dbContext.ChartOfAccounts
+                    .FindAsync(services.UnearnedId, cancellationToken);
+
+                services.CurrentAndPreviousNo = currentAndPrevious.Number;
+                services.CurrentAndPreviousTitle = currentAndPrevious.Name;
+
+                services.UnearnedNo = unearned.Number;
+                services.UnearnedTitle = unearned.Name;
+
                 services.CreatedBy = _userManager.GetUserName(this.User).ToUpper();
-                services.Number = await _serviceRepo.GetLastNumber();
+                services.Number = await _serviceRepo.GetLastNumber(cancellationToken);
                 await _dbContext.AddAsync(services, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction(nameof(Index));

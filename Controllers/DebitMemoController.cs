@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Accounting_System.Controllers
 {
@@ -50,12 +49,12 @@ namespace Accounting_System.Controllers
                     Text = si.SINo
                 })
                 .ToListAsync(cancellationToken);
-            viewModel.StatementOfAccounts = await _dbContext.StatementOfAccounts
+            viewModel.StatementOfAccounts = await _dbContext.ServiceInvoices
                 .Where(soa => soa.IsPosted)
                 .Select(soa => new SelectListItem
                 {
                     Value = soa.Id.ToString(),
-                    Text = soa.SOANo
+                    Text = soa.SVNo
                 })
                 .ToListAsync(cancellationToken);
 
@@ -73,12 +72,12 @@ namespace Accounting_System.Controllers
                     Text = si.SINo
                 })
                 .ToListAsync(cancellationToken);
-            model.StatementOfAccounts = await _dbContext.StatementOfAccounts
+            model.StatementOfAccounts = await _dbContext.ServiceInvoices
                 .Where(soa => soa.IsPosted)
                 .Select(soa => new SelectListItem
                 {
                     Value = soa.Id.ToString(),
-                    Text = soa.SOANo
+                    Text = soa.SVNo
                 })
                 .ToListAsync(cancellationToken);
             if (ModelState.IsValid)
@@ -128,7 +127,7 @@ namespace Accounting_System.Controllers
                     }
                 }
 
-                #region --Validating the series-- 
+                #region --Validating the series--
 
                 var getLastNumber = await _debitMemoRepo.GetLastSeriesNumber(cancellationToken);
 
@@ -184,13 +183,13 @@ namespace Accounting_System.Controllers
                     {
                         model.TotalSales = model.DebitAmount;
                     }
-                    
+
                 }
                 else if (model.Source == "Statement Of Account")
                 {
                     model.SalesInvoiceId = null;
 
-                    var existingSoa = await _dbContext.StatementOfAccounts
+                    var existingSoa = await _dbContext.ServiceInvoices
                         .Include(soa => soa.Customer)
                         .FirstOrDefaultAsync(soa => soa.Id == model.SOAId, cancellationToken);
 
@@ -497,7 +496,7 @@ namespace Accounting_System.Controllers
 
                     if (model.SOAId != null)
                     {
-                        var existingSOA = await _dbContext.StatementOfAccounts
+                        var existingSOA = await _dbContext.ServiceInvoices
                             .Include(soa => soa.Customer)
                             .FirstOrDefaultAsync(si => si.Id == model.SOAId, cancellationToken);
 
@@ -550,7 +549,7 @@ namespace Accounting_System.Controllers
                                     {
                                         var shortAmount = viewModelDMCM.NetAmount - total;
 
-                                        viewModelDMCM.Amount[i] += shortAmount;
+                                        viewModelDMCM.Amount += shortAmount;
                                     }
                                 }
 
@@ -669,7 +668,7 @@ namespace Accounting_System.Controllers
                                     );
                                 }
 
-                                var split = model.SOA.Service.CurrentAndPrevious.Split(" ");
+                                var split = model.SOA.Service.CurrentAndPreviousTitle.Split(" ");
                                 var serviceNo = split.First();
                                 var serviceName = split.Last();
 
@@ -801,7 +800,7 @@ namespace Accounting_System.Controllers
         [HttpGet]
         public async Task<JsonResult> GetSOADetails(int soaId, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.StatementOfAccounts.FirstOrDefaultAsync(soa => soa.Id == soaId, cancellationToken);
+            var model = await _dbContext.ServiceInvoices.FirstOrDefaultAsync(soa => soa.Id == soaId, cancellationToken);
             if (model != null)
             {
                 return Json(new

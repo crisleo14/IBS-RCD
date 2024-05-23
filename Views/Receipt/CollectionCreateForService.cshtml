@@ -2,7 +2,7 @@
 @model Accounting_System.Models.CollectionReceipt
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Collection For Service";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <partial name="_Notification">
@@ -25,23 +25,23 @@
 
             </pre>
         </div>
-        <form asp-action="CollectionCreate" method="post" enctype="multipart/form-data">
+        <form asp-action="CollectionCreateForService" method="post" enctype="multipart/form-data">
             <div class="col-md-4">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group mb-3">
                 <label class="control-label">Customers<span class="required">*</span></label>
-                <select asp-for="CustomerNo" asp-items="@Model.Customers" class="form-select js-select2" required>
+                <select asp-for="CustomerId" asp-items="@Model.Customers" class="form-select js-select2" required>
                     <option></option>
                 </select>
-                <span asp-validation-for="CustomerNo" class="text-danger"></span>
+                <span asp-validation-for="CustomerId" class="text-danger"></span>
             </div>
 
                 <div class="form-group mb-3">
-                    <label class="control-label">SI NO.<span class="required">*</span></label>
-                    <select asp-for="SalesInvoiceId" id="invoices" asp-items="@Model.Invoices" class="form-select js-select2">
+                    <label class="control-label">SV NO.<span class="required">*</span></label>
+                    <select asp-for="ServiceInvoiceId" id="invoices" asp-items="@Model.ServiceInvoices" class="form-select js-select2">
                         <option></option>
                     </select>
-                    <span asp-validation-for="SalesInvoiceId" class="text-danger"></span>
+                    <span asp-validation-for="ServiceInvoiceId" class="text-danger"></span>
                 </div>
 
             <div class="form-group mb-3">
@@ -202,11 +202,11 @@
 
     <script>
     $(document).ready(function () {
-        $("#CustomerNo").change(function () {
+        $("#CustomerId").change(function () {
             var customerNo = $(this).val();
 
             $.ajax({
-                url: "/Receipt/GetSalesInvoices",
+                url: "/Receipt/GetServiceInvoices",
                 type: "GET",
                 data: { customerNo: customerNo },
                 success: function (data) {

@@ -1,4 +1,4 @@
-﻿@model Accounting_System.Models.StatementOfAccount
+﻿@model Accounting_System.Models.ServiceInvoice
 
 @{
     ViewData["Title"] = "Create";
@@ -30,23 +30,16 @@
                 </div>
                 <button type="button" class="btn btn-success mb-3" id="add-more">&dArr; Add Another</button>
                 <div id="period-amount-fields" class="row g-2">
-            @if (Model.Amount != null)
-                {
-                    for (int i = 0; i < Model.Amount.Length; i++)
-                    {
-                    <div class="col-sm mb-3">
-                        <label asp-for="Period" class="control-label">Period</label>
-                        <input asp-for="Period[i]" type="month" class="form-control" />
-                        <span asp-validation-for="Period" class="text-danger"></span>
-                    </div>
-                        
-                    <div class="col-sm mb-3">
-                        <label asp-for="Amount" class="control-label">Amount</label>
-                        <input asp-for="Amount[i]" class="form-control moneyInput" placeholder="0.00" />
-                        <span asp-validation-for="Amount" class="text-danger"></span>
-                    </div>
-                    }
-                }
+                <div class="col-sm mb-3">
+                    <label asp-for="Period" class="control-label">Period</label>
+                    <input asp-for="Period" type="month" class="form-control" />
+                    <span asp-validation-for="Period" class="text-danger"></span>
+                </div>
+
+                <div class="col-sm mb-3">
+                    <label asp-for="Amount" class="control-label">Amount</label>
+                    <input asp-for="Amount" class="form-control moneyInput" placeholder="0.00" />
+                    <span asp-validation-for="Amount" class="text-danger"></span>
                 </div>
                 <div class="form-group mb-3">
                     <input type="submit" value="Save" class="btn btn-primary" />

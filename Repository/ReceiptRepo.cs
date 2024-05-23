@@ -32,25 +32,6 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<long> GetLastSeriesNumberOR(CancellationToken cancellationToken = default)
-        {
-            var lastInvoice = await _dbContext
-                .OfficialReceipts
-                .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (lastInvoice != null)
-            {
-                // Increment the last serial by one and return it
-                return lastInvoice.SeriesNumber + 1;
-            }
-            else
-            {
-                // If there are no existing records, you can start with a default value like 1
-                return 1;
-            }
-        }
-
         public async Task<string> GenerateCRNo(CancellationToken cancellationToken = default)
         {
             var collectionReceipt = await _dbContext
@@ -69,41 +50,14 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<string> GenerateORNo(CancellationToken cancellationToken = default)
-        {
-            var officialReceipt = await _dbContext
-                .OfficialReceipts
-                .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (officialReceipt != null)
-            {
-                var generatedCR = officialReceipt.SeriesNumber + 1;
-                return $"OR{generatedCR.ToString("D10")}";
-            }
-            else
-            {
-                return $"OR{1.ToString("D10")}";
-            }
-        }
-
         public async Task<List<CollectionReceipt>> GetCRAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext
                 .CollectionReceipts
                 .Include(cr => cr.SalesInvoice)
                 .ThenInclude(s => s.Customer)
-                .ToListAsync(cancellationToken);
-        }
-
-        public async Task<List<OfficialReceipt>> GetORAsync(CancellationToken cancellationToken = default)
-        {
-            return await _dbContext
-                .OfficialReceipts
-                .Include(soa => soa.StatementOfAccount)
-                .ThenInclude(s => s.Service)
-                .Include(soa => soa.StatementOfAccount)
-                .ThenInclude(c => c.Customer)
+                .Include(cr => cr.ServiceInvoice)
+                .ThenInclude(sv => sv.Customer)
                 .ToListAsync(cancellationToken);
         }
 
@@ -113,31 +67,13 @@ namespace Accounting_System.Repository
                 .CollectionReceipts
                 .Include(cr => cr.SalesInvoice)
                 .ThenInclude(s => s.Customer)
+                .Include(cr => cr.ServiceInvoice)
+                .ThenInclude(sv => sv.Customer)
                 .FirstOrDefaultAsync(collectionReceipt => collectionReceipt.Id == id, cancellationToken);
 
             if (collectionReceipt != null)
             {
                 return collectionReceipt;
-            }
-            else
-            {
-                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
-            }
-        }
-
-        public async Task<OfficialReceipt> FindOR(int id, CancellationToken cancellationToken = default)
-        {
-            var officialReceipt = await _dbContext
-                .OfficialReceipts
-                .Include(or => or.StatementOfAccount)
-                .ThenInclude(soa => soa.Customer)
-                .Include(or => or.StatementOfAccount)
-                .ThenInclude(soa => soa.Service)
-                .FirstOrDefaultAsync(collectionReceipt => collectionReceipt.Id == id, cancellationToken);
-
-            if (officialReceipt != null)
-            {
-                return officialReceipt;
             }
             else
             {
@@ -176,27 +112,27 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<int> UpdateSoa(int id, decimal paidAmount, decimal offsetAmount, CancellationToken cancellationToken = default)
+        public async Task<int> UpdateSv(int id, decimal paidAmount, decimal offsetAmount, CancellationToken cancellationToken = default)
         {
-            var soa = await _dbContext
-                .StatementOfAccounts
+            var sv = await _dbContext
+                .ServiceInvoices
                 .FirstOrDefaultAsync(si => si.Id == id, cancellationToken);
 
-            if (soa != null)
+            if (sv != null)
             {
                 var total = paidAmount + offsetAmount;
-                soa.AmountPaid += total;
-                soa.Balance = (soa.Total - soa.Discount) - soa.AmountPaid;
+                sv.AmountPaid += total;
+                sv.Balance = (sv.Total - sv.Discount) - sv.AmountPaid;
 
-                if (soa.Balance == 0 && soa.AmountPaid == (soa.Total - soa.Discount))
+                if (sv.Balance == 0 && sv.AmountPaid == (sv.Total - sv.Discount))
                 {
-                    soa.IsPaid = true;
-                    soa.Status = "Paid";
+                    sv.IsPaid = true;
+                    sv.Status = "Paid";
                 }
-                else if (soa.AmountPaid > (soa.Total - soa.Discount))
+                else if (sv.AmountPaid > (sv.Total - sv.Discount))
                 {
-                    soa.IsPaid = true;
-                    soa.Status = "OverPaid";
+                    sv.IsPaid = true;
+                    sv.Status = "OverPaid";
                 }
 
                 return await _dbContext.SaveChangesAsync(cancellationToken);
