@@ -13,28 +13,22 @@ namespace Accounting_System.Models
         public DateTime Date { get; set; }
 
         [Display(Name = "SI No")]
-        public int? SIId { get; set; }
+        public int? SalesInvoiceId { get; set; }
 
-        [ForeignKey("SIId")]
+        [ForeignKey("SalesInvoiceId")]
         public SalesInvoice? SalesInvoice { get; set; }
 
         [NotMapped]
-        public List<SelectListItem>? Invoices { get; set; }
-
-        [Display(Name = "SI No")]
-        public string? SINo { get; set; }
+        public List<SelectListItem>? SalesInvoices { get; set; }
 
         [Display(Name = "SOA No")]
-        public int? SOAId { get; set; }
+        public int? ServiceInvoiceId { get; set; }
 
-        [ForeignKey("SOAId")]
-        public ServiceInvoice? StatementOfAccount { get; set; }
+        [ForeignKey("ServiceInvoiceId")]
+        public ServiceInvoice? ServiceInvoice { get; set; }
 
         [NotMapped]
-        public List<SelectListItem>? Soa { get; set; }
-
-        [Display(Name = "SOA No")]
-        public string? SOANo { get; set; }
+        public List<SelectListItem>? ServiceInvoices { get; set; }
 
         public string Description { get; set; }
 
@@ -75,11 +69,11 @@ namespace Accounting_System.Models
 
         public string? Remarks { get; set; }
 
-        [Column(TypeName = "date[]")]
-        public DateTime[]? Period { get; set; } = null;
+        [Column(TypeName = "date")]
+        public DateTime Period { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal[] Amount { get; set; } = new decimal[1] { 0 };
+        public decimal Amount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]

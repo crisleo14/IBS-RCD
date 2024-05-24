@@ -98,7 +98,7 @@ namespace Accounting_System.Controllers
                     }
 
                     var existingSICMs = _dbContext.CreditMemos
-                                      .Where(si => si.SIId == model.SalesInvoiceId && !si.IsPosted && !si.IsCanceled)
+                                      .Where(si => si.SalesInvoiceId == model.SalesInvoiceId && !si.IsPosted && !si.IsCanceled)
                                       .OrderBy(s => s.Id)
                                       .ToList();
                     if (existingSICMs.Count > 0)
@@ -120,7 +120,7 @@ namespace Accounting_System.Controllers
                     }
 
                     var existingSVCMs = _dbContext.CreditMemos
-                                      .Where(si => si.SOAId == model.ServiceInvoiceId && !si.IsPosted && !si.IsCanceled)
+                                      .Where(si => si.ServiceInvoiceId == model.ServiceInvoiceId && !si.IsPosted && !si.IsCanceled)
                                       .OrderBy(s => s.Id)
                                       .ToList();
                     if (existingSVCMs.Count > 0)

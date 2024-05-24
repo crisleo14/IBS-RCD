@@ -33,15 +33,15 @@
                 <input type="date" asp-for="Date" class="form-control" />
                 <span asp-validation-for="Date" class="text-danger"></span>
             </div>
-            <div class="form-group" id="siList" style="display: @(Model.SIId == null ? "none" : "block")">
-                <label asp-for="SIId" class="control-label"></label>
-                <select asp-for="SIId" class="form-control js-select2" asp-items="@Model.Invoices">
+            <div class="form-group" id="siList" style="display: @(Model.SalesInvoiceId == null ? "none" : "block")">
+                <label asp-for="SalesInvoiceId" class="control-label"></label>
+                <select asp-for="SalesInvoiceId" class="form-control js-select2" asp-items="@Model.SalesInvoices">
                     <option></option>
                 </select>
             </div>
-            <div class="form-group" id="soaList" style="display: @(Model.SOAId == null ? "none" : "block")">
-                <label asp-for="SOAId" class="control-label"></label>
-                <select asp-for="SOAId" class="form-control js-select2" asp-items="@Model.Soa">
+            <div class="form-group" id="soaList" style="display: @(Model.ServiceInvoiceId == null ? "none" : "block")">
+                <label asp-for="ServiceInvoiceId" class="control-label"></label>
+                <select asp-for="ServiceInvoiceId" class="form-control js-select2" asp-items="@Model.ServiceInvoices">
                     <option></option>
                 </select>
             </div>
