@@ -2,9 +2,14 @@
 using Accounting_System.Models;
 using Accounting_System.Repository;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 using System.Threading;
 
 namespace Accounting_System.Controllers
@@ -15,12 +20,18 @@ namespace Accounting_System.Controllers
         private readonly ApplicationDbContext _dbContext;
         private readonly ReportRepo _reportRepo;
         private readonly ChartOfAccountRepo _chartOfAccountRepo;
+        private readonly ICompositeViewEngine _viewEngine;
+        private readonly ITempDataProvider _tempDataProvider;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public ReportController(ApplicationDbContext dbContext, ReportRepo reportRepo, ChartOfAccountRepo chartOfAccountRepo)
+        public ReportController(ApplicationDbContext dbContext, ReportRepo reportRepo, ChartOfAccountRepo chartOfAccountRepo, ICompositeViewEngine viewEngine, ITempDataProvider tempDataProvider, UserManager<IdentityUser> userManager)
         {
             _dbContext = dbContext;
             _reportRepo = reportRepo;
             _chartOfAccountRepo = chartOfAccountRepo;
+            _viewEngine = viewEngine;
+            _tempDataProvider = tempDataProvider;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> SalesBook()
@@ -412,6 +423,70 @@ namespace Accounting_System.Controllers
             {
                 return BadRequest();
             }
+        }
+
+        public async Task<IActionResult> GenerateTxtFile(ViewModelBook model)
+        {
+            var dateFrom = model.DateFrom;
+            var dateTo = model.DateTo;
+            var extractedBy = _userManager.GetUserName(this.User);
+
+            var disbursementBooks = _reportRepo.GetAuditTrails(model.DateFrom, model.DateTo);
+            var lastRecord = disbursementBooks.LastOrDefault();
+            var firstRecord = disbursementBooks.FirstOrDefault();
+            if (lastRecord != null)
+            {
+                ViewBag.LastRecord = lastRecord.Date;
+            }
+
+            var fileContent = new StringBuilder();
+
+            fileContent.AppendLine($"TAXPAYER'S NAME: Filpride Resources Inc.");
+            fileContent.AppendLine($"TIN: 000-216-589-00000");
+            fileContent.AppendLine($"ADDRESS: 57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone, Kalaklan, Olongapo City, 2200 Zambales, Philippines");
+            fileContent.AppendLine();
+            fileContent.AppendLine($"Accounting System: Accounting Administration System");
+            fileContent.AppendLine($"Acknowledgement Certificate Control No.: ");
+            fileContent.AppendLine($"Date Issued: ");
+            fileContent.AppendLine();
+            fileContent.AppendLine("Accounting Books File Attributes/Layout Definition");
+            fileContent.AppendLine("File Name: Audit Trail Report");
+            fileContent.AppendLine("File Type: Text File");
+            fileContent.AppendLine($"Number of Records: {disbursementBooks.Count}");
+            fileContent.AppendLine("Amount Field Control Total: N/A");
+            fileContent.AppendLine($"Period Covered: {dateFrom} to {dateTo} ");
+            fileContent.AppendLine($"Transaction cut-off Date & Time: {ViewBag.LastRecord}");
+            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine();
+            fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
+            fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"25"}\t{"25"}\t{firstRecord.Date}");
+            fileContent.AppendLine($"{"Username"}\t{"Username"}\t{"27"}\t{"46"}\t{"20"}\t{firstRecord.Username}");
+            fileContent.AppendLine($"{"Machine Name"}\t{"Machine Name"}\t{"48"}\t{"77"}\t{"30"}\t{firstRecord.MachineName}");
+            fileContent.AppendLine($"{"Activity"}\t{"Activity"}\t{"79"}\t{"278"}\t{"200"}\t{firstRecord.Activity}");
+            fileContent.AppendLine($"{"Document Type"}\t{"Document Type"}\t{"280"}\t{"299"}\t{"20"}\t{firstRecord.DocumentType}");
+            fileContent.AppendLine();
+            fileContent.AppendLine("AUDIT TRAIL REPORT");
+            fileContent.AppendLine();
+            fileContent.AppendLine($"{"Date",-25}\t{"Username",-20}\t{"Machine Name",-30}\t{"Activity",-200}\t{"Document Type",-20}");
+
+            // Generate the records
+            foreach (var record in disbursementBooks)
+            {
+                fileContent.AppendLine($"{record.Date.ToString(),-25}\t{record.Username,-20}\t{record.MachineName,-30}\t{record.Activity,-200}\t{record.DocumentType,-20}");
+            }
+            
+            fileContent.AppendLine();
+            fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
+            fileContent.AppendLine($"Version: v1.0");
+            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
+
+
+            // Convert the content to a byte array
+            var bytes = Encoding.UTF8.GetBytes(fileContent.ToString());
+
+            // Return the file to the user
+            return File(bytes, "text/plain", "AuditTrailReport.txt");
         }
     }
 }
