@@ -10,7 +10,7 @@
 
 <partial name="_Notification">
 
-    <form asp-action="GeneralLedgerBookReport" method="post">
+    <form id="dynamicForm" method="post">
         <div class="row">
             <div class="col-md-4">
                 <div class="mb-3">
@@ -24,7 +24,10 @@
                     <span asp-validation-for="DateTo" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <button type="submit" class="btn-primary">Generate</button>
+                    <button type="submit" class="btn-primary" onclick="submitForm('GeneralLedgerBookReport')">Generate</button>
+                </div>
+                <div class="mb-3">
+                    <button type="submit" class="btn-primary" onclick="submitForm('GenerateGeneralLedgerBookTxtFile')">Generate as .txt file</button>
                 </div>
             </div>
         </div>
@@ -34,5 +37,12 @@
         @{
             await Html.RenderPartialAsync("_ValidationScriptsPartial");
         }
+        <script>
+            function submitForm(action) {
+                var form = document.getElementById('dynamicForm');
+                form.action = action;
+                form.submit();
+            }
+        </script>
     }
 
