@@ -377,14 +377,14 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var disbursementBooks = _reportRepo.GetAuditTrails(model.DateFrom, model.DateTo);
-                    var lastRecord = disbursementBooks.LastOrDefault();
+                    var auditTrail = _reportRepo.GetAuditTrails(model.DateFrom, model.DateTo);
+                    var lastRecord = auditTrail.LastOrDefault();
                     if (lastRecord != null)
                     {
                         ViewBag.LastRecord = lastRecord.Date;
                     }
 
-                    return View(disbursementBooks);
+                    return View(auditTrail);
                 }
                 catch (Exception ex)
                 {
@@ -425,18 +425,81 @@ namespace Accounting_System.Controllers
             }
         }
 
-        public async Task<IActionResult> GenerateTxtFile(ViewModelBook model)
+        public IActionResult GenerateAuditTrailTxtFile(ViewModelBook model)
         {
             var dateFrom = model.DateFrom;
             var dateTo = model.DateTo;
             var extractedBy = _userManager.GetUserName(this.User);
 
-            var disbursementBooks = _reportRepo.GetAuditTrails(model.DateFrom, model.DateTo);
+            var auditTrail = _reportRepo.GetAuditTrails(model.DateFrom, model.DateTo);
+            var lastRecord = auditTrail.LastOrDefault();
+            var firstRecord = auditTrail.FirstOrDefault();
+            if (lastRecord != null)
+            {
+                ViewBag.LastRecord = lastRecord.Date;
+            }
+
+            var fileContent = new StringBuilder();
+
+            fileContent.AppendLine($"TAXPAYER'S NAME: Filpride Resources Inc.");
+            fileContent.AppendLine($"TIN: 000-216-589-00000");
+            fileContent.AppendLine($"ADDRESS: 57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone, Kalaklan, Olongapo City, 2200 Zambales, Philippines");
+            fileContent.AppendLine();
+            fileContent.AppendLine($"Accounting System: Accounting Administration System");
+            fileContent.AppendLine($"Acknowledgement Certificate Control No.: ");
+            fileContent.AppendLine($"Date Issued: ");
+            fileContent.AppendLine();
+            fileContent.AppendLine("Accounting Books File Attributes/Layout Definition");
+            fileContent.AppendLine("File Name: Audit Trail Report");
+            fileContent.AppendLine("File Type: Text File");
+            fileContent.AppendLine($"Number of Records: {auditTrail.Count}");
+            fileContent.AppendLine("Amount Field Control Total: N/A");
+            fileContent.AppendLine($"Period Covered: {dateFrom} to {dateTo} ");
+            fileContent.AppendLine($"Transaction cut-off Date & Time: {ViewBag.LastRecord}");
+            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine();
+            fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
+            fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"25"}\t{"25"}\t{firstRecord.Date}");
+            fileContent.AppendLine($"{"Username"}\t{"Username"}\t{"27"}\t{"46"}\t{"20"}\t{firstRecord.Username}");
+            fileContent.AppendLine($"{"Machine Name"}\t{"Machine Name"}\t{"48"}\t{"77"}\t{"30"}\t{firstRecord.MachineName}");
+            fileContent.AppendLine($"{"Activity"}\t{"Activity"}\t{"79"}\t{"278"}\t{"200"}\t{firstRecord.Activity}");
+            fileContent.AppendLine($"{"Document Type"}\t{"Document Type"}\t{"280"}\t{"299"}\t{"20"}\t{firstRecord.DocumentType}");
+            fileContent.AppendLine();
+            fileContent.AppendLine("AUDIT TRAIL REPORT");
+            fileContent.AppendLine();
+            fileContent.AppendLine($"{"Date",-25}\t{"Username",-20}\t{"Machine Name",-30}\t{"Activity",-200}\t{"Document Type",-20}");
+
+            // Generate the records
+            foreach (var record in auditTrail)
+            {
+                fileContent.AppendLine($"{record.Date.ToString(),-25}\t{record.Username,-20}\t{record.MachineName,-30}\t{record.Activity,-200}\t{record.DocumentType,-20}");
+            }
+            
+            fileContent.AppendLine();
+            fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
+            fileContent.AppendLine($"Version: v1.0");
+            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
+
+
+            // Convert the content to a byte array
+            var bytes = Encoding.UTF8.GetBytes(fileContent.ToString());
+
+            // Return the file to the user
+            return File(bytes, "text/plain", "AuditTrailReport.txt");
+        }
+        public IActionResult GenerateDisbursementBookTxtFile(ViewModelBook model)
+        {
+            var dateFrom = model.DateFrom;
+            var dateTo = model.DateTo;
+            var extractedBy = _userManager.GetUserName(this.User);
+
+            var disbursementBooks = _reportRepo.GetDisbursementBooks(model.DateFrom, model.DateTo);
             var lastRecord = disbursementBooks.LastOrDefault();
             var firstRecord = disbursementBooks.FirstOrDefault();
             if (lastRecord != null)
             {
-                ViewBag.LastRecord = lastRecord.Date;
+                ViewBag.LastRecord = lastRecord.CreatedDate;
             }
 
             var fileContent = new StringBuilder();
@@ -459,22 +522,27 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"Extracted By: {extractedBy}");
             fileContent.AppendLine();
             fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
-            fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"25"}\t{"25"}\t{firstRecord.Date}");
-            fileContent.AppendLine($"{"Username"}\t{"Username"}\t{"27"}\t{"46"}\t{"20"}\t{firstRecord.Username}");
-            fileContent.AppendLine($"{"Machine Name"}\t{"Machine Name"}\t{"48"}\t{"77"}\t{"30"}\t{firstRecord.MachineName}");
-            fileContent.AppendLine($"{"Activity"}\t{"Activity"}\t{"79"}\t{"278"}\t{"200"}\t{firstRecord.Activity}");
-            fileContent.AppendLine($"{"Document Type"}\t{"Document Type"}\t{"280"}\t{"299"}\t{"20"}\t{firstRecord.DocumentType}");
+            fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
+            fileContent.AppendLine($"{"CVNo",-8}\t{"CVNo",-8}\t{"12"}\t{"23"}\t{"12"}\t{firstRecord.CVNo}");
+            fileContent.AppendLine($"{"Payee",-8}\t{"Payee",-8}\t{"25"}\t{"124"}\t{"100"}\t{firstRecord.Payee}");
+            fileContent.AppendLine($"{"Particulars"}\t{"Particulars"}\t{"126"}\t{"325"}\t{"200"}\t{firstRecord.Particulars}");
+            fileContent.AppendLine($"{"Bank",-8}\t{"Bank",-8}\t{"327"}\t{"336"}\t{"10"}\t{firstRecord.Bank}");
+            fileContent.AppendLine($"{"CheckNo",-8}\t{"CheckNo",-8}\t{"338"}\t{"357"}\t{"20"}\t{firstRecord.CheckNo}");
+            fileContent.AppendLine($"{"CheckDate"}\t{"CheckDate"}\t{"359"}\t{"368"}\t{"10"}\t{firstRecord.CheckDate}");
+            fileContent.AppendLine($"{"ChartOfAccount"}\t{"ChartOfAccount"}\t{"370"}\t{"469"}\t{"100"}\t{firstRecord.ChartOfAccount}");
+            fileContent.AppendLine($"{"Debit",-8}\t{"Debit",-8}\t{"471"}\t{"488"}\t{"18"}\t{firstRecord.Debit}");
+            fileContent.AppendLine($"{"Credit",-8}\t{"Credit",-8}\t{"490"}\t{"507"}\t{"18"}\t{firstRecord.Credit}");
             fileContent.AppendLine();
             fileContent.AppendLine("AUDIT TRAIL REPORT");
             fileContent.AppendLine();
-            fileContent.AppendLine($"{"Date",-25}\t{"Username",-20}\t{"Machine Name",-30}\t{"Activity",-200}\t{"Document Type",-20}");
+            fileContent.AppendLine($"{"Date",-9}\t{"CVNo",-12}\t{"Payee",-100}\t{"Particulars",-200}\t{"Bank",-10}\t{"CheckNo",-20}\t{"CheckDate",-10}\t{"ChartOfAccount",-100}\t{"Debit",-18}\t{"Credit",-18}");
 
             // Generate the records
             foreach (var record in disbursementBooks)
             {
-                fileContent.AppendLine($"{record.Date.ToString(),-25}\t{record.Username,-20}\t{record.MachineName,-30}\t{record.Activity,-200}\t{record.DocumentType,-20}");
+                fileContent.AppendLine($"{record.Date.ToString(),-9}\t{record.CVNo,-13}\t{record.Payee,-100}\t{record.Particulars,-200}\t{record.Bank,-10}\t{record.CheckNo,-20}\t{record.CheckDate,-10}\t{record.ChartOfAccount,-100}\t{record.Debit,-18}\t{record.Credit,-18}");
             }
-            
+
             fileContent.AppendLine();
             fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
             fileContent.AppendLine($"Version: v1.0");
