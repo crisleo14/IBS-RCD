@@ -592,10 +592,10 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine();
             fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
             fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
-            fileContent.AppendLine($"{"RefNo",-8}\t{"Ref No",-8}\t{"12"}\t{"23"}\t{"12"}\t{firstRecord.RefNo}");
+            fileContent.AppendLine($"{"RefNo",-8}\t{"Ref No.",-8}\t{"12"}\t{"23"}\t{"12"}\t{firstRecord.RefNo}");
             fileContent.AppendLine($"{"CustomerName"}\t{"Customer Name"}\t{"25"}\t{"40"}\t{"16"}\t{firstRecord.CustomerName}");
             fileContent.AppendLine($"{"Bank",-8}\t{"Bank",-8}\t{"42"}\t{"141"}\t{"100"}\t{firstRecord.Bank}");
-            fileContent.AppendLine($"{"CheckNo",-8}\t{"Check No",-8}\t{"143"}\t{"162"}\t{"20"}\t{firstRecord.CheckNo}");
+            fileContent.AppendLine($"{"CheckNo",-8}\t{"Check No.",-8}\t{"143"}\t{"162"}\t{"20"}\t{firstRecord.CheckNo}");
             fileContent.AppendLine($"{"COA",-8}\t{"Chart Of Account",-8}\t{"164"}\t{"263"}\t{"100"}\t{firstRecord.COA}");
             fileContent.AppendLine($"{"Particulars"}\t{"Particulars"}\t{"265"}\t{"464"}\t{"200"}\t{firstRecord.Particulars}");
             fileContent.AppendLine($"{"Debit",-8}\t{"Debit",-8}\t{"466"}\t{"483"}\t{"18"}\t{firstRecord.Debit}");
@@ -603,7 +603,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine();
             fileContent.AppendLine("AUDIT TRAIL REPORT");
             fileContent.AppendLine();
-            fileContent.AppendLine($"{"Date",-10}\t{"Ref No",-12}\t{"Customer Name",-16}\t{"Bank",-100}\t{"Check No.",-20}\t{"Chart Of Account",-100}\t{"Particulars",-200}\t{"Debit",-18}\t{"Credit",-18}");
+            fileContent.AppendLine($"{"Date",-10}\t{"Ref No.",-12}\t{"Customer Name",-16}\t{"Bank",-100}\t{"Check No.",-20}\t{"Chart Of Account",-100}\t{"Particulars",-200}\t{"Debit",-18}\t{"Credit",-18}");
 
             // Generate the records
             foreach (var record in cashReceiptBooks)
