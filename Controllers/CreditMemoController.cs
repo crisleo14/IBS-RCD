@@ -110,7 +110,7 @@ namespace Accounting_System.Controllers
                 else
                 {
                     var existingSOADMs = _dbContext.DebitMemos
-                                  .Where(si => si.SOAId == model.SOAId && !si.IsPosted && !si.IsCanceled)
+                                  .Where(si => si.ServiceInvoiceId == model.SOAId && !si.IsPosted && !si.IsCanceled)
                                   .OrderBy(s => s.Id)
                                   .ToList();
                     if (existingSOADMs.Count > 0)

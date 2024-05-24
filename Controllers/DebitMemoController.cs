@@ -29,10 +29,10 @@ namespace Accounting_System.Controllers
         {
             var dm = await _dbContext.DebitMemos
                 .Include(dm => dm.SalesInvoice)
-                .Include(dm => dm.SOA)
-                .ThenInclude(soa => soa.Customer)
-                .Include(dm => dm.SOA)
-                .ThenInclude(soa => soa.Service)
+                .Include(dm => dm.ServiceInvoice)
+                .ThenInclude(sv => sv.Customer)
+                .Include(dm => dm.ServiceInvoice)
+                .ThenInclude(sv => sv.Service)
                 .ToListAsync(cancellationToken);
             return View(dm);
         }
@@ -49,12 +49,13 @@ namespace Accounting_System.Controllers
                     Text = si.SINo
                 })
                 .ToListAsync(cancellationToken);
-            viewModel.StatementOfAccounts = await _dbContext.ServiceInvoices
-                .Where(soa => soa.IsPosted)
-                .Select(soa => new SelectListItem
+
+            viewModel.ServiceInvoices = await _dbContext.ServiceInvoices
+                .Where(sv => sv.IsPosted)
+                .Select(sv => new SelectListItem
                 {
-                    Value = soa.Id.ToString(),
-                    Text = soa.SVNo
+                    Value = sv.Id.ToString(),
+                    Text = sv.SVNo
                 })
                 .ToListAsync(cancellationToken);
 
@@ -72,14 +73,16 @@ namespace Accounting_System.Controllers
                     Text = si.SINo
                 })
                 .ToListAsync(cancellationToken);
-            model.StatementOfAccounts = await _dbContext.ServiceInvoices
-                .Where(soa => soa.IsPosted)
-                .Select(soa => new SelectListItem
+
+            model.ServiceInvoices = await _dbContext.ServiceInvoices
+                .Where(sv => sv.IsPosted)
+                .Select(sv => new SelectListItem
                 {
-                    Value = soa.Id.ToString(),
-                    Text = soa.SVNo
+                    Value = sv.Id.ToString(),
+                    Text = sv.SVNo
                 })
                 .ToListAsync(cancellationToken);
+
             if (ModelState.IsValid)
             {
                 if (model.SalesInvoiceId != null)
@@ -106,23 +109,23 @@ namespace Accounting_System.Controllers
                 }
                 else
                 {
-                    var existingSOADMs = _dbContext.DebitMemos
-                                  .Where(si => si.SOAId == model.SOAId && !si.IsPosted && !si.IsCanceled)
+                    var existingSVDMs = _dbContext.DebitMemos
+                                  .Where(si => si.ServiceInvoiceId == model.ServiceInvoiceId && !si.IsPosted && !si.IsCanceled)
                                   .OrderBy(s => s.Id)
                                   .ToList();
-                    if (existingSOADMs.Count > 0)
+                    if (existingSVDMs.Count > 0)
                     {
-                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSOADMs.First().DMNo}");
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSVDMs.First().DMNo}");
                         return View(model);
                     }
 
-                    var existingSOACMs = _dbContext.CreditMemos
-                                      .Where(si => si.SOAId == model.SOAId && !si.IsPosted && !si.IsCanceled)
+                    var existingSVCMs = _dbContext.CreditMemos
+                                      .Where(si => si.SOAId == model.ServiceInvoiceId && !si.IsPosted && !si.IsCanceled)
                                       .OrderBy(s => s.Id)
                                       .ToList();
-                    if (existingSOACMs.Count > 0)
+                    if (existingSVCMs.Count > 0)
                     {
-                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSOACMs.First().CMNo}");
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSVCMs.First().CMNo}");
                         return View(model);
                     }
                 }
@@ -156,7 +159,7 @@ namespace Accounting_System.Controllers
 
                 if (model.Source == "Sales Invoice")
                 {
-                    model.SOAId = null;
+                    model.ServiceInvoiceId = null;
 
                     var existingSalesInvoice = await _dbContext.SalesInvoices
                                                .FirstOrDefaultAsync(si => si.Id == model.SalesInvoiceId, cancellationToken);
@@ -185,18 +188,18 @@ namespace Accounting_System.Controllers
                     }
 
                 }
-                else if (model.Source == "Statement Of Account")
+                else if (model.Source == "Service Invoice")
                 {
                     model.SalesInvoiceId = null;
 
-                    var existingSoa = await _dbContext.ServiceInvoices
-                        .Include(soa => soa.Customer)
-                        .FirstOrDefaultAsync(soa => soa.Id == model.SOAId, cancellationToken);
+                    var existingSv = await _dbContext.ServiceInvoices
+                        .Include(sv => sv.Customer)
+                        .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
 
 
                     #region --Retrieval of Services
 
-                    model.ServicesId = existingSoa.ServicesId;
+                    model.ServicesId = existingSv.ServicesId;
 
                     var services = await _dbContext
                     .Services
@@ -206,24 +209,19 @@ namespace Accounting_System.Controllers
 
                     #region --DM Entries function
 
-                    foreach (var amount in model.Amount)
-                    {
-                        model.CurrentAndPreviousAmount += amount;
-                    }
-
                     #endregion ----DM Entries function
 
-                    model.DebitAmount = model.CurrentAndPreviousAmount;
+                    model.DebitAmount = model.Amount;
 
 
-                    if (existingSoa.Customer.CustomerType == "Vatable")
+                    if (existingSv.Customer.CustomerType == "Vatable")
                     {
                         model.VatableSales = model.DebitAmount / 1.12m;
                         model.VatAmount = model.DebitAmount - model.VatableSales;
                         model.TotalSales = model.VatableSales + model.VatAmount;
                         model.WithHoldingTaxAmount = model.VatableSales * (services.Percent / 100m);
 
-                        if (existingSoa.WithholdingVatAmount != 0)
+                        if (existingSv.WithholdingVatAmount != 0)
                         {
                             model.WithHoldingVatAmount = model.VatableSales * 0.05m;
                         }
@@ -263,10 +261,10 @@ namespace Accounting_System.Controllers
 
             var debitMemo = await _dbContext.DebitMemos
                 .Include(dm => dm.SalesInvoice)
-                .Include(dm => dm.SOA)
-                .ThenInclude(soa => soa.Customer)
-                .Include(dm => dm.SOA)
-                .ThenInclude(soa => soa.Service)
+                .Include(dm => dm.ServiceInvoice)
+                .ThenInclude(sv => sv.Customer)
+                .Include(dm => dm.ServiceInvoice)
+                .ThenInclude(sv => sv.Service)
                 .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
             if (debitMemo == null)
             {
@@ -294,7 +292,7 @@ namespace Accounting_System.Controllers
             return RedirectToAction("Print", new { id = id });
         }
 
-        public async Task<IActionResult> Post(int id, CancellationToken cancellationToken, ViewModelDMCM viewModelDMCM)
+        public async Task<IActionResult> Post(int id, ViewModelDMCM viewModelDMCM, CancellationToken cancellationToken)
         {
             var model = await _debitMemoRepo.FindDM(id, cancellationToken);
 
@@ -509,11 +507,11 @@ namespace Accounting_System.Controllers
                         #endregion --General Ledger Book Recording(SI)--
                     }
 
-                    if (model.SOAId != null)
+                    if (model.ServiceInvoiceId != null)
                     {
-                        var existingSOA = await _dbContext.ServiceInvoices
-                            .Include(soa => soa.Customer)
-                            .FirstOrDefaultAsync(si => si.Id == model.SOAId, cancellationToken);
+                        var existingSv = await _dbContext.ServiceInvoices
+                            .Include(sv => sv.Customer)
+                            .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
 
                         #region --Retrieval of Services
 
@@ -521,211 +519,197 @@ namespace Accounting_System.Controllers
 
                         #endregion --Retrieval of Services
 
-                        for (int i = 0; i < model.Amount.Length; i++)
+                        #region --SV Computation--
+
+                        viewModelDMCM.Period = model.CreatedDate >= model.Period ? model.CreatedDate : model.Period.AddMonths(1).AddDays(-1);
+
+                        if (existingSv.Customer.CustomerType == "Vatable")
                         {
-                            model.Amount[i] = model.Amount[i];
-                        }
-                        for (int i = 0; i < model.Period.Length; i++)
-                        {
-                            if (model.Amount[i] > 0)
+                            viewModelDMCM.Total = model.Amount;
+                            viewModelDMCM.NetAmount = (model.Amount - existingSv.Discount) / 1.12m;
+                            viewModelDMCM.VatAmount = (model.Amount - existingSv.Discount) - viewModelDMCM.NetAmount;
+                            viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (services.Percent / 100m);
+                            if (existingSv.Customer.WithHoldingVat)
                             {
-                                #region --SOA Computation--
-
-                                viewModelDMCM.Period = model.CreatedDate >= model.Period[i] ? model.CreatedDate : model.Period[i].AddMonths(1).AddDays(-1);
-
-                                if (existingSOA.Customer.CustomerType == "Vatable")
-                                {
-                                    viewModelDMCM.Total = model.Amount[i];
-                                    viewModelDMCM.NetAmount = (model.Amount[i] - existingSOA.Discount) / 1.12m;
-                                    viewModelDMCM.VatAmount = (model.Amount[i] - existingSOA.Discount) - viewModelDMCM.NetAmount;
-                                    viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (services.Percent / 100m);
-                                    if (existingSOA.Customer.WithHoldingVat)
-                                    {
-                                        viewModelDMCM.WithholdingVatAmount = viewModelDMCM.NetAmount * 0.05m;
-                                    }
-                                }
-                                else
-                                {
-                                    viewModelDMCM.NetAmount = model.Amount[i] - existingSOA.Discount;
-                                    viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (services.Percent / 100m);
-                                    if (existingSOA.Customer.WithHoldingVat)
-                                    {
-                                        viewModelDMCM.WithholdingVatAmount = viewModelDMCM.NetAmount * 0.05m;
-                                    }
-                                }
-
-                                if (existingSOA.Customer.CustomerType == "Vatable")
-                                {
-                                    var total = Math.Round(model.Amount[i] / 1.12m, 2);
-
-                                    var roundedNetAmount = Math.Round(viewModelDMCM.NetAmount, 2);
-
-                                    if (roundedNetAmount > total)
-                                    {
-                                        var shortAmount = viewModelDMCM.NetAmount - total;
-
-                                        viewModelDMCM.Amount += shortAmount;
-                                    }
-                                }
-
-                                #endregion --SOA Computation--
-
-                                #region --Sales Book Recording(SOA)--
-
-                                var sales = new SalesBook();
-
-                                if (model.SOA.Customer.CustomerType == "Vatable")
-                                {
-                                    sales.TransactionDate = viewModelDMCM.Period.ToShortDateString();
-                                    sales.SerialNo = model.DMNo;
-                                    sales.SoldTo = model.SOA.Customer.Name;
-                                    sales.TinNo = model.SOA.Customer.TinNo;
-                                    sales.Address = model.SOA.Customer.Address;
-                                    sales.Description = model.SOA.Service.Name;
-                                    sales.Amount = viewModelDMCM.Total;
-                                    sales.VatAmount = viewModelDMCM.VatAmount;
-                                    sales.VatableSales = viewModelDMCM.Total / 1.12m;
-                                    //sales.Discount = model.Discount;
-                                    sales.NetSales = viewModelDMCM.NetAmount;
-                                    sales.CreatedBy = model.CreatedBy;
-                                    sales.CreatedDate = model.CreatedDate;
-                                    sales.DueDate = existingSOA?.DueDate;
-                                    sales.DocumentId = existingSOA.Id;
-                                }
-                                else if (model.SOA.Customer.CustomerType == "Exempt")
-                                {
-                                    sales.TransactionDate = viewModelDMCM.Period.ToShortDateString();
-                                    sales.SerialNo = model.DMNo;
-                                    sales.SoldTo = model.SOA.Customer.Name;
-                                    sales.TinNo = model.SOA.Customer.TinNo;
-                                    sales.Address = model.SOA.Customer.Address;
-                                    sales.Description = model.SOA.Service.Name;
-                                    sales.Amount = viewModelDMCM.Total;
-                                    sales.VatExemptSales = viewModelDMCM.Total;
-                                    //sales.Discount = model.Discount;
-                                    sales.NetSales = viewModelDMCM.NetAmount;
-                                    sales.CreatedBy = model.CreatedBy;
-                                    sales.CreatedDate = model.CreatedDate;
-                                    sales.DueDate = existingSOA?.DueDate;
-                                    sales.DocumentId = existingSOA.Id;
-                                }
-                                else
-                                {
-                                    sales.TransactionDate = viewModelDMCM.Period.ToShortDateString();
-                                    sales.SerialNo = model.DMNo;
-                                    sales.SoldTo = model.SOA.Customer.Name;
-                                    sales.TinNo = model.SOA.Customer.TinNo;
-                                    sales.Address = model.SOA.Customer.Address;
-                                    sales.Description = model.SOA.Service.Name;
-                                    sales.Amount = viewModelDMCM.Total;
-                                    sales.ZeroRated = viewModelDMCM.Total;
-                                    //sales.Discount = model.Discount;
-                                    sales.NetSales = viewModelDMCM.NetAmount;
-                                    sales.CreatedBy = model.CreatedBy;
-                                    sales.CreatedDate = model.CreatedDate;
-                                    sales.DueDate = existingSOA?.DueDate;
-                                    sales.DocumentId = existingSOA.Id;
-                                }
-                                await _dbContext.AddAsync(sales, cancellationToken);
-
-                                #endregion --Sales Book Recording(SOA)--
-
-                                #region --General Ledger Book Recording(SOA)--
-
-                                var ledgers = new List<GeneralLedgerBook>();
-
-                                ledgers.Add(
-                                        new GeneralLedgerBook
-                                        {
-                                            Date = viewModelDMCM.Period.ToShortDateString(),
-                                            Reference = model.DMNo,
-                                            Description = model.SOA.Service.Name,
-                                            AccountNo = "1010204",
-                                            AccountTitle = "AR-Non Trade Receivable",
-                                            Debit = viewModelDMCM.Total - (viewModelDMCM.WithholdingTaxAmount + viewModelDMCM.WithholdingVatAmount),
-                                            Credit = 0,
-                                            CreatedBy = model.CreatedBy,
-                                            CreatedDate = model.CreatedDate
-                                        }
-                                    );
-                                if (viewModelDMCM.WithholdingTaxAmount > 0)
-                                {
-                                    ledgers.Add(
-                                        new GeneralLedgerBook
-                                        {
-                                            Date = viewModelDMCM.Period.ToShortDateString(),
-                                            Reference = model.DMNo,
-                                            Description = model.SOA.Service.Name,
-                                            AccountNo = "1010202",
-                                            AccountTitle = "Deferred Creditable Withholding Tax",
-                                            Debit = viewModelDMCM.WithholdingTaxAmount,
-                                            Credit = 0,
-                                            CreatedBy = model.CreatedBy,
-                                            CreatedDate = model.CreatedDate
-                                        }
-                                    );
-                                }
-                                if (viewModelDMCM.WithholdingVatAmount > 0)
-                                {
-                                    ledgers.Add(
-                                        new GeneralLedgerBook
-                                        {
-                                            Date = viewModelDMCM.Period.ToShortDateString(),
-                                            Reference = model.DMNo,
-                                            Description = model.SOA.Service.Name,
-                                            AccountNo = "1010203",
-                                            AccountTitle = "Deferred Creditable Withholding Vat",
-                                            Debit = viewModelDMCM.WithholdingVatAmount,
-                                            Credit = 0,
-                                            CreatedBy = model.CreatedBy,
-                                            CreatedDate = model.CreatedDate
-                                        }
-                                    );
-                                }
-
-                                var split = model.SOA.Service.CurrentAndPreviousTitle.Split(" ");
-                                var serviceNo = split.First();
-                                var serviceName = split.Last();
-
-                                if (viewModelDMCM.Total > 0)
-                                {
-                                    ledgers.Add(new GeneralLedgerBook
-                                    {
-                                        Date = viewModelDMCM.Period.ToShortDateString(),
-                                        Reference = model.DMNo,
-                                        Description = model.SOA.Service.Name,
-                                        AccountNo = serviceNo,
-                                        AccountTitle = serviceName,
-                                        Debit = 0,
-                                        Credit = viewModelDMCM.Total / 1.12m,
-                                        CreatedBy = model.CreatedBy,
-                                        CreatedDate = model.CreatedDate
-                                    });
-                                }
-
-                                if (viewModelDMCM.VatAmount > 0)
-                                {
-                                    ledgers.Add(
-                                        new GeneralLedgerBook
-                                        {
-                                            Date = viewModelDMCM.Period.ToShortDateString(),
-                                            Reference = model.DMNo,
-                                            Description = model.SOA.Service.Name,
-                                            AccountNo = "2010304",
-                                            AccountTitle = "Deferred Vat Output",
-                                            Debit = 0,
-                                            Credit = viewModelDMCM.VatAmount,
-                                            CreatedBy = model.CreatedBy,
-                                            CreatedDate = model.CreatedDate
-                                        }
-                                    );
-                                }
-
-                                await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
-
-                                #endregion --General Ledger Book Recording(SOA)--
+                                viewModelDMCM.WithholdingVatAmount = viewModelDMCM.NetAmount * 0.05m;
                             }
                         }
+                        else
+                        {
+                            viewModelDMCM.NetAmount = model.Amount - existingSv.Discount;
+                            viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (services.Percent / 100m);
+                            if (existingSv.Customer.WithHoldingVat)
+                            {
+                                viewModelDMCM.WithholdingVatAmount = viewModelDMCM.NetAmount * 0.05m;
+                            }
+                        }
+
+                        if (existingSv.Customer.CustomerType == "Vatable")
+                        {
+                            var total = Math.Round(model.Amount / 1.12m, 2);
+
+                            var roundedNetAmount = Math.Round(viewModelDMCM.NetAmount, 2);
+
+                            if (roundedNetAmount > total)
+                            {
+                                var shortAmount = viewModelDMCM.NetAmount - total;
+
+                                viewModelDMCM.Amount += shortAmount;
+                            }
+                        }
+
+                        #endregion --SV Computation--
+
+                        #region --Sales Book Recording(SV)--
+
+                        var sales = new SalesBook();
+
+                        if (model.ServiceInvoice.Customer.CustomerType == "Vatable")
+                        {
+                            sales.TransactionDate = viewModelDMCM.Period.ToShortDateString();
+                            sales.SerialNo = model.DMNo;
+                            sales.SoldTo = model.ServiceInvoice.Customer.Name;
+                            sales.TinNo = model.ServiceInvoice.Customer.TinNo;
+                            sales.Address = model.ServiceInvoice.Customer.Address;
+                            sales.Description = model.ServiceInvoice.Service.Name;
+                            sales.Amount = viewModelDMCM.Total;
+                            sales.VatAmount = viewModelDMCM.VatAmount;
+                            sales.VatableSales = viewModelDMCM.Total / 1.12m;
+                            //sales.Discount = model.Discount;
+                            sales.NetSales = viewModelDMCM.NetAmount;
+                            sales.CreatedBy = model.CreatedBy;
+                            sales.CreatedDate = model.CreatedDate;
+                            sales.DueDate = existingSv?.DueDate;
+                            sales.DocumentId = existingSv.Id;
+                        }
+                        else if (model.ServiceInvoice.Customer.CustomerType == "Exempt")
+                        {
+                            sales.TransactionDate = viewModelDMCM.Period.ToShortDateString();
+                            sales.SerialNo = model.DMNo;
+                            sales.SoldTo = model.ServiceInvoice.Customer.Name;
+                            sales.TinNo = model.ServiceInvoice.Customer.TinNo;
+                            sales.Address = model.ServiceInvoice.Customer.Address;
+                            sales.Description = model.ServiceInvoice.Service.Name;
+                            sales.Amount = viewModelDMCM.Total;
+                            sales.VatExemptSales = viewModelDMCM.Total;
+                            //sales.Discount = model.Discount;
+                            sales.NetSales = viewModelDMCM.NetAmount;
+                            sales.CreatedBy = model.CreatedBy;
+                            sales.CreatedDate = model.CreatedDate;
+                            sales.DueDate = existingSv?.DueDate;
+                            sales.DocumentId = existingSv.Id;
+                        }
+                        else
+                        {
+                            sales.TransactionDate = viewModelDMCM.Period.ToShortDateString();
+                            sales.SerialNo = model.DMNo;
+                            sales.SoldTo = model.ServiceInvoice.Customer.Name;
+                            sales.TinNo = model.ServiceInvoice.Customer.TinNo;
+                            sales.Address = model.ServiceInvoice.Customer.Address;
+                            sales.Description = model.ServiceInvoice.Service.Name;
+                            sales.Amount = viewModelDMCM.Total;
+                            sales.ZeroRated = viewModelDMCM.Total;
+                            //sales.Discount = model.Discount;
+                            sales.NetSales = viewModelDMCM.NetAmount;
+                            sales.CreatedBy = model.CreatedBy;
+                            sales.CreatedDate = model.CreatedDate;
+                            sales.DueDate = existingSv?.DueDate;
+                            sales.DocumentId = existingSv.Id;
+                        }
+                        await _dbContext.AddAsync(sales, cancellationToken);
+
+                        #endregion --Sales Book Recording()--
+
+                        #region --General Ledger Book Recording(SV)--
+
+                        var ledgers = new List<GeneralLedgerBook>();
+
+                        ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = viewModelDMCM.Period.ToShortDateString(),
+                                    Reference = model.DMNo,
+                                    Description = model.ServiceInvoice.Service.Name,
+                                    AccountNo = "1010204",
+                                    AccountTitle = "AR-Non Trade Receivable",
+                                    Debit = viewModelDMCM.Total - (viewModelDMCM.WithholdingTaxAmount + viewModelDMCM.WithholdingVatAmount),
+                                    Credit = 0,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        if (viewModelDMCM.WithholdingTaxAmount > 0)
+                        {
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = viewModelDMCM.Period.ToShortDateString(),
+                                    Reference = model.DMNo,
+                                    Description = model.ServiceInvoice.Service.Name,
+                                    AccountNo = "1010202",
+                                    AccountTitle = "Deferred Creditable Withholding Tax",
+                                    Debit = viewModelDMCM.WithholdingTaxAmount,
+                                    Credit = 0,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+                        if (viewModelDMCM.WithholdingVatAmount > 0)
+                        {
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = viewModelDMCM.Period.ToShortDateString(),
+                                    Reference = model.DMNo,
+                                    Description = model.ServiceInvoice.Service.Name,
+                                    AccountNo = "1010203",
+                                    AccountTitle = "Deferred Creditable Withholding Vat",
+                                    Debit = viewModelDMCM.WithholdingVatAmount,
+                                    Credit = 0,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+
+                        if (viewModelDMCM.Total > 0)
+                        {
+                            ledgers.Add(new GeneralLedgerBook
+                            {
+                                Date = viewModelDMCM.Period.ToShortDateString(),
+                                Reference = model.DMNo,
+                                Description = model.ServiceInvoice.Service.Name,
+                                AccountNo = model.ServiceInvoice.Service.CurrentAndPreviousNo,
+                                AccountTitle = model.ServiceInvoice.Service.CurrentAndPreviousTitle,
+                                Debit = 0,
+                                Credit = viewModelDMCM.Total / 1.12m,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            });
+                        }
+
+                        if (viewModelDMCM.VatAmount > 0)
+                        {
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = viewModelDMCM.Period.ToShortDateString(),
+                                    Reference = model.DMNo,
+                                    Description = model.ServiceInvoice.Service.Name,
+                                    AccountNo = "2010304",
+                                    AccountTitle = "Deferred Vat Output",
+                                    Debit = 0,
+                                    Credit = viewModelDMCM.VatAmount,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+
+                        await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
+
+                        #endregion --General Ledger Book Recording(SV)--
                     }
 
 
@@ -735,8 +719,6 @@ namespace Accounting_System.Controllers
                     await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
-
-                    //await _receiptRepo.UpdateCreditMemo(model.SalesInvoice.Id, model.Total, offsetAmount);
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Debit Memo has been Posted.";
@@ -813,15 +795,15 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<JsonResult> GetSOADetails(int soaId, CancellationToken cancellationToken)
+        public async Task<JsonResult> GetSVDetails(int svId, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.ServiceInvoices.FirstOrDefaultAsync(soa => soa.Id == soaId, cancellationToken);
+            var model = await _dbContext.ServiceInvoices.FirstOrDefaultAsync(sv => sv.Id == svId, cancellationToken);
             if (model != null)
             {
                 return Json(new
                 {
-                    Period = model?.Period,
-                    Amount = model?.Amount
+                    model.Period,
+                    model.Amount
                 });
             }
 
