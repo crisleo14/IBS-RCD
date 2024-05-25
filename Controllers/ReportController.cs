@@ -839,5 +839,95 @@ namespace Accounting_System.Controllers
         }
 
         #endregion -- Generate Journal Book .Txt File --
+
+        #region -- Generate Purchase Book .Txt File --
+        public IActionResult GeneratePurchaseBookTxtFile(ViewModelBook model, string? selectedFiltering, string? poListFrom, string? poListTo)
+        {
+            var dateFrom = model.DateFrom;
+            var dateTo = model.DateTo;
+            var extractedBy = _userManager.GetUserName(this.User);
+
+            if (poListFrom != null && poListTo != null)
+            {
+                return RedirectToAction("POLiquidationPerPO", new { poListFrom = poListFrom, poListTo = poListTo });
+            }
+            else if (poListFrom == null && poListTo != null || poListFrom != null && poListTo == null)
+            {
+                TempData["error"] = "Please fill the two select list in PO Liquidation Per PO, lowest to highest";
+                return RedirectToAction("PurchaseBook");
+            }
+
+            if (selectedFiltering == "UnpostedRR" || selectedFiltering == "POLiquidation")
+            {
+                return RedirectToAction("GetRR", new { DateFrom = model.DateFrom, DateTo = model.DateTo, selectedFiltering });
+            }
+
+            var purchaseOrders = _reportRepo.GetPurchaseBooks(model.DateFrom, model.DateTo, selectedFiltering);
+            var lastRecord = purchaseOrders.LastOrDefault();
+            var firstRecord = purchaseOrders.FirstOrDefault();
+            if (lastRecord != null)
+            {
+                ViewBag.LastRecord = lastRecord.CreatedDate;
+            }
+            ViewBag.SelectedFiltering = selectedFiltering;
+
+            var fileContent = new StringBuilder();
+
+            fileContent.AppendLine($"TAXPAYER'S NAME: Filpride Resources Inc.");
+            fileContent.AppendLine($"TIN: 000-216-589-00000");
+            fileContent.AppendLine($"ADDRESS: 57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone, Kalaklan, Olongapo City, 2200 Zambales, Philippines");
+            fileContent.AppendLine();
+            fileContent.AppendLine($"Accounting System: Accounting Administration System");
+            fileContent.AppendLine($"Acknowledgement Certificate Control No.: {CS.ACCN}");
+            fileContent.AppendLine($"Date Issued: {CS.DateIssued}");
+            fileContent.AppendLine();
+            fileContent.AppendLine("Accounting Books File Attributes/Layout Definition");
+            fileContent.AppendLine("File Name: Purchase Journal Book Report");
+            fileContent.AppendLine("File Type: Text File");
+            fileContent.AppendLine($"{"Number of Records: ",-35}{purchaseOrders.Count}");
+            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{"N/A"}");
+            fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
+            fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
+            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
+            fileContent.AppendLine();
+            fileContent.AppendLine($"{"Field Name",-18}\t{"Description",-18}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
+            fileContent.AppendLine($"{"Date",-18}\t{"Date",-18}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
+            fileContent.AppendLine($"{"SupplierName",-18}\t{"Supplier Name",-18}\t{"12"}\t{"61"}\t{"50"}\t{firstRecord.SupplierName}");
+            fileContent.AppendLine($"{"SupplierTin",-18}\t{"Supplier TIN",-18}\t{"63"}\t{"82"}\t{"20"}\t{firstRecord.SupplierTin}");
+            fileContent.AppendLine($"{"SupplierAddress",-18}\t{"Supplier Address",-18}\t{"84"}\t{"283"}\t{"200"}\t{firstRecord.SupplierAddress}");
+            fileContent.AppendLine($"{"PONo",-18}\t{"PO No.",-18}\t{"285"}\t{"296"}\t{"12"}\t{firstRecord.PONo}");
+            fileContent.AppendLine($"{"DocumentNo",-18}\t{"Document No",-18}\t{"298"}\t{"309"}\t{"12"}\t{firstRecord.DocumentNo}");
+            fileContent.AppendLine($"{"Description",-18}\t{"Description",-18}\t{"311"}\t{"360"}\t{"50"}\t{firstRecord.Description}");
+            fileContent.AppendLine($"{"Amount",-18}\t{"Amount",-18}\t{"362"}\t{"379"}\t{"18"}\t{firstRecord.Amount}");
+            fileContent.AppendLine($"{"VatAmount",-18}\t{"Vat Amount",-18}\t{"381"}\t{"398"}\t{"18"}\t{firstRecord.VatAmount}");
+            fileContent.AppendLine($"{"DefAmount",-18}\t{"Def VAT Amount",-18}\t{"400"}\t{"417"}\t{"18"}\t{0.00}");
+            fileContent.AppendLine($"{"WhtAmount",-18}\t{"WHT Amount",-18}\t{"419"}\t{"436"}\t{"18"}\t{firstRecord.WhtAmount}");
+            fileContent.AppendLine($"{"NetPurchases",-18}\t{"Net Purchases",-18}\t{"438"}\t{"455"}\t{"18"}\t{firstRecord.NetPurchases}");
+            fileContent.AppendLine();
+            fileContent.AppendLine("PURCHASE BOOK");
+            fileContent.AppendLine();
+            fileContent.AppendLine($"{"Date",-10}\t{"Supplier Name",-50}\t{"Supplier TIN",-20}\t{"Supplier Address",-200}\t{"PO No.",-12}\t{"Document No",-12}\t{"Description",-50}\t{"Amount",-18}\t{"Vat Amount",-18}\t{"Def VAT Amount",-18}\t{"WHT Amount",-18}\t{"Net Purchases",-18}");
+
+            // Generate the records
+            foreach (var record in purchaseOrders)
+            {
+                fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.SupplierName,-50}\t{record.SupplierTin,-20}\t{record.SupplierAddress,-200}\t{record.PONo,-12}\t{record.DocumentNo,-12}\t{record.Description,-50}\t{record.Amount,-18}\t{record.VatAmount,-18}\t{0.00,-18}\t{record.WhtAmount,-18}\t{record.NetPurchases,-18}");
+            }
+
+            fileContent.AppendLine();
+            fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
+            fileContent.AppendLine($"Version: v1.0");
+            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
+
+
+            // Convert the content to a byte array
+            var bytes = Encoding.UTF8.GetBytes(fileContent.ToString());
+
+            // Return the file to the user
+            return File(bytes, "text/plain", "PurchaseBookReport.txt");
+        }
+
+        #endregion -- Generate Purchase Book .Txt File --
     }
 }
