@@ -1,6 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Repository;
+using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -446,8 +447,8 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"ADDRESS: 57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone, Kalaklan, Olongapo City, 2200 Zambales, Philippines");
             fileContent.AppendLine();
             fileContent.AppendLine($"Accounting System: Accounting Administration System");
-            fileContent.AppendLine($"Acknowledgement Certificate Control No.: ");
-            fileContent.AppendLine($"Date Issued: ");
+            fileContent.AppendLine($"Acknowledgement Certificate Control No.: {CS.ACCN}");
+            fileContent.AppendLine($"Date Issued: {CS.DateIssued}");
             fileContent.AppendLine();
             fileContent.AppendLine("Accounting Books File Attributes/Layout Definition");
             fileContent.AppendLine("File Name: Audit Trail Report");
@@ -509,8 +510,8 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"ADDRESS: 57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone, Kalaklan, Olongapo City, 2200 Zambales, Philippines");
             fileContent.AppendLine();
             fileContent.AppendLine($"Accounting System: Accounting Administration System");
-            fileContent.AppendLine($"Acknowledgement Certificate Control No.: ");
-            fileContent.AppendLine($"Date Issued: ");
+            fileContent.AppendLine($"Acknowledgement Certificate Control No.: {CS.ACCN}");
+            fileContent.AppendLine($"Date Issued: {CS.DateIssued}");
             fileContent.AppendLine();
             fileContent.AppendLine("Accounting Books File Attributes/Layout Definition");
             fileContent.AppendLine("File Name: Audit Trail Report");
@@ -578,8 +579,8 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"ADDRESS: 57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone, Kalaklan, Olongapo City, 2200 Zambales, Philippines");
             fileContent.AppendLine();
             fileContent.AppendLine($"Accounting System: Accounting Administration System");
-            fileContent.AppendLine($"Acknowledgement Certificate Control No.: ");
-            fileContent.AppendLine($"Date Issued: ");
+            fileContent.AppendLine($"Acknowledgement Certificate Control No.: {CS.ACCN}");
+            fileContent.AppendLine($"Date Issued: {CS.DateIssued}");
             fileContent.AppendLine();
             fileContent.AppendLine("Accounting Books File Attributes/Layout Definition");
             fileContent.AppendLine("File Name: Audit Trail Report");
@@ -645,8 +646,8 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"ADDRESS: 57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone, Kalaklan, Olongapo City, 2200 Zambales, Philippines");
             fileContent.AppendLine();
             fileContent.AppendLine($"Accounting System: Accounting Administration System");
-            fileContent.AppendLine($"Acknowledgement Certificate Control No.: ");
-            fileContent.AppendLine($"Date Issued: ");
+            fileContent.AppendLine($"Acknowledgement Certificate Control No.: {CS.ACCN}");
+            fileContent.AppendLine($"Date Issued: {CS.DateIssued}");
             fileContent.AppendLine();
             fileContent.AppendLine("Accounting Books File Attributes/Layout Definition");
             fileContent.AppendLine("File Name: Audit Trail Report");
