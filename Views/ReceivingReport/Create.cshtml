@@ -13,7 +13,7 @@
         <div class="position-absolute p-2" style="left:40%; width:35%; border:dotted 1px;">
             <pre>
                    <b>PO Liquidations</b>
-    
+
     PO No: <span id="poNo" class="fw-bold"></span> - Quantity: <span id="poQuantity" class="fw-bold"></span>
 
     Posted RR:
@@ -78,15 +78,12 @@
                     <label asp-for="Remarks" class="control-label">Remarks<span class="required">*</span></label>
                     <span asp-validation-for="Remarks" class="text-danger"></span>
                 </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
+                <div class="form-group">
+                    <input type="submit" value="Create" class="btn btn-primary" />
+                    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                </div>
         </form>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {
