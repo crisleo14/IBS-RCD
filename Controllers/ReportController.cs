@@ -453,11 +453,11 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine("Accounting Books File Attributes/Layout Definition");
             fileContent.AppendLine("File Name: Audit Trail Report");
             fileContent.AppendLine("File Type: Text File");
-            fileContent.AppendLine($"Number of Records: {auditTrail.Count}");
-            fileContent.AppendLine("Amount Field Control Total: N/A");
-            fileContent.AppendLine($"Period Covered: {dateFrom} to {dateTo} ");
-            fileContent.AppendLine($"Transaction cut-off Date & Time: {ViewBag.LastRecord}");
-            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine($"{"Number of Records: ", -35}{auditTrail.Count}");
+            fileContent.AppendLine($"{"Amount Field Control Total: ", -35}{"N/A"}");
+            fileContent.AppendLine($"{"Period Covered: ", -35}{dateFrom}{" to "}{dateTo} ");
+            fileContent.AppendLine($"{"Transaction cut-off Date & Time: ", -35}{ViewBag.LastRecord}");
+            fileContent.AppendLine($"{"Extracted By: ", -35}{extractedBy}");
             fileContent.AppendLine();
             fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
             fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"25"}\t{"25"}\t{firstRecord.Date}");
@@ -514,27 +514,27 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"Date Issued: {CS.DateIssued}");
             fileContent.AppendLine();
             fileContent.AppendLine("Accounting Books File Attributes/Layout Definition");
-            fileContent.AppendLine("File Name: Audit Trail Report");
+            fileContent.AppendLine("File Name: Disbursement Book Report");
             fileContent.AppendLine("File Type: Text File");
-            fileContent.AppendLine($"Number of Records: {disbursementBooks.Count}");
-            fileContent.AppendLine("Amount Field Control Total: N/A");
-            fileContent.AppendLine($"Period Covered: {dateFrom} to {dateTo} ");
-            fileContent.AppendLine($"Transaction cut-off Date & Time: {ViewBag.LastRecord}");
-            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine($"{"Number of Records: ",-35}{disbursementBooks.Count}");
+            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{"N/A"}");
+            fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
+            fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
+            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
             fileContent.AppendLine();
-            fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
-            fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
-            fileContent.AppendLine($"{"CVNo",-8}\t{"CV No",-8}\t{"12"}\t{"23"}\t{"12"}\t{firstRecord.CVNo}");
-            fileContent.AppendLine($"{"Payee",-8}\t{"Payee",-8}\t{"25"}\t{"124"}\t{"100"}\t{firstRecord.Payee}");
-            fileContent.AppendLine($"{"Particulars"}\t{"Particulars"}\t{"126"}\t{"325"}\t{"200"}\t{firstRecord.Particulars}");
-            fileContent.AppendLine($"{"Bank",-8}\t{"Bank",-8}\t{"327"}\t{"336"}\t{"10"}\t{firstRecord.Bank}");
-            fileContent.AppendLine($"{"CheckNo",-8}\t{"Check No",-8}\t{"338"}\t{"357"}\t{"20"}\t{firstRecord.CheckNo}");
-            fileContent.AppendLine($"{"CheckDate"}\t{"Check Date"}\t{"359"}\t{"368"}\t{"10"}\t{firstRecord.CheckDate}");
+            fileContent.AppendLine($"{"Field Name"}\t{"Description",-18}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
+            fileContent.AppendLine($"{"Date",-8}\t{"Date",-18}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
+            fileContent.AppendLine($"{"CVNo",-8}\t{"CV No",-18}\t{"12"}\t{"23"}\t{"12"}\t{firstRecord.CVNo}");
+            fileContent.AppendLine($"{"Payee",-8}\t{"Payee",-18}\t{"25"}\t{"124"}\t{"100"}\t{firstRecord.Payee}");
+            fileContent.AppendLine($"{"Particulars"}\t{"Particulars",-18}\t{"126"}\t{"325"}\t{"200"}\t{firstRecord.Particulars}");
+            fileContent.AppendLine($"{"Bank",-8}\t{"Bank",-18}\t{"327"}\t{"336"}\t{"10"}\t{firstRecord.Bank}");
+            fileContent.AppendLine($"{"CheckNo",-8}\t{"Check No",-18}\t{"338"}\t{"357"}\t{"20"}\t{firstRecord.CheckNo}");
+            fileContent.AppendLine($"{"CheckDate"}\t{"Check Date",-18}\t{"359"}\t{"368"}\t{"10"}\t{firstRecord.CheckDate}");
             fileContent.AppendLine($"{"ChartOfAccount"}\t{"Chart Of Account"}\t{"370"}\t{"469"}\t{"100"}\t{firstRecord.ChartOfAccount}");
-            fileContent.AppendLine($"{"Debit",-8}\t{"Debit",-8}\t{"471"}\t{"488"}\t{"18"}\t{firstRecord.Debit}");
-            fileContent.AppendLine($"{"Credit",-8}\t{"Credit",-8}\t{"490"}\t{"507"}\t{"18"}\t{firstRecord.Credit}");
+            fileContent.AppendLine($"{"Debit",-8}\t{"Debit",-18}\t{"471"}\t{"488"}\t{"18"}\t{firstRecord.Debit}");
+            fileContent.AppendLine($"{"Credit",-8}\t{"Credit",-18}\t{"490"}\t{"507"}\t{"18"}\t{firstRecord.Credit}");
             fileContent.AppendLine();
-            fileContent.AppendLine("AUDIT TRAIL REPORT");
+            fileContent.AppendLine("DISBURSEMENT BOOK");
             fileContent.AppendLine();
             fileContent.AppendLine($"{"Date",-10}\t{"CV No",-12}\t{"Payee",-100}\t{"Particulars",-200}\t{"Bank",-10}\t{"Check No",-20}\t{"Check Date",-10}\t{"Chart Of Account",-100}\t{"Debit",-18}\t{"Credit",-18}");
 
@@ -583,26 +583,26 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"Date Issued: {CS.DateIssued}");
             fileContent.AppendLine();
             fileContent.AppendLine("Accounting Books File Attributes/Layout Definition");
-            fileContent.AppendLine("File Name: Audit Trail Report");
+            fileContent.AppendLine("File Name: Cash Receipt Book Report");
             fileContent.AppendLine("File Type: Text File");
-            fileContent.AppendLine($"Number of Records: {cashReceiptBooks.Count}");
-            fileContent.AppendLine("Amount Field Control Total: N/A");
-            fileContent.AppendLine($"Period Covered: {dateFrom} to {dateTo} ");
-            fileContent.AppendLine($"Transaction cut-off Date & Time: {ViewBag.LastRecord}");
-            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine($"{"Number of Records: ",-35}{cashReceiptBooks.Count}");
+            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{"N/A"}");
+            fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
+            fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
+            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
             fileContent.AppendLine();
-            fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
-            fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
-            fileContent.AppendLine($"{"RefNo",-8}\t{"Ref No.",-8}\t{"12"}\t{"23"}\t{"12"}\t{firstRecord.RefNo}");
-            fileContent.AppendLine($"{"CustomerName"}\t{"Customer Name"}\t{"25"}\t{"40"}\t{"16"}\t{firstRecord.CustomerName}");
-            fileContent.AppendLine($"{"Bank",-8}\t{"Bank",-8}\t{"42"}\t{"141"}\t{"100"}\t{firstRecord.Bank}");
-            fileContent.AppendLine($"{"CheckNo",-8}\t{"Check No.",-8}\t{"143"}\t{"162"}\t{"20"}\t{firstRecord.CheckNo}");
-            fileContent.AppendLine($"{"COA",-8}\t{"Chart Of Account",-8}\t{"164"}\t{"263"}\t{"100"}\t{firstRecord.COA}");
-            fileContent.AppendLine($"{"Particulars"}\t{"Particulars"}\t{"265"}\t{"464"}\t{"200"}\t{firstRecord.Particulars}");
-            fileContent.AppendLine($"{"Debit",-8}\t{"Debit",-8}\t{"466"}\t{"483"}\t{"18"}\t{firstRecord.Debit}");
-            fileContent.AppendLine($"{"Credit",-8}\t{"Credit",-8}\t{"485"}\t{"502"}\t{"18"}\t{firstRecord.Credit}");
+            fileContent.AppendLine($"{"Field Name"}\t{"Description",-18}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
+            fileContent.AppendLine($"{"Date",-8}\t{"Date",-18}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
+            fileContent.AppendLine($"{"RefNo",-8}\t{"Ref No.",-18}\t{"12"}\t{"23"}\t{"12"}\t{firstRecord.RefNo}");
+            fileContent.AppendLine($"{"CustomerName"}\t{"Customer Name",-18}\t{"25"}\t{"40"}\t{"16"}\t{firstRecord.CustomerName}");
+            fileContent.AppendLine($"{"Bank",-8}\t{"Bank",-18}\t{"42"}\t{"141"}\t{"100"}\t{firstRecord.Bank}");
+            fileContent.AppendLine($"{"CheckNo",-8}\t{"Check No.",-18}\t{"143"}\t{"162"}\t{"20"}\t{firstRecord.CheckNo}");
+            fileContent.AppendLine($"{"COA",-8}\t{"Chart Of Account",-18}\t{"164"}\t{"263"}\t{"100"}\t{firstRecord.COA}");
+            fileContent.AppendLine($"{"Particulars"}\t{"Particulars",-18}\t{"265"}\t{"464"}\t{"200"}\t{firstRecord.Particulars}");
+            fileContent.AppendLine($"{"Debit",-8}\t{"Debit",-18}\t{"466"}\t{"483"}\t{"18"}\t{firstRecord.Debit}");
+            fileContent.AppendLine($"{"Credit",-8}\t{"Credit",-18}\t{"485"}\t{"502"}\t{"18"}\t{firstRecord.Credit}");
             fileContent.AppendLine();
-            fileContent.AppendLine("AUDIT TRAIL REPORT");
+            fileContent.AppendLine("CASH RECEIPT BOOK");
             fileContent.AppendLine();
             fileContent.AppendLine($"{"Date",-10}\t{"Ref No.",-12}\t{"Customer Name",-16}\t{"Bank",-100}\t{"Check No.",-20}\t{"Chart Of Account",-100}\t{"Particulars",-200}\t{"Debit",-18}\t{"Credit",-18}");
 
@@ -650,13 +650,13 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"Date Issued: {CS.DateIssued}");
             fileContent.AppendLine();
             fileContent.AppendLine("Accounting Books File Attributes/Layout Definition");
-            fileContent.AppendLine("File Name: Audit Trail Report");
+            fileContent.AppendLine("File Name: General Ledger Book Report");
             fileContent.AppendLine("File Type: Text File");
-            fileContent.AppendLine($"Number of Records: {generalBooks.Count}");
-            fileContent.AppendLine("Amount Field Control Total: N/A");
-            fileContent.AppendLine($"Period Covered: {dateFrom} to {dateTo} ");
-            fileContent.AppendLine($"Transaction cut-off Date & Time: {ViewBag.LastRecord}");
-            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine($"{"Number of Records: ",-35}{generalBooks.Count}");
+            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{"N/A"}");
+            fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
+            fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
+            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
             fileContent.AppendLine();
             fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
             fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
@@ -666,7 +666,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"{"Debit",-8}\t{"Debit",-8}\t{"127"}\t{"144"}\t{"18"}\t{firstRecord.Debit}");
             fileContent.AppendLine($"{"Credit",-8}\t{"Credit",-8}\t{"146"}\t{"163"}\t{"18"}\t{firstRecord.Credit}");
             fileContent.AppendLine();
-            fileContent.AppendLine("AUDIT TRAIL REPORT");
+            fileContent.AppendLine("GENERAL LEDGER BOOK");
             fileContent.AppendLine();
             fileContent.AppendLine($"{"Date",-10}\t{"Reference",-12}\t{"Description",-50}\t{"Account Title",-50}\t{"Debit",-18}\t{"Credit",-18}");
 
@@ -688,6 +688,72 @@ namespace Accounting_System.Controllers
 
             // Return the file to the user
             return File(bytes, "text/plain", "GeneralLedgerBookReport.txt");
+        }
+
+        public IActionResult GenerateInventoryBookTxtFile(ViewModelBook model)
+        {
+            var dateFrom = model.DateFrom;
+            var dateTo = model.DateTo;
+            var extractedBy = _userManager.GetUserName(this.User);
+
+            var inventoryBooks = _reportRepo.GetInventoryBooks(model.DateFrom, model.DateTo);
+            var lastRecord = inventoryBooks.LastOrDefault();
+            var firstRecord = inventoryBooks.FirstOrDefault();
+            if (lastRecord != null)
+            {
+                ViewBag.LastRecord = lastRecord.CreatedDate;
+            }
+
+            var fileContent = new StringBuilder();
+
+            fileContent.AppendLine($"TAXPAYER'S NAME: Filpride Resources Inc.");
+            fileContent.AppendLine($"TIN: 000-216-589-00000");
+            fileContent.AppendLine($"ADDRESS: 57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone, Kalaklan, Olongapo City, 2200 Zambales, Philippines");
+            fileContent.AppendLine();
+            fileContent.AppendLine($"Accounting System: Accounting Administration System");
+            fileContent.AppendLine($"Acknowledgement Certificate Control No.: {CS.ACCN}");
+            fileContent.AppendLine($"Date Issued: {CS.DateIssued}");
+            fileContent.AppendLine();
+            fileContent.AppendLine("Accounting Books File Attributes/Layout Definition");
+            fileContent.AppendLine("File Name: Inventory Book Report");
+            fileContent.AppendLine("File Type: Text File");
+            fileContent.AppendLine($"{"Number of Records: ",-35}{inventoryBooks.Count}");
+            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{"N/A"}");
+            fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
+            fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
+            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
+            fileContent.AppendLine();
+            fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
+            fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
+            fileContent.AppendLine($"{"ProductCode",-8}\t{"Product Code",-8}\t{"12"}\t{"31"}\t{"20"}\t{firstRecord.ProductCode}");
+            fileContent.AppendLine($"{"ProductName",-8}\t{"Product Name",-8}\t{"33"}\t{"82"}\t{"50"}\t{firstRecord.ProductName}");
+            fileContent.AppendLine($"{"Unit",-8}\t{"Unit",-8}\t{"84"}\t{"85"}\t{"2"}\t{firstRecord.Unit}");
+            fileContent.AppendLine($"{"Quantity",-8}\t{"Quantity",-8}\t{"87"}\t{"104"}\t{"18"}\t{firstRecord.Quantity}");
+            fileContent.AppendLine($"{"Price",-8}\t{"Price Per Unit",-8}\t{"106"}\t{"123"}\t{"18"}\t{firstRecord.Price}");
+            fileContent.AppendLine($"{"Amount",-8}\t{"Amount",-8}\t{"125"}\t{"142"}\t{"18"}\t{firstRecord.Amount}");
+            fileContent.AppendLine();
+            fileContent.AppendLine("INVENTORY BOOK");
+            fileContent.AppendLine();
+            fileContent.AppendLine($"{"Date",-10}\t{"Product Code",-20}\t{"Product Name",-50}\t{"Unit",-2}\t{"Quantity",-18}\t{"Price Per Unit",-18}\t{"Amount",-18}");
+
+            // Generate the records
+            foreach (var record in inventoryBooks)
+            {
+                fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.ProductCode,-20}\t{record.ProductName,-50}\t{record.Unit,-2}\t{record.Quantity,-18}\t{record.Price,-18}\t{record.Amount,-18}");
+            }
+
+            fileContent.AppendLine();
+            fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
+            fileContent.AppendLine($"Version: v1.0");
+            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
+
+
+            // Convert the content to a byte array
+            var bytes = Encoding.UTF8.GetBytes(fileContent.ToString());
+
+            // Return the file to the user
+            return File(bytes, "text/plain", "InventoryBookReport.txt");
         }
     }
 }
