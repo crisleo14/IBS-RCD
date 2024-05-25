@@ -15,14 +15,14 @@ namespace Accounting_System.Models
         [NotMapped]
         public List<SelectListItem>? SalesInvoices { get; set; }
 
-        [Display(Name = "SOA No")]
-        public int? SOAId { get; set; }
+        [Display(Name = "SV No")]
+        public int? ServiceInvoiceId { get; set; }
 
-        [ForeignKey("SOAId")]
-        public ServiceInvoice? SOA { get; set; }
+        [ForeignKey("ServiceInvoiceId")]
+        public ServiceInvoice? ServiceInvoice { get; set; }
 
         [NotMapped]
-        public List<SelectListItem>? StatementOfAccounts { get; set; }
+        public List<SelectListItem>? ServiceInvoices { get; set; }
 
         public string? DMNo { get; set; }
         public long SeriesNumber { get; set; }
@@ -64,11 +64,12 @@ namespace Accounting_System.Models
 
         public string? Remarks { get; set; }
 
-        [Column(TypeName = "date[]")]
-        public DateTime[]? Period { get; set; } = null;
+        [Column(TypeName = "date")]
+        public DateTime Period { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal[] Amount { get; set; } = new decimal[1] { 0 };
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal Amount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]

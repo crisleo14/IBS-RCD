@@ -14,7 +14,7 @@
 </p>
 <table class="table table-hover" id="myOwnTable">
     <thead>
-        <tr class="text-primary">
+        <tr>
             <th>
                 @Html.DisplayNameFor(model => model.DMNo)
             </th>
@@ -28,13 +28,10 @@
                 @Html.DisplayNameFor(model => model.Description)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.VatableSales)
+                Invoice No.
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.VatAmount)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DebitAmount)
+                @Html.DisplayNameFor(model => model.Source)
             </th>
             <th style="width:300px;"></th>
         </tr>
@@ -64,14 +61,11 @@
                 else
                 {
                     <td>
-                        @Html.DisplayFor(modelItem => item.SOA.SVNo)
+                        @Html.DisplayFor(modelItem => item.ServiceInvoice.SVNo)
                     </td>
                 }
                 <td>
-                    @Html.DisplayFor(modelItem => item.VatAmount)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.DebitAmount)
+                    @Html.DisplayFor(modelItem => item.Source)
                 </td>
                 <td>
                     @if (item.CreatedBy == UserManager.GetUserName(User))
