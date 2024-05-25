@@ -426,6 +426,7 @@ namespace Accounting_System.Controllers
             }
         }
 
+        #region -- Generate Audit Trail .Txt File --
         public IActionResult GenerateAuditTrailTxtFile(ViewModelBook model)
         {
             var dateFrom = model.DateFrom;
@@ -489,6 +490,9 @@ namespace Accounting_System.Controllers
             // Return the file to the user
             return File(bytes, "text/plain", "AuditTrailReport.txt");
         }
+        #endregion -- Generate Audit Trail .Txt File --
+
+        #region -- Generate Disbursement Book .Txt File --
         public IActionResult GenerateDisbursementBookTxtFile(ViewModelBook model)
         {
             var dateFrom = model.DateFrom;
@@ -557,7 +561,9 @@ namespace Accounting_System.Controllers
             // Return the file to the user
             return File(bytes, "text/plain", "DisbursementBookReport.txt");
         }
+        #endregion -- Generate Disbursement Book .Txt File --
 
+        #region -- Generate Cash Receipt Book .Txt File --
         public IActionResult GenerateCashReceiptBookTxtFile(ViewModelBook model)
         {
             var dateFrom = model.DateFrom;
@@ -625,6 +631,10 @@ namespace Accounting_System.Controllers
             // Return the file to the user
             return File(bytes, "text/plain", "CashReceiptBookReport.txt");
         }
+
+        #endregion -- Generate Cash Receipt Book .Txt File --
+
+        #region -- Generate General Ledger Book .Txt File --
         public IActionResult GenerateGeneralLedgerBookTxtFile(ViewModelBook model)
         {
             var dateFrom = model.DateFrom;
@@ -689,6 +699,10 @@ namespace Accounting_System.Controllers
             // Return the file to the user
             return File(bytes, "text/plain", "GeneralLedgerBookReport.txt");
         }
+
+        #endregion -- Generate General Ledger Book .Txt File --
+
+        #region -- Generate Inventory Book .Txt File --
 
         public IActionResult GenerateInventoryBookTxtFile(ViewModelBook model)
         {
@@ -755,5 +769,75 @@ namespace Accounting_System.Controllers
             // Return the file to the user
             return File(bytes, "text/plain", "InventoryBookReport.txt");
         }
+
+        #endregion -- Generate Inventory Book .Txt File --
+
+        #region -- Generate Journal Book .Txt File --
+        public IActionResult GenerateJournalBookTxtFile(ViewModelBook model)
+        {
+            var dateFrom = model.DateFrom;
+            var dateTo = model.DateTo;
+            var extractedBy = _userManager.GetUserName(this.User);
+
+            var journalBooks = _reportRepo.GetJournalBooks(model.DateFrom, model.DateTo);
+            var lastRecord = journalBooks.LastOrDefault();
+            var firstRecord = journalBooks.FirstOrDefault();
+            if (lastRecord != null)
+            {
+                ViewBag.LastRecord = lastRecord.CreatedDate;
+            }
+
+            var fileContent = new StringBuilder();
+
+            fileContent.AppendLine($"TAXPAYER'S NAME: Filpride Resources Inc.");
+            fileContent.AppendLine($"TIN: 000-216-589-00000");
+            fileContent.AppendLine($"ADDRESS: 57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone, Kalaklan, Olongapo City, 2200 Zambales, Philippines");
+            fileContent.AppendLine();
+            fileContent.AppendLine($"Accounting System: Accounting Administration System");
+            fileContent.AppendLine($"Acknowledgement Certificate Control No.: {CS.ACCN}");
+            fileContent.AppendLine($"Date Issued: {CS.DateIssued}");
+            fileContent.AppendLine();
+            fileContent.AppendLine("Accounting Books File Attributes/Layout Definition");
+            fileContent.AppendLine("File Name: Journal Book Report");
+            fileContent.AppendLine("File Type: Text File");
+            fileContent.AppendLine($"{"Number of Records: ",-35}{journalBooks.Count}");
+            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{"N/A"}");
+            fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
+            fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
+            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
+            fileContent.AppendLine();
+            fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
+            fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
+            fileContent.AppendLine($"{"Reference",-8}\t{"Reference",-8}\t{"12"}\t{"23"}\t{"12"}\t{firstRecord.Reference}");
+            fileContent.AppendLine($"{"Description",-8}\t{"Description",-8}\t{"25"}\t{"74"}\t{"50"}\t{firstRecord.Description}");
+            fileContent.AppendLine($"{"AccountTitle",-8}\t{"Account Title",-8}\t{"76"}\t{"125"}\t{"50"}\t{firstRecord.AccountTitle}");
+            fileContent.AppendLine($"{"Debit",-8}\t{"Debit",-8}\t{"127"}\t{"144"}\t{"18"}\t{firstRecord.Debit}");
+            fileContent.AppendLine($"{"Credit",-8}\t{"Credit",-8}\t{"146"}\t{"163"}\t{"18"}\t{firstRecord.Credit}");
+            fileContent.AppendLine();
+            fileContent.AppendLine("JOURNAL BOOK");
+            fileContent.AppendLine();
+            fileContent.AppendLine($"{"Date",-10}\t{"Reference",-12}\t{"Description",-50}\t{"Account Title",-50}\t{"Debit",-18}\t{"Credit",-18}");
+
+            // Generate the records
+            foreach (var record in journalBooks)
+            {
+                fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.Reference,-12}\t{record.Description,-50}\t{record.AccountTitle,-50}\t{record.Debit,-18}\t{record.Credit,-18}");
+            }
+
+            fileContent.AppendLine();
+            fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
+            fileContent.AppendLine($"Version: v1.0");
+            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
+
+
+            // Convert the content to a byte array
+            var bytes = Encoding.UTF8.GetBytes(fileContent.ToString());
+
+            // Return the file to the user
+            return File(bytes, "text/plain", "JournalBookReport.txt");
+        }
+
+        #endregion -- Generate Journal Book .Txt File --
     }
 }
