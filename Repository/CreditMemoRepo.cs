@@ -66,14 +66,14 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<string> GetSOANoAsync(int? id, CancellationToken cancellationToken = default)
+        public async Task<string> GetSVNoAsync(int? id, CancellationToken cancellationToken = default)
         {
             if (id != 0)
             {
-                var soa = await _dbContext
+                var sv = await _dbContext
                                 .ServiceInvoices
                                 .FirstOrDefaultAsync(po => po.Id == id, cancellationToken);
-                return soa.SVNo;
+                return sv.SVNo;
             }
             else
             {
@@ -86,10 +86,10 @@ namespace Accounting_System.Repository
             var creditMemo = await _dbContext
                 .CreditMemos
                 .Include(c => c.SalesInvoice)
-                .Include(c => c.StatementOfAccount)
-                .ThenInclude(soa => soa.Customer)
-                .Include(c => c.StatementOfAccount)
-                .ThenInclude(soa => soa.Service)
+                .Include(c => c.ServiceInvoice)
+                .ThenInclude(sv => sv.Customer)
+                .Include(c => c.ServiceInvoice)
+                .ThenInclude(sv => sv.Service)
                 .FirstOrDefaultAsync(creditMemo => creditMemo.Id == id, cancellationToken);
 
             if (creditMemo != null)

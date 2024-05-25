@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240523093802_ChangeTheDebitMemoTable")]
+    partial class ChangeTheDebitMemoTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -497,8 +500,9 @@ namespace Accounting_System.Migrations
                     b.Property<decimal?>("AdjustedPrice")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
+                    b.Property<decimal[]>("Amount")
+                        .IsRequired()
+                        .HasColumnType("numeric[]");
 
                     b.Property<string>("CMNo")
                         .HasColumnType("text");
@@ -540,8 +544,8 @@ namespace Accounting_System.Migrations
                     b.Property<bool>("IsVoided")
                         .HasColumnType("boolean");
 
-                    b.Property<DateTime>("Period")
-                        .HasColumnType("date");
+                    b.Property<DateTime[]>("Period")
+                        .HasColumnType("date[]");
 
                     b.Property<string>("PostedBy")
                         .HasColumnType("varchar(50)");
@@ -555,17 +559,20 @@ namespace Accounting_System.Migrations
                     b.Property<string>("Remarks")
                         .HasColumnType("text");
 
+                    b.Property<int?>("SIId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SINo")
+                        .HasColumnType("text");
+
                     b.Property<int?>("SOAId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("SalesInvoiceId")
-                        .HasColumnType("integer");
+                    b.Property<string>("SOANo")
+                        .HasColumnType("text");
 
                     b.Property<long>("SeriesNumber")
                         .HasColumnType("bigint");
-
-                    b.Property<int?>("ServiceInvoiceId")
-                        .HasColumnType("integer");
 
                     b.Property<int>("ServicesId")
                         .HasColumnType("integer");
@@ -600,9 +607,9 @@ namespace Accounting_System.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SOAId");
+                    b.HasIndex("SIId");
 
-                    b.HasIndex("SalesInvoiceId");
+                    b.HasIndex("SOAId");
 
                     b.ToTable("CreditMemos");
                 });
@@ -2252,17 +2259,17 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.CreditMemo", b =>
                 {
-                    b.HasOne("Accounting_System.Models.ServiceInvoice", "ServiceInvoice")
+                    b.HasOne("Accounting_System.Models.SalesInvoice", "SalesInvoice")
+                        .WithMany()
+                        .HasForeignKey("SIId");
+
+                    b.HasOne("Accounting_System.Models.ServiceInvoice", "StatementOfAccount")
                         .WithMany()
                         .HasForeignKey("SOAId");
 
-                    b.HasOne("Accounting_System.Models.SalesInvoice", "SalesInvoice")
-                        .WithMany()
-                        .HasForeignKey("SalesInvoiceId");
-
                     b.Navigation("SalesInvoice");
 
-                    b.Navigation("ServiceInvoice");
+                    b.Navigation("StatementOfAccount");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.DebitMemo", b =>

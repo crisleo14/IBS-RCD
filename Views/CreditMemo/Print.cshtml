@@ -68,7 +68,7 @@
         </thead>
         <tbody>
             <tr style="height:80px;">
-                <td>@Html.DisplayFor(model => model.SINo)</td>
+                <td>@Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
                 <td>@Model.SalesInvoice.TransactionDate.ToShortDateString()</td>
                 <td>@Html.DisplayFor(model => model.SalesInvoice.ProductName)</td>
                 <td>@Html.DisplayFor(model => model.Description)</td>
@@ -111,7 +111,7 @@
                                         {
                                             <td class="text-end"></td>
                                         }
-                                        
+
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>VAT-Exempt Sales: </b></p></td>
@@ -149,8 +149,8 @@
         </tbody>
     </table>
     </div>
-} 
-else if (Model.Source == "Statement Of Account")
+}
+else if (Model.Source == "Service Invoice")
 {
     <div class="table-responsive">
         <table class="w-100" style="margin-top:20px;">
@@ -158,16 +158,16 @@ else if (Model.Source == "Statement Of Account")
                 <tr>
                     <td>
                         <span><b>Sold to:</b></span>
-                        &nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.Name) &nbsp;<br />
+                        &nbsp;@Html.DisplayFor(model => model.ServiceInvoice.Customer.Name) &nbsp;<br />
 
                         <span><b>Address:</b></span>
-                        &nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.Address) &nbsp;<br />
+                        &nbsp;@Html.DisplayFor(model => model.ServiceInvoice.Customer.Address) &nbsp;<br />
 
                         <span><b>TIN:</b></span>
-                        &nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.TinNo) &nbsp;<br />
+                        &nbsp;@Html.DisplayFor(model => model.ServiceInvoice.Customer.TinNo) &nbsp;<br />
 
                         <span><b>Business Style:</b></span>
-                        &nbsp;@Html.DisplayFor(model => model.StatementOfAccount.Customer.BusinessStyle) &nbsp;
+                        &nbsp;@Html.DisplayFor(model => model.ServiceInvoice.Customer.BusinessStyle) &nbsp;
                     </td>
 
                     <td class="w-25 text-nowrap">
@@ -192,30 +192,18 @@ else if (Model.Source == "Statement Of Account")
         </thead>
         <tbody>
             <tr style="height:80px;">
-                <td>@Html.DisplayFor(model => model.SOANo)</td>
+                <td>@Html.DisplayFor(model => model.ServiceInvoice.SVNo)</td>
                 <td class="pt-2">
-                    @for (int i = 0; i < Model.Amount.Length; i++)
-                    {
-                        if (Model.Amount[i] < 0m)
-                        {
-                            <p style="line-height:15px">
-                                @Model.Period[i].ToString("MMMM yyyy")
-                            </p>
-                        }
-                    }
+                    <p style="line-height:15px">
+                        @Model.Period.ToString("MMMM yyyy")
+                    </p>
                 </td>
-                <td>@Html.DisplayFor(model => model.StatementOfAccount.Service.Name)</td>
+                <td>@Html.DisplayFor(model => model.ServiceInvoice.Service.Name)</td>
                 <td>@Html.DisplayFor(model => model.Description)</td>
                 <td class="pt-2">
-                    @for (int i = 0; i < Model.Amount.Length; i++)
-                    {
-                            if (Model.Amount[i] < 0m)
-                        {
-                            <p style="line-height:15px">
-                                @Html.DisplayFor(model => model.Amount[i])
-                            </p>
-                        }
-                    }
+                    <p style="line-height:15px">
+                        @Html.DisplayFor(model => model.Amount)
+                    </p>
                 </td>
             </tr>
         </tbody>
@@ -246,7 +234,7 @@ else if (Model.Source == "Statement Of Account")
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
-                                        @if (Model.StatementOfAccount.Customer.CustomerType == "Zero Rated")
+                                        @if (Model.ServiceInvoice.Customer.CustomerType == "Zero Rated")
                                         {
                                             <td class="text-end">@Html.DisplayFor(model => model.CreditAmount)</td>
                                         }
@@ -254,12 +242,12 @@ else if (Model.Source == "Statement Of Account")
                                         {
                                             <td class="text-end"></td>
                                         }
-                                        
+
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>VAT-Exempt Sales: </b></p></td>
 
-                                        @if (Model.StatementOfAccount.Customer.CustomerType == "Exempt")
+                                        @if (Model.ServiceInvoice.Customer.CustomerType == "Exempt")
                                         {
                                             <td class="text-end">@Html.DisplayFor(model => model.CreditAmount)</td>
                                         }
