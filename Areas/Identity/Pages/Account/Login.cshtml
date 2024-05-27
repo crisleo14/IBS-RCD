@@ -12,12 +12,12 @@
             <form id="account" method="post">
                 <img class="pb-3" src="~/img/logo.png" width="70%" style="position:relative; left:15%;"/>
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                <div class="form-floating">
+                <div class="form-floating mb-3">
                     <input asp-for="Input.Username" class="form-control" aria-required="true" />
                     <label asp-for="Input.Username" class="form-label"></label>
                     <span asp-validation-for="Input.Username" class="text-danger"></span>
                 </div>
-                <div class="form-floating">
+                <div class="form-floating mb-3">
                     <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" />
                     <label asp-for="Input.Password" class="form-label"></label>
                     <span asp-validation-for="Input.Password" class="text-danger"></span>
