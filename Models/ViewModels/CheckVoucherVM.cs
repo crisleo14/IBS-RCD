@@ -1,0 +1,8 @@
+﻿namespace Accounting_System.Models.ViewModels
+{
+    public class CheckVoucherVM
+    {
+        public CheckVoucherHeader? Header { get; set; }
+        public List<CheckVoucherDetail>? Details { get; set; }
+    }
+}
