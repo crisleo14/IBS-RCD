@@ -1,5 +1,6 @@
 ﻿@using System.ComponentModel.DataAnnotations;
-@model Accounting_System.Models.JournalVoucherVM
+@using Accounting_System.Models.ViewModels;
+@model JournalVoucherVM
 
 @{
     ViewData["Title"] = "Create";
@@ -103,7 +104,7 @@
                         </tr>
                         <tr>
                             <td style="padding-left:20px;"></td>
-                            
+
                             <td class="w-25"></td>
                             <td></td>
                         </tr>
@@ -135,7 +136,7 @@
                             <th class="text-end">CREDIT</th>
                         </tr>
                     </tbody>
-                    <tbody id="tableBody"></tbody>  
+                    <tbody id="tableBody"></tbody>
                     <tbody>
                         <tr style="border-bottom:double;"></tr>
                         <tr>
@@ -351,7 +352,7 @@
                                 $("#totalCredit").text("");
                             }
                             if (data.viewModel !== null) {
-                                
+
                                 for (let i = 0; i < data.viewModel.details.length; i++) {
                                     var row = $("<tr></tr>");
                                     row.append("<td style='width:60%; padding-left:20px;'>" + data.viewModel.details[i].accountNo + " " + data.viewModel.details[i].accountName + "</td>");
@@ -359,8 +360,8 @@
                                     row.append("<td class='text-end' style='width:7%;'>" + data.viewModel.details[i].credit + "</td>");
                                     $("#tableBody").append(row);
                                 }
-                            } 
-                            else 
+                            }
+                            else
                             {
                                 console.error("Invalid data structure or lengths.");
                             }
