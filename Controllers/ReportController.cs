@@ -463,7 +463,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"{"Amount Field Control Total: ", -35}{"N/A"}");
             fileContent.AppendLine($"{"Period Covered: ", -35}{dateFrom}{" to "}{dateTo} ");
             fileContent.AppendLine($"{"Transaction cut-off Date & Time: ", -35}{ViewBag.LastRecord}");
-            fileContent.AppendLine($"{"Extracted By: ", -35}{extractedBy}");
+            fileContent.AppendLine($"{"Extracted By: ", -35}{extractedBy.ToUpper()}");
             fileContent.AppendLine();
             fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
             fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"25"}\t{"25"}\t{firstRecord.Date}");
@@ -485,7 +485,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine();
             fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
             fileContent.AppendLine($"Version: v1.0");
-            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
             fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
 
@@ -536,7 +536,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{totalDebit}");
             fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
             fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
-            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
+            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy.ToUpper()}");
             fileContent.AppendLine();
             fileContent.AppendLine($"{"Field Name"}\t{"Description",-18}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
             fileContent.AppendLine($"{"Date",-8}\t{"Date",-18}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
@@ -565,7 +565,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine();
             fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
             fileContent.AppendLine($"Version: v1.0");
-            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
             fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
 
@@ -616,7 +616,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{totalDebit}");
             fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
             fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
-            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
+            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy.ToUpper()}");
             fileContent.AppendLine();
             fileContent.AppendLine($"{"Field Name"}\t{"Description",-18}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
             fileContent.AppendLine($"{"Date",-8}\t{"Date",-18}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
@@ -644,7 +644,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine();
             fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
             fileContent.AppendLine($"Version: v1.0");
-            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
             fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
 
@@ -696,7 +696,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{totalDebit}");
             fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
             fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
-            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
+            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy.ToUpper()}");
             fileContent.AppendLine();
             fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
             fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
@@ -721,7 +721,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine();
             fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
             fileContent.AppendLine($"Version: v1.0");
-            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
             fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
 
@@ -775,7 +775,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{totalAmount}");
             fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
             fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
-            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
+            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy.ToUpper()}");
             fileContent.AppendLine();
             fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
             fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
@@ -801,7 +801,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine();
             fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
             fileContent.AppendLine($"Version: v1.0");
-            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
             fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
 
@@ -853,7 +853,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{totalDebit}");
             fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
             fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
-            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
+            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy.ToUpper()}");
             fileContent.AppendLine();
             fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
             fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
@@ -878,7 +878,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine();
             fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
             fileContent.AppendLine($"Version: v1.0");
-            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
             fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
 
@@ -948,7 +948,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{totalAmount}");
             fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
             fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
-            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
+            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy.ToUpper()}");
             fileContent.AppendLine();
             fileContent.AppendLine($"{"Field Name",-18}\t{"Description",-18}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
             fileContent.AppendLine($"{"Date",-18}\t{"Date",-18}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
@@ -979,7 +979,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine();
             fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
             fileContent.AppendLine($"Version: v1.0");
-            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
             fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
 
@@ -1042,7 +1042,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{totalAmount}");
             fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
             fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
-            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
+            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy.ToUpper()}");
             fileContent.AppendLine();
             fileContent.AppendLine($"{"Field Name",-18}\t{"Description",-18}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
             fileContent.AppendLine($"{"TransactionDate",-18}\t{"Tran. Date",-18}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.TransactionDate}");
@@ -1074,7 +1074,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine();
             fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
             fileContent.AppendLine($"Version: v1.0");
-            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
             fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
 
