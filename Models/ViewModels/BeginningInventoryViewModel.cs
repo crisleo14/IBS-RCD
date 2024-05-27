@@ -5,7 +5,7 @@ namespace Accounting_System.Models.ViewModels
 {
     public class BeginningInventoryViewModel
     {
-        [Required]t
+        [Required]
         public string Date { get; set; }
 
         [Required]
