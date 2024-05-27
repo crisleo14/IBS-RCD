@@ -510,6 +510,8 @@ namespace Accounting_System.Controllers
                 TempData["error"] = "No Record Found";
                 return RedirectToAction(nameof(DisbursementBook));
             }
+            var totalDebit = disbursementBooks.Sum(db => db.Debit);
+            var totalCredit = disbursementBooks.Sum(db => db.Credit);
             var lastRecord = disbursementBooks.LastOrDefault();
             var firstRecord = disbursementBooks.FirstOrDefault();
             if (lastRecord != null)
@@ -531,7 +533,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine("File Name: Disbursement Book Report");
             fileContent.AppendLine("File Type: Text File");
             fileContent.AppendLine($"{"Number of Records: ",-35}{disbursementBooks.Count}");
-            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{"N/A"}");
+            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{totalDebit}");
             fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
             fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
             fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
@@ -557,6 +559,8 @@ namespace Accounting_System.Controllers
             {
                 fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.CVNo,-12}\t{record.Payee,-100}\t{record.Particulars,-200}\t{record.Bank,-10}\t{record.CheckNo,-20}\t{record.CheckDate,-10}\t{record.ChartOfAccount,-100}\t{record.Debit,-18}\t{record.Credit,-18}");
             }
+            fileContent.AppendLine(new string('-', 536));
+            fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-100}\t{"",-200}\t{"",-10}\t{"",-20}\t{"",-10}\t{"TOTAL:",-100}\t{totalDebit,-18}\t{totalCredit,-18}");
 
             fileContent.AppendLine();
             fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
