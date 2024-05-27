@@ -10,7 +10,7 @@
 
 <partial name="_Notification">
 
-<form asp-action="SalesBookReport" method="post">
+    <form id="dynamicForm" method="post">
     <div class="row">
         <div class="col-md-4">
             <div class="mb-3">
@@ -45,7 +45,10 @@
                 </select>
             </div>
             <div class="mb-3">
-                <button type="submit" class="btn-primary">Generate</button>
+                <button type="submit" class="btn-primary" onclick="submitForm('SalesBookReport')">Generate</button>
+            </div>
+            <div class="mb-3">
+                <button type="submit" class="btn-primary" onclick="submitForm('GenerateSalesBookTxtFile')">Generate as .txt file</button>
             </div>
         </div>
     </div>
@@ -55,4 +58,11 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        function submitForm(action) {
+            var form = document.getElementById('dynamicForm');
+            form.action = action;
+            form.submit();
+        }
+    </script>
 }
