@@ -586,6 +586,8 @@ namespace Accounting_System.Controllers
                 TempData["error"] = "No Record Found";
                 return RedirectToAction(nameof(CashReceiptBook));
             }
+            var totalDebit = cashReceiptBooks.Sum(crb => crb.Debit);
+            var totalCredit = cashReceiptBooks.Sum(crb => crb.Credit);
             var lastRecord = cashReceiptBooks.LastOrDefault();
             var firstRecord = cashReceiptBooks.FirstOrDefault();
             if (lastRecord != null)
@@ -607,7 +609,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine("File Name: Cash Receipt Book Report");
             fileContent.AppendLine("File Type: Text File");
             fileContent.AppendLine($"{"Number of Records: ",-35}{cashReceiptBooks.Count}");
-            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{"N/A"}");
+            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{totalDebit}");
             fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
             fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
             fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
@@ -632,6 +634,8 @@ namespace Accounting_System.Controllers
             {
                 fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.RefNo,-12}\t{record.CustomerName,-16}\t{record.Bank,-100}\t{record.CheckNo,-20}\t{record.COA,-100}\t{record.Particulars,-200}\t{record.Debit,-18}\t{record.Credit,-18}");
             }
+            fileContent.AppendLine(new string('-', 528));
+            fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-16}\t{"",-100}\t{"",-20}\t{"",-100}\t{"TOTAL:",200}\t{totalDebit,-18}\t{totalCredit,-18}");
 
             fileContent.AppendLine();
             fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
