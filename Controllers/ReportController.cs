@@ -962,7 +962,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"Date Issued: {CS.DateIssued}");
             fileContent.AppendLine();
             fileContent.AppendLine("Accounting Books File Attributes/Layout Definition");
-            fileContent.AppendLine("File Name: Purchase Journal Book Report");
+            fileContent.AppendLine("File Name: Sales Book Report");
             fileContent.AppendLine("File Type: Text File");
             fileContent.AppendLine($"{"Number of Records: ",-35}{salesBook.Count}");
             fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{"N/A"}");
@@ -985,7 +985,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine($"{"Discount",-18}\t{"Discount",-18}\t{"494"}\t{"511"}\t{"18"}\t{firstRecord.Discount}");
             fileContent.AppendLine($"{"NetSales",-18}\t{"Net Sales",-18}\t{"513"}\t{"530"}\t{"18"}\t{firstRecord.NetSales}");
             fileContent.AppendLine();
-            fileContent.AppendLine("PURCHASE BOOK");
+            fileContent.AppendLine("SALES BOOK");
             fileContent.AppendLine();
             fileContent.AppendLine($"{"Tran. Date",-10}\t{"Serial Number",-12}\t{"Customer Name",-100}\t{"Tin#",-20}\t{"Address",-200}\t{"Description",-50}\t{"Amount",-18}\t{"Vat Amount",-18}\t{"Vatable Sales",-18}\t{"Vat-Exempt Sales",-18}\t{"Zero-Rated Sales",-18}\t{"Discount",-18}\t{"Net Sales",-18}");
 
@@ -1006,7 +1006,7 @@ namespace Accounting_System.Controllers
             var bytes = Encoding.UTF8.GetBytes(fileContent.ToString());
 
             // Return the file to the user
-            return File(bytes, "text/plain", "PurchaseBookReport.txt");
+            return File(bytes, "text/plain", "SalesBookReport.txt");
         }
 
         #endregion -- Generate Sales Book .Txt File --
