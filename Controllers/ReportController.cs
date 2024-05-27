@@ -434,6 +434,11 @@ namespace Accounting_System.Controllers
             var extractedBy = _userManager.GetUserName(this.User);
 
             var auditTrail = _reportRepo.GetAuditTrails(model.DateFrom, model.DateTo);
+            if (auditTrail.Count == 0)
+            {
+                TempData["error"] = "No Record Found";
+                return RedirectToAction(nameof(AuditTrail));
+            }
             var lastRecord = auditTrail.LastOrDefault();
             var firstRecord = auditTrail.FirstOrDefault();
             if (lastRecord != null)
@@ -500,6 +505,11 @@ namespace Accounting_System.Controllers
             var extractedBy = _userManager.GetUserName(this.User);
 
             var disbursementBooks = _reportRepo.GetDisbursementBooks(model.DateFrom, model.DateTo);
+            if (disbursementBooks.Count == 0)
+            {
+                TempData["error"] = "No Record Found";
+                return RedirectToAction(nameof(DisbursementBook));
+            }
             var lastRecord = disbursementBooks.LastOrDefault();
             var firstRecord = disbursementBooks.FirstOrDefault();
             if (lastRecord != null)
@@ -571,6 +581,11 @@ namespace Accounting_System.Controllers
             var extractedBy = _userManager.GetUserName(this.User);
 
             var cashReceiptBooks = _reportRepo.GetCashReceiptBooks(model.DateFrom, model.DateTo);
+            if (cashReceiptBooks.Count == 0)
+            {
+                TempData["error"] = "No Record Found";
+                return RedirectToAction(nameof(CashReceiptBook));
+            }
             var lastRecord = cashReceiptBooks.LastOrDefault();
             var firstRecord = cashReceiptBooks.FirstOrDefault();
             if (lastRecord != null)
@@ -642,6 +657,11 @@ namespace Accounting_System.Controllers
             var extractedBy = _userManager.GetUserName(this.User);
 
             var generalBooks = _reportRepo.GetGeneralLedgerBooks(model.DateFrom, model.DateTo);
+            if (generalBooks.Count == 0)
+            {
+                TempData["error"] = "No Record Found";
+                return RedirectToAction(nameof(GeneralLedgerBook));
+            }
             var lastRecord = generalBooks.LastOrDefault();
             var firstRecord = generalBooks.FirstOrDefault();
             if (lastRecord != null)
@@ -711,6 +731,11 @@ namespace Accounting_System.Controllers
             var extractedBy = _userManager.GetUserName(this.User);
 
             var inventoryBooks = _reportRepo.GetInventoryBooks(model.DateFrom, model.DateTo);
+            if (inventoryBooks.Count == 0)
+            {
+                TempData["error"] = "No Record Found";
+                return RedirectToAction(nameof(InventoryBook));
+            }
             var lastRecord = inventoryBooks.LastOrDefault();
             var firstRecord = inventoryBooks.FirstOrDefault();
             if (lastRecord != null)
@@ -780,6 +805,11 @@ namespace Accounting_System.Controllers
             var extractedBy = _userManager.GetUserName(this.User);
 
             var journalBooks = _reportRepo.GetJournalBooks(model.DateFrom, model.DateTo);
+            if (journalBooks.Count == 0)
+            {
+                TempData["error"] = "No Record Found";
+                return RedirectToAction(nameof(JournalBook));
+            }
             var lastRecord = journalBooks.LastOrDefault();
             var firstRecord = journalBooks.FirstOrDefault();
             if (lastRecord != null)
@@ -863,6 +893,11 @@ namespace Accounting_System.Controllers
             }
 
             var purchaseOrders = _reportRepo.GetPurchaseBooks(model.DateFrom, model.DateTo, selectedFiltering);
+            if (purchaseOrders.Count == 0)
+            {
+                TempData["error"] = "No Record Found";
+                return RedirectToAction(nameof(PurchaseBook));
+            }
             var lastRecord = purchaseOrders.LastOrDefault();
             var firstRecord = purchaseOrders.FirstOrDefault();
             if (lastRecord != null)
@@ -943,6 +978,18 @@ namespace Accounting_System.Controllers
             }
 
             var salesBook = _reportRepo.GetSalesBooks(model.DateFrom, model.DateTo, selectedDocument);
+            if (salesBook.Count == 0)
+            {
+                TempData["error"] = "No Record Found";
+                return RedirectToAction(nameof(SalesBook));
+            }
+            var totalAmount = salesBook.Sum(sb => sb.Amount);
+            var totalVatAmount = salesBook.Sum(sb => sb.VatAmount);
+            var totalVatableSales = salesBook.Sum(sb => sb.VatableSales);
+            var totalVatExemptSales = salesBook.Sum(sb => sb.VatExemptSales);
+            var totalZeroRatedSales = salesBook.Sum(sb => sb.ZeroRated);
+            var totalDiscount = salesBook.Sum(sb => sb.Discount);
+            var totalNetSales = salesBook.Sum(sb => sb.NetSales);
             var lastRecord = salesBook.LastOrDefault();
             var firstRecord = salesBook.FirstOrDefault();
             if (lastRecord != null)
@@ -965,7 +1012,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine("File Name: Sales Book Report");
             fileContent.AppendLine("File Type: Text File");
             fileContent.AppendLine($"{"Number of Records: ",-35}{salesBook.Count}");
-            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{"N/A"}");
+            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{totalAmount}");
             fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
             fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
             fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
@@ -994,6 +1041,8 @@ namespace Accounting_System.Controllers
             {
                 fileContent.AppendLine($"{record.TransactionDate.ToString(),-10}\t{record.SerialNo,-12}\t{record.SoldTo,-100}\t{record.TinNo,-20}\t{record.Address,-200}\t{record.Description,-50}\t{record.Amount,-18}\t{record.VatAmount,-18}\t{record.VatableSales,-18}\t{record.VatExemptSales,-18}\t{record.ZeroRated,-18}\t{record.Discount,-18}\t{record.NetSales,-18}");
             }
+            fileContent.AppendLine(new string('-', 580));
+            fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-100}\t{"",-20}\t{"",-200}\t{"TOTAL:",50}\t{totalAmount,-18}\t{totalVatAmount,-18}\t{totalVatableSales,-18}\t{totalVatExemptSales,-18}\t{totalZeroRatedSales,-18}\t{totalDiscount,-18}\t{totalNetSales,-18}");
 
             fileContent.AppendLine();
             fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
