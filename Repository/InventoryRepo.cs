@@ -1,5 +1,4 @@
 ﻿using Accounting_System.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Repository
 {
@@ -12,19 +11,19 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public async Task UpdateQuantity(decimal sold, int productId, CancellationToken cancellationToken = default)
-        {
-            var inventory = await _dbContext
-                .Inventories
-                .FirstOrDefaultAsync(x => x.ProductId == productId, cancellationToken);
-            if (inventory == null)
-            {
-                throw new ArgumentException("No product found !");
-            }
-            inventory.QuantityServe += sold;
-            inventory.QuantityBalance -= sold;
+        //public async Task UpdateQuantity(decimal sold, int productId, CancellationToken cancellationToken = default)
+        //{
+        //    var inventory = await _dbContext
+        //        .Inventories
+        //        .FirstOrDefaultAsync(x => x.ProductId == productId, cancellationToken);
+        //    if (inventory == null)
+        //    {
+        //        throw new ArgumentException("No product found !");
+        //    }
+        //    inventory.QuantityServe += sold;
+        //    inventory.QuantityBalance -= sold;
 
-            await _dbContext.SaveChangesAsync(cancellationToken);
-        }
+        //    await _dbContext.SaveChangesAsync(cancellationToken);
+        //}
     }
 }
