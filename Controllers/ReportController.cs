@@ -736,6 +736,9 @@ namespace Accounting_System.Controllers
                 TempData["error"] = "No Record Found";
                 return RedirectToAction(nameof(InventoryBook));
             }
+            var totalAmount = inventoryBooks.Sum(ib => ib.Amount);
+            var totalQuantity = inventoryBooks.Sum(ib => ib.Quantity);
+            var totalPrice = inventoryBooks.Sum(ib => ib.Price);
             var lastRecord = inventoryBooks.LastOrDefault();
             var firstRecord = inventoryBooks.FirstOrDefault();
             if (lastRecord != null)
@@ -757,7 +760,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine("File Name: Inventory Book Report");
             fileContent.AppendLine("File Type: Text File");
             fileContent.AppendLine($"{"Number of Records: ",-35}{inventoryBooks.Count}");
-            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{"N/A"}");
+            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{totalAmount}");
             fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
             fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
             fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
@@ -780,6 +783,8 @@ namespace Accounting_System.Controllers
             {
                 fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.ProductCode,-20}\t{record.ProductName,-50}\t{record.Unit,-2}\t{record.Quantity,-18}\t{record.Price,-18}\t{record.Amount,-18}");
             }
+            fileContent.AppendLine(new string('-', 160));
+            fileContent.AppendLine($"{"",-10}\t{"",-20}\t{"",-50}\t{"TOTAL:",-2}\t{totalQuantity,-18}\t{totalPrice,-18}\t{totalAmount,-18}");
 
             fileContent.AppendLine();
             fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
