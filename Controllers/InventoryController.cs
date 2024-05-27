@@ -1,6 +1,8 @@
 ﻿using Accounting_System.Data;
+using Accounting_System.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Controllers
@@ -15,14 +17,19 @@ namespace Accounting_System.Controllers
             _dbContext = dbContext;
         }
 
-        public async Task<IActionResult> Index(CancellationToken cancellationToken)
+        public async Task<IActionResult> BeginningInventory(CancellationToken cancellationToken)
         {
-            var result = await _dbContext
-                .Inventories
-                .Include(inventory => inventory.Product)
+            BeginningInventoryViewModel? viewModel = new();
+
+            viewModel.ProductList = await _dbContext.Products
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = $"{p.Code} {p.Name}"
+                })
                 .ToListAsync(cancellationToken);
 
-            return View(result);
+            return View(viewModel);
         }
     }
 }

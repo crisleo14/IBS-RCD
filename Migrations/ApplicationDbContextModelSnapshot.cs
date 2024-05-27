@@ -555,9 +555,6 @@ namespace Accounting_System.Migrations
                     b.Property<string>("Remarks")
                         .HasColumnType("text");
 
-                    b.Property<int?>("SOAId")
-                        .HasColumnType("integer");
-
                     b.Property<int?>("SalesInvoiceId")
                         .HasColumnType("integer");
 
@@ -600,9 +597,9 @@ namespace Accounting_System.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SOAId");
-
                     b.HasIndex("SalesInvoiceId");
+
+                    b.HasIndex("ServiceInvoiceId");
 
                     b.ToTable("CreditMemos");
                 });
@@ -894,27 +891,37 @@ namespace Accounting_System.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
+                    b.Property<decimal>("AverageCost")
+                        .HasColumnType("numeric(18,2)");
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<decimal>("Cost")
+                        .HasColumnType("numeric(18,2)");
 
-                    b.Property<string>("PO")
+                    b.Property<string>("Date")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<decimal>("InventoryBalance")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("Particular")
+                        .IsRequired()
+                        .HasColumnType("varchar(200)");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("integer");
 
                     b.Property<decimal>("Quantity")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric(18,2)");
 
-                    b.Property<decimal>("QuantityBalance")
-                        .HasColumnType("numeric");
+                    b.Property<string>("Reference")
+                        .HasColumnType("varchar(12)");
 
-                    b.Property<decimal>("QuantityServe")
-                        .HasColumnType("numeric");
+                    b.Property<decimal>("Total")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("TotalBalance")
+                        .HasColumnType("numeric(18,2)");
 
                     b.HasKey("Id");
 
@@ -1114,73 +1121,6 @@ namespace Accounting_System.Migrations
                     b.HasIndex("CVId");
 
                     b.ToTable("JournalVoucherHeaders");
-                });
-
-            modelBuilder.Entity("Accounting_System.Models.Ledger", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AccountNo")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("CanceledBy")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsCanceled")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsPosted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsPrinted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsVoided")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("PostedBy")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("TransactionDate")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("TransactionNo")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("VoidedBy")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Ledgers");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.Offsetting", b =>
@@ -2252,13 +2192,13 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.CreditMemo", b =>
                 {
-                    b.HasOne("Accounting_System.Models.ServiceInvoice", "ServiceInvoice")
-                        .WithMany()
-                        .HasForeignKey("SOAId");
-
                     b.HasOne("Accounting_System.Models.SalesInvoice", "SalesInvoice")
                         .WithMany()
                         .HasForeignKey("SalesInvoiceId");
+
+                    b.HasOne("Accounting_System.Models.ServiceInvoice", "ServiceInvoice")
+                        .WithMany()
+                        .HasForeignKey("ServiceInvoiceId");
 
                     b.Navigation("SalesInvoice");
 
