@@ -42,7 +42,7 @@
                 <input class="form-check-input" type="radio" asp-for="Header.AccruedType" id="inlineRadio3" value="Invoicing" aria-labelledby="labelInlineRadio3" onclick="updateTotalDebitAndCredit('invoicingAccrued')">
                 <label class="form-check-label" for="inlineRadio3" id="labelInlineRadio3">Invoicing</label>
             </div>
-            
+
             <br />
             <span asp-validation-for="Header.Category" class="text-danger"></span>
         </fieldset>
@@ -705,7 +705,7 @@
                             method: "GET",
                             data: { rrNo: rrNo },
                             success: function (data) {
-                                if (data.balance !== null) {                              
+                                if (data.balance !== null) {
                                     $("#paymentAmount_" + rrNo).on('input', function () {
                                         var inputValue = $(this).val();
                                         var balance = data.amount - inputValue;
