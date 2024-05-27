@@ -812,6 +812,8 @@ namespace Accounting_System.Controllers
             }
             var lastRecord = journalBooks.LastOrDefault();
             var firstRecord = journalBooks.FirstOrDefault();
+            var totalDebit = journalBooks.Sum(jb => jb.Debit);
+            var totalCredit = journalBooks.Sum(jb => jb.Credit);
             if (lastRecord != null)
             {
                 ViewBag.LastRecord = lastRecord.CreatedDate;
@@ -831,7 +833,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine("File Name: Journal Book Report");
             fileContent.AppendLine("File Type: Text File");
             fileContent.AppendLine($"{"Number of Records: ",-35}{journalBooks.Count}");
-            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{"N/A"}");
+            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{totalDebit}");
             fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
             fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
             fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
@@ -853,6 +855,8 @@ namespace Accounting_System.Controllers
             {
                 fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.Reference,-12}\t{record.Description,-50}\t{record.AccountTitle,-50}\t{record.Debit,-18}\t{record.Credit,-18}");
             }
+            fileContent.AppendLine(new string('-', 176));
+            fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-50}\t{"TOTAL:",50}\t{totalDebit,-18}\t{totalCredit,-18}");
 
             fileContent.AppendLine();
             fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
