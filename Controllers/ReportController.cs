@@ -929,5 +929,86 @@ namespace Accounting_System.Controllers
         }
 
         #endregion -- Generate Purchase Book .Txt File --
+
+        #region -- Generate Sales Book .Txt File --
+        public IActionResult GenerateSalesBookTxtFile(ViewModelBook model, string? selectedDocument, string? soaList, string? siList)
+        {
+            var dateFrom = model.DateFrom;
+            var dateTo = model.DateTo;
+            var extractedBy = _userManager.GetUserName(this.User);
+
+            if (soaList != null || siList != null)
+            {
+                return RedirectToAction("TransactionReportsInSOA", new { soaList = soaList, siList = siList });
+            }
+
+            var salesBook = _reportRepo.GetSalesBooks(model.DateFrom, model.DateTo, selectedDocument);
+            var lastRecord = salesBook.LastOrDefault();
+            var firstRecord = salesBook.FirstOrDefault();
+            if (lastRecord != null)
+            {
+                ViewBag.LastRecord = lastRecord.CreatedDate;
+            }
+            ViewBag.SelectedDocument = selectedDocument;
+
+            var fileContent = new StringBuilder();
+
+            fileContent.AppendLine($"TAXPAYER'S NAME: Filpride Resources Inc.");
+            fileContent.AppendLine($"TIN: 000-216-589-00000");
+            fileContent.AppendLine($"ADDRESS: 57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone, Kalaklan, Olongapo City, 2200 Zambales, Philippines");
+            fileContent.AppendLine();
+            fileContent.AppendLine($"Accounting System: Accounting Administration System");
+            fileContent.AppendLine($"Acknowledgement Certificate Control No.: {CS.ACCN}");
+            fileContent.AppendLine($"Date Issued: {CS.DateIssued}");
+            fileContent.AppendLine();
+            fileContent.AppendLine("Accounting Books File Attributes/Layout Definition");
+            fileContent.AppendLine("File Name: Purchase Journal Book Report");
+            fileContent.AppendLine("File Type: Text File");
+            fileContent.AppendLine($"{"Number of Records: ",-35}{salesBook.Count}");
+            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{"N/A"}");
+            fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
+            fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
+            fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
+            fileContent.AppendLine();
+            fileContent.AppendLine($"{"Field Name",-18}\t{"Description",-18}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
+            fileContent.AppendLine($"{"TransactionDate",-18}\t{"Tran. Date",-18}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.TransactionDate}");
+            fileContent.AppendLine($"{"SerialNo",-18}\t{"Serial Number",-18}\t{"12"}\t{"23"}\t{"12"}\t{firstRecord.SerialNo}");
+            fileContent.AppendLine($"{"Date",-18}\t{"Customer Name",-18}\t{"25"}\t{"124"}\t{"100"}\t{firstRecord.SoldTo}");
+            fileContent.AppendLine($"{"TinNo",-18}\t{"Tin#",-18}\t{"126"}\t{"145"}\t{"20"}\t{firstRecord.TinNo}");
+            fileContent.AppendLine($"{"Address",-18}\t{"Address",-18}\t{"147"}\t{"346"}\t{"200"}\t{firstRecord.Address}");
+            fileContent.AppendLine($"{"Description",-18}\t{"Description",-18}\t{"348"}\t{"397"}\t{"50"}\t{firstRecord.Description}");
+            fileContent.AppendLine($"{"Amount",-18}\t{"Amount",-18}\t{"399"}\t{"416"}\t{"18"}\t{firstRecord.Amount}");
+            fileContent.AppendLine($"{"VatAmount",-18}\t{"Vat Amount",-18}\t{"418"}\t{"435"}\t{"18"}\t{firstRecord.VatAmount}");
+            fileContent.AppendLine($"{"VatableSales",-18}\t{"Vatable Sales",-18}\t{"437"}\t{"454"}\t{"18"}\t{firstRecord.VatableSales}");
+            fileContent.AppendLine($"{"VatExemptSales",-18}\t{"Vat-Exempt Sales",-18}\t{"456"}\t{"473"}\t{"18"}\t{firstRecord.VatExemptSales}");
+            fileContent.AppendLine($"{"ZeroRated",-18}\t{"Zero-Rated Sales",-18}\t{"475"}\t{"492"}\t{"18"}\t{firstRecord.ZeroRated}");
+            fileContent.AppendLine($"{"Discount",-18}\t{"Discount",-18}\t{"494"}\t{"511"}\t{"18"}\t{firstRecord.Discount}");
+            fileContent.AppendLine($"{"NetSales",-18}\t{"Net Sales",-18}\t{"513"}\t{"530"}\t{"18"}\t{firstRecord.NetSales}");
+            fileContent.AppendLine();
+            fileContent.AppendLine("PURCHASE BOOK");
+            fileContent.AppendLine();
+            fileContent.AppendLine($"{"Tran. Date",-10}\t{"Serial Number",-12}\t{"Customer Name",-100}\t{"Tin#",-20}\t{"Address",-200}\t{"Description",-50}\t{"Amount",-18}\t{"Vat Amount",-18}\t{"Vatable Sales",-18}\t{"Vat-Exempt Sales",-18}\t{"Zero-Rated Sales",-18}\t{"Discount",-18}\t{"Net Sales",-18}");
+
+            // Generate the records
+            foreach (var record in salesBook)
+            {
+                fileContent.AppendLine($"{record.TransactionDate.ToString(),-10}\t{record.SerialNo,-12}\t{record.SoldTo,-100}\t{record.TinNo,-20}\t{record.Address,-200}\t{record.Description,-50}\t{record.Amount,-18}\t{record.VatAmount,-18}\t{record.VatableSales,-18}\t{record.VatExemptSales,-18}\t{record.ZeroRated,-18}\t{record.Discount,-18}\t{record.NetSales,-18}");
+            }
+
+            fileContent.AppendLine();
+            fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
+            fileContent.AppendLine($"Version: v1.0");
+            fileContent.AppendLine($"Extracted By: {extractedBy}");
+            fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
+
+
+            // Convert the content to a byte array
+            var bytes = Encoding.UTF8.GetBytes(fileContent.ToString());
+
+            // Return the file to the user
+            return File(bytes, "text/plain", "PurchaseBookReport.txt");
+        }
+
+        #endregion -- Generate Sales Book .Txt File --
     }
 }
