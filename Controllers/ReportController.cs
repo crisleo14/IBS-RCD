@@ -1,5 +1,5 @@
 ﻿using Accounting_System.Data;
-using Accounting_System.Models;
+using Accounting_System.Models.ViewModels;
 using Accounting_System.Repository;
 using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
