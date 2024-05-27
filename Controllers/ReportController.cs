@@ -898,6 +898,10 @@ namespace Accounting_System.Controllers
                 TempData["error"] = "No Record Found";
                 return RedirectToAction(nameof(PurchaseBook));
             }
+            var totalAmount = purchaseOrders.Sum(sb => sb.Amount);
+            var totalVatAmount = purchaseOrders.Sum(sb => sb.VatAmount);
+            var totalWhtAmount = purchaseOrders.Sum(sb => sb.WhtAmount);
+            var totalNetPurchases = purchaseOrders.Sum(sb => sb.NetPurchases);
             var lastRecord = purchaseOrders.LastOrDefault();
             var firstRecord = purchaseOrders.FirstOrDefault();
             if (lastRecord != null)
@@ -920,7 +924,7 @@ namespace Accounting_System.Controllers
             fileContent.AppendLine("File Name: Purchase Journal Book Report");
             fileContent.AppendLine("File Type: Text File");
             fileContent.AppendLine($"{"Number of Records: ",-35}{purchaseOrders.Count}");
-            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{"N/A"}");
+            fileContent.AppendLine($"{"Amount Field Control Total: ",-35}{totalAmount}");
             fileContent.AppendLine($"{"Period Covered: ",-35}{dateFrom}{" to "}{dateTo} ");
             fileContent.AppendLine($"{"Transaction cut-off Date & Time: ",-35}{ViewBag.LastRecord}");
             fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy}");
@@ -946,8 +950,10 @@ namespace Accounting_System.Controllers
             // Generate the records
             foreach (var record in purchaseOrders)
             {
-                fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.SupplierName,-50}\t{record.SupplierTin,-20}\t{record.SupplierAddress,-200}\t{record.PONo,-12}\t{record.DocumentNo,-12}\t{record.Description,-50}\t{record.Amount,-18}\t{record.VatAmount,-18}\t{0.00,-18}\t{record.WhtAmount,-18}\t{record.NetPurchases,-18}");
+                fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.SupplierName,-50}\t{record.SupplierTin,-20}\t{record.SupplierAddress,-200}\t{record.PONo,-12}\t{record.DocumentNo,-12}\t{record.Description,-50}\t{record.Amount,-18}\t{record.VatAmount,-18}\t{0.00m,-18}\t{record.WhtAmount,-18}\t{record.NetPurchases,-18}");
             }
+            fileContent.AppendLine(new string('-', 503));
+            fileContent.AppendLine($"{"",-10}\t{"",-50}\t{"",-20}\t{"",-200}\t{"",-12}\t{"",-12}\t{"TOTAL:",50}\t{totalAmount,-18}\t{totalVatAmount,-18}\t{0.00m,-18}\t{totalWhtAmount,-18}\t{totalNetPurchases,-18}");
 
             fileContent.AppendLine();
             fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
