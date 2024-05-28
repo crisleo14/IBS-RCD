@@ -1,4 +1,5 @@
-﻿@model Accounting_System.Models.SalesInvoice
+﻿@using Accounting_System.Utility
+@model Accounting_System.Models.SalesInvoice
 
 @{
     ViewData["Title"] = "Sales Invoice";
@@ -291,9 +292,9 @@
          <b>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</b><br />
     }
         <span>Acknowledgement Certificate No:</span>
-        <span style="display: inline-block;"></span>
+        <span style="display: inline-block; width:150px;"></span>
         <span>&nbsp;&nbsp;Date Issued:</span>
-        <span style="display: inline-block;"></span><br />
+        <span style="display: inline-block; width:50px;"></span><br />
         Series: SI0000000001 - SI9999999999
         Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
     </p>

@@ -1,4 +1,5 @@
 ﻿@using Accounting_System.Models.ViewModels
+@using Accounting_System.Utility
 @model CheckVoucherVM
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
@@ -275,9 +276,9 @@
     <p >
         <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br /><br />
         <span>Acknowledgement Certificate No:</span>
-        <span style="display: inline-block;"></span>
+        <span style="display: inline-block; width:150px;"></span>
         <span>&nbsp;&nbsp;Date Issued:</span>
-        <span style="display: inline-block;"></span><br />
+        <span style="display: inline-block; width:50px;"></span><br />
         Series: CV0000000001 - CV9999999999
         Date and Time Created:&nbsp; @Html.DisplayFor(model => model.Header.CreatedDate)
     </p>
@@ -289,7 +290,7 @@
         <em>
             <strong>Software Name :</strong> Accounting Administration System (AAS)
             <br />
-            <strong>Version :</strong> v1.0
+            <strong>Version :</strong> @CS.Version
             <br />
             <strong>Printed By :</strong> @UserManager.GetUserName(User).ToUpper()
             <br />
