@@ -52,7 +52,7 @@
             <tr>
                 <td style="width:10%; padding-left:20px;">Name :</td>
                 <td >@Html.DisplayFor(model => model.Header.Supplier.Name)</td>
-                <td style="width:50%;" colspan="2" class="text-nowrap">Other References:</td>
+                <td style="width:50%;" colspan="2" class="text-nowrap">Other References</td>
             </tr>
             <tr>
                 <td style="padding-left:20px;">Address :</td>
@@ -128,17 +128,17 @@
         </thead>
         <tbody>
             <tr>
-                <td style="width:15%; padding-left:20px;">Payee :</td>
+                <td style="width:20%; padding-left:20px;">Payee :</td>
                 <td style="width:65%;">@Html.DisplayFor(model => model.Header.Payee)</td>
-                <td class="text-end">
-                    @if (Model.Header.Amount != 0)
-                    {
-                        <p>@Model.Header.Amount</p>
-                    }
-                </td>
+                @if (Model.Header.Amount != 0)
+                {
+                    <td class="text-end">@Model.Header.Amount</td>
+                }else{
+                    <td></td>
+                }
             </tr>
             <tr>
-                <td style="padding-left:20px;">Amount in Words :</td>
+                <td style="padding-left:20px;" class="text-nowrap">Amount in Words :</td>
                 @{
                     decimal convertToWords = Model.Header.Amount;
 
@@ -177,12 +177,12 @@
                     words = words.Replace(" And", "");
                     words = words.Replace("-", " ");
                 }
-                <td class="w-25">
-                    @if (Model.Header.Amount != 0)
-                    {
-                        <p>*** @words ***</p>
-                    }
-                </td>
+                @if (Model.Header.Amount != 0)
+                {
+                    <td>*** @words ***</td>
+                }else{
+                    <td></td>
+                }
                 <td></td>
             </tr>
             <tr>

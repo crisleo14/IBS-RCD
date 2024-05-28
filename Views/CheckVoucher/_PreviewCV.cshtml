@@ -54,16 +54,14 @@
                                 <tr>
                                     <td style="width:10%; padding-left:20px;">Name :</td>
                                     <td>@Html.DisplayFor(model => model.Header.Supplier.Name)</td>
-                                    <td style="width:50%;" colspan="2" class="text-nowrap">Other References:</td>
+                                    <td style="width:50%;" colspan="2" class="text-nowrap">Other References</td>
                                 </tr>
                                 <tr>
                                     <td style="padding-left:20px;">Address :</td>
                                     <td>@Html.DisplayFor(model => model.Header.Supplier.Address)</td>
-                                    <td style="width:10%;">PO # :</td>
+                                    <td style="width:5%;">PO # :</td>
 
                                     <td>
-                                    @if (Model.Header.PONo != null)
-                                    {
                                         @for (int i = 0; i < Model.Header.PONo.Length; i++)
                                         {
                                             if (i != Model.Header.PONo.Length - 1)
@@ -75,48 +73,44 @@
                                                 <span>@Model.Header.PONo[i]</span>
                                             }
                                         }
-                                    }
-                                </td>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td style="padding-left:20px;">TIN # :</td>
                                     <td>@Html.DisplayFor(model => model.Header.Supplier.TinNo)</td>
                                     <td>SI # :</td>
                                     <td>
-                                    @if (Model.Header.SINo != null)
-                                    {
                                         @if (Model.Header.Category == "Non-Trade")
-                                    {
-                                        @for (int i = 0; i < Model.Header.SINo.Length; i++)
                                         {
-                                            if (i != Model.Header.SINo.Length - 1)
+                                            @for (int i = 0; i < Model.Header.SINo.Length; i++)
                                             {
-                                                <span>@Model.Header.SINo[i],</span>
-                                            }
-                                            else
-                                            {
-                                                <span>@Model.Header.SINo[i]</span>
+                                                if (i != Model.Header.SINo.Length - 1)
+                                                {
+                                                    <span>@Model.Header.SINo[i],</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>@Model.Header.SINo[i]</span>
+                                                }
                                             }
                                         }
-                                    }
-                                    else if (Model.Header.Category == "Trade")
-                                    {
-                                        bool isFirst = true;
-                                        foreach (var item in ViewBag.SINoArray)
+                                        else if (Model.Header.Category == "Trade")
                                         {
-                                            if (isFirst)
+                                            bool isFirst = true;
+                                            foreach (var item in ViewBag.SINoArray)
                                             {
-                                                isFirst = false;
+                                                if (isFirst)
+                                                {
+                                                    isFirst = false;
+                                                }
+                                                else
+                                                {
+                                                    <span>,</span>
+                                                }
+                                                <span>@item</span>
                                             }
-                                            else
-                                            {
-                                                <span>,</span>
-                                            }
-                                            <span>@item</span>
                                         }
-                                    }
-                                    }
-                                </td>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td style="padding-left:20px;" class="text-nowrap"></td>
@@ -136,61 +130,65 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td style="width:15%; padding-left:20px;">Payee :</td>
+                                    <td style="width:20%; padding-left:20px;">Payee :</td>
                                     <td style="width:65%;">@Html.DisplayFor(model => model.Header.Payee)</td>
-                                    <td class="text-end">
-                                        @if (Model.Header.Amount != 0)
-                                        {
-                                            <p>@Model.Header.Amount</p>
-                                        }
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-left:20px;">Amount in Words :</td>
-                                @{
-                                    decimal convertToWords = Model.Header.Amount;
-
-                                    int integerPart = Convert.ToInt32(Math.Floor(convertToWords));
-                                    decimal decimalPart = Math.Round((convertToWords - integerPart), 2);
-
-                                    // Convert integer part to words
-                                    string integerWords = integerPart.ToWords();
-                                    integerWords = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(integerWords.ToLower());
-
-                                    // Convert and format cents value
-                                    int cents = Convert.ToInt32(decimalPart * 100) % 100;
-                                    string centsWords = cents.ToWords(); // Use ToWords instead of string formatting
-                                    centsWords = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(centsWords.ToLower());
-
-                                    string upperCaseOne = integerWords;
-                                    string upperCaseTwo = centsWords;
-
-                                    // Combine words and formatting
-                                    string words;
-
-                                    if (cents > 0)
+                                    @if (Model.Header.Amount != 0)
                                     {
-                                        // If there is a decimal part, include "And" before it
-                                        words = $"{upperCaseOne} Pesos and {upperCaseTwo} Centavos Only";
+                                        <td class="text-end">@Model.Header.Amount</td>
                                     }
                                     else
                                     {
-                                        // If there is no decimal part, exclude "And"
-                                        words = $"{upperCaseOne} Pesos Only";
+                                        <td></td>
                                     }
+                                </tr>
+                                <tr>
+                                    <td style="padding-left:20px;" class="text-nowrap">Amount in Words :</td>
+                                    @{
+                                        decimal convertToWords = Model.Header.Amount;
 
-                                    // Capitalize first letters
-                                    // words = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(words.ToLower());
+                                        int integerPart = Convert.ToInt32(Math.Floor(convertToWords));
+                                        decimal decimalPart = Math.Round((convertToWords - integerPart), 2);
 
-                                    words = words.Replace(" And", "");
-                                    words = words.Replace("-", " ");
-                                }
-                                    <td class="w-25">
-                                        @if (Model.Header.Amount != 0)
+                                        // Convert integer part to words
+                                        string integerWords = integerPart.ToWords();
+                                        integerWords = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(integerWords.ToLower());
+
+                                        // Convert and format cents value
+                                        int cents = Convert.ToInt32(decimalPart * 100) % 100;
+                                        string centsWords = cents.ToWords(); // Use ToWords instead of string formatting
+                                        centsWords = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(centsWords.ToLower());
+
+                                        string upperCaseOne = integerWords;
+                                        string upperCaseTwo = centsWords;
+
+                                        // Combine words and formatting
+                                        string words;
+
+                                        if (cents > 0)
                                         {
-                                            <p>*** @words ***</p>
+                                            // If there is a decimal part, include "And" before it
+                                            words = $"{upperCaseOne} Pesos and {upperCaseTwo} Centavos Only";
                                         }
-                                    </td>
+                                        else
+                                        {
+                                            // If there is no decimal part, exclude "And"
+                                            words = $"{upperCaseOne} Pesos Only";
+                                        }
+
+                                        // Capitalize first letters
+                                        // words = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(words.ToLower());
+
+                                        words = words.Replace(" And", "");
+                                        words = words.Replace("-", " ");
+                                    }
+                                    @if (Model.Header.Amount != 0)
+                                    {
+                                        <td>*** @words ***</td>
+                                    }
+                                    else
+                                    {
+                                        <td></td>
+                                    }
                                     <td></td>
                                 </tr>
                                 <tr>
