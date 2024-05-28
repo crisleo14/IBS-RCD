@@ -129,3 +129,36 @@ document.addEventListener('DOMContentLoaded', function () {
         dateToInput.value = dateFromInput.value;
     });
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+    function formatNumberWithCommas(value) {
+        return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function removeCommas(value) {
+        return value.replace(/,/g, '');
+    }
+
+    function handleFocus(event) {
+        event.target.value = removeCommas(event.target.value);
+    }
+
+    function handleBlur(event) {
+        if (event.target.value) {
+            event.target.value = formatNumberWithCommas(event.target.value);
+        }
+    }
+
+    function handleSubmit(event) {
+        document.querySelectorAll('.money').forEach(function (element) {
+            element.value = removeCommas(element.value);
+        });
+    }
+
+    document.querySelectorAll('.money').forEach(function (element) {
+        element.addEventListener('focus', handleFocus);
+        element.addEventListener('blur', handleBlur);
+    });
+
+    document.querySelector('form').addEventListener('submit', handleSubmit);
+});
