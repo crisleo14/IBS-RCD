@@ -14,6 +14,7 @@
 </head>
 <body>
     <header>
+        <partial name="_Notification">
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-primary border-bottom box-shadow mb-3">
             <div class="container">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">AAS</a>
@@ -44,9 +45,9 @@
                             </a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" asp-controller="PurchaseOrder" asp-action="Index">Purchase Order</a></li>
+                                <li><a class="dropdown-item" asp-controller="ReceivingReport" asp-action="Index">Receiving Report</a></li>
                                 <li><a class="dropdown-item" asp-controller="CheckVoucher" asp-action="Index">Check Voucher</a></li>
                                 <li><a class="dropdown-item" asp-controller="JournalVoucher" asp-action="Index">Journal Voucher</a></li>
-                                <li><a class="dropdown-item" asp-controller="ReceivingReport" asp-action="Index">Receiving Report</a></li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
@@ -54,7 +55,7 @@
                                 Inventory
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" asp-controller="Inventory" asp-action="Index">Beginning Inventory</a></li>
+                                <li><a class="dropdown-item" asp-controller="Inventory" asp-action="BeginningInventory">Beginning Inventory</a></li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
