@@ -487,7 +487,7 @@ namespace Accounting_System.Controllers
 
                     fileContent.AppendLine();
                     fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
-                    fileContent.AppendLine($"Version: v1.0");
+                    fileContent.AppendLine($"Version: v1.1");
                     fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
                     fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
@@ -579,7 +579,7 @@ namespace Accounting_System.Controllers
 
                     fileContent.AppendLine();
                     fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
-                    fileContent.AppendLine($"Version: v1.0");
+                    fileContent.AppendLine($"Version: v1.1");
                     fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
                     fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
@@ -670,7 +670,7 @@ namespace Accounting_System.Controllers
 
                     fileContent.AppendLine();
                     fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
-                    fileContent.AppendLine($"Version: v1.0");
+                    fileContent.AppendLine($"Version: v1.1");
                     fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
                     fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
@@ -759,7 +759,7 @@ namespace Accounting_System.Controllers
 
                     fileContent.AppendLine();
                     fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
-                    fileContent.AppendLine($"Version: v1.0");
+                    fileContent.AppendLine($"Version: v1.1");
                     fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
                     fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
@@ -851,7 +851,7 @@ namespace Accounting_System.Controllers
 
                     fileContent.AppendLine();
                     fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
-                    fileContent.AppendLine($"Version: v1.0");
+                    fileContent.AppendLine($"Version: v1.1");
                     fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
                     fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
@@ -940,7 +940,7 @@ namespace Accounting_System.Controllers
 
                     fileContent.AppendLine();
                     fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
-                    fileContent.AppendLine($"Version: v1.0");
+                    fileContent.AppendLine($"Version: v1.1");
                     fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
                     fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
@@ -1053,7 +1053,7 @@ namespace Accounting_System.Controllers
 
                     fileContent.AppendLine();
                     fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
-                    fileContent.AppendLine($"Version: v1.0");
+                    fileContent.AppendLine($"Version: v1.1");
                     fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
                     fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
@@ -1160,7 +1160,7 @@ namespace Accounting_System.Controllers
 
                     fileContent.AppendLine();
                     fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
-                    fileContent.AppendLine($"Version: v1.0");
+                    fileContent.AppendLine($"Version: v1.1");
                     fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
                     fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
