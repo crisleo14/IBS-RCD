@@ -31,20 +31,51 @@ namespace Accounting_System.Models
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Cost { get; set; }
 
+        /// <summary>
+        ///
+        /// Formula : Quantity * Cost
+        ///
+        /// </summary>
         [Column(TypeName = "numeric(18,2)")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Total { get; set; }
 
+        /// <summary>
+        /// To compute inventory balance
+        ///
+        /// <para>Formula:</para>
+        /// <para>
+        ///     Purchases: PreviousInventoryBalance + InventoryBalance
+        /// </para>
+        /// <para>
+        ///     Sales: PreviousInventoryBalance - InventoryBalance
+        /// </para>
+        ///
+        /// </summary>
         [Column(TypeName = "numeric(18,2)")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Display(Name = "Inventory Balance")]
         public decimal InventoryBalance { get; set; }
 
+        /// <summary>
+        ///
+        /// <para>Formula: TotalBalance / InventoryBalance</para>
+        ///
+        /// </summary>
         [Column(TypeName = "numeric(18,2)")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Display(Name = "Average Cost")]
         public decimal AverageCost { get; set; }
 
+        /// <summary>
+        /// To compute TotalBalance
+        ///
+        ///
+        /// <para>Formula:</para>
+        ///         <para>Purchases: PreviousTotalBalance + TotalBalance</para>
+        ///         <para>Sales: PreviousTotalBalance - TotalBalance</para>
+        ///
+        /// </summary>
         [Column(TypeName = "numeric(18,2)")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Display(Name = "Total Balance")]
