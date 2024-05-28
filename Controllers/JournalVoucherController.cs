@@ -35,6 +35,9 @@ namespace Accounting_System.Controllers
                 .ThenInclude(supplier => supplier.Supplier)
                 .ToListAsync(cancellationToken);
 
+            var details = await _dbContext.JournalVoucherDetails
+                .ToListAsync(cancellationToken);
+
             // Create a list to store CheckVoucherVM objectssw
             var journalVoucherVMs = new List<JournalVoucherVM>();
 
@@ -42,7 +45,7 @@ namespace Accounting_System.Controllers
             foreach (var header in headers)
             {
                 var headerJVNo = header.JVNo;
-                var headerDetails = await _dbContext.JournalVoucherDetails.Where(d => d.TransactionNo == headerJVNo).ToListAsync(cancellationToken);
+                var headerDetails = details.Where(d => d.TransactionNo == headerJVNo).ToList();
 
                 // Create a new CheckVoucherVM object for each header and its associated details
                 var journalVoucherVM = new JournalVoucherVM
