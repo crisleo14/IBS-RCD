@@ -73,7 +73,7 @@
                 <td>@Model.SalesInvoice.TransactionDate.ToShortDateString()</td>
                 <td>@Html.DisplayFor(model => model.SalesInvoice.ProductName)</td>
                 <td>@Html.DisplayFor(model => model.Description)</td>
-                <td>@Html.DisplayFor(model => model.CreditAmount)</td>
+                <td>@Math.Abs(Model.CreditAmount)</td>
             </tr>
 
         </tbody>
@@ -106,7 +106,7 @@
                                     <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
                                         @if (Model.SalesInvoice.CustomerType == "Zero Rated")
                                         {
-                                            <td class="text-end">@Html.DisplayFor(model => model.CreditAmount)</td>
+                                            <td class="text-end">@Math.Abs(Model.CreditAmount)</td>
                                         }
                                         else
                                         {
@@ -119,7 +119,7 @@
 
                                         @if (Model.SalesInvoice.CustomerType == "Exempt")
                                         {
-                                            <td class="text-end">@Html.DisplayFor(model => model.CreditAmount)</td>
+                                            <td class="text-end">@Math.Abs(Model.CreditAmount)</td>
                                         }
                                         else
                                         {
@@ -140,7 +140,7 @@
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
-                                    <td class="text-end">@Html.DisplayFor(model => model.TotalSales)</td>
+                                    <td class="text-end">@Math.Abs(Model.TotalSales)</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -203,7 +203,7 @@ else if (Model.Source == "Service Invoice")
                 <td>@Html.DisplayFor(model => model.Description)</td>
                 <td class="pt-2">
                     <p style="line-height:15px">
-                        @Html.DisplayFor(model => model.Amount)
+                        @Math.Abs(Model.Amount)
                     </p>
                 </td>
             </tr>
@@ -237,7 +237,7 @@ else if (Model.Source == "Service Invoice")
                                     <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
                                         @if (Model.ServiceInvoice.Customer.CustomerType == "Zero Rated")
                                         {
-                                            <td class="text-end">@Html.DisplayFor(model => model.CreditAmount)</td>
+                                            <td class="text-end">@Math.Abs(Model.CreditAmount)</td>
                                         }
                                         else
                                         {
@@ -250,7 +250,7 @@ else if (Model.Source == "Service Invoice")
 
                                         @if (Model.ServiceInvoice.Customer.CustomerType == "Exempt")
                                         {
-                                            <td class="text-end">@Html.DisplayFor(model => model.CreditAmount)</td>
+                                            <td class="text-end">@Math.Abs(Model.CreditAmount)</td>
                                         }
                                         else
                                         {
@@ -271,7 +271,7 @@ else if (Model.Source == "Service Invoice")
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
-                                    <td class="text-end">@Html.DisplayFor(model => model.TotalSales)</td>
+                                    <td class="text-end">@Math.Abs(Model.TotalSales)</td>
                                 </tr>
                             </tbody>
                         </table>
