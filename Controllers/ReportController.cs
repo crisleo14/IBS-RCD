@@ -566,15 +566,15 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine();
                     fileContent.AppendLine("DISBURSEMENT BOOK");
                     fileContent.AppendLine();
-                    fileContent.AppendLine($"{"Date",-10}\t{"CV No",-12}\t{"Payee",-100}\t{"Particulars",-200}\t{"Bank",-10}\t{"Check No",-20}\t{"Check Date",-10}\t{"Chart Of Account",-100}\t{"Debit",-18}\t{"Credit",-18}");
+                    fileContent.AppendLine($"{"Date",-10}\t{"CV No",-12}\t{"Payee",-100}\t{"Particulars",-200}\t{"Bank",-10}\t{"Check No",-20}\t{"Check Date",-10}\t{"Chart Of Account",-100}\t{"Debit",18}\t{"Credit",18}");
 
                     // Generate the records
                     foreach (var record in disbursementBooks)
                     {
-                        fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.CVNo,-12}\t{record.Payee,-100}\t{record.Particulars,-200}\t{record.Bank,-10}\t{record.CheckNo,-20}\t{record.CheckDate,-10}\t{record.ChartOfAccount,-100}\t{record.Debit,-18}\t{record.Credit,-18}");
+                        fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.CVNo,-12}\t{record.Payee,-100}\t{record.Particulars,-200}\t{record.Bank,-10}\t{record.CheckNo,-20}\t{record.CheckDate,-10}\t{record.ChartOfAccount,-100}\t{record.Debit,18}\t{record.Credit,18}");
                     }
-                    fileContent.AppendLine(new string('-', 536));
-                    fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-100}\t{"",-200}\t{"",-10}\t{"",-20}\t{"",-10}\t{"TOTAL:",-100}\t{totalDebit,-18}\t{totalCredit,-18}");
+                    fileContent.AppendLine(new string('-', 547));
+                    fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-100}\t{"",-200}\t{"",-10}\t{"",-20}\t{"",-10}\t{"TOTAL:",-100}\t{totalDebit,18}\t{totalCredit,18}");
 
                     fileContent.AppendLine();
                     fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
@@ -657,15 +657,15 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine();
                     fileContent.AppendLine("CASH RECEIPT BOOK");
                     fileContent.AppendLine();
-                    fileContent.AppendLine($"{"Date",-10}\t{"Ref No.",-12}\t{"Customer Name",-16}\t{"Bank",-100}\t{"Check No.",-20}\t{"Chart Of Account",-100}\t{"Particulars",-200}\t{"Debit",-18}\t{"Credit",-18}");
+                    fileContent.AppendLine($"{"Date",-10}\t{"Ref No.",-12}\t{"Customer Name",-16}\t{"Bank",-100}\t{"Check No.",-20}\t{"Chart Of Account",-100}\t{"Particulars",-200}\t{"Debit",18}\t{"Credit",18}");
 
                     // Generate the records
                     foreach (var record in cashReceiptBooks)
                     {
-                        fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.RefNo,-12}\t{record.CustomerName,-16}\t{record.Bank,-100}\t{record.CheckNo,-20}\t{record.COA,-100}\t{record.Particulars,-200}\t{record.Debit,-18}\t{record.Credit,-18}");
+                        fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.RefNo,-12}\t{record.CustomerName,-16}\t{record.Bank,-100}\t{record.CheckNo,-20}\t{record.COA,-100}\t{record.Particulars,-200}\t{record.Debit,18}\t{record.Credit,18}");
                     }
-                    fileContent.AppendLine(new string('-', 528));
-                    fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-16}\t{"",-100}\t{"",-20}\t{"",-100}\t{"TOTAL:",200}\t{totalDebit,-18}\t{totalCredit,-18}");
+                    fileContent.AppendLine(new string('-', 539));
+                    fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-16}\t{"",-100}\t{"",-20}\t{"",-100}\t{"TOTAL:",200}\t{totalDebit,18}\t{totalCredit,18}");
 
                     fileContent.AppendLine();
                     fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
@@ -746,15 +746,15 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine();
                     fileContent.AppendLine("GENERAL LEDGER BOOK");
                     fileContent.AppendLine();
-                    fileContent.AppendLine($"{"Date",-10}\t{"Reference",-12}\t{"Description",-50}\t{"Account Title",-50}\t{"Debit",-18}\t{"Credit",-18}");
+                    fileContent.AppendLine($"{"Date",-10}\t{"Reference",-12}\t{"Description",-50}\t{"Account Title",-50}\t{"Debit",18}\t{"Credit",18}");
 
                     // Generate the records
                     foreach (var record in generalBooks)
                     {
-                        fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.Reference,-12}\t{record.Description,-50}\t{record.AccountNo + " " + record.AccountTitle,-50}\t{record.Debit,-18}\t{record.Credit,-18}");
+                        fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.Reference,-12}\t{record.Description,-50}\t{record.AccountNo + " " + record.AccountTitle,-50}\t{record.Debit,18}\t{record.Credit,18}");
                     }
-                    fileContent.AppendLine(new string('-', 177));
-                    fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-50}\t{"TOTAL:",50}\t{totalDebit,-18}\t{totalCredit,-18}");
+                    fileContent.AppendLine(new string('-', 187));
+                    fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-50}\t{"TOTAL:",50}\t{totalDebit,18}\t{totalCredit,18}");
 
                     fileContent.AppendLine();
                     fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
@@ -838,15 +838,15 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine();
                     fileContent.AppendLine("INVENTORY BOOK");
                     fileContent.AppendLine();
-                    fileContent.AppendLine($"{"Date",-10}\t{"Product Code",-20}\t{"Product Name",-50}\t{"Unit",-2}\t{"Quantity",-18}\t{"Price Per Unit",-18}\t{"Amount",-18}");
+                    fileContent.AppendLine($"{"Date",-10}\t{"Product Code",-20}\t{"Product Name",-50}\t{"Unit",-2}\t{"Quantity",18}\t{"Price Per Unit",18}\t{"Amount",18}");
 
                     // Generate the records
                     foreach (var record in inventoryBooks)
                     {
-                        fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.ProductCode,-20}\t{record.ProductName,-50}\t{record.Unit,-2}\t{record.Quantity,-18}\t{record.Price,-18}\t{record.Amount,-18}");
+                        fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.ProductCode,-20}\t{record.ProductName,-50}\t{record.Unit,-2}\t{record.Quantity,18}\t{record.Price,18}\t{record.Amount,18}");
                     }
-                    fileContent.AppendLine(new string('-', 160));
-                    fileContent.AppendLine($"{"",-10}\t{"",-20}\t{"",-50}\t{"TOTAL:",2}\t{totalQuantity,-18}\t{totalPrice,-18}\t{totalAmount,-18}");
+                    fileContent.AppendLine(new string('-', 171));
+                    fileContent.AppendLine($"{"",-10}\t{"",-20}\t{"",-50}\t{"TOTAL:",2}\t{totalQuantity,18}\t{totalPrice,18}\t{totalAmount,18}");
 
                     fileContent.AppendLine();
                     fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
@@ -927,15 +927,15 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine();
                     fileContent.AppendLine("JOURNAL BOOK");
                     fileContent.AppendLine();
-                    fileContent.AppendLine($"{"Date",-10}\t{"Reference",-12}\t{"Description",-50}\t{"Account Title",-50}\t{"Debit",-18}\t{"Credit",-18}");
+                    fileContent.AppendLine($"{"Date",-10}\t{"Reference",-12}\t{"Description",-50}\t{"Account Title",-50}\t{"Debit",18}\t{"Credit",18}");
 
                     // Generate the records
                     foreach (var record in journalBooks)
                     {
-                        fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.Reference,-12}\t{record.Description,-50}\t{record.AccountTitle,-50}\t{record.Debit,-18}\t{record.Credit,-18}");
+                        fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.Reference,-12}\t{record.Description,-50}\t{record.AccountTitle,-50}\t{record.Debit,18}\t{record.Credit,18}");
                     }
-                    fileContent.AppendLine(new string('-', 176));
-                    fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-50}\t{"TOTAL:",50}\t{totalDebit,-18}\t{totalCredit,-18}");
+                    fileContent.AppendLine(new string('-', 187));
+                    fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-50}\t{"TOTAL:",50}\t{totalDebit,18}\t{totalCredit,18}");
 
                     fileContent.AppendLine();
                     fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
@@ -1040,15 +1040,15 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine();
                     fileContent.AppendLine("PURCHASE BOOK");
                     fileContent.AppendLine();
-                    fileContent.AppendLine($"{"Date",-10}\t{"Supplier Name",-50}\t{"Supplier TIN",-20}\t{"Supplier Address",-200}\t{"PO No.",-12}\t{"Document No",-12}\t{"Description",-50}\t{"Amount",-18}\t{"Vat Amount",-18}\t{"Def VAT Amount",-18}\t{"WHT Amount",-18}\t{"Net Purchases",-18}");
+                    fileContent.AppendLine($"{"Date",-10}\t{"Supplier Name",-50}\t{"Supplier TIN",-20}\t{"Supplier Address",-200}\t{"PO No.",-12}\t{"Document No",-12}\t{"Description",-50}\t{"Amount",18}\t{"Vat Amount",18}\t{"Def VAT Amount",18}\t{"WHT Amount",18}\t{"Net Purchases",18}");
 
                     // Generate the records
                     foreach (var record in purchaseOrders)
                     {
-                        fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.SupplierName,-50}\t{record.SupplierTin,-20}\t{record.SupplierAddress,-200}\t{record.PONo,-12}\t{record.DocumentNo,-12}\t{record.Description,-50}\t{record.Amount,-18}\t{record.VatAmount,-18}\t{0.00m,-18}\t{record.WhtAmount,-18}\t{record.NetPurchases,-18}");
+                        fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.SupplierName,-50}\t{record.SupplierTin,-20}\t{record.SupplierAddress,-200}\t{record.PONo,-12}\t{record.DocumentNo,-12}\t{record.Description,-50}\t{record.Amount,18}\t{record.VatAmount,18}\t{0.00m,18}\t{record.WhtAmount,18}\t{record.NetPurchases,18}");
                     }
-                    fileContent.AppendLine(new string('-', 503));
-                    fileContent.AppendLine($"{"",-10}\t{"",-50}\t{"",-20}\t{"",-200}\t{"",-12}\t{"",-12}\t{"TOTAL:",50}\t{totalAmount,-18}\t{totalVatAmount,-18}\t{0.00m,-18}\t{totalWhtAmount,-18}\t{totalNetPurchases,-18}");
+                    fileContent.AppendLine(new string('-', 507));
+                    fileContent.AppendLine($"{"",-10}\t{"",-50}\t{"",-20}\t{"",-200}\t{"",-12}\t{"",-12}\t{"TOTAL:",50}\t{totalAmount,18}\t{totalVatAmount,18}\t{0.00m,18}\t{totalWhtAmount,18}\t{totalNetPurchases,18}");
 
                     fileContent.AppendLine();
                     fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
@@ -1147,15 +1147,15 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine();
                     fileContent.AppendLine("SALES BOOK");
                     fileContent.AppendLine();
-                    fileContent.AppendLine($"{"Tran. Date",-10}\t{"Serial Number",-12}\t{"Customer Name",-100}\t{"Tin#",-20}\t{"Address",-200}\t{"Description",-50}\t{"Amount",-18}\t{"Vat Amount",-18}\t{"Vatable Sales",-18}\t{"Vat-Exempt Sales",-18}\t{"Zero-Rated Sales",-18}\t{"Discount",-18}\t{"Net Sales",-18}");
+                    fileContent.AppendLine($"{"Tran. Date",-10}\t{"Serial Number",-12}\t{"Customer Name",-100}\t{"Tin#",-20}\t{"Address",-200}\t{"Description",-50}\t{"Amount",18}\t{"Vat Amount",18}\t{"Vatable Sales",18}\t{"Vat-Exempt Sales",18}\t{"Zero-Rated Sales",18}\t{"Discount",18}\t{"Net Sales",18}");
 
                     // Generate the records
                     foreach (var record in salesBook)
                     {
-                        fileContent.AppendLine($"{record.TransactionDate.ToString(),-10}\t{record.SerialNo,-12}\t{record.SoldTo,-100}\t{record.TinNo,-20}\t{record.Address,-200}\t{record.Description,-50}\t{record.Amount,-18}\t{record.VatAmount,-18}\t{record.VatableSales,-18}\t{record.VatExemptSales,-18}\t{record.ZeroRated,-18}\t{record.Discount,-18}\t{record.NetSales,-18}");
+                        fileContent.AppendLine($"{record.TransactionDate.ToString(),-10}\t{record.SerialNo,-12}\t{record.SoldTo,-100}\t{record.TinNo,-20}\t{record.Address,-200}\t{record.Description,-50}\t{record.Amount,18}\t{record.VatAmount,18}\t{record.VatableSales,18}\t{record.VatExemptSales,18}\t{record.ZeroRated,18}\t{record.Discount,18}\t{record.NetSales,18}");
                     }
-                    fileContent.AppendLine(new string('-', 580));
-                    fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-100}\t{"",-20}\t{"",-200}\t{"TOTAL:",50}\t{totalAmount,-18}\t{totalVatAmount,-18}\t{totalVatableSales,-18}\t{totalVatExemptSales,-18}\t{totalZeroRatedSales,-18}\t{totalDiscount,-18}\t{totalNetSales,-18}");
+                    fileContent.AppendLine(new string('-', 587));
+                    fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-100}\t{"",-20}\t{"",-200}\t{"TOTAL:",50}\t{totalAmount,18}\t{totalVatAmount,18}\t{totalVatableSales,18}\t{totalVatExemptSales,18}\t{totalZeroRatedSales,18}\t{totalDiscount,18}\t{totalNetSales,18}");
 
                     fileContent.AppendLine();
                     fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
