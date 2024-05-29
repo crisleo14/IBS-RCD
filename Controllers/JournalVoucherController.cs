@@ -35,6 +35,9 @@ namespace Accounting_System.Controllers
                 .ThenInclude(supplier => supplier.Supplier)
                 .ToListAsync(cancellationToken);
 
+            var details = await _dbContext.JournalVoucherDetails
+                .ToListAsync(cancellationToken);
+
             // Create a list to store CheckVoucherVM objectssw
             var journalVoucherVMs = new List<JournalVoucherVM>();
 
@@ -42,7 +45,7 @@ namespace Accounting_System.Controllers
             foreach (var header in headers)
             {
                 var headerJVNo = header.JVNo;
-                var headerDetails = await _dbContext.JournalVoucherDetails.Where(d => d.TransactionNo == headerJVNo).ToListAsync(cancellationToken);
+                var headerDetails = details.Where(d => d.TransactionNo == headerJVNo).ToList();
 
                 // Create a new CheckVoucherVM object for each header and its associated details
                 var journalVoucherVM = new JournalVoucherVM
@@ -336,7 +339,7 @@ namespace Accounting_System.Controllers
                     modelHeader.PostedBy = _userManager.GetUserName(this.User);
                     modelHeader.PostedDate = DateTime.Now;
 
-                    #region --General Ledger Book Recording(CV)--
+                    #region --General Ledger Book Recording(GL)--
 
                     var ledgers = new List<GeneralLedgerBook>();
                     foreach (var details in modelDetails)
@@ -359,9 +362,9 @@ namespace Accounting_System.Controllers
 
                     await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
 
-                    #endregion --General Ledger Book Recording(CV)--
+                    #endregion --General Ledger Book Recording(GL)--
 
-                    #region --Disbursement Book Recording(CV)--
+                    #region --Journal Book Recording(JV)--
 
                     var journalBook = new List<JournalBook>();
                     foreach (var details in modelDetails)
@@ -383,7 +386,7 @@ namespace Accounting_System.Controllers
 
                     await _dbContext.JournalBooks.AddRangeAsync(journalBook, cancellationToken);
 
-                    #endregion --Disbursement Book Recording(CV)--
+                    #endregion --Journal Book Recording(JV)--
 
                     #region --Audit Trail Recording
 
