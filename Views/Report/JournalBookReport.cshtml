@@ -8,20 +8,6 @@
     var dateTo = ViewBag.DateTo;
     var lastRecord = ViewBag.LastRecord;
 
-    // Convert the date strings to DateTime objects
-    DateTime dateFromFormatted;
-    if (DateTime.TryParse(dateFrom, out dateFromFormatted))
-    {
-        // Format the DateTime objects in the desired format
-        dateFrom = dateFromFormatted.ToString("MM/dd/yyyy");
-    }
-
-    DateTime dateToFormatted;
-    if (DateTime.TryParse(dateTo, out dateToFormatted))
-    {
-        // Format the DateTime objects in the desired format
-        dateTo = dateToFormatted.ToString("MM/dd/yyyy");
-    }
     DateTime now = DateTime.Now;
 
     decimal totalCreditAmount = 0;

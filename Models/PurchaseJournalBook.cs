@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Accounting_System.Models
 {
@@ -9,7 +9,8 @@ namespace Accounting_System.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        public string Date { get; set; }
+        [Column(TypeName = "date")]
+        public DateOnly Date { get; set; }
 
         [Display(Name = "Supplier Name")]
         public string SupplierName { get; set; }
@@ -26,21 +27,26 @@ namespace Accounting_System.Models
         public string Description { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Discount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Display(Name = "VAT Amount")]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal VatAmount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Amount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Display(Name = "WHT Amount")]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal WhtAmount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Display(Name = "Net Purchases")]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal NetPurchases { get; set; }
 
         [Display(Name = "Created By")]
@@ -55,6 +61,7 @@ namespace Accounting_System.Models
         public string PONo { get; set; }
 
         [Display(Name = "Due Date")]
-        public string DueDate { get; set; }
+        [Column(TypeName = "date")]
+        public DateOnly DueDate { get; set; }
     }
 }

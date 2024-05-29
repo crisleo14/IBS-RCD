@@ -30,7 +30,7 @@ namespace Accounting_System.Repository
                     var _journalVoucherRepo = scope.ServiceProvider.GetRequiredService<JournalVoucherRepo>();
 
                     var cvList = await _dbContext.CheckVoucherHeaders
-                            .Where(cv => cv.StartDate < DateTime.Now && !cv.IsComplete)
+                            .Where(cv => cv.StartDate < DateOnly.FromDateTime(DateTime.Now) && !cv.IsComplete)
                             .ToListAsync();
 
                     if (cvList.Count != 0)

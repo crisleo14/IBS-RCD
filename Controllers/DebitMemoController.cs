@@ -320,7 +320,7 @@ namespace Accounting_System.Controllers
 
                         if (model.SalesInvoice.CustomerType == "Vatable")
                         {
-                            sales.TransactionDate = model.Date.ToShortDateString();
+                            sales.TransactionDate = model.Date;
                             sales.SerialNo = model.DMNo;
                             sales.SoldTo = model.SalesInvoice.SoldTo;
                             sales.TinNo = model.SalesInvoice.TinNo;
@@ -338,7 +338,7 @@ namespace Accounting_System.Controllers
                         }
                         else if (model.SalesInvoice.CustomerType == "Exempt")
                         {
-                            sales.TransactionDate = model.Date.ToShortDateString();
+                            sales.TransactionDate = model.Date;
                             sales.SerialNo = model.DMNo;
                             sales.SoldTo = model.SalesInvoice.SoldTo;
                             sales.TinNo = model.SalesInvoice.TinNo;
@@ -355,7 +355,7 @@ namespace Accounting_System.Controllers
                         }
                         else
                         {
-                            sales.TransactionDate = model.Date.ToShortDateString();
+                            sales.TransactionDate = model.Date;
                             sales.SerialNo = model.DMNo;
                             sales.SoldTo = model.SalesInvoice.SoldTo;
                             sales.TinNo = model.SalesInvoice.TinNo;
@@ -381,7 +381,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.Date.ToShortDateString(),
+                                Date = model.Date,
                                 Reference = model.DMNo,
                                 Description = model.SalesInvoice.ProductName,
                                 AccountNo = "1010201",
@@ -398,7 +398,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = model.Date.ToShortDateString(),
+                                    Date = model.Date,
                                     Reference = model.DMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountNo = "1010202",
@@ -415,7 +415,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = model.Date.ToShortDateString(),
+                                    Date = model.Date,
                                     Reference = model.DMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountNo = "1010203",
@@ -432,7 +432,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = model.Date.ToShortDateString(),
+                                    Date = model.Date,
                                     Reference = model.DMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountNo = "4010101",
@@ -451,7 +451,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = model.Date.ToShortDateString(),
+                                    Date = model.Date,
                                     Reference = model.DMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountNo = "4010102",
@@ -470,7 +470,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = model.Date.ToShortDateString(),
+                                    Date = model.Date,
                                     Reference = model.DMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountNo = "4010103",
@@ -490,7 +490,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = model.Date.ToShortDateString(),
+                                    Date = model.Date,
                                     Reference = model.DMNo,
                                     Description = model.SalesInvoice.ProductName,
                                     AccountNo = "2010301",
@@ -522,7 +522,7 @@ namespace Accounting_System.Controllers
 
                         #region --SV Computation--
 
-                        viewModelDMCM.Period = model.CreatedDate >= model.Period ? model.CreatedDate : model.Period.AddMonths(1).AddDays(-1);
+                        viewModelDMCM.Period = DateOnly.FromDateTime(model.CreatedDate) >= model.Period ? DateOnly.FromDateTime(model.CreatedDate) : model.Period.AddMonths(1).AddDays(-1);
 
                         if (existingSv.Customer.CustomerType == "Vatable")
                         {
@@ -567,7 +567,7 @@ namespace Accounting_System.Controllers
 
                         if (model.ServiceInvoice.Customer.CustomerType == "Vatable")
                         {
-                            sales.TransactionDate = viewModelDMCM.Period.ToShortDateString();
+                            sales.TransactionDate = viewModelDMCM.Period;
                             sales.SerialNo = model.DMNo;
                             sales.SoldTo = model.ServiceInvoice.Customer.Name;
                             sales.TinNo = model.ServiceInvoice.Customer.TinNo;
@@ -585,7 +585,7 @@ namespace Accounting_System.Controllers
                         }
                         else if (model.ServiceInvoice.Customer.CustomerType == "Exempt")
                         {
-                            sales.TransactionDate = viewModelDMCM.Period.ToShortDateString();
+                            sales.TransactionDate = viewModelDMCM.Period;
                             sales.SerialNo = model.DMNo;
                             sales.SoldTo = model.ServiceInvoice.Customer.Name;
                             sales.TinNo = model.ServiceInvoice.Customer.TinNo;
@@ -602,7 +602,7 @@ namespace Accounting_System.Controllers
                         }
                         else
                         {
-                            sales.TransactionDate = viewModelDMCM.Period.ToShortDateString();
+                            sales.TransactionDate = viewModelDMCM.Period;
                             sales.SerialNo = model.DMNo;
                             sales.SoldTo = model.ServiceInvoice.Customer.Name;
                             sales.TinNo = model.ServiceInvoice.Customer.TinNo;
@@ -628,7 +628,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = viewModelDMCM.Period.ToShortDateString(),
+                                    Date = viewModelDMCM.Period,
                                     Reference = model.DMNo,
                                     Description = model.ServiceInvoice.Service.Name,
                                     AccountNo = "1010204",
@@ -644,7 +644,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = viewModelDMCM.Period.ToShortDateString(),
+                                    Date = viewModelDMCM.Period,
                                     Reference = model.DMNo,
                                     Description = model.ServiceInvoice.Service.Name,
                                     AccountNo = "1010202",
@@ -661,7 +661,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = viewModelDMCM.Period.ToShortDateString(),
+                                    Date = viewModelDMCM.Period,
                                     Reference = model.DMNo,
                                     Description = model.ServiceInvoice.Service.Name,
                                     AccountNo = "1010203",
@@ -678,7 +678,7 @@ namespace Accounting_System.Controllers
                         {
                             ledgers.Add(new GeneralLedgerBook
                             {
-                                Date = viewModelDMCM.Period.ToShortDateString(),
+                                Date = viewModelDMCM.Period,
                                 Reference = model.DMNo,
                                 Description = model.ServiceInvoice.Service.Name,
                                 AccountNo = model.ServiceInvoice.Service.CurrentAndPreviousNo,
@@ -695,7 +695,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = viewModelDMCM.Period.ToShortDateString(),
+                                    Date = viewModelDMCM.Period,
                                     Reference = model.DMNo,
                                     Description = model.ServiceInvoice.Service.Name,
                                     AccountNo = "2010304",

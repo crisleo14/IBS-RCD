@@ -10,7 +10,8 @@ namespace Accounting_System.Models
         public int Id { get; set; }
 
         [Display(Name = "OR Date")]
-        public string Date { get; set; }
+        [Column(TypeName = "date")]
+        public DateOnly Date { get; set; }
 
         [Display(Name = "Ref No")]
         public string RefNo { get; set; }
@@ -29,9 +30,11 @@ namespace Accounting_System.Models
         public string Particulars { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Debit { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Credit { get; set; }
 
         [Display(Name = "Created By")]

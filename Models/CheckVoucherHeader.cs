@@ -12,7 +12,8 @@ namespace Accounting_System.Models
         public long SeriesNumber { get; set; }
 
         [Display(Name = "Transaction Date")]
-        public DateTime Date { get; set; }
+        [Column(TypeName = "date")]
+        public DateOnly Date { get; set; }
 
         [Display(Name = "RR No")]
         [Column(TypeName = "varchar[]")]
@@ -36,11 +37,12 @@ namespace Accounting_System.Models
         public int? SupplierId { get; set; }
 
         [ForeignKey("SupplierId")]
-        public Supplier? Supplier { get; set;}
+        public Supplier? Supplier { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? Suppliers { get; set; }
 
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Amount { get; set; }
 
         public string? Particulars { get; set; }
@@ -79,11 +81,11 @@ namespace Accounting_System.Models
 
         [Display(Name = "Start Date:")]
         [Column(TypeName = "date")]
-        public DateTime? StartDate { get; set; }
+        public DateOnly? StartDate { get; set; }
 
         [Display(Name = "End Date:")]
         [Column(TypeName = "date")]
-        public DateTime? EndDate { get; set; }
+        public DateOnly? EndDate { get; set; }
 
         public int NumberOfMonths { get; set; }
 

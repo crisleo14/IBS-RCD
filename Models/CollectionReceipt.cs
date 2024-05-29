@@ -52,7 +52,8 @@ namespace Accounting_System.Models
         public List<SelectListItem>? ChartOfAccounts { get; set; }
 
         [Required]
-        public DateTime Date { get; set; }
+        [Column(TypeName = "date")]
+        public DateOnly Date { get; set; }
 
         public long SeriesNumber { get; set; }
 
@@ -66,10 +67,12 @@ namespace Accounting_System.Models
 
         //Cash
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal CashAmount { get; set; }
 
         //Check
-        public DateTime? CheckDate { get; set; }
+        [Column(TypeName = "date")]
+        public DateOnly? CheckDate { get; set; }
 
         [Column(TypeName = "varchar(20)")]
         public string? CheckNo { get; set; }
@@ -81,10 +84,12 @@ namespace Accounting_System.Models
         public string? CheckBranch { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal CheckAmount { get; set; }
 
         //Manager's Check
-        public DateTime? ManagerCheckDate { get; set; }
+        [Column(TypeName = "date")]
+        public DateOnly? ManagerCheckDate { get; set; }
 
         [Column(TypeName = "varchar(20)")]
         public string? ManagerCheckNo { get; set; }
@@ -96,15 +101,19 @@ namespace Accounting_System.Models
         public string? ManagerCheckBranch { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal ManagerCheckAmount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal EWT { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal WVAT { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Total { get; set; }
 
         public bool IsCertificateUpload { get; set; }

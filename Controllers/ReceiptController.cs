@@ -802,7 +802,7 @@ namespace Accounting_System.Controllers
                     ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = model.Date.ToShortDateString(),
+                                    Date = model.Date,
                                     Reference = model.CRNo,
                                     Description = "Collection for Receivable",
                                     AccountNo = "1010101",
@@ -819,7 +819,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.Date.ToShortDateString(),
+                                Date = model.Date,
                                 Reference = model.CRNo,
                                 Description = "Collection for Receivable",
                                 AccountNo = "1010604",
@@ -837,7 +837,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.Date.ToShortDateString(),
+                                Date = model.Date,
                                 Reference = model.CRNo,
                                 Description = "Collection for Receivable",
                                 AccountNo = "1010605",
@@ -857,7 +857,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.Date.ToShortDateString(),
+                                Date = model.Date,
                                 Reference = model.CRNo,
                                 Description = "Collection for Receivable",
                                 AccountTitle = item.AccountNo,
@@ -875,7 +875,7 @@ namespace Accounting_System.Controllers
                     ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.Date.ToShortDateString(),
+                                Date = model.Date,
                                 Reference = model.CRNo,
                                 Description = "Collection for Receivable",
                                 AccountNo = "1010201",
@@ -892,7 +892,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.Date.ToShortDateString(),
+                                Date = model.Date,
                                 Reference = model.CRNo,
                                 Description = "Collection for Receivable",
                                 AccountNo = "1010202",
@@ -910,7 +910,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.Date.ToShortDateString(),
+                                Date = model.Date,
                                 Reference = model.CRNo,
                                 Description = "Collection for Receivable",
                                 AccountNo = "1010203",
@@ -934,7 +934,7 @@ namespace Accounting_System.Controllers
                     crb.Add(
                         new CashReceiptBook
                         {
-                            Date = model.Date.ToShortDateString(),
+                            Date = model.Date,
                             RefNo = model.CRNo,
                             CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
                             Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
@@ -954,7 +954,7 @@ namespace Accounting_System.Controllers
                         crb.Add(
                             new CashReceiptBook
                             {
-                                Date = model.Date.ToShortDateString(),
+                                Date = model.Date,
                                 RefNo = model.CRNo,
                                 CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
                                 Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
@@ -974,7 +974,7 @@ namespace Accounting_System.Controllers
                         crb.Add(
                             new CashReceiptBook
                             {
-                                Date = model.Date.ToShortDateString(),
+                                Date = model.Date,
                                 RefNo = model.CRNo,
                                 CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
                                 Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
@@ -996,7 +996,7 @@ namespace Accounting_System.Controllers
                             crb.Add(
                                 new CashReceiptBook
                                 {
-                                    Date = model.Date.ToShortDateString(),
+                                    Date = model.Date,
                                     RefNo = model.CRNo,
                                     CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
                                     Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
@@ -1015,7 +1015,7 @@ namespace Accounting_System.Controllers
                     crb.Add(
                     new CashReceiptBook
                     {
-                        Date = model.Date.ToShortDateString(),
+                        Date = model.Date,
                         RefNo = model.CRNo,
                         CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
                         Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
@@ -1034,7 +1034,7 @@ namespace Accounting_System.Controllers
                         crb.Add(
                             new CashReceiptBook
                             {
-                                Date = model.Date.ToShortDateString(),
+                                Date = model.Date,
                                 RefNo = model.CRNo,
                                 CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
                                 Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
@@ -1054,7 +1054,7 @@ namespace Accounting_System.Controllers
                         crb.Add(
                             new CashReceiptBook
                             {
-                                Date = model.Date.ToShortDateString(),
+                                Date = model.Date,
                                 RefNo = model.CRNo,
                                 CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
                                 Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),

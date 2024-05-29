@@ -6,7 +6,7 @@ namespace Accounting_System.Models.ViewModels
     public class BeginningInventoryViewModel
     {
         [Required]
-        public string Date { get; set; }
+        public DateOnly Date { get; set; }
 
         [Required(ErrorMessage = "Quantity must be greater than zero")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]

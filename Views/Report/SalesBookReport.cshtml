@@ -8,20 +8,6 @@
     var dateTo = ViewBag.DateTo;
     var lastRecord = ViewBag.LastRecord;
 
-    // Convert the date strings to DateTime objects
-    DateTime dateFromFormatted;
-    if (DateTime.TryParse(dateFrom, out dateFromFormatted))
-    {
-        // Format the DateTime objects in the desired format
-        dateFrom = dateFromFormatted.ToString("MM/dd/yyyy");
-    }
-
-    DateTime dateToFormatted;
-    if (DateTime.TryParse(dateTo, out dateToFormatted))
-    {
-        // Format the DateTime objects in the desired format
-        dateTo = dateToFormatted.ToString("MM/dd/yyyy");
-    }
     DateTime now = DateTime.Now;
 
     decimal totalAmount = 0;
@@ -66,8 +52,8 @@ TIN: 000-216-589-00000
 ADDRESS: 57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone, Kalaklan, Olongapo City, 2200 Zambales, Philippines
 
 Accounting System: Accounting Administration System
-Acknowledgement Certificate Control No.: 
-Date Issued: 
+Acknowledgement Certificate Control No.:
+Date Issued:
 </pre>
 <pre id="resultPre">
 Accounting Books File Attributes/Layout Definition
@@ -100,7 +86,7 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.SoldTo)
-                </th> 
+                </th>
                 <th>
                     @Html.DisplayNameFor(model => model.TinNo)
                 </th>
@@ -184,7 +170,7 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                     <td class="text-end">
                         @Html.DisplayFor(model => invoice.NetSales)
                     </td>
-                   
+
                 </tr>
 
                 totalAmount += invoice.Amount;

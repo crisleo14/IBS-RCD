@@ -5,13 +5,11 @@ using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
-using System.Threading;
 
 namespace Accounting_System.Controllers
 {
@@ -60,7 +58,7 @@ namespace Accounting_System.Controllers
 
         public IActionResult SalesBookReport(ViewModelBook model, string? selectedDocument, string? soaList, string? siList)
         {
-            ViewBag.DateFrom = model.DateFrom;
+            ViewBag.DateFrom = model.DateFrom.ToString();
             ViewBag.DateTo = model.DateTo;
             if (ModelState.IsValid)
             {
@@ -68,7 +66,7 @@ namespace Accounting_System.Controllers
                 {
                     if (soaList != null || siList != null)
                     {
-                        return RedirectToAction("TransactionReportsInSOA", new { soaList = soaList, siList = siList});
+                        return RedirectToAction("TransactionReportsInSOA", new { soaList = soaList, siList = siList });
                     }
 
                     var salesBook = _reportRepo.GetSalesBooks(model.DateFrom, model.DateTo, selectedDocument);
@@ -77,7 +75,7 @@ namespace Accounting_System.Controllers
                     {
                         ViewBag.LastRecord = lastRecord.CreatedDate;
                     }
-                        ViewBag.SelectedDocument = selectedDocument;
+                    ViewBag.SelectedDocument = selectedDocument;
 
                     return View(salesBook);
                 }
@@ -96,10 +94,10 @@ namespace Accounting_System.Controllers
             ViewBag.SIList = siList;
             ViewBag.SOAList = soaList;
             var id = siList != null ? siList : soaList;
-                var sales = await _dbContext
-                    .SalesBooks
-                    .Where(s => s.DocumentId == id)
-                    .ToListAsync();
+            var sales = await _dbContext
+                .SalesBooks
+                .Where(s => s.DocumentId == id)
+                .ToListAsync();
 
             return View(sales);
         }
@@ -180,7 +178,7 @@ namespace Accounting_System.Controllers
                     {
                         ViewBag.LastRecord = lastRecord.CreatedDate;
                     }
-                        ViewBag.SelectedFiltering = selectedFiltering;
+                    ViewBag.SelectedFiltering = selectedFiltering;
 
                     return View(purchaseOrders);
                 }
@@ -194,17 +192,18 @@ namespace Accounting_System.Controllers
             return View(model);
         }
 
-        public IActionResult GetRR(string dateFrom, string dateTo, string selectedFiltering)
+        public IActionResult GetRR(DateOnly? dateFrom, DateOnly? dateTo, string selectedFiltering)
         {
             ViewBag.DateFrom = dateFrom;
             ViewBag.DateTo = dateTo;
             ViewBag.SelectedFiltering = selectedFiltering;
 
-            if (dateFrom == null && dateTo == null)
+            if (dateFrom == default && dateTo == default)
             {
                 TempData["error"] = "Please input Date From and Date To";
                 return RedirectToAction("PurchaseBook");
-            }else if (dateFrom == null)
+            }
+            else if (dateFrom == default)
             {
                 TempData["error"] = "Please input Date To";
                 return RedirectToAction("PurchaseBook");

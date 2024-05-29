@@ -10,7 +10,7 @@ namespace Accounting_System.Models.ViewModels
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Amount { get; set; }
 
-        public DateTime Period { get; set; }
+        public DateOnly Period { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Discount { get; set; }

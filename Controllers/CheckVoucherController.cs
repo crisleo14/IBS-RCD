@@ -129,7 +129,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, decimal[] amount, decimal netOfEWT, decimal expandedWTaxDebitAmount, decimal cashInBankAmount, IFormFile? file, DateTime? startDate, DateTime? endDate, string? accountNoAndTitle, decimal apNonTradePayable)
+        public async Task<IActionResult> Create(CheckVoucherVM? model, CancellationToken cancellationToken, string[] accountNumber, decimal[]? debit, decimal[]? credit, string? siNo, string? poNo, decimal[] amount, decimal netOfEWT, decimal expandedWTaxDebitAmount, decimal cashInBankAmount, IFormFile? file, DateOnly? startDate, DateOnly? endDate, string? accountNoAndTitle, decimal apNonTradePayable)
         {
 
             model.Header.Suppliers = await _dbContext.Suppliers
@@ -693,7 +693,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = modelHeader.Date.ToShortDateString(),
+                                    Date = modelHeader.Date,
                                     Reference = modelHeader.CVNo,
                                     Description = modelHeader.Particulars,
                                     AccountNo = details.AccountNo,
@@ -719,7 +719,7 @@ namespace Accounting_System.Controllers
                         disbursement.Add(
                                 new DisbursementBook
                                 {
-                                    Date = modelHeader.Date.ToShortDateString(),
+                                    Date = modelHeader.Date,
                                     CVNo = modelHeader.CVNo,
                                     Payee = modelHeader.Payee,
                                     Amount = modelHeader.Amount,

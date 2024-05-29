@@ -14,7 +14,7 @@ namespace Accounting_System.Models
 
         [Required]
         [Column(TypeName = "date")]
-        public DateTime Date { get; set; }
+        public DateOnly Date { get; set; }
 
         [Required]
         [Display(Name = "Supplier Name")]

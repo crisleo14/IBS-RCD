@@ -92,7 +92,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<DateTime> ComputeDueDateAsync(int poId, DateTime rrDate, CancellationToken cancellationToken = default)
+        public async Task<DateOnly> ComputeDueDateAsync(int poId, DateOnly rrDate, CancellationToken cancellationToken = default)
         {
             var po = await _dbContext
                 .PurchaseOrders
@@ -100,7 +100,7 @@ namespace Accounting_System.Repository
 
             if (po != null)
             {
-                DateTime dueDate;
+                DateOnly dueDate;
 
                 switch (po.Terms)
                 {
@@ -119,11 +119,11 @@ namespace Accounting_System.Repository
                     case "M30":
                         if (rrDate.Month == 1)
                         {
-                            dueDate = new DateTime(rrDate.Year, rrDate.Month, 1).AddMonths(2).AddDays(-1);
+                            dueDate = new DateOnly(rrDate.Year, rrDate.Month, 1).AddMonths(2).AddDays(-1);
                         }
                         else
                         {
-                            dueDate = new DateTime(rrDate.Year, rrDate.Month, 1).AddMonths(2).AddDays(-1);
+                            dueDate = new DateOnly(rrDate.Year, rrDate.Month, 1).AddMonths(2).AddDays(-1);
 
                             if (dueDate.Day == 31)
                             {
@@ -168,7 +168,7 @@ namespace Accounting_System.Repository
                 .PurchaseOrders
                 .Include(po => po.Product)
                 .Include(po => po.Supplier)
-                .FirstOrDefaultAsync (po => po.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(po => po.Id == id, cancellationToken);
 
             if (po != null)
             {
