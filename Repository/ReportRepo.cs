@@ -1,8 +1,6 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Accounting_System.Repository
 {
@@ -15,12 +13,9 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public List<SalesBook> GetSalesBooks(string dateFrom, string dateTo, string? selectedDocument)
+        public List<SalesBook> GetSalesBooks(DateOnly? dateFrom, DateOnly? dateTo, string? selectedDocument)
         {
-            var fromDate = DateTime.Parse(dateFrom);
-            var toDate = DateTime.Parse(dateTo);
-
-            if (fromDate > toDate)
+            if (dateFrom > dateTo)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
@@ -32,15 +27,15 @@ namespace Accounting_System.Repository
             {
                 case "UnpostedRR":
                 case "POLiquidation":
-                    query = s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate && s.SerialNo.Contains(selectedDocument);
+                    query = s => s.TransactionDate >= dateFrom && s.TransactionDate <= dateTo && s.SerialNo.Contains(selectedDocument);
                     break;
                 case "DueDate":
                     orderBy = s => s.DueDate;
-                    query = s => s.DueDate >= fromDate && s.DueDate <= toDate;
+                    query = s => s.DueDate >= dateFrom && s.DueDate <= dateTo;
                     break;
                 default:
-                    orderBy = s => DateTime.Parse(s.TransactionDate);
-                    query = s => DateTime.Parse(s.TransactionDate) >= fromDate && DateTime.Parse(s.TransactionDate) <= toDate;
+                    orderBy = s => s.TransactionDate;
+                    query = s => s.TransactionDate >= dateFrom && s.TransactionDate <= dateTo;
                     break;
             }
 
@@ -49,19 +44,16 @@ namespace Accounting_System.Repository
                 .SalesBooks
                 .AsEnumerable()
                 .Where(query)
-                .OrderBy(orderBy ?? (Func<SalesBook, object>)(s => DateTime.Parse(s.TransactionDate)))
+                .OrderBy(orderBy ?? (Func<SalesBook, object>)(s => s.TransactionDate))
                 .ToList();
 
             return salesBooks;
 
         }
 
-        public List<CashReceiptBook> GetCashReceiptBooks(string dateFrom, string dateTo)
+        public List<CashReceiptBook> GetCashReceiptBooks(DateOnly? dateFrom, DateOnly? dateTo)
         {
-            var fromDate = DateTime.Parse(dateFrom);
-            var toDate = DateTime.Parse(dateTo);
-
-            if (fromDate > toDate)
+            if (dateFrom > dateTo)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
@@ -69,20 +61,18 @@ namespace Accounting_System.Repository
             var cashReceiptBooks = _dbContext
              .CashReceiptBooks
              .AsEnumerable()
-             .Where(cr => DateTime.Parse(cr.Date) >= fromDate && DateTime.Parse(cr.Date) <= toDate)
+             .Where(cr => cr.Date >= dateFrom && cr.Date <= dateTo)
              .OrderBy(s => s.Id)
              .ToList();
 
             return cashReceiptBooks;
         }
 
-        public List<PurchaseJournalBook> GetPurchaseBooks(string dateFrom, string dateTo, string? selectedFiltering)
+        public List<PurchaseJournalBook> GetPurchaseBooks(DateOnly? dateFrom, DateOnly? dateTo, string? selectedFiltering)
         {
-            var fromDate = DateTime.Parse(dateFrom);
-            var toDate = DateTime.Parse(dateTo);
             List<PurchaseJournalBook> purchaseBook = new List<PurchaseJournalBook>();
 
-            if (fromDate > toDate)
+            if (dateFrom > dateTo)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
@@ -92,37 +82,34 @@ namespace Accounting_System.Repository
             switch (selectedFiltering)
             {
                 case "RRDate":
-                    orderBy = p => DateTime.Parse(p.Date);
+                    orderBy = p => p.Date;
                     break;
                 case "DueDate":
-                    orderBy = p => DateTime.Parse(p.DueDate);
+                    orderBy = p => p.DueDate;
                     break;
                 case "POLiquidation":
                 case "UnpostedRR":
                     orderBy = p => p.Id;
                     break;
                 default:
-                    orderBy = p => DateTime.Parse(p.Date);
+                    orderBy = p => p.Date;
                     break;
             }
 
             purchaseBook = _dbContext
                 .PurchaseJournalBooks
                 .AsEnumerable()
-                .Where(p => DateTime.Parse(selectedFiltering == "DueDate" || selectedFiltering == "POLiquidation" ? p.DueDate : p.Date) >= fromDate &&
-                            DateTime.Parse(selectedFiltering == "DueDate" || selectedFiltering == "POLiquidation" ? p.DueDate : p.Date) <= toDate)
+                .Where(p => (selectedFiltering == "DueDate" || selectedFiltering == "POLiquidation" ? p.DueDate : p.Date) >= dateFrom &&
+                            (selectedFiltering == "DueDate" || selectedFiltering == "POLiquidation" ? p.DueDate : p.Date) <= dateTo)
                 .OrderBy(orderBy)
                 .ToList();
 
             return purchaseBook;
         }
 
-        public List<ReceivingReport> GetReceivingReport(string dateFrom, string dateTo, string? selectedFiltering)
+        public List<ReceivingReport> GetReceivingReport(DateOnly? dateFrom, DateOnly? dateTo, string? selectedFiltering)
         {
-            var fromDate = DateTime.Parse(dateFrom);
-            var toDate = DateTime.Parse(dateTo);
-
-            if (fromDate > toDate)
+            if (dateFrom > dateTo)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
@@ -138,7 +125,7 @@ namespace Accounting_System.Repository
                  .Include(rr => rr.PurchaseOrder)
                  .ThenInclude(po => po.Product)
                  .AsEnumerable()
-                 .Where(rr => rr.Date >= fromDate && rr.Date <= toDate && !rr.IsPosted)
+                 .Where(rr => rr.Date >= dateFrom && rr.Date <= dateTo && !rr.IsPosted)
                  .OrderBy(rr => rr.Id)
                  .ToList();
             }
@@ -151,7 +138,7 @@ namespace Accounting_System.Repository
                  .Include(rr => rr.PurchaseOrder)
                  .ThenInclude(po => po.Product)
                  .AsEnumerable()
-                 .Where(rr => rr.DueDate >= fromDate && rr.DueDate <= toDate && rr.IsPosted)
+                 .Where(rr => rr.DueDate >= dateFrom && rr.DueDate <= dateTo && rr.IsPosted)
                  .OrderBy(rr => rr.Id)
                  .ToList();
             }
@@ -160,12 +147,9 @@ namespace Accounting_System.Repository
         }
 
 
-        public List<InventoryBook> GetInventoryBooks(string dateFrom, string dateTo)
+        public List<InventoryBook> GetInventoryBooks(DateOnly? dateFrom, DateOnly? dateTo)
         {
-            var fromDate = DateTime.Parse(dateFrom);
-            var toDate = DateTime.Parse(dateTo);
-
-            if (fromDate > toDate)
+            if (dateFrom > dateTo)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
@@ -173,19 +157,16 @@ namespace Accounting_System.Repository
             var inventoryBooks = _dbContext
              .InventoryBooks
              .AsEnumerable()
-             .Where(i => DateTime.Parse(i.Date) >= fromDate && DateTime.Parse(i.Date) <= toDate)
+             .Where(i => i.Date >= dateFrom && i.Date <= dateTo)
              .OrderBy(i => i.Id)
              .ToList();
 
             return inventoryBooks;
         }
 
-        public List<GeneralLedgerBook> GetGeneralLedgerBooks(string dateFrom, string dateTo)
+        public List<GeneralLedgerBook> GetGeneralLedgerBooks(DateOnly? dateFrom, DateOnly? dateTo)
         {
-            var fromDate = DateTime.Parse(dateFrom);
-            var toDate = DateTime.Parse(dateTo);
-
-            if (fromDate > toDate)
+            if (dateFrom > dateTo)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
@@ -194,7 +175,7 @@ namespace Accounting_System.Repository
 
             if (dateFrom != null && dateTo != null)
             {
-                orderBy = i => DateTime.Parse(i.Date);
+                orderBy = i => i.Date;
             }
             else
             {
@@ -204,19 +185,16 @@ namespace Accounting_System.Repository
             var generalLedgerBooks = _dbContext
                 .GeneralLedgerBooks
                 .AsEnumerable()
-                .Where(i => DateTime.Parse(i.Date) >= fromDate && DateTime.Parse(i.Date) <= toDate)
+                .Where(i => i.Date >= dateFrom && i.Date <= dateTo)
                 .OrderBy(orderBy)
                 .ToList();
 
             return generalLedgerBooks;
         }
 
-        public List<DisbursementBook> GetDisbursementBooks(string dateFrom, string dateTo)
+        public List<DisbursementBook> GetDisbursementBooks(DateOnly? dateFrom, DateOnly? dateTo)
         {
-            var fromDate = DateTime.Parse(dateFrom);
-            var toDate = DateTime.Parse(dateTo);
-
-            if (fromDate > toDate)
+            if (dateFrom > dateTo)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
@@ -224,19 +202,16 @@ namespace Accounting_System.Repository
             var disbursementBooks = _dbContext
              .DisbursementBooks
              .AsEnumerable()
-             .Where(d => DateTime.Parse(d.Date) >= fromDate && DateTime.Parse(d.Date) <= toDate)
+             .Where(d => d.Date >= dateFrom && d.Date <= dateTo)
              .OrderBy(d => d.Id)
              .ToList();
 
             return disbursementBooks;
         }
 
-        public List<JournalBook> GetJournalBooks(string dateFrom, string dateTo)
+        public List<JournalBook> GetJournalBooks(DateOnly? dateFrom, DateOnly? dateTo)
         {
-            var fromDate = DateTime.Parse(dateFrom);
-            var toDate = DateTime.Parse(dateTo);
-
-            if (fromDate > toDate)
+            if (dateFrom > dateTo)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
@@ -244,19 +219,16 @@ namespace Accounting_System.Repository
             var disbursementBooks = _dbContext
              .JournalBooks
              .AsEnumerable()
-             .Where(d => DateTime.Parse(d.Date) >= fromDate && DateTime.Parse(d.Date) <= toDate)
+             .Where(d => d.Date >= dateFrom && d.Date <= dateTo)
              .OrderBy(d => d.Id)
              .ToList();
 
             return disbursementBooks;
         }
 
-        public List<AuditTrail> GetAuditTrails(string dateFrom, string dateTo)
+        public List<AuditTrail> GetAuditTrails(DateOnly? dateFrom, DateOnly? dateTo)
         {
-            var fromDate = DateTime.Parse(dateFrom);
-            var toDate = DateTime.Parse(dateTo);
-
-            if (fromDate > toDate)
+            if (dateFrom > dateTo)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
@@ -264,7 +236,7 @@ namespace Accounting_System.Repository
             var auditTrail = _dbContext
                 .AuditTrails
                 .AsEnumerable()
-                .Where(a => DateOnly.FromDateTime(a.Date) >= DateOnly.FromDateTime(fromDate) && DateOnly.FromDateTime(a.Date) <= DateOnly.FromDateTime(toDate))
+                .Where(a => DateOnly.FromDateTime(a.Date) >= dateFrom && DateOnly.FromDateTime(a.Date) <= dateTo)
                 .OrderBy(a => a.Date)
                 .ToList();
 

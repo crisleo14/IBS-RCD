@@ -10,7 +10,9 @@ namespace Accounting_System.Models
         public string? CMNo { get; set; }
 
         public long SeriesNumber { get; set; }
-        public DateTime Date { get; set; }
+
+        [Column(TypeName = "date")]
+        public DateOnly Date { get; set; }
 
         [Display(Name = "SI No")]
         public int? SalesInvoiceId { get; set; }
@@ -35,6 +37,7 @@ namespace Accounting_System.Models
         [Display(Name = "Price Adjustment")]
         [Range(1, int.MaxValue, ErrorMessage = "Adjusted Price should be greater than 0")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal? AdjustedPrice { get; set; }
 
         [Range(1, int.MaxValue, ErrorMessage = "Quantity should be greater than 0")]
@@ -42,18 +45,22 @@ namespace Accounting_System.Models
 
         [Display(Name = "Credit Amount")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal CreditAmount { get; set; }
 
         [Display(Name = "Vatable Sales")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal VatableSales { get; set; }
 
         [Display(Name = "Vat Amount")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal VatAmount { get; set; }
 
         [Display(Name = "Total Sales")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal TotalSales { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
@@ -70,7 +77,7 @@ namespace Accounting_System.Models
         public string? Remarks { get; set; }
 
         [Column(TypeName = "date")]
-        public DateTime Period { get; set; }
+        public DateOnly Period { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Amount { get; set; }

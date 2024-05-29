@@ -36,14 +36,15 @@ namespace Accounting_System.Models
         [Required]
         [Display(Name = "Due Date")]
         [Column(TypeName = "date")]
-        public DateTime DueDate { get; set; }
+        public DateOnly DueDate { get; set; }
 
         [Required]
         [Column(TypeName = "date")]
-        public DateTime Period { get; set; }
+        public DateOnly Period { get; set; }
 
         [Required(ErrorMessage = "The Amount is required.")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Amount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]

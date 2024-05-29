@@ -9,7 +9,8 @@ namespace Accounting_System.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        public string Date { get; set; }
+        [Column(TypeName = "date")]
+        public DateOnly Date { get; set; }
 
         [Display(Name = "CV No")]
         public string CVNo { get; set; }
@@ -17,6 +18,7 @@ namespace Accounting_System.Models
         public string Payee { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Amount { get; set; }
 
         public string Particulars { get; set; }
@@ -36,9 +38,11 @@ namespace Accounting_System.Models
         public string ChartOfAccount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Debit { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Credit { get; set; }
 
         [Display(Name = "Created By")]

@@ -9,8 +9,8 @@ namespace Accounting_System.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [Column(TypeName = "varchar(10)")]
-        public string Date { get; set; }
+        [Column(TypeName = "date")]
+        public DateOnly Date { get; set; }
 
         public int ProductId { get; set; }
 
@@ -80,5 +80,8 @@ namespace Accounting_System.Models
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Display(Name = "Total Balance")]
         public decimal TotalBalance { get; set; }
+
+        [Column(TypeName = "varchar(2)")]
+        public string Unit { get; set; } = "L";
     }
 }

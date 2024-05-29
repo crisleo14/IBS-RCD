@@ -20,12 +20,15 @@ namespace Accounting_System.Controllers
 
         private readonly GeneralRepo _generalRepo;
 
-        public ReceivingReportController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, ReceivingReportRepo receivingReportRepo, GeneralRepo generalRepo)
+        private readonly InventoryRepo _inventoryRepo;
+
+        public ReceivingReportController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, ReceivingReportRepo receivingReportRepo, GeneralRepo generalRepo, InventoryRepo inventoryRepo)
         {
             _dbContext = dbContext;
             _userManager = userManager;
             _receivingReportRepo = receivingReportRepo;
             _generalRepo = generalRepo;
+            _inventoryRepo = inventoryRepo;
         }
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
@@ -318,7 +321,7 @@ namespace Accounting_System.Controllers
                         {
                             ledger.Add(new GeneralLedgerBook
                             {
-                                Date = model.CreatedDate.ToShortDateString(),
+                                Date = model.Date,
                                 Reference = model.RRNo,
                                 Description = "Receipt of Goods",
                                 AccountNo = "1010401",
@@ -333,7 +336,7 @@ namespace Accounting_System.Controllers
                         {
                             ledger.Add(new GeneralLedgerBook
                             {
-                                Date = model.CreatedDate.ToShortDateString(),
+                                Date = model.Date,
                                 Reference = model.RRNo,
                                 Description = "Receipt of Goods",
                                 AccountNo = "1010402",
@@ -348,7 +351,7 @@ namespace Accounting_System.Controllers
                         {
                             ledger.Add(new GeneralLedgerBook
                             {
-                                Date = model.CreatedDate.ToShortDateString(),
+                                Date = model.Date,
                                 Reference = model.RRNo,
                                 Description = "Receipt of Goods",
                                 AccountNo = "1010403",
@@ -362,7 +365,7 @@ namespace Accounting_System.Controllers
 
                         ledger.Add(new GeneralLedgerBook
                         {
-                            Date = model.CreatedDate.ToShortDateString(),
+                            Date = model.Date,
                             Reference = model.RRNo,
                             Description = "Receipt of Goods",
                             AccountNo = "1010602",
@@ -375,7 +378,7 @@ namespace Accounting_System.Controllers
 
                         ledger.Add(new GeneralLedgerBook
                         {
-                            Date = model.CreatedDate.ToShortDateString(),
+                            Date = model.Date,
                             Reference = model.RRNo,
                             Description = "Receipt of Goods",
                             AccountNo = "2010101",
@@ -388,7 +391,7 @@ namespace Accounting_System.Controllers
 
                         ledger.Add(new GeneralLedgerBook
                         {
-                            Date = model.CreatedDate.ToShortDateString(),
+                            Date = model.Date,
                             Reference = model.RRNo,
                             Description = "Receipt of Goods",
                             AccountNo = "2010302",
@@ -411,7 +414,7 @@ namespace Accounting_System.Controllers
 
                         purchaseBook.Add(new PurchaseJournalBook
                         {
-                            Date = model.Date.ToShortDateString(),
+                            Date = model.Date,
                             SupplierName = model.PurchaseOrder.Supplier.Name,
                             SupplierTin = model.PurchaseOrder.Supplier.TinNo,
                             SupplierAddress = model.PurchaseOrder.Supplier.Address,
@@ -423,11 +426,17 @@ namespace Accounting_System.Controllers
                             NetPurchases = model.NetAmount,
                             CreatedBy = model.CreatedBy,
                             PONo = model.PurchaseOrder.PONo,
-                            DueDate = model.DueDate.ToShortDateString()
+                            DueDate = model.DueDate
                         });
 
                         await _dbContext.AddRangeAsync(purchaseBook, cancellationToken);
                         #endregion --Purchase Book Recording
+
+                        #region--Inventory Recording
+
+                        await _inventoryRepo.AddPurchaseToInventoryAsync(model, cancellationToken);
+
+                        #endregion
 
                         #region --Audit Trail Recording
 
