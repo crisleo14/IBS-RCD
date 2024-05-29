@@ -1,7 +1,6 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
 
 namespace Accounting_System.Repository
 {
@@ -77,12 +76,12 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<DateTime> ComputeDueDateAsync(SalesInvoice model, DateTime date)
+        public async Task<DateOnly> ComputeDueDateAsync(SalesInvoice model, DateOnly date)
         {
 
             if (model != null)
             {
-                DateTime dueDate;
+                DateOnly dueDate;
 
                 switch (model.Terms)
                 {
@@ -101,11 +100,11 @@ namespace Accounting_System.Repository
                     case "M30":
                         if (date.Month == 1)
                         {
-                            dueDate = new DateTime(date.Year, date.Month, 1).AddMonths(2).AddDays(-1);
+                            dueDate = new DateOnly(date.Year, date.Month, 1).AddMonths(2).AddDays(-1);
                         }
                         else
                         {
-                            dueDate = new DateTime(date.Year, date.Month, 1).AddMonths(2).AddDays(-1);
+                            dueDate = new DateOnly(date.Year, date.Month, 1).AddMonths(2).AddDays(-1);
 
                             if (dueDate.Day == 31)
                             {

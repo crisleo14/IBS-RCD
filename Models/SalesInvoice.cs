@@ -79,9 +79,11 @@ namespace Accounting_System.Models
         [Required]
         [Display(Name = "Unit Price")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal UnitPrice { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Amount { get; set; }
 
         [Required]
@@ -90,10 +92,12 @@ namespace Accounting_System.Models
 
         [Display(Name = "Vatable Sales")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal VatableSales { get; set; }
 
         [Display(Name = "VAT Amount")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal VatAmount { get; set; }
 
         [Column(TypeName = "varchar(20)")]
@@ -101,28 +105,37 @@ namespace Accounting_System.Models
 
         [Required]
         [Display(Name = "Transaction Date")]
-        public DateTime TransactionDate { get; set; }
+        [Column(TypeName = "date")]
+        public DateOnly TransactionDate { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Discount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal NetDiscount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal VatExempt { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal ZeroRated { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal WithHoldingVatAmount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal WithHoldingTaxAmount { get; set; }
 
+        [Column(TypeName = "numeric(18,2)")]
         public decimal AmountPaid { get; set; }
 
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Balance { get; set; }
 
         public bool IsPaid { get; set; }
@@ -130,7 +143,7 @@ namespace Accounting_System.Models
         public bool IsTaxAndVatPaid { get; set; }
 
         [Display(Name = "Due Date")]
-        [Column(TypeName = "Date")]
-        public DateTime DueDate { get; set; }
+        [Column(TypeName = "date")]
+        public DateOnly DueDate { get; set; }
     }
 }

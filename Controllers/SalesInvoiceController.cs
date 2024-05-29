@@ -1,11 +1,11 @@
 ﻿using Accounting_System.Data;
-using Accounting_System.Repository;
-using Microsoft.AspNetCore.Mvc;
 using Accounting_System.Models;
+using Accounting_System.Repository;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Accounting_System.Controllers
 {
@@ -407,7 +407,7 @@ namespace Accounting_System.Controllers
 
                     if (model.CustomerType == "Vatable")
                     {
-                        sales.TransactionDate = model.TransactionDate.ToShortDateString();
+                        sales.TransactionDate = model.TransactionDate;
                         sales.SerialNo = model.SINo;
                         sales.SoldTo = model.SoldTo;
                         sales.TinNo = model.TinNo;
@@ -425,7 +425,7 @@ namespace Accounting_System.Controllers
                     }
                     else if (model.CustomerType == "Exempt")
                     {
-                        sales.TransactionDate = model.TransactionDate.ToShortDateString();
+                        sales.TransactionDate = model.TransactionDate;
                         sales.SerialNo = model.SINo;
                         sales.SoldTo = model.SoldTo;
                         sales.TinNo = model.TinNo;
@@ -442,7 +442,7 @@ namespace Accounting_System.Controllers
                     }
                     else
                     {
-                        sales.TransactionDate = model.TransactionDate.ToShortDateString();
+                        sales.TransactionDate = model.TransactionDate;
                         sales.SerialNo = model.SINo;
                         sales.SoldTo = model.SoldTo;
                         sales.TinNo = model.TinNo;
@@ -469,7 +469,7 @@ namespace Accounting_System.Controllers
                     ledgers.Add(
                         new GeneralLedgerBook
                         {
-                            Date = model.TransactionDate.ToShortDateString(),
+                            Date = model.TransactionDate,
                             Reference = model.SINo,
                             Description = model.ProductName,
                             AccountNo = "1010201",
@@ -486,7 +486,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.TransactionDate.ToShortDateString(),
+                                Date = model.TransactionDate,
                                 Reference = model.SINo,
                                 Description = model.ProductName,
                                 AccountNo = "1010202",
@@ -503,7 +503,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.TransactionDate.ToShortDateString(),
+                                Date = model.TransactionDate,
                                 Reference = model.SINo,
                                 Description = model.ProductName,
                                 AccountNo = "1010203",
@@ -520,7 +520,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.TransactionDate.ToShortDateString(),
+                                Date = model.TransactionDate,
                                 Reference = model.SINo,
                                 Description = model.ProductName,
                                 AccountNo = "4010101",
@@ -539,7 +539,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.TransactionDate.ToShortDateString(),
+                                Date = model.TransactionDate,
                                 Reference = model.SINo,
                                 Description = model.ProductName,
                                 AccountNo = "4010102",
@@ -558,7 +558,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.TransactionDate.ToShortDateString(),
+                                Date = model.TransactionDate,
                                 Reference = model.SINo,
                                 Description = model.ProductName,
                                 AccountNo = "4010103",
@@ -578,7 +578,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.TransactionDate.ToShortDateString(),
+                                Date = model.TransactionDate,
                                 Reference = model.SINo,
                                 Description = model.ProductName,
                                 AccountNo = "2010301",

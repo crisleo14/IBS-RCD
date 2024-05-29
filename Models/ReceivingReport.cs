@@ -14,10 +14,10 @@ namespace Accounting_System.Models
 
         [Required]
         [Column(TypeName = "date")]
-        public DateTime Date { get; set; }
+        public DateOnly Date { get; set; }
 
         [Column(TypeName = "date")]
-        public DateTime DueDate { get; set; }
+        public DateOnly DueDate { get; set; }
 
         [Display(Name = "PO Id")]
         [Required]

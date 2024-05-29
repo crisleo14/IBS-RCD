@@ -347,7 +347,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = modelHeader.Date.ToShortDateString(),
+                                    Date = modelHeader.Date,
                                     Reference = modelHeader.JVNo,
                                     Description = modelHeader.Particulars,
                                     AccountNo = details.AccountNo,
@@ -372,7 +372,7 @@ namespace Accounting_System.Controllers
                         journalBook.Add(
                                 new JournalBook
                                 {
-                                    Date = modelHeader.Date.ToShortDateString(),
+                                    Date = modelHeader.Date,
                                     Reference = modelHeader.JVNo,
                                     Description = modelHeader.Particulars,
                                     AccountTitle = details.AccountNo + " " + details.AccountName,

@@ -10,7 +10,8 @@ namespace Accounting_System.Models
         public int Id { get; set; }
 
         [Display(Name = "Tran. Date")]
-        public string TransactionDate { get; set; }
+        [Column(TypeName = "date")]
+        public DateOnly TransactionDate { get; set; }
 
         [Display(Name = "Serial Number")]
         public string SerialNo { get; set; }
@@ -26,29 +27,36 @@ namespace Accounting_System.Models
         public string Description { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Amount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Display(Name = "Vat Amount")]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal VatAmount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Display(Name = "Vatable Sales")]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal VatableSales { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Display(Name = "Vat-Exempt Sales")]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal VatExemptSales { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Display(Name = "Zero-Rated Sales")]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal ZeroRated { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Discount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Display(Name = "Net Sales")]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal NetSales { get; set; }
 
         [Display(Name = "Created By")]
@@ -60,7 +68,7 @@ namespace Accounting_System.Models
 
         [Display(Name = "Due Date")]
         [Column(TypeName = "date")]
-        public DateTime? DueDate { get; set; }
+        public DateOnly? DueDate { get; set; }
 
         public int? DocumentId { get; set; }
     }

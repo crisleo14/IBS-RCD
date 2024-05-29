@@ -145,7 +145,7 @@ namespace Accounting_System.Controllers
                     }
                 }
 
-                if (model.CreatedDate < model.Period)
+                if (DateOnly.FromDateTime(model.CreatedDate) < model.Period)
                 {
                     model.UnearnedAmount += model.Amount;
                 }
@@ -253,7 +253,7 @@ namespace Accounting_System.Controllers
 
                     #region --SOA Computation--
 
-                    var postedDate = model.CreatedDate >= model.Period ? model.CreatedDate : model.Period.AddMonths(1).AddDays(-1);
+                    var postedDate = DateOnly.FromDateTime(model.CreatedDate) >= model.Period ? DateOnly.FromDateTime(model.CreatedDate) : model.Period.AddMonths(1).AddDays(-1);
 
                     if (customer.CustomerType == "Vatable")
                     {
@@ -296,7 +296,7 @@ namespace Accounting_System.Controllers
 
                     if (model.Customer.CustomerType == "Vatable")
                     {
-                        sales.TransactionDate = postedDate.ToShortDateString();
+                        sales.TransactionDate = postedDate;
                         sales.SerialNo = model.SVNo;
                         sales.SoldTo = model.Customer.Name;
                         sales.TinNo = model.Customer.TinNo;
@@ -314,7 +314,7 @@ namespace Accounting_System.Controllers
                     }
                     else if (model.Customer.CustomerType == "Exempt")
                     {
-                        sales.TransactionDate = postedDate.ToShortDateString();
+                        sales.TransactionDate = postedDate;
                         sales.SerialNo = model.SVNo;
                         sales.SoldTo = model.Customer.Name;
                         sales.TinNo = model.Customer.TinNo;
@@ -331,7 +331,7 @@ namespace Accounting_System.Controllers
                     }
                     else
                     {
-                        sales.TransactionDate = postedDate.ToShortDateString();
+                        sales.TransactionDate = postedDate;
                         sales.SerialNo = model.SVNo;
                         sales.SoldTo = model.Customer.Name;
                         sales.TinNo = model.Customer.TinNo;
@@ -358,7 +358,7 @@ namespace Accounting_System.Controllers
                     ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = postedDate.ToShortDateString(),
+                                Date = postedDate,
                                 Reference = model.SVNo,
                                 Description = model.Service.Name,
                                 AccountNo = "1010204",
@@ -374,7 +374,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = postedDate.ToShortDateString(),
+                                Date = postedDate,
                                 Reference = model.SVNo,
                                 Description = model.Service.Name,
                                 AccountNo = "1010202",
@@ -391,7 +391,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = postedDate.ToShortDateString(),
+                                Date = postedDate,
                                 Reference = model.SVNo,
                                 Description = model.Service.Name,
                                 AccountNo = "1010203",
@@ -407,7 +407,7 @@ namespace Accounting_System.Controllers
                     ledgers.Add(
                            new GeneralLedgerBook
                            {
-                               Date = postedDate.ToShortDateString(),
+                               Date = postedDate,
                                Reference = model.SVNo,
                                Description = model.Service.Name,
                                AccountNo = model.Service.CurrentAndPreviousNo,
@@ -424,7 +424,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = postedDate.ToShortDateString(),
+                                Date = postedDate,
                                 Reference = model.SVNo,
                                 Description = model.Service.Name,
                                 AccountNo = "2010301",
