@@ -46,9 +46,9 @@
                 </div>
 
             <div class="form-group mb-3">
-                <label asp-for="Date" class="control-label">Date<span class="required">*</span></label>
-                <input asp-for="Date" type="Date" class="form-control" />
-                <span asp-validation-for="Date" class="text-danger"></span>
+                <label asp-for="TransactionDate" class="control-label">Date<span class="required">*</span></label>
+                <input asp-for="TransactionDate" type="Date" class="form-control" />
+                <span asp-validation-for="TransactionDate" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
                 <input asp-for="ReferenceNo" id="floatingInput" type="text" class="form-control" placeholder="Reference #"/>
@@ -82,7 +82,7 @@
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
-                            <td><input asp-for="CashAmount" style="border:none" class="form-control moneyInput" /></td>
+                            <td><input asp-for="CashAmount" style="border:none" class="form-control money" /></td>
                         </tr>
 
                         <tr>
@@ -91,7 +91,7 @@
                             <td><input asp-for="CheckNo" style="border:none" class="form-control" /></td>
                             <td><input asp-for="CheckBank" style="border:none" class="form-control" /></td>
                             <td><input asp-for="CheckBranch" style="border:none" class="form-control" /></td>
-                            <td><input asp-for="CheckAmount" style="border:none" class="form-control moneyInput" /></td>
+                            <td><input asp-for="CheckAmount" style="border:none" class="form-control money" /></td>
                         </tr>
 
                         <tr>
@@ -100,7 +100,7 @@
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
-                            <td><input asp-for="EWT" style="border:none" class="form-control moneyInput" /></td>
+                            <td><input asp-for="EWT" style="border:none" class="form-control money" /></td>
                         </tr>
                         <tr>
                             <td style="padding-left:20px;">WVAT</td>
@@ -108,7 +108,7 @@
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
-                            <td><input asp-for="WVAT" style="border:none" class="form-control moneyInput" /></td>
+                            <td><input asp-for="WVAT" style="border:none" class="form-control money" /></td>
                         </tr>
                     </tbody>
                 </table>
@@ -174,7 +174,7 @@
                         </div>
                         <div class="form-group pt-4">
                             <label class="control-label">Amount</label>
-                            <input id="AccountAmount" class="form-control moneyInput" placeholder="0.00" />
+                            <input id="AccountAmount" class="form-control money" value="" placeholder="0.00" />
                             <span class="text-danger"></span>
                         </div>
                     </form>
@@ -193,14 +193,6 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script>
-        // Get the current date in the format "YYYY-MM-DD" (required for the date input)
-        var myDate = new Date().toISOString().slice(0, 10);
-
-        // Set the default value of the input field
-        document.getElementById("Date").value = myDate;
-    </script>
-
     <script>
     $(document).ready(function () {
         $("#CustomerId").change(function () {
@@ -290,7 +282,11 @@
                     $.ajax({
                         url: "/Receipt/GetInvoiceDetails",
                         type: "GET",
-                        data: { invoiceNo: invoiceNo },
+                        data: {
+                            invoiceNo: invoiceNo,
+                            isSales: true,      // or false based on your condition
+                            isServices: false   // or true based on your condition
+                        },
                         success: function (data) {
                             console.log(data);
                             document.getElementById("amount").innerHTML = data.amount;
@@ -302,6 +298,7 @@
                         }
                     });
                 }
+
             }
 
             $(document).ready(function () {

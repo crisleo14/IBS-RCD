@@ -20,7 +20,7 @@
                 @Html.DisplayNameFor(model => model.DMNo)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Date)
+                @Html.DisplayNameFor(model => model.TransactionDate)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.DebitAmount)
@@ -45,7 +45,7 @@
                     @Html.DisplayFor(modelItem => item.DMNo)
                 </td>
                 <td>
-                    @item.Date.ToShortDateString()
+                    @item.TransactionDate.ToShortDateString()
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.DebitAmount)

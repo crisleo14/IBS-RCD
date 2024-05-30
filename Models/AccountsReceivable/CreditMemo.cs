@@ -12,7 +12,7 @@ namespace Accounting_System.Models.AccountsReceivable
         public long SeriesNumber { get; set; }
 
         [Column(TypeName = "date")]
-        public DateOnly Date { get; set; }
+        public DateOnly TransactionDate { get; set; }
 
         [Display(Name = "SI No")]
         public int? SalesInvoiceId { get; set; }

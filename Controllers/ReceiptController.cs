@@ -504,38 +504,38 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetInvoiceDetails(int invoiceNo, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetInvoiceDetails(int invoiceNo, bool isSales, bool isServices, CancellationToken cancellationToken)
         {
-            var si = await _dbContext
+            if (isSales && !isServices)
+            {
+                var si = await _dbContext
                 .SalesInvoices
                 .FirstOrDefaultAsync(si => si.Id == invoiceNo, cancellationToken);
 
-            var sv = await _dbContext
-               .ServiceInvoices
-               .FirstOrDefaultAsync(si => si.Id == invoiceNo, cancellationToken);
-
-            if (si != null)
-            {
                 return Json(new
                 {
-                    Amount = si.NetDiscount.ToString("0.00"),
-                    AmountPaid = si.AmountPaid.ToString("0.00"),
-                    Balance = si.Balance.ToString("0.00"),
-                    Ewt = si.WithHoldingTaxAmount.ToString("0.00"),
-                    Wvat = si.WithHoldingVatAmount.ToString("0.00"),
-                    Total = (si.NetDiscount - (si.WithHoldingTaxAmount + si.WithHoldingVatAmount)).ToString("0.00")
+                    Amount = si.NetDiscount.ToString("N2"),
+                    AmountPaid = si.AmountPaid.ToString("N2"),
+                    Balance = si.Balance.ToString("N2"),
+                    Ewt = si.WithHoldingTaxAmount.ToString("N2"),
+                    Wvat = si.WithHoldingVatAmount.ToString("N2"),
+                    Total = (si.NetDiscount - (si.WithHoldingTaxAmount + si.WithHoldingVatAmount)).ToString("N2")
                 });
             }
-            else if (sv != null)
+            else if (isServices && !isSales)
             {
+                var sv = await _dbContext
+                .ServiceInvoices
+                .FirstOrDefaultAsync(si => si.Id == invoiceNo, cancellationToken);
+
                 return Json(new
                 {
-                    Amount = sv.Total.ToString("0.00"),
-                    AmountPaid = sv.AmountPaid.ToString("0.00"),
-                    Balance = sv.Balance.ToString("0.00"),
-                    Ewt = sv.WithholdingTaxAmount.ToString("0.00"),
-                    Wvat = sv.WithholdingVatAmount.ToString("0.00"),
-                    Total = (sv.Total - (sv.WithholdingTaxAmount + sv.WithholdingVatAmount)).ToString("0.00")
+                    Amount = sv.Total.ToString("N2"),
+                    AmountPaid = sv.AmountPaid.ToString("N2"),
+                    Balance = sv.Balance.ToString("N2"),
+                    Ewt = sv.WithholdingTaxAmount.ToString("N2"),
+                    Wvat = sv.WithholdingVatAmount.ToString("N2"),
+                    Total = (sv.Total - (sv.WithholdingTaxAmount + sv.WithholdingVatAmount)).ToString("N2")
                 });
             }
             return Json(null);
@@ -637,7 +637,7 @@ namespace Accounting_System.Controllers
                     return View(model);
                 }
 
-                existingModel.Date = model.Date;
+                existingModel.TransactionDate = model.TransactionDate;
                 existingModel.ReferenceNo = model.ReferenceNo;
                 existingModel.Remarks = model.Remarks;
                 existingModel.CheckDate = model.CheckDate;
@@ -804,7 +804,7 @@ namespace Accounting_System.Controllers
                     ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = model.Date,
+                                    Date = model.TransactionDate,
                                     Reference = model.CRNo,
                                     Description = "Collection for Receivable",
                                     AccountNo = "1010101",
@@ -821,7 +821,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.Date,
+                                Date = model.TransactionDate,
                                 Reference = model.CRNo,
                                 Description = "Collection for Receivable",
                                 AccountNo = "1010604",
@@ -839,7 +839,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.Date,
+                                Date = model.TransactionDate,
                                 Reference = model.CRNo,
                                 Description = "Collection for Receivable",
                                 AccountNo = "1010605",
@@ -859,7 +859,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.Date,
+                                Date = model.TransactionDate,
                                 Reference = model.CRNo,
                                 Description = "Collection for Receivable",
                                 AccountTitle = item.AccountNo,
@@ -877,7 +877,7 @@ namespace Accounting_System.Controllers
                     ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.Date,
+                                Date = model.TransactionDate,
                                 Reference = model.CRNo,
                                 Description = "Collection for Receivable",
                                 AccountNo = "1010201",
@@ -894,7 +894,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.Date,
+                                Date = model.TransactionDate,
                                 Reference = model.CRNo,
                                 Description = "Collection for Receivable",
                                 AccountNo = "1010202",
@@ -912,7 +912,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.Date,
+                                Date = model.TransactionDate,
                                 Reference = model.CRNo,
                                 Description = "Collection for Receivable",
                                 AccountNo = "1010203",
@@ -936,7 +936,7 @@ namespace Accounting_System.Controllers
                     crb.Add(
                         new CashReceiptBook
                         {
-                            Date = model.Date,
+                            Date = model.TransactionDate,
                             RefNo = model.CRNo,
                             CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
                             Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
@@ -956,7 +956,7 @@ namespace Accounting_System.Controllers
                         crb.Add(
                             new CashReceiptBook
                             {
-                                Date = model.Date,
+                                Date = model.TransactionDate,
                                 RefNo = model.CRNo,
                                 CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
                                 Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
@@ -976,7 +976,7 @@ namespace Accounting_System.Controllers
                         crb.Add(
                             new CashReceiptBook
                             {
-                                Date = model.Date,
+                                Date = model.TransactionDate,
                                 RefNo = model.CRNo,
                                 CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
                                 Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
@@ -998,7 +998,7 @@ namespace Accounting_System.Controllers
                             crb.Add(
                                 new CashReceiptBook
                                 {
-                                    Date = model.Date,
+                                    Date = model.TransactionDate,
                                     RefNo = model.CRNo,
                                     CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
                                     Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
@@ -1017,7 +1017,7 @@ namespace Accounting_System.Controllers
                     crb.Add(
                     new CashReceiptBook
                     {
-                        Date = model.Date,
+                        Date = model.TransactionDate,
                         RefNo = model.CRNo,
                         CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
                         Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
@@ -1036,7 +1036,7 @@ namespace Accounting_System.Controllers
                         crb.Add(
                             new CashReceiptBook
                             {
-                                Date = model.Date,
+                                Date = model.TransactionDate,
                                 RefNo = model.CRNo,
                                 CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
                                 Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
@@ -1056,7 +1056,7 @@ namespace Accounting_System.Controllers
                         crb.Add(
                             new CashReceiptBook
                             {
-                                Date = model.Date,
+                                Date = model.TransactionDate,
                                 RefNo = model.CRNo,
                                 CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
                                 Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
@@ -1157,46 +1157,6 @@ namespace Accounting_System.Controllers
             }
 
             return NotFound();
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetStatementOfAccount(int customerNo, CancellationToken cancellationToken)
-        {
-            var soa = await _dbContext
-                .ServiceInvoices
-                .Where(s => s.Customer.Number == customerNo && !s.IsPaid)
-                .OrderBy(s => s.Id)
-                .ToListAsync(cancellationToken);
-
-            var soaList = soa.Select(si => new SelectListItem
-            {
-                Value = si.Id.ToString(),   // Replace with your actual ID property
-                Text = si.SVNo              // Replace with your actual property for display text
-            }).ToList();
-
-            return Json(soaList);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetSOADetails(int soaNo, CancellationToken cancellationToken)
-        {
-            var soa = await _dbContext
-                .ServiceInvoices
-                .FirstOrDefaultAsync(s => s.Id == soaNo, cancellationToken);
-
-            if (soa != null)
-            {
-                return Json(new
-                {
-                    Amount = (soa.Total - soa.Discount).ToString("0.00"),
-                    AmountPaid = soa.AmountPaid.ToString("0.00"),
-                    Balance = soa.Balance.ToString("0.00"),
-                    Ewt = soa.WithholdingTaxAmount.ToString("0.00"),
-                    Wvat = soa.WithholdingVatAmount.ToString("0.00"),
-                    Total = (soa.Total - soa.Discount - (soa.WithholdingTaxAmount + soa.WithholdingVatAmount)).ToString("0.00")
-                });
-            }
-            return Json(null);
         }
     }
 }

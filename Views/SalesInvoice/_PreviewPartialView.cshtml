@@ -100,14 +100,14 @@
                         }
                         else if (Model.Customer.WithHoldingVat && !Model.Customer.WithHoldingTax)
                         {
-                            <p class="text-start"  style="line-height: 1; margin-top:20px;">
+                            <p class="text-start" style="line-height: 1; margin-top:20px;">
                                 Creditable Withholding Vat with the amount of <b>@Html.DisplayFor(model => model.WithHoldingVatAmount)</b> is computed for this invoice.<br />
                                 Please attach BIR Form 2306 to your payment if you deducted Expanded Withholding Vat.
                             </p>
                         }
                         else if (Model.Customer.WithHoldingTax && Model.Customer.WithHoldingVat)
                         {
-                            <p class="text-start"  style="line-height: 1; margin-top:20px;">
+                            <p class="text-start" style="line-height: 1; margin-top:20px;">
                                 Creditable Withholding Tax with the amount of <b>@Html.DisplayFor(model => model.WithHoldingTaxAmount)</b> is computed for this invoice.<br />
                                 Creditable Withholding Vat with the amount of <b>@Html.DisplayFor(model => model.WithHoldingVatAmount)</b> is computed for this invoice.<br />
                                 Please attach BIR Form 2306 and 2307 to your payment if you deducted Expanded Withholding Tax and Vat.
@@ -319,7 +319,7 @@
                 <br />
 
                 <div class="text-start">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>

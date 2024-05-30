@@ -31,9 +31,9 @@
                     <span asp-validation-for="Source" class="text-danger"></span>
                 </fieldset>
                 <div class="form-group">
-                    <label asp-for="Date" class="control-label"></label>
-                    <input asp-for="Date" type="Date" class="form-control" />
-                    <span asp-validation-for="Date" class="text-danger"></span>
+                    <label asp-for="TransactionDate" class="control-label"></label>
+                    <input asp-for="TransactionDate" type="Date" class="form-control" />
+                    <span asp-validation-for="TransactionDate" class="text-danger"></span>
                 </div>
                 <div class="form-group mb-3" id="siList">
                     <label asp-for="SalesInvoiceId" class="control-label"></label>
@@ -99,20 +99,6 @@
         @{
             await Html.RenderPartialAsync("_ValidationScriptsPartial");
         }
-        <script>
-            // Get the current date in the format "YYYY-MM-DD" (required for the date input)
-            var currentDate = new Date().toISOString().slice(0, 10);
-
-            // Set the default value of the input field
-            document.getElementById("CheckDate").value = currentDate;
-        </script>
-        <script>
-            // Get the current date in the format "YYYY-MM-DD" (required for the date input)
-            var myDate = new Date().toISOString().slice(0, 10);
-
-            // Set the default value of the input field
-            document.getElementById("Date").value = myDate;
-        </script>
         <script>
             window.onload = function () {
                 var inlineRadio1 = document.getElementById('inlineRadio1');

@@ -20,7 +20,7 @@
                 @Html.DisplayNameFor(model => model.CMNo)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Date)
+                @Html.DisplayNameFor(model => model.TransactionDate)
             </th>
             <th>
                 Invoice No
@@ -42,7 +42,7 @@
                     @Html.DisplayFor(modelItem => item.CMNo)
                 </td>
                 <td>
-                    @item.Date.ToShortDateString()
+                    @item.TransactionDate.ToShortDateString()
                 </td>
                 @if (item.Source == "Sales Invoice")
                 {

@@ -308,7 +308,7 @@ namespace Accounting_System.Controllers
                     return NotFound();
                 }
 
-                existingModel.Date = model.Date;
+                existingModel.TransactionDate = model.TransactionDate;
                 existingModel.Source = model.Source;
                 existingModel.Description = model.Description;
                 existingModel.AdjustedPrice = model.AdjustedPrice;
@@ -436,7 +436,7 @@ namespace Accounting_System.Controllers
 
                         if (model.SalesInvoice.Customer.CustomerType == "Vatable")
                         {
-                            sales.TransactionDate = model.Date;
+                            sales.TransactionDate = model.TransactionDate;
                             sales.SerialNo = model.CMNo;
                             sales.SoldTo = model.SalesInvoice.Customer.Name;
                             sales.TinNo = model.SalesInvoice.Customer.TinNo;
@@ -454,7 +454,7 @@ namespace Accounting_System.Controllers
                         }
                         else if (model.SalesInvoice.Customer.CustomerType == "Exempt")
                         {
-                            sales.TransactionDate = model.Date;
+                            sales.TransactionDate = model.TransactionDate;
                             sales.SerialNo = model.CMNo;
                             sales.SoldTo = model.SalesInvoice.Customer.Name;
                             sales.TinNo = model.SalesInvoice.Customer.TinNo;
@@ -471,7 +471,7 @@ namespace Accounting_System.Controllers
                         }
                         else
                         {
-                            sales.TransactionDate = model.Date;
+                            sales.TransactionDate = model.TransactionDate;
                             sales.SerialNo = model.CMNo;
                             sales.SoldTo = model.SalesInvoice.Customer.Name;
                             sales.TinNo = model.SalesInvoice.Customer.TinNo;
@@ -497,7 +497,7 @@ namespace Accounting_System.Controllers
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
-                                Date = model.Date,
+                                Date = model.TransactionDate,
                                 Reference = model.CMNo,
                                 Description = model.SalesInvoice.Product.Name,
                                 AccountNo = "1010201",
@@ -514,7 +514,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = model.Date,
+                                    Date = model.TransactionDate,
                                     Reference = model.CMNo,
                                     Description = model.SalesInvoice.Product.Name,
                                     AccountNo = "1010202",
@@ -531,7 +531,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = model.Date,
+                                    Date = model.TransactionDate,
                                     Reference = model.CMNo,
                                     Description = model.SalesInvoice.Product.Name,
                                     AccountNo = "1010203",
@@ -548,7 +548,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = model.Date,
+                                    Date = model.TransactionDate,
                                     Reference = model.CMNo,
                                     Description = model.SalesInvoice.Product.Name,
                                     AccountNo = "4010101",
@@ -567,7 +567,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = model.Date,
+                                    Date = model.TransactionDate,
                                     Reference = model.CMNo,
                                     Description = model.SalesInvoice.Product.Name,
                                     AccountNo = "4010102",
@@ -586,7 +586,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = model.Date,
+                                    Date = model.TransactionDate,
                                     Reference = model.CMNo,
                                     Description = model.SalesInvoice.Product.Name,
                                     AccountNo = "4010103",
@@ -606,7 +606,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = model.Date,
+                                    Date = model.TransactionDate,
                                     Reference = model.CMNo,
                                     Description = model.SalesInvoice.Product.Name,
                                     AccountNo = "2010301",
@@ -809,7 +809,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
-                                    Date = model.Date,
+                                    Date = model.TransactionDate,
                                     Reference = model.CMNo,
                                     Description = model.ServiceInvoice.Service.Name,
                                     AccountNo = "2010304",

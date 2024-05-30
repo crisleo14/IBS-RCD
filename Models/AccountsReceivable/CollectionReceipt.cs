@@ -53,7 +53,7 @@ namespace Accounting_System.Models.AccountsReceivable
 
         [Required]
         [Column(TypeName = "date")]
-        public DateOnly Date { get; set; }
+        public DateOnly TransactionDate { get; set; }
 
         public long SeriesNumber { get; set; }
 

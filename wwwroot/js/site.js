@@ -144,7 +144,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function handleBlur(event) {
-        if (event.target.value) {
+        const inputValue = parseFloat(removeCommas(event.target.value));
+        if (isNaN(inputValue) || inputValue <= 0) {
+            event.target.classList.add('error');
+            event.target.nextElementSibling.textContent = 'Value must be greater than zero.';
+        } else {
+            event.target.classList.remove('error');
+            event.target.nextElementSibling.textContent = '';
             event.target.value = formatNumberWithCommas(event.target.value);
         }
     }
@@ -162,3 +168,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelector('form').addEventListener('submit', handleSubmit);
 });
+
+
+// Get the current date in the format "YYYY-MM-DD" (required for the date input)
+var currentDate = new Date().toISOString().slice(0, 10);
+
+// Set the default value of the input field
+document.getElementById("TransactionDate").value = currentDate;

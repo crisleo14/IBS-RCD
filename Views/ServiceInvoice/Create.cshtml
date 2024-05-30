@@ -7,7 +7,6 @@
 }
 
 <h1>Create</h1>
-<partial name="_Notification">
 <h4>SERVICE INVOICE</h4>
 <hr />
 <div class="row">
@@ -34,7 +33,7 @@
                 <span asp-validation-for="DueDate" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
-                <input asp-for="Discount" id="discount" type="text" class="form-control moneyInput" placeholder="0.00"/>
+                <input asp-for="Discount" class="form-control money" placeholder="0.00" />
                 <label for="discount" class="control-label">Discount</label>
                 <span asp-validation-for="Discount" class="text-danger"></span>
             </div>
@@ -43,22 +42,22 @@
                 <label for="instructions" class="control-label">Instructions</label>
                 <span asp-validation-for="Instructions" class="text-danger"></span>
             </div>
-                    <div id="period-amount-fields" class="row g-2">
-                    <div class="col-sm mb-3">
-                        <label asp-for="Period" class="control-label">Period<span class="required">*</span></label>
-                        <input asp-for="Period" type="month" value="@DateTime.Now.ToString("yyyy-MM")" class="form-control" />
-                        <span asp-validation-for="Period" class="text-danger"></span>
-                    </div>
-                    <div class="col-sm mb-3">
-                        <label asp-for="Amount" class="control-label">Amount<span class="required">*</span></label>
-                        <input asp-for="Amount" class="form-control moneyInput" placeholder="0.00" />
-                        <span asp-validation-for="Amount" class="text-danger"></span>
-                    </div>
-                    </div>
-                <div class="form-group">
-                    <input type="submit" value="Create" class="btn btn-primary" />
-                    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            <div id="period-amount-fields" class="row g-2 mb-3">
+                <div class="col-sm mb-3">
+                    <label asp-for="Period" class="control-label">Period<span class="required">*</span></label>
+                    <input asp-for="Period" type="month" value="@DateTime.Now.ToString("yyyy-MM")" class="form-control" />
+                    <span asp-validation-for="Period" class="text-danger"></span>
                 </div>
+                <div class="col-sm mb-3">
+                    <label asp-for="Amount" class="control-label">Amount<span class="required">*</span></label>
+                    <input asp-for="Amount" class="form-control money" placeholder="0.00" value="" />
+                    <span asp-validation-for="Amount" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            </div>
         </form>
     </div>
 </div>
@@ -67,37 +66,6 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-
-    <script>
-        $("#add-more").click(function () {
-            // Clone the existing period and amount fields
-            var periodField = $("#period-amount-fields div:first-child").clone();
-            var amountField = $("#period-amount-fields div:last-child").clone();
-
-            // Set unique IDs for the cloned fields
-            var uniqueId = new Date().getTime(); // Generate a unique timestamp-based ID
-            $("input[type='month']", periodField).attr("id", "Period_" + uniqueId);
-            $("input[type='text']", amountField).attr("id", "Amount_" + uniqueId);
-
-            // Append the cloned fields to the container
-            $("#period-amount-fields").append(periodField);
-            $("#period-amount-fields").append(amountField);
-        });
-    </script>
-
-        <script>
-            $(document).on("click", ".remove-period-amount", function () {
-                // Check if there is more than one pair of period and amount fields
-                var fieldCount = $("#period-amount-fields div").length;
-
-                if (fieldCount > 2) {
-                    $("#period-amount-fields div:last-child").prev().remove(); // Remove the second-to-last field
-                    $("#period-amount-fields div:last-child").remove(); // Remove the last field
-                }
-
-                console.log(fieldCount);
-            });
-        </script>
 
     <script>
         // Get the current date in the format "YYYY-MM-DD" (required for the date input)
