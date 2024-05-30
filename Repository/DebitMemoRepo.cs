@@ -1,5 +1,6 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
+using Accounting_System.Models.AccountsReceivable;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Repository

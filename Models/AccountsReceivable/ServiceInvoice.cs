@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Accounting_System.Models
+namespace Accounting_System.Models.AccountsReceivable
 {
     public class ServiceInvoice : BaseEntity
     {

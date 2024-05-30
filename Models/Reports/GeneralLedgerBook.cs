@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Accounting_System.Models
+namespace Accounting_System.Models.Reports
 {
-    public class DisbursementBook
+    public class GeneralLedgerBook
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -11,31 +11,15 @@ namespace Accounting_System.Models
 
         [Column(TypeName = "date")]
         public DateOnly Date { get; set; }
+        public string Reference { get; set; }
 
-        [Display(Name = "CV No")]
-        public string CVNo { get; set; }
+        [Display(Name = "Account Number")]
+        public string AccountNo { get; set; }
 
-        public string Payee { get; set; }
+        [Display(Name = "Account Title")]
+        public string AccountTitle { get; set; }
 
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
-        public decimal Amount { get; set; }
-
-        public string Particulars { get; set; }
-
-        public string Bank { get; set; }
-
-        [Display(Name = "Check No")]
-        public string CheckNo { get; set; }
-
-        [Display(Name = "Check Date")]
-        public string CheckDate { get; set; }
-
-        [Display(Name = "Date Cleared")]
-        public string DateCleared { get; set; }
-
-        [Display(Name = "Chart Of Account")]
-        public string ChartOfAccount { get; set; }
+        public string Description { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]

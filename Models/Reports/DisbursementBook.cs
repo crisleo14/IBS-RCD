@@ -1,33 +1,41 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Accounting_System.Models
+namespace Accounting_System.Models.Reports
 {
-    public class CashReceiptBook
+    public class DisbursementBook
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [Display(Name = "OR Date")]
         [Column(TypeName = "date")]
         public DateOnly Date { get; set; }
 
-        [Display(Name = "Ref No")]
-        public string RefNo { get; set; }
+        [Display(Name = "CV No")]
+        public string CVNo { get; set; }
 
-        [Display(Name = "Customer Name")]
-        public string CustomerName { get; set; }
+        public string Payee { get; set; }
 
-        public string? Bank { get; set; }
-
-        [Display(Name = "Check No.")]
-        public string? CheckNo { get; set; }
-
-        [Display(Name = "Chart of Account")]
-        public string COA { get; set; }
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal Amount { get; set; }
 
         public string Particulars { get; set; }
+
+        public string Bank { get; set; }
+
+        [Display(Name = "Check No")]
+        public string CheckNo { get; set; }
+
+        [Display(Name = "Check Date")]
+        public string CheckDate { get; set; }
+
+        [Display(Name = "Date Cleared")]
+        public string DateCleared { get; set; }
+
+        [Display(Name = "Chart Of Account")]
+        public string ChartOfAccount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]

@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Accounting_System.Models.MasterFile;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Accounting_System.Models
+namespace Accounting_System.Models.AccountsPayable
 {
     public class CheckVoucherHeader : BaseEntity
     {
