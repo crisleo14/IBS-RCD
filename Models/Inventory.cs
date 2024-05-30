@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Accounting_System.Models.MasterFile;
 
 namespace Accounting_System.Models
 {

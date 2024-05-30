@@ -1,5 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
+using Accounting_System.Models.AccountsReceivable;
+using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -390,7 +392,7 @@ namespace Accounting_System.Controllers
 
                     #region --Previous Implementation
 
-                    //await _inventoryRepo.UpdateQuantity(model.Quantity, int.Parse(model.ProductNo));
+                    //await _inventoryRepo.UpdateQuantity(model.Quantity, int.Parse(model.ProductId));
                     //var ledgers = new Ledger[]
                     //  {
                     //    new Ledger {AccountNo = 1001,TransactionNo = model.SINo, TransactionDate = model.TransactionDate, Category = "Debit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.Amount},

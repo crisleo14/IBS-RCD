@@ -1,5 +1,6 @@
 ﻿using Accounting_System.Data;
-using Accounting_System.Models;
+using Accounting_System.Models.AccountsPayable;
+using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;

@@ -1,5 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
+using Accounting_System.Models.AccountsPayable;
+using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
@@ -85,6 +87,11 @@ namespace Accounting_System.Repository
             {
                 throw new InvalidOperationException($"Beginning inventory for this product '{receivingReport.PurchaseOrder.Product.Id}' not found!");
             }
+        }
+
+        public async Task AddSalesToInventoryAsync(SalesInvoice salesInvoice, CancellationToken cancellationToken)
+        {
+
         }
 
     }

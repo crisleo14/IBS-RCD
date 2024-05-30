@@ -1,4 +1,8 @@
 ﻿using Accounting_System.Models;
+using Accounting_System.Models.AccountsPayable;
+using Accounting_System.Models.AccountsReceivable;
+using Accounting_System.Models.MasterFile;
+using Accounting_System.Models.Reports;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,5 +1,5 @@
 ﻿using Accounting_System.Data;
-using Accounting_System.Models;
+using Accounting_System.Models.MasterFile;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
