@@ -49,13 +49,23 @@ namespace Accounting_System.Controllers
 
                     if (hasBeginningInventory)
                     {
+                        viewModel.ProductList = await _dbContext.Products
+                            .OrderBy(p => p.Code)
+                            .Select(p => new SelectListItem
+                            {
+                                Value = p.Id.ToString(),
+                                Text = $"{p.Code} {p.Name}"
+                            })
+                            .ToListAsync(cancellationToken);
+
+
                         TempData["error"] = "Beginning Inventory for this product already exists. Please contact MIS if you think this was a mistake.";
                         return View(viewModel);
                     }
 
                     await _inventoryRepo.AddBeginningInventory(viewModel, cancellationToken);
                     TempData["success"] = "Beginning balance created successfully";
-                    return RedirectToAction(nameof(Index));
+                    return View();
                 }
                 catch (Exception ex)
                 {

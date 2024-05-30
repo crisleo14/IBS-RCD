@@ -64,6 +64,7 @@ namespace Accounting_System.Repository
             var invoice = await _dbContext
                 .SalesInvoices
                 .Include(c => c.Customer)
+                .Include(s => s.Product)
                 .FirstOrDefaultAsync(invoice => invoice.Id == id);
 
             if (invoice != null)
@@ -76,14 +77,14 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<DateOnly> ComputeDueDateAsync(SalesInvoice model, DateOnly date)
+        public async Task<DateOnly> ComputeDueDateAsync(string customerTerms, DateOnly date)
         {
 
-            if (model != null)
+            if (customerTerms != null)
             {
                 DateOnly dueDate;
 
-                switch (model.Terms)
+                switch (customerTerms)
                 {
                     case "7D":
                         return date.AddDays(7);

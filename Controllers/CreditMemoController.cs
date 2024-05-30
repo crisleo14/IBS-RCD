@@ -32,6 +32,9 @@ namespace Accounting_System.Controllers
         {
             var cm = await _dbContext.CreditMemos
                 .Include(cm => cm.SalesInvoice)
+                .ThenInclude(s => s.Customer)
+                .Include(cm => cm.SalesInvoice)
+                .ThenInclude(s => s.Product)
                 .Include(cm => cm.ServiceInvoice)
                 .ThenInclude(sv => sv.Customer)
                 .Include(cm => cm.ServiceInvoice)
@@ -164,12 +167,15 @@ namespace Accounting_System.Controllers
                 {
                     model.ServiceInvoiceId = null;
 
-                    var existingSalesInvoice = await _dbContext.SalesInvoices
-                                               .FirstOrDefaultAsync(si => si.Id == model.SalesInvoiceId, cancellationToken);
+                    var existingSalesInvoice = await _dbContext
+                        .SalesInvoices
+                        .Include(c => c.Customer)
+                        .Include(s => s.Product)
+                        .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId);
 
-                    model.CreditAmount = (decimal)(model.Quantity * -model.AdjustedPrice);
+                    model.CreditAmount = model.Quantity * -model.AdjustedPrice;
 
-                    if (existingSalesInvoice.CustomerType == "Vatable")
+                    if (existingSalesInvoice.Customer.CustomerType == "Vatable")
                     {
                         model.VatableSales = model.CreditAmount / 1.12m;
                         model.VatAmount = model.CreditAmount - model.VatableSales;
@@ -252,7 +258,14 @@ namespace Accounting_System.Controllers
                 return NotFound();
             }
 
-            var creditMemo = await _dbContext.CreditMemos.FindAsync(id, cancellationToken);
+            var creditMemo = await _dbContext.CreditMemos
+                .Include(cm => cm.SalesInvoice)
+                .Include(cm => cm.ServiceInvoice)
+                .ThenInclude(sv => sv.Customer)
+                .Include(cm => cm.ServiceInvoice)
+                .ThenInclude(sv => sv.Service)
+                .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+
             if (creditMemo == null)
             {
                 return NotFound();
@@ -282,7 +295,13 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var existingModel = await _dbContext.CreditMemos.FindAsync(model.Id, cancellationToken);
+                var existingModel = await _dbContext.CreditMemos
+                .Include(cm => cm.SalesInvoice)
+                .Include(cm => cm.ServiceInvoice)
+                .ThenInclude(sv => sv.Customer)
+                .Include(cm => cm.ServiceInvoice)
+                .ThenInclude(sv => sv.Service)
+                .FirstOrDefaultAsync(r => r.Id == model.Id, cancellationToken);
 
                 if (existingModel == null)
                 {
@@ -299,14 +318,17 @@ namespace Accounting_System.Controllers
                     existingModel.ServiceInvoiceId = null;
                     existingModel.SalesInvoiceId = model.SalesInvoiceId;
 
-                    var existingSalesInvoice = await _dbContext.SalesInvoices
-                                               .FirstOrDefaultAsync(si => si.Id == existingModel.SalesInvoiceId, cancellationToken);
+                    var existingSalesInvoice = await _dbContext
+                        .SalesInvoices
+                        .Include(c => c.Customer)
+                        .Include(s => s.Product)
+                        .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId);
 
-                    existingModel.CreditAmount = (decimal)(model.Quantity * model.AdjustedPrice);
+                    existingModel.CreditAmount = model.Quantity * model.AdjustedPrice;
 
-                    if (existingSalesInvoice.CustomerType == "Vatable")
+                    if (existingSalesInvoice.Customer.CustomerType == "Vatable")
                     {
-                        existingModel.VatableSales = existingModel.CreditAmount / (decimal)1.12;
+                        existingModel.VatableSales = existingModel.CreditAmount / 1.12m;
                         existingModel.VatAmount = existingModel.CreditAmount - existingModel.VatableSales;
                         existingModel.TotalSales = existingModel.VatableSales + existingModel.VatAmount;
                     }
@@ -322,11 +344,11 @@ namespace Accounting_System.Controllers
                         .Include(sv => sv.Customer)
                         .FirstOrDefaultAsync(sv => sv.Id == existingModel.ServiceInvoiceId, cancellationToken);
 
-                    existingModel.CreditAmount = (decimal)(model.AdjustedPrice - existingSv.Total);
+                    existingModel.CreditAmount = model.AdjustedPrice - existingSv.Total;
 
                     if (existingSv.Customer.CustomerType == "Vatable")
                     {
-                        existingModel.VatableSales = existingModel.CreditAmount / (decimal)1.12;
+                        existingModel.VatableSales = existingModel.CreditAmount / 1.12m;
                         existingModel.VatAmount = existingModel.CreditAmount - existingModel.VatableSales;
                         existingModel.TotalSales = existingModel.VatableSales + existingModel.VatAmount;
                     }
@@ -402,6 +424,8 @@ namespace Accounting_System.Controllers
                         #region --Retrieval of SI and SOA--
 
                         var existingSI = await _dbContext.SalesInvoices
+                                                    .Include(s => s.Customer)
+                                                    .Include(s => s.Product)
                                                     .FirstOrDefaultAsync(si => si.Id == model.SalesInvoiceId, cancellationToken);
 
                         #endregion --Retrieval of SI and SOA--
@@ -410,14 +434,14 @@ namespace Accounting_System.Controllers
 
                         var sales = new SalesBook();
 
-                        if (model.SalesInvoice.CustomerType == "Vatable")
+                        if (model.SalesInvoice.Customer.CustomerType == "Vatable")
                         {
                             sales.TransactionDate = model.Date;
                             sales.SerialNo = model.CMNo;
-                            sales.SoldTo = model.SalesInvoice.SoldTo;
-                            sales.TinNo = model.SalesInvoice.TinNo;
-                            sales.Address = model.SalesInvoice.Address;
-                            sales.Description = model.SalesInvoice.ProductName;
+                            sales.SoldTo = model.SalesInvoice.Customer.Name;
+                            sales.TinNo = model.SalesInvoice.Customer.TinNo;
+                            sales.Address = model.SalesInvoice.Customer.Address;
+                            sales.Description = model.SalesInvoice.Product.Name;
                             sales.Amount = model.CreditAmount;
                             sales.VatAmount = model.VatAmount;
                             sales.VatableSales = model.VatableSales;
@@ -428,14 +452,14 @@ namespace Accounting_System.Controllers
                             sales.DueDate = existingSI?.DueDate;
                             sales.DocumentId = model.SalesInvoiceId;
                         }
-                        else if (model.SalesInvoice.CustomerType == "Exempt")
+                        else if (model.SalesInvoice.Customer.CustomerType == "Exempt")
                         {
                             sales.TransactionDate = model.Date;
                             sales.SerialNo = model.CMNo;
-                            sales.SoldTo = model.SalesInvoice.SoldTo;
-                            sales.TinNo = model.SalesInvoice.TinNo;
-                            sales.Address = model.SalesInvoice.Address;
-                            sales.Description = model.SalesInvoice.ProductName;
+                            sales.SoldTo = model.SalesInvoice.Customer.Name;
+                            sales.TinNo = model.SalesInvoice.Customer.TinNo;
+                            sales.Address = model.SalesInvoice.Customer.Address;
+                            sales.Description = model.SalesInvoice.Product.Name;
                             sales.Amount = model.CreditAmount;
                             sales.VatExemptSales = model.CreditAmount;
                             //sales.Discount = model.Discount;
@@ -449,10 +473,10 @@ namespace Accounting_System.Controllers
                         {
                             sales.TransactionDate = model.Date;
                             sales.SerialNo = model.CMNo;
-                            sales.SoldTo = model.SalesInvoice.SoldTo;
-                            sales.TinNo = model.SalesInvoice.TinNo;
-                            sales.Address = model.SalesInvoice.Address;
-                            sales.Description = model.SalesInvoice.ProductName;
+                            sales.SoldTo = model.SalesInvoice.Customer.Name;
+                            sales.TinNo = model.SalesInvoice.Customer.TinNo;
+                            sales.Address = model.SalesInvoice.Customer.Address;
+                            sales.Description = model.SalesInvoice.Product.Name;
                             sales.Amount = model.CreditAmount;
                             sales.ZeroRated = model.CreditAmount;
                             //sales.Discount = model.Discount;
@@ -475,7 +499,7 @@ namespace Accounting_System.Controllers
                             {
                                 Date = model.Date,
                                 Reference = model.CMNo,
-                                Description = model.SalesInvoice.ProductName,
+                                Description = model.SalesInvoice.Product.Name,
                                 AccountNo = "1010201",
                                 AccountTitle = "AR-Trade Receivable",
                                 Debit = 0,
@@ -492,7 +516,7 @@ namespace Accounting_System.Controllers
                                 {
                                     Date = model.Date,
                                     Reference = model.CMNo,
-                                    Description = model.SalesInvoice.ProductName,
+                                    Description = model.SalesInvoice.Product.Name,
                                     AccountNo = "1010202",
                                     AccountTitle = "Deferred Creditable Withholding Tax",
                                     Debit = 0,
@@ -509,7 +533,7 @@ namespace Accounting_System.Controllers
                                 {
                                     Date = model.Date,
                                     Reference = model.CMNo,
-                                    Description = model.SalesInvoice.ProductName,
+                                    Description = model.SalesInvoice.Product.Name,
                                     AccountNo = "1010203",
                                     AccountTitle = "Deferred Creditable Withholding Vat",
                                     Debit = 0,
@@ -519,14 +543,14 @@ namespace Accounting_System.Controllers
                                 }
                             );
                         }
-                        if (model.SalesInvoice.ProductName == "Biodiesel")
+                        if (model.SalesInvoice.Product.Name == "Biodiesel")
                         {
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
                                     Date = model.Date,
                                     Reference = model.CMNo,
-                                    Description = model.SalesInvoice.ProductName,
+                                    Description = model.SalesInvoice.Product.Name,
                                     AccountNo = "4010101",
                                     AccountTitle = "Sales - Biodiesel",
                                     Debit = model.VatableSales < 0
@@ -538,14 +562,14 @@ namespace Accounting_System.Controllers
                                 }
                             );
                         }
-                        else if (model.SalesInvoice.ProductName == "Econogas")
+                        else if (model.SalesInvoice.Product.Name == "Econogas")
                         {
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
                                     Date = model.Date,
                                     Reference = model.CMNo,
-                                    Description = model.SalesInvoice.ProductName,
+                                    Description = model.SalesInvoice.Product.Name,
                                     AccountNo = "4010102",
                                     AccountTitle = "Sales - Econogas",
                                     Debit = model.VatableSales < 0
@@ -557,14 +581,14 @@ namespace Accounting_System.Controllers
                                 }
                             );
                         }
-                        else if (model.SalesInvoice.ProductName == "Envirogas")
+                        else if (model.SalesInvoice.Product.Name == "Envirogas")
                         {
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
                                     Date = model.Date,
                                     Reference = model.CMNo,
-                                    Description = model.SalesInvoice.ProductName,
+                                    Description = model.SalesInvoice.Product.Name,
                                     AccountNo = "4010103",
                                     AccountTitle = "Sales - Envirogas",
                                     Debit = model.VatableSales < 0
@@ -584,7 +608,7 @@ namespace Accounting_System.Controllers
                                 {
                                     Date = model.Date,
                                     Reference = model.CMNo,
-                                    Description = model.SalesInvoice.ProductName,
+                                    Description = model.SalesInvoice.Product.Name,
                                     AccountNo = "2010301",
                                     AccountTitle = "Vat Output",
                                     Debit = Math.Abs(model.VatAmount),

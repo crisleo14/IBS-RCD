@@ -54,11 +54,11 @@ namespace Accounting_System.Models.AccountsReceivable
         [Range(1, int.MaxValue, ErrorMessage = "Adjusted Price should be greater than 0")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]
-        public decimal? AdjustedPrice { get; set; }
+        public decimal AdjustedPrice { get; set; }
 
         [Range(1, int.MaxValue, ErrorMessage = "Quantity should be greater than 0")]
         [Column(TypeName = "numeric(18,2)")]
-        public int? Quantity { get; set; }
+        public decimal Quantity { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]

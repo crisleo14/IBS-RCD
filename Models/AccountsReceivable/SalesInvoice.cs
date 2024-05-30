@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Accounting_System.Models.MasterFile;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -11,16 +12,6 @@ namespace Accounting_System.Models.AccountsReceivable
         public string? SINo { get; set; }
 
         public long SeriesNumber { get; set; }
-
-        [Display(Name = "Customer Type")]
-        [Column(TypeName = "varchar(10)")]
-        public string CustomerType { get; set; }
-
-        [NotMapped]
-        public List<SelectListItem>? Products { get; set; }
-
-        [NotMapped]
-        public List<SelectListItem>? COSNo { get; set; }
 
         #region-- Customer properties
 
@@ -36,25 +27,19 @@ namespace Accounting_System.Models.AccountsReceivable
 
         #endregion
 
-        public int CustomerNo { get; set; }
+        #region-- Product properties
 
-        [Display(Name = "Sold To")]
-        [Column(TypeName = "varchar(100)")]
-        public string SoldTo { get; set; }
+        [NotMapped]
+        public List<SelectListItem>? Products { get; set; }
 
-        [Column(TypeName = "varchar(200)")]
-        public string Address { get; set; }
+        [Required]
+        [Display(Name = "Product No")]
+        public int ProductId { get; set; }
 
-        [Display(Name = "Tin#")]
-        [Column(TypeName = "varchar(20)")]
-        public string TinNo { get; set; }
+        [ForeignKey("ProductId")]
+        public Product? Product { get; set; }
 
-        [Column(TypeName = "varchar(50)")]
-        [Display(Name = "Business Style")]
-        public string BusinessStyle { get; set; }
-
-        [Column(TypeName = "varchar(5)")]
-        public string Terms { get; set; }
+        #endregion
 
         [Column(TypeName = "varchar(20)")]
         [Display(Name = "Other Ref No")]
@@ -65,19 +50,9 @@ namespace Accounting_System.Models.AccountsReceivable
         public string PoNo { get; set; }
 
         [Required]
-        [Display(Name = "Product No")]
-        public int ProductId { get; set; }
-
-        [Display(Name = "Product Name")]
-        [Column(TypeName = "varchar(50)")]
-        public string ProductName { get; set; }
-
-        [Display(Name = "Unit")]
-        [Column(TypeName = "varchar(5)")]
-        public string ProductUnit { get; set; }
-
-        [Required]
-        public int Quantity { get; set; }
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal Quantity { get; set; }
 
         [Required]
         [Display(Name = "Unit Price")]

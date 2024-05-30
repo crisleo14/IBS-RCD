@@ -39,16 +39,16 @@
                             <tr>
                                 <td>
                                     <span><b>Sold to:</b></span>
-                                    &nbsp; @Html.DisplayFor(model => model.SoldTo) &nbsp;<br />
+                                    &nbsp; @Html.DisplayFor(model => model.Customer.Name) &nbsp;<br />
 
                                     <span><b>Address:</b></span>
-                                    &nbsp; @Html.DisplayFor(model => model.Address) &nbsp;<br />
+                                    &nbsp; @Html.DisplayFor(model => model.Customer.Address) &nbsp;<br />
 
                                     <span><b>TIN:</b></span>
-                                    &nbsp; @Html.DisplayFor(model => model.TinNo) &nbsp;<br />
+                                    &nbsp; @Html.DisplayFor(model => model.Customer.TinNo) &nbsp;<br />
 
                                     <span><b>Business Style:</b></span>
-                                    &nbsp; @Html.DisplayFor(model => model.BusinessStyle) &nbsp;
+                                    &nbsp; @Html.DisplayFor(model => model.Customer.BusinessStyle) &nbsp;
                                 </td>
 
                                 <td class="w-25 text-nowrap">
@@ -56,7 +56,7 @@
                                     <b>Invoice Date:</b>
                                     &nbsp; <span>@Model.TransactionDate.ToString("MM/dd/yyyy")</span>
                                     <br />
-                                    <b>Terms:</b>&nbsp;<span>@Html.DisplayFor(model => model.Terms)</span>&nbsp;<br />
+                                    <b>Terms:</b>&nbsp;<span>@Html.DisplayFor(model => model.Customer.Terms)</span>&nbsp;<br />
                                     <b>Due Date:</b>&nbsp; <span>@Model.DueDate.ToString("MM/dd/yyyy")</span><br />
 
                                     <b>Other Ref No.:</b>&nbsp; @Html.DisplayFor(model => model.OtherRefNo) &nbsp;
@@ -78,8 +78,8 @@
                             </tr>
 
                             <tr style="height:80px;">
-                                <td>@Html.DisplayFor(model => model.ProductName)</td>
-                                <td>@Html.DisplayFor(model => model.ProductUnit)</td>
+                                <td>@Html.DisplayFor(model => model.Product.Name)</td>
+                                <td>@Html.DisplayFor(model => model.Product.Unit)</td>
                                 <td>@Model.Quantity.ToString("N0")</td>
                                 <td>@Html.DisplayFor(model => model.UnitPrice)</td>
                                 <td>@Html.DisplayFor(model => model.Amount)</td>
@@ -194,7 +194,7 @@
                                                 <tr>
                                                     <td><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
                                                     <td class="text-end">
-                                                        @if (Model.CustomerType == "Vatable")
+                                                        @if (Model.Customer.CustomerType == "Vatable")
                                                         {
                                                             <p style="height: 9px;">@Html.DisplayFor(model => model.VatableSales)</p>
                                                         }
@@ -205,7 +205,7 @@
                                                     <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
 
                                                     <td class="text-end">
-                                                        @if (Model.CustomerType == "Zero Rated")
+                                                        @if (Model.Customer.CustomerType == "Zero Rated")
                                                         {
                                                             <p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p>
                                                         }
@@ -215,7 +215,7 @@
                                                     <td><p style="height: 9px; margin-left:8%;"><b>VAT-Exempt Sales: </b></p></td>
 
                                                     <td class="text-end">
-                                                        @if (Model.CustomerType == "Exempt")
+                                                        @if (Model.Customer.CustomerType == "Exempt")
                                                         {
                                                             <p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p>
                                                         }
@@ -225,7 +225,7 @@
                                                     <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
 
                                                     <td class="text-end">
-                                                        @if (Model.CustomerType == "Vatable")
+                                                        @if (Model.Customer.CustomerType == "Vatable")
                                                         {
                                                             <p style="height: 9px;">@Html.DisplayFor(model => model.VatAmount)</p>
                                                         }
@@ -253,7 +253,7 @@
                                                             var otherDiscount = Model.Amount - Model.Discount;
                                                             var formattedOtherDiscount = String.Format("{0:N2}", otherDiscount);
                                                         }
-                                                        @if (Model.CustomerType == "Vatable")
+                                                        @if (Model.Customer.CustomerType == "Vatable")
                                                         {
                                                             <p style="height: 9px;">@Html.DisplayFor(model => formattedTotalSales)</p>
                                                         }
@@ -290,7 +290,7 @@
                         <i>This is a system generated invoice, no signature required.</i>
                     </p>
                 </div>
-                @if (Model.CustomerType == "Exempt")
+                @if (Model.Customer.CustomerType == "Exempt")
                 {
                     <div style="margin-top:20px;">
                         <p>
@@ -298,7 +298,7 @@
                         </p>
                     </div>
                 }
-                else if (Model.CustomerType == "Zero Rated")
+                else if (Model.Customer.CustomerType == "Zero Rated")
                 {
                     <div style="margin-top:20px;">
                         <p>

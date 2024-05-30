@@ -87,6 +87,9 @@ namespace Accounting_System.Repository
             var creditMemo = await _dbContext
                 .CreditMemos
                 .Include(c => c.SalesInvoice)
+                .ThenInclude(s => s.Product)
+                .Include(c => c.SalesInvoice)
+                .ThenInclude(s => s.Customer)
                 .Include(c => c.ServiceInvoice)
                 .ThenInclude(sv => sv.Customer)
                 .Include(c => c.ServiceInvoice)

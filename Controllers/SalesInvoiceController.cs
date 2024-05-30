@@ -80,7 +80,7 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
             sales.Products = await _dbContext.Products
-                .OrderBy(p => p.Id)
+                .OrderBy(p => p.Code)
                 .Select(p => new SelectListItem
                 {
                     Value = p.Id.ToString(),
@@ -110,56 +110,52 @@ namespace Accounting_System.Controllers
                 var existingCustomers = await _dbContext.Customers
                                                .FirstOrDefaultAsync(si => si.Id == sales.CustomerId, cancellationToken);
 
-                sales.CustomerNo = existingCustomers.Number;
                 sales.SeriesNumber = getLastNumber;
                 sales.CreatedBy = _userManager.GetUserName(this.User);
                 sales.SINo = generateCRNo;
                 sales.Amount = sales.Quantity * sales.UnitPrice;
-                sales.DueDate = await _salesInvoiceRepo.ComputeDueDateAsync(sales, sales.TransactionDate);
+                sales.DueDate = await _salesInvoiceRepo.ComputeDueDateAsync(existingCustomers.Terms, sales.TransactionDate);
                 if (sales.Amount >= sales.Discount)
                 {
                     if (existingCustomers.CustomerType == "Vatable")
                     {
-                        decimal netDiscount = (decimal)(sales.Amount - sales.Discount);
-                        sales.NetDiscount = netDiscount;
-                        sales.VatableSales = netDiscount / (decimal)1.12;
-                        sales.VatAmount = netDiscount - sales.VatableSales;
+                        sales.NetDiscount = sales.Amount - sales.Discount;
+                        sales.VatableSales = sales.NetDiscount / 1.12m;
+                        sales.VatAmount = sales.NetDiscount - sales.VatableSales;
                         if (existingCustomers.WithHoldingTax)
                         {
-                            sales.WithHoldingTaxAmount = sales.VatableSales * (decimal)0.01;
+                            sales.WithHoldingTaxAmount = sales.VatableSales * 0.01m;
                         }
                         if (existingCustomers.WithHoldingVat)
                         {
-                            sales.WithHoldingVatAmount = sales.VatableSales * (decimal)0.05;
+                            sales.WithHoldingVatAmount = sales.VatableSales * 0.05m;
                         }
                     }
                     else if (existingCustomers.CustomerType == "Zero Rated")
                     {
-                        decimal netDiscount = (decimal)(sales.Amount - sales.Discount);
-                        sales.NetDiscount = netDiscount;
+                        sales.NetDiscount = sales.Amount - sales.Discount;
                         sales.ZeroRated = sales.Amount;
 
                         if (existingCustomers.WithHoldingTax)
                         {
-                            sales.WithHoldingTaxAmount = sales.ZeroRated * (decimal)0.01;
+                            sales.WithHoldingTaxAmount = sales.ZeroRated * 0.01m;
                         }
                         if (existingCustomers.WithHoldingVat)
                         {
-                            sales.WithHoldingVatAmount = sales.ZeroRated * (decimal)0.05;
+                            sales.WithHoldingVatAmount = sales.ZeroRated * 0.05m;
                         }
                     }
                     else
                     {
-                        decimal netDiscount = (decimal)(sales.Amount - sales.Discount);
-                        sales.NetDiscount = netDiscount;
+                        sales.NetDiscount = sales.Amount - sales.Discount;
                         sales.VatExempt = sales.Amount;
                         if (existingCustomers.WithHoldingTax)
                         {
-                            sales.WithHoldingTaxAmount = sales.VatExempt * (decimal)0.01;
+                            sales.WithHoldingTaxAmount = sales.VatExempt * 0.01m;
                         }
                         if (existingCustomers.WithHoldingVat)
                         {
-                            sales.WithHoldingVatAmount = sales.VatExempt * (decimal)0.05;
+                            sales.WithHoldingVatAmount = sales.VatExempt * 0.05m;
                         }
                     }
                     await _dbContext.AddAsync(sales, cancellationToken);
@@ -196,13 +192,12 @@ namespace Accounting_System.Controllers
                 return Json(new
                 {
                     SoldTo = customer.Name,
-                    Address = customer.Address,
-                    TinNo = customer.TinNo,
-                    BusinessStyle = customer.BusinessStyle,
-                    Terms = customer.Terms,
-                    CustomerType = customer.CustomerType,
-                    WithHoldingTax = customer.WithHoldingTax
-                    // Add other properties as needed
+                    customer.Address,
+                    customer.TinNo,
+                    customer.BusinessStyle,
+                    customer.Terms,
+                    customer.CustomerType,
+                    customer.WithHoldingTax
                 });
             }
             return Json(null); // Return null if no matching customer is found
@@ -265,51 +260,45 @@ namespace Accounting_System.Controllers
 
                     if (existingModel.Amount >= model.Discount)
                     {
-                        var existingCustomers = await _dbContext.Customers
-                                                       .FirstOrDefaultAsync(si => si.Id == existingModel.CustomerId, cancellationToken);
-
-                        if (existingCustomers.CustomerType == "Vatable")
+                        if (existingModel.Customer.CustomerType == "Vatable")
                         {
-                            decimal netDiscount = (decimal)(existingModel.Amount - model.Discount);
-                            existingModel.NetDiscount = netDiscount;
-                            existingModel.VatableSales = netDiscount / (decimal)1.12;
-                            existingModel.VatAmount = netDiscount - existingModel.VatableSales;
-                            if (existingCustomers.WithHoldingTax)
+                            existingModel.NetDiscount = existingModel.Amount - model.Discount;
+                            existingModel.VatableSales = existingModel.NetDiscount / 1.12m;
+                            existingModel.VatAmount = existingModel.NetDiscount - existingModel.VatableSales;
+                            if (existingModel.Customer.WithHoldingTax)
                             {
                                 existingModel.WithHoldingTaxAmount = existingModel.VatableSales * (decimal)0.01;
                             }
-                            if (existingCustomers.WithHoldingVat)
+                            if (existingModel.Customer.WithHoldingVat)
                             {
                                 existingModel.WithHoldingVatAmount = existingModel.VatableSales * (decimal)0.05;
                             }
                         }
-                        else if (existingCustomers.CustomerType == "Zero Rated")
+                        else if (existingModel.Customer.CustomerType == "Zero Rated")
                         {
-                            decimal netDiscount = (decimal)(existingModel.Amount - model.Discount);
-                            existingModel.NetDiscount = netDiscount;
+                            existingModel.NetDiscount = existingModel.Amount - model.Discount;
                             existingModel.ZeroRated = existingModel.Amount;
 
-                            if (existingCustomers.WithHoldingTax)
+                            if (existingModel.Customer.WithHoldingTax)
                             {
-                                existingModel.WithHoldingTaxAmount = existingModel.ZeroRated * (decimal)0.01;
+                                existingModel.WithHoldingTaxAmount = existingModel.ZeroRated * 0.01m;
                             }
-                            if (existingCustomers.WithHoldingVat)
+                            if (existingModel.Customer.WithHoldingVat)
                             {
-                                existingModel.WithHoldingVatAmount = existingModel.ZeroRated * (decimal)0.05;
+                                existingModel.WithHoldingVatAmount = existingModel.ZeroRated * 0.05m;
                             }
                         }
                         else
                         {
-                            decimal netDiscount = (decimal)(existingModel.Amount - model.Discount);
-                            existingModel.NetDiscount = netDiscount;
+                            existingModel.NetDiscount = existingModel.Amount - model.Discount;
                             existingModel.VatExempt = existingModel.Amount;
-                            if (existingCustomers.WithHoldingTax)
+                            if (existingModel.Customer.WithHoldingTax)
                             {
-                                existingModel.WithHoldingTaxAmount = existingModel.VatExempt * (decimal)0.01;
+                                existingModel.WithHoldingTaxAmount = existingModel.VatExempt * 0.01m;
                             }
-                            if (existingCustomers.WithHoldingVat)
+                            if (existingModel.Customer.WithHoldingVat)
                             {
-                                existingModel.WithHoldingVatAmount = existingModel.VatExempt * (decimal)0.05;
+                                existingModel.WithHoldingVatAmount = existingModel.VatExempt * 0.05m;
                             }
                         }
 
@@ -380,7 +369,7 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Post(int invoiceId, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.SalesInvoices.FindAsync(invoiceId, cancellationToken);
+            var model = await _salesInvoiceRepo.FindSalesInvoice(invoiceId, cancellationToken);
 
             if (model != null)
             {
@@ -390,31 +379,18 @@ namespace Accounting_System.Controllers
                     model.PostedBy = _userManager.GetUserName(this.User);
                     model.PostedDate = DateTime.Now;
 
-                    #region --Previous Implementation
-
-                    //await _inventoryRepo.UpdateQuantity(model.Quantity, int.Parse(model.ProductId));
-                    //var ledgers = new Ledger[]
-                    //  {
-                    //    new Ledger {AccountNo = 1001,TransactionNo = model.SINo, TransactionDate = model.TransactionDate, Category = "Debit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.Amount},
-                    //    new Ledger {AccountNo = 2001,TransactionNo = model.SINo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatAmount},
-                    //    new Ledger {AccountNo = 4001,TransactionNo = model.SINo, TransactionDate = model.TransactionDate, Category = "Credit", CreatedBy = _userManager.GetUserName(this.User), Amount = model.VatableSales}
-                    //  };
-                    //_dbContext.Ledgers.AddRange(ledgers);
-
-                    #endregion --Previous Implementation
-
                     #region --Sales Book Recording
 
                     var sales = new SalesBook();
 
-                    if (model.CustomerType == "Vatable")
+                    if (model.Customer.CustomerType == "Vatable")
                     {
                         sales.TransactionDate = model.TransactionDate;
                         sales.SerialNo = model.SINo;
-                        sales.SoldTo = model.SoldTo;
-                        sales.TinNo = model.TinNo;
-                        sales.Address = model.Address;
-                        sales.Description = model.ProductName;
+                        sales.SoldTo = model.Customer.Name;
+                        sales.TinNo = model.Customer.TinNo;
+                        sales.Address = model.Customer.Address;
+                        sales.Description = model.Product.Name;
                         sales.Amount = model.Amount;
                         sales.VatAmount = model.VatAmount;
                         sales.VatableSales = model.VatableSales;
@@ -425,14 +401,14 @@ namespace Accounting_System.Controllers
                         sales.DueDate = model.DueDate;
                         sales.DocumentId = model.Id;
                     }
-                    else if (model.CustomerType == "Exempt")
+                    else if (model.Customer.CustomerType == "Exempt")
                     {
                         sales.TransactionDate = model.TransactionDate;
                         sales.SerialNo = model.SINo;
-                        sales.SoldTo = model.SoldTo;
-                        sales.TinNo = model.TinNo;
-                        sales.Address = model.Address;
-                        sales.Description = model.ProductName;
+                        sales.SoldTo = model.Customer.Name;
+                        sales.TinNo = model.Customer.TinNo;
+                        sales.Address = model.Customer.Address;
+                        sales.Description = model.Product.Name;
                         sales.Amount = model.Amount;
                         sales.VatExemptSales = model.Amount;
                         sales.Discount = model.Discount;
@@ -446,10 +422,10 @@ namespace Accounting_System.Controllers
                     {
                         sales.TransactionDate = model.TransactionDate;
                         sales.SerialNo = model.SINo;
-                        sales.SoldTo = model.SoldTo;
-                        sales.TinNo = model.TinNo;
-                        sales.Address = model.Address;
-                        sales.Description = model.ProductName;
+                        sales.SoldTo = model.Customer.Name;
+                        sales.TinNo = model.Customer.TinNo;
+                        sales.Address = model.Customer.Address;
+                        sales.Description = model.Product.Name;
                         sales.Amount = model.Amount;
                         sales.ZeroRated = model.Amount;
                         sales.Discount = model.Discount;
@@ -473,7 +449,7 @@ namespace Accounting_System.Controllers
                         {
                             Date = model.TransactionDate,
                             Reference = model.SINo,
-                            Description = model.ProductName,
+                            Description = model.Product.Name,
                             AccountNo = "1010201",
                             AccountTitle = "AR-Trade Receivable",
                             Debit = model.NetDiscount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount),
@@ -490,7 +466,7 @@ namespace Accounting_System.Controllers
                             {
                                 Date = model.TransactionDate,
                                 Reference = model.SINo,
-                                Description = model.ProductName,
+                                Description = model.Product.Name,
                                 AccountNo = "1010202",
                                 AccountTitle = "Deferred Creditable Withholding Tax",
                                 Debit = model.WithHoldingTaxAmount,
@@ -507,7 +483,7 @@ namespace Accounting_System.Controllers
                             {
                                 Date = model.TransactionDate,
                                 Reference = model.SINo,
-                                Description = model.ProductName,
+                                Description = model.Product.Name,
                                 AccountNo = "1010203",
                                 AccountTitle = "Deferred Creditable Withholding Vat",
                                 Debit = model.WithHoldingVatAmount,
@@ -517,14 +493,14 @@ namespace Accounting_System.Controllers
                             }
                         );
                     }
-                    if (model.ProductName == "Biodiesel")
+                    if (model.Product.Name == "Biodiesel")
                     {
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
                                 Date = model.TransactionDate,
                                 Reference = model.SINo,
-                                Description = model.ProductName,
+                                Description = model.Product.Name,
                                 AccountNo = "4010101",
                                 AccountTitle = "Sales - Biodiesel",
                                 Debit = 0,
@@ -536,14 +512,14 @@ namespace Accounting_System.Controllers
                             }
                         );
                     }
-                    else if (model.ProductName == "Econogas")
+                    else if (model.Product.Name == "Econogas")
                     {
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
                                 Date = model.TransactionDate,
                                 Reference = model.SINo,
-                                Description = model.ProductName,
+                                Description = model.Product.Name,
                                 AccountNo = "4010102",
                                 AccountTitle = "Sales - Econogas",
                                 Debit = 0,
@@ -555,14 +531,14 @@ namespace Accounting_System.Controllers
                             }
                         );
                     }
-                    else if (model.ProductName == "Envirogas")
+                    else if (model.Product.Name == "Envirogas")
                     {
                         ledgers.Add(
                             new GeneralLedgerBook
                             {
                                 Date = model.TransactionDate,
                                 Reference = model.SINo,
-                                Description = model.ProductName,
+                                Description = model.Product.Name,
                                 AccountNo = "4010103",
                                 AccountTitle = "Sales - Envirogas",
                                 Debit = 0,
@@ -582,7 +558,7 @@ namespace Accounting_System.Controllers
                             {
                                 Date = model.TransactionDate,
                                 Reference = model.SINo,
-                                Description = model.ProductName,
+                                Description = model.Product.Name,
                                 AccountNo = "2010301",
                                 AccountTitle = "Vat Output",
                                 Debit = 0,
@@ -596,6 +572,12 @@ namespace Accounting_System.Controllers
                     await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
 
                     #endregion --General Ledger Book Recording
+
+                    #region--Inventory Recording
+
+                    await _inventoryRepo.AddSalesToInventoryAsync(model, cancellationToken);
+
+                    #endregion
 
                     #region --Audit Trail Recording
 

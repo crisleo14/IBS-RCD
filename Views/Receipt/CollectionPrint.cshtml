@@ -39,7 +39,7 @@
                     Received from: &nbsp;
                     @if (Model.SalesInvoiceId != null)
                     {
-                        @Html.DisplayFor(model => model.SalesInvoice.SoldTo)
+                        @Html.DisplayFor(model => model.SalesInvoice.Customer.Name)
                     }
                     else
                     {
@@ -52,7 +52,7 @@
                     Address: &nbsp;
                     @if (Model.SalesInvoiceId != null)
                     {
-                        @Html.DisplayFor(model => model.SalesInvoice.Address)
+                        @Html.DisplayFor(model => model.SalesInvoice.Customer.Address)
                     }
                     else
                     {
@@ -65,7 +65,7 @@
                     TIN: &nbsp;
                     @if (Model.SalesInvoiceId != null)
                     {
-                        @Html.DisplayFor(model => model.SalesInvoice.TinNo)
+                        @Html.DisplayFor(model => model.SalesInvoice.Customer.TinNo)
                     }
                     else
                     {
@@ -76,7 +76,7 @@
                     Buss. Style: &nbsp;
                     @if (Model.SalesInvoiceId != null)
                     {
-                        @Html.DisplayFor(model => model.SalesInvoice.BusinessStyle)
+                        @Html.DisplayFor(model => model.SalesInvoice.Customer.BusinessStyle)
                     }
                     else
                     {

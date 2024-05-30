@@ -91,7 +91,35 @@ namespace Accounting_System.Repository
 
         public async Task AddSalesToInventoryAsync(SalesInvoice salesInvoice, CancellationToken cancellationToken)
         {
+            var previousInventory = await _dbContext.Inventories
+                            .OrderByDescending(i => i.Date)
+                            .FirstOrDefaultAsync(i => i.ProductId == salesInvoice.Product.Id, cancellationToken);
 
+            if (previousInventory != null)
+            {
+                Inventory inventory = new()
+                {
+                    Date = salesInvoice.TransactionDate,
+                    ProductId = salesInvoice.Product.Id,
+                    Particular = "Sales",
+                    Reference = salesInvoice.SINo,
+                    Quantity = salesInvoice.Quantity,
+                    Cost = previousInventory.AverageCost
+                };
+
+                inventory.Total = inventory.Quantity * inventory.Cost;
+                inventory.InventoryBalance = previousInventory.InventoryBalance - inventory.Quantity;
+                inventory.TotalBalance = previousInventory.TotalBalance - inventory.Total;
+                inventory.AverageCost = inventory.TotalBalance / inventory.InventoryBalance;
+
+                await _dbContext.AddAsync(inventory, cancellationToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+
+            }
+            else
+            {
+                throw new InvalidOperationException($"Beginning inventory for this product '{salesInvoice.Product.Id}' not found!");
+            }
         }
 
     }

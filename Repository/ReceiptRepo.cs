@@ -57,8 +57,12 @@ namespace Accounting_System.Repository
                 .CollectionReceipts
                 .Include(cr => cr.SalesInvoice)
                 .ThenInclude(s => s.Customer)
+                .Include(cr => cr.SalesInvoice)
+                .ThenInclude(s => s.Product)
                 .Include(cr => cr.ServiceInvoice)
                 .ThenInclude(sv => sv.Customer)
+                .Include(cr => cr.ServiceInvoice)
+                .ThenInclude(sv => sv.Service)
                 .ToListAsync(cancellationToken);
         }
 
@@ -68,8 +72,12 @@ namespace Accounting_System.Repository
                 .CollectionReceipts
                 .Include(cr => cr.SalesInvoice)
                 .ThenInclude(s => s.Customer)
+                .Include(cr => cr.SalesInvoice)
+                .ThenInclude(s => s.Product)
                 .Include(cr => cr.ServiceInvoice)
                 .ThenInclude(sv => sv.Customer)
+                .Include(cr => cr.ServiceInvoice)
+                .ThenInclude(sv => sv.Service)
                 .FirstOrDefaultAsync(collectionReceipt => collectionReceipt.Id == id, cancellationToken);
 
             if (collectionReceipt != null)

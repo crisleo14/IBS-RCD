@@ -64,6 +64,9 @@ namespace Accounting_System.Repository
             var debitMemo = await _dbContext
                 .DebitMemos
                 .Include(s => s.SalesInvoice)
+                .ThenInclude(s => s.Customer)
+                .Include(s => s.SalesInvoice)
+                .ThenInclude(s => s.Product)
                 .Include(soa => soa.ServiceInvoice)
                 .ThenInclude(soa => soa.Customer)
                 .Include(c => c.ServiceInvoice)

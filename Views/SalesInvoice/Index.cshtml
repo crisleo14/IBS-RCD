@@ -15,16 +15,16 @@
         <thead>
             <tr class="text-nowrap">
                 <th>
-                        @Html.DisplayNameFor(model => model.SINo)
+                    @Html.DisplayNameFor(model => model.SINo)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.SoldTo)
+                    @Html.DisplayNameFor(model => model.Customer.Name)
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.TransactionDate)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Terms)
+                    @Html.DisplayNameFor(model => model.Customer.Terms)
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.Amount)
@@ -37,16 +37,16 @@
             {
                 <tr class="align-text-bottom">
                     <td>
-                            @Html.DisplayFor(model => invoice.SINo)
+                        @Html.DisplayFor(model => invoice.SINo)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => invoice.SoldTo)
+                        @Html.DisplayFor(model => invoice.Customer.Name)
                     </td>
                     <td>
                         @invoice.TransactionDate.ToShortDateString()
                     </td>
                     <td>
-                        @Html.DisplayFor(model => invoice.Terms)
+                        @Html.DisplayFor(model => invoice.Customer.Terms)
                     </td>
                     <td>
                         @Html.DisplayFor(model => invoice.Amount)

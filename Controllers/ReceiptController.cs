@@ -80,7 +80,7 @@ namespace Accounting_System.Controllers
                .ToListAsync(cancellationToken);
 
             model.SalesInvoices = await _dbContext.SalesInvoices
-                .Where(si => !si.IsPaid && si.CustomerNo == model.CustomerId)
+                .Where(si => !si.IsPaid && si.CustomerId == model.CustomerId)
                 .OrderBy(si => si.Id)
                 .Select(s => new SelectListItem
                 {
