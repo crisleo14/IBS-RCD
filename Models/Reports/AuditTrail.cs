@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Accounting_System.Models
+namespace Accounting_System.Models.Reports
 {
     public class AuditTrail
     {

@@ -1,4 +1,6 @@
-﻿namespace Accounting_System.Models.ViewModels
+﻿using Accounting_System.Models.AccountsPayable;
+
+namespace Accounting_System.Models.ViewModels
 {
     public class CheckVoucherVM
     {

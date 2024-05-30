@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Accounting_System.Models.Product>
+﻿@model IEnumerable<Product>
+@using Accounting_System.Models.MasterFile
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
@@ -53,7 +54,7 @@
                     <td>
                         @Html.DisplayFor(modelItem => item.Unit)
                     </td>
-                    
+
                 </tr>
             }
         </tbody>

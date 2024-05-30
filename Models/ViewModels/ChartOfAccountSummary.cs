@@ -1,4 +1,4 @@
-﻿namespace Accounting_System.Models
+﻿namespace Accounting_System.Models.ViewModels
 {
     public class ChartOfAccountSummary
     {

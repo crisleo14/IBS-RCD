@@ -1,5 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
+using Accounting_System.Models.AccountsReceivable;
+using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
