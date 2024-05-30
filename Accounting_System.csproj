@@ -9,6 +9,9 @@
     <None Remove="Views\Report\MaturityAgingReport.cshtml~RF35c7a3.TMP" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Models\AccountsPayable\PurchaseOrder.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.2" />

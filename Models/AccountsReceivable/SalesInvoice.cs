@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Accounting_System.Models
+namespace Accounting_System.Models.AccountsReceivable
 {
     public class SalesInvoice : BaseEntity
     {
@@ -10,27 +10,31 @@ namespace Accounting_System.Models
         [Column(TypeName = "varchar(12)")]
         public string? SINo { get; set; }
 
-        [ForeignKey("CustomerId")]
-        public Customer? Customer { get; set; }
-
         public long SeriesNumber { get; set; }
-
-        [Required]
-        [Display(Name = "Customer No")]
-        public int CustomerId { get; set; }
 
         [Display(Name = "Customer Type")]
         [Column(TypeName = "varchar(10)")]
         public string CustomerType { get; set; }
 
         [NotMapped]
-        public List<SelectListItem>? Customers { get; set; }
-
-        [NotMapped]
         public List<SelectListItem>? Products { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? COSNo { get; set; }
+
+        #region-- Customer properties
+
+        [Required]
+        [Display(Name = "Customer No")]
+        public int CustomerId { get; set; }
+
+        [ForeignKey("CustomerId")]
+        public Customer? Customer { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? Customers { get; set; }
+
+        #endregion
 
         public int CustomerNo { get; set; }
 
@@ -62,8 +66,7 @@ namespace Accounting_System.Models
 
         [Required]
         [Display(Name = "Product No")]
-        [Column(TypeName = "varchar(20)")]
-        public string ProductNo { get; set; }
+        public int ProductId { get; set; }
 
         [Display(Name = "Product Name")]
         [Column(TypeName = "varchar(50)")]

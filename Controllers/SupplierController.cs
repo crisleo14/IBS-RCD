@@ -6,10 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Accounting_System.Data;
-using Accounting_System.Models;
 using Microsoft.AspNetCore.Identity;
 using Accounting_System.Repository;
 using Microsoft.AspNetCore.Authorization;
+using Accounting_System.Models.Reports;
+using Accounting_System.Models.MasterFile;
 
 namespace Accounting_System.Controllers
 {
