@@ -12,6 +12,7 @@ namespace Accounting_System.Models.AccountsReceivable
         public long SeriesNumber { get; set; }
 
         [Column(TypeName = "date")]
+        [Display(Name = "Transaction Date")]
         public DateOnly TransactionDate { get; set; }
 
         [Display(Name = "SI No")]
@@ -35,13 +36,12 @@ namespace Accounting_System.Models.AccountsReceivable
         public string Description { get; set; }
 
         [Display(Name = "Price Adjustment")]
-        [Range(1, int.MaxValue, ErrorMessage = "Adjusted Price should be greater than 0")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]
         public decimal AdjustedPrice { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "Quantity should be greater than 0")]
         [Column(TypeName = "numeric(18,2)")]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Quantity { get; set; }
 
         [Display(Name = "Credit Amount")]

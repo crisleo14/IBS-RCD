@@ -52,6 +52,7 @@ namespace Accounting_System.Models.AccountsReceivable
         public List<SelectListItem>? ChartOfAccounts { get; set; }
 
         [Required]
+        [Display(Name = "Transaction Date")]
         [Column(TypeName = "date")]
         public DateOnly TransactionDate { get; set; }
 

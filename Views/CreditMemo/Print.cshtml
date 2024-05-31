@@ -6,7 +6,7 @@
 @inject UserManager<IdentityUser> UserManager
 
 @{
-    ViewData["Title"] = "Credit Memo";
+    ViewData["Title"] = "Print Credit Memo";
 }
 
 <br />
@@ -50,7 +50,7 @@
 
                     <td class="w-25 text-nowrap">
 
-                        <b>Date :</b> @Model.TransactionDate.ToShortDateString()
+                        <b>Date :</b> @Model.TransactionDate.ToString("MM/dd/yyyy")
                     </td>
                 </tr>
             </tbody>
@@ -71,10 +71,10 @@
         <tbody>
             <tr style="height:80px;">
                 <td>@Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
-                <td>@Model.SalesInvoice.TransactionDate.ToShortDateString()</td>
+                <td>@Model.SalesInvoice.TransactionDate.ToString("MM/dd/yyyy")</td>
                 <td>@Html.DisplayFor(model => model.SalesInvoice.Product.Name)</td>
                 <td>@Html.DisplayFor(model => model.Description)</td>
-                <td>@Math.Abs(Model.CreditAmount)</td>
+                <td>@Math.Abs(Model.CreditAmount).ToString("N2")</td>
             </tr>
 
         </tbody>
@@ -95,7 +95,7 @@
                                     <td class="w-50"><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
                                         @if (Model.VatableSales != 0)
                                         {
-                                            <td class="text-end">@Html.DisplayFor(model => model.VatableSales)</td>
+                                            <td class="text-end">@Math.Abs(Model.VatableSales).ToString("N2")</td>
                                         }
                                         else
                                         {
@@ -107,7 +107,7 @@
                                     <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
                                         @if (Model.SalesInvoice.Customer.CustomerType == "Zero Rated")
                                         {
-                                            <td class="text-end">@Math.Abs(Model.CreditAmount)</td>
+                                            <td class="text-end">@Math.Abs(Model.CreditAmount).ToString("N2")</td>
                                         }
                                         else
                                         {
@@ -132,7 +132,7 @@
 
                                         @if (Model.VatAmount != 0)
                                         {
-                                            <td class="text-end">@Html.DisplayFor(model => model.VatAmount)</td>
+                                            <td class="text-end">@Math.Abs(Model.VatAmount).ToString("N2")</td>
                                         }
                                         else
                                         {
@@ -141,7 +141,7 @@
                                 </tr>
                                 <tr>
                                     <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
-                                    <td class="text-end">@Math.Abs(Model.TotalSales)</td>
+                                    <td class="text-end">@Math.Abs(Model.TotalSales).ToString("N2")</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -174,7 +174,7 @@ else if (Model.Source == "Service Invoice")
 
                     <td class="w-25 text-nowrap">
 
-                        <b>Date :</b> @Model.TransactionDate.ToShortDateString()
+                        <b>Date :</b> @Model.TransactionDate.ToString("MM/dd/yyyy")
                     </td>
                 </tr>
             </tbody>

@@ -4,6 +4,10 @@
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
+@{
+    ViewData["Title"] = "Sales Invoice";
+}
+
 <h1>Sales Invoices</h1>
 <hr />
 <p>
@@ -43,7 +47,7 @@
                         @Html.DisplayFor(model => invoice.Customer.Name)
                     </td>
                     <td>
-                        @invoice.TransactionDate.ToShortDateString()
+                        @invoice.TransactionDate.ToString("MM/dd/yyyy")
                     </td>
                     <td>
                         @Html.DisplayFor(model => invoice.Customer.Terms)

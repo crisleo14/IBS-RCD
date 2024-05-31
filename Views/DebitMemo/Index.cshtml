@@ -4,12 +4,11 @@
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Debit Memo";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <h1>Debit Memo</h1>
-<partial name="_Notification">
 <p>
     <a asp-action="Create" class="btn btn-primary rounded-3">Create New</a>
 </p>
@@ -45,7 +44,7 @@
                     @Html.DisplayFor(modelItem => item.DMNo)
                 </td>
                 <td>
-                    @item.TransactionDate.ToShortDateString()
+                    @item.TransactionDate.ToString("MM/dd/yyyy")
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.DebitAmount)
@@ -73,7 +72,7 @@
                         {
                             if (!item.IsPosted && !item.IsVoided && !item.IsCanceled)
                             {
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-light">Edit</a>
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-light disabled">Edit</a>
                                 <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#Preview-@item.Id" data-bs-url="@Url.Action($"Preview/{item.Id}")">
                                     Preview
                                 </button>

@@ -6,6 +6,9 @@
 @using Humanizer
 @using Accounting_System.Utility
 
+@{
+    ViewData["Title"] = "Print Collection Receipt";
+}
 
 <br />
 <div class="text-end">
@@ -28,7 +31,7 @@
 
 <div class="w-100 text-end" style="margin-top:-20px; padding-bottom:10px;">
     <span><b>Date:</b></span>
-    <span class="underline" style="display: inline-block; width: 20%; text-align:center;">@Model.TransactionDate.ToShortDateString()</span><br />
+    <span class="underline" style="display: inline-block; width: 20%; text-align:center;">@Model.TransactionDate.ToString("MM/dd/yyyy")</span><br />
 </div>
 
 <div>
@@ -163,11 +166,11 @@
                 <td style="width:33%">
                     @if (Model.SalesInvoiceId != null)
                     {
-                        @Model.SalesInvoice.TransactionDate.ToShortDateString()
+                        @Model.SalesInvoice.TransactionDate.ToString("MM/dd/yyyy")
                     }
                     else
                     {
-                        @Model.ServiceInvoice.CreatedDate.ToShortDateString()
+                        @Model.ServiceInvoice.CreatedDate.ToString("MM/dd/yyyy")
                     }
                 </td>
                 <td style="width:33%">

@@ -10,9 +10,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="PreviewCMLabel">Preview</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
 
@@ -57,7 +55,7 @@
 
                                     <td class="w-25 text-nowrap">
 
-                                        <b>Date :</b> @Model.TransactionDate.ToShortDateString()
+                                        <b>Date :</b> @Model.TransactionDate.ToString("MM/dd/yyyy")
                                         &nbsp; <span id="invoiceDate"></span>
                                         <br />
                                         <b>@* Terms: *@</b>&nbsp;<span id="terms"></span>&nbsp;<br />
@@ -84,7 +82,7 @@
                             <tbody>
                                 <tr style="height:80px;">
                                     <td>@Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
-                                    <td>@Model.SalesInvoice.TransactionDate.ToShortDateString()</td>
+                                    <td>@Model.SalesInvoice.TransactionDate.ToString("MM/dd/yyyy")</td>
                                     <td>@Html.DisplayFor(model => model.SalesInvoice.Product.Name)</td>
                                     <td>@Html.DisplayFor(model => model.Description)</td>
                                     <td>@Html.DisplayFor(model => model.DebitAmount)</td>
@@ -179,7 +177,7 @@
 
                                     <td class="w-25 text-nowrap">
 
-                                        <b>Date :</b> @Model.TransactionDate.ToShortDateString()
+                                        <b>Date :</b> @Model.TransactionDate.ToString("MM/dd/yyyy")
                                     </td>
                                 </tr>
                             </tbody>

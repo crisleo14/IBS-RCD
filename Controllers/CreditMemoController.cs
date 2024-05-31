@@ -375,6 +375,9 @@ namespace Accounting_System.Controllers
 
             var creditMemo = await _dbContext.CreditMemos
                 .Include(cm => cm.SalesInvoice)
+                .ThenInclude(s => s.Customer)
+                .Include(cm => cm.SalesInvoice)
+                .ThenInclude(s => s.Product)
                 .Include(cm => cm.ServiceInvoice)
                 .ThenInclude(sv => sv.Customer)
                 .Include(cm => cm.ServiceInvoice)
