@@ -93,7 +93,7 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
             {
                 <tr class="align-text-bottom">
                     <td>
-                        @Html.DisplayFor(model => ledger.Date)
+                        @ledger.Date.ToString("MM/dd/yyyy")
                     </td>
                     <td>
                         @Html.DisplayFor(model => ledger.Reference)

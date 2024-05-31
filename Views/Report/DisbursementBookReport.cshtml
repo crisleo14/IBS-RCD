@@ -105,7 +105,7 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
             {
                 <tr class="align-text-bottom">
                     <td>
-                        @Html.DisplayFor(model => disbursement.Date)
+                        @disbursement.Date.ToString("MM/dd/yyyy")
                     </td>
                     <td>
                         @Html.DisplayFor(model => disbursement.CVNo)

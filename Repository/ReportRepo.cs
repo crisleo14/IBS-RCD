@@ -150,7 +150,7 @@ namespace Accounting_System.Repository
         }
 
 
-        public List<InventoryBook> GetInventoryBooks(DateOnly? dateFrom, DateOnly? dateTo)
+        public List<Inventory> GetInventoryBooks(DateOnly? dateFrom, DateOnly? dateTo)
         {
             if (dateFrom > dateTo)
             {
@@ -158,7 +158,8 @@ namespace Accounting_System.Repository
             }
 
             var inventoryBooks = _dbContext
-             .InventoryBooks
+             .Inventories
+             .Include(i => i.Product)
              .AsEnumerable()
              .Where(i => i.Date >= dateFrom && i.Date <= dateTo)
              .OrderBy(i => i.Id)

@@ -44,6 +44,13 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 
+    <script>
+        // Get the current date in the format "YYYY-MM-DD" (required for the date input)
+        var currentDate = new Date().toISOString().slice(0, 10);
+
+        // Set the default value of the input field
+        document.getElementById("Date").value = currentDate;
+    </script>
 }
 
 

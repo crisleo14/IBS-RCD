@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Accounting_System.Models.InventoryBook>
+﻿@model IEnumerable<Accounting_System.Models.Inventory>
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
@@ -47,8 +47,8 @@ TIN: 000-216-589-00000
 ADDRESS: 57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone, Kalaklan, Olongapo City, 2200 Zambales, Philippines
 
 Accounting System: Accounting Administration System
-Acknowledgement Certificate Control No.: 
-Date Issued: 
+Acknowledgement Certificate Control No.:
+Date Issued:
 </pre>
 
 <pre id="resultPre">
@@ -71,22 +71,22 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                     @Html.DisplayNameFor(model => model.Date)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.ProductCode)
+                    @Html.DisplayNameFor(model => model.Product.Code)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.ProductName)
+                    @Html.DisplayNameFor(model => model.Product.Name)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Unit)
+                    @Html.DisplayNameFor(model => model.Product.Unit)
                 </th>
                 <th class="text-end">
                     @Html.DisplayNameFor(model => model.Quantity)
                 </th>
                 <th class="text-end">
-                    @Html.DisplayNameFor(model => model.Price)
+                    Price Per Unit
                 </th>
                 <th class="text-end">
-                    @Html.DisplayNameFor(model => model.Amount)
+                    @Html.DisplayNameFor(model => model.Total)
                 </th>
             </tr>
         </thead>
@@ -96,31 +96,31 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
             {
                 <tr class="align-text-bottom">
                     <td>
-                        @Html.DisplayFor(model => inventory.Date)
+                        @inventory.Date.ToString("MM/dd/yyyy")
                     </td>
                     <td>
-                        @Html.DisplayFor(model => inventory.ProductCode)
+                        @Html.DisplayFor(model => inventory.Product.Code)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => inventory.ProductName)
+                        @Html.DisplayFor(model => inventory.Product.Name)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => inventory.Unit)
+                        @Html.DisplayFor(model => inventory.Product.Unit)
                     </td>
                     <td class="text-end">
                         @Html.DisplayFor(model => inventory.Quantity)
                     </td>
                     <td class="text-end">
-                        @Html.DisplayFor(model => inventory.Price)
+                        @Html.DisplayFor(model => inventory.Cost)
                     </td>
                     <td class="text-end">
-                        @Html.DisplayFor(model => inventory.Amount)
+                        @Html.DisplayFor(model => inventory.Total)
                     </td>
                 </tr>
 
                 totalQuantity += inventory.Quantity;
-                totalPriceUnitAmount += inventory.Price;
-                totalAmount += inventory.Amount;
+                totalPriceUnitAmount += inventory.Cost;
+                totalAmount += inventory.Total;
             }
             <tr class="align-text-bottom" style="border-top: 2px solid black;">
                 @{

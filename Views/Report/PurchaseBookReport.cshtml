@@ -123,10 +123,10 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                     <td>
                     @if (ViewBag.SelectedFiltering != "DueDate")
                         {
-                            @purchase.Date
+                            @purchase.Date.ToString("MM/dd/yyyy")
                         }else
                         {
-                            @purchase.DueDate
+                            @purchase.DueDate.ToString("MM/dd/yyyy")
                         }
                     </td>
                     <td>

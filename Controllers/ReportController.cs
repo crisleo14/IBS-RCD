@@ -35,23 +35,25 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> SalesBook()
         {
-            var viewModel = new ViewModelBook();
-            viewModel.SOA = await _dbContext.ServiceInvoices
+            var viewModel = new ViewModelBook
+            {
+                SOA = await _dbContext.ServiceInvoices
                 .Where(soa => soa.IsPosted)
                 .Select(soa => new SelectListItem
                 {
                     Value = soa.Id.ToString(),
                     Text = soa.SVNo
                 })
-                .ToListAsync();
-            viewModel.SI = await _dbContext.SalesInvoices
+                .ToListAsync(),
+                SI = await _dbContext.SalesInvoices
                 .Where(si => si.IsPosted)
                 .Select(soa => new SelectListItem
                 {
                     Value = soa.Id.ToString(),
                     Text = soa.SINo
                 })
-                .ToListAsync();
+                .ToListAsync()
+            };
 
             return View(viewModel);
         }
@@ -136,15 +138,17 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> PurchaseBook()
         {
-            var viewModel = new ViewModelBook();
-            viewModel.PO = await _dbContext.PurchaseOrders
+            var viewModel = new ViewModelBook
+            {
+                PO = await _dbContext.PurchaseOrders
                 .Where(po => po.IsPosted)
                 .Select(po => new SelectListItem
                 {
                     Value = po.Id.ToString(),
                     Text = po.PONo
                 })
-                .ToListAsync();
+                .ToListAsync()
+            };
 
             return View(viewModel);
         }
@@ -253,7 +257,7 @@ namespace Accounting_System.Controllers
                     var lastRecord = inventoryBooks.LastOrDefault();
                     if (lastRecord != null)
                     {
-                        ViewBag.LastRecord = lastRecord.CreatedDate;
+                        ViewBag.LastRecord = lastRecord.Date;
                     }
 
                     return View(inventoryBooks);
@@ -798,14 +802,14 @@ namespace Accounting_System.Controllers
                         TempData["error"] = "No Record Found";
                         return RedirectToAction(nameof(InventoryBook));
                     }
-                    var totalAmount = inventoryBooks.Sum(ib => ib.Amount);
+                    var totalAmount = inventoryBooks.Sum(ib => ib.Total);
                     var totalQuantity = inventoryBooks.Sum(ib => ib.Quantity);
-                    var totalPrice = inventoryBooks.Sum(ib => ib.Price);
+                    var totalPrice = inventoryBooks.Sum(ib => ib.Cost);
                     var lastRecord = inventoryBooks.LastOrDefault();
                     var firstRecord = inventoryBooks.FirstOrDefault();
                     if (lastRecord != null)
                     {
-                        ViewBag.LastRecord = lastRecord.CreatedDate;
+                        ViewBag.LastRecord = lastRecord.Date;
                     }
 
                     var fileContent = new StringBuilder();
@@ -829,12 +833,12 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine();
                     fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
                     fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
-                    fileContent.AppendLine($"{"ProductCode",-8}\t{"Product Code",-8}\t{"12"}\t{"31"}\t{"20"}\t{firstRecord.ProductCode}");
-                    fileContent.AppendLine($"{"ProductName",-8}\t{"Product Name",-8}\t{"33"}\t{"82"}\t{"50"}\t{firstRecord.ProductName}");
-                    fileContent.AppendLine($"{"Unit",-8}\t{"Unit",-8}\t{"84"}\t{"85"}\t{"2"}\t{firstRecord.Unit}");
+                    fileContent.AppendLine($"{"ProductCode",-8}\t{"Product Code",-8}\t{"12"}\t{"31"}\t{"20"}\t{firstRecord.Product.Code}");
+                    fileContent.AppendLine($"{"ProductName",-8}\t{"Product Name",-8}\t{"33"}\t{"82"}\t{"50"}\t{firstRecord.Product.Name}");
+                    fileContent.AppendLine($"{"Unit",-8}\t{"Unit",-8}\t{"84"}\t{"85"}\t{"2"}\t{firstRecord.Product.Unit}");
                     fileContent.AppendLine($"{"Quantity",-8}\t{"Quantity",-8}\t{"87"}\t{"104"}\t{"18"}\t{firstRecord.Quantity}");
-                    fileContent.AppendLine($"{"Price",-8}\t{"Price Per Unit",-8}\t{"106"}\t{"123"}\t{"18"}\t{firstRecord.Price}");
-                    fileContent.AppendLine($"{"Amount",-8}\t{"Amount",-8}\t{"125"}\t{"142"}\t{"18"}\t{firstRecord.Amount}");
+                    fileContent.AppendLine($"{"Price",-8}\t{"Price Per Unit",-8}\t{"106"}\t{"123"}\t{"18"}\t{firstRecord.Cost}");
+                    fileContent.AppendLine($"{"Amount",-8}\t{"Amount",-8}\t{"125"}\t{"142"}\t{"18"}\t{firstRecord.Total}");
                     fileContent.AppendLine();
                     fileContent.AppendLine("INVENTORY BOOK");
                     fileContent.AppendLine();
@@ -843,7 +847,7 @@ namespace Accounting_System.Controllers
                     // Generate the records
                     foreach (var record in inventoryBooks)
                     {
-                        fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.ProductCode,-20}\t{record.ProductName,-50}\t{record.Unit,-2}\t{record.Quantity,18}\t{record.Price,18}\t{record.Amount,18}");
+                        fileContent.AppendLine($"{record.Date.ToString(),-10}\t{record.Product.Code,-20}\t{record.Product.Code,-50}\t{record.Unit,-2}\t{record.Quantity,18}\t{record.Cost,18}\t{record.Total,18}");
                     }
                     fileContent.AppendLine(new string('-', 171));
                     fileContent.AppendLine($"{"",-10}\t{"",-20}\t{"",-50}\t{"TOTAL:",2}\t{totalQuantity,18}\t{totalPrice,18}\t{totalAmount,18}");

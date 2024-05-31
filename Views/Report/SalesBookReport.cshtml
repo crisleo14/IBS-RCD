@@ -127,11 +127,11 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                     <td>
                     @if (ViewBag.SelectedDocument != "DueDate")
                     {
-                        @Html.DisplayFor(model => invoice.TransactionDate)
+                        @invoice.TransactionDate.ToString("MM/dd/yyyy")
                     }
                     else
                     {
-                        @Html.DisplayFor(model => invoice.DueDate)
+                        @invoice.DueDate.ToString("MM/dd/yyyy")
                     }
                     </td>
                     <td>
