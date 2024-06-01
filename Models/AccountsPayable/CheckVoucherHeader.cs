@@ -109,5 +109,8 @@ namespace Accounting_System.Models.AccountsPayable
         public List<SelectListItem>? CheckVouchers { get; set; }
 
         public long Sequence { get; set; }
+
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal CheckAmount { get; set; }
     }
 }
