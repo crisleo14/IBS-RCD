@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Threading;
 
 namespace Accounting_System.Controllers
 {
@@ -57,7 +58,7 @@ namespace Accounting_System.Controllers
                 }
                 var headerDetails = details.Where(d => d.TransactionNo == cvNo).ToList();
 
-                if (header.Category == "Trade")
+                if (header.Category == "Trade" && header.RRNo != null)
                 {
                     var siArray = new string[header.RRNo.Length];
                     for (int i = 0; i < header.RRNo.Length; i++)
@@ -84,50 +85,6 @@ namespace Accounting_System.Controllers
             }
 
             return View(checkVoucherVMs);
-        }
-        [HttpGet]
-        public async Task<IActionResult> Create(CancellationToken cancellationToken)
-        {
-            var viewModel = new CheckVoucherVM
-            {
-                Header = new CheckVoucherHeader(),
-                Details = new List<CheckVoucherDetail>()
-            };
-
-            viewModel.Header.COA = await _dbContext.ChartOfAccounts
-                .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
-                .Select(s => new SelectListItem
-                {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
-                })
-                .ToListAsync(cancellationToken);
-
-            viewModel.Header.Suppliers = await _dbContext.Suppliers
-                .Select(sup => new SelectListItem
-                {
-                    Value = sup.Id.ToString(),
-                    Text = sup.Name
-                })
-                .ToListAsync();
-            viewModel.Header.BankAccounts = await _dbContext.BankAccounts
-                .Select(ba => new SelectListItem
-                {
-                    Value = ba.Id.ToString(),
-                    Text = ba.AccountNo + " " + ba.AccountName
-                })
-                .ToListAsync();
-
-            viewModel.Header.CheckVouchers = await _dbContext.CheckVoucherHeaders
-                .Where(cvh => cvh.AccruedType == "Invoicing")
-                .Select(cvh => new SelectListItem
-                {
-                    Value = cvh.CVNo,
-                    Text = cvh.CVNo
-                })
-                .ToListAsync();
-
-            return View(viewModel);
         }
 
         [HttpPost]
@@ -160,7 +117,7 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 #region --Validating series
-                var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(model.Header.Reference, cancellationToken);
+                var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(cancellationToken);
                 var getLastSequence = await _checkVoucherRepo.GetLastSequenceNumberCV(cancellationToken);
 
                 if (getLastNumber > 9999999999)
@@ -341,7 +298,7 @@ namespace Accounting_System.Controllers
                             AccountNo = "2010101",
                             AccountName = "AP-Trade Payable",
                             TransactionNo = model.Header.Reference != null ? model.Header.Reference + "-" + model.Header.Sequence.ToString("D3") : generateCVNo,
-                            Debit = supplier.TaxType == "Withholding Tax" ? netOfEWT : model.Header.Amount,
+                            Debit = supplier.TaxType == "Withholding Tax" ? netOfEWT : model.Header.Total,
                             Credit = 0
                         }
                     );
@@ -428,7 +385,7 @@ namespace Accounting_System.Controllers
                 }
                 if (cashInBankAmount != 0)
                 {
-                    model.Header.Amount = cashInBankAmount;
+                    model.Header.Total = cashInBankAmount;
                 }
 
                 #endregion --Saving the default entries
@@ -543,7 +500,7 @@ namespace Accounting_System.Controllers
                 var address = supplier.Address;
                 var tinNo = supplier.TinNo;
                 var name = "";
-                if (cvId != null)
+                if (cvId != null || supplierId != null)
                 {
                     name = supplier.Name;
                 }
@@ -629,7 +586,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
 
-            if (header.Category == "Trade")
+            if (header.Category == "Trade" && header.RRNo != null)
             {
                 var siArray = new string[header.RRNo.Length];
                 for (int i = 0; i < header.RRNo.Length; i++)
@@ -724,7 +681,7 @@ namespace Accounting_System.Controllers
                                     Date = modelHeader.Date,
                                     CVNo = modelHeader.CVNo,
                                     Payee = modelHeader.Payee,
-                                    Amount = modelHeader.Amount,
+                                    Amount = modelHeader.Total,
                                     Particulars = modelHeader.Particulars,
                                     Bank = bank.Branch,
                                     CheckNo = modelHeader.CheckNo,
@@ -822,7 +779,7 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
-                var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(model.Header.Reference, cancellationToken);
+                var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(cancellationToken);
 
                 if (getLastNumber > 9999999999)
                 {
@@ -928,6 +885,255 @@ namespace Accounting_System.Controllers
             }
 
             return NotFound();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Trade (CancellationToken cancellationToken, CheckVoucherTradeViewModel model)
+        {
+            model.COA = await _dbContext.ChartOfAccounts
+                .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number,
+                    Text = s.Number + " " + s.Name
+                })
+                .ToListAsync(cancellationToken);
+
+            model.Suppliers = await _dbContext.Suppliers
+                .Select(sup => new SelectListItem
+                {
+                    Value = sup.Id.ToString(),
+                    Text = sup.Name
+                })
+                .ToListAsync();
+            model.BankAccounts = await _dbContext.BankAccounts
+                .Select(ba => new SelectListItem
+                {
+                    Value = ba.Id.ToString(),
+                    Text = ba.AccountNo + " " + ba.AccountName
+                })
+                .ToListAsync();
+
+            return View(model);
+        }
+        [HttpPost]
+        public async Task<IActionResult> Trade(CheckVoucherVM model, CheckVoucherTradeViewModel viewModel, IFormFile? file, DateOnly startDate, DateOnly endDate, string[] accountNumber, string[] accountNumberText, decimal[]? debit, decimal[]? credit, CancellationToken cancellationToken)
+         {
+            #region --Validating series
+            var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(cancellationToken);
+
+            if (getLastNumber > 9999999999)
+            {
+                TempData["error"] = "You reached the maximum Series Number";
+                return View(viewModel);
+            }
+
+            var totalRemainingSeries = 9999999999 - getLastNumber;
+            if (getLastNumber >= 9999999899)
+            {
+                TempData["warning"] = $"Check Voucher created successfully, Warning {totalRemainingSeries} series numbers remaining";
+            }
+            else
+            {
+                TempData["success"] = "Check Voucher created successfully";
+            }
+            #endregion --Validating series
+
+            #region --Check if duplicate record
+            if (viewModel.CheckNo != null && !viewModel.CheckNo.Contains("DM"))
+            {
+                var cv = await _dbContext
+                .CheckVoucherHeaders
+                .Where(cv => cv.CheckNo == viewModel.CheckNo && cv.BankId == viewModel.BankId)
+                .ToListAsync(cancellationToken);
+                if (cv.Any())
+                {
+                    TempData["error"] = "Check No. Is already exist";
+                    return View(viewModel);
+                }
+            }
+            #endregion --Check if duplicate record
+
+            #region --Retrieve Supplier
+            var supplier = await _dbContext
+                        .Suppliers
+                        .FirstOrDefaultAsync(po => po.Id == viewModel.SupplierId, cancellationToken);
+
+            #endregion --Retrieve Supplier
+
+            #region --CV Details Entry
+            var generateCVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken);
+            var cvDetails = new List<CheckVoucherDetail>();
+
+            for (int i = 0; i < accountNumber.Length; i++)
+            {
+                cvDetails.Add(
+                    new CheckVoucherDetail
+                {
+                    AccountNo = accountNumber[i],
+                    AccountName = accountNumberText[i],
+                    Debit = debit[i],
+                    Credit = credit[i],
+                    TransactionNo = generateCVNo
+                });
+            }
+
+            await _dbContext.CheckVoucherDetails.AddRangeAsync(cvDetails, cancellationToken);
+            #endregion --CV Details Entry
+
+            #region --Saving the default entries
+            var cvh = new List<CheckVoucherHeader>();
+                cvh.Add(
+                        new CheckVoucherHeader
+                        {
+                            CVNo = generateCVNo,
+                            SeriesNumber = getLastNumber,
+                            Date = viewModel.TransactionDate,
+                            //RRNo = modelHeader.Date,
+                            //PONo = modelHeader.Date,
+                            SupplierId = viewModel.SupplierId,
+                            Particulars = viewModel.Particulars,
+                            BankId = viewModel.BankId,
+                            CheckNo = viewModel.CheckNo,
+                            Category = "Trade",
+                            Payee = viewModel.Payee,
+                            CheckDate = viewModel.CheckDate,
+                            Total = 0,
+                            Amount = viewModel.Amount,
+                            CreatedBy = _userManager.GetUserName(this.User)
+
+                        }
+                    );
+
+            await _dbContext.CheckVoucherHeaders.AddRangeAsync(cvh, cancellationToken);
+
+            #endregion --Saving the default entries
+
+            #region -- Partial payment of RR's
+            //if (amount != null && model.Header.Category == "Trade")
+            //{
+            //    var receivingReport = new ReceivingReport();
+            //    for (int i = 0; i < model.Header.RRNo.Length; i++)
+            //    {
+            //        var rrValue = model.Header.RRNo[i];
+            //        receivingReport = await _dbContext.ReceivingReports
+            //                    .FirstOrDefaultAsync(p => p.RRNo == rrValue);
+
+            //        receivingReport.AmountPaid += amount[i];
+
+            //        if (receivingReport.Amount <= receivingReport.AmountPaid)
+            //        {
+            //            receivingReport.IsPaid = true;
+            //            receivingReport.PaidDate = DateTime.Now;
+            //        }
+            //    }
+            //}
+
+            #endregion -- Partial payment of RR's
+
+            #region -- Uploading file --
+            foreach (var item in cvh.ToList())
+            {
+                if (file != null && file.Length > 0)
+                {
+                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Supporting CV Files", item.CVNo);
+
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    string fileName = Path.GetFileName(file.FileName);
+                    string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    //if necessary add field to store location path
+                    // model.Header.SupportingFilePath = fileSavePath
+                }
+
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(item.CreatedBy, $"Create new check voucher# {item.CVNo}", "Check Voucher");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+            }
+            await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
+            return RedirectToAction("Index");
+            #endregion -- Uploading file --
+        }
+
+            [HttpGet]
+        public async Task<IActionResult> NonTradeInvoicing(CancellationToken cancellationToken)
+        {
+            var viewModel = new CheckVoucherVM
+            {
+                Header = new CheckVoucherHeader(),
+                Details = new List<CheckVoucherDetail>()
+            };
+
+            viewModel.Header.COA = await _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number,
+                    Text = s.Number + " " + s.Name
+                })
+                .ToListAsync(cancellationToken);
+
+            viewModel.Header.Suppliers = await _dbContext.Suppliers
+                .Select(sup => new SelectListItem
+                {
+                    Value = sup.Id.ToString(),
+                    Text = sup.Name
+                })
+                .ToListAsync();
+
+            return View(viewModel);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> NonTradePayment(CancellationToken cancellationToken)
+        {
+            var viewModel = new CheckVoucherVM
+            {
+                Header = new CheckVoucherHeader(),
+                Details = new List<CheckVoucherDetail>()
+            };
+
+            viewModel.Header.COA = await _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number,
+                    Text = s.Number + " " + s.Name
+                })
+                .ToListAsync(cancellationToken);
+
+            viewModel.Header.CheckVouchers = await _dbContext.CheckVoucherHeaders
+                .Where(cvh => cvh.AccruedType == "Invoicing")
+                .Select(cvh => new SelectListItem
+                {
+                    Value = cvh.CVNo,
+                    Text = cvh.CVNo
+                })
+                .ToListAsync();
+
+            viewModel.Header.BankAccounts = await _dbContext.BankAccounts
+                .Select(ba => new SelectListItem
+                {
+                    Value = ba.Id.ToString(),
+                    Text = ba.AccountNo + " " + ba.AccountName
+                })
+                .ToListAsync();
+
+            
+
+            return View(viewModel);
         }
     }
 }

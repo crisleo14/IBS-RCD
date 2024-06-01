@@ -231,7 +231,7 @@ namespace Accounting_System.Controllers
                 var poNo = viewModel.Header.PONo;
                 var siNo = viewModel.Header.SINo;
                 var payee = viewModel.Header.Payee;
-                var amount = viewModel.Header.Amount;
+                var amount = viewModel.Header.Total;
                 var particulars = viewModel.Header.Particulars;
                 var checkNo = viewModel.Header.CheckNo;
                 var totalDebit = viewModel.Header.TotalDebit;

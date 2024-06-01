@@ -60,15 +60,18 @@
                 <td style="width:5%;">PO # :</td>
 
                 <td>
-                    @for (int i = 0; i < Model.Header.PONo.Length; i++)
+                    @if (Model.Header.PONo != null)
                     {
-                        if (i != Model.Header.PONo.Length -1)
+                        @for (int i = 0; i < Model.Header.PONo.Length; i++)
                         {
-                            <span>@Model.Header.PONo[i],</span>
-                        }
-                        else
-                        {
-                            <span>@Model.Header.PONo[i]</span>
+                            if (i != Model.Header.PONo.Length -1)
+                            {
+                                <span>@Model.Header.PONo[i],</span>
+                            }
+                            else
+                            {
+                                <span>@Model.Header.PONo[i]</span>
+                            }
                         }
                     }
                 </td>
@@ -94,18 +97,21 @@
                     }
                     else if (Model.Header.Category == "Trade")
                     {
-                        bool isFirst = true;
-                        foreach (var item in ViewBag.SINoArray)
+                        @if (ViewBag.SINoArray != null)
                         {
-                            if (isFirst)
+                            bool isFirst = true;
+                            foreach (var item in ViewBag.SINoArray)
                             {
-                                isFirst = false;
+                                if (isFirst)
+                                {
+                                    isFirst = false;
+                                }
+                                else
+                                {
+                                    <span>,</span>
+                                }
+                                <span>@item</span>
                             }
-                            else
-                            {
-                                <span>,</span>
-                            }
-                            <span>@item</span>
                         }
                     }
                 </td>
@@ -130,9 +136,9 @@
             <tr>
                 <td style="width:20%; padding-left:20px;">Payee :</td>
                 <td style="width:65%;">@Html.DisplayFor(model => model.Header.Payee)</td>
-                @if (Model.Header.Amount != 0)
+                @if (Model.Header.Total != 0)
                 {
-                    <td class="text-end">@Model.Header.Amount</td>
+                    <td class="text-end">@Model.Header.Total</td>
                 }else{
                     <td></td>
                 }
@@ -140,7 +146,7 @@
             <tr>
                 <td style="padding-left:20px;" class="text-nowrap">Amount in Words :</td>
                 @{
-                    decimal convertToWords = Model.Header.Amount;
+                    decimal convertToWords = Model.Header.Total;
 
                     int integerPart = Convert.ToInt32(Math.Floor(convertToWords));
                     decimal decimalPart = Math.Round((convertToWords - integerPart), 2);
@@ -177,7 +183,7 @@
                     words = words.Replace(" And", "");
                     words = words.Replace("-", " ");
                 }
-                @if (Model.Header.Amount != 0)
+                @if (Model.Header.Total != 0)
                 {
                     <td>*** @words ***</td>
                 }else{
