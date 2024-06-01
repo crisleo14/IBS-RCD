@@ -44,7 +44,9 @@ namespace Accounting_System.Models.AccountsPayable
         public List<SelectListItem>? Suppliers { get; set; }
 
         [Column(TypeName = "numeric(18,2)")]
-        public decimal Amount { get; set; }
+        public decimal Total { get; set; }
+
+        public decimal[] Amount { get; set; }
 
         public string? Particulars { get; set; }
 

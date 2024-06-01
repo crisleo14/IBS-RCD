@@ -502,10 +502,20 @@ bg-success {
     border: 1px solid red;
 }*/
 
-.dropdown:hover .dropdown-menu {
+/*start here the css in nav bar menu*/
+.dropdown:hover > .dropdown-menu, .dropdown:hover > .dropdown-menu {
     display: block;
+    margin-left: .125em;
+}
+.dropend:hover > .dropdown-menu {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 100%;
+    margin-left: .125em;
 }
 
+/*end of code*/
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
     -webkit-appearance: none;

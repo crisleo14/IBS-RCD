@@ -40,7 +40,7 @@ namespace Accounting_System.Repository
                 return $"CV{1.ToString("D10")}";
             }
         }
-        public async Task<long> GetLastSeriesNumberCV(string reference, CancellationToken cancellationToken = default)
+        public async Task<long> GetLastSeriesNumberCV(CancellationToken cancellationToken = default)
         {
             var lastNumber = await _dbContext
                 .CheckVoucherHeaders
@@ -50,7 +50,7 @@ namespace Accounting_System.Repository
             if (lastNumber != null)
             {
                 // Increment the last serial by one and return it
-                return reference == null ? lastNumber.SeriesNumber + 1 : lastNumber.SeriesNumber;
+                return lastNumber.SeriesNumber + 1;
             }
             else
             {
