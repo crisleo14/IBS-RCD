@@ -88,21 +88,13 @@
     </table>
 </div>
 
-@* <div class="w-100 text-end" style="margin-top:20px;">
-    <span>By:</span>
-    <span class="underline" style="display: inline-block; width: 30%;"></span><br />
-    <h6 style="margin-right:15px;">Authorized Representative</h6>
-    <p style="line-height:1px;">Accreditation No. ___</p>
-    <p style="line-height:1px;">Accreditation Date:___* Valid up to:___</p>
-</div> *@
-
 <div class="text-center w-100" style="margin-top:10px;">
-    <p @* style="line-height: 1;" *@>
+    <p>
         <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br />
         <span>Acknowledgement Certificate No:</span>
-        <span style="display: inline-block; width:150px;"></span>
+        <span style="display: inline-block; width:150px;">@CS.ACCN</span>
         <span>&nbsp;&nbsp;Date Issued:</span>
-        <span style="display: inline-block; width:50px;"></span><br />
+        <span style="display: inline-block; width:50px;">@CS.DateIssued</span><br />
         Series: RR0000000001 - RR9999999999
         Date and Time Created:&nbsp; @Html.DisplayFor(model => model.CreatedDate)
     </p>
