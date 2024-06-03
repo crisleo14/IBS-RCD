@@ -11,12 +11,19 @@
 //    });
 //});
 
+//$(document).ready(function () {
+//    $('.js-multiple-not-retain-value').select2({
+//        placeholder: "Select an option",
+//        width: 'resolve'
+//    });
+//    $('.js-multiple-not-retain-value').val([]).trigger('change');
+//});
+
 $(document).ready(function () {
-    $('.js-multiple-not-retain-value').select2({
+    $('.js-multiple').select2({
         placeholder: "Select an option",
         width: 'resolve'
     });
-    $('.js-multiple-not-retain-value').val([]).trigger('change');
 });
 
 $(document).ready(function () {

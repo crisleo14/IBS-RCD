@@ -14,13 +14,15 @@ namespace Accounting_System.Models.ViewModels
         public string Payee { get; set; }
 
         [Required]
+        [Display(Name = "Supplier Address")]
         public string SupplierAddress { get; set; }
 
         [Required]
-        [Display(Name = "Tin Number")]
+        [Display(Name = "Supplier Tin Number")]
         public string SupplierTinNo { get; set; }
 
         [Required]
+        [Display(Name = "Supplier No")]
         public int SupplierId { get; set; }
 
         [Required]
@@ -30,6 +32,7 @@ namespace Accounting_System.Models.ViewModels
         public int[] POId { get; set; }
 
         [Required]
+        [Display(Name = "PO No.")]
         public string[] POSeries { get; set; }
 
         [Required]
@@ -39,17 +42,20 @@ namespace Accounting_System.Models.ViewModels
         public int[] RRId { get; set; }
 
         [Required]
+        [Display(Name = "RR No.")]
         public string[] RRSeries { get; set; }
 
         public decimal[] Amount { get; set; }
 
         [Required]
+        [Display(Name = "Transaction Date")]
         public DateOnly TransactionDate { get; set; }
 
         [Required]
         public List<SelectListItem> BankAccounts { get; set; }
 
         [Required]
+        [Display(Name = "Bank Accounts")]
         public int BankId { get; set; }
 
         [Required]
@@ -58,6 +64,7 @@ namespace Accounting_System.Models.ViewModels
         public string CheckNo { get; set; }
 
         [Required]
+        [Display(Name = "Check Date")]
         public DateOnly CheckDate { get; set; }
 
         public string Particulars { get; set; }

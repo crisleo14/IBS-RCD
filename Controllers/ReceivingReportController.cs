@@ -49,7 +49,7 @@ namespace Accounting_System.Controllers
         {
             var viewModel = new ReceivingReport();
             viewModel.PurchaseOrders = await _dbContext.PurchaseOrders
-                .Where(po => !po.IsReceived)
+                .Where(po => !po.IsReceived && po.IsPosted)
                 .Select(po => new SelectListItem
                 {
                     Value = po.Id.ToString(),
@@ -65,7 +65,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Create(ReceivingReport model, CancellationToken cancellationToken)
         {
             model.PurchaseOrders = await _dbContext.PurchaseOrders
-                .Where(po => !po.IsReceived)
+                .Where(po => !po.IsReceived && po.IsPosted)
                 .Select(po => new SelectListItem
                 {
                     Value = po.Id.ToString(),
