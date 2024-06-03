@@ -67,8 +67,10 @@ namespace Accounting_System.Controllers
 
                         var rr = await _dbContext.ReceivingReports
                                     .FirstOrDefaultAsync(p => p.RRNo == rrValue);
-
-                        siArray[i] = rr.SupplierInvoiceNumber;
+                        if (rr != null)
+                        {
+                            siArray[i] = rr.SupplierInvoiceNumber;
+                        }
                     }
 
                     ViewBag.SINoArray = siArray;
@@ -596,7 +598,10 @@ namespace Accounting_System.Controllers
                     var rr = await _dbContext.ReceivingReports
                                 .FirstOrDefaultAsync(p => p.RRNo == rrValue);
 
-                    siArray[i] = rr.SupplierInvoiceNumber;
+                    if (rr != null)
+                    {
+                        siArray[i] = rr.SupplierInvoiceNumber;
+                    }
                 }
 
                 ViewBag.SINoArray = siArray;
@@ -917,7 +922,7 @@ namespace Accounting_System.Controllers
             return View(model);
         }
         [HttpPost]
-        public async Task<IActionResult> Trade(CheckVoucherVM model, CheckVoucherTradeViewModel viewModel, IFormFile? file, DateOnly startDate, DateOnly endDate, string[] accountNumber, string[] accountNumberText, decimal[]? debit, decimal[]? credit, CancellationToken cancellationToken)
+        public async Task<IActionResult> Trade(CheckVoucherTradeViewModel viewModel, IFormFile? file, CancellationToken cancellationToken)
          {
             #region --Validating series
             var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(cancellationToken);
@@ -964,16 +969,17 @@ namespace Accounting_System.Controllers
             #region --CV Details Entry
             var generateCVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken);
             var cvDetails = new List<CheckVoucherDetail>();
-
-            for (int i = 0; i < accountNumber.Length; i++)
+            var cashInBank = 0m;
+            for (int i = 0; i < viewModel.AccountNumber.Length; i++)
             {
+                cashInBank = viewModel.Credit[3];
                 cvDetails.Add(
                     new CheckVoucherDetail
                 {
-                    AccountNo = accountNumber[i],
-                    AccountName = accountNumberText[i],
-                    Debit = debit[i],
-                    Credit = credit[i],
+                    AccountNo = viewModel.AccountNumber[i],
+                    AccountName = viewModel.AccountTitle[i],
+                    Debit = viewModel.Debit[i],
+                    Credit = viewModel.Credit[i],
                     TransactionNo = generateCVNo
                 });
             }
@@ -989,8 +995,8 @@ namespace Accounting_System.Controllers
                             CVNo = generateCVNo,
                             SeriesNumber = getLastNumber,
                             Date = viewModel.TransactionDate,
-                            //RRNo = modelHeader.Date,
-                            //PONo = modelHeader.Date,
+                            RRNo = viewModel.RRSeries,
+                            PONo = viewModel.POSeries,
                             SupplierId = viewModel.SupplierId,
                             Particulars = viewModel.Particulars,
                             BankId = viewModel.BankId,
@@ -998,7 +1004,7 @@ namespace Accounting_System.Controllers
                             Category = "Trade",
                             Payee = viewModel.Payee,
                             CheckDate = viewModel.CheckDate,
-                            Total = 0,
+                            Total = cashInBank,
                             Amount = viewModel.Amount,
                             CreatedBy = _userManager.GetUserName(this.User)
 
@@ -1010,24 +1016,24 @@ namespace Accounting_System.Controllers
             #endregion --Saving the default entries
 
             #region -- Partial payment of RR's
-            //if (amount != null && model.Header.Category == "Trade")
-            //{
-            //    var receivingReport = new ReceivingReport();
-            //    for (int i = 0; i < model.Header.RRNo.Length; i++)
-            //    {
-            //        var rrValue = model.Header.RRNo[i];
-            //        receivingReport = await _dbContext.ReceivingReports
-            //                    .FirstOrDefaultAsync(p => p.RRNo == rrValue);
+            if (viewModel.Amount != null)
+            {
+                var receivingReport = new ReceivingReport();
+                for (int i = 0; i < viewModel.RRSeries.Length; i++)
+                {
+                    var rrValue = viewModel.RRSeries[i];
+                    receivingReport = await _dbContext.ReceivingReports
+                                .FirstOrDefaultAsync(p => p.RRNo == rrValue);
 
-            //        receivingReport.AmountPaid += amount[i];
+                    receivingReport.AmountPaid += viewModel.Amount[i];
 
-            //        if (receivingReport.Amount <= receivingReport.AmountPaid)
-            //        {
-            //            receivingReport.IsPaid = true;
-            //            receivingReport.PaidDate = DateTime.Now;
-            //        }
-            //    }
-            //}
+                    if (receivingReport.Amount <= receivingReport.AmountPaid)
+                    {
+                        receivingReport.IsPaid = true;
+                        receivingReport.PaidDate = DateTime.Now;
+                    }
+                }
+            }
 
             #endregion -- Partial payment of RR's
 
