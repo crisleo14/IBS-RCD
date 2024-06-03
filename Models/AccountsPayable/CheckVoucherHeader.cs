@@ -43,10 +43,11 @@ namespace Accounting_System.Models.AccountsPayable
         [NotMapped]
         public List<SelectListItem>? Suppliers { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]
         public decimal Total { get; set; }
 
-        public decimal[] Amount { get; set; }
+        public decimal[]? Amount { get; set; }
 
         public string? Particulars { get; set; }
 
@@ -69,14 +70,6 @@ namespace Accounting_System.Models.AccountsPayable
 
         [NotMapped]
         public List<SelectListItem>? COA { get; set; }
-
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
-        public decimal TotalDebit { get; set; }
-
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
-        public decimal TotalCredit { get; set; }
 
         [Display(Name = "Check Date")]
         [Column(TypeName = "date")]
@@ -108,9 +101,17 @@ namespace Accounting_System.Models.AccountsPayable
         [NotMapped]
         public List<SelectListItem>? CheckVouchers { get; set; }
 
-        public long Sequence { get; set; }
+        [Column(TypeName = "varchar(10)")]
+        public string? CvType { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]
         public decimal CheckAmount { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal AmountPaid { get; set; }
+
+        public bool IsPaid { get; set; }
     }
 }

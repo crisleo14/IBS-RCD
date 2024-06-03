@@ -1,9 +1,6 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models.AccountsPayable;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System.Security.Cryptography.Xml;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Accounting_System.Repository
 {
@@ -58,22 +55,24 @@ namespace Accounting_System.Repository
                 return 1L;
             }
         }
-        public async Task<long> GetLastSequenceNumberCV(CancellationToken cancellationToken)
-        {
-            var lastSequence = await _dbContext
-                .CheckVoucherHeaders
-                .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync(s => s.AccruedType == "Payment", cancellationToken);
 
-            if (lastSequence != null)
+        public async Task UpdateInvoicingVoucher(decimal paymentAmount, int invoiceVoucherId, CancellationToken cancellationToken)
+        {
+            var invoiceVoucher = await _dbContext.CheckVoucherHeaders
+                .FindAsync(invoiceVoucherId, cancellationToken);
+
+            if (invoiceVoucher != null)
             {
-                // Increment the last serial by one and return it
-                return lastSequence.Sequence + 1;
+                invoiceVoucher.AmountPaid += paymentAmount;
+
+                if (invoiceVoucher.AmountPaid >= invoiceVoucher.Total)
+                {
+                    invoiceVoucher.IsPaid = true;
+                }
             }
             else
             {
-                // If there are no existing records, you can start with a default value like 1
-                return 1L;
+                throw new InvalidOperationException($"Check voucher with id '{invoiceVoucherId}' not found.");
             }
         }
     }

@@ -1,6 +1,6 @@
 ﻿@using System.ComponentModel.DataAnnotations;
 @using Accounting_System.Models.ViewModels;
-@model CheckVoucherVM
+@model CheckVoucherNonTradeInvoicing
 
 @{
     ViewData["Title"] = "Create";
@@ -12,44 +12,55 @@
     <h4>Check Voucher(Non-Trade Invoicing)</h4>
     <hr />
 
-    <form asp-action="Create" method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data">
         <div class="row">
             <div class="col-md-4">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
+                <div class="form-group mb-3">
+                    <label asp-for="TransactionDate" class="control-label"></label>
+                    <input asp-for="TransactionDate" type="Date" class="form-control" />
+                    <span asp-validation-for="TransactionDate" class="text-danger"></span>
+                </div>
                 <div class="form-group mb-3">
                     <label class="control-label">Supplier</label>
-                    <select asp-for="Header.SupplierId" asp-items="@Model.Header.Suppliers" class="form-select js-select2 supplier">
+                    <select asp-for="SupplierId" asp-items="@Model.Suppliers" class="form-select js-select2" required>
                         <option></option>
                     </select>
+                    <span asp-validation-for="SupplierId" class="text-danger"></span>
                 </div>
-                <div class="form-group pb-3">
-                    <input type="text" class="form-control" id="supplierAddress" readonly />
+                <div class="form-floating mb-3">
+                    <input asp-for="SupplierAddress" type="text" class="form-control" placeholder="Optional" readonly />
+                    <label asp-for="SupplierAddress" class="control-label"></label>
+                    <span asp-validation-for="SupplierAddress" class="text-danger"></span>
                 </div>
-                <div class="form-group">
-                    <input type="text" class="form-control" id="supplierTinNo" readonly />
+                <div class="form-floating mb-3">
+                    <input asp-for="SupplierTinNo" type="text" class="form-control" placeholder="Optional" readonly />
+                    <label asp-for="SupplierTinNo" class="control-label"></label>
+                    <span asp-validation-for="SupplierTinNo" class="text-danger"></span>
                 </div>
-                <div class="form-group">
-                    <label class="control-label">PO No.<span class="required">*</span></label>
-                    <textarea name="poNo" class="form-control" placeholder="Enter PO No." style="height: 100px"></textarea>
+                <div class="form-floating mb-3">
+                    <textarea asp-for="PoNo" class="form-control" placeholder="Input si no" style="height: 100px"></textarea>
+                    <label asp-for="PoNo" class="control-label"></label>
+                    <span asp-validation-for="PoNo" class="text-danger"></span>
                 </div>
-                <div class="form-group">
-                    <label class="control-label">SI No.<span class="required">*</span></label>
-                    <textarea name="siNo" class="form-control" placeholder="Enter SI No." style="height: 100px"></textarea>
+                <div class="form-floating mb-3">
+                    <textarea asp-for="SiNo" class="form-control" placeholder="Input po no" style="height: 100px"></textarea>
+                    <label asp-for="SiNo" class="control-label"></label>
+                    <span asp-validation-for="SiNo" class="text-danger"></span>
                 </div>
-                <div class="form-group">
-                    <label asp-for="Header.Date" class="control-label"></label>
-                    <input asp-for="Header.Date" type="Date" class="form-control" />
-                    <span asp-validation-for="Header.Date" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <label asp-for="Header.Total" class="control-label"></label>
-                    <input asp-for="Header.Total" type="text" class="form-control totalAmount" />
-                    <span asp-validation-for="Header.Total" class="text-danger"></span>
+                <div class="form-group mb-3">
+                    <label asp-for="Total" class="control-label"></label>
+                    <input asp-for="Total" class="form-control money" value="" placeholder="0.00" />
+                    <span asp-validation-for="Total" class="text-danger"></span>
                 </div>
                 <div class="form-group mb-3">
                     <label class="control-label">Upload File (Optional)</label>
                     <input name="file" type="file" class="form-control" />
+                </div>
+                <div class="form-floating mb-3">
+                    <textarea asp-for="Particulars" class="form-control" placeholder="Leave a remarks here" style="height: 100px"></textarea>
+                    <label asp-for="Particulars" class="control-label">Particulars<span class="required">*</span></label>
+                    <span asp-validation-for="Particulars" class="text-danger"></span>
                 </div>
             </div>
             <div class="form-group">
@@ -71,9 +82,12 @@
                     </thead>
                     <tbody id="accountingEntriesBody">
                         <tr>
-                            <td><input type='text' value='2010102 AP-Non Trade Payable' class="w-100" style='border:none' readonly /></td>
-                            <td><input type='text' name='netOfEWT' value='0.00' class="w-100" style='border:none' readonly /></td>
-                            <td><input type='text' name='apNonTradePayable' value='0.00' class="w-100 netOfEWT" style='border:none' readonly /></td>
+                            <td>
+                                <input type="hidden" name="AccountNumber" value="2010102" />
+                                <input name='AccountTitle' value='AP-Non Trade Payable' class="w-100" style='border:none' readonly />
+                            </td>
+                            <td><input name="Debit" value='0.00' class="w-100" style='border:none' readonly /></td>
+                            <td><input name="Credit" value='0.00' class="w-100" style='border:none' readonly /></td>
                             <td></td>
                         </tr>
                     </tbody>
@@ -108,7 +122,7 @@
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                         <div class="form-group">
                             <label class="control-label">Account No.</label>
-                            <select asp-items="@Model.Header?.COA" class="form-select automaticEntry" style="width: 100%" id="AccountNo">
+                            <select id="AccountNo" asp-items="@Model.ChartOfAccounts" class="form-select" style="width: 100%">
                                 <option></option>
                             </select>
                             <span class="text-danger"></span>
@@ -141,114 +155,48 @@
             $('#AccountNo').select2({
                 dropdownParent: $('#AddAccEntry')
             });
-        </script>
-        <script>
-            $(function () {
-                $(".supplier").change(function () {
-                    var suppId = $(this).val();
-                    if (suppId !== "") {
-                        // Make an AJAX request to get the TaxType based on the selected SupplierId
-                        $.ajax({
-                            url: "/CheckVoucher/GetSI",
-                            method: "GET",
-                            data: { supplierId: suppId },
-                            success: function (data) {
-                                if (data.address !== null || data.tinNo !== null) {
-                                    $("#supplierAddress").val(data.address);
-                                    $("#supplierTinNo").val(data.tinNo);
-                                } else {
-                                    $("#supplierAddress").val("");
-                                    $("#supplierTinNo").val("");
-                                }
-                                $(document).ready(function () {
-                                    $("#rrSelect").change(function () {
-                                        updateAmounts();
-                                    });
-
-                                    $(document).on('input', '.inputAmount', function () {
-                                        updateAmounts();
-                                    });
-
-                                    $(".totalAmount").on('input', function () {
-                                        computation();
-                                    });
-
-                                    function computation() {
-                                        var netOfEWT = 0;
-                                        var totalAmountEWT = 0;
-                                        if (data.taxType === "Withholding Tax") {
-                                            var totalAmountVal = parseFloat($(".totalAmount").val());
-                                            var netOfVatAmount = totalAmountVal / 1.12;
-                                            var vatAmount = netOfVatAmount * 0.12;
-                                            var ewtAmount = netOfVatAmount * 0.01;
-                                            var rrAmountNetOfEWTAmount = totalAmountVal - ewtAmount;
-                                            netOfEWT = rrAmountNetOfEWTAmount;
-                                            totalAmountEWT = ewtAmount;
-                                        } else {
-                                            var totalAmountVal = parseFloat($(".totalAmount").val());
-                                            netOfEWT = totalAmountVal;
-                                        }
-                                        $(".netOfEWT").val(netOfEWT.toFixed(2));
-                                        $(".ewt").val(totalAmountEWT.toFixed(2));
-
-                                        updateTotalDebitAndCredit();
-                                    }
-
-                                    function updateAmounts() {
-                                        var amountInputs = document.querySelectorAll('.inputAmount');
-                                        var totalNetOfEWT = 0;
-                                        var totalEWT = 0;
-                                        amountInputs.forEach(function (input) {
-                                            if (data.taxType === "Withholding Tax") {
-                                                var rrAmount = parseFloat(input.value);
-                                                var netOfVat = rrAmount / 1.12;
-                                                var vat = netOfVat * 0.12;
-                                                var ewt = netOfVat * 0.01;
-                                                var rrAmountNetOfEWT = rrAmount - ewt;
-                                                totalNetOfEWT += rrAmountNetOfEWT;
-                                                totalEWT += ewt;
-                                            } else {
-                                                var rrAmount = parseFloat(input.value);
-                                                totalNetOfEWT += rrAmount;
-                                            }
-                                        });
-                                        $(".totalNetOfEWT").val(totalNetOfEWT.toFixed(2));
-                                        $(".totalEWT").val(totalEWT.toFixed(2));
-                                        updateTotalDebitAndCredit();
-                                    }
-
-                                    $("#rrSelect").trigger("change");
-                                });
-                            },
-                            error: function (xhr, status, error) {
-                                console.error('Error fetching TaxType:', error);
+            $("#SupplierId").change(function () {
+                var supplierId = $(this).val();
+                if (supplierId !== "") {
+                    $.ajax({
+                        url: "/CheckVoucher/GetSupplierDetails", // Replace with the actual controller and action names
+                        method: "GET",
+                        data: { supplierId: supplierId },
+                        success: function (data) {
+                            console.log(data);
+                            if (data) {
+                                $("#SupplierAddress").val(data.supplierAddress);
+                                $("#SupplierTinNo").val(data.supplierTinNo);
+                            } else {
+                                $("#SupplierAddress").val("");
+                                $("#SupplierTinNo").val("");
                             }
-                        });
-                    } else {
-                        $("#supplierAddress").val("");
-                        $("#supplierTinNo").val("");
-                    }
-                });
+                        }
+                    });
+                } else {
+                    $("#SupplierAddress").val("");
+                    $("#SupplierTinNo").val("");
+                }
             });
         </script>
         <script>
             function saveAccountingEntry() {
                 // Get the values from the modal inputs
                 var accountNumber = $("#AccountNo").val();
-                var accountNumberText = $("#AccountNo option:selected").text();
+                var accountNumberText = $("#AccountNo option:selected").text().replace(/^\S+\s/, '');
                 var debit = $("#Debit").val();
                 var credit = $("#Credit").val();
 
                 // Create a new row with the text only and a hidden input for the value
                 var newRow = `<tr>
-                                                            <td>
-                                                                <input type='hidden' name='accountNumber' value='${accountNumber}'/>
-                                                                <input type='text' name='accountNumberText' value='${accountNumberText}' style='border:none' class='w-100' readonly />
-                                                            </td>
-                                                            <td><input name='debit' id='debit_${accountNumber}' value='${debit}' style='border:none' class='w-100' readonly /></td>
-                                                            <td><input name='credit' id='credit_${accountNumber}' value='${credit}' style='border:none' class='w-100' readonly /></td>
-                                                            <td><button type='button' class='btn btn-danger btn-sm' onclick='removeRow(this)'>Remove</button></td>
-                                                     </tr>`;
+                                                                        <td>
+                                                                <input type='hidden' name='AccountNumber' value='${accountNumber}'/>
+                                                                <input type='text' name='AccountTitle' value='${accountNumberText}' style='border:none' class='w-100' readonly />
+                                                                        </td>
+                                                            <td><input name='Debit' id='debit_${accountNumber}' value='${debit}' style='border:none' class='w-100' readonly /></td>
+                                                            <td><input name='Credit' id='credit_${accountNumber}' value='${credit}' style='border:none' class='w-100' readonly /></td>
+                                                                        <td><button type='button' class='btn btn-danger btn-sm' onclick='removeRow(this)'>Remove</button></td>
+                                                                 </tr>`;
 
                 // Append the new row to the table body
                 $("#accountingEntriesBody").append(newRow);
@@ -301,57 +249,21 @@
                 $(button).closest("tr").remove();
                 updateTotalDebitAndCredit();
             }
-        </script>
-        <script>
-            $(function automaticEntry() {
-                $(".automaticEntry").change(function () {
-                    var coaNo = $(this).val(); // Get all selected POIds
-                    if (coaNo && coaNo.length > 0) {
-                        if (coaNo.includes("10201") || coaNo.includes("10105")) {
-                            $("#AddAccEntry").modal("hide");
-                            Swal.fire({
-                                title: 'Automatic JV Entry',
-                                html:
-                                    'Do you want to automatic insert JV entry records based on CV?<br/><br/>' +
-                                    'When to start? <br/><input id="startDate" type="month" class="form-control">' +
-                                    'When to end? <br/><input id="endDate" type="month" class="form-control">',
-                                allowOutsideClick: false, // Prevent closing on outside click
-                                allowEscapeKey: false,  // Prevent closing with Esc key
-                                showCancelButton: true,
-                                confirmButtonText: "Yes, confirm!",
-                                cancelButtonText: "No, N/A!",
-                            }).then((result) => {
-                                if (result.isConfirmed) {
-                                    const startDate = document.getElementById('startDate').value;
-                                    const endDate = document.getElementById('endDate').value;
-                                    $("#AddAccEntry").modal("show");
-                                    if (startDate !== null && endDate !== null) {
-                                        var form = document.getElementById("myform");
 
-                                        form.appendChild(createHiddenInput("startDate", startDate));
-                                        form.appendChild(createHiddenInput("endDate", endDate));
-                                    } else {
-                                        console.error('Invalid');
-                                    }
-                                } else {
-                                    console.log('User canceled');
-                                    $("#AddAccEntry").modal("show");
-                                }
-                            });
-                        }
-                    } else {
-
-                    }
+            $(document).ready(function () {
+                // Event listener for when the Total input changes
+                $("#Total").on("input", function () {
+                    var totalValue = parseFloat($(this).val().replace(/,/g, '')) || 0;
+                    updateAPTradeAmount(totalValue);
                 });
             });
 
-            //for including input value in form
-            function createHiddenInput(name, value) {
-                var input = document.createElement("input");
-                input.type = "hidden";
-                input.name = name;
-                input.value = value;
-                return input;
+            function updateAPTradeAmount(totalValue) {
+                var creditField = $("input[name='Credit']");
+                creditField.val(totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                updateTotalDebitAndCredit();
             }
+
+
         </script>
     }

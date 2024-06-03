@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240603034330_AddCvTypeFieldInCheckVoucherHeadersTable")]
+    partial class AddCvTypeFieldInCheckVoucherHeadersTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,9 +38,6 @@ namespace Accounting_System.Migrations
 
                     b.Property<decimal[]>("Amount")
                         .HasColumnType("numeric[]");
-
-                    b.Property<decimal>("AmountPaid")
-                        .HasColumnType("numeric(18,2)");
 
                     b.Property<decimal>("AmountPerMonth")
                         .HasColumnType("numeric(18,2)");
@@ -86,9 +86,6 @@ namespace Accounting_System.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsComplete")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsPaid")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsPosted")
@@ -143,6 +140,12 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer");
 
                     b.Property<decimal>("Total")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("TotalCredit")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("TotalDebit")
                         .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("VoidedBy")
@@ -253,8 +256,8 @@ namespace Accounting_System.Migrations
                     b.Property<string>("ProductNo")
                         .HasColumnType("text");
 
-                    b.Property<decimal>("Quantity")
-                        .HasColumnType("numeric");
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
 
                     b.Property<int>("QuantityReceived")
                         .HasColumnType("integer");
