@@ -26,18 +26,7 @@
 
                         <h3><span style="display: inline-block;"><b>DISBURSEMENT VOUCHER</b></span></h3>
                         <div class="text-end" style="margin-top:-60px;">
-                        @{
-                            string cvNo = "";
-                            if (Model.Header.CVNo != null)
-                            {
-                                cvNo = Model.Header.CVNo;
-                            }
-                            else
-                            {
-                                cvNo = Model.Header.Reference + "-" + Model.Header.Sequence.ToString("D3");
-                            }
-                        }
-                            <h6><b>No.&nbsp;@Html.DisplayFor(model => cvNo)</b></h6>
+                            <h6><b>No.&nbsp;@Html.DisplayFor(model => model.Header.CVNo)</b></h6>
                         </div>
 
                     </div>
@@ -247,8 +236,8 @@
                                 <tr style="border-bottom:double;"></tr>
                                 <tr>
                                     <td></td>
-                                    <td class="text-end">@Html.DisplayFor(model => model.Header.TotalDebit)</td>
-                                    <td class="text-end">@Html.DisplayFor(model => model.Header.TotalCredit)</td>
+                                    <td class="text-end">@Model.Details.Sum(d => d.Debit).ToString("N2")</td>
+                                    <td class="text-end">@Model.Details.Sum(d => d.Credit).ToString("N2")</td>
                                 </tr>
                             </tbody>
                         </table>

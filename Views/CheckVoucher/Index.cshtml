@@ -32,16 +32,7 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @{
-                    var cvNo = item.Header.Reference + "-" + item.Header.Sequence.ToString("D3");
-                }
-                @if(item.Header.CVNo != null){
-                    @Html.DisplayFor(modelItem => item.Header.CVNo)
-                }
-                else
-                {
-                    @cvNo;
-                }
+                @Html.DisplayFor(modelItem => item.Header.CVNo)
             </td>
             <td>
                 @item.Header.Date.ToShortDateString()
