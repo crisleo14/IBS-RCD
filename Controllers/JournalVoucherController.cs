@@ -234,8 +234,6 @@ namespace Accounting_System.Controllers
                 var amount = viewModel.Header.Total;
                 var particulars = viewModel.Header.Particulars;
                 var checkNo = viewModel.Header.CheckNo;
-                var totalDebit = viewModel.Header.TotalDebit;
-                var totalCredit = viewModel.Header.TotalCredit;
 
                 return Json(new
                 {
@@ -250,9 +248,7 @@ namespace Accounting_System.Controllers
                     Amount = amount,
                     Particulars = particulars,
                     CheckNo = checkNo,
-                    ViewModel = viewModel,
-                    TotalDebit = totalDebit,
-                    TotalCredit = totalCredit
+                    ViewModel = viewModel
                 });
             }
 
