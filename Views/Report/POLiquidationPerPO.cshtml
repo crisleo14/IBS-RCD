@@ -1,6 +1,7 @@
 ﻿@model IEnumerable<ReceivingReport>
 @using Accounting_System.Models.AccountsPayable
 @using Microsoft.AspNetCore.Identity
+@using Accounting_System.Utility
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 @{
@@ -57,8 +58,8 @@ TIN: 000-216-589-00000
 ADDRESS: 57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone, Kalaklan, Olongapo City, 2200 Zambales, Philippines
 
 Accounting System: Accounting Administration System
-Acknowledgement Certificate Control No.:
-Date Issued:
+Acknowledgement Certificate Control No.: @CS.ACCN
+Date Issued: @CS.DateIssued
 </pre>
 
         <h3><b>PO Liquidation Per PO</b></h3>
@@ -215,7 +216,7 @@ Date Issued:
         <em>
             <b>Software Name :</b> Accounting Administration System (AAS)
             <br />
-            <b>Version :</b> v1.1
+            <b>Version :</b> @CS.Version
             <br />
             <b>Printed By :</b> @UserManager.GetUserName(User).ToUpper()
             <br />
