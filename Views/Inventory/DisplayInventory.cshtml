@@ -1,0 +1,49 @@
+﻿@using Accounting_System.Models.ViewModels
+@model IEnumerable<Inventory>
+
+<div class="mb-3">
+    <h5>Product Name: @ViewData["Product"]</h5>
+</div>
+
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Particulars</th>
+                <th>Reference</th>
+                <th class="text-end">Quantity</th>
+                <th class="text-end">Cost</th>
+                <th class="text-end">Total</th>
+                <th class="text-end">Inventory Balance</th>
+                <th class="text-end">Unit Cost Average</th>
+                <th class="text-end">Total Balance</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var obj in Model)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(model => obj.Date)</td>
+                    <td>@Html.DisplayFor(model => obj.Particular)</td>
+                    <td>@Html.DisplayFor(model => obj.Reference)</td>
+                    <td class="text-end">@Html.DisplayFor(model => obj.Quantity)</td>
+                    <td class ="text-end">@Html.DisplayFor(model => obj.Cost)</td>
+                    <td class="text-end">@Html.DisplayFor(model => obj.Total)</td>
+                    <td class="text-end">@Html.DisplayFor(model => obj.InventoryBalance)</td>
+                    <td class="text-end">@Html.DisplayFor(model => obj.AverageCost)</td>
+                    <td class="text-end">@Html.DisplayFor(model => obj.TotalBalance)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="row mt-5">
+    <div class="col-6 col-md-3">
+        <a onclick="window.print()" class="btn btn-primary form-control buttons">Print</a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a asp-controller="Inventory" asp-action="InventoryReport" class="btn btn-outline-primary border form-control buttons">Back</a>
+    </div>
+</div>
