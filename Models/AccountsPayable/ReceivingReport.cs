@@ -48,11 +48,13 @@ namespace Accounting_System.Models.AccountsPayable
 
         [Required]
         [Display(Name = "Qty Delivered")]
-        public int QuantityDelivered { get; set; }
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal QuantityDelivered { get; set; }
 
         [Required]
         [Display(Name = "Qty Received")]
-        public int QuantityReceived { get; set; }
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal QuantityReceived { get; set; }
 
         [Display(Name = "Gain/Loss")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
@@ -91,7 +93,8 @@ namespace Accounting_System.Models.AccountsPayable
         [Column(TypeName = "timestamp without time zone")]
         public DateTime PaidDate { get; set; }
 
-        public int CanceledQuantity { get; set; }
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal CanceledQuantity { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]

@@ -65,7 +65,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<int> UpdatePOAsync(int id, int quantityReceived, CancellationToken cancellationToken = default)
+        public async Task<int> UpdatePOAsync(int id, decimal quantityReceived, CancellationToken cancellationToken = default)
         {
             var po = await _dbContext.PurchaseOrders
                     .FirstOrDefaultAsync(po => po.Id == id, cancellationToken);
