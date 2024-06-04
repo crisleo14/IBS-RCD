@@ -22,7 +22,7 @@
 
                 <div class="form-group mb-3">
                 <label asp-for="SupplierId" class="control-label"></label><span class="required">*</span>
-                <select asp-for="SupplierId" class="form-control js-select2" asp-items="@Model.Suppliers">
+                <select asp-for="SupplierId" class="form-control js-select2" asp-items="@Model.Suppliers" style="width:100%">
                     <option></option>
                 </select>
                 <span asp-validation-for="SupplierId" class="text-danger"></span>
@@ -30,7 +30,7 @@
 
                 <div class="form-group mb-3">
                     <label asp-for="ProductId" class="control-label"></label><span class="required">*</span>
-                    <select asp-for="ProductId" class="form-control js-select2" asp-items="@Model.Products">
+                    <select asp-for="ProductId" class="form-control js-select2" asp-items="@Model.Products" style="width:100%">
                         <option></option>
                     </select>
                     <span asp-validation-for="ProductId" class="text-danger"></span>
@@ -38,7 +38,7 @@
 
                 <div class="form-group mb-3">
                     <label asp-for="Terms" class="control-label"></label><span class="required">*</span>
-                    <select asp-for="Terms" class="form-select js-select2">
+                    <select asp-for="Terms" class="form-select js-select2" style="width:100%">
                         <option value="" selected disabled>-- Select the Terms --</option>
                         <option value="COD">COD</option>
                         <option value="7D">7D</option>
