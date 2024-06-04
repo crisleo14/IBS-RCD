@@ -22,7 +22,7 @@
             <div class="col">
                 <div class="form-group mb-3">
                     <label class="control-label">Customer Name<span class="required">*</span></label>
-                    <select asp-for="CustomerId" asp-items="@Model.Customers" class="form-control js-select2">
+                    <select asp-for="CustomerId" asp-items="@Model.Customers" class="form-control js-select2" style="width:100%">
                         <option></option>
                     </select>
                     <span asp-validation-for="CustomerId" class="text-danger"></span>
@@ -60,7 +60,7 @@
 
                 <div class="form-group mb-3">
                     <label class="control-label">Product Name<span class="required">*</span></label>
-                    <select asp-for="ProductId" asp-items="@Model.Products" class="form-control js-select2">
+                    <select asp-for="ProductId" asp-items="@Model.Products" class="form-control js-select2" style="width:100%">
                         <option></option>
                     </select>
                     <span asp-validation-for="ProductId" class="text-danger"></span>

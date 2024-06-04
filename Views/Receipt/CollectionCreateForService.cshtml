@@ -31,7 +31,7 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group mb-3">
                 <label class="control-label">Customers<span class="required">*</span></label>
-                <select asp-for="CustomerId" asp-items="@Model.Customers" class="form-select js-select2" required>
+                <select asp-for="CustomerId" asp-items="@Model.Customers" class="form-select js-select2" style="width:100%" required>
                     <option></option>
                 </select>
                 <span asp-validation-for="CustomerId" class="text-danger"></span>
@@ -39,7 +39,7 @@
 
                 <div class="form-group mb-3">
                     <label class="control-label">SV NO.<span class="required">*</span></label>
-                    <select asp-for="ServiceInvoiceId" id="invoices" asp-items="@Model.ServiceInvoices" class="form-select js-select2">
+                    <select asp-for="ServiceInvoiceId" id="invoices" asp-items="@Model.ServiceInvoices" class="form-select js-select2" style="width:100%">
                         <option></option>
                     </select>
                     <span asp-validation-for="ServiceInvoiceId" class="text-danger"></span>
