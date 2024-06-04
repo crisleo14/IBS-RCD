@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240603075842_ChangeTheDataTypeOfQuantityInPOModel")]
+    partial class ChangeTheDataTypeOfQuantityInPOModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -34,10 +37,8 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text");
 
                     b.Property<decimal[]>("Amount")
+                        .IsRequired()
                         .HasColumnType("numeric[]");
-
-                    b.Property<decimal>("AmountPaid")
-                        .HasColumnType("numeric(18,2)");
 
                     b.Property<decimal>("AmountPerMonth")
                         .HasColumnType("numeric(18,2)");
@@ -73,9 +74,6 @@ namespace Accounting_System.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("CvType")
-                        .HasColumnType("varchar(10)");
-
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
@@ -86,9 +84,6 @@ namespace Accounting_System.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsComplete")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsPaid")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsPosted")
@@ -133,6 +128,9 @@ namespace Accounting_System.Migrations
                     b.Property<string[]>("SINo")
                         .HasColumnType("varchar[]");
 
+                    b.Property<long>("Sequence")
+                        .HasColumnType("bigint");
+
                     b.Property<long>("SeriesNumber")
                         .HasColumnType("bigint");
 
@@ -143,6 +141,12 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer");
 
                     b.Property<decimal>("Total")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("TotalCredit")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("TotalDebit")
                         .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("VoidedBy")

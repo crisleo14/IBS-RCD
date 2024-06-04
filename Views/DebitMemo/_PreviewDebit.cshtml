@@ -1,5 +1,6 @@
 ﻿@model DebitMemo
 @using Accounting_System.Models.AccountsReceivable
+@using Accounting_System.Utility
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
@@ -199,17 +200,17 @@
                                 <tr style="height:80px;">
                                     <td>@Html.DisplayFor(model => model.ServiceInvoice.SVNo)</td>
                                     <td class="pt-2">
-                                    <p style="line-height:15px">
-                                        @Model.Period.ToString("MMMM yyyy")
-                                    </p>
-                                </td>
-                                <td>@Html.DisplayFor(model => model.ServiceInvoice.Service.Name)</td>
-                                <td>@Html.DisplayFor(model => model.Description)</td>
-                                <td class="pt-2">
-                                    <p style="line-height:15px">
-                                        @Html.DisplayFor(model => model.Amount)
-                                    </p>
-                                </td>
+                                        <p style="line-height:15px">
+                                            @Model.Period.ToString("MMMM yyyy")
+                                        </p>
+                                    </td>
+                                    <td>@Html.DisplayFor(model => model.ServiceInvoice.Service.Name)</td>
+                                    <td>@Html.DisplayFor(model => model.Description)</td>
+                                    <td class="pt-2">
+                                        <p style="line-height:15px">
+                                            @Html.DisplayFor(model => model.Amount)
+                                        </p>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -298,15 +299,15 @@
                     <p>
                         <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br />
                         <span>Acknowledgement Certificate No:</span>
-                        <span style="display: inline-block;">AC_124_112023_000090</span>
+                        <span style="display: inline-block; width:150px;">@CS.ACCN</span>
                         <span>&nbsp;&nbsp;Date Issued:</span>
-                        <span style="display: inline-block;">November 28, 2023</span><br />
+                        <span style="display: inline-block; width:50px;">@CS.DateIssued</span><br />
                         Series: DM0000000001 - DM9999999999
+                        Date and Time Created:&nbsp; @Html.DisplayFor(model => model.CreatedDate)
                     </p>
                 </div>
 
-<br />
-<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <br />
             </div>
         </div>
     </div>

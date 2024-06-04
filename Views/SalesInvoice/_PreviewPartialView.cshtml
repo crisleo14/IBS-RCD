@@ -138,152 +138,141 @@
                         }
                     }
                 }
-                <div style="margin-top:20px;">
-                    <table class="w-100">
+                    <table class="w-100" style="height:170px; margin-top:20px;">
                         <tbody>
                             <tr>
-                                <td style="width:33%">
-                                    <div>
-                                        <table class="table-bordered w-100 text-start">
-                                            <tbody>
-                                                <tr style="height:170px;">
-                                                    <td style="position:relative; top:-35px; left:4%;">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Remarks)</td>
-                                                </tr>
+                                <td>
 
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                    <table class="table-bordered w-100 h-100" style="padding: 0; margin: 0;">
+                                        <tbody>
+
+                                            <tr class="h-100">
+                                                <td style="position:relative; top:-85px; left:-12%;">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Remarks)</td>
+                                            </tr>
+
+                                        </tbody>
+                                    </table>
                                 </td>
-                                <td style="width:33%">
-                                    <div>
-                                        <table class="table-bordered w-100" style="height:170px;">
-                                            <tbody>
+                                <td>
+                                    <table class="table-bordered w-100 h-100" style="padding: 0; margin: 0;">
+                                        <tbody>
 
-                                                <tr class="align-text-top text-center text-nowrap">
-                                                    <td>
-                                                        Prepared by
-                                                        <br />
-                                                        <p style="margin-top:20px;"><span style="display: inline-block; width:110px;" class="underline">@Html.DisplayFor(model => model.CreatedBy)</span></p>
-                                                    </td>
-                                                    <td>
-                                                        Approved by
-                                                        <br />
-                                                        <p style="margin-top:20px;"><span style="display: inline-block; width:110px;" class="underline">Azh Adolfo</span></p>
-                                                    </td>
+                                            <tr class="align-text-top text-center text-nowrap">
+                                                <td>
+                                                    Prepared by
+                                                    <br />
+                                                    <p style="margin-top:20px;"><span style="display: inline-block; width:110px;" class="underline">@Html.DisplayFor(model => model.CreatedBy)</span></p>
+                                                </td>
+                                                <td>
+                                                    Approved by
+                                                    <br />
+                                                    <p style="margin-top:20px;"><span style="display: inline-block; width:110px;" class="underline">Azh Adolfo</span></p>
+                                                </td>
 
-                                                </tr>
-                                                <tr class="align-text-top">
-                                                    <td colspan="2">
-                                                        <div style="margin-left:20px;">
-                                                            HAULER/DRIVER
-                                                            <span style="display: inline-block; width:90%;" class="underline"></span>
-                                                        </div>
-                                                    </td>
-                                                </tr>
+                                            </tr>
+                                            <tr class="align-text-top">
+                                                <td colspan="2">
+                                                    <div style="margin-left:20px;">
+                                                        HAULER/DRIVER
+                                                        <span style="display: inline-block; width:90%;" class="underline"></span>
+                                                    </div>
+                                                </td>
+                                            </tr>
 
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                        </tbody>
+                                    </table>
                                 </td>
-                                <td style="width:33%;">
-                                    <div>
-                                        <table class="table-bordered w-100" style="height:170px;">
-                                            <tbody class="text-nowrap">
-                                                <tr>
-                                                    <td><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
-                                                    <td class="text-end">
-                                                        @if (Model.Customer.CustomerType == "Vatable")
-                                                        {
-                                                            <p style="height: 9px;">@Html.DisplayFor(model => model.VatableSales)</p>
-                                                        }
-                                                    </td>
+                                <td>
+                                    <table class="table-bordered w-100 h-100" style="padding: 0; margin: 0;">
+                                        <tbody class="text-nowrap table-font-bold">
+                                            <tr style="padding-left: 8%;">
+                                                <td><b>Vatable Sales: </b></td>
 
-                                                </tr>
-                                                <tr>
-                                                    <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
+                                                <td class="text-end">
+                                                    @if (Model.Customer.CustomerType == "Vatable")
+                                                    {
+                                                        @Html.DisplayFor(model => model.VatableSales)
+                                                    }
+                                                </td>
 
-                                                    <td class="text-end">
-                                                        @if (Model.Customer.CustomerType == "Zero Rated")
-                                                        {
-                                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p>
-                                                        }
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT-Exempt Sales: </b></p></td>
+                                            </tr>
+                                            <tr style="padding-left: 8%;">
+                                                <td><b>Zero-Rated Sales: </b></td>
 
-                                                    <td class="text-end">
-                                                        @if (Model.Customer.CustomerType == "Exempt")
-                                                        {
-                                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Amount)</p>
-                                                        }
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
+                                                <td class="text-end">
+                                                    @if (Model.Customer.CustomerType == "Zero Rated")
+                                                    {
+                                                        @Html.DisplayFor(model => model.Amount)
+                                                    }
+                                                </td>
+                                            </tr>
+                                            <tr style="padding-left: 8%;">
+                                                <td><b>VAT-Exempt Sales: </b></td>
 
-                                                    <td class="text-end">
-                                                        @if (Model.Customer.CustomerType == "Vatable")
+                                                <td class="text-end">
+                                                    @if (Model.Customer.CustomerType == "Exempt")
+                                                    {
+                                                        @Html.DisplayFor(model => model.Amount)
+                                                    }
+                                                </td>
+                                            </tr>
+                                            <tr style="padding-left: 8%;">
+                                                <td><b>VAT Amount: </b></td>
+
+                                                <td class="text-end">
+                                                    @if (Model.Customer.CustomerType == "Vatable")
+                                                    {
+                                                        @Html.DisplayFor(model => model.VatAmount)
+                                                    }
+                                                </td>
+                                            </tr>
+                                            <tr style="padding-left: 8%;">
+                                                <td><b>Discount: </b></td>
+
+                                                <td class="text-end">
+                                                    @if (Model.Discount != 0)
+                                                    {
+                                                        <p style="height: 9px;">@Html.DisplayFor(model => model.Discount)</p>
+                                                    }
+                                                </td>
+                                            </tr>
+                                            <tr style="padding-left: 8%;">
+                                                <td><b>TOTAL SALES: </b></td>
+
+                                                <td class="text-end">
+                                                    @{
+                                                        var totalSales = Model.VatableSales + Model.VatAmount;
+                                                        var formattedTotalSales = String.Format("{0:N2}", totalSales);
+                                                        var otherDiscount = Model.Amount - Model.Discount;
+                                                        var formattedOtherDiscount = String.Format("{0:N2}", otherDiscount);
+                                                    }
+                                                    @if (Model.Discount == 0)
+                                                    {
+                                                        if (Model.Customer.CustomerType == "Vatable")
                                                         {
-                                                            <p style="height: 9px;">@Html.DisplayFor(model => model.VatAmount)</p>
-                                                        }
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td><p style="height: 9px; margin-left:8%;"><b>Discount: </b></p></td>
-                                                    <td class="text-end">
-                                                        @if (Model.Discount == null || Model.Discount == 0)
-                                                        {
-                                                            <p style="height: 9px;"></p>
+                                                            @Html.DisplayFor(model => formattedTotalSales)
                                                         }
                                                         else
                                                         {
-                                                            <p style="height: 9px;">@Html.DisplayFor(model => model.Discount)</p>
+                                                            @Model.Amount.ToString("N2")
                                                         }
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
-                                                    <td class="text-end">
-                                                        @{
-                                                            var totalSales = Model.VatableSales + Model.VatAmount;
-                                                            var formattedTotalSales = String.Format("{0:N2}", totalSales);
-                                                            var otherDiscount = Model.Amount - Model.Discount;
-                                                            var formattedOtherDiscount = String.Format("{0:N2}", otherDiscount);
-                                                        }
-                                                        @if (Model.Customer.CustomerType == "Vatable")
+                                                    }
+                                                    else
+                                                    {
+                                                        @if (Model.Discount != 0)
                                                         {
-                                                            <p style="height: 9px;">@Html.DisplayFor(model => formattedTotalSales)</p>
+                                                            @Html.DisplayFor(model => formattedOtherDiscount)
                                                         }
-                                                        else
-                                                        {
-                                                            @if (Model.Discount != null || Model.Discount != 0)
-                                                            {
-                                                                <p style="height: 9px;">@Html.DisplayFor(model => formattedOtherDiscount)</p>
-                                                            }
-                                                        }
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
-                </div>
-                <div style="margin-top:20px;">
-                    <table class="table-bordered text-start">
-                        <tbody>
-                            <tr style="line-height: 1;">
-                                <td class="align-text-top"><p>RECEIVED the above items in good order and condition. The Undersigned agrees to pay the total amount of this invoice in accordance to the terms appearing to the terms above.</p></td>
-                                <td class="align-text-top"><p>CONDITION OF SALE - Interest at the rate of 38% per annum will be charge on all overdue accounts and in the event of judicial proceedings to enforce collection, the purchaser will pay a reasonable compensation not less than 25% of the amount due of the attorney's fees and expense of collection in addition to the costs of suit. Any action arising out of the transaction covered by sales invoice shall be brought in the appropriate courts of Pasig City and/or Metro Manila. Goods remain in the property of FILPRIDE RESOURCES INC. until paid in full.</p></td>
-                            </tr>
-
-                        </tbody>
-                    </table>
-                </div>
-                <div style="margin-top:20px;">
+                <div class="text-start" style="margin-top:20px;">
                     <p>
                         <i>This is a system generated invoice, no signature required.</i>
                     </p>
@@ -315,10 +304,6 @@
                     </p>
                 </div>
                 <br />
-
-                <div class="text-start">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
             </div>
         </div>
     </div>

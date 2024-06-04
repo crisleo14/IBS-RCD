@@ -14,12 +14,13 @@ namespace Accounting_System.Models.AccountsPayable
 
         [Required]
         [Column(TypeName = "date")]
+        [Display(Name = "Transaction Date")]
         public DateOnly Date { get; set; }
 
         [Column(TypeName = "date")]
         public DateOnly DueDate { get; set; }
 
-        [Display(Name = "PO Id")]
+        [Display(Name = "PO No.")]
         [Required]
         public int POId { get; set; }
 

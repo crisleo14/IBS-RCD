@@ -1,4 +1,5 @@
 ﻿@using Accounting_System.Models.AccountsPayable
+@using Accounting_System.Utility
 @using Microsoft.AspNetCore.Identity
 @model PurchaseOrder
 @inject SignInManager<IdentityUser> SignInManager
@@ -9,8 +10,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="PreviewPOLabel">Preview</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="close">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close">
                 </button>
             </div>
             <div class="modal-body">
@@ -53,7 +53,7 @@
                 </div>
 
                 <div class="table-responsive" style="margin-top:50px;">
-                    <table class="w-100">
+                    <table class="w-100 text-center">
                         <thead>
                             <tr>
                                 <th class="w-25">Product Name</th>
@@ -96,17 +96,13 @@
                     <p>
                         <em><b>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</b></em><br /><br />
                         <span>Acknowledgement Certificate No:</span>
-                        <span style="display: inline-block;">AC_124_112023_000090</span>
+                        <span style="display: inline-block; width:150px;">@CS.ACCN</span>
                         <span>&nbsp;&nbsp;Date Issued:</span>
-                        <span style="display: inline-block;">November 28, 2023</span><br />
+                        <span style="display: inline-block; width:50px;">@CS.DateIssued</span><br />
                         Series: PO0000000001 - PO9999999999
                         Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
                     </p>
                 </div>
-<div>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-</div>
-
             </div>
         </div>
     </div>

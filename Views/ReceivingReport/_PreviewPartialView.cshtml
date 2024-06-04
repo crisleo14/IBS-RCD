@@ -1,5 +1,6 @@
 ﻿@model ReceivingReport
 @using Accounting_System.Models.AccountsPayable
+@using Accounting_System.Utility
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
@@ -9,8 +10,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="PreviewSalesInvoiceLabel">Preview</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="close">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close">
                 </button>
             </div>
             <div class="modal-body">
@@ -27,7 +27,7 @@
                     </p>
                 </div>
 
-                <h3><span style="display: inline-block; margin-top:50px;"><b>RECEIVING REPORT</b></span></h3>
+                <h3 class="text-start"><span style="display: inline-block; margin-top:50px;"><b>RECEIVING REPORT</b></span></h3>
                 <div class="text-end" style="margin-top:-50px;">
                     <h6><b>No.&nbsp;@Html.DisplayFor(model => model.RRNo)</b></h6>
                 </div>
@@ -35,14 +35,14 @@
 
                 <div class="w-100 text-end" style="margin-top:20px; padding-bottom:10px;">
                     <span><b>Date:</b></span>
-                    <span class="underline" style="display: inline-block; width: 20%; text-align:center;">@Model.Date.ToString("MM/dd/yyyy")</span><br />
+                    <span class="underline" style="display: inline-block; width: 20%; text-align:center;">@Model.Date.ToShortDateString()</span><br />
                 </div>
 
                 <div>
                     <table class="table-bordered w-100">
                         <tbody>
                             <tr>
-                                <td colspan="2" class="text-start" style="padding-left:10px;">Supplier: &nbsp; @Html.DisplayFor(model => model.PurchaseOrder.Supplier.Name)</td>
+                                <td colspan="2" style="padding-left:10px;" class="text-start">Supplier: &nbsp; @Html.DisplayFor(model => model.PurchaseOrder.Supplier.Name)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -52,7 +52,7 @@
                     <table class="table-bordered w-100">
                         <tbody>
                             <tr>
-                                <td colspan="7" class="text-start" style="padding-left:20px;">DETAILS</td>
+                                <td colspan="7" style="padding-left:20px;" class="text-start">DETAILS</td>
                             </tr>
                             <tr>
                                 <td class="text-center" style="width:12.5%">PO#</td>
@@ -80,7 +80,7 @@
                     <table class="table-bordered w-100 mt-2">
                         <tbody>
                             <tr>
-                                <td colspan="2" class="text-start" style="padding-left:10px;">Other Reference: &nbsp; @Html.DisplayFor(model => model.OtherRef)</td>
+                                <td colspan="2" style="padding-left:10px;" class="text-start">Other Reference: &nbsp; @Html.DisplayFor(model => model.OtherRef)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -96,21 +96,19 @@
                     </table>
                 </div>
 
-
                 <div class="text-center w-100" style="margin-top:10px;">
                     <p>
                         <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br />
                         <span>Acknowledgement Certificate No:</span>
-                        <span style="display: inline-block;">AC_124_112023_000090</span>
+                        <span style="display: inline-block; width:150px;">@CS.ACCN</span>
                         <span>&nbsp;&nbsp;Date Issued:</span>
-                        <span style="display: inline-block;">November 28, 2023</span><br />
+                        <span style="display: inline-block; width:50px;">@CS.DateIssued</span><br />
                         Series: RR0000000001 - RR9999999999
+                        Date and Time Created:&nbsp; @Html.DisplayFor(model => model.CreatedDate)
                     </p>
                 </div>
 
-                <div class="text-start">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
+                <br />
             </div>
         </div>
     </div>

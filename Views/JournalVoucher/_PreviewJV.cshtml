@@ -1,4 +1,5 @@
 ﻿@using Accounting_System.Models.ViewModels
+@using Accounting_System.Utility
 @model JournalVoucherVM
 @using Humanizer
 @{
@@ -10,8 +11,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="PreviewCMLabel">Preview</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="close">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close">
                 </button>
             </div>
             <div class="modal-body">
@@ -151,21 +151,21 @@
                         </tbody>
                     </table>
                 </div>
-
                 <br />
+
                 <div class="text-center w-100" style="margin-top:20px;">
                     <p>
-                        <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br />
+                        <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br /><br />
                         <span>Acknowledgement Certificate No:</span>
-                        <span style="display: inline-block;">AC_124_112023_000090</span>
+                        <span style="display: inline-block; width:150px;">@CS.ACCN</span>
                         <span>&nbsp;&nbsp;Date Issued:</span>
-                        <span style="display: inline-block;">November 28, 2023</span><br />
-                        Series: CM0000000001 - CM9999999999
+                        <span style="display: inline-block; width:50px;">@CS.DateIssued</span><br />
+                        Series: JV0000000001 - JV9999999999
+                        Date and Time Created:&nbsp; @Html.DisplayFor(model => model.Header.CreatedDate)
                     </p>
                 </div>
 
                 <br />
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>

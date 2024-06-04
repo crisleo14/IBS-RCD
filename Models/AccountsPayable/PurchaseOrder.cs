@@ -15,6 +15,7 @@ namespace Accounting_System.Models.AccountsPayable
 
         [Required]
         [Column(TypeName = "date")]
+        [Display(Name = "Transaction Date")]
         public DateOnly Date { get; set; }
 
         [Required]
@@ -45,7 +46,7 @@ namespace Accounting_System.Models.AccountsPayable
         public string Terms { get; set; }
 
         [Required]
-        public int Quantity { get; set; }
+        public decimal Quantity { get; set; }
 
         [Required]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]

@@ -81,7 +81,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetPOs(int supplierId)
         {
             var purchaseOrders = await _dbContext.PurchaseOrders
-                .Where(po => po.SupplierId == supplierId)
+                .Where(po => po.SupplierId == supplierId && po.IsPosted)
                 .ToListAsync();
 
             if (purchaseOrders != null && purchaseOrders.Count > 0)
@@ -96,7 +96,7 @@ namespace Accounting_System.Controllers
         {
 
             var receivingReports = await _dbContext.ReceivingReports
-            .Where(rr => poNumber.Contains(rr.PONo) && !rr.IsPaid)
+            .Where(rr => poNumber.Contains(rr.PONo) && !rr.IsPaid && rr.IsPosted)
             .OrderBy(rr => criteria == "Transaction Date" ? rr.Date : rr.DueDate)
             .ToListAsync();
 
@@ -559,7 +559,30 @@ namespace Accounting_System.Controllers
         }
         [HttpPost]
         public async Task<IActionResult> Trade(CheckVoucherTradeViewModel viewModel, IFormFile? file, CancellationToken cancellationToken)
-        {
+         {
+            viewModel.COA = await _dbContext.ChartOfAccounts
+                .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number,
+                    Text = s.Number + " " + s.Name
+                })
+                .ToListAsync(cancellationToken);
+
+            viewModel.Suppliers = await _dbContext.Suppliers
+                .Select(sup => new SelectListItem
+                {
+                    Value = sup.Id.ToString(),
+                    Text = sup.Name
+                })
+                .ToListAsync();
+            viewModel.BankAccounts = await _dbContext.BankAccounts
+                .Select(ba => new SelectListItem
+                {
+                    Value = ba.Id.ToString(),
+                    Text = ba.AccountNo + " " + ba.AccountName
+                })
+                .ToListAsync();
             #region --Validating series
             var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(cancellationToken);
 

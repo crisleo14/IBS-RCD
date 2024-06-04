@@ -1,5 +1,6 @@
 ﻿@model ServiceInvoice
 @using Accounting_System.Models.AccountsReceivable
+@using Accounting_System.Utility
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
@@ -57,11 +58,11 @@
 
                                 <td class="w-25 text-nowrap">
 
-                                    <b>SOA Date:</b>
-                                    &nbsp; <span>@Model.CreatedDate.ToShortDateString()</span>
+                                    <b>Invoice Date:</b>
+                                    &nbsp; <span id="soaDate">@Model.CreatedDate.ToShortDateString()</span>
                                     <br />
-                                    <b>Terms:</b>&nbsp;<span></span>&nbsp;<br />
-                                    <b>Due Date:</b>&nbsp; <span>@Model.DueDate.ToShortDateString()</span><br />
+                                    <b>Terms:</b>&nbsp;<span id="terms"></span>&nbsp;<br />
+                                    <b>Due Date:</b>&nbsp; <span id="dueDate">@Model.DueDate.ToShortDateString()</span><br />
                                 </td>
                             </tr>
                         </tbody>
@@ -191,39 +192,22 @@
                     This is a system generated invoice, no signature required.
                 </p>
 
-                <p class="text-center w-100>
+                <p class="text-center w-100">
                     @if (Model.Customer.CustomerType != "Vatable")
                     {
-                    <b>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</b>
+                        <b>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</b>
 
-                <br />
+                        <br />
                     }
                     <span>Acknowledgement Certificate No:</span>
-                    <span style="display: inline-block;">AC_124_112023_000090</span>
+                    <span style="display: inline-block; width:150px;">@CS.ACCN</span>
                     <span>&nbsp;&nbsp;Date Issued:</span>
-                    <span style="display: inline-block;">November 28, 2023</span><br />
-                    Series: SV0000000001 - SV9999999999
+                    <span style="display: inline-block; width:50px;">@CS.DateIssued</span><br />
+                    Series: SI0000000001 - SI9999999999
                     Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
                 </p>
 
-                @if (Model.IsPrinted == true)
-                {
-                    <div class="text-end">
-                        ORIGINAL COPY
-                    </div>
-                }
-                else
-                {
-                    <div class="text-end">
-                        REPRINT COPY
-                    </div>
-                }
-<br />
-<div>
-    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-</div>
-
-
+                <br />
             </div>
         </div>
     </div>

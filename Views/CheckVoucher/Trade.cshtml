@@ -6,7 +6,6 @@
     ViewData["Title"] = "Create";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<partial name="_Notification">
     <h1>Create</h1>
 
     <h4>Check Voucher(Trade)</h4>
@@ -18,33 +17,38 @@
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
               
                 <div class="form-group mb-3">
-                    <label class="control-label">Supplier</label>
+                    <label asp-for="SupplierId" class="control-label"></label>
                     <select asp-for="SupplierId" asp-items="@Model.Suppliers" class="form-select js-select2 GetPOList supplier">
                         <option></option>
                     </select>
+                    <span asp-validation-for="SupplierId" class="text-danger"></span>
                 </div>
-                <div class="form-group pb-3 mb-3">
+                <div class="form-floating mb-3">
+                    <input asp-for="Payee" type="text" class="form-control supplierName" placeholder=""/>
                     <label asp-for="Payee" class="control-label"></label>
-                    <input asp-for="Payee" type="text" class="form-control supplierName" />
                 </div>
-                <div class="form-group pb-3">
-                    <input asp-for="SupplierAddress" type="text" class="form-control" readonly />
+                <div class="form-floating mb-3">
+                    <input asp-for="SupplierAddress" type="text" class="form-control" placeholder="" readonly />
+                    <label asp-for="SupplierAddress" class="control-label"></label>
                 </div>
-                <div class="form-group">
-                    <input asp-for="SupplierTinNo" type="text" class="form-control" readonly />
+                <div class="form-floating mb-3">
+                    <input asp-for="SupplierTinNo" type="text" class="form-control" placeholder="" readonly />
+                    <label asp-for="SupplierTinNo" class="control-label"></label>
                 </div>
-                <div class="form-group">
-                    <label class="control-label">PO No.</label>
-                    <select asp-for="POSeries" asp-items="@Model.PONo" class="form-select js-multiple-not-retain-value GetRRList" multiple="multiple" id="poSelect">
+                <div class="form-group mb-3">
+                    <label asp-for="POSeries" class="control-label"></label>
+                    <select asp-for="POSeries" asp-items="@Model.PONo" class="form-select js-multiple GetRRList" multiple="multiple" id="poSelect">
                         <option></option>
                     </select>
+                    <span asp-validation-for="POSeries" class="text-danger"></span>
                 </div>
-                <div class="form-group">
+                <div class="form-group mb-3">
                     <input type="hidden" id="criteriaInput" name="criteria" />
-                    <label class="control-label">RR NO.</label>
-                    <select asp-for="RRSeries" asp-items="@Model.RR" class="form-select js-multiple-not-retain-value" multiple="multiple" id="rrSelect">
+                    <label asp-for="RRSeries" class="control-label"></label>
+                    <select asp-for="RRSeries" asp-items="@Model.RR" class="form-select js-multiple" multiple="multiple" id="rrSelect">
                         <option></option>
                     </select>
+                    <span asp-validation-for="RRSeries" class="text-danger"></span>
                 </div>
                 <table class="table">
                     <thead>
@@ -58,32 +62,33 @@
                     <tbody class="rrAmountList">
                     </tbody>
                 </table>
-                <div class="form-group">
+                <div class="form-group mb-3">
                     <label asp-for="TransactionDate" class="control-label"></label>
                     <input asp-for="TransactionDate" type="Date" class="form-control" />
                     <span asp-validation-for="TransactionDate" class="text-danger"></span>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mb-3">
                     <label asp-for="BankId" class="control-label"></label>
                     <select asp-for="BankId" asp-items="@Model.BankAccounts" class="form-select js-select2" id="bankAccounts">
                         <option></option>
                     </select>
+                    <span asp-validation-for="BankId" class="text-danger"></span>
                 </div>
-                <div class="form-group">
-                    <label asp-for="CheckNo" class="control-label"></label>
-                    <input asp-for="CheckNo" type="text" class="form-control" />
+                <div class="form-floating mb-3">
+                    <input asp-for="CheckNo" type="text" class="form-control" placeholder=""/>
                     <span asp-validation-for="CheckNo" class="text-danger"></span>
+                    <label asp-for="CheckNo" class="control-label"></label>
                 </div>
-                <div class="form-group">
+                <div class="form-group mb-3">
                     <label asp-for="CheckDate" class="control-label"></label>
-                    <input asp-for="CheckDate" type="date" class="form-control" />
+                    <input asp-for="CheckDate" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" class="form-control" />
                     <span asp-validation-for="CheckDate" class="text-danger"></span>
                 </div>
-                <div class="form-group">
-                    <label asp-for="Particulars" class="control-label"></label>
-                    <input asp-for="Particulars" type="text" class="form-control" />
+                <div class="form-floating mb-3">
+                    <input asp-for="Particulars" type="text" class="form-control" placeholder=""/>
                     <span asp-validation-for="Particulars" class="text-danger"></span>
+                    <label asp-for="Particulars" class="control-label"></label>
                 </div>
                 <div class="form-group mb-3">
                     <label class="control-label">Upload File (Optional)</label>
@@ -91,7 +96,7 @@
                 </div>
             </div>
             <div class="col-8">
-                <div class="row pb-3">
+                <div class="row mb-3">
                     <table style="border:dotted 1px;">
                         <thead class="m-2">
                             <tr>
@@ -125,7 +130,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="row pb-3">
+                <div class="row mb-3">
                     <table style="border:dotted 1px;">
                         <thead class="m-2">
                             <tr>
@@ -159,7 +164,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="row">
+                <div class="row mb-3">
                     <table style="border:dotted 1px;">
                         <thead class="m-2">
                             <tr>
@@ -237,7 +242,7 @@
 
                         <tr>
                             <input type="hidden" name="AccountNumber" class="accountNo" />
-                            <td><input type='text' name="AccountTitle" class="w-100 accountTitle" style='border:none' readonly /></td>
+                            <td><input type='text' name="AccountTitle" value="Cash in Bank" class="w-100 accountTitle" style='border:none' readonly /></td>
                             <td><input type='text' name="Debit" value='0.00' class="w-100" style='border:none' readonly /></td>
                             <td><input type='text' name="Credit" value="0.00" class="w-100 totalNetOfEWT" style='border:none' readonly /></td>
                             <td></td>
@@ -294,16 +299,13 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="calculateButton" onclick="saveAccountingEntry()">Create</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAccountingEntry()">Create</button>
                 </div>
             </div>
         </div>
     </div>
 
     @section Scripts {
-        @{
-            await Html.RenderPartialAsync("_ValidationScriptsPartial");
-        }
         <script>
             $('#AccountNo').select2({
                 dropdownParent: $('#AddAccEntry')
@@ -343,10 +345,6 @@
                 updateTotalDebitAndCredit();
             }
 
-            $(document).ready(function () {
-                $("#calculateButton").click(updateTotalDebitAndCredit);
-            });
-
             function updateTotalDebitAndCredit() {
                 var totalDebit = 0;
                 var totalDebitAmount = 0;
@@ -381,10 +379,12 @@
             }
         </script>
         <script>
+            var suppId = "";
             $(function () {
                 $(".supplier").change(function () {
                     var suppId = $(this).val();
                     if (suppId !== "") {
+                        console.log(suppId)
                         // Make an AJAX request to get the TaxType based on the selected SupplierId
                         $.ajax({
                             url: "/CheckVoucher/GetSI",
@@ -590,7 +590,7 @@
                                                                     <input type='hidden' name='rrNo' value='${rrNo}' />
                                                                     <input type='text' name='rrNoText' value='${rrSelectText}' style='border:none' readonly />
                                                                 </td>
-                                                                <td><input type='text' name='Amount' class='inputAmount moneyInput' id='paymentAmount_${rrNo}'/></td>
+                                                                <td><input type='text' name='Amount' class='inputAmount money' id='paymentAmount_${rrNo}'/></td>
                                                             </tr>`;
                         var rrAmount = `<tr id='row_${rrNo}'>
                                                                     <td style='padding-left:20px;'>

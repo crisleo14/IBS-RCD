@@ -296,9 +296,9 @@ else if (Model.Source == "Service Invoice")
     <p>
         <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br />
         <span>Acknowledgement Certificate No:</span>
-        <span style="display: inline-block; width:150px;"></span>
+        <span style="display: inline-block; width:150px;">@CS.ACCN</span>
         <span>&nbsp;&nbsp;Date Issued:</span>
-        <span style="display: inline-block; width:50px;"></span><br />
+        <span style="display: inline-block; width:50px;">@CS.DateIssued</span><br />
         Series: CM0000000001 - CM9999999999
         Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
     </p>
