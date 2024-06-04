@@ -18,7 +18,7 @@
               
                 <div class="form-group mb-3">
                     <label asp-for="SupplierId" class="control-label"></label>
-                    <select asp-for="SupplierId" asp-items="@Model.Suppliers" class="form-select js-select2 GetPOList supplier">
+                    <select asp-for="SupplierId" asp-items="@Model.Suppliers" class="form-select js-select2 GetPOList supplier" style="width:100%">
                         <option></option>
                     </select>
                     <span asp-validation-for="SupplierId" class="text-danger"></span>
@@ -37,15 +37,15 @@
                 </div>
                 <div class="form-group mb-3">
                     <label asp-for="POSeries" class="control-label"></label>
-                    <select asp-for="POSeries" asp-items="@Model.PONo" class="form-select js-multiple GetRRList" multiple="multiple" id="poSelect">
+                    <select asp-for="POSeries" asp-items="@Model.PONo" class="form-select js-multiple GetRRList" multiple="multiple" id="poSelect" style="width:100%">
                         <option></option>
                     </select>
-                    <span asp-validation-for="POSeries" class="text-danger"></span>
+                    <span asp-validation-for="PONo" class="text-danger"></span>
                 </div>
                 <div class="form-group mb-3">
                     <input type="hidden" id="criteriaInput" name="criteria" />
                     <label asp-for="RRSeries" class="control-label"></label>
-                    <select asp-for="RRSeries" asp-items="@Model.RR" class="form-select js-multiple" multiple="multiple" id="rrSelect">
+                    <select asp-for="RRSeries" asp-items="@Model.RR" class="form-select js-multiple" multiple="multiple" id="rrSelect" style="width:100%">
                         <option></option>
                     </select>
                     <span asp-validation-for="RRSeries" class="text-danger"></span>
@@ -70,7 +70,7 @@
 
                 <div class="form-group mb-3">
                     <label asp-for="BankId" class="control-label"></label>
-                    <select asp-for="BankId" asp-items="@Model.BankAccounts" class="form-select js-select2" id="bankAccounts">
+                    <select asp-for="BankId" asp-items="@Model.BankAccounts" class="form-select js-select2" id="bankAccounts" style="width:100%">
                         <option></option>
                     </select>
                     <span asp-validation-for="BankId" class="text-danger"></span>
@@ -306,6 +306,9 @@
     </div>
 
     @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
         <script>
             $('#AccountNo').select2({
                 dropdownParent: $('#AddAccEntry')
@@ -379,12 +382,10 @@
             }
         </script>
         <script>
-            var suppId = "";
             $(function () {
                 $(".supplier").change(function () {
                     var suppId = $(this).val();
                     if (suppId !== "") {
-                        console.log(suppId)
                         // Make an AJAX request to get the TaxType based on the selected SupplierId
                         $.ajax({
                             url: "/CheckVoucher/GetSI",

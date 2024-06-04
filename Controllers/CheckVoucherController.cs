@@ -529,7 +529,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Trade(CancellationToken cancellationToken, CheckVoucherTradeViewModel model)
+        public async Task<IActionResult> Trade(CheckVoucherTradeViewModel model, CancellationToken cancellationToken)
         {
             model.COA = await _dbContext.ChartOfAccounts
                 .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
