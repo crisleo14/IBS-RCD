@@ -46,6 +46,7 @@ namespace Accounting_System.Models.AccountsPayable
         public string Terms { get; set; }
 
         [Required]
+        [Column(TypeName = "numeric(18,2)")]
         public decimal Quantity { get; set; }
 
         [Required]
@@ -61,7 +62,8 @@ namespace Accounting_System.Models.AccountsPayable
         [Column(TypeName = "numeric(18,2)")]
         public decimal FinalPrice { get; set; }
 
-        public int QuantityReceived { get; set; }
+        [Column(TypeName = "numeric(18,2)")]
+        public decimal QuantityReceived { get; set; }
 
         public bool IsReceived { get; set; }
 
