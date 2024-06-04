@@ -86,5 +86,40 @@ namespace Accounting_System.Controllers
             TempData["error"] = "The information you submitted is not valid!";
             return View(viewModel);
         }
+
+        public async Task<IActionResult> InventoryReport(CancellationToken cancellationToken)
+        {
+            InventoryReportViewModel viewModel = new InventoryReportViewModel();
+
+            viewModel.Products = await _dbContext.Products
+                .OrderBy(p => p.Code)
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = $"{p.Code} {p.Name}"
+                })
+                .ToListAsync(cancellationToken);
+
+            return View(viewModel);
+        }
+
+        public async Task<IActionResult> DisplayInventory(InventoryReportViewModel viewModel, CancellationToken cancellationToken)
+        {
+            if (ModelState.IsValid)
+            {
+                var inventories = await _dbContext.Inventories
+                    .Where(i => i.Date >= viewModel.DateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId)
+                    .ToListAsync(cancellationToken);
+
+                var product = await _dbContext.Products
+                    .FindAsync(viewModel.ProductId, cancellationToken);
+
+                ViewData["Product"] = product.Name;
+
+                return View(inventories);
+            }
+
+            return View(viewModel);
+        }
     }
 }

@@ -17,6 +17,7 @@ namespace Accounting_System.Repository
         {
             return await _dbContext
                 .SalesInvoices
+                .Include(s => s.Product)
                 .Include(c => c.Customer)
                 .ToListAsync(cancellationToken);
         }

@@ -21,7 +21,7 @@ namespace Accounting_System.Models
         //public int ProductId { get; set; }
 
         //[ForeignKey("ProductId")]
-        //public Product? Product { get; set; }
+        //public ProductId? ProductId { get; set; }
 
         //[NotMapped]
         //public List<SelectListItem>? Products { get; set; }

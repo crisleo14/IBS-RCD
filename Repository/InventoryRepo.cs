@@ -97,6 +97,11 @@ namespace Accounting_System.Repository
 
             if (previousInventory != null)
             {
+                if (previousInventory.InventoryBalance < salesInvoice.Quantity)
+                {
+                    throw new InvalidOperationException($"The quantity exceeds the available inventory of '{salesInvoice.Product.Name}'.");
+                }
+
                 Inventory inventory = new()
                 {
                     Date = salesInvoice.TransactionDate,
@@ -118,7 +123,7 @@ namespace Accounting_System.Repository
             }
             else
             {
-                throw new InvalidOperationException($"Beginning inventory for this product '{salesInvoice.Product.Id}' not found!");
+                throw new InvalidOperationException($"Beginning inventory for this product '{salesInvoice.Product.Name}' not found!");
             }
         }
 
