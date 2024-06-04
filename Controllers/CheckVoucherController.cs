@@ -559,7 +559,7 @@ namespace Accounting_System.Controllers
         }
         [HttpPost]
         public async Task<IActionResult> Trade(CheckVoucherTradeViewModel viewModel, IFormFile? file, CancellationToken cancellationToken)
-         {
+        {
             viewModel.COA = await _dbContext.ChartOfAccounts
                 .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
                 .Select(s => new SelectListItem
@@ -915,7 +915,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             viewModel.CheckVouchers = await _dbContext.CheckVoucherHeaders
-                .Where(cvh => cvh.CvType == "Invoicing" && !cvh.IsPaid)
+                .Where(cvh => cvh.CvType == "Invoicing" && !cvh.IsPaid && !cvh.IsPosted)
                 .Select(cvh => new SelectListItem
                 {
                     Value = cvh.Id.ToString(),
@@ -1064,7 +1064,7 @@ namespace Accounting_System.Controllers
                         .ToListAsync(cancellationToken);
 
                     viewModel.CheckVouchers = await _dbContext.CheckVoucherHeaders
-                        .Where(cvh => cvh.CvType == "Invoicing" && !cvh.IsPaid)
+                        .Where(cvh => cvh.CvType == "Invoicing" && !cvh.IsPaid && !cvh.IsPosted)
                         .Select(cvh => new SelectListItem
                         {
                             Value = cvh.Id.ToString(),
@@ -1095,7 +1095,7 @@ namespace Accounting_System.Controllers
                         .ToListAsync(cancellationToken);
 
             viewModel.CheckVouchers = await _dbContext.CheckVoucherHeaders
-                .Where(cvh => cvh.CvType == "Invoicing" && !cvh.IsPaid)
+                .Where(cvh => cvh.CvType == "Invoicing" && !cvh.IsPaid && !cvh.IsPosted)
                 .Select(cvh => new SelectListItem
                 {
                     Value = cvh.Id.ToString(),
