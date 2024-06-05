@@ -109,8 +109,9 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
+                var dateFrom = viewModel.DateTo.AddDays(-viewModel.DateTo.Day + 1);
                 var inventories = await _dbContext.Inventories
-                    .Where(i => i.Date >= viewModel.DateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId)
+                    .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId)
                     .ToListAsync(cancellationToken);
 
                 var product = await _dbContext.Products

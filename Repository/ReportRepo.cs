@@ -150,8 +150,9 @@ namespace Accounting_System.Repository
         }
 
 
-        public List<Inventory> GetInventoryBooks(DateOnly? dateFrom, DateOnly? dateTo)
+        public List<Inventory> GetInventoryBooks(DateOnly dateTo)
         {
+            var dateFrom = dateTo.AddDays(-dateTo.Day + 1);
             if (dateFrom > dateTo)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
