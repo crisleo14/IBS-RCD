@@ -146,6 +146,7 @@ namespace Accounting_System.Controllers
                 {
                     return Json(new
                     {
+                        SupplierName = supplier.Name,
                         SupplierAddress = supplier.Address,
                         SupplierTinNo = supplier.TinNo
                     });
@@ -324,10 +325,9 @@ namespace Accounting_System.Controllers
                                     Payee = modelHeader.Payee,
                                     Amount = modelHeader.Total,
                                     Particulars = modelHeader.Particulars,
-                                    Bank = bank.Branch,
-                                    CheckNo = modelHeader.CheckNo,
-                                    CheckDate = modelHeader.CheckDate.ToShortDateString(),
-                                    DateCleared = DateTime.Now.ToShortDateString(),
+                                    Bank = bank != null ? bank.Branch : "N/A",
+                                    CheckNo = !string.IsNullOrEmpty(modelHeader.CheckNo) ? modelHeader.CheckNo : "N/A",
+                                    CheckDate = modelHeader.CheckDate != null ? modelHeader.CheckDate?.ToString("MM/dd/yyyy") : "N/A",
                                     ChartOfAccount = details.AccountNo + " " + details.AccountName,
                                     Debit = details.Debit,
                                     Credit = details.Credit,
@@ -774,7 +774,7 @@ namespace Accounting_System.Controllers
         [HttpGet]
         public async Task<IActionResult> NonTradeInvoicing(CancellationToken cancellationToken)
         {
-            var viewModel = new CheckVoucherNonTradeInvoicing();
+            var viewModel = new CheckVoucherNonTradeInvoicingViewModel();
 
             viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
@@ -797,7 +797,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> NonTradeInvoicing(CheckVoucherNonTradeInvoicing viewModel, IFormFile? file, CancellationToken cancellationToken)
+        public async Task<IActionResult> NonTradeInvoicing(CheckVoucherNonTradeInvoicingViewModel viewModel, IFormFile? file, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
@@ -830,6 +830,7 @@ namespace Accounting_System.Controllers
                         CVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken),
                         SeriesNumber = getLastNumber,
                         Date = viewModel.TransactionDate,
+                        Payee = viewModel.SupplierName,
                         PONo = [viewModel.PoNo],
                         SINo = [viewModel.SiNo],
                         SupplierId = viewModel.SupplierId,
@@ -942,7 +943,7 @@ namespace Accounting_System.Controllers
         [HttpGet]
         public async Task<IActionResult> NonTradePayment(CancellationToken cancellationToken)
         {
-            var viewModel = new CheckVoucherNonTradePayment();
+            var viewModel = new CheckVoucherNonTradePaymentViewModel();
 
             viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
@@ -954,7 +955,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             viewModel.CheckVouchers = await _dbContext.CheckVoucherHeaders
-                .Where(cvh => cvh.CvType == "Invoicing" && !cvh.IsPaid && !cvh.IsPosted)
+                .Where(cvh => cvh.CvType == "Invoicing" && !cvh.IsPaid && cvh.IsPosted)
                 .Select(cvh => new SelectListItem
                 {
                     Value = cvh.Id.ToString(),
@@ -976,7 +977,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> NonTradePayment(CheckVoucherNonTradePayment viewModel, IFormFile? file, CancellationToken cancellationToken)
+        public async Task<IActionResult> NonTradePayment(CheckVoucherNonTradePaymentViewModel viewModel, IFormFile? file, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
@@ -1026,6 +1027,7 @@ namespace Accounting_System.Controllers
                         CvType = "Payment",
                         Reference = invoicingVoucher.CVNo,
                         BankId = viewModel.BankId,
+                        Payee = viewModel.Payee,
                         CheckNo = viewModel.CheckNo,
                         CheckDate = viewModel.CheckDate,
                         CheckAmount = viewModel.Total
@@ -1103,7 +1105,7 @@ namespace Accounting_System.Controllers
                         .ToListAsync(cancellationToken);
 
                     viewModel.CheckVouchers = await _dbContext.CheckVoucherHeaders
-                        .Where(cvh => cvh.CvType == "Invoicing" && !cvh.IsPaid && !cvh.IsPosted)
+                        .Where(cvh => cvh.CvType == "Invoicing" && !cvh.IsPaid && cvh.IsPosted)
                         .Select(cvh => new SelectListItem
                         {
                             Value = cvh.Id.ToString(),
@@ -1134,7 +1136,7 @@ namespace Accounting_System.Controllers
                         .ToListAsync(cancellationToken);
 
             viewModel.CheckVouchers = await _dbContext.CheckVoucherHeaders
-                .Where(cvh => cvh.CvType == "Invoicing" && !cvh.IsPaid && !cvh.IsPosted)
+                .Where(cvh => cvh.CvType == "Invoicing" && !cvh.IsPaid && cvh.IsPosted)
                 .Select(cvh => new SelectListItem
                 {
                     Value = cvh.Id.ToString(),
