@@ -92,7 +92,6 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
             </tr>
         </thead>
         <tbody>
-
             @foreach (var inventory in Model)
             {
                 <tr class="align-text-bottom">
@@ -118,24 +117,27 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                         @Html.DisplayFor(model => inventory.Total)
                     </td>
                 </tr>
-
-                totalQuantity += inventory.Quantity;
-                totalPriceUnitAmount += inventory.Cost;
-                totalAmount += inventory.Total;
+                if (inventory.Particular == "Sales")
+                {
+                    totalQuantity -= inventory.Quantity;
+                    totalAmount -= inventory.Total;
+                }
+                else
+                {
+                    totalQuantity += inventory.Quantity;
+                    totalAmount += inventory.Total;
+                }
+                totalPriceUnitAmount = totalAmount / totalQuantity;
             }
             <tr class="align-text-bottom" style="border-top: 2px solid black;">
                 @{
-                    var formattedTotalQuantity = String.Format("{0:n}", totalQuantity);
-                    var formattedTotalPriceUnitAmount = String.Format("{0:n}", totalPriceUnitAmount);
-                    var formattedTotalAmount = String.Format("{0:n}", totalAmount);
-
                     <td></td>
                     <td></td>
                     <td></td>
                     <td class="text-center"><b>TOTAL:</b></td>
-                    <td class="text-end">@formattedTotalQuantity</td>
-                    <td class="text-end">@formattedTotalPriceUnitAmount</td>
-                    <td class="text-end">@formattedTotalAmount</td>
+                    <td class="text-end">@totalQuantity.ToString("N2")</td>
+                    <td class="text-end">@totalPriceUnitAmount.ToString("N2")</td>
+                    <td class="text-end">@totalAmount.ToString("N2")</td>
                 }
             </tr>
         </tbody>
@@ -267,10 +269,10 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
         // Get the pre tag element
         var resultPre = document.getElementById('resultPre');
 
-        console.log("@formattedTotalAmount");
+        console.log("@totalAmount");
         // Replace the placeholder in the HTML with the actual number of records
         resultPre.innerHTML = resultPre.innerHTML.replace('@numberOfRecords', (allTrElements.length - 1));
-        resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@formattedTotalAmount");
+        resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@totalAmount");
 
     </script>
 
