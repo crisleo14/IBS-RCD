@@ -253,7 +253,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var inventoryBooks = _reportRepo.GetInventoryBooks(model.DateFrom, model.DateTo);
+                    var inventoryBooks = _reportRepo.GetInventoryBooks(model.DateTo);
                     var lastRecord = inventoryBooks.LastOrDefault();
                     if (lastRecord != null)
                     {
@@ -796,7 +796,7 @@ namespace Accounting_System.Controllers
                     var dateTo = model.DateTo;
                     var extractedBy = _userManager.GetUserName(this.User);
 
-                    var inventoryBooks = _reportRepo.GetInventoryBooks(model.DateFrom, model.DateTo);
+                    var inventoryBooks = _reportRepo.GetInventoryBooks(model.DateTo);
                     if (inventoryBooks.Count == 0)
                     {
                         TempData["error"] = "No Record Found";
