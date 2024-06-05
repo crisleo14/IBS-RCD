@@ -73,7 +73,7 @@ namespace Accounting_System.Models.AccountsPayable
 
         [Display(Name = "Check Date")]
         [Column(TypeName = "date")]
-        public DateOnly CheckDate { get; set; }
+        public DateOnly? CheckDate { get; set; }
 
         [Display(Name = "Start Date:")]
         [Column(TypeName = "date")]

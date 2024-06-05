@@ -41,7 +41,7 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> BeginningInventory(BeginningInventoryViewModel viewModel, CancellationToken cancellationToken)
         {
-            if (ModelState.IsValid && viewModel.Cost > 0 && viewModel.Quantity > 0)
+            if (ModelState.IsValid)
             {
                 try
                 {
@@ -65,7 +65,7 @@ namespace Accounting_System.Controllers
 
                     await _inventoryRepo.AddBeginningInventory(viewModel, cancellationToken);
                     TempData["success"] = "Beginning balance created successfully";
-                    return View();
+                    return RedirectToAction(nameof(BeginningInventory));
                 }
                 catch (Exception ex)
                 {

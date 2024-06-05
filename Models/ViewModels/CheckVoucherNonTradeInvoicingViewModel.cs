@@ -3,12 +3,14 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Accounting_System.Models.ViewModels
 {
-    public class CheckVoucherNonTradeInvoicing
+    public class CheckVoucherNonTradeInvoicingViewModel
     {
         public List<SelectListItem>? Suppliers { get; set; }
 
         [Required(ErrorMessage = "Supplier field is required.")]
         public int SupplierId { get; set; }
+
+        public string SupplierName { get; set; }
 
         [Display(Name = "Supplier Address")]
         public string SupplierAddress { get; set; }
