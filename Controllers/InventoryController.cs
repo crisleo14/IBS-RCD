@@ -65,7 +65,7 @@ namespace Accounting_System.Controllers
 
                     await _inventoryRepo.AddBeginningInventory(viewModel, cancellationToken);
                     TempData["success"] = "Beginning balance created successfully";
-                    return View();
+                    return RedirectToAction(nameof(BeginningInventory));
                 }
                 catch (Exception ex)
                 {
