@@ -2,6 +2,7 @@
 using Accounting_System.Models;
 using Accounting_System.Models.AccountsPayable;
 using Accounting_System.Models.AccountsReceivable;
+using Accounting_System.Models.Reports;
 using Accounting_System.Models.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
@@ -93,6 +94,7 @@ namespace Accounting_System.Repository
         {
             var previousInventory = await _dbContext.Inventories
                             .OrderByDescending(i => i.Date)
+                            .ThenByDescending(i => i.Id)
                             .FirstOrDefaultAsync(i => i.ProductId == salesInvoice.Product.Id, cancellationToken);
 
             if (previousInventory != null)
@@ -117,7 +119,36 @@ namespace Accounting_System.Repository
                 inventory.TotalBalance = previousInventory.TotalBalance - inventory.Total;
                 inventory.AverageCost = inventory.TotalBalance / inventory.InventoryBalance;
 
-                await _dbContext.AddAsync(inventory, cancellationToken);
+                var ledgers = new List<GeneralLedgerBook>
+                {
+                    new GeneralLedgerBook
+                    {
+                        Date = salesInvoice.TransactionDate,
+                        Reference = salesInvoice.SINo,
+                        Description = salesInvoice.Product.Name,
+                        AccountNo = "",
+                        AccountTitle = "Cost of Goods Sold",
+                        Debit = inventory.Total,
+                        Credit = 0,
+                        CreatedBy = salesInvoice.CreatedBy,
+                        CreatedDate = salesInvoice.CreatedDate
+                    },
+                    new GeneralLedgerBook
+                    {
+                        Date = salesInvoice.TransactionDate,
+                        Reference = salesInvoice.SINo,
+                        Description = salesInvoice.Product.Name,
+                        AccountNo = salesInvoice.Product.Code == "PET001" ? "1010401" : salesInvoice.Product.Code == "PET002" ? "1010402" : "1010403",
+                        AccountTitle = salesInvoice.Product.Code == "PET001" ? "Inventory - Biodiesel" : salesInvoice.Product.Code == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
+                        Debit = 0,
+                        Credit = inventory.Total,
+                        CreatedBy = salesInvoice.CreatedBy,
+                        CreatedDate = salesInvoice.CreatedDate
+                    }
+                };
+
+                await _dbContext.Inventories.AddAsync(inventory, cancellationToken);
+                await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
             }
