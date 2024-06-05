@@ -72,8 +72,7 @@ namespace Accounting_System.Models.AccountsReceivable
         public decimal CashAmount { get; set; }
 
         //Check
-        [Column(TypeName = "date")]
-        public DateOnly? CheckDate { get; set; }
+        public string? CheckDate { get; set; }
 
         [Column(TypeName = "varchar(20)")]
         public string? CheckNo { get; set; }

@@ -31,9 +31,6 @@ namespace Accounting_System.Models.Reports
         [Display(Name = "Check Date")]
         public string CheckDate { get; set; }
 
-        [Display(Name = "Date Cleared")]
-        public string DateCleared { get; set; }
-
         [Display(Name = "Chart Of Account")]
         public string ChartOfAccount { get; set; }
 

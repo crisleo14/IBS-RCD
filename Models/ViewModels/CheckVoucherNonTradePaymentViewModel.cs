@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Accounting_System.Models.ViewModels
 {
-    public class CheckVoucherNonTradePayment
+    public class CheckVoucherNonTradePaymentViewModel
     {
         public List<SelectListItem>? CheckVouchers { get; set; }
 
