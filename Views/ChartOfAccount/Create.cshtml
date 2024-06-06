@@ -6,7 +6,7 @@
 
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-6">d
+        <div class="col-md-6">
             <h1 class="text-center my-4">New Chart of Account</h1>
             <hr />
             <form asp-action="Create">
@@ -14,19 +14,19 @@
 
                 <div class="form-group mb-3">
                     <label class="control-label">Main</label>
-                    <select id="mainLevel" asp-items="@Model.Main" class="form-select js-select2" style=" width: 100%">
+                    <select id="mainLevel" asp-items="@Model.Main" class="form-select js-select2" style=" width: 100%" required>
                         <option></option>
                     </select>
                 </div>
                 <div class="form-group mb-3">
                     <label class="control-label">Second Level</label>
-                    <select id="secondLevel" class="form-select js-select2" style=" width: 100%">
+                    <select id="secondLevel" class="form-select js-select2" style=" width: 100%" required>
                         <option></option>
                     </select>
                 </div>
                 <div class="form-group mb-3">
                     <label class="control-label">Third Level</label>
-                    <select id="thirdLevel" name="thirdLevel" class="form-select js-select2" style=" width: 100%">
+                    <select id="thirdLevel" name="thirdLevel" class="form-select js-select2" style=" width: 100%" required>
                         <option></option>
                     </select>
                 </div>
@@ -49,11 +49,9 @@
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
 
-                <div class="text-center mb-3">
-                    <button type="submit" class="btn btn-primary w-50">CREATE</button>
-                </div>
-                <div class="text-center">
-                    <a class="btn btn-secondary w-50" asp-action="Index">BACK</a>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
                 </div>
             </form>
         </div>

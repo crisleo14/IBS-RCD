@@ -2,67 +2,68 @@
 @model IEnumerable<Supplier>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Supplier";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <h1>Supplier Master File</h1>
-<partial name="_Notification">
 
 <p>
     <a asp-action="Create" class="btn btn-primary rounded-3">Create New</a>
 </p>
-<table class="table table-hover" id="myOwnTable">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Number)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Address)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TinNo)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Terms)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.VatType)
-            </th>
-            <th style="width:300px;"></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Number)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Address)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TinNo)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Terms)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.VatType)
-            </td>
-            <td>
-                <a asp-action="Edit" class="btn btn-light" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" class="btn btn-light" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" class="btn btn-lights" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+
+<div class="table-responsive">
+    <table class="table table-hover" id="myTable">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Number)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Name)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Address)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.TinNo)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Terms)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.VatType)
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Number)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Address)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.TinNo)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Terms)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.VatType)
+                    </td>
+                    <td>
+                        <a asp-action="Edit" class="btn btn-light" asp-route-id="@item.Id">Edit</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -2,14 +2,13 @@
 @model Supplier
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Supplier";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <h1>Create</h1>
 
 <h4>Supplier</h4>
-<partial name="_Notification">
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -17,21 +16,21 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-floating mb-3">
                 <input asp-for="Name" class="form-control" placeholder=""/>
-                <label asp-for="Name" class="control-label">Name<span class="required">*</span></label>
+                <label asp-for="Name" class="control-label"></label>
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
                 <input asp-for="Address" class="form-control" placeholder=""/>
-                <label asp-for="Address" class="control-label">Address<span class="required">*</span></label>
+                <label asp-for="Address" class="control-label"></label>
                 <span asp-validation-for="Address" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
                 <input asp-for="TinNo" class="form-control" placeholder=""/>
-                <label asp-for="TinNo" class="control-label">Tin No<span class="required">*</span></label>
+                <label asp-for="TinNo" class="control-label"></label>
                 <span asp-validation-for="TinNo" class="text-danger"></span>
             </div>
             <div class="form-group mb-3">
-                <label asp-for="Terms" class="control-label">Terms<span class="required">*</span></label>
+                <label asp-for="Terms" class="control-label"></label>
                 <select asp-for="Terms" class="form-select js-select2">
                     <option value="" selected disabled>-- Select the Terms --</option>
                     <option value="COD">COD</option>
@@ -44,7 +43,7 @@
                 <span asp-validation-for="Terms" class="text-danger"></span>
             </div>
             <div class="form-group mb-3">
-                <label asp-for="VatType" class="control-label">VAT Type<span class="required">*</span></label>
+                <label asp-for="VatType" class="control-label"></label>
                 <div class="col">
                     <select asp-for="VatType" class="form-select js-select2">
                         <option value="" selected disabled>-- Select the Supplier VAT Type --</option>
@@ -56,7 +55,7 @@
                 </div>
             </div>
             <div class="form-group mb-3">
-                <label asp-for="TaxType" class="control-label">TAX Type<span class="required">*</span></label>
+                <label asp-for="TaxType" class="control-label"></label>
                 <div class="col">
                     <select asp-for="TaxType" class="form-select js-select2" onchange="toggleExemptionFields(this)">
                         <option value="" selected disabled>-- Select the Supplier TAX Type --</option>
@@ -100,7 +99,7 @@
                 <span asp-validation-for="ProofOfRegistrationFilePath" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <button type="submit" value="Save" class="btn btn-primary">Submit</button>
+                <button type="submit" value="Create" class="btn btn-primary">Submit</button>
                 <a asp-action="Index" class="btn btn-secondary">Back to List</a>
             </div>
         </form>

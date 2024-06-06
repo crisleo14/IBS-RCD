@@ -1,12 +1,12 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Models.MasterFile;
+using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Threading;
 
 namespace Accounting_System.Controllers
 {
@@ -44,6 +44,18 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (await _bankAccountRepo.IsBankAccountNoExist(model.AccountNo, cancellationToken))
+                {
+                    ModelState.AddModelError("AccountNo", "Bank account no already exist!");
+                    return View(model);
+                }
+
+                if (await _bankAccountRepo.IsBankAccountNameExist(model.AccountName, cancellationToken))
+                {
+                    ModelState.AddModelError("AccountName", "Bank account name already exist!");
+                    return View(model);
+                }
+
                 var checkLastAccountNo = await _dbContext
                 .BankAccounts
                 .OrderBy(bank => bank.Id)
@@ -86,9 +98,16 @@ namespace Accounting_System.Controllers
 
                 #endregion -- COA Entry --
 
-                _dbContext.Add(model);
-                _dbContext.SaveChanges();
-                TempData["success"] = "Successfully created";
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(model.CreatedBy, $"Created new bank {model.AccountName}", "Bank Account");
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                #endregion --Audit Trail Recording
+
+                await _dbContext.AddAsync(model, cancellationToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                TempData["success"] = "Bank created successfully.";
                 return RedirectToAction("Index");
             }
             else
@@ -96,7 +115,7 @@ namespace Accounting_System.Controllers
                 ModelState.AddModelError("", "The information you submitted is not valid!");
                 return View(model);
             }
-            
+
         }
 
         [HttpGet]
@@ -109,80 +128,37 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(BankAccount model, CancellationToken cancellationToken)
         {
-                var existingModel = await _bankAccountRepo.FindBankAccount(model.Id, cancellationToken);
-                if (existingModel == null)
-                {
-                    return NotFound();
-                }
-                if (ModelState.IsValid)
-                {
-
-                    existingModel.AccountNo = model.AccountNo;
-                    existingModel.AccountName = model.AccountName;
-                    existingModel.Bank = model.Bank;
-                    existingModel.Branch = model.Branch;
-                }
-                else
-                {
-                    ModelState.AddModelError("", "The information you submitted is not valid!");
-                    return View(existingModel);
-                }
-
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction("Index");
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Delete(int? id, CancellationToken cancellationToken)
-        {
-            if (id == null || _dbContext.BankAccounts == null)
+            var existingModel = await _bankAccountRepo.FindBankAccount(model.Id, cancellationToken);
+            if (existingModel == null)
             {
                 return NotFound();
             }
-
-            var model = await _dbContext.BankAccounts
-                .FirstOrDefaultAsync(ba => ba.Id == id, cancellationToken);
-            if (model == null)
+            if (ModelState.IsValid)
             {
-                return NotFound();
+
+                existingModel.AccountNo = model.AccountNo;
+                existingModel.AccountName = model.AccountName;
+                existingModel.Bank = model.Bank;
+                existingModel.Branch = model.Branch;
+
+                TempData["success"] = "Bank edited successfully.";
+
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Updated bank {model.AccountName}", "Bank Account");
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                #endregion --Audit Trail Recording
             }
-
-            return View(model);
-        }
-
-        [HttpPost, ActionName("Delete")]
-        public async Task<IActionResult> DeleteConfirmed(int id, CancellationToken cancellationToken)
-        {
-            if (_dbContext.BankAccounts == null)
+            else
             {
-                return Problem("Entity set 'ApplicationDbContext.Bank Account'  is null.");
-            }
-            var model = await _dbContext.BankAccounts.FindAsync(id, cancellationToken);
-            if (model != null)
-            {
-                _dbContext.BankAccounts.Remove(model);
+                ModelState.AddModelError("", "The information you submitted is not valid!");
+                return View(existingModel);
             }
 
             await _dbContext.SaveChangesAsync(cancellationToken);
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Details(int? id, CancellationToken cancellationToken)
-        {
-            if (id == null || _dbContext.BankAccounts == null)
-            {
-                return NotFound();
-            }
-
-            var model = await _dbContext.BankAccounts
-                .FirstOrDefaultAsync(ba => ba.Id == id, cancellationToken);
-            if (model == null)
-            {
-                return NotFound();
-            }
-
-            return View(model);
-        }
     }
 }

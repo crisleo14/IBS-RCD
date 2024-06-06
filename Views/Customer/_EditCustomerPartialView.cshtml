@@ -5,8 +5,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="EditCustomerLabel">Edit Customer</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="close">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close">
                 </button>
             </div>
             <div class="modal-body">
@@ -35,7 +34,7 @@
                     </div>
                     <div class="form-group">
                         <label asp-for="Terms" class="control-label"></label>
-                        <select asp-for="Terms" class="form-select">
+                        <select asp-for="Terms" class="form-select js-select2" style="width:100%">
                             <option value="@Model.Terms" selected disabled></option>
                             <option value="COD">COD</option>
                             <option value="7D">7D</option>

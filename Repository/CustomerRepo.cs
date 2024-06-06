@@ -36,9 +36,16 @@ namespace Accounting_System.Repository
             }
         }
 
-        public bool CustomerExist(int id)
+        public async Task<bool> IsCustomerExist(string name)
         {
-            return _dbContext.Customers.Any(c => c.Id == id);
+            return await _dbContext.Customers.
+                AnyAsync(c => c.Name.ToUpper() == name.ToUpper());
+        }
+
+        public async Task<bool> IsTinNoExist(string tin)
+        {
+            return await _dbContext.Customers.
+                AnyAsync(c => c.TinNo.ToUpper() == tin.ToUpper());
         }
 
         public async Task<int> GetLastNumber(CancellationToken cancellationToken = default)
@@ -56,14 +63,6 @@ namespace Accounting_System.Repository
             {
                 return 1001;
             }
-        }
-
-        public async Task<Customer?> CheckIfTinNoExist(string tin, CancellationToken cancellationToken = default)
-        {
-            return await _dbContext
-                .Customers
-                .Where(c => c.TinNo == tin)
-                .FirstOrDefaultAsync(cancellationToken);
         }
     }
 }
