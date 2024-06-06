@@ -4,17 +4,21 @@ using Accounting_System.Models.AccountsPayable;
 using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.Reports;
 using Accounting_System.Models.ViewModels;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Accounting_System.Repository
 {
     public class InventoryRepo
     {
         private readonly ApplicationDbContext _dbContext;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public InventoryRepo(ApplicationDbContext dbContext)
+        public InventoryRepo(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager)
         {
             _dbContext = dbContext;
+            _userManager = userManager;
         }
 
         //public async Task UpdateQuantity(decimal sold, int productId, CancellationToken cancellationToken = default)
@@ -158,8 +162,9 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task AddActualInventory(ActualInventoryViewModel viewModel, CancellationToken cancellationToken)
+        public async Task AddActualInventory(ActualInventoryViewModel viewModel, ClaimsPrincipal user, CancellationToken cancellationToken)
         {
+            #region -- Actual Inventory Entry --
             var total = viewModel.Variance * viewModel.AverageCost;
             var inventoryBalance = viewModel.Variance + viewModel.PerBook;
             var totalBalance = viewModel.TotalBalance + total;
@@ -167,7 +172,7 @@ namespace Accounting_System.Repository
 
             Inventory inventory = new()
             {
-                Date = DateOnly.FromDateTime(DateTime.UtcNow),
+                Date = viewModel.Date,
                 ProductId = viewModel.ProductId,
                 Quantity = Math.Abs(viewModel.Variance),
                 Cost = viewModel.AverageCost,
@@ -177,9 +182,32 @@ namespace Accounting_System.Repository
                 AverageCost = totalBalance / inventoryBalance,
                 TotalBalance = totalBalance
             };
-
             await _dbContext.Inventories.AddAsync(inventory, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
+            #endregion -- Actual Inventory Entry --
+
+            #region -- General Book Entry --
+            var ledger = new List<GeneralLedgerBook>();
+            for (int i = 0; i < viewModel.AccountNumber.Length; i++)
+            {
+                ledger.Add(
+                    new GeneralLedgerBook
+                    {
+                        Date = viewModel.Date,
+                        Reference = "",
+                        AccountNo = viewModel.AccountNumber[i],
+                        AccountTitle = viewModel.AccountTitle[i],
+                        Description = particular,
+                        Debit = Math.Abs(viewModel.Debit[i]),
+                        Credit = Math.Abs(viewModel.Credit[i]),
+                        CreatedBy = _userManager.GetUserName(user),
+                        CreatedDate = DateTime.Now,
+                    });
+            }
+
+            await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledger, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            #endregion -- General Book Entry --
         }
     }
 }
