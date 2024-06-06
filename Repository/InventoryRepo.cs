@@ -138,10 +138,10 @@ namespace Accounting_System.Repository
             {
                 Date = DateOnly.FromDateTime(DateTime.UtcNow),
                 ProductId = viewModel.ProductId,
-                Quantity = viewModel.Variance,
+                Quantity = Math.Abs(viewModel.Variance),
                 Cost = viewModel.AverageCost,
                 Particular = particular,
-                Total = total,
+                Total = Math.Abs(total),
                 InventoryBalance = inventoryBalance,
                 AverageCost = totalBalance / inventoryBalance,
                 TotalBalance = totalBalance
