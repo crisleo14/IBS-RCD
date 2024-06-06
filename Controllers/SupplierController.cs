@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using Accounting_System.Data;
-using Microsoft.AspNetCore.Identity;
+﻿using Accounting_System.Data;
+using Accounting_System.Models.MasterFile;
+using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
 using Microsoft.AspNetCore.Authorization;
-using Accounting_System.Models.Reports;
-using Accounting_System.Models.MasterFile;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Controllers
 {
@@ -33,7 +28,6 @@ namespace Accounting_System.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        // GET: Supplier
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             return _context.Suppliers != null ?
@@ -41,39 +35,29 @@ namespace Accounting_System.Controllers
                         Problem("Entity set 'ApplicationDbContext.Suppliers'  is null.");
         }
 
-        // GET: Supplier/Details/5
-        public async Task<IActionResult> Details(int? id, CancellationToken cancellationToken)
-        {
-            if (id == null || _context.Suppliers == null)
-            {
-                return NotFound();
-            }
-
-            var supplier = await _context.Suppliers
-                .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
-            if (supplier == null)
-            {
-                return NotFound();
-            }
-
-            return View(supplier);
-        }
-
-        // GET: Supplier/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Supplier/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Supplier supplier, IFormFile? document, IFormFile? registration, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
+                if (await _supplierRepo.IsSupplierNameExist(supplier.Name, cancellationToken))
+                {
+                    ModelState.AddModelError("Name", "Supplier name already exist!");
+                    return View(supplier);
+                }
+
+                if (await _supplierRepo.IsSupplierTinExist(supplier.TinNo, cancellationToken))
+                {
+                    ModelState.AddModelError("TinNo", "Supplier tin already exist!");
+                    return View(supplier);
+                }
+
                 supplier.CreatedBy = _userManager.GetUserName(this.User).ToString();
                 supplier.Number = await _supplierRepo.GetLastNumber(cancellationToken);
 
@@ -138,7 +122,6 @@ namespace Accounting_System.Controllers
             return View(supplier);
         }
 
-        // GET: Supplier/Edit/5
         public async Task<IActionResult> Edit(int? id, CancellationToken cancellationToken)
         {
             if (id == null || _context.Suppliers == null)
@@ -154,9 +137,6 @@ namespace Accounting_System.Controllers
             return View(supplier);
         }
 
-        // POST: Supplier/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Supplier supplier, CancellationToken cancellationToken)
@@ -187,43 +167,6 @@ namespace Accounting_System.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return View(supplier);
-        }
-
-        // GET: Supplier/Delete/5
-        public async Task<IActionResult> Delete(int? id, CancellationToken cancellationToken)
-        {
-            if (id == null || _context.Suppliers == null)
-            {
-                return NotFound();
-            }
-
-            var supplier = await _context.Suppliers
-                .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
-            if (supplier == null)
-            {
-                return NotFound();
-            }
-
-            return View(supplier);
-        }
-
-        // POST: Supplier/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id, CancellationToken cancellationToken)
-        {
-            if (_context.Suppliers == null)
-            {
-                return Problem("Entity set 'ApplicationDbContext.Suppliers'  is null.");
-            }
-            var supplier = await _context.Suppliers.FindAsync(id, cancellationToken);
-            if (supplier != null)
-            {
-                _context.Suppliers.Remove(supplier);
-            }
-
-            await _context.SaveChangesAsync(cancellationToken);
-            return RedirectToAction(nameof(Index));
         }
 
         private bool SupplierExists(int id)

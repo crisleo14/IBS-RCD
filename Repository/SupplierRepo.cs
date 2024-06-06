@@ -28,5 +28,17 @@ namespace Accounting_System.Repository
                 return 3001;
             }
         }
+
+        public async Task<bool> IsSupplierNameExist(string supplierName, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Suppliers
+                .AnyAsync(s => s.Name.ToUpper() == supplierName.ToUpper(), cancellationToken);
+        }
+
+        public async Task<bool> IsSupplierTinExist(string supplierName, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Suppliers
+                .AnyAsync(s => s.Name.ToUpper() == supplierName.ToUpper(), cancellationToken);
+        }
     }
 }

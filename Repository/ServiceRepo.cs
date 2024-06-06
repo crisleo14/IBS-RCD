@@ -28,5 +28,11 @@ namespace Accounting_System.Repository
                 return 2001;
             }
         }
+
+        public async Task<bool> IsServicesExist(string serviceName, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Services
+                .AnyAsync(s => s.Name.ToUpper() == serviceName.ToUpper(), cancellationToken);
+        }
     }
 }

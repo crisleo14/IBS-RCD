@@ -38,6 +38,7 @@ builder.Services.AddScoped<GeneralRepo>();
 builder.Services.AddScoped<BankAccountRepo>();
 builder.Services.AddScoped<JournalVoucherRepo>();
 builder.Services.AddHostedService<AutomatedEntries>();
+builder.Services.AddScoped<ProductRepository>();
 
 var app = builder.Build();
 

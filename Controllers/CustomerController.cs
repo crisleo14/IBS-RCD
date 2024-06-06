@@ -1,11 +1,10 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
+using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Accounting_System.Controllers
 {
@@ -44,11 +43,16 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var tinExist = await _customerRepo.CheckIfTinNoExist(customer.TinNo, cancellationToken);
 
-                if (tinExist != null)
+                if (await _customerRepo.IsCustomerExist(customer.Name))
                 {
-                    ModelState.AddModelError("", "Tin# already exist!");
+                    ModelState.AddModelError("Name", "Customer already exist!");
+                    return View(customer);
+                }
+
+                if (await _customerRepo.IsTinNoExist(customer.TinNo))
+                {
+                    ModelState.AddModelError("TinNo", "Tin# already exist!");
                     return View(customer);
                 }
 
@@ -57,6 +61,15 @@ namespace Accounting_System.Controllers
                 await _dbContext.AddAsync(customer, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(customer.CreatedBy, $"Created new customer {customer.Name}", "Customer");
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                #endregion --Audit Trail Recording
+
+
+                TempData["success"] = "Customer created successfully";
                 return RedirectToAction("Index");
             }
             else
@@ -64,19 +77,6 @@ namespace Accounting_System.Controllers
                 ModelState.AddModelError("", "The information you submitted is not valid!");
                 return View(customer);
             }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Edit(int? id, CancellationToken cancellationToken)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var customer = await _customerRepo.FindCustomerAsync(id, cancellationToken);
-
-            return PartialView("_EditCustomerPartialView", customer);
         }
 
         [HttpPost]
@@ -102,39 +102,23 @@ namespace Accounting_System.Controllers
                     existingModel.WithHoldingTax = customer.WithHoldingTax;
                     existingModel.WithHoldingVat = customer.WithHoldingVat;
 
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Updated customer {customer.Name}", "Customer");
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                    #endregion --Audit Trail Recording
+
                     _dbContext.Update(existingModel);
                     await _dbContext.SaveChangesAsync(cancellationToken);
+                    TempData["success"] = "Customer updated successfully";
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (Exception ex)
                 {
-                    if (!_customerRepo.CustomerExist(customer.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    TempData["error"] = ex.Message;
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(customer);
-        }
-
-        public async Task<IActionResult> Details(int? id, CancellationToken cancellationToken)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var customer = await _customerRepo.FindCustomerAsync(id, cancellationToken);
-
-            if (customer == null)
-            {
-                return NotFound();
-            }
-
             return View(customer);
         }
     }
