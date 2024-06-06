@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Threading;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Accounting_System.Controllers
 {
@@ -140,6 +141,15 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
 
+            viewModel.COA = await _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == 4 && (coa.Name.StartsWith("AR-Non Trade Receivable") || coa.Name.StartsWith("Cost of Goods Sold") || coa.Number.StartsWith("6010103")))
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number,
+                    Text = s.Number + " " + s.Name
+                })
+                .ToListAsync(cancellationToken);
+
             return View(viewModel);
         }
 
@@ -169,7 +179,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    await _inventoryRepo.AddActualInventory(viewModel, cancellationToken);
+                    await _inventoryRepo.AddActualInventory(viewModel, User, cancellationToken);
                     TempData["success"] = "Actual inventory created successfully";
                     return RedirectToAction(nameof(ActualInventory));
                 }
@@ -184,10 +194,38 @@ namespace Accounting_System.Controllers
                         })
                         .ToListAsync(cancellationToken);
 
+                    viewModel.COA = await _dbContext.ChartOfAccounts
+                        .Where(coa => coa.Level == 4 && (coa.Name.StartsWith("AR-Non Trade Receivable") || coa.Name.StartsWith("Cost of Goods Sold") || coa.Number.StartsWith("6010103")))
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.Number,
+                            Text = s.Number + " " + s.Name
+                        })
+                        .ToListAsync(cancellationToken);
+
                     TempData["error"] = ex.Message;
                     return View(viewModel);
                 }
             }
+
+            viewModel.ProductList = await _dbContext.Products
+                .OrderBy(p => p.Code)
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = $"{p.Code} {p.Name}"
+                })
+                .ToListAsync(cancellationToken);
+
+            viewModel.COA = await _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == 4 && (coa.Name.StartsWith("AR-Non Trade Receivable") || coa.Name.StartsWith("Cost of Goods Sold") || coa.Number.StartsWith("6010103")))
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number,
+                    Text = s.Number + " " + s.Name
+                })
+                .ToListAsync(cancellationToken);
+
             TempData["error"] = "The information provided was invalid.";
             return View(viewModel);
         }

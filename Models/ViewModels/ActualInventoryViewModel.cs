@@ -32,5 +32,15 @@ namespace Accounting_System.Models.ViewModels
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Variance { get; set; }
+
+        public List<SelectListItem>? COA { get; set; }
+
+        public string[] AccountNumber { get; set; }
+
+        public string[] AccountTitle { get; set; }
+
+        public decimal[] Debit { get; set; }
+
+        public decimal[] Credit { get; set; }
     }
 }
