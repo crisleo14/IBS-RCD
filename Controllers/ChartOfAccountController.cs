@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Accounting_System.Data;
+using Accounting_System.Models;
+using Accounting_System.Models.Reports;
+using Accounting_System.Repository;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Accounting_System.Data;
-using Accounting_System.Models;
-using Microsoft.AspNetCore.Identity;
-using Accounting_System.Repository;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Accounting_System.Controllers
 {
@@ -29,7 +26,6 @@ namespace Accounting_System.Controllers
             _coaRepo = coaRepo;
         }
 
-        // GET: ChartOfAccounts
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             return _dbContext.ChartOfAccounts != null ?
@@ -37,25 +33,7 @@ namespace Accounting_System.Controllers
                         Problem("Entity set 'ApplicationDbContext.ChartOfAccounts'  is null.");
         }
 
-        // GET: ChartOfAccounts/Details/5
-        public async Task<IActionResult> Details(int? id, CancellationToken cancellationToken)
-        {
-            if (id == null || _dbContext.ChartOfAccounts == null)
-            {
-                return NotFound();
-            }
-
-            var chartOfAccount = await _dbContext.ChartOfAccounts
-                .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
-            if (chartOfAccount == null)
-            {
-                return NotFound();
-            }
-
-            return View(chartOfAccount);
-        }
-
-        // GET: ChartOfAccounts/Create
+        [HttpGet]
         public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
             var viewModel = new ChartOfAccount();
@@ -73,9 +51,6 @@ namespace Accounting_System.Controllers
             return View(viewModel);
         }
 
-        // POST: ChartOfAccounts/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ChartOfAccount chartOfAccount, string thirdLevel, string? fourthLevel, CancellationToken cancellationToken)
@@ -126,7 +101,6 @@ namespace Accounting_System.Controllers
             return View(chartOfAccount);
         }
 
-        // GET: ChartOfAccounts/Edit/5
         public async Task<IActionResult> Edit(int? id, CancellationToken cancellationToken)
         {
             if (id == null || _dbContext.ChartOfAccounts == null)
@@ -142,9 +116,6 @@ namespace Accounting_System.Controllers
             return View(chartOfAccount);
         }
 
-        // POST: ChartOfAccounts/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("IsMain,Number,Name,Type,Category,Level,Id,CreatedBy,CreatedDate")] ChartOfAccount chartOfAccount, CancellationToken cancellationToken)
@@ -159,6 +130,17 @@ namespace Accounting_System.Controllers
                 try
                 {
                     _dbContext.Update(chartOfAccount);
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Updated chart of account {chartOfAccount.Number} {chartOfAccount.Name}", "Chart of Account");
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                    #endregion --Audit Trail Recording
+
+
+                    TempData["success"] = "Chart of account updated successfully";
+
                     await _dbContext.SaveChangesAsync(cancellationToken);
                 }
                 catch (DbUpdateConcurrencyException)
@@ -175,43 +157,6 @@ namespace Accounting_System.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return View(chartOfAccount);
-        }
-
-        // GET: ChartOfAccounts/Delete/5
-        public async Task<IActionResult> Delete(int? id, CancellationToken cancellationToken)
-        {
-            if (id == null || _dbContext.ChartOfAccounts == null)
-            {
-                return NotFound();
-            }
-
-            var chartOfAccount = await _dbContext.ChartOfAccounts
-                .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
-            if (chartOfAccount == null)
-            {
-                return NotFound();
-            }
-
-            return View(chartOfAccount);
-        }
-
-        // POST: ChartOfAccounts/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id, CancellationToken cancellationToken)
-        {
-            if (_dbContext.ChartOfAccounts == null)
-            {
-                return Problem("Entity set 'ApplicationDbContext.ChartOfAccounts'  is null.");
-            }
-            var chartOfAccount = await _dbContext.ChartOfAccounts.FindAsync(id, cancellationToken);
-            if (chartOfAccount != null)
-            {
-                _dbContext.ChartOfAccounts.Remove(chartOfAccount);
-            }
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            return RedirectToAction(nameof(Index));
         }
 
         private bool ChartOfAccountExists(int id)

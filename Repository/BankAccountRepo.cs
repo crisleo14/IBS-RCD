@@ -1,6 +1,5 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models.MasterFile;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Repository
@@ -34,6 +33,18 @@ namespace Accounting_System.Repository
             {
                 throw new ArgumentException("Invalid id value. The id must be greater than 0.");
             }
+        }
+
+        public async Task<bool> IsBankAccountNoExist(string accountNo, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.BankAccounts
+                .AnyAsync(b => b.AccountNo == accountNo);
+        }
+
+        public async Task<bool> IsBankAccountNameExist(string accountName, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.BankAccounts
+                .AnyAsync(b => b.AccountName.ToUpper() == accountName.ToUpper());
         }
     }
 }

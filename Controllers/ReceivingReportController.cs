@@ -300,7 +300,7 @@ namespace Accounting_System.Controllers
             return RedirectToAction("Print", new { id = id });
         }
 
-        // TODO: Fix the error of proceeding the posting of rr even the inventory will prompt no beginning inventory found
+        // PENDING: Fix the error of proceeding the posting of rr even the inventory will prompt no beginning inventory found
         public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
         {
             try

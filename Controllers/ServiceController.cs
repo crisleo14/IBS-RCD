@@ -1,5 +1,6 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
+using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -25,7 +26,6 @@ namespace Accounting_System.Controllers
             _serviceRepo = serviceRepo;
         }
 
-        // GET: Service
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             return _dbContext.Services != null ?
@@ -33,25 +33,6 @@ namespace Accounting_System.Controllers
                         Problem("Entity set 'ApplicationDbContext.Services'  is null.");
         }
 
-        // GET: Service/Details/5
-        public async Task<IActionResult> Details(int? id, CancellationToken cancellationToken)
-        {
-            if (id == null || _dbContext.Services == null)
-            {
-                return NotFound();
-            }
-
-            var services = await _dbContext.Services
-                .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
-            if (services == null)
-            {
-                return NotFound();
-            }
-
-            return View(services);
-        }
-
-        // GET: Service/Create
         public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
             var viewModel = new Services();
@@ -79,9 +60,6 @@ namespace Accounting_System.Controllers
             return View(viewModel);
         }
 
-        // POST: Service/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Services services, CancellationToken cancellationToken)
@@ -109,6 +87,12 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
+                if (await _serviceRepo.IsServicesExist(services.Name, cancellationToken))
+                {
+                    ModelState.AddModelError("Name", "Services already exist!");
+                    return View(services);
+                }
+
                 var currentAndPrevious = await _dbContext.ChartOfAccounts
                     .FindAsync(services.CurrentAndPreviousId, cancellationToken);
 
@@ -123,6 +107,16 @@ namespace Accounting_System.Controllers
 
                 services.CreatedBy = _userManager.GetUserName(this.User).ToUpper();
                 services.Number = await _serviceRepo.GetLastNumber(cancellationToken);
+
+                TempData["success"] = "Services created successfully";
+
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(services.CreatedBy, $"Created new service {services.Name}", "Service");
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                #endregion --Audit Trail Recording
+
                 await _dbContext.AddAsync(services, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction(nameof(Index));
@@ -130,7 +124,6 @@ namespace Accounting_System.Controllers
             return View(services);
         }
 
-        // GET: Service/Edit/5
         public async Task<IActionResult> Edit(int? id, CancellationToken cancellationToken)
         {
             if (id == null || _dbContext.Services == null)
@@ -146,9 +139,6 @@ namespace Accounting_System.Controllers
             return View(services);
         }
 
-        // POST: Service/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Name,Percent,Id,CreatedBy,CreatedDate")] Services services, CancellationToken cancellationToken)
@@ -163,6 +153,16 @@ namespace Accounting_System.Controllers
                 try
                 {
                     _dbContext.Update(services);
+
+                    TempData["success"] = "Services updated successfully";
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Update service {services.Name}", "Service");
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                    #endregion --Audit Trail Recording
+
                     await _dbContext.SaveChangesAsync(cancellationToken);
                 }
                 catch (DbUpdateConcurrencyException)
@@ -179,43 +179,6 @@ namespace Accounting_System.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return View(services);
-        }
-
-        // GET: Service/Delete/5
-        public async Task<IActionResult> Delete(int? id, CancellationToken cancellationToken)
-        {
-            if (id == null || _dbContext.Services == null)
-            {
-                return NotFound();
-            }
-
-            var services = await _dbContext.Services
-                .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
-            if (services == null)
-            {
-                return NotFound();
-            }
-
-            return View(services);
-        }
-
-        // POST: Service/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id, CancellationToken cancellationToken)
-        {
-            if (_dbContext.Services == null)
-            {
-                return Problem("Entity set 'ApplicationDbContext.Services'  is null.");
-            }
-            var services = await _dbContext.Services.FindAsync(id, cancellationToken);
-            if (services != null)
-            {
-                _dbContext.Services.Remove(services);
-            }
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            return RedirectToAction(nameof(Index));
         }
 
         private bool ServicesExists(int id)

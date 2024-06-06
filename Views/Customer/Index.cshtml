@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<Accounting_System.Models.Customer>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Customer";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -10,58 +10,61 @@
 <p>
     <a asp-action="Create" class="btn btn-primary rounded-3">Create New</a>
 </p>
-<table class="table table-hover" id="myOwnTable">
-    <thead>
-        <tr class="text-primary">
-            <th>
-                @Html.DisplayNameFor(model => model.Number)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TinNo)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.BusinessStyle)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Terms)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerType)
-            </th>
-            <th ></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Number)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TinNo)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.BusinessStyle)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Terms)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CustomerType)
-            </td>
-            <td class="align-items-center">
-                <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#EditCustomer-@item.Id" data-bs-url="@Url.Action($"Edit/{item.Id}")">
-                    Edit
-                </button>
-                @await Html.PartialAsync("_EditCustomerPartialView",item)
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<div class="table-responsive">
+    <table class="table table-hover" id="myTable">
+        <thead>
+            <tr class="text-primary">
+                <th>
+                    @Html.DisplayNameFor(model => model.Number)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Name)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.TinNo)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.BusinessStyle)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Terms)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.CustomerType)
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Number)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.TinNo)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.BusinessStyle)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Terms)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CustomerType)
+                    </td>
+                    <td class="align-items-center">
+                        <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#EditCustomer-@item.Id" data-bs-url="@Url.Action($"Edit/{item.Id}")">
+                            Edit
+                        </button>
+                        @await Html.PartialAsync("_EditCustomerPartialView", item)
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
