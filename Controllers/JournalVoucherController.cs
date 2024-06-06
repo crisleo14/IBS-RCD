@@ -62,7 +62,7 @@ namespace Accounting_System.Controllers
 
             return View(journalVoucherVMs);
         }
-        [HttpGet]
+        [HttpGet] // TODO: Automation of journal voucher creation for depreciation, prepaid and accrued
         public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
             var viewModel = new JournalVoucherVM
