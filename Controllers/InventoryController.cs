@@ -1,10 +1,13 @@
 ﻿using Accounting_System.Data;
+using Accounting_System.Models.MasterFile;
 using Accounting_System.Models.ViewModels;
 using Accounting_System.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Threading;
 
 namespace Accounting_System.Controllers
 {
@@ -122,6 +125,72 @@ namespace Accounting_System.Controllers
                 return View(inventories);
             }
 
+            return View(viewModel);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ActualInventory(CancellationToken cancellationToken)
+        {
+            ActualInventoryViewModel? viewModel = new();
+
+            viewModel.ProductList = await _dbContext.Products
+                .OrderBy(p => p.Code)
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = $"{p.Code} {p.Name}"
+                })
+                .ToListAsync(cancellationToken);
+
+            return View(viewModel);
+        }
+
+        public IActionResult GetProducts(int id, DateOnly dateTo)
+        {
+            if (id != 0)
+            {
+                var dateFrom = dateTo.AddDays(-dateTo.Day + 1);
+
+                var getPerBook = _dbContext.Inventories
+                    .Where(i => i.Date >= dateFrom && i.Date <= dateTo && i.ProductId == id)
+                    .OrderByDescending(model => model.Id)
+                    .FirstOrDefault();
+
+                if (getPerBook != null)
+                {
+                    return Json(new { InventoryBalance = getPerBook.InventoryBalance, AverageCost = getPerBook.AverageCost, TotalBalance = getPerBook.TotalBalance });
+                }
+            }
+            return Json(new { InventoryBalance = 0.00, AverageCost = 0.00, TotalBalance = 0.00 });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ActualInventory(ActualInventoryViewModel viewModel, CancellationToken cancellationToken)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    await _inventoryRepo.AddActualInventory(viewModel, cancellationToken);
+                    TempData["success"] = "Actual inventory created successfully";
+                    return RedirectToAction(nameof(ActualInventory));
+                }
+                catch (Exception ex)
+                {
+                    viewModel.ProductList = await _dbContext.Products
+                        .OrderBy(p => p.Code)
+                        .Select(p => new SelectListItem
+                        {
+                            Value = p.Id.ToString(),
+                            Text = $"{p.Code} {p.Name}"
+                        })
+                        .ToListAsync(cancellationToken);
+
+                    TempData["error"] = ex.Message;
+                    return View(viewModel);
+                }
+            }
+            TempData["error"] = "The information provided was invalid.";
             return View(viewModel);
         }
     }

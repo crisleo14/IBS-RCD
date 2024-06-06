@@ -1,0 +1,110 @@
+﻿@using Accounting_System.Models.ViewModels
+@model ActualInventoryViewModel
+
+<h1>Create</h1>
+<partial name="_Notification">
+    <h4>Actual Inventory</h4>
+    <hr />
+    <div class="row">
+        <div class="col-md-4">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-group mb-3">
+                    <label asp-for="Date" class="control-label"></label><span class="required">*</span>
+                    <input type="date" asp-for="Date" class="form-control" required />
+                    <span asp-validation-for="Date" class="text-danger"></span>
+                </div>
+                <div class="form-group mb-3">
+                    <label asp-for="ProductId" class="control-label">Product Name</label><span class="required">*</span>
+                    <select asp-for="ProductId" class="form-control js-select2" asp-items="@Model.ProductList">
+                        <option></option>
+                    </select>
+                    <span asp-validation-for="ProductId" class="text-danger"></span>
+                </div>
+                <div class="row">
+                    <input asp-for="AverageCost" type="hidden" />
+                    <input asp-for="TotalBalance" type="hidden" />
+                    <div class="col">
+                        <div class="form-group mb-3">
+                            <label asp-for="PerBook" class="control-label"></label>
+                            <input asp-for="PerBook" class="form-control money" value="" placeholder="0.00" readonly/>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group mb-3">
+                            <label asp-for="ActualAmount" class="control-label"></label><span class="required">*</span>
+                            <input asp-for="ActualAmount" class="form-control money" value="" placeholder="0.00" />
+                            <span asp-validation-for="ActualAmount" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group mb-3">
+                            <label asp-for="Variance" class="control-label"></label>
+                            <input asp-for="Variance" class="form-control money" value="" placeholder="0.00" readonly />
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Create" class="btn btn-primary" />
+                    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+
+        <script>
+            // Get the current date in the format "YYYY-MM-DD" (required for the date input)
+            var currentDate = new Date().toISOString().slice(0, 10);
+
+            // Set the default value of the input field
+            document.getElementById("Date").value = currentDate;
+        </script>
+        <script>
+            $(document).ready(function () {
+                $('#ProductId').change(function () {
+                    var productId = $(this).val();
+                    var date = $("#Date").val();
+                    console.log(date)
+                    $.ajax({
+                        url: "/Inventory/GetProducts",
+                        method: "GET",
+                        data: { id: productId, dateTo : date},
+                        success: function (data) {
+                            if (data.inventoryBalance !== 0.00) {
+                                $("#PerBook").val(data.inventoryBalance);
+                                $("#AverageCost").val(data.averageCost);
+                                $("#TotalBalance").val(data.totalBalance);
+                            } else {
+                                $("#PerBook").val(data.inventoryBalance);
+                                $("#AverageCost").val(data.averageCost);
+                                $("#TotalBalance").val(data.totalBalance);
+                            }
+                        },
+                        error: function () {
+                            console.error('Error fetching bank account:', error)
+                        }
+
+                    });
+                });
+            });
+        </script>
+        <script>
+            $(document).ready(function () {
+                $("#ActualAmount").on('input', function () {
+                    var inputValue = $(this).val();
+                    var perBookAmount = $("#PerBook").val();
+                    var variance = inputValue - perBookAmount;
+
+                    $("#Variance").val(variance);
+                    calculateGrandTotalPayment();
+                });
+            });
+        </script>
+    }
+
+

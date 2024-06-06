@@ -158,5 +158,28 @@ namespace Accounting_System.Repository
             }
         }
 
+        public async Task AddActualInventory(ActualInventoryViewModel viewModel, CancellationToken cancellationToken)
+        {
+            var total = viewModel.Variance * viewModel.AverageCost;
+            var inventoryBalance = viewModel.Variance + viewModel.PerBook;
+            var totalBalance = viewModel.TotalBalance + total;
+            var particular = viewModel.Variance < 0 ? "Actual Inventory(Loss)" : "Actual Inventory(Gain)";
+
+            Inventory inventory = new()
+            {
+                Date = DateOnly.FromDateTime(DateTime.UtcNow),
+                ProductId = viewModel.ProductId,
+                Quantity = viewModel.Variance,
+                Cost = viewModel.AverageCost,
+                Particular = particular,
+                Total = total,
+                InventoryBalance = inventoryBalance,
+                AverageCost = totalBalance / inventoryBalance,
+                TotalBalance = totalBalance
+            };
+
+            await _dbContext.Inventories.AddAsync(inventory, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
     }
 }
