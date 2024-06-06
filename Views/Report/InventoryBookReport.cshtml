@@ -117,7 +117,7 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                         @Html.DisplayFor(model => inventory.Total)
                     </td>
                 </tr>
-                if (inventory.Particular == "Sales")
+                if (inventory.Particular == "Sales" || inventory.Particular == "Actual Inventory(Loss)")
                 {
                     totalQuantity -= inventory.Quantity;
                     totalAmount -= inventory.Total;
