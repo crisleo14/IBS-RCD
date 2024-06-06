@@ -58,7 +58,7 @@
                     </thead>
                     <tbody id="accountingEntriesBody">
                         <tr>
-                            <input type="hidden" name="AccountNumber" value="1010401" />
+                            <input type="hidden" name="AccountNumber" class="accountNumber" value="" />
                             <td><input type="text" name="AccountTitle" value="" class="w-100 accountTitle" style="border:none" readonly /></td>
                             <td><input type="text" name="Debit" value="0.00" class="w-100 debit" style="border:none" readonly /></td>
                             <td><input type="text" name="Credit" value="0.00" class="w-100 credit" style="border:none" readonly /></td>
@@ -139,8 +139,15 @@
                     var productId = $(this).val();
                     var date = $("#Date").val();
 
-                    var accountTitle = $("#ProductId option:selected").text().replace(/^\S+\s/, '');
-                    $(".accountTitle").val("Inventory " + accountTitle);
+                    var product = $("#ProductId option:selected").text().replace(/^\S+\s/, '');
+                    $(".accountTitle").val("Inventory " + product);
+                    if (product = "Biodiesel") {
+                        $(".accountNumber").val("1010401");
+                    } else if (product = "Econogas") {
+                        $(".accountNumber").val("1010402");
+                    }else{
+                        $(".accountNumber").val("1010403");
+                    }
 
                     console.log(date)
                     $.ajax({
