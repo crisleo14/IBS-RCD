@@ -343,9 +343,9 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> PrintedInvoice(int id, CancellationToken cancellationToken)
         {
             var sales = await _salesInvoiceRepo.FindSalesInvoice(id, cancellationToken);
-            if (sales != null && sales.IsPrinted)
+            if (sales != null && !sales.IsPrinted)
             {
-                sales.IsPrinted = false;
+                sales.IsPrinted = true;
 
                 #region --Audit Trail Recording
 

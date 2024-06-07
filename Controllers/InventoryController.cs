@@ -1,14 +1,10 @@
 ﻿using Accounting_System.Data;
-using Accounting_System.Models.MasterFile;
 using Accounting_System.Models.ViewModels;
 using Accounting_System.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System.Threading;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Accounting_System.Controllers
 {
@@ -61,7 +57,6 @@ namespace Accounting_System.Controllers
                                 Text = $"{p.Code} {p.Name}"
                             })
                             .ToListAsync(cancellationToken);
-
 
                         TempData["error"] = "Beginning Inventory for this product already exists. Please contact MIS if you think this was a mistake.";
                         return View(viewModel);

@@ -49,11 +49,13 @@ namespace Accounting_System.Models.AccountsPayable
         [Required]
         [Display(Name = "Qty Delivered")]
         [Column(TypeName = "numeric(18,2)")]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal QuantityDelivered { get; set; }
 
         [Required]
         [Display(Name = "Qty Received")]
         [Column(TypeName = "numeric(18,2)")]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal QuantityReceived { get; set; }
 
         [Display(Name = "Gain/Loss")]

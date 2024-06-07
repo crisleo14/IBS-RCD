@@ -178,7 +178,6 @@ namespace Accounting_System.Repository
             {
                 throw new ArgumentException("Invalid id value. The id must be greater than 0.");
             }
-
         }
     }
 }

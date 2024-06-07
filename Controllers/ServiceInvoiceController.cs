@@ -156,8 +156,6 @@ namespace Accounting_System.Controllers
                     model.CurrentAndPreviousAmount += model.Amount;
                 }
 
-
-
                 if (customer.CustomerType == "Vatable")
                 {
                     model.CurrentAndPreviousAmount = Math.Round(model.CurrentAndPreviousAmount / 1.12m, 2);
@@ -251,7 +249,6 @@ namespace Accounting_System.Controllers
                     var customer = await _serviceInvoiceRepo.FindCustomerAsync(model.CustomerId, cancellationToken);
 
                     #endregion --Retrieval of Customer
-
 
                     #region --SOA Computation--
 

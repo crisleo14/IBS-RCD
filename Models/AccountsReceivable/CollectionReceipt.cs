@@ -12,6 +12,7 @@ namespace Accounting_System.Models.AccountsReceivable
 
         //Sales Invoice Property
 
+        [Required(ErrorMessage = "Sales invoice is required.")]
         public int? SalesInvoiceId { get; set; }
 
         [Display(Name = "Sales Invoice No.")]
@@ -26,6 +27,7 @@ namespace Accounting_System.Models.AccountsReceivable
 
         //Service Invoice Property
 
+        [Required(ErrorMessage = "Service invoice is required.")]
         public int? ServiceInvoiceId { get; set; }
 
         [Display(Name = "Sales Invoice No.")]

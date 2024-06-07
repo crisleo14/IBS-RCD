@@ -7,6 +7,7 @@ namespace Accounting_System.Models.AccountsReceivable
     public class DebitMemo : BaseEntity
     {
         [Display(Name = "SI No")]
+        [Required(ErrorMessage = "Sales invoice is required.")]
         public int? SalesInvoiceId { get; set; }
 
         [ForeignKey("SalesInvoiceId")]
@@ -16,6 +17,7 @@ namespace Accounting_System.Models.AccountsReceivable
         public List<SelectListItem>? SalesInvoices { get; set; }
 
         [Display(Name = "SV No")]
+        [Required(ErrorMessage = "Service invoice is required.")]
         public int? ServiceInvoiceId { get; set; }
 
         [ForeignKey("ServiceInvoiceId")]
@@ -69,6 +71,7 @@ namespace Accounting_System.Models.AccountsReceivable
 
         public string Source { get; set; }
 
+        [Required]
         public string? Remarks { get; set; }
 
         [Column(TypeName = "date")]

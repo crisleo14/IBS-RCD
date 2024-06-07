@@ -195,7 +195,6 @@ namespace Accounting_System.Controllers
                     {
                         model.TotalSales = model.DebitAmount;
                     }
-
                 }
                 else if (model.Source == "Service Invoice")
                 {
@@ -204,7 +203,6 @@ namespace Accounting_System.Controllers
                     var existingSv = await _dbContext.ServiceInvoices
                         .Include(sv => sv.Customer)
                         .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
-
 
                     #region --Retrieval of Services
 
@@ -216,12 +214,7 @@ namespace Accounting_System.Controllers
 
                     #endregion --Retrieval of Services
 
-                    #region --DM Entries function
-
-                    #endregion ----DM Entries function
-
                     model.DebitAmount = model.Amount;
-
 
                     if (existingSv.Customer.CustomerType == "Vatable")
                     {
@@ -633,7 +626,7 @@ namespace Accounting_System.Controllers
                         }
                         await _dbContext.AddAsync(sales, cancellationToken);
 
-                        #endregion --Sales Book Recording()--
+                        #endregion --Sales Book Recording(SV)--
 
                         #region --General Ledger Book Recording(SV)--
 
@@ -726,7 +719,6 @@ namespace Accounting_System.Controllers
 
                         #endregion --General Ledger Book Recording(SV)--
                     }
-
 
                     #region --Audit Trail Recording
 

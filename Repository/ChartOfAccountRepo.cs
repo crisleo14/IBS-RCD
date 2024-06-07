@@ -89,7 +89,6 @@ namespace Accounting_System.Repository
                         parentAccount.Children.Add(account.Value);
                     }
                 }
-
             }
 
             // Return the modified accounts

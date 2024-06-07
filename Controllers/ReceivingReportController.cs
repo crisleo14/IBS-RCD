@@ -245,8 +245,6 @@ namespace Accounting_System.Controllers
                     existingModel.EwtAmount = existingModel.NetAmount * .01m;
                 }
 
-
-
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(existingModel.CreatedBy, $"Edit rr# {existingModel.RRNo}", "Receiving Report");

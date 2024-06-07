@@ -216,6 +216,7 @@ namespace Accounting_System.Controllers
             var receivingReport = _reportRepo.GetReceivingReport(dateFrom, dateTo, selectedFiltering);
             return View(receivingReport);
         }
+
         public IActionResult POLiquidationPerPO(int? poListFrom, int? poListTo)
         {
             var from = poListFrom;
@@ -430,6 +431,7 @@ namespace Accounting_System.Controllers
         }
 
         #region -- Generate Audit Trail .Txt File --
+
         public IActionResult GenerateAuditTrailTxtFile(ViewModelBook model)
         {
             if (ModelState.IsValid)
@@ -494,7 +496,6 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
                     fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
-
                     // Convert the content to a byte array
                     var bytes = Encoding.UTF8.GetBytes(fileContent.ToString());
 
@@ -509,9 +510,11 @@ namespace Accounting_System.Controllers
             }
             return View(model);
         }
+
         #endregion -- Generate Audit Trail .Txt File --
 
         #region -- Generate Disbursement Book .Txt File --
+
         public IActionResult GenerateDisbursementBookTxtFile(ViewModelBook model)
         {
             if (ModelState.IsValid)
@@ -586,7 +589,6 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
                     fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
-
                     // Convert the content to a byte array
                     var bytes = Encoding.UTF8.GetBytes(fileContent.ToString());
 
@@ -601,9 +603,11 @@ namespace Accounting_System.Controllers
             }
             return View(model);
         }
+
         #endregion -- Generate Disbursement Book .Txt File --
 
         #region -- Generate Cash Receipt Book .Txt File --
+
         public IActionResult GenerateCashReceiptBookTxtFile(ViewModelBook model)
         {
             if (ModelState.IsValid)
@@ -677,7 +681,6 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
                     fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
-
                     // Convert the content to a byte array
                     var bytes = Encoding.UTF8.GetBytes(fileContent.ToString());
 
@@ -696,6 +699,7 @@ namespace Accounting_System.Controllers
         #endregion -- Generate Cash Receipt Book .Txt File --
 
         #region -- Generate General Ledger Book .Txt File --
+
         public IActionResult GenerateGeneralLedgerBookTxtFile(ViewModelBook model)
         {
             if (ModelState.IsValid)
@@ -765,7 +769,6 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine($"Version: v1.1");
                     fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
                     fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
-
 
                     // Convert the content to a byte array
                     var bytes = Encoding.UTF8.GetBytes(fileContent.ToString());
@@ -858,7 +861,6 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
                     fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
-
                     // Convert the content to a byte array
                     var bytes = Encoding.UTF8.GetBytes(fileContent.ToString());
 
@@ -877,6 +879,7 @@ namespace Accounting_System.Controllers
         #endregion -- Generate Inventory Book .Txt File --
 
         #region -- Generate Journal Book .Txt File --
+
         public IActionResult GenerateJournalBookTxtFile(ViewModelBook model)
         {
             if (ModelState.IsValid)
@@ -947,7 +950,6 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
                     fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
-
                     // Convert the content to a byte array
                     var bytes = Encoding.UTF8.GetBytes(fileContent.ToString());
 
@@ -966,6 +968,7 @@ namespace Accounting_System.Controllers
         #endregion -- Generate Journal Book .Txt File --
 
         #region -- Generate Purchase Book .Txt File --
+
         public IActionResult GeneratePurchaseBookTxtFile(ViewModelBook model, string? selectedFiltering, string? poListFrom, string? poListTo)
         {
             if (ModelState.IsValid)
@@ -1060,7 +1063,6 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
                     fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
 
-
                     // Convert the content to a byte array
                     var bytes = Encoding.UTF8.GetBytes(fileContent.ToString());
 
@@ -1079,6 +1081,7 @@ namespace Accounting_System.Controllers
         #endregion -- Generate Purchase Book .Txt File --
 
         #region -- Generate Sales Book .Txt File --
+
         public IActionResult GenerateSalesBookTxtFile(ViewModelBook model, string? selectedDocument, string? soaList, string? siList)
         {
             if (ModelState.IsValid)
@@ -1166,7 +1169,6 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine($"Version: v1.1");
                     fileContent.AppendLine($"Extracted By: {extractedBy.ToUpper()}");
                     fileContent.AppendLine($"Date & Time Extracted: {@DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")}");
-
 
                     // Convert the content to a byte array
                     var bytes = Encoding.UTF8.GetBytes(fileContent.ToString());

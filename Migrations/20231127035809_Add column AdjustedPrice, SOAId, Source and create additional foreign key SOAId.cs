@@ -40,7 +40,6 @@ namespace Accounting_System.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-
             migrationBuilder.DropIndex(
                 name: "IX_DebitMemos_SOAId",
                 table: "DebitMemos");

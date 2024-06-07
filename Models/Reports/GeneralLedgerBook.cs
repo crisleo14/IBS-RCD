@@ -11,6 +11,7 @@ namespace Accounting_System.Models.Reports
 
         [Column(TypeName = "date")]
         public DateOnly Date { get; set; }
+
         public string Reference { get; set; }
 
         [Display(Name = "Account Number")]

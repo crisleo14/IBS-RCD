@@ -62,6 +62,7 @@ namespace Accounting_System.Controllers
                 .LastOrDefaultAsync(cancellationToken);
 
                 #region -- Generate AccountNo --
+
                 var generatedAccountNo = 0L;
                 if (checkLastAccountNo != null)
                 {
@@ -75,6 +76,7 @@ namespace Accounting_System.Controllers
                 }
                 model.SeriesNumber = generatedAccountNo;
                 model.AccountNoCOA = "1010101" + generatedAccountNo.ToString("D2");
+
                 #endregion -- Generate AccountNo --
 
                 model.CreatedBy = _userManager.GetUserName(this.User);
@@ -115,7 +117,6 @@ namespace Accounting_System.Controllers
                 ModelState.AddModelError("", "The information you submitted is not valid!");
                 return View(model);
             }
-
         }
 
         [HttpGet]
@@ -135,7 +136,6 @@ namespace Accounting_System.Controllers
             }
             if (ModelState.IsValid)
             {
-
                 existingModel.AccountNo = model.AccountNo;
                 existingModel.AccountName = model.AccountName;
                 existingModel.Bank = model.Bank;
@@ -159,6 +159,5 @@ namespace Accounting_System.Controllers
             await _dbContext.SaveChangesAsync(cancellationToken);
             return RedirectToAction("Index");
         }
-
     }
 }

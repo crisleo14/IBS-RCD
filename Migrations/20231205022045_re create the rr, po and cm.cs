@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
@@ -119,13 +118,11 @@ namespace Accounting_System.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-
             migrationBuilder.DropTable(
                 name: "CreditMemos");
 

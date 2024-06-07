@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Accounting_System.Models.ViewModels
 {
-    public class InventoryReportViewModel /*: IValidatableObject = Injecting for validation */ 
+    public class InventoryReportViewModel /*: IValidatableObject = Injecting for validation */
     {
         public List<SelectListItem>? Products { get; set; }
 

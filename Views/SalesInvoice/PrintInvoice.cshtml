@@ -6,11 +6,11 @@
     ViewData["Title"] = "Print Sales Invoice";
 }
 
-<br class="br-top"/>
+<br class="br-top" />
 <table class="w-100">
     <tbody>
         <tr>
-            <td class="text-end" style="padding: 0 !important;"><img src="~/img/Filpride.jpg" width="130px"/></td>
+            <td class="text-end" style="padding: 0 !important;"><img src="~/img/Filpride.jpg" width="130px" /></td>
         </tr>
         <tr style="margin: 0 !important;">
             <td class="text-center" style="padding: 0 !important;">
@@ -32,7 +32,7 @@
 </table>
 
 <div class="table-responsive">
-    <table class="w-100" >
+    <table class="w-100">
         <tbody>
             <tr>
                 <td>
@@ -87,11 +87,11 @@
     </table>
 </div>
 @{
-        if (Model.Customer.CustomerType == "Vatable")
-        {
+    if (Model.Customer.CustomerType == "Vatable")
+    {
         if (Model.Customer.WithHoldingTax && !Model.Customer.WithHoldingVat)
         {
-        <p style="line-height: 1; margin-top:20px;">
+            <p style="line-height: 1; margin-top:20px;">
                 Creditable Withholding Tax with the amount of <b>@Html.DisplayFor(model => model.WithHoldingTaxAmount)</b> is computed for this invoice.<br />
                 Please attach BIR Form 2307 to your payment if you deducted Expanded Withholding Tax.
             </p>
@@ -112,8 +112,8 @@
             </p>
         }
     }
-        else
-        {
+    else
+    {
         if (Model.Customer.WithHoldingTax && !Model.Customer.WithHoldingVat)
         {
             <p style="line-height: 1; margin-top:20px;">
@@ -136,62 +136,64 @@
                 Please attach BIR Form 2306 and 2307 to your payment if you deducted Expanded Withholding Tax and Vat.
             </p>
         }
-        }
-  }
+    }
+}
 
-    <table class="w-100" style="height:170px; margin-top:20px;">
-        <tbody>
-            <tr>
-                <td>
+<table class="w-100" style="height:170px; margin-top:20px;">
+    <tbody>
+        <tr>
+            <td>
 
-                        <table class="table-bordered w-100 h-100" style="padding: 0; margin: 0;">
-                            <tbody>
+                <table class="table-bordered w-100 h-100" style="padding: 0; margin: 0;">
+                    <tbody>
 
-                            <tr class="h-100">
-                                    <td style="position:relative; top:-35px; left:4%;">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Remarks)</td>
-                                </tr>
+                        <tr class="h-100">
+                            <td style="position:relative; top:-35px; left:4%;">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Remarks)</td>
+                        </tr>
 
-                            </tbody>
-                        </table>
-                </td>
-                <td>
-                        <table class="table-bordered w-100 h-100" style="padding: 0; margin: 0;">
-                            <tbody>
+                    </tbody>
+                </table>
+            </td>
+            <td>
+                <table class="table-bordered w-100 h-100" style="padding: 0; margin: 0;">
+                    <tbody>
 
-                                <tr class="align-text-top text-center text-nowrap">
-                                    <td>
-                                        Prepared by
-                                        <br />
-                                        <p style="margin-top:20px;"><span style="display: inline-block; width:110px;" class="underline">@Html.DisplayFor(model => model.CreatedBy)</span></p>
-                                    </td>
-                                    <td>
-                                        Approved by
-                                        <br />
-                                        <p style="margin-top:20px;"><span style="display: inline-block; width:110px;" class="underline">Azh Adolfo</span></p>
-                                    </td>
+                        <tr class="align-text-top text-center text-nowrap">
+                            <td>
+                                Prepared by
+                                <br />
+                                <p style="margin-top:20px;"><span style="display: inline-block; width:110px;" class="underline">@Html.DisplayFor(model => model.CreatedBy)</span></p>
+                            </td>
+                            <td>
+                                Approved by
+                                <br />
+                                <p style="margin-top:20px;"><span style="display: inline-block; width:110px;" class="underline">Azh Adolfo</span></p>
+                            </td>
 
-                                </tr>
-                                <tr class="align-text-top">
-                                    <td colspan="2">
-                                        <div style="margin-left:20px;">HAULER/DRIVER
-                                        <span style="display: inline-block; width:90%;" class="underline"></span></div>
-                                    </td>
-                                </tr>
+                        </tr>
+                        <tr class="align-text-top">
+                            <td colspan="2">
+                                <div style="margin-left:20px;">
+                                    HAULER/DRIVER
+                                    <span style="display: inline-block; width:90%;" class="underline"></span>
+                                </div>
+                            </td>
+                        </tr>
 
-                            </tbody>
-                        </table>
-                </td>
-                <td>
+                    </tbody>
+                </table>
+            </td>
+            <td>
                 <table class="table-bordered w-100 h-100" style="padding: 0; margin: 0;">
                     <tbody class="text-nowrap table-font-bold">
                         <tr style="padding-left: 8%;">
                             <td><b>Vatable Sales: </b></td>
 
                             <td class="text-end">
-                            @if (Model.Customer.CustomerType == "Vatable")
-                            {
-                                @Html.DisplayFor(model => model.VatableSales)
-                            }
+                                @if (Model.Customer.CustomerType == "Vatable")
+                                {
+                                    @Html.DisplayFor(model => model.VatableSales)
+                                }
                             </td>
 
                         </tr>
@@ -229,7 +231,7 @@
                             <td><b>Discount: </b></td>
 
                             <td class="text-end">
-                            @if (Model.Discount != 0)
+                                @if (Model.Discount != 0)
                                 {
                                     <p style="height: 9px;">@Html.DisplayFor(model => model.Discount)</p>
                                 }
@@ -242,14 +244,14 @@
                                 @{
                                     var totalSales = Model.VatableSales + Model.VatAmount;
                                     var formattedTotalSales = String.Format("{0:N2}", totalSales);
-                                    var otherDiscount =  Model.Amount - Model.Discount;
+                                    var otherDiscount = Model.Amount - Model.Discount;
                                     var formattedOtherDiscount = String.Format("{0:N2}", otherDiscount);
                                 }
                                 @if (Model.Discount == 0)
                                 {
                                     if (Model.Customer.CustomerType == "Vatable")
                                     {
-                                    @Html.DisplayFor(model => formattedTotalSales)
+                                        @Html.DisplayFor(model => formattedTotalSales)
                                     }
                                     else
                                     {
@@ -266,56 +268,60 @@
                             </td>
                         </tr>
                     </tbody>
-                        </table>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+                </table>
+            </td>
+        </tr>
+    </tbody>
+</table>
 
-    <table class="table-bordered" style="margin-top:20px;">
-        <tbody>
-            <tr style="line-height: 1;">
-                <td class="align-text-top">RECEIVED the above items in good order and condition. The Undersigned agrees to pay the total amount of this invoice in accordance to the terms appearing to the terms above.</td>
-                <td class="align-text-top">CONDITION OF SALE - Interest at the rate of 38% per annum will be charge on all overdue accounts and in the event of judicial proceedings to enforce collection, the purchaser will pay a reasonable compensation not less than 25% of the amount due of the attorney's fees and expense of collection in addition to the costs of suit. Any action arising out of the transaction covered by sales invoice shall be brought in the appropriate courts of Pasig City and/or Metro Manila. Goods remain in the property of FILPRIDE RESOURCES INC. until paid in full.</td>
-            </tr>
+<table class="table-bordered" style="margin-top:20px;">
+    <tbody>
+        <tr style="line-height: 1;">
+            <td class="align-text-top">RECEIVED the above items in good order and condition. The Undersigned agrees to pay the total amount of this invoice in accordance to the terms appearing to the terms above.</td>
+            <td class="align-text-top">CONDITION OF SALE - Interest at the rate of 38% per annum will be charge on all overdue accounts and in the event of judicial proceedings to enforce collection, the purchaser will pay a reasonable compensation not less than 25% of the amount due of the attorney's fees and expense of collection in addition to the costs of suit. Any action arising out of the transaction covered by sales invoice shall be brought in the appropriate courts of Pasig City and/or Metro Manila. Goods remain in the property of FILPRIDE RESOURCES INC. until paid in full.</td>
+        </tr>
 
-        </tbody>
-    </table>
+    </tbody>
+</table>
 
 
-    <p style="margin-top:20px;" class="p-italic">
-        This is a system generated invoice, no signature required.
-    </p>
+<p style="margin-top:20px;" class="p-italic">
+    This is a system generated invoice, no signature required.
+</p>
 
-    <p class ="text-center w-100">
-        @if (Model.Customer.CustomerType != "Vatable")
+<p class="text-center w-100">
+    @if (Model.Customer.CustomerType != "Vatable")
     {
-         <b>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</b><br />
+        <b>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</b>
+
+        <br />
     }
-        <span>Acknowledgement Certificate No:</span>
-        <span style="display: inline-block; width:150px;">@CS.ACCN</span>
-        <span>&nbsp;&nbsp;Date Issued:</span>
-        <span style="display: inline-block; width:50px;">@CS.DateIssued</span><br />
-        Series: SI0000000001 - SI9999999999
-        Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
-    </p>
+    <span>Acknowledgement Certificate No:</span>
+    <span style="display: inline-block; width:150px;">@CS.ACCN</span>
+    <span>&nbsp;&nbsp;Date Issued:</span>
+    <span style="display: inline-block; width:50px;">@CS.DateIssued</span><br />
+    Series: SI0000000001 - SI9999999999
+    Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
+</p>
 
 
-    @if (Model.IsPrinted == true)
-    {
+@if (!Model.IsPrinted)
+{
     <div class="text-end">
-    ORIGINAL COPY
+        ORIGINAL COPY
     </div>
-    }else{
+}
+else
+{
     <div class="text-end">
-    REPRINT COPY
+        REPRINT COPY
     </div>
-    }
+}
 
-    <a asp-action="PrintedInvoice" class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" style="margin-top: 25px;" id="printButton">Print</a>
-    <a asp-action="Index" class="btn" style="margin-top: 25px;" id="otherButton">Back</a>
+<a asp-action="PrintedInvoice" class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" style="margin-top: 25px;" id="printButton">Print</a>
+<a asp-action="Index" class="btn" style="margin-top: 25px;" id="otherButton">Back</a>
 
-@section Scripts{
+@section Scripts {
     <script>
         function printPage() {
             // Call the print function

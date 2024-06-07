@@ -3,7 +3,7 @@
 @model CheckVoucherNonTradeInvoicingViewModel
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Non Trade Invoicing";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <partial name="_Notification">
@@ -17,12 +17,12 @@
             <div class="col-md-4">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="form-group mb-3">
-                    <label asp-for="TransactionDate" class="control-label"></label>
+                    <label asp-for="TransactionDate" class="control-label"></label><span class="required">*</span>
                     <input asp-for="TransactionDate" type="Date" class="form-control" />
                     <span asp-validation-for="TransactionDate" class="text-danger"></span>
                 </div>
                 <div class="form-group mb-3">
-                    <label class="control-label">Supplier</label>
+                    <label class="control-label">Supplier<span class="required">*</span></label>
                     <select asp-for="SupplierId" asp-items="@Model.Suppliers" class="form-select js-select2" required>
                         <option></option>
                     </select>
@@ -41,16 +41,16 @@
                 </div>
                 <div class="form-floating mb-3">
                     <textarea asp-for="PoNo" class="form-control" placeholder="Input si no" style="height: 100px"></textarea>
-                    <label asp-for="PoNo" class="control-label"></label>
+                    <label asp-for="PoNo" class="control-label">PO No<span class="required">*</span></label>
                     <span asp-validation-for="PoNo" class="text-danger"></span>
                 </div>
                 <div class="form-floating mb-3">
                     <textarea asp-for="SiNo" class="form-control" placeholder="Input po no" style="height: 100px"></textarea>
-                    <label asp-for="SiNo" class="control-label"></label>
+                    <label asp-for="SiNo" class="control-label">SI No<span class="required">*</span></label>
                     <span asp-validation-for="SiNo" class="text-danger"></span>
                 </div>
                 <div class="form-group mb-3">
-                    <label asp-for="Total" class="control-label"></label>
+                    <label asp-for="Total" class="control-label"></label><span class="required">*</span>
                     <input asp-for="Total" class="form-control money" value="" placeholder="0.00" />
                     <span asp-validation-for="Total" class="text-danger"></span>
                 </div>
@@ -104,7 +104,7 @@
             </div>
             <br />
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <input type="submit" value="Create" class="btn btn-primary" />
                 <a asp-action="Index" class="btn btn-secondary">Back to List</a>
             </div>
         </div>

@@ -16,7 +16,6 @@ namespace Accounting_System.Migrations
                 type: "integer",
                 nullable: false,
                 defaultValue: 0);
-
         }
 
         /// <inheritdoc />
@@ -25,7 +24,6 @@ namespace Accounting_System.Migrations
             migrationBuilder.DropColumn(
                 name: "Quantity",
                 table: "DebitMemos");
-
         }
     }
 }

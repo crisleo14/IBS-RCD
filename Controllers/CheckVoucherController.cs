@@ -78,6 +78,7 @@ namespace Accounting_System.Controllers
 
             return View(checkVoucherVMs);
         }
+
         public async Task<IActionResult> GetPOs(int supplierId)
         {
             var purchaseOrders = await _dbContext.PurchaseOrders
@@ -92,9 +93,9 @@ namespace Accounting_System.Controllers
 
             return Json(null);
         }
+
         public async Task<IActionResult> GetRRs(string[] poNumber, string? criteria)
         {
-
             var receivingReports = await _dbContext.ReceivingReports
             .Where(rr => poNumber.Contains(rr.PONo) && !rr.IsPaid && rr.IsPosted)
             .OrderBy(rr => criteria == "Transaction Date" ? rr.Date : rr.DueDate)
@@ -155,7 +156,6 @@ namespace Accounting_System.Controllers
             }
             return Json(null);
         }
-
 
         public async Task<IActionResult> RRBalance(string rrNo)
         {
@@ -224,7 +224,6 @@ namespace Accounting_System.Controllers
                 .Where(cvd => cvd.TransactionNo == header.CVNo)
                 .ToListAsync(cancellationToken);
 
-
             if (header.Category == "Trade" && header.RRNo != null)
             {
                 var siArray = new string[header.RRNo.Length];
@@ -252,7 +251,6 @@ namespace Accounting_System.Controllers
 
             return View(viewModel);
         }
-
 
         public async Task<IActionResult> Printed(int id, CancellationToken cancellationToken)
         {
@@ -416,8 +414,6 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
 
-
-
             if (ModelState.IsValid)
             {
                 var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(cancellationToken);
@@ -558,6 +554,7 @@ namespace Accounting_System.Controllers
 
             return View(model);
         }
+
         [HttpPost]
         public async Task<IActionResult> Trade(CheckVoucherTradeViewModel viewModel, IFormFile? file, CancellationToken cancellationToken)
         {
@@ -648,7 +645,6 @@ namespace Accounting_System.Controllers
                                 Total = cashInBank,
                                 Amount = viewModel.Amount,
                                 CreatedBy = _userManager.GetUserName(this.User)
-
                             }
                     );
 
@@ -839,7 +835,6 @@ namespace Accounting_System.Controllers
                         CreatedBy = _userManager.GetUserName(this.User),
                         Category = "Non-Trade",
                         CvType = "Invoicing"
-
                     };
 
                     await _dbContext.AddAsync(checkVoucherHeader, cancellationToken);
@@ -971,8 +966,6 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync();
 
-
-
             return View(viewModel);
         }
 
@@ -1031,7 +1024,6 @@ namespace Accounting_System.Controllers
                         CheckNo = viewModel.CheckNo,
                         CheckDate = viewModel.CheckDate,
                         CheckAmount = viewModel.Total
-
                     };
 
                     await _dbContext.AddAsync(checkVoucherHeader, cancellationToken);

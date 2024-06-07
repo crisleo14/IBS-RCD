@@ -12,6 +12,7 @@ namespace Accounting_System.Repository
         {
             _dbContext = dbContext;
         }
+
         public async Task<List<BankAccount>> GetBankAccountAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext

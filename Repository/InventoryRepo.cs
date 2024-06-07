@@ -86,7 +86,6 @@ namespace Accounting_System.Repository
 
                 await _dbContext.AddAsync(inventory, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
-
             }
             else
             {
@@ -154,7 +153,6 @@ namespace Accounting_System.Repository
                 await _dbContext.Inventories.AddAsync(inventory, cancellationToken);
                 await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
-
             }
             else
             {
@@ -165,6 +163,7 @@ namespace Accounting_System.Repository
         public async Task AddActualInventory(ActualInventoryViewModel viewModel, ClaimsPrincipal user, CancellationToken cancellationToken)
         {
             #region -- Actual Inventory Entry --
+
             var total = viewModel.Variance * viewModel.AverageCost;
             var inventoryBalance = viewModel.Variance + viewModel.PerBook;
             var totalBalance = viewModel.TotalBalance + total;
@@ -184,9 +183,11 @@ namespace Accounting_System.Repository
             };
             await _dbContext.Inventories.AddAsync(inventory, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
+
             #endregion -- Actual Inventory Entry --
 
             #region -- General Book Entry --
+
             var ledger = new List<GeneralLedgerBook>();
             for (int i = 0; i < viewModel.AccountNumber.Length; i++)
             {
@@ -207,6 +208,7 @@ namespace Accounting_System.Repository
 
             await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledger, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
+
             #endregion -- General Book Entry --
         }
     }

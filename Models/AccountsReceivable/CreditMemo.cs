@@ -16,6 +16,7 @@ namespace Accounting_System.Models.AccountsReceivable
         public DateOnly TransactionDate { get; set; }
 
         [Display(Name = "SI No")]
+        [Required(ErrorMessage = "Sales invoice is required.")]
         public int? SalesInvoiceId { get; set; }
 
         [ForeignKey("SalesInvoiceId")]
@@ -24,7 +25,8 @@ namespace Accounting_System.Models.AccountsReceivable
         [NotMapped]
         public List<SelectListItem>? SalesInvoices { get; set; }
 
-        [Display(Name = "SOA No")]
+        [Display(Name = "SV No")]
+        [Required(ErrorMessage = "Service invoice is required.")]
         public int? ServiceInvoiceId { get; set; }
 
         [ForeignKey("ServiceInvoiceId")]

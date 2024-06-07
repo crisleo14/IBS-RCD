@@ -1,7 +1,4 @@
 ﻿using Accounting_System.Models.Reports;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Accounting_System.Models
 {

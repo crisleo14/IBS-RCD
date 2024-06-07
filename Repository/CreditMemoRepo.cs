@@ -51,7 +51,6 @@ namespace Accounting_System.Repository
             }
         }
 
-
         public async Task<string> GetSINoAsync(int? id, CancellationToken cancellationToken = default)
         {
             if (id != 0)

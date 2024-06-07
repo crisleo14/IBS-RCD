@@ -10,6 +10,7 @@ namespace Accounting_System.Models.Reports
 
         [Display(Name = "Machine Name")]
         public string MachineName { get; set; }
+
         public string Activity { get; set; }
 
         [Display(Name = "Document Type")]

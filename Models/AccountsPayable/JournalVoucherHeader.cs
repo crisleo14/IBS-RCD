@@ -19,6 +19,7 @@ namespace Accounting_System.Models
         public string? References { get; set; }
 
         [Display(Name = "Check Voucher Id")]
+        [Required(ErrorMessage = "Check voucher is required.")]
         public int CVId { get; set; }
 
         [ForeignKey("CVId")]
