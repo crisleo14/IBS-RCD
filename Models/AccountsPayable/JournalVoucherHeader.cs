@@ -20,7 +20,7 @@ namespace Accounting_System.Models
 
         [Display(Name = "Check Voucher Id")]
         [Required(ErrorMessage = "Check voucher is required.")]
-        public int? CVId { get; set; }
+        public int CVId { get; set; }
 
         [ForeignKey("CVId")]
         public CheckVoucherHeader? CheckVoucherHeader { get; set; }

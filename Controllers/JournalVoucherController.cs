@@ -34,8 +34,8 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             var headers = await _dbContext.JournalVoucherHeaders
-                .Include(j => j.CheckVoucherHeader)
-                .ThenInclude(cv => cv.Supplier)
+                .Include(cvh => cvh.CheckVoucherHeader)
+                .ThenInclude(supplier => supplier.Supplier)
                 .ToListAsync(cancellationToken);
 
             var details = await _dbContext.JournalVoucherDetails
