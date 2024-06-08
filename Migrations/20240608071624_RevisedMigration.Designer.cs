@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240608071624_RevisedMigration")]
+    partial class RevisedMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1181,9 +1184,6 @@ namespace Accounting_System.Migrations
                     b.Property<decimal>("InventoryBalance")
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<bool>("IsValidated")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("Particular")
                         .IsRequired()
                         .HasColumnType("varchar(200)");
@@ -1206,12 +1206,6 @@ namespace Accounting_System.Migrations
                     b.Property<string>("Unit")
                         .IsRequired()
                         .HasColumnType("varchar(2)");
-
-                    b.Property<string>("ValidatedBy")
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<DateTime?>("ValidatedDate")
-                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -1642,9 +1636,6 @@ namespace Accounting_System.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<bool>("IsPosted")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("Reference")
                         .IsRequired()

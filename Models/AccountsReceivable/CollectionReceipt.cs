@@ -11,8 +11,6 @@ namespace Accounting_System.Models.AccountsReceivable
         public string? CRNo { get; set; }
 
         //Sales Invoice Property
-
-        [Required(ErrorMessage = "Sales invoice is required.")]
         public int? SalesInvoiceId { get; set; }
 
         [Display(Name = "Sales Invoice No.")]
@@ -26,8 +24,6 @@ namespace Accounting_System.Models.AccountsReceivable
         public List<SelectListItem>? SalesInvoices { get; set; }
 
         //Service Invoice Property
-
-        [Required(ErrorMessage = "Service invoice is required.")]
         public int? ServiceInvoiceId { get; set; }
 
         [Display(Name = "Sales Invoice No.")]

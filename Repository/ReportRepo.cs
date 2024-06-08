@@ -193,7 +193,7 @@ namespace Accounting_System.Repository
             var generalLedgerBooks = _dbContext
                 .GeneralLedgerBooks
                 .AsEnumerable()
-                .Where(i => i.Date >= dateFrom && i.Date <= dateTo)
+                .Where(i => i.Date >= dateFrom && i.Date <= dateTo && i.IsPosted)
                 .OrderBy(orderBy)
                 .ToList();
 

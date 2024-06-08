@@ -195,7 +195,7 @@ namespace Accounting_System.Repository
                     new GeneralLedgerBook
                     {
                         Date = viewModel.Date,
-                        Reference = "",
+                        Reference = inventory.Id.ToString(),
                         AccountNo = viewModel.AccountNumber[i],
                         AccountTitle = viewModel.AccountTitle[i],
                         Description = particular,
@@ -203,6 +203,7 @@ namespace Accounting_System.Repository
                         Credit = Math.Abs(viewModel.Credit[i]),
                         CreatedBy = _userManager.GetUserName(user),
                         CreatedDate = DateTime.Now,
+                        IsPosted = false
                     });
             }
 

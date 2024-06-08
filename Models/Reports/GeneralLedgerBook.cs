@@ -36,5 +36,7 @@ namespace Accounting_System.Models.Reports
 
         [Display(Name = "Created Date")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        public bool IsPosted { get; set; } = true;
     }
 }
