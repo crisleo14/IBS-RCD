@@ -133,8 +133,6 @@ namespace Accounting_System.Repository
                         AccountTitle = salesInvoice.Product.Code == "PET001" ? "Cost of Goods Sold - Biodiesel" : salesInvoice.Product.Code == "PET002" ? "Cost of Goods Sold - Econogas" : "Cost of Goods Sold - Envirogas",
                         Debit = inventory.Total,
                         Credit = 0,
-                        CreatedBy = salesInvoice.CreatedBy,
-                        CreatedDate = salesInvoice.CreatedDate
                     },
                     new GeneralLedgerBook
                     {
@@ -195,7 +193,7 @@ namespace Accounting_System.Repository
                     new GeneralLedgerBook
                     {
                         Date = viewModel.Date,
-                        Reference = "",
+                        Reference = inventory.Id.ToString(),
                         AccountNo = viewModel.AccountNumber[i],
                         AccountTitle = viewModel.AccountTitle[i],
                         Description = particular,
@@ -203,6 +201,7 @@ namespace Accounting_System.Repository
                         Credit = Math.Abs(viewModel.Credit[i]),
                         CreatedBy = _userManager.GetUserName(user),
                         CreatedDate = DateTime.Now,
+                        IsPosted = false
                     });
             }
 

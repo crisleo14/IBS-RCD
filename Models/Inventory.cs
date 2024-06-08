@@ -84,5 +84,13 @@ namespace Accounting_System.Models
 
         [Column(TypeName = "varchar(2)")]
         public string Unit { get; set; } = "L";
+
+        public bool IsValidated { get; set; }
+
+        [Column(TypeName = "varchar(20)")]
+        public string? ValidatedBy { get; set; }
+
+        [Column(TypeName = "timestamp with time zone")]
+        public DateTime? ValidatedDate { get; set; }
     }
 }

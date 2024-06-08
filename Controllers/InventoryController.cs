@@ -1,7 +1,11 @@
 ﻿using Accounting_System.Data;
+using Accounting_System.Models;
+using Accounting_System.Models.AccountsPayable;
+using Accounting_System.Models.Reports;
 using Accounting_System.Models.ViewModels;
 using Accounting_System.Repository;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -15,10 +19,19 @@ namespace Accounting_System.Controllers
 
         private readonly InventoryRepo _inventoryRepo;
 
-        public InventoryController(ApplicationDbContext dbContext, InventoryRepo inventoryRepo)
+        private readonly JournalVoucherRepo _journalVoucherRepo;
+
+        private readonly UserManager<IdentityUser> _userManager;
+
+        private readonly ILogger<InventoryController> _logger;
+
+        public InventoryController(ApplicationDbContext dbContext, InventoryRepo inventoryRepo, JournalVoucherRepo journalVoucherRepo, UserManager<IdentityUser> userManager, ILogger<InventoryController> logger)
         {
             _dbContext = dbContext;
             _inventoryRepo = inventoryRepo;
+            _journalVoucherRepo = journalVoucherRepo;
+            _userManager = userManager;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -225,6 +238,74 @@ namespace Accounting_System.Controllers
 
             TempData["error"] = "The information provided was invalid.";
             return View(viewModel);
+        }
+
+        public async Task<IActionResult> ValidateInventory(int? id, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (id == null || id == 0)
+                {
+                    return NotFound();
+                }
+
+                Inventory? inventory = await _dbContext.Inventories
+                    .FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
+
+                IEnumerable<GeneralLedgerBook>? ledgerEntries = await _dbContext.GeneralLedgerBooks
+                    .Where(l => l.Reference == inventory.Id.ToString())
+                    .ToListAsync(cancellationToken);
+
+                if (inventory != null || ledgerEntries != null)
+                {
+                    var header = new JournalVoucherHeader
+                    {
+                        SeriesNumber = await _journalVoucherRepo.GetLastSeriesNumberJV(),
+                        JVNo = await _journalVoucherRepo.GenerateJVNo(),
+                        JVReason = "Actual Inventory",
+                        Particulars = inventory.Particular,
+                        Date = inventory.Date,
+                        CreatedBy = _userManager.GetUserName(this.User),
+                        CreatedDate = DateTime.Now
+                    };
+
+                    var details = new List<JournalVoucherDetail>();
+
+                    foreach (var entry in ledgerEntries)
+                    {
+                        entry.IsPosted = true;
+                        entry.Reference = header.JVNo;
+
+                        details.Add(new JournalVoucherDetail
+                        {
+                            AccountNo = entry.AccountNo,
+                            AccountName = entry.AccountTitle,
+                            TransactionNo = header.JVNo,
+                            Debit = entry.Debit,
+                            Credit = entry.Credit
+                        });
+                    }
+
+                    inventory.IsValidated = true;
+                    inventory.ValidatedBy = "Ako";
+                    inventory.ValidatedDate = DateTime.Now;
+
+                    await _dbContext.JournalVoucherHeaders.AddAsync(header, cancellationToken);
+                    await _dbContext.JournalVoucherDetails.AddRangeAsync(details, cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error");
+                return BadRequest();
+            }
         }
     }
 }
