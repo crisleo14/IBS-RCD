@@ -78,10 +78,9 @@
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" aria-expanded="false" style="color: darkgray !important">
-                                Report
+                                Book
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" asp-controller="Report" asp-action="AuditTrail">Audit Trail Report</a></li>
                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="DisbursementBook">Cash Disbursement Book</a></li>
                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="CashReceiptBook">Cash Receipt Book</a></li>
                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="GeneralLedgerBook">General Ledger Book</a></li>
@@ -89,8 +88,6 @@
                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="JournalBook">Journal Book Report</a></li>
                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="PurchaseBook">Purchase Book</a></li>
                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="SalesBook">Sales Book</a></li>
-                                <li><a class="dropdown-item" asp-controller="Report" asp-action="SummaryOfChartOfAccount">Chart Of Account Summary</a></li>
-                                <li><a class="dropdown-item" asp-controller="Inventory" asp-action="InventoryReport">Inventory Report</a></li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
@@ -104,6 +101,16 @@
                                 <li><a class="dropdown-item" asp-controller="Supplier" asp-action="Index">Suppliers</a></li>
                                 <li><a class="dropdown-item" asp-controller="BankAccount" asp-action="Index">Bank Accounts</a></li>
                                 <li><a class="dropdown-item" asp-controller="ChartOfAccount" asp-action="Index">Chart of Account</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" aria-expanded="false" style="color: darkgray !important">
+                                Report
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="Report" asp-action="AuditTrail">Audit Trail Report</a></li>
+                                <li><a class="dropdown-item" asp-controller="Report" asp-action="SummaryOfChartOfAccount">Chart Of Account Summary</a></li>
+                                <li><a class="dropdown-item" asp-controller="Inventory" asp-action="InventoryReport">Inventory Report</a></li>
                             </ul>
                         </li>
                     </ul>
