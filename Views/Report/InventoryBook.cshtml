@@ -14,7 +14,7 @@ var dateTo = ViewBag.DateTo;
     <div class="row">
         <div class="col-md-4">
             <div class="mb-3">
-                <label asp-for="DateTo" class="control-label"></label>
+                <label class="control-label">As Of</label>
                 <input type="date" asp-for="DateTo" class="form-control" value="@dateTo" />
                 <span asp-validation-for="DateTo" class="text-danger"></span>
             </div>
