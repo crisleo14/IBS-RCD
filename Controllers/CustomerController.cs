@@ -43,7 +43,6 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-
                 if (await _customerRepo.IsCustomerExist(customer.Name))
                 {
                     ModelState.AddModelError("Name", "Customer already exist!");
@@ -67,7 +66,6 @@ namespace Accounting_System.Controllers
                 await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
-
 
                 TempData["success"] = "Customer created successfully";
                 return RedirectToAction("Index");

@@ -11,6 +11,7 @@ namespace Accounting_System.Models.Reports
 
         [Column(TypeName = "date")]
         public DateOnly Date { get; set; }
+
         public string Reference { get; set; }
 
         [Display(Name = "Account Number")]
@@ -35,5 +36,7 @@ namespace Accounting_System.Models.Reports
 
         [Display(Name = "Created Date")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        public bool IsPosted { get; set; } = true;
     }
 }

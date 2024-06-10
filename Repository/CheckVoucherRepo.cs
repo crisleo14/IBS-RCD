@@ -20,6 +20,7 @@ namespace Accounting_System.Repository
                 .OrderByDescending(cv => cv.Id)
                 .ToListAsync(cancellationToken);
         }
+
         public async Task<string> GenerateCVNo(CancellationToken cancellationToken = default)
         {
             var checkVoucher = await _dbContext
@@ -37,6 +38,7 @@ namespace Accounting_System.Repository
                 return $"CV{1.ToString("D10")}";
             }
         }
+
         public async Task<long> GetLastSeriesNumberCV(CancellationToken cancellationToken = default)
         {
             var lastNumber = await _dbContext

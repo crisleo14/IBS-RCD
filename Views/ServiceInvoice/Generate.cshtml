@@ -80,7 +80,7 @@
                     <p style="line-height:15px">
                         @Model.Period.ToString("MMMM yyyy")
                     </p>
-                 </td>
+                </td>
                 <td class="pt-2">
                     <p style="line-height:15px">
                         @Html.DisplayFor(model => model.Amount)
@@ -93,16 +93,16 @@
     </table>
 </div>
 
-    <p style="line-height: 1; margin-top:20px;">
-        Please attach BIR Form 2306 and 2307 to your payment if you deducted Expanded Withholding Tax and Vat.
-    </p>
+<p style="line-height: 1; margin-top:20px;">
+    Please attach BIR Form 2306 and 2307 to your payment if you deducted Expanded Withholding Tax and Vat.
+</p>
 
 <div style="margin-top:20px;">
     <table class="w-100">
         <tbody>
             <tr>
                 <td style="width:33%; vertical-align: top;" class="border-1">
-                   <p class="mb-0" style="margin:10px;">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Instructions)</p>
+                    <p class="mb-0" style="margin:10px;">INSTRUCTIONS: <br />@Html.DisplayFor(model => model.Instructions)</p>
                 </td>
                 <td style="width:33%;">
                     <table class="table-bordered w-100">
@@ -190,17 +190,19 @@
 <p class="text-center w-100">
     @if (Model.Customer.CustomerType != "Vatable")
     {
-        <b>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</b><br />
+        <b>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</b>
+
+        <br />
     }
     <span>Acknowledgement Certificate No:</span>
     <span style="display: inline-block; width:150px;">@CS.ACCN</span>
     <span>&nbsp;&nbsp;Date Issued:</span>
     <span style="display: inline-block; width:50px;">@CS.DateIssued</span><br />
-    Series: SI0000000001 - SI9999999999
+    Series: SV0000000001 - SV9999999999
     Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
 </p>
 
-@if (Model.IsPrinted == true)
+@if (!Model.IsPrinted)
 {
     <div class="text-end">
         ORIGINAL COPY
@@ -231,7 +233,7 @@ else
     <a asp-action="Index" class="btn" id="otherButton">Back</a>
 </div>
 
-@section Scripts{
+@section Scripts {
     <script>
         var originalFontSizes = [];
 

@@ -46,7 +46,6 @@ namespace Accounting_System.Repository
                             {
                                 if (accountEntry.AccountNo.StartsWith("10201"))
                                 {
-
                                     cv.NumberOfMonthsCreated++;
                                     cv.LastCreatedDate = DateTime.Now;
 
@@ -87,11 +86,9 @@ namespace Accounting_System.Repository
                                         Credit = cv.AmountPerMonth
                                     });
 
-
                                     await _dbContext.AddAsync(header);
                                     await _dbContext.AddRangeAsync(details);
                                     await _dbContext.SaveChangesAsync();
-
                                 }
                                 else if (accountEntry.AccountNo.StartsWith("10105"))
                                 {
@@ -150,7 +147,6 @@ namespace Accounting_System.Repository
                 }
             }
         }
-
 
         public Task StopAsync(CancellationToken cancellationToken)
         {

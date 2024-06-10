@@ -19,7 +19,7 @@ namespace Accounting_System.Models
         public string? References { get; set; }
 
         [Display(Name = "Check Voucher Id")]
-        public int CVId { get; set; }
+        public int? CVId { get; set; }
 
         [ForeignKey("CVId")]
         public CheckVoucherHeader? CheckVoucherHeader { get; set; }

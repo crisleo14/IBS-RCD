@@ -138,7 +138,6 @@ namespace Accounting_System.Controllers
 
                     #endregion --Audit Trail Recording
 
-
                     TempData["success"] = "Chart of account updated successfully";
 
                     await _dbContext.SaveChangesAsync(cancellationToken);

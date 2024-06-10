@@ -90,7 +90,6 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
-
                 if (model.SalesInvoiceId != null)
                 {
                     var existingSIDMs = _dbContext.DebitMemos
@@ -194,7 +193,6 @@ namespace Accounting_System.Controllers
                     {
                         model.TotalSales = model.CreditAmount;
                     }
-
                 }
                 else if (model.Source == "Service Invoice")
                 {
@@ -738,12 +736,11 @@ namespace Accounting_System.Controllers
                         }
                         await _dbContext.AddAsync(sales, cancellationToken);
 
-                        #endregion --Sales Book Recording(SOA)--
+                        #endregion --Sales Book Recording(SV)--
 
                         #region --General Ledger Book Recording(SOA)--
 
                         var ledgers = new List<GeneralLedgerBook>();
-
 
                         ledgers.Add(
                                 new GeneralLedgerBook

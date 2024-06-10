@@ -20,6 +20,7 @@ namespace Accounting_System.Repository
                 .OrderByDescending(cv => cv.Id)
                 .ToListAsync(cancellationToken);
         }
+
         public async Task<string> GenerateJVNo(CancellationToken cancellationToken = default)
         {
             var journalVoucher = await _dbContext
@@ -37,6 +38,7 @@ namespace Accounting_System.Repository
                 return $"JV{1.ToString("D10")}";
             }
         }
+
         public async Task<long> GetLastSeriesNumberJV(CancellationToken cancellationToken = default)
         {
             var lastNumber = await _dbContext

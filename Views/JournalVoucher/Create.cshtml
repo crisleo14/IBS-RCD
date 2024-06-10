@@ -3,10 +3,9 @@
 @model JournalVoucherVM
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Journal Voucher";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<partial name="_Notification">
 <h1>Create</h1>
 
 <h4>Journal Voucher</h4>
@@ -19,7 +18,7 @@
 
 
     <div class="form-group mb-3">
-        <label asp-for="Header.Date" class="control-label"></label>
+        <label asp-for="Header.Date" class="control-label"></label><span class="required">*</span>
         <input asp-for="Header.Date" type="Date" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
         <span asp-validation-for="Header.Date" class="text-danger"></span>
     </div>
@@ -29,25 +28,26 @@
         <label asp-for="Header.References" class="control-label"></label>
     </div>
     <div class="form-group mb-3">
-        <label class="control-label">CV No.</label>
+        <label class="control-label">CV No.</label><span class="required">*</span>
         <select asp-for="Header.CVId" asp-items="@Model.Header.CheckVoucherHeaders" class="form-select js-not-retain-value-select2 checkVoucher" style="width:100%">
             <option></option>
         </select>
+         <span asp-validation-for="Header.CVId" class="text-danger"></span>
     </div>
     <div class="form-floating mb-3">
         <input asp-for="Header.Particulars" type="text" class="form-control" placeholder=""/>
+        <label asp-for="Header.Particulars" class="control-label">Particulars<span class="required">*</span></label>
         <span asp-validation-for="Header.Particulars" class="text-danger"></span>
-        <label asp-for="Header.Particulars" class="control-label"></label>
     </div>
     <div class="form-floating mb-3">
         <input asp-for="Header.CRNo" type="text" class="form-control" placeholder="" />
-        <span asp-validation-for="Header.CRNo" class="text-danger"></span>
         <label asp-for="Header.CRNo" class="control-label"></label>
+        <span asp-validation-for="Header.CRNo" class="text-danger"></span>
     </div>
     <div class="form-floating mb-3">
         <textarea asp-for="Header.JVReason" type="text" class="form-control" placeholder="Enter JV Reason" style="height: 100px"></textarea>
+        <label asp-for="Header.JVReason" class="control-label">Reason<span class="required">*</span></label>
         <span asp-validation-for="Header.JVReason" class="text-danger"></span>
-        <label asp-for="Header.JVReason" class="control-label"></label>
     </div>
 </div>
     <div class="col-8 tradeList">

@@ -53,6 +53,7 @@ namespace Accounting_System.Models.AccountsPayable
 
         [Display(Name = "Bank Account Name")]
         public int? BankId { get; set; }
+
         [ForeignKey("BankId")]
         public BankAccount? BankAccount { get; set; }
 

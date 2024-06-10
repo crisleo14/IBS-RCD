@@ -35,7 +35,6 @@ namespace Accounting_System.Migrations
             migrationBuilder.DropColumn(
                 name: "IsReceived",
                 table: "PurchaseOrders");
-
         }
     }
 }

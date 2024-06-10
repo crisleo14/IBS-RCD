@@ -733,6 +733,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("Remarks")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int?>("SalesInvoiceId")
@@ -1180,6 +1181,9 @@ namespace Accounting_System.Migrations
                     b.Property<decimal>("InventoryBalance")
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<bool>("IsValidated")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Particular")
                         .IsRequired()
                         .HasColumnType("varchar(200)");
@@ -1203,6 +1207,12 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(2)");
 
+                    b.Property<string>("ValidatedBy")
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime?>("ValidatedDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
@@ -1221,7 +1231,7 @@ namespace Accounting_System.Migrations
                     b.Property<string>("CRNo")
                         .HasColumnType("text");
 
-                    b.Property<int>("CVId")
+                    b.Property<int?>("CVId")
                         .HasColumnType("integer");
 
                     b.Property<string>("CanceledBy")
@@ -1632,6 +1642,9 @@ namespace Accounting_System.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsPosted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Reference")
                         .IsRequired()
@@ -2223,9 +2236,7 @@ namespace Accounting_System.Migrations
                 {
                     b.HasOne("Accounting_System.Models.AccountsPayable.CheckVoucherHeader", "CheckVoucherHeader")
                         .WithMany()
-                        .HasForeignKey("CVId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CVId");
 
                     b.Navigation("CheckVoucherHeader");
                 });

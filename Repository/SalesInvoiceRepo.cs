@@ -80,7 +80,6 @@ namespace Accounting_System.Repository
 
         public async Task<DateOnly> ComputeDueDateAsync(string customerTerms, DateOnly date)
         {
-
             if (customerTerms != null)
             {
                 DateOnly dueDate;

@@ -448,7 +448,7 @@ bg-success {
     .footer {
         position: fixed;
         bottom: 50px;
-        text-align:center;
+        text-align: center;
     }
 
     p {
@@ -473,19 +473,23 @@ bg-success {
         display: none;
         visibility: hidden;
     }
+
     footer {
         display: none;
         visibility: hidden;
     }
+
     body {
         margin: 0;
         padding: 0;
     }
+
     .container {
         margin: 0;
         padding: 0;
         max-width: 100%;
     }
+
     main {
         margin: 0;
         padding: 0;
@@ -496,8 +500,7 @@ bg-success {
     border-bottom: 1px solid black !important;
 }
 
-
- /*Uncomment this code for debugging purposes */
+/*Uncomment this code for debugging purposes */
 /**{
     border: 1px solid red;
 }*/
@@ -507,6 +510,7 @@ bg-success {
     display: block;
     margin-left: .125em;
 }
+
 .dropend:hover > .dropdown-menu {
     display: block;
     position: absolute;
@@ -527,16 +531,16 @@ input[type=number] {
 }
 
 .required {
-    color:red;
-    margin-left:2px;
+    color: red;
+    margin-left: 2px;
 }
 
 #myOwnTable {
     table-layout: fixed;
 }
 
-#myOwnTable td {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+    #myOwnTable td {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }

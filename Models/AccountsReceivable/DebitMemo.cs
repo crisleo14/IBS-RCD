@@ -69,6 +69,7 @@ namespace Accounting_System.Models.AccountsReceivable
 
         public string Source { get; set; }
 
+        [Required]
         public string? Remarks { get; set; }
 
         [Column(TypeName = "date")]

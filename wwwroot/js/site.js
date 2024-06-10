@@ -46,7 +46,6 @@ $(document).ready(function () {
     $('.js-not-retain-value-select2').val(null).trigger('change');
 });
 
-
 //sorting and paginatio with search can used in all modules
 $(document).ready(function () {
     $('#myTable').DataTable();
@@ -60,7 +59,6 @@ $(document).ready(function () {
     });
     table.order([0, 'desc']).draw();
 });
-
 
 //Money Input formatting
 $(document).ready(function () {
@@ -176,7 +174,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelector('form').addEventListener('submit', handleSubmit);
 });
-
 
 // Get the current date in the format "YYYY-MM-DD" (required for the date input)
 var currentDate = new Date().toISOString().slice(0, 10);

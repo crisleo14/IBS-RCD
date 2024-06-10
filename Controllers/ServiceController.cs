@@ -64,7 +64,6 @@ namespace Accounting_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Services services, CancellationToken cancellationToken)
         {
-
             services.CurrentAndPreviousTitles = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .OrderBy(coa => coa.Id)

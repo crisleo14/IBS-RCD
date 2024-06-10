@@ -11,7 +11,6 @@ namespace Accounting_System.Models.AccountsReceivable
         public string? CRNo { get; set; }
 
         //Sales Invoice Property
-
         public int? SalesInvoiceId { get; set; }
 
         [Display(Name = "Sales Invoice No.")]
@@ -25,7 +24,6 @@ namespace Accounting_System.Models.AccountsReceivable
         public List<SelectListItem>? SalesInvoices { get; set; }
 
         //Service Invoice Property
-
         public int? ServiceInvoiceId { get; set; }
 
         [Display(Name = "Sales Invoice No.")]

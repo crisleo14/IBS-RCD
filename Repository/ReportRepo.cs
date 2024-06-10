@@ -32,10 +32,12 @@ namespace Accounting_System.Repository
                 case "POLiquidation":
                     query = s => s.TransactionDate >= dateFrom && s.TransactionDate <= dateTo && s.SerialNo.Contains(selectedDocument);
                     break;
+
                 case "DueDate":
                     orderBy = s => s.DueDate;
                     query = s => s.DueDate >= dateFrom && s.DueDate <= dateTo;
                     break;
+
                 default:
                     orderBy = s => s.TransactionDate;
                     query = s => s.TransactionDate >= dateFrom && s.TransactionDate <= dateTo;
@@ -51,7 +53,6 @@ namespace Accounting_System.Repository
                 .ToList();
 
             return salesBooks;
-
         }
 
         public List<CashReceiptBook> GetCashReceiptBooks(DateOnly? dateFrom, DateOnly? dateTo)
@@ -87,13 +88,16 @@ namespace Accounting_System.Repository
                 case "RRDate":
                     orderBy = p => p.Date;
                     break;
+
                 case "DueDate":
                     orderBy = p => p.DueDate;
                     break;
+
                 case "POLiquidation":
                 case "UnpostedRR":
                     orderBy = p => p.Id;
                     break;
+
                 default:
                     orderBy = p => p.Date;
                     break;
@@ -149,7 +153,6 @@ namespace Accounting_System.Repository
             return receivingReport;
         }
 
-
         public List<Inventory> GetInventoryBooks(DateOnly dateTo)
         {
             var dateFrom = dateTo.AddDays(-dateTo.Day + 1);
@@ -190,7 +193,7 @@ namespace Accounting_System.Repository
             var generalLedgerBooks = _dbContext
                 .GeneralLedgerBooks
                 .AsEnumerable()
-                .Where(i => i.Date >= dateFrom && i.Date <= dateTo)
+                .Where(i => i.Date >= dateFrom && i.Date <= dateTo && i.IsPosted)
                 .OrderBy(orderBy)
                 .ToList();
 

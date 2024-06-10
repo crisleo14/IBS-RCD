@@ -24,7 +24,7 @@ namespace Accounting_System.Models.AccountsReceivable
         [NotMapped]
         public List<SelectListItem>? SalesInvoices { get; set; }
 
-        [Display(Name = "SOA No")]
+        [Display(Name = "SV No")]
         public int? ServiceInvoiceId { get; set; }
 
         [ForeignKey("ServiceInvoiceId")]

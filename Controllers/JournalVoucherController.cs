@@ -30,11 +30,12 @@ namespace Accounting_System.Controllers
             _webHostEnvironment = webHostEnvironment;
             _journalVoucherRepo = journalVoucherRepo;
         }
+
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             var headers = await _dbContext.JournalVoucherHeaders
-                .Include(cvh => cvh.CheckVoucherHeader)
-                .ThenInclude(supplier => supplier.Supplier)
+                .Include(j => j.CheckVoucherHeader)
+                .ThenInclude(cv => cv.Supplier)
                 .ToListAsync(cancellationToken);
 
             var details = await _dbContext.JournalVoucherDetails
@@ -62,6 +63,7 @@ namespace Accounting_System.Controllers
 
             return View(journalVoucherVMs);
         }
+
         [HttpGet] // TODO: Automation of journal voucher creation for depreciation, prepaid and accrued
         public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
@@ -117,6 +119,7 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 #region --Validating series
+
                 var getLastNumber = await _journalVoucherRepo.GetLastSeriesNumberJV(cancellationToken);
 
                 if (getLastNumber > 9999999999)
@@ -134,9 +137,11 @@ namespace Accounting_System.Controllers
                 {
                     TempData["success"] = "Check Voucher created successfully";
                 }
+
                 #endregion --Validating series
 
                 #region --CV Details Entry
+
                 var generateJVNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken);
                 var cvDetails = new List<JournalVoucherDetail>();
 
@@ -179,6 +184,7 @@ namespace Accounting_System.Controllers
                 model.Header.SeriesNumber = getLastNumber;
                 model.Header.JVNo = generateJVNo;
                 model.Header.CreatedBy = _userManager.GetUserName(this.User);
+
                 #endregion --Saving the default entries
 
                 #region --Audit Trail Recording
@@ -187,7 +193,6 @@ namespace Accounting_System.Controllers
                 _dbContext.Add(auditTrail);
 
                 #endregion --Audit Trail Recording
-
 
                 await _dbContext.AddAsync(model.Header, cancellationToken);  // Add CheckVoucherHeader to the context
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -252,7 +257,6 @@ namespace Accounting_System.Controllers
                 });
             }
 
-
             return Json(null);
         }
 
@@ -278,7 +282,6 @@ namespace Accounting_System.Controllers
                 .Where(jvd => jvd.TransactionNo == header.JVNo)
                 .ToListAsync(cancellationToken);
 
-
             //if (header.Category == "Trade")
             //{
             //    var siArray = new string[header.RRNo.Length];
@@ -303,7 +306,6 @@ namespace Accounting_System.Controllers
 
             return View(viewModel);
         }
-
 
         public async Task<IActionResult> Printed(int id, CancellationToken cancellationToken)
         {
@@ -401,6 +403,7 @@ namespace Accounting_System.Controllers
 
             return NotFound();
         }
+
         public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
         {
             var model = await _dbContext.JournalVoucherHeaders.FindAsync(id, cancellationToken);
@@ -459,7 +462,5 @@ namespace Accounting_System.Controllers
 
             return NotFound();
         }
-
-
     }
 }

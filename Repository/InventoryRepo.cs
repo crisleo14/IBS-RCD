@@ -86,7 +86,6 @@ namespace Accounting_System.Repository
 
                 await _dbContext.AddAsync(inventory, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
-
             }
             else
             {
@@ -130,8 +129,8 @@ namespace Accounting_System.Repository
                         Date = salesInvoice.TransactionDate,
                         Reference = salesInvoice.SINo,
                         Description = salesInvoice.Product.Name,
-                        AccountNo = "",
-                        AccountTitle = "Cost of Goods Sold",
+                        AccountNo = salesInvoice.Product.Code == "PET001" ? "5010101" : salesInvoice.Product.Code == "PET002" ? "5010102" : "5010103",
+                        AccountTitle = salesInvoice.Product.Code == "PET001" ? "Cost of Goods Sold - Biodiesel" : salesInvoice.Product.Code == "PET002" ? "Cost of Goods Sold - Econogas" : "Cost of Goods Sold - Envirogas",
                         Debit = inventory.Total,
                         Credit = 0,
                         CreatedBy = salesInvoice.CreatedBy,
@@ -154,7 +153,6 @@ namespace Accounting_System.Repository
                 await _dbContext.Inventories.AddAsync(inventory, cancellationToken);
                 await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
-
             }
             else
             {
@@ -165,6 +163,7 @@ namespace Accounting_System.Repository
         public async Task AddActualInventory(ActualInventoryViewModel viewModel, ClaimsPrincipal user, CancellationToken cancellationToken)
         {
             #region -- Actual Inventory Entry --
+
             var total = viewModel.Variance * viewModel.AverageCost;
             var inventoryBalance = viewModel.Variance + viewModel.PerBook;
             var totalBalance = viewModel.TotalBalance + total;
@@ -184,9 +183,11 @@ namespace Accounting_System.Repository
             };
             await _dbContext.Inventories.AddAsync(inventory, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
+
             #endregion -- Actual Inventory Entry --
 
             #region -- General Book Entry --
+
             var ledger = new List<GeneralLedgerBook>();
             for (int i = 0; i < viewModel.AccountNumber.Length; i++)
             {
@@ -194,7 +195,7 @@ namespace Accounting_System.Repository
                     new GeneralLedgerBook
                     {
                         Date = viewModel.Date,
-                        Reference = "",
+                        Reference = inventory.Id.ToString(),
                         AccountNo = viewModel.AccountNumber[i],
                         AccountTitle = viewModel.AccountTitle[i],
                         Description = particular,
@@ -202,11 +203,13 @@ namespace Accounting_System.Repository
                         Credit = Math.Abs(viewModel.Credit[i]),
                         CreatedBy = _userManager.GetUserName(user),
                         CreatedDate = DateTime.Now,
+                        IsPosted = false
                     });
             }
 
             await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledger, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
+
             #endregion -- General Book Entry --
         }
     }
