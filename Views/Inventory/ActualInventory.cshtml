@@ -178,7 +178,7 @@
     </script>
     <script>
         $(document).ready(function () {
-            $("#ActualAmount").on('input', function () {
+            $("#ActualVolume").on('input', function () {
                 var inputValue = $(this).val();
                 var perBookAmount = $("#PerBook").val();
                 var variance = (inputValue - perBookAmount).toFixed(2);
@@ -200,6 +200,8 @@
                 }else{
                     $("#Variance").val(0.00);
                 }
+
+                updateTotalDebitAndCredit();
             });
         });
     </script>
