@@ -266,7 +266,10 @@ namespace Accounting_System.Controllers
                         Particulars = inventory.Particular,
                         Date = inventory.Date,
                         CreatedBy = _userManager.GetUserName(this.User),
-                        CreatedDate = DateTime.Now
+                        CreatedDate = DateTime.Now,
+                        IsPosted = true,
+                        PostedBy = _userManager.GetUserName(this.User),
+                        PostedDate = DateTime.Now
                     };
 
                     var details = new List<JournalVoucherDetail>();
