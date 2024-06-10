@@ -27,8 +27,8 @@ namespace Accounting_System.Models.ViewModels
 
         [Required(ErrorMessage = "Cost must be greater than zero")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Display(Name = "Actual Amount")]
-        public decimal ActualAmount { get; set; }
+        [Display(Name = "Actual Volume")]
+        public decimal ActualVolume { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Variance { get; set; }

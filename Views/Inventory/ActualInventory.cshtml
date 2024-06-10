@@ -32,9 +32,9 @@
                 <input asp-for="PerBook" class="form-control money" value="" placeholder="0.00" readonly />
             </div>
             <div class="form-group mb-3">
-                <label asp-for="ActualAmount" class="control-label"></label><span class="required">*</span>
-                <input asp-for="ActualAmount" class="form-control money" value="" placeholder="0.00" />
-                <span asp-validation-for="ActualAmount" class="text-danger"></span>
+                <label asp-for="ActualVolume" class="control-label"></label><span class="required">*</span>
+                <input asp-for="ActualVolume" class="form-control money" value="" placeholder="0.00" />
+                <span asp-validation-for="ActualVolume" class="text-danger"></span>
             </div>
             <div class="form-group mb-3">
                 <label asp-for="Variance" class="control-label"></label>
@@ -159,11 +159,11 @@
                     data: { id: productId, dateTo: date },
                     success: function (data) {
                         if (data.inventoryBalance !== 0.00) {
-                            $("#PerBook").val(data.inventoryBalance);
+                            $("#PerBook").val(data.inventoryBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                             $("#AverageCost").val(data.averageCost);
                             $("#TotalBalance").val(data.totalBalance);
                         } else {
-                            $("#PerBook").val(data.inventoryBalance);
+                            $("#PerBook").val(data.inventoryBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                             $("#AverageCost").val(data.averageCost);
                             $("#TotalBalance").val(data.totalBalance);
                         }
@@ -178,28 +178,31 @@
     </script>
     <script>
         $(document).ready(function () {
-            $("#ActualAmount").on('input', function () {
+            $("#ActualVolume").on('input', function () {
                 var inputValue = $(this).val();
                 var perBookAmount = $("#PerBook").val();
-                var variance = (inputValue - perBookAmount).toFixed(2);
+                var perBook = parseFloat(perBookAmount.replace(/,/g, '')) || 0;
+                var variance = (inputValue - perBook);
                 var averageCost = $(".averageCost").val();
-                var total = Math.abs(variance * averageCost).toFixed(2);
+                var total = Math.abs(variance * averageCost);
 
                 if (!inputValue) {
                     $(".credit").val(0.00);
                     $(".debit").val(0.00);
                 } else if (variance < 0) {
-                    $(".credit").val(total);
+                    $(".credit").val(total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                     $(".debit").val(0.00);
                 }else{
-                    $(".debit").val(total);
+                    $(".debit").val(total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                     $(".credit").val(0.00);
                 }
                 if (inputValue) {
-                    $("#Variance").val(variance);
+                    $("#Variance").val(variance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                 }else{
                     $("#Variance").val(0.00);
                 }
+
+                updateTotalDebitAndCredit();
             });
         });
     </script>
