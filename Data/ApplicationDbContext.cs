@@ -14,6 +14,11 @@ namespace Accounting_System.Data
         {
         }
 
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseSnakeCaseNamingConvention();
+        }
+
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<SalesInvoice> SalesInvoices { get; set; }
         public DbSet<Customer> Customers { get; set; }

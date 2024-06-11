@@ -46,7 +46,12 @@
                             </tr>
                             <tr>
                                 <td>CATEGORY : </td>
-                                <td>@Html.DisplayFor(model => model.Header.CheckVoucherHeader.Category)</td>
+                                <td>
+                                    @if (Model.Header.CheckVoucherHeader != null)
+                                    {
+                                        @Html.DisplayFor(model => model.Header.CheckVoucherHeader.Category)
+                                    }
+                                </td>
                                 <td></td>
                                 <td></td>
                             </tr>
@@ -58,25 +63,55 @@
                             </tr>
                             <tr>
                                 <td>CV # :</td>
-                                <td>@Html.DisplayFor(model => model.Header.CheckVoucherHeader.CVNo)</td>
+                                <td>
+                                    @if (Model.Header.CheckVoucherHeader != null)
+                                    {
+                                        @Html.DisplayFor(model => model.Header.CheckVoucherHeader.CVNo)
+                                    }
+                                </td>
                                 <td>CR # :</td>
                                 <td></td>
                             </tr>
                             <tr>
                                 <td>CHECK # :</td>
-                                <td>@Html.DisplayFor(model => model.Header.CheckVoucherHeader.CheckNo)</td>
+                                <td>
+                                    @if (Model.Header.CheckVoucherHeader != null)
+                                    {
+                                        @Html.DisplayFor(model => model.Header.CheckVoucherHeader.CheckNo)
+                                    }
+                                </td>
                                 <td>AMOUNT :</td>
-                                <td>@Html.DisplayFor(model => model.Header.CheckVoucherHeader.Total)</td>
+                                <td>
+                                    @if (Model.Header.CheckVoucherHeader != null)
+                                    {
+                                        @Html.DisplayFor(model => model.Header.CheckVoucherHeader.Total)
+                                    }
+                                </td>
                             </tr>
                             <tr>
                                 <td>CV DATE</td>
-                                <td>@Model.Header.CheckVoucherHeader.Date.ToShortDateString()</td>
+                                <td>
+                                    @if (Model.Header.CheckVoucherHeader != null)
+                                    {
+                                        @Model.Header.CheckVoucherHeader.Date.ToShortDateString()
+                                    }
+                                </td>
                                 <td>DATE :</td>
-                                <td>@Html.DisplayFor(model => model.Header.CheckVoucherHeader.CheckDate)</td>
+                                <td>
+                                    @if (Model.Header.CheckVoucherHeader != null)
+                                    {
+                                        @Html.DisplayFor(model => model.Header.CheckVoucherHeader.CheckDate)
+                                    }
+                                </td>
                             </tr>
                             <tr>
                                 <td>PAYEE</td>
-                                <td>@Html.DisplayFor(model => model.Header.CheckVoucherHeader.Payee)</td>
+                                <td>
+                                    @if (Model.Header.CheckVoucherHeader != null)
+                                    {
+                                        @Html.DisplayFor(model => model.Header.CheckVoucherHeader.Payee)
+                                    }
+                                </td>
                                 <td>JV Reason :</td>
                                 <td>@Html.DisplayFor(model => model.Header.JVReason)</td>
                             </tr>
@@ -116,8 +151,8 @@
                             <tr style="border-bottom:double;"></tr>
                             <tr>
                                 <th class="text-end">TOTAL</th>
-                                <th class="text-end">@totalDebit</th>
-                                <th class="text-end">@totalCredit</th>
+                                <th class="text-end">@totalDebit.ToString("N2")</th>
+                                <th class="text-end">@totalCredit.ToString("N2")</th>
                             </tr>
                         </tbody>
                     </table>
