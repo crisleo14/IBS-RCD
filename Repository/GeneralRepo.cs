@@ -1,4 +1,5 @@
 ﻿using Accounting_System.Data;
+using Accounting_System.Models.Reports;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
@@ -39,6 +40,21 @@ namespace Accounting_System.Repository
             else
             {
                 throw new ArgumentException($"No entities found with identifier value: '{predicate.Body.ToString}'");
+            }
+        }
+
+        public bool IsDebitCreditBalanced(IEnumerable<GeneralLedgerBook> ledgers)
+        {
+            try
+            {
+                decimal totalDebit = ledgers.Sum(j => j.Debit);
+                decimal totalCredit = ledgers.Sum(j => j.Credit);
+
+                return totalDebit == totalCredit;
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException(ex.Message);
             }
         }
     }
