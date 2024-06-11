@@ -571,6 +571,11 @@ namespace Accounting_System.Controllers
                             );
                         }
 
+                        if (!_generalRepo.IsDebitCreditBalanced(ledgers))
+                        {
+                            throw new ArgumentException("Debit and Credit is not equal, check your entries.");
+                        }
+
                         await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
 
                         #endregion --General Ledger Book Recording

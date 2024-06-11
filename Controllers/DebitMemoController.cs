@@ -21,11 +21,14 @@ namespace Accounting_System.Controllers
 
         private readonly DebitMemoRepo _debitMemoRepo;
 
-        public DebitMemoController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, DebitMemoRepo dmcmRepo)
+        private readonly GeneralRepo _generalRepo;
+
+        public DebitMemoController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, DebitMemoRepo dmcmRepo, GeneralRepo generalRepo)
         {
             _dbContext = dbContext;
             this._userManager = userManager;
             _debitMemoRepo = dmcmRepo;
+            _generalRepo = generalRepo;
         }
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
@@ -303,434 +306,452 @@ namespace Accounting_System.Controllers
 
             if (model != null)
             {
-                if (!model.IsPosted)
+                try
                 {
-                    model.IsPosted = true;
-                    model.PostedBy = _userManager.GetUserName(this.User);
-                    model.PostedDate = DateTime.Now;
-
-                    if (model.SalesInvoiceId != null)
+                    if (!model.IsPosted)
                     {
-                        #region --Retrieval of SI
+                        model.IsPosted = true;
+                        model.PostedBy = _userManager.GetUserName(this.User);
+                        model.PostedDate = DateTime.Now;
 
-                        var existingSI = await _dbContext
-                            .SalesInvoices
-                            .Include(c => c.Customer)
-                            .Include(s => s.Product)
-                            .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId);
-
-                        #endregion --Retrieval of SI
-
-                        #region --Sales Book Recording(SI)--
-
-                        var sales = new SalesBook();
-
-                        if (model.SalesInvoice.Customer.CustomerType == "Vatable")
+                        if (model.SalesInvoiceId != null)
                         {
-                            sales.TransactionDate = model.TransactionDate;
-                            sales.SerialNo = model.DMNo;
-                            sales.SoldTo = model.SalesInvoice.Customer.Name;
-                            sales.TinNo = model.SalesInvoice.Customer.TinNo;
-                            sales.Address = model.SalesInvoice.Customer.Address;
-                            sales.Description = model.SalesInvoice.Product.Name;
-                            sales.Amount = model.DebitAmount;
-                            sales.VatAmount = model.VatAmount;
-                            sales.VatableSales = model.VatableSales;
-                            //sales.Discount = model.Discount;
-                            sales.NetSales = model.VatableSales;
-                            sales.CreatedBy = model.CreatedBy;
-                            sales.CreatedDate = model.CreatedDate;
-                            sales.DueDate = existingSI.DueDate;
-                            sales.DocumentId = model.SalesInvoiceId;
-                        }
-                        else if (model.SalesInvoice.Customer.CustomerType == "Exempt")
-                        {
-                            sales.TransactionDate = model.TransactionDate;
-                            sales.SerialNo = model.DMNo;
-                            sales.SoldTo = model.SalesInvoice.Customer.Name;
-                            sales.TinNo = model.SalesInvoice.Customer.TinNo;
-                            sales.Address = model.SalesInvoice.Customer.Address;
-                            sales.Description = model.SalesInvoice.Product.Name;
-                            sales.Amount = model.DebitAmount;
-                            sales.VatExemptSales = model.DebitAmount;
-                            //sales.Discount = model.Discount;
-                            sales.NetSales = model.VatableSales;
-                            sales.CreatedBy = model.CreatedBy;
-                            sales.CreatedDate = model.CreatedDate;
-                            sales.DueDate = existingSI.DueDate;
-                            sales.DocumentId = model.SalesInvoiceId;
-                        }
-                        else
-                        {
-                            sales.TransactionDate = model.TransactionDate;
-                            sales.SerialNo = model.DMNo;
-                            sales.SoldTo = model.SalesInvoice.Customer.Name;
-                            sales.TinNo = model.SalesInvoice.Customer.TinNo;
-                            sales.Address = model.SalesInvoice.Customer.Address;
-                            sales.Description = model.SalesInvoice.Product.Name;
-                            sales.Amount = model.DebitAmount;
-                            sales.ZeroRated = model.DebitAmount;
-                            //sales.Discount = model.Discount;
-                            sales.NetSales = model.VatableSales;
-                            sales.CreatedBy = model.CreatedBy;
-                            sales.CreatedDate = model.CreatedDate;
-                            sales.DueDate = existingSI.DueDate;
-                            sales.DocumentId = model.SalesInvoiceId;
-                        }
-                        await _dbContext.AddAsync(sales, cancellationToken);
+                            #region --Retrieval of SI
 
-                        #endregion --Sales Book Recording(SI)--
+                            var existingSI = await _dbContext
+                                .SalesInvoices
+                                .Include(c => c.Customer)
+                                .Include(s => s.Product)
+                                .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId);
 
-                        #region --General Ledger Book Recording(SI)--
+                            #endregion --Retrieval of SI
 
-                        var ledgers = new List<GeneralLedgerBook>();
+                            #region --Sales Book Recording(SI)--
 
-                        ledgers.Add(
-                            new GeneralLedgerBook
+                            var sales = new SalesBook();
+
+                            if (model.SalesInvoice.Customer.CustomerType == "Vatable")
                             {
-                                Date = model.TransactionDate,
-                                Reference = model.DMNo,
-                                Description = model.SalesInvoice.Product.Name,
-                                AccountNo = "1010201",
-                                AccountTitle = "AR-Trade Receivable",
-                                Debit = model.DebitAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount),
-                                Credit = 0,
-                                CreatedBy = model.CreatedBy,
-                                CreatedDate = model.CreatedDate
+                                sales.TransactionDate = model.TransactionDate;
+                                sales.SerialNo = model.DMNo;
+                                sales.SoldTo = model.SalesInvoice.Customer.Name;
+                                sales.TinNo = model.SalesInvoice.Customer.TinNo;
+                                sales.Address = model.SalesInvoice.Customer.Address;
+                                sales.Description = model.SalesInvoice.Product.Name;
+                                sales.Amount = model.DebitAmount;
+                                sales.VatAmount = model.VatAmount;
+                                sales.VatableSales = model.VatableSales;
+                                //sales.Discount = model.Discount;
+                                sales.NetSales = model.VatableSales;
+                                sales.CreatedBy = model.CreatedBy;
+                                sales.CreatedDate = model.CreatedDate;
+                                sales.DueDate = existingSI.DueDate;
+                                sales.DocumentId = model.SalesInvoiceId;
                             }
-                        );
+                            else if (model.SalesInvoice.Customer.CustomerType == "Exempt")
+                            {
+                                sales.TransactionDate = model.TransactionDate;
+                                sales.SerialNo = model.DMNo;
+                                sales.SoldTo = model.SalesInvoice.Customer.Name;
+                                sales.TinNo = model.SalesInvoice.Customer.TinNo;
+                                sales.Address = model.SalesInvoice.Customer.Address;
+                                sales.Description = model.SalesInvoice.Product.Name;
+                                sales.Amount = model.DebitAmount;
+                                sales.VatExemptSales = model.DebitAmount;
+                                //sales.Discount = model.Discount;
+                                sales.NetSales = model.VatableSales;
+                                sales.CreatedBy = model.CreatedBy;
+                                sales.CreatedDate = model.CreatedDate;
+                                sales.DueDate = existingSI.DueDate;
+                                sales.DocumentId = model.SalesInvoiceId;
+                            }
+                            else
+                            {
+                                sales.TransactionDate = model.TransactionDate;
+                                sales.SerialNo = model.DMNo;
+                                sales.SoldTo = model.SalesInvoice.Customer.Name;
+                                sales.TinNo = model.SalesInvoice.Customer.TinNo;
+                                sales.Address = model.SalesInvoice.Customer.Address;
+                                sales.Description = model.SalesInvoice.Product.Name;
+                                sales.Amount = model.DebitAmount;
+                                sales.ZeroRated = model.DebitAmount;
+                                //sales.Discount = model.Discount;
+                                sales.NetSales = model.VatableSales;
+                                sales.CreatedBy = model.CreatedBy;
+                                sales.CreatedDate = model.CreatedDate;
+                                sales.DueDate = existingSI.DueDate;
+                                sales.DocumentId = model.SalesInvoiceId;
+                            }
+                            await _dbContext.AddAsync(sales, cancellationToken);
 
-                        if (model.WithHoldingTaxAmount > 0)
-                        {
+                            #endregion --Sales Book Recording(SI)--
+
+                            #region --General Ledger Book Recording(SI)--
+
+                            var ledgers = new List<GeneralLedgerBook>();
+
                             ledgers.Add(
                                 new GeneralLedgerBook
                                 {
                                     Date = model.TransactionDate,
                                     Reference = model.DMNo,
                                     Description = model.SalesInvoice.Product.Name,
-                                    AccountNo = "1010202",
-                                    AccountTitle = "Deferred Creditable Withholding Tax",
-                                    Debit = model.WithHoldingTaxAmount,
+                                    AccountNo = "1010201",
+                                    AccountTitle = "AR-Trade Receivable",
+                                    Debit = model.DebitAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount),
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
                             );
-                        }
-                        if (model.WithHoldingVatAmount > 0)
-                        {
-                            ledgers.Add(
-                                new GeneralLedgerBook
-                                {
-                                    Date = model.TransactionDate,
-                                    Reference = model.DMNo,
-                                    Description = model.SalesInvoice.Product.Name,
-                                    AccountNo = "1010203",
-                                    AccountTitle = "Deferred Creditable Withholding Vat",
-                                    Debit = model.WithHoldingVatAmount,
-                                    Credit = 0,
-                                    CreatedBy = model.CreatedBy,
-                                    CreatedDate = model.CreatedDate
-                                }
-                            );
-                        }
-                        if (model.SalesInvoice.Product.Name == "Biodiesel")
-                        {
-                            ledgers.Add(
-                                new GeneralLedgerBook
-                                {
-                                    Date = model.TransactionDate,
-                                    Reference = model.DMNo,
-                                    Description = model.SalesInvoice.Product.Name,
-                                    AccountNo = "4010101",
-                                    AccountTitle = "Sales - Biodiesel",
-                                    Debit = 0,
-                                    CreatedBy = model.CreatedBy,
-                                    Credit = model.VatableSales > 0
-                                                ? model.VatableSales
-                                                : model.DebitAmount,
-                                    CreatedDate = model.CreatedDate
-                                }
-                            );
-                        }
-                        else if (model.SalesInvoice.Product.Name == "Econogas")
-                        {
-                            ledgers.Add(
-                                new GeneralLedgerBook
-                                {
-                                    Date = model.TransactionDate,
-                                    Reference = model.DMNo,
-                                    Description = model.SalesInvoice.Product.Name,
-                                    AccountNo = "4010102",
-                                    AccountTitle = "Sales - Econogas",
-                                    Debit = 0,
-                                    CreatedBy = model.CreatedBy,
-                                    Credit = model.VatableSales > 0
-                                                ? model.VatableSales
-                                                : model.DebitAmount,
-                                    CreatedDate = model.CreatedDate
-                                }
-                            );
-                        }
-                        else if (model.SalesInvoice.Product.Name == "Envirogas")
-                        {
-                            ledgers.Add(
-                                new GeneralLedgerBook
-                                {
-                                    Date = model.TransactionDate,
-                                    Reference = model.DMNo,
-                                    Description = model.SalesInvoice.Product.Name,
-                                    AccountNo = "4010103",
-                                    AccountTitle = "Sales - Envirogas",
-                                    Debit = 0,
-                                    CreatedBy = model.CreatedBy,
-                                    Credit = model.VatableSales > 0
-                                                ? model.VatableSales
-                                                : model.DebitAmount,
-                                    CreatedDate = model.CreatedDate
-                                }
-                            );
+
+                            if (model.WithHoldingTaxAmount > 0)
+                            {
+                                ledgers.Add(
+                                    new GeneralLedgerBook
+                                    {
+                                        Date = model.TransactionDate,
+                                        Reference = model.DMNo,
+                                        Description = model.SalesInvoice.Product.Name,
+                                        AccountNo = "1010202",
+                                        AccountTitle = "Deferred Creditable Withholding Tax",
+                                        Debit = model.WithHoldingTaxAmount,
+                                        Credit = 0,
+                                        CreatedBy = model.CreatedBy,
+                                        CreatedDate = model.CreatedDate
+                                    }
+                                );
+                            }
+                            if (model.WithHoldingVatAmount > 0)
+                            {
+                                ledgers.Add(
+                                    new GeneralLedgerBook
+                                    {
+                                        Date = model.TransactionDate,
+                                        Reference = model.DMNo,
+                                        Description = model.SalesInvoice.Product.Name,
+                                        AccountNo = "1010203",
+                                        AccountTitle = "Deferred Creditable Withholding Vat",
+                                        Debit = model.WithHoldingVatAmount,
+                                        Credit = 0,
+                                        CreatedBy = model.CreatedBy,
+                                        CreatedDate = model.CreatedDate
+                                    }
+                                );
+                            }
+                            if (model.SalesInvoice.Product.Name == "Biodiesel")
+                            {
+                                ledgers.Add(
+                                    new GeneralLedgerBook
+                                    {
+                                        Date = model.TransactionDate,
+                                        Reference = model.DMNo,
+                                        Description = model.SalesInvoice.Product.Name,
+                                        AccountNo = "4010101",
+                                        AccountTitle = "Sales - Biodiesel",
+                                        Debit = 0,
+                                        CreatedBy = model.CreatedBy,
+                                        Credit = model.VatableSales > 0
+                                                    ? model.VatableSales
+                                                    : model.DebitAmount,
+                                        CreatedDate = model.CreatedDate
+                                    }
+                                );
+                            }
+                            else if (model.SalesInvoice.Product.Name == "Econogas")
+                            {
+                                ledgers.Add(
+                                    new GeneralLedgerBook
+                                    {
+                                        Date = model.TransactionDate,
+                                        Reference = model.DMNo,
+                                        Description = model.SalesInvoice.Product.Name,
+                                        AccountNo = "4010102",
+                                        AccountTitle = "Sales - Econogas",
+                                        Debit = 0,
+                                        CreatedBy = model.CreatedBy,
+                                        Credit = model.VatableSales > 0
+                                                    ? model.VatableSales
+                                                    : model.DebitAmount,
+                                        CreatedDate = model.CreatedDate
+                                    }
+                                );
+                            }
+                            else if (model.SalesInvoice.Product.Name == "Envirogas")
+                            {
+                                ledgers.Add(
+                                    new GeneralLedgerBook
+                                    {
+                                        Date = model.TransactionDate,
+                                        Reference = model.DMNo,
+                                        Description = model.SalesInvoice.Product.Name,
+                                        AccountNo = "4010103",
+                                        AccountTitle = "Sales - Envirogas",
+                                        Debit = 0,
+                                        CreatedBy = model.CreatedBy,
+                                        Credit = model.VatableSales > 0
+                                                    ? model.VatableSales
+                                                    : model.DebitAmount,
+                                        CreatedDate = model.CreatedDate
+                                    }
+                                );
+                            }
+
+                            if (model.VatAmount > 0)
+                            {
+                                ledgers.Add(
+                                    new GeneralLedgerBook
+                                    {
+                                        Date = model.TransactionDate,
+                                        Reference = model.DMNo,
+                                        Description = model.SalesInvoice.Product.Name,
+                                        AccountNo = "2010301",
+                                        AccountTitle = "Vat Output",
+                                        Debit = 0,
+                                        Credit = model.VatAmount,
+                                        CreatedBy = model.CreatedBy,
+                                        CreatedDate = model.CreatedDate
+                                    }
+                                );
+                            }
+
+                            if (!_generalRepo.IsDebitCreditBalanced(ledgers))
+                            {
+                                throw new ArgumentException("Debit and Credit is not equal, check your entries.");
+                            }
+
+                            await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
+
+                            #endregion --General Ledger Book Recording(SI)--
                         }
 
-                        if (model.VatAmount > 0)
+                        if (model.ServiceInvoiceId != null)
                         {
-                            ledgers.Add(
-                                new GeneralLedgerBook
+                            var existingSv = await _dbContext.ServiceInvoices
+                                .Include(sv => sv.Customer)
+                                .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
+
+                            #region --Retrieval of Services
+
+                            var services = await _debitMemoRepo.GetServicesAsync(model.ServicesId, cancellationToken);
+
+                            #endregion --Retrieval of Services
+
+                            #region --SV Computation--
+
+                            viewModelDMCM.Period = DateOnly.FromDateTime(model.CreatedDate) >= model.Period ? DateOnly.FromDateTime(model.CreatedDate) : model.Period.AddMonths(1).AddDays(-1);
+
+                            if (existingSv.Customer.CustomerType == "Vatable")
+                            {
+                                viewModelDMCM.Total = model.Amount;
+                                viewModelDMCM.NetAmount = (model.Amount - existingSv.Discount) / 1.12m;
+                                viewModelDMCM.VatAmount = (model.Amount - existingSv.Discount) - viewModelDMCM.NetAmount;
+                                viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (services.Percent / 100m);
+                                if (existingSv.Customer.WithHoldingVat)
                                 {
-                                    Date = model.TransactionDate,
+                                    viewModelDMCM.WithholdingVatAmount = viewModelDMCM.NetAmount * 0.05m;
+                                }
+                            }
+                            else
+                            {
+                                viewModelDMCM.NetAmount = model.Amount - existingSv.Discount;
+                                viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (services.Percent / 100m);
+                                if (existingSv.Customer.WithHoldingVat)
+                                {
+                                    viewModelDMCM.WithholdingVatAmount = viewModelDMCM.NetAmount * 0.05m;
+                                }
+                            }
+
+                            if (existingSv.Customer.CustomerType == "Vatable")
+                            {
+                                var total = Math.Round(model.Amount / 1.12m, 2);
+
+                                var roundedNetAmount = Math.Round(viewModelDMCM.NetAmount, 2);
+
+                                if (roundedNetAmount > total)
+                                {
+                                    var shortAmount = viewModelDMCM.NetAmount - total;
+
+                                    viewModelDMCM.Amount += shortAmount;
+                                }
+                            }
+
+                            #endregion --SV Computation--
+
+                            #region --Sales Book Recording(SV)--
+
+                            var sales = new SalesBook();
+
+                            if (model.ServiceInvoice.Customer.CustomerType == "Vatable")
+                            {
+                                sales.TransactionDate = viewModelDMCM.Period;
+                                sales.SerialNo = model.DMNo;
+                                sales.SoldTo = model.ServiceInvoice.Customer.Name;
+                                sales.TinNo = model.ServiceInvoice.Customer.TinNo;
+                                sales.Address = model.ServiceInvoice.Customer.Address;
+                                sales.Description = model.ServiceInvoice.Service.Name;
+                                sales.Amount = viewModelDMCM.Total;
+                                sales.VatAmount = viewModelDMCM.VatAmount;
+                                sales.VatableSales = viewModelDMCM.Total / 1.12m;
+                                //sales.Discount = model.Discount;
+                                sales.NetSales = viewModelDMCM.NetAmount;
+                                sales.CreatedBy = model.CreatedBy;
+                                sales.CreatedDate = model.CreatedDate;
+                                sales.DueDate = existingSv.DueDate;
+                                sales.DocumentId = existingSv.Id;
+                            }
+                            else if (model.ServiceInvoice.Customer.CustomerType == "Exempt")
+                            {
+                                sales.TransactionDate = viewModelDMCM.Period;
+                                sales.SerialNo = model.DMNo;
+                                sales.SoldTo = model.ServiceInvoice.Customer.Name;
+                                sales.TinNo = model.ServiceInvoice.Customer.TinNo;
+                                sales.Address = model.ServiceInvoice.Customer.Address;
+                                sales.Description = model.ServiceInvoice.Service.Name;
+                                sales.Amount = viewModelDMCM.Total;
+                                sales.VatExemptSales = viewModelDMCM.Total;
+                                //sales.Discount = model.Discount;
+                                sales.NetSales = viewModelDMCM.NetAmount;
+                                sales.CreatedBy = model.CreatedBy;
+                                sales.CreatedDate = model.CreatedDate;
+                                sales.DueDate = existingSv.DueDate;
+                                sales.DocumentId = existingSv.Id;
+                            }
+                            else
+                            {
+                                sales.TransactionDate = viewModelDMCM.Period;
+                                sales.SerialNo = model.DMNo;
+                                sales.SoldTo = model.ServiceInvoice.Customer.Name;
+                                sales.TinNo = model.ServiceInvoice.Customer.TinNo;
+                                sales.Address = model.ServiceInvoice.Customer.Address;
+                                sales.Description = model.ServiceInvoice.Service.Name;
+                                sales.Amount = viewModelDMCM.Total;
+                                sales.ZeroRated = viewModelDMCM.Total;
+                                //sales.Discount = model.Discount;
+                                sales.NetSales = viewModelDMCM.NetAmount;
+                                sales.CreatedBy = model.CreatedBy;
+                                sales.CreatedDate = model.CreatedDate;
+                                sales.DueDate = existingSv.DueDate;
+                                sales.DocumentId = existingSv.Id;
+                            }
+                            await _dbContext.AddAsync(sales, cancellationToken);
+
+                            #endregion --Sales Book Recording(SV)--
+
+                            #region --General Ledger Book Recording(SV)--
+
+                            var ledgers = new List<GeneralLedgerBook>();
+
+                            ledgers.Add(
+                                    new GeneralLedgerBook
+                                    {
+                                        Date = viewModelDMCM.Period,
+                                        Reference = model.DMNo,
+                                        Description = model.ServiceInvoice.Service.Name,
+                                        AccountNo = "1010204",
+                                        AccountTitle = "AR-Non Trade Receivable",
+                                        Debit = viewModelDMCM.Total - (viewModelDMCM.WithholdingTaxAmount + viewModelDMCM.WithholdingVatAmount),
+                                        Credit = 0,
+                                        CreatedBy = model.CreatedBy,
+                                        CreatedDate = model.CreatedDate
+                                    }
+                                );
+                            if (viewModelDMCM.WithholdingTaxAmount > 0)
+                            {
+                                ledgers.Add(
+                                    new GeneralLedgerBook
+                                    {
+                                        Date = viewModelDMCM.Period,
+                                        Reference = model.DMNo,
+                                        Description = model.ServiceInvoice.Service.Name,
+                                        AccountNo = "1010202",
+                                        AccountTitle = "Deferred Creditable Withholding Tax",
+                                        Debit = viewModelDMCM.WithholdingTaxAmount,
+                                        Credit = 0,
+                                        CreatedBy = model.CreatedBy,
+                                        CreatedDate = model.CreatedDate
+                                    }
+                                );
+                            }
+                            if (viewModelDMCM.WithholdingVatAmount > 0)
+                            {
+                                ledgers.Add(
+                                    new GeneralLedgerBook
+                                    {
+                                        Date = viewModelDMCM.Period,
+                                        Reference = model.DMNo,
+                                        Description = model.ServiceInvoice.Service.Name,
+                                        AccountNo = "1010203",
+                                        AccountTitle = "Deferred Creditable Withholding Vat",
+                                        Debit = viewModelDMCM.WithholdingVatAmount,
+                                        Credit = 0,
+                                        CreatedBy = model.CreatedBy,
+                                        CreatedDate = model.CreatedDate
+                                    }
+                                );
+                            }
+
+                            if (viewModelDMCM.Total > 0)
+                            {
+                                ledgers.Add(new GeneralLedgerBook
+                                {
+                                    Date = viewModelDMCM.Period,
                                     Reference = model.DMNo,
-                                    Description = model.SalesInvoice.Product.Name,
-                                    AccountNo = "2010301",
-                                    AccountTitle = "Vat Output",
+                                    Description = model.ServiceInvoice.Service.Name,
+                                    AccountNo = model.ServiceInvoice.Service.CurrentAndPreviousNo,
+                                    AccountTitle = model.ServiceInvoice.Service.CurrentAndPreviousTitle,
                                     Debit = 0,
-                                    Credit = model.VatAmount,
+                                    Credit = viewModelDMCM.Total / 1.12m,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
-                                }
-                            );
+                                });
+                            }
+
+                            if (viewModelDMCM.VatAmount > 0)
+                            {
+                                ledgers.Add(
+                                    new GeneralLedgerBook
+                                    {
+                                        Date = viewModelDMCM.Period,
+                                        Reference = model.DMNo,
+                                        Description = model.ServiceInvoice.Service.Name,
+                                        AccountNo = "2010304",
+                                        AccountTitle = "Deferred Vat Output",
+                                        Debit = 0,
+                                        Credit = viewModelDMCM.VatAmount,
+                                        CreatedBy = model.CreatedBy,
+                                        CreatedDate = model.CreatedDate
+                                    }
+                                );
+                            }
+
+                            if (!_generalRepo.IsDebitCreditBalanced(ledgers))
+                            {
+                                throw new ArgumentException("Debit and Credit is not equal, check your entries.");
+                            }
+
+                            await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
+
+                            #endregion --General Ledger Book Recording(SV)--
                         }
 
-                        await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
+                        #region --Audit Trail Recording
 
-                        #endregion --General Ledger Book Recording(SI)--
+                        AuditTrail auditTrail = new(model.PostedBy, $"Posted debit memo# {model.DMNo}", "Debit Memo");
+                        await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        TempData["success"] = "Debit Memo has been Posted.";
                     }
-
-                    if (model.ServiceInvoiceId != null)
-                    {
-                        var existingSv = await _dbContext.ServiceInvoices
-                            .Include(sv => sv.Customer)
-                            .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
-
-                        #region --Retrieval of Services
-
-                        var services = await _debitMemoRepo.GetServicesAsync(model.ServicesId, cancellationToken);
-
-                        #endregion --Retrieval of Services
-
-                        #region --SV Computation--
-
-                        viewModelDMCM.Period = DateOnly.FromDateTime(model.CreatedDate) >= model.Period ? DateOnly.FromDateTime(model.CreatedDate) : model.Period.AddMonths(1).AddDays(-1);
-
-                        if (existingSv.Customer.CustomerType == "Vatable")
-                        {
-                            viewModelDMCM.Total = model.Amount;
-                            viewModelDMCM.NetAmount = (model.Amount - existingSv.Discount) / 1.12m;
-                            viewModelDMCM.VatAmount = (model.Amount - existingSv.Discount) - viewModelDMCM.NetAmount;
-                            viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (services.Percent / 100m);
-                            if (existingSv.Customer.WithHoldingVat)
-                            {
-                                viewModelDMCM.WithholdingVatAmount = viewModelDMCM.NetAmount * 0.05m;
-                            }
-                        }
-                        else
-                        {
-                            viewModelDMCM.NetAmount = model.Amount - existingSv.Discount;
-                            viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (services.Percent / 100m);
-                            if (existingSv.Customer.WithHoldingVat)
-                            {
-                                viewModelDMCM.WithholdingVatAmount = viewModelDMCM.NetAmount * 0.05m;
-                            }
-                        }
-
-                        if (existingSv.Customer.CustomerType == "Vatable")
-                        {
-                            var total = Math.Round(model.Amount / 1.12m, 2);
-
-                            var roundedNetAmount = Math.Round(viewModelDMCM.NetAmount, 2);
-
-                            if (roundedNetAmount > total)
-                            {
-                                var shortAmount = viewModelDMCM.NetAmount - total;
-
-                                viewModelDMCM.Amount += shortAmount;
-                            }
-                        }
-
-                        #endregion --SV Computation--
-
-                        #region --Sales Book Recording(SV)--
-
-                        var sales = new SalesBook();
-
-                        if (model.ServiceInvoice.Customer.CustomerType == "Vatable")
-                        {
-                            sales.TransactionDate = viewModelDMCM.Period;
-                            sales.SerialNo = model.DMNo;
-                            sales.SoldTo = model.ServiceInvoice.Customer.Name;
-                            sales.TinNo = model.ServiceInvoice.Customer.TinNo;
-                            sales.Address = model.ServiceInvoice.Customer.Address;
-                            sales.Description = model.ServiceInvoice.Service.Name;
-                            sales.Amount = viewModelDMCM.Total;
-                            sales.VatAmount = viewModelDMCM.VatAmount;
-                            sales.VatableSales = viewModelDMCM.Total / 1.12m;
-                            //sales.Discount = model.Discount;
-                            sales.NetSales = viewModelDMCM.NetAmount;
-                            sales.CreatedBy = model.CreatedBy;
-                            sales.CreatedDate = model.CreatedDate;
-                            sales.DueDate = existingSv.DueDate;
-                            sales.DocumentId = existingSv.Id;
-                        }
-                        else if (model.ServiceInvoice.Customer.CustomerType == "Exempt")
-                        {
-                            sales.TransactionDate = viewModelDMCM.Period;
-                            sales.SerialNo = model.DMNo;
-                            sales.SoldTo = model.ServiceInvoice.Customer.Name;
-                            sales.TinNo = model.ServiceInvoice.Customer.TinNo;
-                            sales.Address = model.ServiceInvoice.Customer.Address;
-                            sales.Description = model.ServiceInvoice.Service.Name;
-                            sales.Amount = viewModelDMCM.Total;
-                            sales.VatExemptSales = viewModelDMCM.Total;
-                            //sales.Discount = model.Discount;
-                            sales.NetSales = viewModelDMCM.NetAmount;
-                            sales.CreatedBy = model.CreatedBy;
-                            sales.CreatedDate = model.CreatedDate;
-                            sales.DueDate = existingSv.DueDate;
-                            sales.DocumentId = existingSv.Id;
-                        }
-                        else
-                        {
-                            sales.TransactionDate = viewModelDMCM.Period;
-                            sales.SerialNo = model.DMNo;
-                            sales.SoldTo = model.ServiceInvoice.Customer.Name;
-                            sales.TinNo = model.ServiceInvoice.Customer.TinNo;
-                            sales.Address = model.ServiceInvoice.Customer.Address;
-                            sales.Description = model.ServiceInvoice.Service.Name;
-                            sales.Amount = viewModelDMCM.Total;
-                            sales.ZeroRated = viewModelDMCM.Total;
-                            //sales.Discount = model.Discount;
-                            sales.NetSales = viewModelDMCM.NetAmount;
-                            sales.CreatedBy = model.CreatedBy;
-                            sales.CreatedDate = model.CreatedDate;
-                            sales.DueDate = existingSv.DueDate;
-                            sales.DocumentId = existingSv.Id;
-                        }
-                        await _dbContext.AddAsync(sales, cancellationToken);
-
-                        #endregion --Sales Book Recording(SV)--
-
-                        #region --General Ledger Book Recording(SV)--
-
-                        var ledgers = new List<GeneralLedgerBook>();
-
-                        ledgers.Add(
-                                new GeneralLedgerBook
-                                {
-                                    Date = viewModelDMCM.Period,
-                                    Reference = model.DMNo,
-                                    Description = model.ServiceInvoice.Service.Name,
-                                    AccountNo = "1010204",
-                                    AccountTitle = "AR-Non Trade Receivable",
-                                    Debit = viewModelDMCM.Total - (viewModelDMCM.WithholdingTaxAmount + viewModelDMCM.WithholdingVatAmount),
-                                    Credit = 0,
-                                    CreatedBy = model.CreatedBy,
-                                    CreatedDate = model.CreatedDate
-                                }
-                            );
-                        if (viewModelDMCM.WithholdingTaxAmount > 0)
-                        {
-                            ledgers.Add(
-                                new GeneralLedgerBook
-                                {
-                                    Date = viewModelDMCM.Period,
-                                    Reference = model.DMNo,
-                                    Description = model.ServiceInvoice.Service.Name,
-                                    AccountNo = "1010202",
-                                    AccountTitle = "Deferred Creditable Withholding Tax",
-                                    Debit = viewModelDMCM.WithholdingTaxAmount,
-                                    Credit = 0,
-                                    CreatedBy = model.CreatedBy,
-                                    CreatedDate = model.CreatedDate
-                                }
-                            );
-                        }
-                        if (viewModelDMCM.WithholdingVatAmount > 0)
-                        {
-                            ledgers.Add(
-                                new GeneralLedgerBook
-                                {
-                                    Date = viewModelDMCM.Period,
-                                    Reference = model.DMNo,
-                                    Description = model.ServiceInvoice.Service.Name,
-                                    AccountNo = "1010203",
-                                    AccountTitle = "Deferred Creditable Withholding Vat",
-                                    Debit = viewModelDMCM.WithholdingVatAmount,
-                                    Credit = 0,
-                                    CreatedBy = model.CreatedBy,
-                                    CreatedDate = model.CreatedDate
-                                }
-                            );
-                        }
-
-                        if (viewModelDMCM.Total > 0)
-                        {
-                            ledgers.Add(new GeneralLedgerBook
-                            {
-                                Date = viewModelDMCM.Period,
-                                Reference = model.DMNo,
-                                Description = model.ServiceInvoice.Service.Name,
-                                AccountNo = model.ServiceInvoice.Service.CurrentAndPreviousNo,
-                                AccountTitle = model.ServiceInvoice.Service.CurrentAndPreviousTitle,
-                                Debit = 0,
-                                Credit = viewModelDMCM.Total / 1.12m,
-                                CreatedBy = model.CreatedBy,
-                                CreatedDate = model.CreatedDate
-                            });
-                        }
-
-                        if (viewModelDMCM.VatAmount > 0)
-                        {
-                            ledgers.Add(
-                                new GeneralLedgerBook
-                                {
-                                    Date = viewModelDMCM.Period,
-                                    Reference = model.DMNo,
-                                    Description = model.ServiceInvoice.Service.Name,
-                                    AccountNo = "2010304",
-                                    AccountTitle = "Deferred Vat Output",
-                                    Debit = 0,
-                                    Credit = viewModelDMCM.VatAmount,
-                                    CreatedBy = model.CreatedBy,
-                                    CreatedDate = model.CreatedDate
-                                }
-                            );
-                        }
-
-                        await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
-
-                        #endregion --General Ledger Book Recording(SV)--
-                    }
-
-                    #region --Audit Trail Recording
-
-                    AuditTrail auditTrail = new(model.PostedBy, $"Posted debit memo# {model.DMNo}", "Debit Memo");
-                    await _dbContext.AddAsync(auditTrail, cancellationToken);
-
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Debit Memo has been Posted.";
+                    return RedirectToAction("Index");
                 }
-                return RedirectToAction("Index");
+                catch (Exception ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction("Index");
+                }
             }
 
             return NotFound();

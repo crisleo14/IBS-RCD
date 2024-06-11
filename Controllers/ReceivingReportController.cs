@@ -298,7 +298,6 @@ namespace Accounting_System.Controllers
             return RedirectToAction("Print", new { id = id });
         }
 
-        // PENDING: Fix the error of proceeding the posting of rr even the inventory will prompt no beginning inventory found
         public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
         {
             try
@@ -317,11 +316,11 @@ namespace Accounting_System.Controllers
 
                             #region --General Ledger Recording
 
-                            var ledger = new List<GeneralLedgerBook>();
+                            var ledgers = new List<GeneralLedgerBook>();
 
                             if (model.PurchaseOrder.Product.Name == "Biodiesel")
                             {
-                                ledger.Add(new GeneralLedgerBook
+                                ledgers.Add(new GeneralLedgerBook
                                 {
                                     Date = model.Date,
                                     Reference = model.RRNo,
@@ -336,7 +335,7 @@ namespace Accounting_System.Controllers
                             }
                             else if (model.PurchaseOrder.Product.Name == "Econogas")
                             {
-                                ledger.Add(new GeneralLedgerBook
+                                ledgers.Add(new GeneralLedgerBook
                                 {
                                     Date = model.Date,
                                     Reference = model.RRNo,
@@ -351,7 +350,7 @@ namespace Accounting_System.Controllers
                             }
                             else
                             {
-                                ledger.Add(new GeneralLedgerBook
+                                ledgers.Add(new GeneralLedgerBook
                                 {
                                     Date = model.Date,
                                     Reference = model.RRNo,
@@ -365,7 +364,7 @@ namespace Accounting_System.Controllers
                                 });
                             }
 
-                            ledger.Add(new GeneralLedgerBook
+                            ledgers.Add(new GeneralLedgerBook
                             {
                                 Date = model.Date,
                                 Reference = model.RRNo,
@@ -378,7 +377,7 @@ namespace Accounting_System.Controllers
                                 CreatedDate = model.CreatedDate
                             });
 
-                            ledger.Add(new GeneralLedgerBook
+                            ledgers.Add(new GeneralLedgerBook
                             {
                                 Date = model.Date,
                                 Reference = model.RRNo,
@@ -391,7 +390,7 @@ namespace Accounting_System.Controllers
                                 CreatedDate = model.CreatedDate
                             });
 
-                            ledger.Add(new GeneralLedgerBook
+                            ledgers.Add(new GeneralLedgerBook
                             {
                                 Date = model.Date,
                                 Reference = model.RRNo,
@@ -404,7 +403,12 @@ namespace Accounting_System.Controllers
                                 CreatedDate = model.CreatedDate
                             });
 
-                            await _dbContext.AddRangeAsync(ledger, cancellationToken);
+                            if (!_generalRepo.IsDebitCreditBalanced(ledgers))
+                            {
+                                throw new ArgumentException("Debit and Credit is not equal, check your entries.");
+                            }
+
+                            await _dbContext.AddRangeAsync(ledgers, cancellationToken);
 
                             #endregion --General Ledger Recording
 

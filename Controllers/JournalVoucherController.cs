@@ -23,12 +23,15 @@ namespace Accounting_System.Controllers
 
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public JournalVoucherController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, IWebHostEnvironment webHostEnvironment, JournalVoucherRepo journalVoucherRepo)
+        private readonly GeneralRepo _generalRepo;
+
+        public JournalVoucherController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, IWebHostEnvironment webHostEnvironment, JournalVoucherRepo journalVoucherRepo, GeneralRepo generalRepo)
         {
             _dbContext = dbContext;
             _userManager = userManager;
             _webHostEnvironment = webHostEnvironment;
             _journalVoucherRepo = journalVoucherRepo;
+            _generalRepo = generalRepo;
         }
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
@@ -64,7 +67,7 @@ namespace Accounting_System.Controllers
             return View(journalVoucherVMs);
         }
 
-        [HttpGet] // TODO: Automation of journal voucher creation for depreciation, prepaid and accrued
+        [HttpGet]
         public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
             var viewModel = new JournalVoucherVM
@@ -333,72 +336,85 @@ namespace Accounting_System.Controllers
 
             if (modelHeader != null)
             {
-                if (!modelHeader.IsPosted)
+                try
                 {
-                    modelHeader.IsPosted = true;
-                    modelHeader.PostedBy = _userManager.GetUserName(this.User);
-                    modelHeader.PostedDate = DateTime.Now;
-
-                    #region --General Ledger Book Recording(GL)--
-
-                    var ledgers = new List<GeneralLedgerBook>();
-                    foreach (var details in modelDetails)
+                    if (!modelHeader.IsPosted)
                     {
-                        ledgers.Add(
-                                new GeneralLedgerBook
-                                {
-                                    Date = modelHeader.Date,
-                                    Reference = modelHeader.JVNo,
-                                    Description = modelHeader.Particulars,
-                                    AccountNo = details.AccountNo,
-                                    AccountTitle = details.AccountName,
-                                    Debit = details.Debit,
-                                    Credit = details.Credit,
-                                    CreatedBy = modelHeader.CreatedBy,
-                                    CreatedDate = modelHeader.CreatedDate
-                                }
-                            );
+                        modelHeader.IsPosted = true;
+                        modelHeader.PostedBy = _userManager.GetUserName(this.User);
+                        modelHeader.PostedDate = DateTime.Now;
+
+                        #region --General Ledger Book Recording(GL)--
+
+                        var ledgers = new List<GeneralLedgerBook>();
+                        foreach (var details in modelDetails)
+                        {
+                            ledgers.Add(
+                                    new GeneralLedgerBook
+                                    {
+                                        Date = modelHeader.Date,
+                                        Reference = modelHeader.JVNo,
+                                        Description = modelHeader.Particulars,
+                                        AccountNo = details.AccountNo,
+                                        AccountTitle = details.AccountName,
+                                        Debit = details.Debit,
+                                        Credit = details.Credit,
+                                        CreatedBy = modelHeader.CreatedBy,
+                                        CreatedDate = modelHeader.CreatedDate
+                                    }
+                                );
+                        }
+
+                        if (!_generalRepo.IsDebitCreditBalanced(ledgers))
+                        {
+                            throw new ArgumentException("Debit and Credit is not equal, check your entries.");
+                        }
+
+                        await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
+
+                        #endregion --General Ledger Book Recording(GL)--
+
+                        #region --Journal Book Recording(JV)--
+
+                        var journalBook = new List<JournalBook>();
+                        foreach (var details in modelDetails)
+                        {
+                            journalBook.Add(
+                                    new JournalBook
+                                    {
+                                        Date = modelHeader.Date,
+                                        Reference = modelHeader.JVNo,
+                                        Description = modelHeader.Particulars,
+                                        AccountTitle = details.AccountNo + " " + details.AccountName,
+                                        Debit = details.Debit,
+                                        Credit = details.Credit,
+                                        CreatedBy = modelHeader.CreatedBy,
+                                        CreatedDate = modelHeader.CreatedDate
+                                    }
+                                );
+                        }
+
+                        await _dbContext.JournalBooks.AddRangeAsync(journalBook, cancellationToken);
+
+                        #endregion --Journal Book Recording(JV)--
+
+                        #region --Audit Trail Recording
+
+                        AuditTrail auditTrail = new(modelHeader.PostedBy, $"Posted journal voucher# {modelHeader.JVNo}", "Journal Voucher");
+                        await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        TempData["success"] = "Journal Voucher has been Posted.";
                     }
-
-                    await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
-
-                    #endregion --General Ledger Book Recording(GL)--
-
-                    #region --Journal Book Recording(JV)--
-
-                    var journalBook = new List<JournalBook>();
-                    foreach (var details in modelDetails)
-                    {
-                        journalBook.Add(
-                                new JournalBook
-                                {
-                                    Date = modelHeader.Date,
-                                    Reference = modelHeader.JVNo,
-                                    Description = modelHeader.Particulars,
-                                    AccountTitle = details.AccountNo + " " + details.AccountName,
-                                    Debit = details.Debit,
-                                    Credit = details.Credit,
-                                    CreatedBy = modelHeader.CreatedBy,
-                                    CreatedDate = modelHeader.CreatedDate
-                                }
-                            );
-                    }
-
-                    await _dbContext.JournalBooks.AddRangeAsync(journalBook, cancellationToken);
-
-                    #endregion --Journal Book Recording(JV)--
-
-                    #region --Audit Trail Recording
-
-                    AuditTrail auditTrail = new(modelHeader.PostedBy, $"Posted journal voucher# {modelHeader.JVNo}", "Journal Voucher");
-                    await _dbContext.AddAsync(auditTrail, cancellationToken);
-
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Journal Voucher has been Posted.";
+                    return RedirectToAction(nameof(Index));
                 }
-                return RedirectToAction(nameof(Index));
+                catch (Exception ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction("Index");
+                }
             }
 
             return NotFound();

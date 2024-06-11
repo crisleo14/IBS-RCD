@@ -99,7 +99,6 @@ namespace Accounting_System.Controllers
             return View(viewModel);
         }
 
-        // PENDING: Clean and optimize this code
         public async Task<IActionResult> InventoryReport(CancellationToken cancellationToken)
         {
             InventoryReportViewModel viewModel = new InventoryReportViewModel();
@@ -116,7 +115,6 @@ namespace Accounting_System.Controllers
             return View(viewModel);
         }
 
-        // PENDING: Clean and optimize this code
         public async Task<IActionResult> DisplayInventory(InventoryReportViewModel viewModel, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
