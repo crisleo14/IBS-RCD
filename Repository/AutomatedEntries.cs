@@ -31,7 +31,7 @@ namespace Accounting_System.Repository
                     var _journalVoucherRepo = scope.ServiceProvider.GetRequiredService<JournalVoucherRepo>();
 
                     var cvList = await _dbContext.CheckVoucherHeaders
-                            .Where(cv => cv.StartDate < DateOnly.FromDateTime(DateTime.Now) && !cv.IsComplete)
+                            .Where(cv => cv.StartDate <= DateOnly.FromDateTime(DateTime.Now) && cv.LastCreatedDate < DateTime.Now && !cv.IsComplete && cv.IsPosted)
                             .ToListAsync();
 
                     if (cvList.Count != 0)
@@ -70,7 +70,7 @@ namespace Accounting_System.Repository
 
                                     details.Add(new JournalVoucherDetail
                                     {
-                                        AccountNo = "5010105",
+                                        AccountNo = "5020107",
                                         AccountName = "Depreciation Expense",
                                         TransactionNo = header.JVNo,
                                         Debit = cv.AmountPerMonth,
@@ -117,7 +117,7 @@ namespace Accounting_System.Repository
 
                                     details.Add(new JournalVoucherDetail
                                     {
-                                        AccountNo = "5010108",
+                                        AccountNo = "5020115",
                                         AccountName = "Rental Expense",
                                         TransactionNo = header.JVNo,
                                         Debit = cv.AmountPerMonth,
@@ -127,7 +127,7 @@ namespace Accounting_System.Repository
                                     details.Add(new JournalVoucherDetail
                                     {
                                         AccountNo = "1010501",
-                                        AccountName = "Prepaid Expense",
+                                        AccountName = "Prepaid Expenses - Rental",
                                         TransactionNo = header.JVNo,
                                         Debit = 0,
                                         Credit = cv.AmountPerMonth

@@ -90,7 +90,7 @@
                                 <input name='AccountTitle' value='AP-Non Trade Payable' class="w-100" style='border:none' readonly />
                             </td>
                             <td><input name="Debit" value='0.00' class="w-100" style='border:none' readonly /></td>
-                            <td><input name="Credit" value='0.00' class="w-100" style='border:none' readonly /></td>
+                            <td><input name="Credit" value='0.00' class="w-100 ap-trade-credit" style='border:none' readonly /></td>
                             <td></td>
                         </tr>
                     </tbody>
@@ -265,7 +265,7 @@
             });
 
             function updateAPTradeAmount(totalValue) {
-                var creditField = $("input[name='Credit']");
+                var creditField = $(".ap-trade-credit");
                 creditField.val(totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                 updateTotalDebitAndCredit();
             }
@@ -274,7 +274,7 @@
         <script>
             $("#AccountNo").change(function () {
                 var accountNumber = $(this).val();
-                if (accountNumber.startsWith("10201")) {
+                if (accountNumber.startsWith("10201") || accountNumber.startsWith("10105")) {
                     // Close the modal
                     $("#AddAccEntry").modal("hide");
                     Swal.fire({
