@@ -1111,7 +1111,6 @@ namespace Accounting_System.Controllers
 
                     return RedirectToAction("CollectionIndex");
                 }
-
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
@@ -1130,6 +1129,11 @@ namespace Accounting_System.Controllers
             {
                 if (!model.IsVoided)
                 {
+                    if (model.IsPosted)
+                    {
+                        model.IsPosted = false;
+                    }
+
                     model.IsVoided = true;
                     model.VoidedBy = _userManager.GetUserName(this.User);
                     model.VoidedDate = DateTime.Now;
