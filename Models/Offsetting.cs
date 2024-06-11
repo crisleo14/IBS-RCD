@@ -11,6 +11,8 @@ namespace Accounting_System.Models
 
         public string AccountNo { get; set; }
 
+        public string AccountTitle { get; set; }
+
         public string Source { get; set; }
 
         public string? Reference { get; set; }

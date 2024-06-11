@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240611043027_AddAccountTitleInOffSettingTable")]
+    partial class AddAccountTitleInOffSettingTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -724,12 +727,12 @@ namespace Accounting_System.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal?>("AdjustedPrice")
+                    b.Property<decimal>("AdjustedPrice")
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("adjusted_price");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric")
                         .HasColumnName("amount");
 
                     b.Property<string>("CMNo")
@@ -793,7 +796,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("posted_date");
 
-                    b.Property<decimal?>("Quantity")
+                    b.Property<decimal>("Quantity")
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("quantity");
 
@@ -879,7 +882,7 @@ namespace Accounting_System.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal?>("AdjustedPrice")
+                    b.Property<decimal>("AdjustedPrice")
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("adjusted_price");
 
@@ -948,7 +951,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("posted_date");
 
-                    b.Property<decimal?>("Quantity")
+                    b.Property<decimal>("Quantity")
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("quantity");
 

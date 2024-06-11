@@ -23,12 +23,15 @@ namespace Accounting_System.Controllers
 
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public CheckVoucherController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, CheckVoucherRepo checkVoucherRepo, IWebHostEnvironment webHostEnvironment)
+        private readonly GeneralRepo _generalRepo;
+
+        public CheckVoucherController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, CheckVoucherRepo checkVoucherRepo, IWebHostEnvironment webHostEnvironment, GeneralRepo generalRepo)
         {
             _dbContext = dbContext;
             _userManager = userManager;
             _checkVoucherRepo = checkVoucherRepo;
             _webHostEnvironment = webHostEnvironment;
+            _generalRepo = generalRepo;
         }
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
@@ -278,78 +281,91 @@ namespace Accounting_System.Controllers
 
             if (modelHeader != null)
             {
-                if (!modelHeader.IsPosted)
+                try
                 {
-                    modelHeader.IsPosted = true;
-                    modelHeader.PostedBy = _userManager.GetUserName(this.User);
-                    modelHeader.PostedDate = DateTime.Now;
-
-                    #region --General Ledger Book Recording(CV)--
-
-                    var ledgers = new List<GeneralLedgerBook>();
-                    foreach (var details in modelDetails)
+                    if (!modelHeader.IsPosted)
                     {
-                        ledgers.Add(
-                                new GeneralLedgerBook
-                                {
-                                    Date = modelHeader.Date,
-                                    Reference = modelHeader.CVNo,
-                                    Description = modelHeader.Particulars,
-                                    AccountNo = details.AccountNo,
-                                    AccountTitle = details.AccountName,
-                                    Debit = details.Debit,
-                                    Credit = details.Credit,
-                                    CreatedBy = modelHeader.CreatedBy,
-                                    CreatedDate = modelHeader.CreatedDate
-                                }
-                            );
+                        modelHeader.IsPosted = true;
+                        modelHeader.PostedBy = _userManager.GetUserName(this.User);
+                        modelHeader.PostedDate = DateTime.Now;
+
+                        #region --General Ledger Book Recording(CV)--
+
+                        var ledgers = new List<GeneralLedgerBook>();
+                        foreach (var details in modelDetails)
+                        {
+                            ledgers.Add(
+                                    new GeneralLedgerBook
+                                    {
+                                        Date = modelHeader.Date,
+                                        Reference = modelHeader.CVNo,
+                                        Description = modelHeader.Particulars,
+                                        AccountNo = details.AccountNo,
+                                        AccountTitle = details.AccountName,
+                                        Debit = details.Debit,
+                                        Credit = details.Credit,
+                                        CreatedBy = modelHeader.CreatedBy,
+                                        CreatedDate = modelHeader.CreatedDate
+                                    }
+                                );
+                        }
+
+                        if (!_generalRepo.IsDebitCreditBalanced(ledgers))
+                        {
+                            throw new ArgumentException("Debit and Credit is not equal, check your entries.");
+                        }
+
+                        await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
+
+                        #endregion --General Ledger Book Recording(CV)--
+
+                        #region --Disbursement Book Recording(CV)--
+
+                        var disbursement = new List<DisbursementBook>();
+                        foreach (var details in modelDetails)
+                        {
+                            var bank = _dbContext.BankAccounts.FirstOrDefault(model => model.Id == modelHeader.BankId);
+                            disbursement.Add(
+                                    new DisbursementBook
+                                    {
+                                        Date = modelHeader.Date,
+                                        CVNo = modelHeader.CVNo,
+                                        Payee = modelHeader.Payee,
+                                        Amount = modelHeader.Total,
+                                        Particulars = modelHeader.Particulars,
+                                        Bank = bank != null ? bank.Branch : "N/A",
+                                        CheckNo = !string.IsNullOrEmpty(modelHeader.CheckNo) ? modelHeader.CheckNo : "N/A",
+                                        CheckDate = modelHeader.CheckDate != null ? modelHeader.CheckDate?.ToString("MM/dd/yyyy") : "N/A",
+                                        ChartOfAccount = details.AccountNo + " " + details.AccountName,
+                                        Debit = details.Debit,
+                                        Credit = details.Credit,
+                                        CreatedBy = modelHeader.CreatedBy,
+                                        CreatedDate = modelHeader.CreatedDate
+                                    }
+                                );
+                        }
+
+                        await _dbContext.DisbursementBooks.AddRangeAsync(disbursement, cancellationToken);
+
+                        #endregion --Disbursement Book Recording(CV)--
+
+                        #region --Audit Trail Recording
+
+                        AuditTrail auditTrail = new(modelHeader.PostedBy, $"Posted check voucher# {modelHeader.CVNo}", "Check Voucher");
+                        await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        TempData["success"] = "Check Voucher has been Posted.";
                     }
-
-                    await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
-
-                    #endregion --General Ledger Book Recording(CV)--
-
-                    #region --Disbursement Book Recording(CV)--
-
-                    var disbursement = new List<DisbursementBook>();
-                    foreach (var details in modelDetails)
-                    {
-                        var bank = _dbContext.BankAccounts.FirstOrDefault(model => model.Id == modelHeader.BankId);
-                        disbursement.Add(
-                                new DisbursementBook
-                                {
-                                    Date = modelHeader.Date,
-                                    CVNo = modelHeader.CVNo,
-                                    Payee = modelHeader.Payee,
-                                    Amount = modelHeader.Total,
-                                    Particulars = modelHeader.Particulars,
-                                    Bank = bank != null ? bank.Branch : "N/A",
-                                    CheckNo = !string.IsNullOrEmpty(modelHeader.CheckNo) ? modelHeader.CheckNo : "N/A",
-                                    CheckDate = modelHeader.CheckDate != null ? modelHeader.CheckDate?.ToString("MM/dd/yyyy") : "N/A",
-                                    ChartOfAccount = details.AccountNo + " " + details.AccountName,
-                                    Debit = details.Debit,
-                                    Credit = details.Credit,
-                                    CreatedBy = modelHeader.CreatedBy,
-                                    CreatedDate = modelHeader.CreatedDate
-                                }
-                            );
-                    }
-
-                    await _dbContext.DisbursementBooks.AddRangeAsync(disbursement, cancellationToken);
-
-                    #endregion --Disbursement Book Recording(CV)--
-
-                    #region --Audit Trail Recording
-
-                    AuditTrail auditTrail = new(modelHeader.PostedBy, $"Posted check voucher# {modelHeader.CVNo}", "Check Voucher");
-                    await _dbContext.AddAsync(auditTrail, cancellationToken);
-
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Check Voucher has been Posted.";
+                    return RedirectToAction(nameof(Index));
                 }
-                return RedirectToAction(nameof(Index));
+                catch (Exception ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction("Index");
+                }
             }
 
             return NotFound();
