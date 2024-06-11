@@ -173,7 +173,7 @@ namespace Accounting_System.Controllers
                         .Include(s => s.Product)
                         .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId);
 
-                    model.DebitAmount = model.Quantity * model.AdjustedPrice;
+                    model.DebitAmount = (decimal)(model.Quantity * model.AdjustedPrice);
 
                     if (existingSalesInvoice.Customer.CustomerType == "Vatable")
                     {

@@ -24,7 +24,7 @@
                 <input value="@Model.Service.Name" class="form-control" disabled readonly />
             </div>
             <div class="form-floating mb-3">
-                <input asp-for="Discount" id="floatingInput" type="text" class="form-control" placeholder="Optional" />
+                <input asp-for="Discount" id="floatingInput" type="text" class="form-control moneyInput" placeholder="Optional" />
                 <label for="floatingInput" class="control-label">Discount</label>
                 <span asp-validation-for="Discount" class="text-danger"></span>
             </div>

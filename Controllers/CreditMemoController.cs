@@ -172,7 +172,7 @@ namespace Accounting_System.Controllers
                         .Include(s => s.Product)
                         .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId);
 
-                    model.CreditAmount = model.Quantity * -model.AdjustedPrice;
+                    model.CreditAmount = (decimal)(model.Quantity * -model.AdjustedPrice);
 
                     if (existingSalesInvoice.Customer.CustomerType == "Vatable")
                     {
@@ -322,7 +322,7 @@ namespace Accounting_System.Controllers
                         .Include(s => s.Product)
                         .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId);
 
-                    existingModel.CreditAmount = model.Quantity * model.AdjustedPrice;
+                    existingModel.CreditAmount = (decimal)(model.Quantity * model.AdjustedPrice);
 
                     if (existingSalesInvoice.Customer.CustomerType == "Vatable")
                     {
@@ -342,7 +342,7 @@ namespace Accounting_System.Controllers
                         .Include(sv => sv.Customer)
                         .FirstOrDefaultAsync(sv => sv.Id == existingModel.ServiceInvoiceId, cancellationToken);
 
-                    existingModel.CreditAmount = model.AdjustedPrice - existingSv.Total;
+                    existingModel.CreditAmount = (decimal)(model.AdjustedPrice - existingSv.Total);
 
                     if (existingSv.Customer.CustomerType == "Vatable")
                     {

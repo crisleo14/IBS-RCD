@@ -82,7 +82,7 @@
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
-                            <td><input asp-for="CashAmount" style="border:none" class="form-control money" /></td>
+                            <td><input asp-for="CashAmount" style="border:none" class="form-control moneyInput" /></td>
                         </tr>
 
                         <tr>
@@ -91,7 +91,7 @@
                             <td><input asp-for="CheckNo" style="border:none" class="form-control" /></td>
                             <td><input asp-for="CheckBank" style="border:none" class="form-control" /></td>
                             <td><input asp-for="CheckBranch" style="border:none" class="form-control" /></td>
-                            <td><input asp-for="CheckAmount" style="border:none" class="form-control money" /></td>
+                            <td><input asp-for="CheckAmount" style="border:none" class="form-control moneyInput" /></td>
                         </tr>
 
                         <tr>
@@ -100,7 +100,7 @@
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
-                            <td><input asp-for="EWT" style="border:none" class="form-control money" /></td>
+                            <td><input asp-for="EWT" style="border:none" class="form-control moneyInput" /></td>
                         </tr>
                         <tr>
                             <td style="padding-left:20px;">WVAT</td>
@@ -108,7 +108,7 @@
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
-                            <td><input asp-for="WVAT" style="border:none" class="form-control money" /></td>
+                            <td><input asp-for="WVAT" style="border:none" class="form-control moneyInput" /></td>
                         </tr>
                     </tbody>
                 </table>
@@ -174,7 +174,7 @@
                         </div>
                         <div class="form-group pt-4">
                             <label class="control-label">Amount</label>
-                            <input id="AccountAmount" class="form-control money" value="" placeholder="0.00" />
+                            <input id="AccountAmount" class="form-control moneyInput" value="" placeholder="0.00" />
                             <span class="text-danger"></span>
                         </div>
                     </form>

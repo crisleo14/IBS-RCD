@@ -60,12 +60,14 @@
                 </select>
                 <div class="row g-2 mt-3">
                     <div class="col-sm mb-3">
-                        <label asp-for="Period" class="control-label">Period</label>
-                        <div id="periodContainer"></div>
+                        <label asp-for="Period" class="control-label"></label><span class="required">*</span>
+                        <input asp-for="Period" type="month" class="form-control" required />
+                        <span asp-validation-for="Period" class="text-danger"></span>
                     </div>
                     <div class="col-sm">
-                        <label asp-for="Amount" class="control-label">Amount</label>
-                        <div id="amountContainer"></div>
+                        <label asp-for="Amount" class="control-label"></label><span class="required">*</span>
+                        <input asp-for="Amount" class="form-control moneyInput" value="" placeholder="0.00" required />
+                        <span asp-validation-for="Amount" class="text-danger"></span>
                     </div>
                 </div>
             </div>
@@ -144,17 +146,12 @@
                     data: { svId: svId },
                     success: function (data) {
                         if (data) {
-                            $("#periodContainer").empty(); // Clear previous entries
-                            $("#amountContainer").empty(); // Clear previous entries
-                            var formattedPeriod = formatDate(data.period); // Format the period here
-                            $("#periodContainer").append('<input name="Period" type="text" class="form-control mb-3" id="Period" value="' + formattedPeriod + '" readonly/>');
-                            $("#amountContainer").append('<input name="Amount" class="form-control money mb-3" id="Amount" placeholder="' + 0.00 + '"  required/>');
+                            var forrmattedDate = formatDateToMonth(data.period);
+                            $("#Period").val(forrmattedDate);
                         } else {
-                            // Clear the fields if no customer is selected
-                            $("#periodContainer").empty();
-                            $("#amountContainer").empty();
+                            $("#Period").empty();
+                            $("#Amount").empty();
                         }
-                        console.log(data);
                     }
                 });
             } else {
@@ -164,11 +161,16 @@
             }
         });
 
-        function formatDate(dateString) {
-            var date = new Date(dateString);
-            // Format the date as "Month Year" (e.g., "February 2024")
-            var formattedDate = date.toLocaleString('default', { month: 'long' }) + ' ' + date.getFullYear();
-            return formattedDate;
+        function formatDateToMonth(dateString) {
+            // Parse the date string to a Date object
+            const date = new Date(dateString);
+
+            // Get the year and month from the date object
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // Adding 1 because month index starts from 0
+
+            // Return the formatted date string in yyyy-MM format
+            return `${year}-${month}`;
         }
     </script>
 }
