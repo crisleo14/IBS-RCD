@@ -1,3 +1,8 @@
+/*Uncomment this code for debugging purposes */
+/**{
+    border: 1px solid red;
+}*/
+
 .divider-text:before,
 .divider-text:after {
     color: white;
@@ -499,11 +504,6 @@ bg-success {
 .underline {
     border-bottom: 1px solid black !important;
 }
-
-/*Uncomment this code for debugging purposes */
-/**{
-    border: 1px solid red;
-}*/
 
 /*start here the css in nav bar menu*/
 .dropdown:hover > .dropdown-menu, .dropdown:hover > .dropdown-menu {

@@ -40,5 +40,13 @@ namespace Accounting_System.Models.ViewModels
         public decimal[] Debit { get; set; }
 
         public decimal[] Credit { get; set; }
+
+        #region--For automation of journal voucher entry
+
+        public DateOnly? StartDate { get; set; }
+
+        public int NumberOfYears { get; set; }
+
+        #endregion
     }
 }
