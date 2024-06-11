@@ -82,7 +82,7 @@
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
-                            <td><input asp-for="CashAmount" style="border:none" class="form-control money" /></td>
+                            <td><input asp-for="CashAmount" style="border:none" class="form-control moneyInput" /></td>
                         </tr>
 
                         <tr>
@@ -91,7 +91,7 @@
                             <td><input asp-for="CheckNo" style="border:none" class="form-control" /></td>
                             <td><input asp-for="CheckBank" style="border:none" class="form-control" /></td>
                             <td><input asp-for="CheckBranch" style="border:none" class="form-control" /></td>
-                            <td><input asp-for="CheckAmount" style="border:none" class="form-control money" /></td>
+                            <td><input asp-for="CheckAmount" style="border:none" class="form-control moneyInput" /></td>
                         </tr>
 
                         <tr>
@@ -100,7 +100,7 @@
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
-                            <td><input asp-for="EWT" style="border:none" class="form-control money" /></td>
+                            <td><input asp-for="EWT" style="border:none" class="form-control moneyInput" /></td>
                         </tr>
                         <tr>
                             <td style="padding-left:20px;">WVAT</td>
@@ -108,7 +108,7 @@
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
                             <td><input style="border:none" class="form-control" disabled /></td>
-                            <td><input asp-for="WVAT" style="border:none" class="form-control money" /></td>
+                            <td><input asp-for="WVAT" style="border:none" class="form-control moneyInput" /></td>
                         </tr>
                     </tbody>
                 </table>
@@ -174,7 +174,7 @@
                         </div>
                         <div class="form-group pt-4">
                             <label class="control-label">Amount</label>
-                            <input id="AccountAmount" class="form-control money" value="" placeholder="0.00" />
+                            <input id="AccountAmount" class="form-control moneyInput" value="" placeholder="0.00" />
                             <span class="text-danger"></span>
                         </div>
                     </form>
@@ -237,10 +237,10 @@
                 // Get the values from the modal inputs
                 var accountTitle = $("#AccountTitle").val();
                 var accountTitleText = $("#AccountTitle option:selected").text();
-                var accountAmount = $("#AccountAmount").val();
+                var accountAmount = parseFloat($("#AccountAmount").val().replace(/,/g, '')) || 0.00;
 
-                console.log(accountTitle);
-                console.log(accountTitleText);
+                // Format debit and credit values with commas and two decimal places
+                var formattedAmount = accountAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
                 // Create a new row with the text only and a hidden input for the value
                 var newRow = `<tr>
@@ -248,7 +248,7 @@
                                     <input type='hidden' name='accountTitle' value='${accountTitle}' />
                                     <input type='text' name='accountTitleText' value='${accountTitleText}' style='border:none' readonly />
                                 </td>
-                                <td><input type='text' name='accountAmount' value='${accountAmount}' style='border:none' readonly /></td>
+                                            <td><input type='text' name='accountAmount' value='${formattedAmount}' style='border:none' readonly /></td>
                                 <td><button type='button' class='btn btn-danger btn-sm' onclick='removeRow(this)'>Remove</button></td>
                              </tr>`;
 

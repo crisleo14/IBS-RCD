@@ -38,11 +38,11 @@ namespace Accounting_System.Models.AccountsReceivable
         [Display(Name = "Price Adjustment")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]
-        public decimal AdjustedPrice { get; set; }
+        public decimal? AdjustedPrice { get; set; }
 
         [Column(TypeName = "numeric(18,2)")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        public decimal Quantity { get; set; }
+        public decimal? Quantity { get; set; }
 
         [Display(Name = "Credit Amount")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
@@ -81,6 +81,8 @@ namespace Accounting_System.Models.AccountsReceivable
         public DateOnly Period { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,2)")]
+
         public decimal Amount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
