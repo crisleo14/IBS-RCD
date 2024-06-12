@@ -5,10 +5,9 @@ namespace Accounting_System.Models.ViewModels
 {
     public class CheckVoucherTradeViewModel
     {
-        public string CVNo { get; set; }
+        public string? CVNo { get; set; }
 
-        [Required]
-        public List<SelectListItem> Suppliers { get; set; }
+        public List<SelectListItem>? Suppliers { get; set; }
 
         [Required]
         public string Payee { get; set; }
@@ -25,25 +24,19 @@ namespace Accounting_System.Models.ViewModels
         [Display(Name = "Supplier No")]
         public int SupplierId { get; set; }
 
-        [Required]
-        public List<SelectListItem> PONo { get; set; }
+        public List<SelectListItem>? PONo { get; set; }
 
-        [Required]
-        public int[] POId { get; set; }
+        public int[]? POId { get; set; }
 
-        [Required]
         [Display(Name = "PO No.")]
-        public string[] POSeries { get; set; }
+        public string[]? POSeries { get; set; }
 
-        [Required]
-        public List<SelectListItem> RR { get; set; }
+        public List<SelectListItem>? RR { get; set; }
 
-        [Required]
-        public int[] RRId { get; set; }
+        public int[]? RRId { get; set; }
 
-        [Required]
         [Display(Name = "RR No.")]
-        public string[] RRSeries { get; set; }
+        public string[]? RRSeries { get; set; }
 
         public decimal[] Amount { get; set; }
 
@@ -51,12 +44,11 @@ namespace Accounting_System.Models.ViewModels
         [Display(Name = "Transaction Date")]
         public DateOnly TransactionDate { get; set; }
 
-        [Required]
-        public List<SelectListItem> BankAccounts { get; set; }
+        public List<SelectListItem>? BankAccounts { get; set; }
 
         [Required]
         [Display(Name = "Bank Accounts")]
-        public int BankId { get; set; }
+        public int? BankId { get; set; }
 
         [Required]
         [Display(Name = "Check #")]
@@ -69,8 +61,7 @@ namespace Accounting_System.Models.ViewModels
 
         public string Particulars { get; set; }
 
-        [Required]
-        public List<SelectListItem> COA { get; set; }
+        public List<SelectListItem>? COA { get; set; }
 
         [Required]
         public string[] AccountNumber { get; set; }
@@ -85,14 +76,6 @@ namespace Accounting_System.Models.ViewModels
         public decimal[] Credit { get; set; }
 
         //others
-        public DateOnly StartDate { get; set; }
-
-        public DateOnly EndDate { get; set; }
-
-        public int NumberOfMonths { get; set; }
-
-        public decimal AmountPerMonth { get; set; }
-
-        public string CreatedBy { get; set; }
+        public string? CreatedBy { get; set; }
     }
 }

@@ -36,7 +36,7 @@
                 </div>
                 <div class="form-group mb-3">
                     <label asp-for="POSeries" class="control-label"></label><span class="required">*</span>
-                    <select asp-for="POSeries" asp-items="@Model.PONo" class="form-select js-multiple GetRRList" multiple="multiple" id="poSelect" style="width:100%" required>
+                    <select asp-for="POSeries" asp-items="@Model.PONo" class="form-select js-multiple GetRRList" multiple="multiple" style="width:100%" required>
                         <option></option>
                     </select>
                 <span asp-validation-for="POSeries" class="text-danger"></span>
@@ -44,7 +44,7 @@
                 <div class="form-group mb-3">
                     <input type="hidden" id="criteriaInput" name="criteria" />
                     <label asp-for="RRSeries" class="control-label"></label><span class="required">*</span>
-                    <select asp-for="RRSeries" asp-items="@Model.RR" class="form-select js-multiple" multiple="multiple" id="rrSelect" style="width:100%">
+                    <select asp-for="RRSeries" asp-items="@Model.RR" class="form-select js-multiple" multiple="multiple" style="width:100%">
                         <option></option>
                     </select>
                     <span asp-validation-for="RRSeries" class="text-danger"></span>
@@ -369,6 +369,7 @@
                     totalDebit += debit;
                     totalCredit += credit;
                 });
+
                 // Display the total debit value
                 $(".totalDebit").text(totalDebit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                 $(".totalCredit").text(totalCredit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
@@ -407,7 +408,7 @@
                                     $(".supplierName").val("");
                                 }
                                 $(document).ready(function () {
-                                    $("#rrSelect").change(function () {
+                                    $("#RRSeries").change(function () {
                                         updateAmounts();
                                     });
 
@@ -438,7 +439,7 @@
                                         updateTotalDebitAndCredit();
                                     }
 
-                                    $("#rrSelect").trigger("change");
+                                    $("#RRSeries").trigger("change");
                                 });
                             },
                             error: function (xhr, status, error) {
@@ -468,18 +469,18 @@
                             success: function (data) {
                                 if (data) {
                                     // Clear existing options
-                                    $("#poSelect").empty();
+                                    $("#POSeries").empty();
                                     // Add new options based on the fetched data
                                     $.each(data, function (index, po) {
                                         if (po && po.poNumber) { // Adjust property name to poNumber
-                                            $('#poSelect').append('<option value="' + po.poNumber + '">' + po.poNumber + '</option>'); // Adjust property names
+                                            $('#POSeries').append('<option value="' + po.poNumber + '">' + po.poNumber + '</option>'); // Adjust property names
                                         } else {
                                             console.error("Invalid PO object:", po);
                                         }
                                     });
                                 } else {
                                     // Clear the fields if no POs are found
-                                    $("#poSelect").empty();
+                                    $("#POSeries").empty();
                                 }
                             },
                             error: function (xhr, status, error) {
@@ -488,7 +489,7 @@
                         });
                     } else {
                         // Clear the fields if no supplier is selected
-                        $("#poSelect").empty();
+                        $("#POSeries").empty();
                     }
                 });
             });
@@ -537,7 +538,7 @@
                         }
                     } else {
                         // Clear the fields if no POs are selected
-                        $("#rrSelect").empty();
+                        $("#RRSeries").empty();
                     }
                 });
             });
@@ -552,18 +553,18 @@
                     success: function (data) {
                         if (data) {
                             // Clear existing options
-                            $("#rrSelect").empty();
+                            $("#RRSeries").empty();
                             // Add new options based on the fetched data
                             $.each(data, function (index, rr) {
                                 if (rr && rr.rrNumber) { // Adjust property name to RRNumber
-                                    $('#rrSelect').append('<option value="' + rr.rrNumber + '">' + rr.rrNumber + '</option>'); // Adjust property names
+                                    $('#RRSeries').append('<option value="' + rr.rrNumber + '">' + rr.rrNumber + '</option>'); // Adjust property names
                                 } else {
                                     console.error("Invalid RR object:", rr);
                                 }
                             });
                         } else {
                             // Clear the fields if no RRs are found
-                            $("#rrSelect").empty();
+                            $("#RRSeries").empty();
                         }
                     },
                     error: function (xhr, status, error) {
@@ -574,8 +575,8 @@
         </script>
         <script>
             $(document).ready(function () {
-                $("#rrSelect").change(function () {
-                    var rrSelect = $("#rrSelect").val();
+                $("#RRSeries").change(function () {
+                    var rrSelect = $("#RRSeries").val();
 
                     // Clear the table before adding new rows
                     $(".rrAmountList").empty();
@@ -585,7 +586,7 @@
 
                     // Loop through each selected option and add it to the table
                     rrSelect.forEach(function (rrNo) {
-                        var rrSelectText = $("#rrSelect option[value='" + rrNo + "']").text();
+                        var rrSelectText = $("#RRSeries option[value='" + rrNo + "']").text();
                         var newRow = `<tr>
                                                                 <td>
                                                                     <input type='hidden' name='rrNo' value='${rrNo}' />
