@@ -1,6 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models.AccountsPayable;
 using Accounting_System.Models.Reports;
+using Accounting_System.Models.ViewModels;
 using Accounting_System.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -19,11 +20,14 @@ namespace Accounting_System.Controllers
 
         private readonly UserManager<IdentityUser> _userManager;
 
-        public PurchaseOrderController(ApplicationDbContext dbContext, PurchaseOrderRepo purchaseOrderRepo, UserManager<IdentityUser> userManager)
+        private readonly InventoryRepo _inventoryRepo;
+
+        public PurchaseOrderController(ApplicationDbContext dbContext, PurchaseOrderRepo purchaseOrderRepo, UserManager<IdentityUser> userManager, InventoryRepo inventoryRepo)
         {
             _dbContext = dbContext;
             _purchaseOrderRepo = purchaseOrderRepo;
             _userManager = userManager;
+            _inventoryRepo = inventoryRepo;
         }
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
@@ -343,6 +347,81 @@ namespace Accounting_System.Controllers
         {
             var po = await _purchaseOrderRepo.FindPurchaseOrder(id, cancellationToken);
             return PartialView("_PreviewPartialView", po);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ChangePrice(CancellationToken cancellationToken)
+        {
+            PurchaseChangePriceViewModel po = new();
+
+            po.PO = await _dbContext.PurchaseOrders
+                .Where(po => po.FinalPrice == 0 || po.FinalPrice == null && po.IsPosted)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.PONo
+                })
+                .ToListAsync(cancellationToken);
+
+            return View(po);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePrice(PurchaseChangePriceViewModel model, CancellationToken cancellationToken)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var existingModel = await _dbContext.PurchaseOrders.FindAsync(model.POId, cancellationToken);
+
+                    existingModel.FinalPrice = model.FinalPrice;
+
+                    #region--Inventory Recording
+
+                    await _inventoryRepo.ChangePriceToInventoryAsync(model, User, cancellationToken);
+
+                    #endregion
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(existingModel.CreatedBy, $"Change price, purchase order# {existingModel.PONo}", "Purchase Order");
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    TempData["success"] = "Change Price updated successfully";
+                    return RedirectToAction("Index");
+                }
+                catch (Exception ex)
+                {
+
+                    model.PO = await _dbContext.PurchaseOrders
+                        .Where(po => po.FinalPrice == 0 || po.FinalPrice == null && po.IsPosted)
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.Id.ToString(),
+                            Text = s.PONo
+                        })
+                        .ToListAsync(cancellationToken);
+
+                    TempData["error"] = ex.Message;
+                    return View(model);
+                }
+
+            }
+            model.PO = await _dbContext.PurchaseOrders
+                .Where(po => po.FinalPrice == 0 || po.FinalPrice == null && po.IsPosted)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.PONo
+                })
+                .ToListAsync(cancellationToken);
+
+            TempData["error"] = "The information provided was invalid.";
+            return View(nameof(ChangePrice));
         }
     }
 }

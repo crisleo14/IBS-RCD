@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240612093611_AddNewFieldNamePOIdInInventoryModel")]
+    partial class AddNewFieldNamePOIdInInventoryModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1108,9 +1111,10 @@ namespace Accounting_System.Migrations
                         .HasColumnType("varchar(20)")
                         .HasColumnName("other_ref_no");
 
-                    b.Property<int>("POId")
-                        .HasColumnType("integer")
-                        .HasColumnName("po_id");
+                    b.Property<string>("PoNo")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("po_no");
 
                     b.Property<string>("PostedBy")
                         .HasColumnType("varchar(50)")
@@ -1191,9 +1195,6 @@ namespace Accounting_System.Migrations
 
                     b.HasIndex("CustomerId")
                         .HasDatabaseName("ix_sales_invoices_customer_id");
-
-                    b.HasIndex("POId")
-                        .HasDatabaseName("ix_sales_invoices_po_id");
 
                     b.HasIndex("ProductId")
                         .HasDatabaseName("ix_sales_invoices_product_id");
@@ -2799,13 +2800,6 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_sales_invoices_customers_customer_id");
 
-                    b.HasOne("Accounting_System.Models.AccountsPayable.PurchaseOrder", "PurchaseOrder")
-                        .WithMany()
-                        .HasForeignKey("POId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_sales_invoices_purchase_orders_po_id");
-
                     b.HasOne("Accounting_System.Models.MasterFile.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
@@ -2816,8 +2810,6 @@ namespace Accounting_System.Migrations
                     b.Navigation("Customer");
 
                     b.Navigation("Product");
-
-                    b.Navigation("PurchaseOrder");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.AccountsReceivable.ServiceInvoice", b =>

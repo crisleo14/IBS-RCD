@@ -48,6 +48,15 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
 
+            viewModel.PO = await _dbContext.PurchaseOrders
+                .OrderBy(p => p.SeriesNumber)
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.PONo
+                })
+                .ToListAsync(cancellationToken);
+
             return View(viewModel);
         }
 
@@ -58,7 +67,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var hasBeginningInventory = await _inventoryRepo.HasAlreadyBeginningInventory(viewModel.ProductId, cancellationToken);
+                    var hasBeginningInventory = await _inventoryRepo.HasAlreadyBeginningInventory(viewModel.ProductId, viewModel.POId, cancellationToken);
 
                     if (hasBeginningInventory)
                     {
@@ -95,6 +104,15 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
 
+            viewModel.PO = await _dbContext.PurchaseOrders
+                .OrderBy(p => p.SeriesNumber)
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.PONo
+                })
+                .ToListAsync(cancellationToken);
+
             TempData["error"] = "The information you submitted is not valid!";
             return View(viewModel);
         }
@@ -112,6 +130,15 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
 
+            viewModel.PO = await _dbContext.PurchaseOrders
+                .OrderBy(p => p.SeriesNumber)
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.PONo
+                })
+                .ToListAsync(cancellationToken);
+
             return View(viewModel);
         }
 
@@ -120,9 +147,23 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 var dateFrom = viewModel.DateTo.AddDays(-viewModel.DateTo.Day + 1);
-                var inventories = await _dbContext.Inventories
-                    .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId)
-                    .ToListAsync(cancellationToken);
+                List<Inventory> inventories = new List<Inventory>();
+                if (viewModel.POId == null)
+                {
+                    inventories = await _dbContext.Inventories
+                        .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId)
+                        .OrderByDescending(i => i.Date)
+                        .ThenByDescending(i => i.Id)
+                        .ToListAsync(cancellationToken);
+                }
+                else
+                {
+                    inventories = await _dbContext.Inventories
+                        .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId && i.POId == viewModel.POId)
+                        .OrderByDescending(i => i.Date)
+                        .ThenByDescending(i => i.Id)
+                        .ToListAsync(cancellationToken);
+                }
 
                 var product = await _dbContext.Products
                     .FindAsync(viewModel.ProductId, cancellationToken);

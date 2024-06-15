@@ -300,180 +300,172 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
         {
-            try
+            var model = await _receivingReportRepo.FindRR(id, cancellationToken);
+
+            if (model != null)
             {
-                var model = await _receivingReportRepo.FindRR(id, cancellationToken);
-
-                if (model != null)
+                try
                 {
-                    try
+                    if (!model.IsPosted)
                     {
-                        if (!model.IsPosted)
+                        model.IsPosted = true;
+                        model.PostedBy = _userManager.GetUserName(this.User);
+                        model.PostedDate = DateTime.Now;
+
+                        #region --General Ledger Recording
+
+                        var ledgers = new List<GeneralLedgerBook>();
+
+                        if (model.PurchaseOrder.Product.Name == "Biodiesel")
                         {
-                            model.IsPosted = true;
-                            model.PostedBy = _userManager.GetUserName(this.User);
-                            model.PostedDate = DateTime.Now;
-
-                            #region --General Ledger Recording
-
-                            var ledgers = new List<GeneralLedgerBook>();
-
-                            if (model.PurchaseOrder.Product.Name == "Biodiesel")
-                            {
-                                ledgers.Add(new GeneralLedgerBook
-                                {
-                                    Date = model.Date,
-                                    Reference = model.RRNo,
-                                    Description = "Receipt of Goods",
-                                    AccountNo = "1010401",
-                                    AccountTitle = "Inventory - Biodiesel",
-                                    Debit = model.NetAmount,
-                                    Credit = 0,
-                                    CreatedBy = model.CreatedBy,
-                                    CreatedDate = model.CreatedDate
-                                });
-                            }
-                            else if (model.PurchaseOrder.Product.Name == "Econogas")
-                            {
-                                ledgers.Add(new GeneralLedgerBook
-                                {
-                                    Date = model.Date,
-                                    Reference = model.RRNo,
-                                    Description = "Receipt of Goods",
-                                    AccountNo = "1010402",
-                                    AccountTitle = "Inventory - Econogas",
-                                    Debit = model.NetAmount,
-                                    Credit = 0,
-                                    CreatedBy = model.CreatedBy,
-                                    CreatedDate = model.CreatedDate
-                                });
-                            }
-                            else
-                            {
-                                ledgers.Add(new GeneralLedgerBook
-                                {
-                                    Date = model.Date,
-                                    Reference = model.RRNo,
-                                    Description = "Receipt of Goods",
-                                    AccountNo = "1010403",
-                                    AccountTitle = "Inventory - Envirogas",
-                                    Debit = model.NetAmount,
-                                    Credit = 0,
-                                    CreatedBy = model.CreatedBy,
-                                    CreatedDate = model.CreatedDate
-                                });
-                            }
-
                             ledgers.Add(new GeneralLedgerBook
                             {
                                 Date = model.Date,
                                 Reference = model.RRNo,
                                 Description = "Receipt of Goods",
-                                AccountNo = "1010602",
-                                AccountTitle = "Vat Input",
-                                Debit = model.VatAmount,
+                                AccountNo = "1010401",
+                                AccountTitle = "Inventory - Biodiesel",
+                                Debit = model.NetAmount,
                                 Credit = 0,
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
                             });
-
+                        }
+                        else if (model.PurchaseOrder.Product.Name == "Econogas")
+                        {
                             ledgers.Add(new GeneralLedgerBook
                             {
                                 Date = model.Date,
                                 Reference = model.RRNo,
                                 Description = "Receipt of Goods",
-                                AccountNo = "2010101",
-                                AccountTitle = "AP-Trade Payable",
-                                Debit = 0,
-                                Credit = model.Amount - model.EwtAmount,
+                                AccountNo = "1010402",
+                                AccountTitle = "Inventory - Econogas",
+                                Debit = model.NetAmount,
+                                Credit = 0,
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
                             });
-
-                            ledgers.Add(new GeneralLedgerBook
-                            {
-                                Date = model.Date,
-                                Reference = model.RRNo,
-                                Description = "Receipt of Goods",
-                                AccountNo = "2010302",
-                                AccountTitle = "Expanded Withholding Tax 1%",
-                                Debit = 0,
-                                Credit = model.EwtAmount,
-                                CreatedBy = model.CreatedBy,
-                                CreatedDate = model.CreatedDate
-                            });
-
-                            if (!_generalRepo.IsDebitCreditBalanced(ledgers))
-                            {
-                                throw new ArgumentException("Debit and Credit is not equal, check your entries.");
-                            }
-
-                            await _dbContext.AddRangeAsync(ledgers, cancellationToken);
-
-                            #endregion --General Ledger Recording
-
-                            await _receivingReportRepo.UpdatePOAsync(model.PurchaseOrder.Id, model.QuantityReceived, cancellationToken);
-
-                            #region --Purchase Book Recording
-
-                            var purchaseBook = new List<PurchaseJournalBook>();
-
-                            purchaseBook.Add(new PurchaseJournalBook
-                            {
-                                Date = model.Date,
-                                SupplierName = model.PurchaseOrder.Supplier.Name,
-                                SupplierTin = model.PurchaseOrder.Supplier.TinNo,
-                                SupplierAddress = model.PurchaseOrder.Supplier.Address,
-                                DocumentNo = model.RRNo,
-                                Description = model.PurchaseOrder.Product.Name,
-                                Amount = model.Amount,
-                                VatAmount = model.VatAmount,
-                                WhtAmount = model.EwtAmount,
-                                NetPurchases = model.NetAmount,
-                                CreatedBy = model.CreatedBy,
-                                PONo = model.PurchaseOrder.PONo,
-                                DueDate = model.DueDate
-                            });
-
-                            await _dbContext.AddRangeAsync(purchaseBook, cancellationToken);
-                            #endregion --Purchase Book Recording
-
-                            #region--Inventory Recording
-
-                            await _inventoryRepo.AddPurchaseToInventoryAsync(model, cancellationToken);
-
-                            #endregion
-
-                            #region --Audit Trail Recording
-
-                            AuditTrail auditTrail = new(model.PostedBy, $"Posted receiving# {model.RRNo}", "Receiving Report");
-                            await _dbContext.AddAsync(auditTrail, cancellationToken);
-
-                            #endregion --Audit Trail Recording
-
-                            await _dbContext.SaveChangesAsync(cancellationToken);
-                            TempData["success"] = "Receiving Report has been Posted.";
-                            return RedirectToAction(nameof(Index));
                         }
                         else
                         {
-                            return RedirectToAction(nameof(Index));
+                            ledgers.Add(new GeneralLedgerBook
+                            {
+                                Date = model.Date,
+                                Reference = model.RRNo,
+                                Description = "Receipt of Goods",
+                                AccountNo = "1010403",
+                                AccountTitle = "Inventory - Envirogas",
+                                Debit = model.NetAmount,
+                                Credit = 0,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            });
                         }
+
+                        ledgers.Add(new GeneralLedgerBook
+                        {
+                            Date = model.Date,
+                            Reference = model.RRNo,
+                            Description = "Receipt of Goods",
+                            AccountNo = "1010602",
+                            AccountTitle = "Vat Input",
+                            Debit = model.VatAmount,
+                            Credit = 0,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        });
+
+                        ledgers.Add(new GeneralLedgerBook
+                        {
+                            Date = model.Date,
+                            Reference = model.RRNo,
+                            Description = "Receipt of Goods",
+                            AccountNo = "2010101",
+                            AccountTitle = "AP-Trade Payable",
+                            Debit = 0,
+                            Credit = model.Amount - model.EwtAmount,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        });
+
+                        ledgers.Add(new GeneralLedgerBook
+                        {
+                            Date = model.Date,
+                            Reference = model.RRNo,
+                            Description = "Receipt of Goods",
+                            AccountNo = "2010302",
+                            AccountTitle = "Expanded Withholding Tax 1%",
+                            Debit = 0,
+                            Credit = model.EwtAmount,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        });
+
+                        if (!_generalRepo.IsDebitCreditBalanced(ledgers))
+                        {
+                            throw new ArgumentException("Debit and Credit is not equal, check your entries.");
+                        }
+
+                        await _dbContext.AddRangeAsync(ledgers, cancellationToken);
+
+                        #endregion --General Ledger Recording
+
+                        #region--Inventory Recording
+
+                        await _inventoryRepo.AddPurchaseToInventoryAsync(model, cancellationToken);
+
+                        #endregion
+
+                        await _receivingReportRepo.UpdatePOAsync(model.PurchaseOrder.Id, model.QuantityReceived, cancellationToken);
+
+                        #region --Purchase Book Recording
+
+                        var purchaseBook = new List<PurchaseJournalBook>();
+
+                        purchaseBook.Add(new PurchaseJournalBook
+                        {
+                            Date = model.Date,
+                            SupplierName = model.PurchaseOrder.Supplier.Name,
+                            SupplierTin = model.PurchaseOrder.Supplier.TinNo,
+                            SupplierAddress = model.PurchaseOrder.Supplier.Address,
+                            DocumentNo = model.RRNo,
+                            Description = model.PurchaseOrder.Product.Name,
+                            Amount = model.Amount,
+                            VatAmount = model.VatAmount,
+                            WhtAmount = model.EwtAmount,
+                            NetPurchases = model.NetAmount,
+                            CreatedBy = model.CreatedBy,
+                            PONo = model.PurchaseOrder.PONo,
+                            DueDate = model.DueDate
+                        });
+
+                        await _dbContext.AddRangeAsync(purchaseBook, cancellationToken);
+                        #endregion --Purchase Book Recording
+
+                        #region --Audit Trail Recording
+
+                        AuditTrail auditTrail = new(model.PostedBy, $"Posted receiving# {model.RRNo}", "Receiving Report");
+                        await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        TempData["success"] = "Receiving Report has been Posted.";
+                        return RedirectToAction(nameof(Index));
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        TempData["error"] = ex.Message;
                         return RedirectToAction(nameof(Index));
                     }
                 }
+                catch (Exception ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+            }
 
-                return NotFound();
-            }
-            catch (Exception ex)
-            {
-                TempData["error"] = ex.Message;
-                return RedirectToAction("Index");
-            }
+            return NotFound();
         }
 
         public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)

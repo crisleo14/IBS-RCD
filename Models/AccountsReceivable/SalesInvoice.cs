@@ -1,4 +1,5 @@
-﻿using Accounting_System.Models.MasterFile;
+﻿using Accounting_System.Models.AccountsPayable;
+using Accounting_System.Models.MasterFile;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -44,10 +45,6 @@ namespace Accounting_System.Models.AccountsReceivable
         [Column(TypeName = "varchar(20)")]
         [Display(Name = "Other Ref No")]
         public string OtherRefNo { get; set; }
-
-        [Display(Name = "P.O No")]
-        [Column(TypeName = "varchar(20)")]
-        public string PoNo { get; set; }
 
         [Required]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
@@ -123,5 +120,14 @@ namespace Accounting_System.Models.AccountsReceivable
         [Display(Name = "Due Date")]
         [Column(TypeName = "date")]
         public DateOnly DueDate { get; set; }
+
+        [ForeignKey("POId")]
+        public PurchaseOrder? PurchaseOrder { get; set; }
+
+        [Display(Name = "PO No.")]
+        public int POId { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? PO { get; set; }
     }
 }

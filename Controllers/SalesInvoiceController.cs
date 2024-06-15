@@ -63,6 +63,14 @@ namespace Accounting_System.Controllers
                     Text = p.Name
                 })
                 .ToListAsync(cancellationToken);
+            viewModel.PO = await _dbContext.PurchaseOrders
+                .OrderBy(c => c.Id)
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.PONo
+                })
+                .ToListAsync(cancellationToken);
 
             return View(viewModel);
         }
@@ -85,6 +93,14 @@ namespace Accounting_System.Controllers
                 {
                     Value = p.Id.ToString(),
                     Text = p.Name
+                })
+                .ToListAsync(cancellationToken);
+            sales.PO = await _dbContext.PurchaseOrders
+                .OrderBy(c => c.Id)
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.PONo
                 })
                 .ToListAsync(cancellationToken);
             if (ModelState.IsValid)
@@ -251,7 +267,7 @@ namespace Accounting_System.Controllers
                 {
                     existingModel.TransactionDate = model.TransactionDate;
                     existingModel.OtherRefNo = model.OtherRefNo;
-                    existingModel.PoNo = model.PoNo;
+                    existingModel.POId = model.POId;
                     existingModel.Quantity = model.Quantity;
                     existingModel.UnitPrice = model.UnitPrice;
                     existingModel.Remarks = model.Remarks;

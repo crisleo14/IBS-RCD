@@ -20,5 +20,10 @@ namespace Accounting_System.Models.ViewModels
         public int ProductId { get; set; }
 
         public List<SelectListItem>? ProductList { get; set; }
+
+        [Required(ErrorMessage = "The product field is required")]
+        public int POId { get; set; }
+
+        public List<SelectListItem>? PO { get; set; }
     }
 }

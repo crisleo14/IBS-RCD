@@ -60,7 +60,7 @@ namespace Accounting_System.Models.AccountsPayable
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]
-        public decimal FinalPrice { get; set; }
+        public decimal? FinalPrice { get; set; }
 
         [Column(TypeName = "numeric(18,2)")]
         public decimal QuantityReceived { get; set; }

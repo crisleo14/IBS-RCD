@@ -21,5 +21,11 @@ namespace Accounting_System.Models.ViewModels
         //        yield return new ValidationResult("Date From must be less than or equal Date To", new[] { nameof(DateFrom), nameof(DateTo) });
         //    }
         //}
+
+        //Inventory report per PO field
+        [Display(Name = "PO No.")]
+        public int? POId { get; set; }
+
+        public List<SelectListItem>? PO { get; set; }
     }
 }

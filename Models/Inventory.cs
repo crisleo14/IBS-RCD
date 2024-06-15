@@ -92,5 +92,7 @@ namespace Accounting_System.Models
 
         [Column(TypeName = "timestamp with time zone")]
         public DateTime? ValidatedDate { get; set; }
+
+        public int? POId { get; set; }
     }
 }
