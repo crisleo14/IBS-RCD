@@ -245,6 +245,16 @@
             var debit = parseFloat($("#Debit").val().replace(/,/g, '')) || 0.00;
             var credit = parseFloat($("#Credit").val().replace(/,/g, '')) || 0.00;
 
+            if (debit === 0 && credit === 0) {
+                event.preventDefault();
+                alert('Please input amount');
+                return;
+            } else if (accountNumberText === "") {
+                event.preventDefault();
+                alert('Please select Account No.!');
+                return;
+            }
+
             // Format debit and credit values with commas and two decimal places
             var formattedDebit = debit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             var formattedCredit = credit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

@@ -239,6 +239,16 @@
                 var accountTitleText = $("#AccountTitle option:selected").text();
                 var accountAmount = parseFloat($("#AccountAmount").val().replace(/,/g, '')) || 0.00;
 
+                if (accountAmount === 0) {
+                    event.preventDefault();
+                    alert('Please input amount');
+                    return;
+                } else if (accountTitleText === "") {
+                    event.preventDefault();
+                    alert('Please select Account No.!');
+                    return;
+                }
+
                 // Format debit and credit values with commas and two decimal places
                 var formattedAmount = accountAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
