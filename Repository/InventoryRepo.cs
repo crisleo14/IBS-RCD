@@ -44,7 +44,7 @@ namespace Accounting_System.Repository
                 .AnyAsync(i => i.ProductId == productId && i.POId == poId, cancellationToken);
         }
 
-        public async Task AddBeginningInventory(BeginningInventoryViewModel viewModel, CancellationToken cancellationToken)
+        public async Task AddBeginningInventory(BeginningInventoryViewModel viewModel, ClaimsPrincipal user, CancellationToken cancellationToken)
         {
             Inventory inventory = new()
             {
@@ -57,14 +57,17 @@ namespace Accounting_System.Repository
                 Total = viewModel.Quantity * viewModel.Cost,
                 InventoryBalance = viewModel.Quantity,
                 AverageCost = viewModel.Cost,
-                TotalBalance = viewModel.Quantity * viewModel.Cost
+                TotalBalance = viewModel.Quantity * viewModel.Cost,
+                IsValidated = true,
+                ValidatedBy = _userManager.GetUserName(user),
+                ValidatedDate = DateTime.Now
             };
 
             await _dbContext.Inventories.AddAsync(inventory, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task AddPurchaseToInventoryAsync(ReceivingReport receivingReport, CancellationToken cancellationToken)
+        public async Task AddPurchaseToInventoryAsync(ReceivingReport receivingReport, ClaimsPrincipal user, CancellationToken cancellationToken)
         {
             var previousInventory = await _dbContext.Inventories
             .Where(i => i.ProductId == receivingReport.PurchaseOrder.Product.Id && i.POId == receivingReport.POId)
@@ -82,7 +85,10 @@ namespace Accounting_System.Repository
                     Particular = "Purchases",
                     Reference = receivingReport.RRNo,
                     Quantity = receivingReport.QuantityReceived,
-                    Cost = receivingReport.PurchaseOrder.Price / 1.12m
+                    Cost = receivingReport.PurchaseOrder.Price / 1.12m,
+                    IsValidated = true,
+                    ValidatedBy = _userManager.GetUserName(user),
+                    ValidatedDate = DateTime.Now
                 };
 
                 inventory.Total = inventory.Quantity * inventory.Cost;
@@ -99,7 +105,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task AddSalesToInventoryAsync(SalesInvoice salesInvoice, CancellationToken cancellationToken)
+        public async Task AddSalesToInventoryAsync(SalesInvoice salesInvoice, ClaimsPrincipal user, CancellationToken cancellationToken)
         {
             var previousInventory = await _dbContext.Inventories
             .Where(i => i.ProductId == salesInvoice.Product.Id && i.POId == salesInvoice.POId)
@@ -122,7 +128,10 @@ namespace Accounting_System.Repository
                     Reference = salesInvoice.SINo,
                     Quantity = salesInvoice.Quantity,
                     Cost = previousInventory.AverageCost,
-                    POId = salesInvoice.POId
+                    POId = salesInvoice.POId,
+                    IsValidated = true,
+                    ValidatedBy = _userManager.GetUserName(user),
+                    ValidatedDate = DateTime.Now
                 };
 
                 inventory.Total = inventory.Quantity * inventory.Cost;
@@ -259,7 +268,10 @@ namespace Accounting_System.Repository
                     Particular = "Change Price",
                     Reference = generateJVNo,
                     Quantity = 0,
-                    Cost = 0
+                    Cost = 0,
+                    IsValidated = true,
+                    ValidatedBy = _userManager.GetUserName(user),
+                    ValidatedDate = DateTime.Now
                 };
 
                 decimal totalQuantity = previousInventoryList.Where(i => i.Reference != null).Sum(i => i.Quantity);

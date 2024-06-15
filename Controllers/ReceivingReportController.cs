@@ -412,7 +412,7 @@ namespace Accounting_System.Controllers
 
                         #region--Inventory Recording
 
-                        await _inventoryRepo.AddPurchaseToInventoryAsync(model, cancellationToken);
+                        await _inventoryRepo.AddPurchaseToInventoryAsync(model, User, cancellationToken);
 
                         #endregion
 

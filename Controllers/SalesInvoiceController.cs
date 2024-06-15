@@ -598,7 +598,7 @@ namespace Accounting_System.Controllers
 
                         #region--Inventory Recording
 
-                        await _inventoryRepo.AddSalesToInventoryAsync(model, cancellationToken);
+                        await _inventoryRepo.AddSalesToInventoryAsync(model, User, cancellationToken);
 
                         #endregion
 
