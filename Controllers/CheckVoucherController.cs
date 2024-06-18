@@ -43,7 +43,7 @@ namespace Accounting_System.Controllers
             var details = await _dbContext.CheckVoucherDetails
                 .ToListAsync(cancellationToken);
 
-            // Create a list to store CheckVoucherVM objectssw
+            // Create a list to store CheckVoucherVM objects
             var checkVoucherVMs = new List<CheckVoucherVM>();
 
             // Retrieve details for each header
