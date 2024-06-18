@@ -183,7 +183,7 @@
     </div>
             <br />
         <div class="form-group">
-            <input type="submit" value="Save" class="btn btn-primary"/>
+            <input type="submit" value="Save" class="btn btn-primary" onclick="validateDebitAndCredit(event)"/>
             <a asp-action="Index" class="btn btn-secondary">Back to List</a>
         </div>
     </div>
@@ -405,5 +405,16 @@
                 }
             });
         });
+    </script>
+    <script>
+        function validateDebitAndCredit(event) {
+            var debit = parseFloat($(".totalDebit").text().replace(/,/g, '')) || 0.00;
+            var credit = parseFloat($(".totalCredit").text().replace(/,/g, '')) || 0.00;
+            if (debit !== credit) {
+                event.preventDefault();
+                alert('Total Debit and Credit do not match.');
+                return;
+            }
+        }
     </script>
 }

@@ -3,8 +3,8 @@
 @model CheckVoucherNonTradePaymentViewModel
 
 @{
-ViewData["Title"] = "Create Non Trade Payment";
-Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Create Non Trade Payment";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <h1>Create</h1>
@@ -98,7 +98,7 @@ Layout = "~/Views/Shared/_Layout.cshtml";
                             <input type="hidden" name="AccountNumber" value="2010102" />
                             <input name='AccountTitle' value='AP-Non Trade Payable' class="w-100" style='border:none' readonly />
                         </td>
-                        <td><input name="Debit" value='' placeholder="0.00" class="w-100 money" style='border:none' required/></td>
+                        <td><input asp-for="Debit" value='' placeholder="0.00" class="w-100 money" style='border:none' required /></td>
                         <td><input name="Credit" value='0.00' class="w-100" style='border:none' readonly /></td>
                         <td></td>
                     </tr>
@@ -124,7 +124,7 @@ Layout = "~/Views/Shared/_Layout.cshtml";
         </div>
         <br />
         <div class="form-group">
-            <input type="submit" value="Create" class="btn btn-primary" />
+            <input type="submit" value="Create" class="btn btn-primary" onclick="validateDebitAndCredit(event)" />
             <a asp-action="Index" class="btn btn-secondary">Back to List</a>
         </div>
     </div>
@@ -254,14 +254,14 @@ Layout = "~/Views/Shared/_Layout.cshtml";
 
             // Create a new row with the text only and a hidden input for the value
             var newRow = `<tr>
-                                                    <td>
-                                                        <input type='hidden' name='AccountNumber' value='${accountNumber}'/>
-                                                        <input type='text' name='AccountTitle' value='${accountNumberText}' style='border:none' class='w-100' readonly />
-                                                    </td>
-                                                    <td><input name='Debit' id='debit_${accountNumber}' value='${formattedDebit}' style='border:none' class='w-100' readonly /></td>
-                                                    <td><input name='Credit' id='credit_${accountNumber}' value='${formattedCredit}' style='border:none' class='w-100' readonly /></td>
-                                                    <td><button type='button' class='btn btn-danger btn-sm' onclick='removeRow(this)'>Remove</button></td>
-                                             </tr>`;
+                                                            <td>
+                                                                <input type='hidden' name='AccountNumber' value='${accountNumber}'/>
+                                                                <input type='text' name='AccountTitle' value='${accountNumberText}' style='border:none' class='w-100' readonly />
+                                                            </td>
+                                                            <td><input name='Debit' id='debit_${accountNumber}' value='${formattedDebit}' style='border:none' class='w-100' readonly /></td>
+                                                            <td><input name='Credit' id='credit_${accountNumber}' value='${formattedCredit}' style='border:none' class='w-100' readonly /></td>
+                                                            <td><button type='button' class='btn btn-danger btn-sm' onclick='removeRow(this)'>Remove</button></td>
+                                                     </tr>`;
 
             // Append the new row to the table body
             $("#accountingEntriesBody").append(newRow);
@@ -330,8 +330,26 @@ Layout = "~/Views/Shared/_Layout.cshtml";
             creditField.val(totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
             updateTotalDebitAndCredit();
         }
-
-
+    </script>
+    <script>
+        function validateDebitAndCredit(event) {
+            var debit = parseFloat($(".totalDebit").text().replace(/,/g, '')) || 0.00;
+            var credit = parseFloat($(".totalCredit").text().replace(/,/g, '')) || 0.00;
+            if (debit !== credit) {
+                event.preventDefault();
+                alert('Total Debit and Credit do not match.');
+                return;
+            }
+        }
+    </script>
+    <script>
+        $(document).ready(function () {
+            // Event listener for when the Total input changes
+            $("#Debit").on("input", function () {
+                var totalValue = parseFloat($(this).val().replace(/,/g, '')) || 0;
+                updateTotalDebitAndCredit();
+            });
+        });
     </script>
 }
 
