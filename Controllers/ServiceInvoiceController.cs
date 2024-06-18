@@ -525,6 +525,7 @@ namespace Accounting_System.Controllers
 
                     #endregion --Audit Trail Recording
 
+                    await _generalRepo.RemoveRecords<SalesBook>(gl => gl.SerialNo == model.SVNo, cancellationToken);
                     await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.SVNo, cancellationToken);
 
                     await _dbContext.SaveChangesAsync(cancellationToken);

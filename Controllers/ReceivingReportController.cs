@@ -1,4 +1,5 @@
 ﻿using Accounting_System.Data;
+using Accounting_System.Models;
 using Accounting_System.Models.AccountsPayable;
 using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
@@ -484,6 +485,10 @@ namespace Accounting_System.Controllers
                     model.IsVoided = true;
                     model.VoidedBy = _userManager.GetUserName(this.User);
                     model.VoidedDate = DateTime.Now;
+
+                    await _generalRepo.RemoveRecords<PurchaseJournalBook>(pb => pb.DocumentNo == model.RRNo, cancellationToken);
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.RRNo, cancellationToken);
+                    await _generalRepo.RemoveRecords<Inventory>(i => i.Reference == model.RRNo, cancellationToken);
 
                     #region --Audit Trail Recording
 

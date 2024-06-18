@@ -643,6 +643,7 @@ namespace Accounting_System.Controllers
 
                     await _generalRepo.RemoveRecords<SalesBook>(sb => sb.SerialNo == model.SINo, cancellationToken);
                     await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.SINo, cancellationToken);
+                    await _generalRepo.RemoveRecords<Inventory>(i => i.Reference == model.SINo, cancellationToken);
 
                     #region --Audit Trail Recording
 
