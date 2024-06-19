@@ -565,7 +565,7 @@ namespace Accounting_System.Controllers
                .OrderBy(c => c.Id)
                .Select(s => new SelectListItem
                {
-                   Value = s.Number.ToString(),
+                   Value = s.Id.ToString(),
                    Text = s.Name
                })
                .ToListAsync(cancellationToken);
@@ -577,6 +577,16 @@ namespace Accounting_System.Controllers
                 {
                     Value = s.Id.ToString(),
                     Text = s.SINo
+                })
+                .ToListAsync(cancellationToken);
+
+            existingModel.ServiceInvoices = await _dbContext.ServiceInvoices
+                .Where(si => !si.IsPaid && si.CustomerId == existingModel.CustomerId)
+                .OrderBy(si => si.Id)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.SVNo
                 })
                 .ToListAsync(cancellationToken);
 
@@ -593,21 +603,18 @@ namespace Accounting_System.Controllers
             var findCustomers = await _dbContext.Customers
                 .FirstOrDefaultAsync(c => c.Id == existingModel.CustomerId, cancellationToken);
 
+            var offsettings = await _dbContext.Offsettings
+                .Where(offset => offset.Source == existingModel.CRNo)
+                .ToListAsync(cancellationToken);
+
             ViewBag.CustomerName = findCustomers?.Name;
-
-            var matchingOffsettings = await _dbContext.Offsettings
-            .Where(offset => offset.Source == existingModel.CRNo)
-            .ToListAsync(cancellationToken);
-
-            ViewBag.fetchAccEntries = matchingOffsettings
-                .Select(offset => new { AccountNo = offset.AccountNo, Amount = offset.Amount.ToString("N2") })
-                .ToList();
+            ViewBag.Offsettings = offsettings;
 
             return View(existingModel);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CollectionEdit(CollectionReceipt model, string[] editAccountTitleText, decimal[] editAccountAmount, string[] editAccountTitle, IFormFile? bir2306, IFormFile? bir2307, CancellationToken cancellationToken)
+        public async Task<IActionResult> CollectionEdit(CollectionReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle, IFormFile? bir2306, IFormFile? bir2307, CancellationToken cancellationToken)
         {
             var existingModel = await _receiptRepo.FindCR(model.Id, cancellationToken);
 
@@ -711,52 +718,85 @@ namespace Accounting_System.Controllers
 
                 #region --Offsetting function
 
-                var offsetting = new List<Offsetting>();
+                var findOffsettings = await _dbContext.Offsettings
+                .Where(offset => offset.Source == existingModel.CRNo)
+                .ToListAsync(cancellationToken);
 
-                for (int i = 0; i < editAccountTitleText.Length; i++)
+                var accountTitleSet = new HashSet<string>(accountTitle);
+
+                // Remove records not in accountTitle
+                foreach (var offsetting in findOffsettings)
                 {
-                    var existingCRNo = existingModel.CRNo;
-                    var accountTitle = editAccountTitleText[i];
-                    var accountAmount = editAccountAmount[i];
-
-                    var existingOffsetting = await _dbContext.Offsettings
-                        .FirstOrDefaultAsync(offset => offset.Source == existingCRNo && offset.AccountNo == accountTitle, cancellationToken);
-
-                    if (existingOffsetting != null)
+                    if (!accountTitleSet.Contains(offsetting.AccountNo))
                     {
-                        // Update existing entry
-                        existingOffsetting.Amount = accountAmount;
+                        _dbContext.Offsettings.Remove(offsetting);
+                    }
+                }
+
+                // Dictionary to keep track of AccountNo and their ids for comparison
+                var accountTitleDict = new Dictionary<string, List<int>>();
+                foreach (var offsetting in findOffsettings)
+                {
+                    if (!accountTitleDict.ContainsKey(offsetting.AccountNo))
+                    {
+                        accountTitleDict[offsetting.AccountNo] = new List<int>();
+                    }
+                    accountTitleDict[offsetting.AccountNo].Add(offsetting.Id);
+                }
+
+                // Add or update records
+                for (int i = 0; i < accountTitle.Length; i++)
+                {
+                    var accountNo = accountTitle[i];
+                    var currentAccountTitle = accountTitleText[i];
+                    var currentAccountAmount = accountAmount[i];
+                    offsetAmount += accountAmount[i];
+
+                    var splitAccountTitle = currentAccountTitle.Split(new[] { ' ' }, 2);
+
+                    if (accountTitleDict.TryGetValue(accountNo, out var ids))
+                    {
+                        // Update the first matching record and remove it from the list
+                        var offsettingId = ids.First();
+                        ids.RemoveAt(0);
+                        var offsetting = findOffsettings.First(o => o.Id == offsettingId);
+
+                        offsetting.AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0];
+                        offsetting.Amount = currentAccountAmount;
+                        offsetting.CreatedBy = _userManager.GetUserName(this.User);
+                        offsetting.CreatedDate = DateTime.Now;
+
+                        if (ids.Count == 0)
+                        {
+                            accountTitleDict.Remove(accountNo);
+                        }
                     }
                     else
                     {
-                        // Add new entry
-                        offsetting.Add(
-                            new Offsetting
-                            {
-                                AccountNo = accountTitle,
-                                Source = existingModel.CRNo,
-                                Amount = accountAmount,
-                                CreatedBy = existingModel.CreatedBy,
-                                CreatedDate = existingModel.CreatedDate
-                            }
-                        );
+                        // Add new record
+                        var newOffsetting = new Offsetting
+                        {
+                            AccountNo = accountNo,
+                            AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0],
+                            Source = existingModel.CRNo,
+                            Reference = existingModel.SINo,
+                            Amount = currentAccountAmount,
+                            CreatedBy = _userManager.GetUserName(this.User),
+                            CreatedDate = DateTime.Now
+                        };
+                        _dbContext.Offsettings.Add(newOffsetting);
                     }
                 }
 
-                // Identify removed entries
-                var existingAccountNos = offsetting.Select(o => o.AccountNo).ToList();
-                var entriesToRemove = await _dbContext.Offsettings
-                    .Where(offset => offset.Source == existingModel.CRNo && !existingAccountNos.Contains(offset.AccountNo))
-                    .ToListAsync(cancellationToken);
-
-                // Remove entries individually
-                foreach (var entryToRemove in entriesToRemove)
+                // Remove remaining records that were duplicates
+                foreach (var ids in accountTitleDict.Values)
                 {
-                    _dbContext.Offsettings.Remove(entryToRemove);
+                    foreach (var id in ids)
+                    {
+                        var offsetting = findOffsettings.First(o => o.Id == id);
+                        _dbContext.Offsettings.Remove(offsetting);
+                    }
                 }
-
-                // Add or update entries in the database
-                await _dbContext.Offsettings.AddRangeAsync(offsetting, cancellationToken);
 
                 #endregion --Offsetting function
 
