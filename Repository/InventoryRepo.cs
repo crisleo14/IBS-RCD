@@ -101,7 +101,27 @@ namespace Accounting_System.Repository
             }
             else
             {
-                throw new InvalidOperationException($"Beginning inventory for this product '{receivingReport.PurchaseOrder.Product.Id}' not found!");
+                Inventory inventory = new()
+                {
+                    Date = receivingReport.Date,
+                    ProductId = receivingReport.PurchaseOrder.ProductId,
+                    POId = receivingReport.POId,
+                    Particular = "Purchases",
+                    Reference = receivingReport.RRNo,
+                    Quantity = receivingReport.QuantityReceived,
+                    Cost = receivingReport.PurchaseOrder.Price / 1.12m,
+                    IsValidated = true,
+                    ValidatedBy = _userManager.GetUserName(user),
+                    ValidatedDate = DateTime.Now
+                };
+
+                inventory.Total = inventory.Quantity * inventory.Cost;
+                inventory.InventoryBalance = inventory.Quantity;
+                inventory.TotalBalance = inventory.Total;
+                inventory.AverageCost = inventory.TotalBalance / inventory.InventoryBalance;
+
+                await _dbContext.AddAsync(inventory, cancellationToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
             }
         }
 
