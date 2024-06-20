@@ -198,18 +198,26 @@ namespace Accounting_System.Controllers
                     Text = s.Number + " " + s.Name
                 })
                 .ToListAsync(cancellationToken);
+            viewModel.PO = await _dbContext.PurchaseOrders
+                .OrderBy(p => p.SeriesNumber)
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.PONo
+                })
+                .ToListAsync(cancellationToken);
 
             return View(viewModel);
         }
 
-        public IActionResult GetProducts(int id, DateOnly dateTo)
+        public IActionResult GetProducts(int poId, int id, DateOnly dateTo)
         {
             if (id != 0)
             {
                 var dateFrom = dateTo.AddDays(-dateTo.Day + 1);
 
                 var getPerBook = _dbContext.Inventories
-                    .Where(i => i.Date >= dateFrom && i.Date <= dateTo && i.ProductId == id)
+                    .Where(i => i.Date >= dateFrom && i.Date <= dateTo && i.ProductId == id && i.POId == poId)
                     .OrderByDescending(model => model.Id)
                     .FirstOrDefault();
 
@@ -240,6 +248,15 @@ namespace Accounting_System.Controllers
                         {
                             Value = p.Id.ToString(),
                             Text = $"{p.Code} {p.Name}"
+                        })
+                        .ToListAsync(cancellationToken);
+
+                    viewModel.PO = await _dbContext.PurchaseOrders
+                        .OrderBy(p => p.SeriesNumber)
+                        .Select(p => new SelectListItem
+                        {
+                            Value = p.Id.ToString(),
+                            Text = p.PONo
                         })
                         .ToListAsync(cancellationToken);
 

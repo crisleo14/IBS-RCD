@@ -25,6 +25,13 @@
                 </select>
                 <span asp-validation-for="ProductId" class="text-danger"></span>
             </div>
+            <div class="form-group mb-3">
+                <label asp-for="POId" class="control-label">PO<span class="required">*</span></label>
+                <select asp-for="POId" class="form-control js-select2" asp-items="@Model.PO">
+                    <option></option>
+                </select>
+                <span asp-validation-for="POId" class="text-danger"></span>
+            </div>
             <input asp-for="AverageCost" class="averageCost" type="hidden" />
             <input asp-for="TotalBalance" type="hidden" />
             <div class="form-group mb-3">
@@ -80,7 +87,7 @@
         </div>
 
         <div class="form-group">
-            <input type="submit" value="Create" class="btn btn-primary" />
+            <input type="submit" value="Create" class="btn btn-primary" onclick="validateDebitAndCredit(event)" />
             <a asp-action="Index" class="btn btn-secondary">Back to List</a>
         </div>
     </div>
@@ -118,7 +125,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="saveAccountingEntry()">Create</button>
+                <button type="button" class="btn btn-primary" onclick="saveAccountingEntry(event)">Create</button>
             </div>
         </div>
     </div>
@@ -138,8 +145,9 @@
     </script>
     <script>
         $(document).ready(function () {
-            $('#ProductId').change(function () {
-                var productId = $(this).val();
+            $('#POId').change(function () {
+                var productId = $('#ProductId').val();
+                var poId = $(this).val();
                 var date = $("#Date").val();
 
                 var product = $("#ProductId option:selected").text().replace(/^\S+\s/, '');
@@ -152,11 +160,10 @@
                     $(".accountNumber").val("1010403");
                 }
 
-                console.log(date)
                 $.ajax({
                     url: "/Inventory/GetProducts",
                     method: "GET",
-                    data: { id: productId, dateTo: date },
+                    data: { id: productId, poId: poId, dateTo: date },
                     success: function (data) {
                         if (data.inventoryBalance !== 0.00) {
                             $("#PerBook").val(data.inventoryBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
@@ -212,12 +219,22 @@
         });
     </script>
     <script>
-        function saveAccountingEntry() {
+        function saveAccountingEntry(event) {
             // Get the values from the modal inputs
             var accountNumber = $("#AccountNo").val();
             var accountNumberText = $("#AccountNo option:selected").text().replace(/^\S+\s/, '');
             var debit = parseFloat($("#Debit").val().replace(/,/g, '')) || 0.00;
             var credit = parseFloat($("#Credit").val().replace(/,/g, '')) || 0.00;
+
+            if (debit === 0 && credit === 0) {
+                event.preventDefault();
+                alert('Please input amount');
+                return;
+            } else if (accountNumberText === "") {
+                event.preventDefault();
+                alert('Please select Account No.!');
+                return;
+            }
 
             // Format debit and credit values with commas and two decimal places
             var formattedDebit = debit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -278,6 +295,17 @@
             // Get the reference to the button's parent row and remove it
             $(button).closest("tr").remove();
             updateTotalDebitAndCredit();
+        }
+    </script>
+    <script>
+        function validateDebitAndCredit(event) {
+            var debit = parseFloat($(".totalDebit").text().replace(/,/g, '')) || 0.00;
+            var credit = parseFloat($(".totalCredit").text().replace(/,/g, '')) || 0.00;
+            if (debit !== credit) {
+                event.preventDefault();
+                alert('Total Debit and Credit do not match.');
+                return;
+            }
         }
     </script>
 }

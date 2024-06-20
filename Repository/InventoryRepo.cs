@@ -85,7 +85,7 @@ namespace Accounting_System.Repository
                     Particular = "Purchases",
                     Reference = receivingReport.RRNo,
                     Quantity = receivingReport.QuantityReceived,
-                    Cost = receivingReport.PurchaseOrder.Price / 1.12m,
+                    Cost = receivingReport.PurchaseOrder.Supplier.TaxType == "Vatable" ? receivingReport.PurchaseOrder.Price / 1.12m : receivingReport.PurchaseOrder.Price,
                     IsValidated = true,
                     ValidatedBy = _userManager.GetUserName(user),
                     ValidatedDate = DateTime.Now
@@ -109,7 +109,7 @@ namespace Accounting_System.Repository
                     Particular = "Purchases",
                     Reference = receivingReport.RRNo,
                     Quantity = receivingReport.QuantityReceived,
-                    Cost = receivingReport.PurchaseOrder.Price / 1.12m,
+                    Cost = receivingReport.PurchaseOrder.Supplier.TaxType == "Vatable" ? receivingReport.PurchaseOrder.Price / 1.12m : receivingReport.PurchaseOrder.Price,
                     IsValidated = true,
                     ValidatedBy = _userManager.GetUserName(user),
                     ValidatedDate = DateTime.Now
@@ -216,7 +216,8 @@ namespace Accounting_System.Repository
                 Total = Math.Abs(total),
                 InventoryBalance = inventoryBalance,
                 AverageCost = totalBalance / inventoryBalance,
-                TotalBalance = totalBalance
+                TotalBalance = totalBalance,
+                POId = viewModel.POId,
             };
             await _dbContext.Inventories.AddAsync(inventory, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
