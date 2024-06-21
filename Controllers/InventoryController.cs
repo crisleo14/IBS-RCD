@@ -152,16 +152,12 @@ namespace Accounting_System.Controllers
                 {
                     inventories = await _dbContext.Inventories
                         .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId)
-                        .OrderByDescending(i => i.Date)
-                        .ThenByDescending(i => i.Id)
                         .ToListAsync(cancellationToken);
                 }
                 else
                 {
                     inventories = await _dbContext.Inventories
                         .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId && i.POId == viewModel.POId)
-                        .OrderByDescending(i => i.Date)
-                        .ThenByDescending(i => i.Id)
                         .ToListAsync(cancellationToken);
                 }
 
@@ -169,6 +165,9 @@ namespace Accounting_System.Controllers
                     .FindAsync(viewModel.ProductId, cancellationToken);
 
                 ViewData["Product"] = product.Name;
+                ViewBag.ProductId = viewModel.ProductId;
+                ViewBag.POId = viewModel.POId;
+
 
                 return View(inventories);
             }

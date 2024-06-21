@@ -3,6 +3,9 @@
 
 @{
     ViewData["Title"] = "Inventory Report";
+    decimal totalAmount = 0m;
+    decimal totalQty = 0m;
+    decimal totalPrice = 0m;
 }
 
 <div class="mb-3">
@@ -26,29 +29,119 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var obj in Model.OrderBy(ir => ir.Id).ThenBy(ir => ir.Date))
+            @if (ViewBag.ProductId != null && ViewBag.POId != null)
             {
-                <tr>
-                    <td>@Html.DisplayFor(model => obj.Date)</td>
-                    <td>@Html.DisplayFor(model => obj.Particular)</td>
-                    <td>@Html.DisplayFor(model => obj.Reference)</td>
-                    <td class="text-end">@Html.DisplayFor(model => obj.Quantity)</td>
-                    <td class="text-end">@Html.DisplayFor(model => obj.Cost)</td>
-                    <td class="text-end">@Html.DisplayFor(model => obj.Total)</td>
-                    <td class="text-end">@Html.DisplayFor(model => obj.InventoryBalance)</td>
-                    <td class="text-end">@Html.DisplayFor(model => obj.AverageCost)</td>
-                    <td class="text-end">@Html.DisplayFor(model => obj.TotalBalance)</td>
-                    <td>
-                        @if (obj.IsValidated)
-                        {
-                            <span class="badge text-bg-primary">Validated</span>
-                        }
-                        else
-                        {
-                            <a href="#" onclick="confirmValidation(@obj.Id)" class="badge text-bg-warning" title="Click this to validate.">Validate</a>
-                        }
-                    </td>
-                </tr>
+                @foreach (var obj in Model.OrderBy(ir => ir.Date).ThenBy(ir => ir.Id))
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(model => obj.Date)</td>
+                        <td>@Html.DisplayFor(model => obj.Particular)</td>
+                        <td>@Html.DisplayFor(model => obj.Reference)</td>
+                        <td class="text-end">@Html.DisplayFor(model => obj.Quantity)</td>
+                        <td class="text-end">@Html.DisplayFor(model => obj.Cost)</td>
+                        <td class="text-end">@Html.DisplayFor(model => obj.Total)</td>
+                        <td class="text-end">@Html.DisplayFor(model => obj.InventoryBalance)</td>
+                        <td class="text-end">@Html.DisplayFor(model => obj.AverageCost)</td>
+                        <td class="text-end">@Html.DisplayFor(model => obj.TotalBalance)</td>
+                        <td>
+                            @if (obj.IsValidated)
+                            {
+                                <span class="badge text-bg-primary">Validated</span>
+                            }
+                            else
+                            {
+                                <a href="#" onclick="confirmValidation(@obj.Id)" class="badge text-bg-warning" title="Click this to validate.">Validate</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                @foreach (var obj in Model.Where(ir => ir.Particular.StartsWith("Beginning Balance")).OrderBy(ir => ir.Date).ThenBy(ir => ir.Id))
+                {
+                    totalAmount += obj.Total;
+                    totalQty += obj.Quantity;
+                    totalPrice = totalAmount / totalQty;
+                    <tr>
+                        <td>@Html.DisplayFor(model => obj.Date)</td>
+                        <td>@Html.DisplayFor(model => obj.Particular)</td>
+                        <td>@Html.DisplayFor(model => obj.Reference)</td>
+                        <td class="text-end">@Html.DisplayFor(model => obj.Quantity)</td>
+                        <td class="text-end">@Html.DisplayFor(model => obj.Cost)</td>
+                        <td class="text-end">@Html.DisplayFor(model => obj.Total)</td>
+                        <td class="text-end">@totalQty.ToString("N2")</td>
+                        <td class="text-end">@totalPrice.ToString("N2")</td>
+                        <td class="text-end">@totalAmount.ToString("N2")</td>
+                        <td>
+                            @if (obj.IsValidated)
+                            {
+                                <span class="badge text-bg-primary">Validated</span>
+                            }
+                            else
+                            {
+                                <a href="#" onclick="confirmValidation(@obj.Id)" class="badge text-bg-warning" title="Click this to validate.">Validate</a>
+                            }
+                        </td>
+                    </tr>
+                }
+                @foreach (var obj in Model.Where(ir => !ir.Particular.StartsWith("Beginning Balance")).OrderBy(ir => ir.Date).ThenBy(ir => ir.Id))
+                {
+                    if (obj.Particular.StartsWith("Sales"))
+                    {
+                        totalAmount -= obj.Total;
+                        totalQty -= obj.Quantity;
+                        totalPrice = totalAmount / totalQty;
+                        <tr>
+                            <td>@Html.DisplayFor(model => obj.Date)</td>
+                            <td>@Html.DisplayFor(model => obj.Particular)</td>
+                            <td>@Html.DisplayFor(model => obj.Reference)</td>
+                            <td class="text-end">@Html.DisplayFor(model => obj.Quantity)</td>
+                            <td class="text-end">@Html.DisplayFor(model => obj.Cost)</td>
+                            <td class="text-end">@Html.DisplayFor(model => obj.Total)</td>
+                            <td class="text-end">@totalQty.ToString("N2")</td>
+                            <td class="text-end">@totalPrice.ToString("N2")</td>
+                            <td class="text-end">@totalAmount.ToString("N2")</td>
+                            <td>
+                                @if (obj.IsValidated)
+                                {
+                                    <span class="badge text-bg-primary">Validated</span>
+                                }
+                                else
+                                {
+                                    <a href="#" onclick="confirmValidation(@obj.Id)" class="badge text-bg-warning" title="Click this to validate.">Validate</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        totalAmount += obj.Total;
+                        totalQty += obj.Quantity;
+                        totalPrice = totalAmount / totalQty;
+                        <tr>
+                            <td>@Html.DisplayFor(model => obj.Date)</td>
+                            <td>@Html.DisplayFor(model => obj.Particular)</td>
+                            <td>@Html.DisplayFor(model => obj.Reference)</td>
+                            <td class="text-end">@Html.DisplayFor(model => obj.Quantity)</td>
+                            <td class="text-end">@Html.DisplayFor(model => obj.Cost)</td>
+                            <td class="text-end">@Html.DisplayFor(model => obj.Total)</td>
+                            <td class="text-end">@totalQty.ToString("N2")</td>
+                            <td class="text-end">@totalPrice.ToString("N2")</td>
+                            <td class="text-end">@totalAmount.ToString("N2")</td>
+                            <td>
+                                @if (obj.IsValidated)
+                                {
+                                    <span class="badge text-bg-primary">Validated</span>
+                                }
+                                else
+                                {
+                                    <a href="#" onclick="confirmValidation(@obj.Id)" class="badge text-bg-warning" title="Click this to validate.">Validate</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
             }
         </tbody>
     </table>
