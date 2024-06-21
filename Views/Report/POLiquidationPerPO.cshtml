@@ -155,7 +155,7 @@ Date Issued: @CS.DateIssued
                                 @Html.DisplayFor(model => po.PurchaseOrder.Product.Name)
                             </td>
                             <td class="text-end">
-                                @quantity
+                                @quantity.ToString("N0")
                             </td>
                             <td class="text-end">
                                 @Html.DisplayFor(model => po.Amount)
