@@ -32,9 +32,18 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
-            var purchaseOrder = await _purchaseOrderRepo.GetPurchaseOrderAsync(cancellationToken);
+            var purchaseOrders = await _purchaseOrderRepo.GetPurchaseOrderAsync(cancellationToken);
 
-            return View(purchaseOrder);
+            foreach (var po in purchaseOrders)
+            {
+                var rrList = await _dbContext.ReceivingReports
+                    .Where(rr => rr.PONo == po.PONo)
+                    .ToListAsync(cancellationToken);
+
+                po.RrList = rrList;
+            }
+
+            return View(purchaseOrders);
         }
 
         [HttpGet]
@@ -422,6 +431,32 @@ namespace Accounting_System.Controllers
 
             TempData["error"] = "The information provided was invalid.";
             return View(nameof(ChangePrice));
+        }
+
+        public async Task<IActionResult> ClosePO(int id, CancellationToken cancellationToken)
+        {
+            var model = await _dbContext.PurchaseOrders.FindAsync(id, cancellationToken);
+
+            if (model != null)
+            {
+                if (!model.IsClosed)
+                {
+                    model.IsClosed = true;
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Closed purchase order# {model.PONo}", "Purchase Order");
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    TempData["success"] = "Purchase Order has been Closed.";
+                }
+                return RedirectToAction("Index");
+            }
+
+            return NotFound();
         }
     }
 }

@@ -72,5 +72,10 @@ namespace Accounting_System.Models.AccountsPayable
         [Required]
         [Column(TypeName = "varchar(200)")]
         public string Remarks { get; set; }
+
+        public bool IsClosed { get; set; }
+
+        [NotMapped]
+        public List<ReceivingReport>? RrList { get; set; }
     }
 }

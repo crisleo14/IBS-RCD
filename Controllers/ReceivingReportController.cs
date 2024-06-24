@@ -50,7 +50,7 @@ namespace Accounting_System.Controllers
         {
             var viewModel = new ReceivingReport();
             viewModel.PurchaseOrders = await _dbContext.PurchaseOrders
-                .Where(po => !po.IsReceived && po.IsPosted)
+                .Where(po => !po.IsReceived && po.IsPosted && !po.IsClosed)
                 .Select(po => new SelectListItem
                 {
                     Value = po.Id.ToString(),
