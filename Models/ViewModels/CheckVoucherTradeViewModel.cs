@@ -5,6 +5,8 @@ namespace Accounting_System.Models.ViewModels
 {
     public class CheckVoucherTradeViewModel
     {
+        public int CVId { get; set; }
+
         public string? CVNo { get; set; }
 
         public List<SelectListItem>? Suppliers { get; set; }
