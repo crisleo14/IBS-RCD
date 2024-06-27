@@ -320,7 +320,7 @@ namespace Accounting_System.Controllers
                         #region --Audit Trail Recording
 
                         var modifiedBy = _userManager.GetUserName(this.User);
-                        AuditTrail auditTrail = new(modifiedBy, $"Edited invoice# {model.SINo}", "Sales Invoice");
+                        AuditTrail auditTrail = new(modifiedBy, $"Edited invoice# {existingModel.SINo}", "Sales Invoice");
                         await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                         #endregion --Audit Trail Recording
