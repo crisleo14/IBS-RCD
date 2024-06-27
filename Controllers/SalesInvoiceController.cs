@@ -63,14 +63,6 @@ namespace Accounting_System.Controllers
                     Text = p.Name
                 })
                 .ToListAsync(cancellationToken);
-            viewModel.PO = await _dbContext.PurchaseOrders
-                .OrderBy(c => c.Id)
-                .Select(c => new SelectListItem
-                {
-                    Value = c.Id.ToString(),
-                    Text = c.PONo
-                })
-                .ToListAsync(cancellationToken);
 
             return View(viewModel);
         }
@@ -240,6 +232,13 @@ namespace Accounting_System.Controllers
             try
             {
                 var salesInvoice = await _salesInvoiceRepo.FindSalesInvoice(id, cancellationToken);
+                salesInvoice.PO = await _dbContext.PurchaseOrders
+                .Select(po => new SelectListItem
+                {
+                    Value = po.Id.ToString(),
+                    Text = po.PONo
+                })
+                .ToListAsync(cancellationToken);
                 return View(salesInvoice);
             }
             catch (Exception ex)
@@ -688,6 +687,20 @@ namespace Accounting_System.Controllers
             }
 
             return NotFound();
+        }
+        public async Task<IActionResult> GetPOs(int productId)
+        {
+            var purchaseOrders = await _dbContext.PurchaseOrders
+                .Where(po => po.ProductId == productId && po.IsPosted)
+                .ToListAsync();
+
+            if (purchaseOrders != null && purchaseOrders.Count > 0)
+            {
+                var poList = purchaseOrders.Select(po => new { Id = po.Id, PONumber = po.PONo }).ToList();
+                return Json(poList);
+            }
+
+            return Json(null);
         }
     }
 }
