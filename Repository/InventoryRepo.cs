@@ -157,7 +157,14 @@ namespace Accounting_System.Repository
                 inventory.Total = inventory.Quantity * inventory.Cost;
                 inventory.InventoryBalance = previousInventory.InventoryBalance - inventory.Quantity;
                 inventory.TotalBalance = previousInventory.TotalBalance - inventory.Total;
-                inventory.AverageCost = inventory.TotalBalance / inventory.InventoryBalance;
+                if (inventory.InventoryBalance == 0 && inventory.TotalBalance == 0)
+                {
+                    inventory.AverageCost = previousInventory.AverageCost;
+                }
+                else
+                {
+                    inventory.AverageCost = inventory.TotalBalance / inventory.InventoryBalance;
+                }
 
                 var ledgers = new List<GeneralLedgerBook>
                 {
