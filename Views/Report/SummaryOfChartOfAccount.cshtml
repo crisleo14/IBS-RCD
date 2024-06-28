@@ -2,6 +2,9 @@
 @model IEnumerable<ChartOfAccountSummary>
 @{
     ViewData["Title"] = "Chart of Accounts Summary";
+    decimal totalDebit = 0m;
+    decimal totalCredit = 0m;
+    decimal totalBalance = totalDebit - totalCredit;
 }
 
 <h2><b>Summary</b></h2>
@@ -28,6 +31,8 @@
                 <td>@firstLevel.Credit.ToString("N2")</td>
                 <td>@firstLevel.Balance.ToString("N2")</td>
             </tr>
+            totalDebit += firstLevel.Debit;
+            totalCredit += firstLevel.Credit;
             @if (firstLevel.Children.Any(x => x.Debit != 0 || x.Credit != 0))
             {
                 foreach (var secondLevel in firstLevel.Children.Where(x => x.Debit != 0 || x.Credit != 0))
@@ -70,7 +75,6 @@
                                         <td>@fourthLevel.Credit.ToString("N2")</td>
                                         <td>@fourthLevel.Balance.ToString("N2")</td>
                                     </tr>
-
                                     if (fourthLevel.Children.Any(x => x.Debit != 0 || x.Credit != 0))
                                     {
                                         foreach (var fifthLevel in fourthLevel.Children.Where(x => x.Debit != 0 || x.Credit != 0))
@@ -94,6 +98,12 @@
                 }
             }
         }
+        <tr class="parent-account table-dark">
+            <td class="text-end">Grand Total:</td>
+            <td>@totalDebit.ToString("N2")</td>
+            <td>@totalCredit.ToString("N2")</td>
+            <td>@totalBalance.ToString("N2")</td>
+        </tr>
     </tbody>
 </table>
 
