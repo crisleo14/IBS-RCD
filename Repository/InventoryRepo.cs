@@ -302,19 +302,18 @@ namespace Accounting_System.Repository
                     ValidatedDate = DateTime.Now
                 };
 
-                decimal totalQuantity = previousInventoryList.Where(i => i.Reference != null).Sum(i => i.Quantity);
-                decimal computeTotalQuantityWithPrice = totalQuantity * (purchaseChangePriceViewModel.FinalPrice - existingPO.Price);
+                var newTotal = ((purchaseChangePriceViewModel.FinalPrice - previousInventory.AverageCost) * previousInventory.InventoryBalance) / 1.12m;
 
-                inventory.Total = computeTotalQuantityWithPrice / 1.12m;
-                inventory.InventoryBalance = previousInventory.InventoryBalance + inventory.Quantity;
-                inventory.TotalBalance = previousInventory.TotalBalance + inventory.Total;
+                inventory.Total = newTotal;
+                inventory.InventoryBalance = previousInventory.InventoryBalance;
+                inventory.TotalBalance = previousInventory.TotalBalance + newTotal;
                 inventory.AverageCost = inventory.TotalBalance / inventory.InventoryBalance;
 
                 decimal computeRRTotalAmount = findRR.Sum(rr => rr.Amount);
-                decimal productAmount = computeTotalQuantityWithPrice < 0 ? computeTotalQuantityWithPrice / 1.12m : (computeRRTotalAmount + computeTotalQuantityWithPrice) / 1.12m;
+                decimal productAmount = newTotal < 0 ? newTotal / 1.12m : (computeRRTotalAmount + newTotal) / 1.12m;
                 decimal vatInput = productAmount * 0.12m;
                 decimal wht = productAmount * 0.01m;
-                decimal apTradePayable = computeTotalQuantityWithPrice < 0 ? computeTotalQuantityWithPrice - wht : (computeRRTotalAmount + computeTotalQuantityWithPrice) - wht;
+                decimal apTradePayable = newTotal < 0 ? newTotal - wht : (computeRRTotalAmount + newTotal) - wht;
 
                 #endregion -- Inventory Entry --
 
@@ -328,7 +327,7 @@ namespace Accounting_System.Repository
                         JVNo = generateJVNo,
                         SeriesNumber = getLastSeriesNumber,
                         References = "",
-                        Particulars = "Change Price",
+                        Particulars = $"Change price of {existingPO.PONo} from {existingPO.Price} to {existingPO.FinalPrice }",
                         CRNo = "",
                         JVReason = "Change Price",
                         CreatedBy = _userManager.GetUserName(user),
@@ -564,7 +563,7 @@ namespace Accounting_System.Repository
                             Description = existingPO.Product.Name,
                             Discount = 0,
                             VatAmount = inventory.Total * 0.12m,
-                            Amount = computeTotalQuantityWithPrice,
+                            Amount = newTotal,
                             WhtAmount = inventory.Total * 0.01m,
                             NetPurchases = inventory.Total,
                             PONo = existingPO.PONo,
