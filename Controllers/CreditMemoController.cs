@@ -72,7 +72,7 @@ namespace Accounting_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreditMemo model, DateTime[] period, CancellationToken cancellationToken, decimal[]? amount)
+        public async Task<IActionResult> Create(CreditMemo model, CancellationToken cancellationToken)
         {
             model.SalesInvoices = await _dbContext.SalesInvoices
                 .Where(si => si.IsPosted)
@@ -215,7 +215,7 @@ namespace Accounting_System.Controllers
 
                     #endregion --Retrieval of Services
 
-                    model.CreditAmount = -model.Amount;
+                    model.CreditAmount = -model.Amount ?? 0;
 
                     if (existingSv.Customer.CustomerType == "Vatable")
                     {
@@ -653,9 +653,9 @@ namespace Accounting_System.Controllers
 
                             if (existingSv.Customer.CustomerType == "Vatable")
                             {
-                                viewModelDMCM.Total = -model.Amount;
-                                viewModelDMCM.NetAmount = (model.Amount - existingSv.Discount) / 1.12m;
-                                viewModelDMCM.VatAmount = (model.Amount - existingSv.Discount) - viewModelDMCM.NetAmount;
+                                viewModelDMCM.Total = -model.Amount ?? 0;
+                                viewModelDMCM.NetAmount = (model.Amount ?? 0 - existingSv.Discount) / 1.12m;
+                                viewModelDMCM.VatAmount = (model.Amount ?? 0 - existingSv.Discount) - viewModelDMCM.NetAmount;
                                 viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (services.Percent / 100m);
                                 if (existingSv.Customer.WithHoldingVat)
                                 {
@@ -664,7 +664,7 @@ namespace Accounting_System.Controllers
                             }
                             else
                             {
-                                viewModelDMCM.NetAmount = model.Amount - existingSv.Discount;
+                                viewModelDMCM.NetAmount = model.Amount ?? 0 - existingSv.Discount;
                                 viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (services.Percent / 100m);
                                 if (existingSv.Customer.WithHoldingVat)
                                 {
@@ -674,7 +674,7 @@ namespace Accounting_System.Controllers
 
                             if (existingSv.Customer.CustomerType == "Vatable")
                             {
-                                var total = Math.Round(model.Amount / 1.12m, 2);
+                                var total = Math.Round(model.Amount ?? 0 / 1.12m, 2);
 
                                 var roundedNetAmount = Math.Round(viewModelDMCM.NetAmount, 2);
 
