@@ -323,6 +323,7 @@ namespace Accounting_System.Controllers
                     existingModel.Remarks = model.Remarks;
                     existingModel.Discount = model.Discount;
                     existingModel.Amount = model.Quantity * model.UnitPrice;
+                    existingModel.ProductId = model.ProductId;
 
                     if (existingModel.Amount >= model.Discount)
                     {
