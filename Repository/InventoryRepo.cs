@@ -85,7 +85,7 @@ namespace Accounting_System.Repository
                     Particular = "Purchases",
                     Reference = receivingReport.RRNo,
                     Quantity = receivingReport.QuantityReceived,
-                    Cost = receivingReport.PurchaseOrder.Supplier.TaxType == "Vatable" ? receivingReport.PurchaseOrder.Price / 1.12m : receivingReport.PurchaseOrder.Price,
+                    Cost = receivingReport.PurchaseOrder.Price / 1.12m,
                     IsValidated = true,
                     ValidatedBy = _userManager.GetUserName(user),
                     ValidatedDate = DateTime.Now
@@ -109,7 +109,7 @@ namespace Accounting_System.Repository
                     Particular = "Purchases",
                     Reference = receivingReport.RRNo,
                     Quantity = receivingReport.QuantityReceived,
-                    Cost = receivingReport.PurchaseOrder.Supplier.TaxType == "Vatable" ? receivingReport.PurchaseOrder.Price / 1.12m : receivingReport.PurchaseOrder.Price,
+                    Cost = receivingReport.PurchaseOrder.Price / 1.12m,
                     IsValidated = true,
                     ValidatedBy = _userManager.GetUserName(user),
                     ValidatedDate = DateTime.Now
@@ -302,7 +302,8 @@ namespace Accounting_System.Repository
                     ValidatedDate = DateTime.Now
                 };
 
-                var newTotal = ((purchaseChangePriceViewModel.FinalPrice - previousInventory.AverageCost) * previousInventory.InventoryBalance) / 1.12m;
+                purchaseChangePriceViewModel.FinalPrice /= 1.12m;
+                var newTotal = (purchaseChangePriceViewModel.FinalPrice - previousInventory.AverageCost) * previousInventory.InventoryBalance;
 
                 inventory.Total = newTotal;
                 inventory.InventoryBalance = previousInventory.InventoryBalance;
