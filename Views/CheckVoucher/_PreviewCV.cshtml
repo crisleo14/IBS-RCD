@@ -199,9 +199,9 @@
                                 <tr>
                                     <td style="padding-left:20px;">Check Date:</td>
                                     <td>
-                                        @if (Model.Header.AccruedType != "Invoicing")
+                                        @if (Model.Header.CvType != "Invoicing")
                                         {
-                                            @Model.Header.CheckDate.Value.ToString("MM/dd/yyyy")
+                                        @Model.Header.CheckDate?.ToString("MM/dd/yyyy")
                                         }
                                     </td>
                                     <td></td>

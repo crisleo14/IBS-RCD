@@ -1326,5 +1326,149 @@ namespace Accounting_System.Controllers
             }
             return Json(null);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> EditNonTradeInvoicing(int id, CancellationToken cancellationToken)
+        {
+            var existingModel = await _dbContext.CheckVoucherHeaders
+                .Include(c => c.Supplier)
+                .FirstOrDefaultAsync(cv => cv.Id == id, cancellationToken);
+
+            var existingDetailsModel = await _dbContext.CheckVoucherDetails.Where(d => d.TransactionNo == existingModel.CVNo).ToListAsync();
+
+            existingModel.Suppliers = await _dbContext.Suppliers
+                .Select(sup => new SelectListItem
+                {
+                    Value = sup.Id.ToString(),
+                    Text = sup.Name
+                })
+                .ToListAsync();
+            existingModel.COA = await _dbContext.ChartOfAccounts
+                        .Where(coa => coa.Level == 4 || coa.Level == 5)
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.Number,
+                            Text = s.Number + " " + s.Name
+                        })
+                        .ToListAsync(cancellationToken);
+
+            var accountNumbers = existingDetailsModel.Select(model => model.AccountNo).ToArray();
+            var accountTitles = existingDetailsModel.Select(model => model.AccountName).ToArray();
+            var debit = existingDetailsModel.Select(model => model.Debit).ToArray();
+            var credit = existingDetailsModel.Select(model => model.Credit).ToArray();
+
+            CheckVoucherNonTradeInvoicingViewModel viewModel = new()
+            {
+                CVId = existingModel.Id,
+                Suppliers = existingModel.Suppliers,
+                SupplierName = existingModel.Supplier.Name,
+                ChartOfAccounts = existingModel.COA,
+                TransactionDate = existingModel.Date,
+                SupplierId = existingModel.SupplierId ?? 0,
+                SupplierAddress = existingModel.Supplier.Address,
+                SupplierTinNo = existingModel.Supplier.TinNo,
+                PoNo = existingModel.PONo?.FirstOrDefault(),
+                SiNo = existingModel.SINo?.FirstOrDefault(),
+                Total = existingModel.Total,
+                Particulars = existingModel.Particulars,
+                AccountNumber = accountNumbers,
+                AccountTitle = accountTitles,
+                Debit = debit,
+                Credit = credit,
+            };
+
+            return View(viewModel);
+        }
+        [HttpPost]
+        public async Task<IActionResult> EditNonTradeInvoicing(CheckVoucherNonTradeInvoicingViewModel viewModel, IFormFile? file, CancellationToken cancellationToken)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    #region --Saving the default entries
+
+                    var existingModel = await _dbContext.CheckVoucherHeaders
+                        .Include(cv => cv.Supplier)
+                        .FirstOrDefaultAsync(cv => cv.Id == viewModel.CVId, cancellationToken);
+
+                    if (existingModel != null)
+                    {
+                        existingModel.Date = viewModel.TransactionDate;
+                        existingModel.SupplierId = viewModel.SupplierId;
+                        existingModel.PONo = [viewModel.PoNo];
+                        existingModel.SINo = [viewModel.SiNo];
+                        existingModel.Total = viewModel.Total;
+                        existingModel.Particulars = viewModel.Particulars;
+                    }
+
+                    #endregion --Saving the default entries
+
+                    #region --CV Details Entry
+
+                    var existingDetailsModel = await _dbContext.CheckVoucherDetails.Where(d => d.TransactionNo == existingModel.CVNo).ToListAsync();
+                    CheckVoucherDetail detailsModel = new();
+
+                    var cashInBank = 0m;
+                    for (int i = 0; i < existingDetailsModel.Count(); i++)
+                    {
+                        var cvd = existingDetailsModel[i];
+                        cvd.AccountNo = viewModel.AccountNumber[i];
+                        cvd.AccountName = viewModel.AccountTitle[i];
+                        cvd.Debit = viewModel.Debit[i];
+                        cvd.Credit = viewModel.Credit[i];
+                        cvd.TransactionNo = existingModel.CVNo;
+                    }
+
+                    var newDetailsModel = new List<CheckVoucherDetail>(); // Replace with the actual new details
+                    existingDetailsModel.AddRange(newDetailsModel);
+
+                    #endregion --CV Details Entry
+
+                    #region -- Uploading file --
+
+                    if (file != null && file.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Supporting CV Files", existingModel.CVNo);
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(file.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(stream);
+                        }
+
+                        //if necessary add field to store location path
+                        // model.Header.SupportingFilePath = fileSavePath
+                    }
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Create new check voucher# {existingModel.CVNo}", "Check Voucher");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
+                    TempData["success"] = "Non-trade invoicing edited successfully";
+                    return RedirectToAction("Index");
+                    #endregion -- Uploading file --
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return View(viewModel);
+                }
+            }
+
+            TempData["error"] = "The information provided was invalid.";
+            return View(viewModel);
+        }
     }
 }
