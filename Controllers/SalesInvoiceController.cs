@@ -240,6 +240,14 @@ namespace Accounting_System.Controllers
             try
             {
                 var salesInvoice = await _salesInvoiceRepo.FindSalesInvoice(id, cancellationToken);
+                salesInvoice.Products = await _dbContext.Products
+                .OrderBy(p => p.Id)
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.Name
+                })
+                .ToListAsync(cancellationToken);
                 salesInvoice.PO = await _dbContext.PurchaseOrders
                 .Select(po => new SelectListItem
                 {

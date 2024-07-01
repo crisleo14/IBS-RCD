@@ -50,16 +50,18 @@
             </div>
             <div class="col">
                 <div class="form-group mb-3">
-                    <label asp-for="ProductId" class="control-label"></label>
-                    <input asp-for="ProductId" class="form-control" disabled readonly />
+                    <label class="control-label">Product Name<span class="required">*</span></label>
+                    <select asp-for="ProductId" asp-items="@Model.Products" class="form-control GetPOList js-select2" style="width:100%">
+                        <option></option>
+                    </select>
+                    <span asp-validation-for="ProductId" class="text-danger"></span>
                 </div>
+
+                <input type="hidden" id="productName" class="form-control" readonly disabled />
+
                 <div class="form-group mb-3">
-                    <label asp-for="Product.Name" class="control-label"></label>
-                    <input asp-for="Product.Name" id="productName" class="form-control" disabled readonly />
-                </div>
-                <div class="form-group mb-3">
-                    <label asp-for="Product.Unit" class="control-label"></label>
-                    <input asp-for="Product.Unit" id="productUnit" class="form-control" disabled readonly />
+                    <label class="control-label">Unit</label>
+                    <input id="productUnit" class="form-control" value="@Model.Product.Unit" readonly disabled />
                 </div>
                 <div class="form-group mb-3">
                     <label asp-for="Quantity" class="control-label"></label>
@@ -119,4 +121,66 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        $(function () {
+            $(".GetPOList").change(function () {
+                var productId = $(this).val();
+                if (productId !== "") {
+                    // Make an AJAX request to get the POs based on the selected SupplierId
+                    $.ajax({
+                        url: "/SalesInvoice/GetPOs",
+                        method: "GET",
+                        data: { productId: productId }, // Corrected parameter name
+                        success: function (data) {
+                            if (data) {
+                                // Clear existing options
+                                $("#POId").empty();
+                                // Add new options based on the fetched data
+                                $.each(data, function (index, po) {
+                                    if (po && po.poNumber) { // Adjust property name to poNumber
+                                        console.log(po.id)
+                                        $('#POId').append('<option value="' + po.id + '">' + po.poNumber + '</option>'); // Adjust property names
+                                    } else {
+                                        console.error("Invalid PO object:", po);
+                                    }
+                                });
+                            } else {
+                                // Clear the fields if no POs are found
+                                $("#POId").empty();
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Error fetching POs:', error);
+                        }
+                    });
+                } else {
+                    // Clear the fields if no supplier is selected
+                    $("#POId").empty();
+                }
+                if (productId !== "") {
+                    // Make an AJAX request to get the customer details based on the selected CustomerId
+                    $.ajax({
+                        url: "/SalesInvoice/GetProductDetails", // Replace with the actual controller and action names
+                        method: "GET",
+                        data: { productId: productId },
+                        success: function (data) {
+                            console.log(data);
+                            if (data) {
+                                $("#productName").val(data.productName);
+                                $("#productUnit").val(data.productUnit);
+                            } else {
+                                // Clear the fields if no customer is selected
+                                $("#productName").val("");
+                                $("#productUnit").val("");
+                            }
+                        }
+                    });
+                } else {
+                    // Clear the fields if no customer is selected
+                    $("#productName").val("");
+                    $("#productUnit").val("");
+                }
+            });
+        });
+    </script>
 }
