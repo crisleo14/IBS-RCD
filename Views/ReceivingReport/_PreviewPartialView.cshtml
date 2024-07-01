@@ -35,7 +35,7 @@
 
                 <div class="w-100 text-end" style="margin-top:20px; padding-bottom:10px;">
                     <span><b>Date:</b></span>
-                    <span class="underline" style="display: inline-block; width: 20%; text-align:center;">@Model.Date.ToShortDateString()</span><br />
+                    <span class="underline" style="display: inline-block; width: 20%; text-align:center;">@Model.Date.ToString("MM/dd/yyyy")</span><br />
                 </div>
 
                 <div>
@@ -104,7 +104,7 @@
                         <span>&nbsp;&nbsp;Date Issued:</span>
                         <span style="display: inline-block; width:50px;">@CS.DateIssued</span><br />
                         Series: RR0000000001 - RR9999999999
-                        Date and Time Created:&nbsp; @Html.DisplayFor(model => model.CreatedDate)
+                        Date and Time Created:&nbsp; @Model.CreatedDate.ToString("MM/dd/yyyy")
                     </p>
                 </div>
 

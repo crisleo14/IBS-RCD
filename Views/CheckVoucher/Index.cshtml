@@ -37,7 +37,7 @@
                         @Html.DisplayFor(modelItem => item.Header.CVNo)
                     </td>
                     <td>
-                        @item.Header.Date.ToShortDateString()
+                        @item.Header.Date.ToString("MM/dd/yyyy")
                     </td>
                     <td>
                         @Html.DisplayFor(modelItem => item.Header.Supplier.Name)

@@ -305,7 +305,7 @@
                                 <td class="text-center">
                                     @if (Model.ManagerCheckDate != null)
                                     {
-                                        <p style="height: 9px;">@Model.ManagerCheckDate?.ToShortDateString()</p>
+                                        <p style="height: 9px;">@Model.ManagerCheckDate?.ToString("MM/dd/yyyy")</p>
                                     }
                                     else
                                     {
@@ -417,7 +417,7 @@
                         <span>&nbsp;&nbsp;Date Issued:</span>
                         <span style="display: inline-block; width:50px;">@CS.DateIssued</span><br />
                         Series: CR0000000001 - CR9999999999
-                        Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
+                        Date and Time Created:&nbsp;@Model.CreatedDate.ToString("MM/dd/yyyy")
                     </p>
                 </div>
 

@@ -50,7 +50,7 @@
                         @Html.DisplayFor(modelItem => item.CreatedBy)
                     </td>
                     <td>
-                        @Html.DisplayFor(modelItem => item.CreatedDate)
+                        @item.CreatedDate.ToString("MM/dd/yyyy")
                     </td>
                     <td>
                         <a asp-action="Edit" class="btn btn-light" asp-route-id="@item.Id">Edit</a>
