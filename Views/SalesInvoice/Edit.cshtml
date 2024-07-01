@@ -20,32 +20,38 @@
                     <span asp-validation-for="SINo" class="text-danger"></span>
                 </div>
                 <div class="form-group mb-3">
-                    <label asp-for="CustomerId" class="control-label"></label>
-                    <input asp-for="CustomerId" class="form-control" disabled readonly />
+                    <label class="control-label">Customer Name<span class="required">*</span></label>
+                    <select asp-for="CustomerId" asp-items="@Model.Customers" class="form-control js-select2" style="width:100%">
+                        <option></option>
+                    </select>
+                    <span asp-validation-for="CustomerId" class="text-danger"></span>
                 </div>
+
+                <input type="hidden" id="soldTo" class="form-control" readonly disabled />
+
                 <div class="form-group mb-3">
-                    <label asp-for="Customer.Name" class="control-label"></label>
-                    <input asp-for="Customer.Name" class="form-control" disabled readonly />
+                    <label class="control-label">Tin No</label>
+                    <input id="tinNo" class="form-control" value="@Model.Customer.TinNo" readonly disabled />
                 </div>
+
                 <div class="form-group mb-3">
-                    <label asp-for="Customer.TinNo" class="control-label"></label>
-                    <input asp-for="Customer.TinNo" class="form-control" disabled readonly />
+                    <label class="control-label">Customer Type</label>
+                    <input id="customerType" class="form-control" value="@Model.Customer.CustomerType" readonly disabled />
                 </div>
+
                 <div class="form-group mb-3">
-                    <label asp-for="Customer.CustomerType" class="control-label"></label>
-                    <input asp-for="Customer.CustomerType" class="form-control" disabled readonly />
+                    <label class="control-label">Address</label>
+                    <input id="address" class="form-control" value="@Model.Customer.Address" readonly disabled />
                 </div>
+
                 <div class="form-group mb-3">
-                    <label asp-for="Customer.Address" class="control-label"></label>
-                    <input asp-for="Customer.Address" class="form-control" disabled readonly />
+                    <label class="control-label">Business Style</label>
+                    <input id="businessStyle" class="form-control" value="@Model.Customer.BusinessStyle" readonly disabled />
                 </div>
+
                 <div class="form-group mb-3">
-                    <label asp-for="Customer.BusinessStyle" class="control-label"></label>
-                    <input asp-for="Customer.BusinessStyle" class="form-control" disabled readonly />
-                </div>
-                <div class="form-group mb-3">
-                    <label asp-for="Customer.Terms" class="control-label"></label>
-                    <input asp-for="Customer.Terms" class="form-control" disabled readonly />
+                    <label class="control-label">Terms</label>
+                    <input id="terms" class="form-control" value="@Model.Customer.Terms" readonly disabled />
                 </div>
             </div>
             <div class="col">
@@ -84,7 +90,7 @@
             <div class="col">
                 <div class="form-group mb-3">
                     <label asp-for="TransactionDate" class="control-label"></label>
-                    <input type="date" asp-for="TransactionDate" class="form-control" />
+                    <input type="date" asp-for="TransactionDate" class="form-control" data-existing-id="@Model.Id" />
                     <span asp-validation-for="TransactionDate" class="text-danger"></span>
                 </div>
                 <div class="form-group mb-3">
@@ -123,6 +129,80 @@
     }
     <script>
         $(function () {
+            $("#CustomerId").change(function () {
+                var customerId = $(this).val();
+                if (customerId !== "") {
+                    // Make an AJAX request to get the customer details based on the selected CustomerId
+                    $.ajax({
+                        url: "/SalesInvoice/GetCustomerDetails", // Replace with the actual controller and action names
+                        method: "GET",
+                        data: { customerId: customerId },
+                        success: function (data) {
+                            console.log(data);
+                            if (data) {
+                                $("#soldTo").val(data.soldTo);
+                                $("#address").val(data.address);
+                                $("#tinNo").val(data.tinNo);
+                                $("#businessStyle").val(data.businessStyle);
+                                $("#terms").val(data.terms);
+                                $("#customerType").val(data.customerType);
+                                $("#withHoldingTax").val(data.withHoldingTax);
+                                // Populate other fields as needed
+                            } else {
+                                // Clear the fields if no customer is selected
+                                $("#soldTo").val("");
+                                $("#address").val("");
+                                $("#tinNo").val("");
+                                $("#businessStyle").val("");
+                                $("#terms").val("");
+                                $("#customerType").val("");
+                                $("#withHoldingTax").val(data.withHoldingTax);
+                                // Clear other fields as needed
+                            }
+                        }
+                    });
+                } else {
+                    // Clear the fields if no customer is selected
+                    $("#soldTo").val("");
+                    $("#address").val("");
+                    $("#tinNo").val("");
+                    $("#businessStyle").val("");
+                    $("#terms").val("");
+                    $("#customerType").val("");
+                    $("#withHoldingTax").val(data.withHoldingTax);
+                    // Clear other fields as needed
+                }
+            });
+            $("#ProductId").change(function () {
+                var productId = $(this).val();
+                if (productId !== "") {
+                    // Make an AJAX request to get the customer details based on the selected CustomerId
+                    $.ajax({
+                        url: "/SalesInvoice/GetProductDetails", // Replace with the actual controller and action names
+                        method: "GET",
+                        data: { productId: productId },
+                        success: function (data) {
+                            console.log(data);
+                            if (data) {
+                                $("#productName").val(data.productName);
+                                $("#productUnit").val(data.productUnit);
+                            } else {
+                                // Clear the fields if no customer is selected
+                                $("#productName").val("");
+                                $("#productUnit").val("");
+                            }
+                        }
+                    });
+                } else {
+                    // Clear the fields if no customer is selected
+                    $("#productName").val("");
+                    $("#productUnit").val("");
+                }
+            });
+        });
+    </script>
+    <script>
+        $(function () {
             $(".GetPOList").change(function () {
                 var productId = $(this).val();
                 if (productId !== "") {
@@ -156,29 +236,6 @@
                 } else {
                     // Clear the fields if no supplier is selected
                     $("#POId").empty();
-                }
-                if (productId !== "") {
-                    // Make an AJAX request to get the customer details based on the selected CustomerId
-                    $.ajax({
-                        url: "/SalesInvoice/GetProductDetails", // Replace with the actual controller and action names
-                        method: "GET",
-                        data: { productId: productId },
-                        success: function (data) {
-                            console.log(data);
-                            if (data) {
-                                $("#productName").val(data.productName);
-                                $("#productUnit").val(data.productUnit);
-                            } else {
-                                // Clear the fields if no customer is selected
-                                $("#productName").val("");
-                                $("#productUnit").val("");
-                            }
-                        }
-                    });
-                } else {
-                    // Clear the fields if no customer is selected
-                    $("#productName").val("");
-                    $("#productUnit").val("");
                 }
             });
         });

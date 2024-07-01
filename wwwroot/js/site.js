@@ -178,5 +178,14 @@ document.addEventListener('DOMContentLoaded', function () {
 // Get the current date in the format "YYYY-MM-DD" (required for the date input)
 var currentDate = new Date().toISOString().slice(0, 10);
 
-// Set the default value of the input field
-document.getElementById("TransactionDate").value = currentDate;
+function setTransactionDate() {
+    var transactionDateField = document.getElementById("TransactionDate");
+
+    // Check if the field is present and if it's in create mode (no existing ID)
+    if (transactionDateField && !transactionDateField.dataset.existingId) {
+        transactionDateField.value = currentDate;
+    }
+}
+
+// Call the function to set the default value
+setTransactionDate();
