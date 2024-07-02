@@ -242,6 +242,8 @@ namespace Accounting_System.Controllers
                 var amount = viewModel.Header.Total;
                 var particulars = viewModel.Header.Particulars;
                 var checkNo = viewModel.Header.CheckNo;
+                var totalDebit = viewModel.Details.Select(cvd => cvd.Debit).Sum();
+                var totalCredit = viewModel.Details.Select(cvd => cvd.Credit).Sum();
 
                 return Json(new
                 {
@@ -256,7 +258,9 @@ namespace Accounting_System.Controllers
                     Amount = amount,
                     Particulars = particulars,
                     CheckNo = checkNo,
-                    ViewModel = viewModel
+                    ViewModel = viewModel,
+                    TotalDebit = totalDebit,
+                    TotalCredit = totalCredit,
                 });
             }
 
@@ -482,6 +486,76 @@ namespace Accounting_System.Controllers
             }
 
             return NotFound();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditJournalVoucher(int id, CancellationToken cancellationToken)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            var exisitngJV = await _dbContext.JournalVoucherHeaders.FindAsync(id, cancellationToken);
+            var existingHeaderModel = await _dbContext.JournalVoucherHeaders
+                .Include(jv => jv.CheckVoucherHeader)
+                .FirstOrDefaultAsync(cvh => cvh.Id == id, cancellationToken);
+            var existingDetailsModel = await _dbContext.JournalVoucherDetails
+                .Where(cvd => cvd.TransactionNo == existingHeaderModel.JVNo)
+                .ToListAsync();
+
+            if (existingHeaderModel == null || existingDetailsModel == null)
+            {
+                return NotFound();
+            }
+
+            var accountNumbers = existingDetailsModel.Select(model => model.AccountNo).ToArray();
+            var accountTitles = existingDetailsModel.Select(model => model.AccountName).ToArray();
+            var debit = existingDetailsModel.Select(model => model.Debit).ToArray();
+            var credit = existingDetailsModel.Select(model => model.Credit).ToArray();
+            var poIds = _dbContext.PurchaseOrders.Where(model => exisitngJV.CheckVoucherHeader.PONo.Contains(model.PONo)).Select(model => model.Id).ToArray();
+            var rrIds = _dbContext.ReceivingReports.Where(model => exisitngJV.CheckVoucherHeader.RRNo.Contains(model.RRNo)).Select(model => model.Id).ToArray();
+
+            var coa = await _dbContext.ChartOfAccounts
+                        .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.Number,
+                            Text = s.Number + " " + s.Name
+                        })
+                        .ToListAsync(cancellationToken);
+
+            JournalVoucherViewModel model = new()
+            {
+                TransactionDate = existingHeaderModel.Date,
+                References = existingHeaderModel.References,
+                CVId = existingHeaderModel.CVId,
+                Particulars = existingHeaderModel.Particulars,
+                CRNo = existingHeaderModel.CRNo,
+                JVReason = existingHeaderModel.JVReason,
+                AccountNumber = accountNumbers,
+                AccountTitle = accountTitles,
+                Debit = debit,
+                Credit = credit,
+                CheckVoucherHeaders = await _dbContext.CheckVoucherHeaders
+                .OrderBy(c => c.Id)
+                .Select(cvh => new SelectListItem
+                {
+                    Value = cvh.Id.ToString(),
+                    Text = cvh.CVNo
+                })
+                .ToListAsync(cancellationToken),
+                COA = await _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .OrderBy(coa => coa.Id)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number,
+                    Text = s.Number + " " + s.Name
+                })
+                .ToListAsync(cancellationToken)
+            };
+
+            return View(model);
         }
     }
 }
