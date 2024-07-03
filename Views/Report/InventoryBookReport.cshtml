@@ -17,6 +17,7 @@
 
     int numberOfRecords = 0;
     decimal amountFieldControlTotal = 0;
+    decimal getLastRecordCost = 0;
 }
 <style>
     body {
@@ -127,7 +128,15 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                     totalQuantity += inventory.Quantity;
                     totalAmount += inventory.Total;
                 }
-                totalPriceUnitAmount = totalAmount / totalQuantity;
+                getLastRecordCost = inventory.Cost;
+                if (totalAmount != 0 && totalQuantity != 0)
+                {
+                    totalPriceUnitAmount = totalAmount / totalQuantity;
+                }
+                else
+                {
+                    totalPriceUnitAmount = getLastRecordCost;
+                }
             }
             <tr class="align-text-bottom" style="border-top: 2px solid black;">
                 @{
