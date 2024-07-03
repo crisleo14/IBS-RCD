@@ -569,7 +569,7 @@ namespace Accounting_System.Controllers
                 return Json(new
                 {
                     poNo = po.PONo,
-                    poQuantity = po.Quantity.ToString(),
+                    poQuantity = po.Quantity.ToString("N2"),
                     rrList = rr,
                     rrListPostedOnly = rrPostedOnly,
                     rrListNotPosted = rrNotPosted,

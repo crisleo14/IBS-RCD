@@ -59,10 +59,10 @@
                                 <td class="w-25 text-nowrap">
 
                                     <b>Invoice Date:</b>
-                                    &nbsp; <span id="soaDate">@Model.CreatedDate.ToShortDateString()</span>
+                                    &nbsp; <span id="soaDate">@Model.CreatedDate.ToString("MM/dd/yyyy")</span>
                                     <br />
                                     <b>Terms:</b>&nbsp;<span id="terms"></span>&nbsp;<br />
-                                    <b>Due Date:</b>&nbsp; <span id="dueDate">@Model.DueDate.ToShortDateString()</span><br />
+                                    <b>Due Date:</b>&nbsp; <span id="dueDate">@Model.DueDate.ToString("MM/dd/yyyy")</span><br />
                                 </td>
                             </tr>
                         </tbody>
@@ -204,7 +204,7 @@
                     <span>&nbsp;&nbsp;Date Issued:</span>
                     <span style="display: inline-block; width:50px;">@CS.DateIssued</span><br />
                     Series: SI0000000001 - SI9999999999
-                    Date and Time Created:&nbsp;@Html.DisplayFor(model => model.CreatedDate)
+                    Date and Time Created:&nbsp;@Model.CreatedDate.ToString("MM/dd/yyyy")
                 </p>
 
                 <br />

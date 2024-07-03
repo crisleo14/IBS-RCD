@@ -36,7 +36,7 @@
                 <td></td>
                 <td></td>
                 <td></td>
-                <td class="w-25 text-end">Date : @Html.DisplayFor(model => model.Header.Date)</td>
+                <td class="w-25 text-end">Date : @Model.Header.Date.ToString("MM/dd/yyyy")</td>
             </tr>
             <tr>
                 <td>CATEGORY : </td>
@@ -87,14 +87,14 @@
                 <td>
                     @if (Model.Header.CheckVoucherHeader != null)
                     {
-                        @Model.Header.CheckVoucherHeader.Date.ToShortDateString()
+                        @Model.Header.CheckVoucherHeader.Date.ToString("MM/dd/yyyy")
                     }
                 </td>
                 <td>DATE :</td>
                 <td>
                     @if (Model.Header.CheckVoucherHeader != null)
                     {
-                        @Html.DisplayFor(model => model.Header.CheckVoucherHeader.CheckDate)
+                        @Model.Header.CheckVoucherHeader.CheckDate.Value.ToString("MM/dd/yyyy")
                     }
                 </td>
             </tr>
@@ -191,7 +191,7 @@
         <span>&nbsp;&nbsp;Date Issued:</span>
         <span style="display: inline-block; width:50px;">@CS.DateIssued</span><br />
         Series: JV0000000001 - JV9999999999
-        Date and Time Created:&nbsp; @Html.DisplayFor(model => model.Header.CreatedDate)
+        Date and Time Created:&nbsp; @Model.Header.CreatedDate.ToString("MM/dd/yyyy")
     </p>
 </div>
 <br />

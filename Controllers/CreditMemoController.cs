@@ -72,7 +72,7 @@ namespace Accounting_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreditMemo model, DateTime[] period, CancellationToken cancellationToken, decimal[]? amount)
+        public async Task<IActionResult> Create(CreditMemo model, CancellationToken cancellationToken)
         {
             model.SalesInvoices = await _dbContext.SalesInvoices
                 .Where(si => si.IsPosted)
@@ -215,7 +215,7 @@ namespace Accounting_System.Controllers
 
                     #endregion --Retrieval of Services
 
-                    model.CreditAmount = -model.Amount;
+                    model.CreditAmount = -model.Amount ?? 0;
 
                     if (existingSv.Customer.CustomerType == "Vatable")
                     {
@@ -273,20 +273,22 @@ namespace Accounting_System.Controllers
             }
 
             creditMemo.SalesInvoices = await _dbContext.SalesInvoices
-                .Select(s => new SelectListItem
+                .Where(si => si.IsPosted)
+                .Select(si => new SelectListItem
                 {
-                    Value = s.Id.ToString(),
-                    Text = s.SINo
+                    Value = si.Id.ToString(),
+                    Text = si.SINo
+                })
+                .ToListAsync(cancellationToken);
+            creditMemo.ServiceInvoices = await _dbContext.ServiceInvoices
+                .Where(sv => sv.IsPosted)
+                .Select(sv => new SelectListItem
+                {
+                    Value = sv.Id.ToString(),
+                    Text = sv.SVNo
                 })
                 .ToListAsync(cancellationToken);
 
-            creditMemo.ServiceInvoices = await _dbContext.ServiceInvoices
-                .Select(s => new SelectListItem
-                {
-                    Value = s.Id.ToString(),
-                    Text = s.SVNo
-                })
-                .ToListAsync(cancellationToken);
 
             return View(creditMemo);
         }
@@ -296,28 +298,15 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var existingModel = await _dbContext.CreditMemos
-                .Include(cm => cm.SalesInvoice)
-                .Include(cm => cm.ServiceInvoice)
-                .ThenInclude(sv => sv.Customer)
-                .Include(cm => cm.ServiceInvoice)
-                .ThenInclude(sv => sv.Service)
-                .FirstOrDefaultAsync(r => r.Id == model.Id, cancellationToken);
+                var existingCM = await _dbContext
+                        .CreditMemos
+                        .FirstOrDefaultAsync(cm => cm.Id == model.Id);
 
-                if (existingModel == null)
+                model.CreatedBy = _userManager.GetUserName(this.User);
+
+                if (model.Source == "Sales Invoice")
                 {
-                    return NotFound();
-                }
-
-                existingModel.TransactionDate = model.TransactionDate;
-                existingModel.Source = model.Source;
-                existingModel.Description = model.Description;
-                existingModel.AdjustedPrice = model.AdjustedPrice;
-
-                if (existingModel.Source == "Sales Invoice")
-                {
-                    existingModel.ServiceInvoiceId = null;
-                    existingModel.SalesInvoiceId = model.SalesInvoiceId;
+                    model.ServiceInvoiceId = null;
 
                     var existingSalesInvoice = await _dbContext
                         .SalesInvoices
@@ -325,44 +314,104 @@ namespace Accounting_System.Controllers
                         .Include(s => s.Product)
                         .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId);
 
-                    existingModel.CreditAmount = (decimal)(model.Quantity * model.AdjustedPrice);
+
+                    #region -- Saving Default Enries --
+
+                    existingCM.TransactionDate = model.TransactionDate;
+                    existingCM.SalesInvoiceId = model.SalesInvoiceId;
+                    existingCM.Quantity = model.Quantity;
+                    existingCM.AdjustedPrice = model.AdjustedPrice;
+                    existingCM.Description = model.Description;
+                    existingCM.Remarks = model.Remarks;
+
+                    #endregion -- Saving Default Enries --
+
+                    existingCM.CreditAmount = (decimal)(model.Quantity * -model.AdjustedPrice);
 
                     if (existingSalesInvoice.Customer.CustomerType == "Vatable")
                     {
-                        existingModel.VatableSales = existingModel.CreditAmount / 1.12m;
-                        existingModel.VatAmount = existingModel.CreditAmount - existingModel.VatableSales;
-                        existingModel.TotalSales = existingModel.VatableSales + existingModel.VatAmount;
+                        existingCM.VatableSales = existingCM.CreditAmount / 1.12m;
+                        existingCM.VatAmount = existingCM.CreditAmount - existingCM.VatableSales;
+
+                        if (existingSalesInvoice.WithHoldingTaxAmount != 0)
+                        {
+                            existingCM.WithHoldingTaxAmount = existingCM.VatableSales * 0.01m;
+                        }
+                        if (existingSalesInvoice.WithHoldingVatAmount != 0)
+                        {
+                            existingCM.WithHoldingVatAmount = existingCM.VatableSales * 0.05m;
+                        }
+                        existingCM.TotalSales = existingCM.VatableSales + existingCM.VatAmount;
+                    }
+                    else
+                    {
+                        existingCM.TotalSales = existingCM.CreditAmount;
                     }
 
-                    existingModel.TotalSales = existingModel.CreditAmount;
                 }
                 else if (model.Source == "Service Invoice")
                 {
-                    existingModel.SalesInvoiceId = null;
-                    existingModel.ServiceInvoiceId = model.ServiceInvoiceId;
+                    model.SalesInvoiceId = null;
 
                     var existingSv = await _dbContext.ServiceInvoices
                         .Include(sv => sv.Customer)
-                        .FirstOrDefaultAsync(sv => sv.Id == existingModel.ServiceInvoiceId, cancellationToken);
+                        .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
 
-                    existingModel.CreditAmount = (decimal)(model.AdjustedPrice - existingSv.Total);
+                    #region --Retrieval of Services
+
+                    existingCM.ServicesId = existingSv.ServicesId;
+
+                    var services = await _dbContext
+                    .Services
+                    .FirstOrDefaultAsync(s => s.Id == existingCM.ServicesId, cancellationToken);
+
+                    #endregion --Retrieval of Services
+
+                    #region -- Saving Default Enries --
+
+                    existingCM.TransactionDate = model.TransactionDate;
+                    existingCM.ServiceInvoiceId = model.ServiceInvoiceId;
+                    existingCM.Period = model.Period;
+                    existingCM.Amount = model.Amount;
+                    existingCM.Description = model.Description;
+                    existingCM.Remarks = model.Remarks;
+
+                    #endregion -- Saving Default Enries --
+
+                    existingCM.CreditAmount = -model.Amount ?? 0;
 
                     if (existingSv.Customer.CustomerType == "Vatable")
                     {
-                        existingModel.VatableSales = existingModel.CreditAmount / 1.12m;
-                        existingModel.VatAmount = existingModel.CreditAmount - existingModel.VatableSales;
-                        existingModel.TotalSales = existingModel.VatableSales + existingModel.VatAmount;
+                        existingCM.VatableSales = existingCM.CreditAmount / 1.12m;
+                        existingCM.VatAmount = existingCM.CreditAmount - existingCM.VatableSales;
+                        existingCM.TotalSales = existingCM.VatableSales + existingCM.VatAmount;
+                        existingCM.WithHoldingTaxAmount = existingCM.VatableSales * (services.Percent / 100m);
+
+                        if (existingSv.WithholdingVatAmount != 0)
+                        {
+                            existingCM.WithHoldingVatAmount = existingCM.VatableSales * 0.05m;
+                        }
+                    }
+                    else
+                    {
+                        existingCM.TotalSales = existingCM.CreditAmount;
                     }
 
-                    existingModel.TotalSales = existingModel.CreditAmount;
                 }
 
-                await _dbContext.SaveChangesAsync(cancellationToken);
+                #region --Audit Trail Recording
 
-                TempData["success"] = "Credit Memo updated successfully";
+                AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Edit credit memo# {existingCM.CMNo}", "Credit Memo");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                TempData["success"] = "Credit Memo edited successfully";
                 return RedirectToAction("Index");
             }
 
+            ModelState.AddModelError("", "The information you submitted is not valid!");
             return View(model);
         }
 
@@ -653,9 +702,9 @@ namespace Accounting_System.Controllers
 
                             if (existingSv.Customer.CustomerType == "Vatable")
                             {
-                                viewModelDMCM.Total = -model.Amount;
-                                viewModelDMCM.NetAmount = (model.Amount - existingSv.Discount) / 1.12m;
-                                viewModelDMCM.VatAmount = (model.Amount - existingSv.Discount) - viewModelDMCM.NetAmount;
+                                viewModelDMCM.Total = -model.Amount ?? 0;
+                                viewModelDMCM.NetAmount = (model.Amount ?? 0 - existingSv.Discount) / 1.12m;
+                                viewModelDMCM.VatAmount = (model.Amount ?? 0 - existingSv.Discount) - viewModelDMCM.NetAmount;
                                 viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (services.Percent / 100m);
                                 if (existingSv.Customer.WithHoldingVat)
                                 {
@@ -664,7 +713,7 @@ namespace Accounting_System.Controllers
                             }
                             else
                             {
-                                viewModelDMCM.NetAmount = model.Amount - existingSv.Discount;
+                                viewModelDMCM.NetAmount = model.Amount ?? 0 - existingSv.Discount;
                                 viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (services.Percent / 100m);
                                 if (existingSv.Customer.WithHoldingVat)
                                 {
@@ -674,7 +723,7 @@ namespace Accounting_System.Controllers
 
                             if (existingSv.Customer.CustomerType == "Vatable")
                             {
-                                var total = Math.Round(model.Amount / 1.12m, 2);
+                                var total = Math.Round(model.Amount ?? 0 / 1.12m, 2);
 
                                 var roundedNetAmount = Math.Round(viewModelDMCM.NetAmount, 2);
 

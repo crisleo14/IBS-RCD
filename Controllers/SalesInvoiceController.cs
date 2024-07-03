@@ -63,14 +63,6 @@ namespace Accounting_System.Controllers
                     Text = p.Name
                 })
                 .ToListAsync(cancellationToken);
-            viewModel.PO = await _dbContext.PurchaseOrders
-                .OrderBy(c => c.Id)
-                .Select(c => new SelectListItem
-                {
-                    Value = c.Id.ToString(),
-                    Text = c.PONo
-                })
-                .ToListAsync(cancellationToken);
 
             return View(viewModel);
         }
@@ -105,6 +97,8 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
             if (ModelState.IsValid)
             {
+                #region -- Validating Series --
+
                 var getLastNumber = await _salesInvoiceRepo.GetLastSeriesNumber(cancellationToken);
 
                 if (getLastNumber > 9999999999)
@@ -121,6 +115,10 @@ namespace Accounting_System.Controllers
                 {
                     TempData["success"] = "Sales Invoice created successfully";
                 }
+
+                #endregion -- Validating Series --
+
+                #region -- Saving Default Entries --
 
                 var generateCRNo = await _salesInvoiceRepo.GenerateSINo(cancellationToken);
                 var existingCustomers = await _dbContext.Customers
@@ -191,6 +189,8 @@ namespace Accounting_System.Controllers
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction("Index");
+
+                #endregion -- Saving Default Entries --
             }
             else
             {
@@ -240,6 +240,22 @@ namespace Accounting_System.Controllers
             try
             {
                 var salesInvoice = await _salesInvoiceRepo.FindSalesInvoice(id, cancellationToken);
+                salesInvoice.Customers = await _dbContext.Customers
+                .OrderBy(c => c.Id)
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name
+                })
+                .ToListAsync(cancellationToken);
+                salesInvoice.Products = await _dbContext.Products
+                .OrderBy(p => p.Id)
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.Name
+                })
+                .ToListAsync(cancellationToken);
                 return View(salesInvoice);
             }
             catch (Exception ex)
@@ -256,6 +272,8 @@ namespace Accounting_System.Controllers
         {
             try
             {
+                #region -- Checking existing record --
+
                 var existingModel = await _salesInvoiceRepo.FindSalesInvoice(model.Id, cancellationToken);
 
                 if (existingModel == null)
@@ -263,8 +281,33 @@ namespace Accounting_System.Controllers
                     return NotFound(); // Return a "Not Found" response when the entity is not found.
                 }
 
+                #endregion -- Checking existing record --
+
+                #region -- Validating Series --
+
+                var getLastNumber = await _salesInvoiceRepo.GetLastSeriesNumber(cancellationToken);
+
+                if (getLastNumber > 9999999999)
+                {
+                    TempData["error"] = "You reach the maximum Series Number";
+                    return View(model);
+                }
+                var totalRemainingSeries = 9999999999 - getLastNumber;
+                if (getLastNumber >= 9999999899)
+                {
+                    TempData["warning"] = $"Sales Invoice created successfully, Warning {totalRemainingSeries} series number remaining";
+                }
+                else
+                {
+                    TempData["success"] = "Sales Invoice created successfully";
+                }
+
+                #endregion -- Validating Series --
+
                 if (ModelState.IsValid)
                 {
+                    #region -- Saving Default Enries --
+
                     existingModel.TransactionDate = model.TransactionDate;
                     existingModel.OtherRefNo = model.OtherRefNo;
                     existingModel.POId = model.POId;
@@ -273,6 +316,7 @@ namespace Accounting_System.Controllers
                     existingModel.Remarks = model.Remarks;
                     existingModel.Discount = model.Discount;
                     existingModel.Amount = model.Quantity * model.UnitPrice;
+                    existingModel.ProductId = model.ProductId;
 
                     if (existingModel.Amount >= model.Discount)
                     {
@@ -321,7 +365,7 @@ namespace Accounting_System.Controllers
                         #region --Audit Trail Recording
 
                         var modifiedBy = _userManager.GetUserName(this.User);
-                        AuditTrail auditTrail = new(modifiedBy, $"Edited invoice# {model.SINo}", "Sales Invoice");
+                        AuditTrail auditTrail = new(modifiedBy, $"Edited invoice# {existingModel.SINo}", "Sales Invoice");
                         await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                         #endregion --Audit Trail Recording
@@ -331,6 +375,8 @@ namespace Accounting_System.Controllers
                         TempData["error"] = "Please input below or exact amount based unit price multiply quantity";
                         return View(model);
                     }
+
+                    #endregion -- Saving Default Enries --
                 }
                 else
                 {
@@ -688,6 +734,20 @@ namespace Accounting_System.Controllers
             }
 
             return NotFound();
+        }
+        public async Task<IActionResult> GetPOs(int productId)
+        {
+            var purchaseOrders = await _dbContext.PurchaseOrders
+                .Where(po => po.ProductId == productId && po.IsPosted)
+                .ToListAsync();
+
+            if (purchaseOrders != null && purchaseOrders.Count > 0)
+            {
+                var poList = purchaseOrders.Select(po => new { Id = po.Id, PONumber = po.PONo }).ToList();
+                return Json(poList);
+            }
+
+            return Json(null);
         }
     }
 }

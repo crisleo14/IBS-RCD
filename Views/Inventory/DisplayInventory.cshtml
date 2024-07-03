@@ -34,7 +34,7 @@
                 @foreach (var obj in Model.OrderBy(ir => ir.Date).ThenBy(ir => ir.Id))
                 {
                     <tr>
-                        <td>@Html.DisplayFor(model => obj.Date)</td>
+                        <td>@obj.Date.ToString("MM/dd/yyyy")</td>
                         <td>@Html.DisplayFor(model => obj.Particular)</td>
                         <td>@Html.DisplayFor(model => obj.Reference)</td>
                         <td class="text-end">@Html.DisplayFor(model => obj.Quantity)</td>
@@ -64,7 +64,7 @@
                     totalQty += obj.Quantity;
                     totalPrice = totalAmount / totalQty;
                     <tr>
-                        <td>@Html.DisplayFor(model => obj.Date)</td>
+                        <td>@obj.Date.ToString("MM/dd/yyyy")</td>
                         <td>@Html.DisplayFor(model => obj.Particular)</td>
                         <td>@Html.DisplayFor(model => obj.Reference)</td>
                         <td class="text-end">@Html.DisplayFor(model => obj.Quantity)</td>
@@ -93,7 +93,7 @@
                         totalQty -= obj.Quantity;
                         totalPrice = totalAmount / totalQty;
                         <tr>
-                            <td>@Html.DisplayFor(model => obj.Date)</td>
+                            <td>@obj.Date.ToString("MM/dd/yyyy")</td>
                             <td>@Html.DisplayFor(model => obj.Particular)</td>
                             <td>@Html.DisplayFor(model => obj.Reference)</td>
                             <td class="text-end">@Html.DisplayFor(model => obj.Quantity)</td>
@@ -120,7 +120,7 @@
                         totalQty += obj.Quantity;
                         totalPrice = totalAmount / totalQty;
                         <tr>
-                            <td>@Html.DisplayFor(model => obj.Date)</td>
+                            <td>@obj.Date.ToString("MM/dd/yyyy")</td>
                             <td>@Html.DisplayFor(model => obj.Particular)</td>
                             <td>@Html.DisplayFor(model => obj.Reference)</td>
                             <td class="text-end">@Html.DisplayFor(model => obj.Quantity)</td>

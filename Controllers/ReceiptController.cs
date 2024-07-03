@@ -803,7 +803,7 @@ namespace Accounting_System.Controllers
                 #region --Audit Trail Recording
 
                 var modifiedBy = _userManager.GetUserName(this.User);
-                AuditTrail auditTrail = new(modifiedBy, $"Edited receipt# {model.CRNo}", "Collection Receipt");
+                AuditTrail auditTrail = new(modifiedBy, $"Edited receipt# {existingModel.CRNo}", "Collection Receipt");
                 await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording

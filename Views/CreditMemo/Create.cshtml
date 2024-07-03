@@ -69,7 +69,7 @@
                     </div>
                     <div class="col-sm">
                         <label asp-for="Amount" class="control-label"></label><span class="required">*</span>
-                        <input asp-for="Amount" class="form-control moneyInput" value="" placeholder="0.00" required />
+                        <input asp-for="Amount" class="form-control money" value="" placeholder="0.00" required />
                         <span asp-validation-for="Amount" class="text-danger"></span>
                     </div>
                 </div>
@@ -171,5 +171,8 @@
             // Return the formatted date string in yyyy-MM format
             return `${year}-${month}`;
         }
+    </script>
+    <script>
+        setTransactionDate();
     </script>
 }

@@ -10,6 +10,8 @@ namespace Accounting_System.Models.ViewModels
         [Required(ErrorMessage = "Supplier field is required.")]
         public int SupplierId { get; set; }
 
+        public int CVId { get; set; }
+
         public string SupplierName { get; set; }
 
         [Display(Name = "Supplier Address")]

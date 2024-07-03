@@ -621,6 +621,8 @@ namespace Accounting_System.Controllers
                 existingModel.Discount = model.Discount;
                 existingModel.Amount = model.Amount;
                 existingModel.Period = model.Period;
+                existingModel.DueDate = model.DueDate;
+                existingModel.Instructions = model.Instructions;
 
                 decimal total = 0;
                 total += model.Amount;

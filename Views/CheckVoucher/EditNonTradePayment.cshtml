@@ -3,11 +3,11 @@
 @model CheckVoucherNonTradePaymentViewModel
 
 @{
-    ViewData["Title"] = "Create Non Trade Payment";
+    ViewData["Title"] = "Edit Non Trade Payment";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Create</h1>
+<h1>Edit</h1>
 
 <h4>Check Voucher(Non-Trade Payment)</h4>
 <hr />
@@ -21,6 +21,7 @@
                 <input asp-for="TransactionDate" type="Date" class="form-control" />
                 <span asp-validation-for="TransactionDate" class="text-danger"></span>
             </div>
+            <input type="hidden" asp-for="CVId" />
             <div class="form-group mb-3">
                 <label class="control-label">CV #<span class="required">*</span></label>
                 <select asp-for="CvId" asp-items="@Model.CheckVouchers" class="form-select js-select2" required>
@@ -29,7 +30,7 @@
                 <span asp-validation-for="CvId" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
-                <input asp-for="Payee" type="text" class="form-control" placeholder="Optional" readonly />
+                <input asp-for="Payee" type="text" class="form-control" placeholder="Optional" />
                 <label asp-for="Payee" class="control-label"></label>
                 <span asp-validation-for="Payee" class="text-danger"></span>
             </div>
@@ -45,7 +46,7 @@
             </div>
             <div class="form-group mb-3">
                 <label asp-for="Total" class="control-label"></label><span class="required">*</span>
-                <input asp-for="Total" class="form-control money" value="" placeholder="0.00" />
+                <input asp-for="Total" class="form-control money" placeholder="0.00" />
                 <span asp-validation-for="Total" class="text-danger"></span>
             </div>
             <div class="form-group mb-3">
@@ -62,7 +63,7 @@
             </div>
             <div class="form-group mb-3">
                 <label asp-for="CheckDate" class="control-label"></label><span class="required">*</span>
-                <input asp-for="CheckDate" type="Date" value="@DateTime.Now.ToString("yyyy-MM-dd")" class="form-control" />
+                <input asp-for="CheckDate" type="Date" class="form-control" />
                 <span asp-validation-for="CheckDate" class="text-danger"></span>
             </div>
             <div class="form-group mb-3">
@@ -93,24 +94,24 @@
                     </tr>
                 </thead>
                 <tbody id="accountingEntriesBody">
-                    <tr>
-                        <td>
-                            <input type="hidden" name="AccountNumber" value="2010102" />
-                            <input name='AccountTitle' value='AP-Non Trade Payable' class="w-100" style='border:none' readonly />
-                        </td>
-                        <td><input asp-for="Debit" value='' placeholder="0.00" class="w-100 money" style='border:none' required /></td>
-                        <td><input name="Credit" value='0.00' class="w-100" style='border:none' readonly /></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <input type="hidden" name="AccountNumber" class="cib-acct-no" value="" />
-                            <input name='AccountTitle' value='Cash in Bank' class="w-100" style='border:none' readonly />
-                        </td>
-                        <td><input name="Debit" value='0.00' class="w-100" style='border:none' readonly /></td>
-                        <td><input name="Credit" value='0.00' class="w-100 cib-credit" style='border:none' readonly /></td>
-                        <td></td>
-                    </tr>
+                    @for(int i = 0; i< Model.AccountNumber.Length; i ++){
+                        var cibClass = i == 0 ? "" : "cib-acct-no";
+                        var creditClass = i == 0 ? "" : "cib-credit";
+                        var apTradeDebitClass = i == 0 ? "ap-trade-debit" : "";
+                        var readOnly = i == 0 ? "" : "readonly";
+                        var apTrade = i == 0 ? "2010102" : "1010101";
+
+                        <tr>
+                            <td>
+                                <input type="hidden" name="AccountNumber" class="@cibClass" value="@apTrade" />
+                                <input name='AccountTitle' value="@Model.AccountTitle[i]" class="w-100 @cibClass" style='border:none' readonly />
+                            </td>
+                            <td><input name="Debit" value="@Model.Debit[i]" placeholder="0.00" class="w-100 money @apTradeDebitClass" style='border:none' required @readOnly /></td>
+                            <td><input name="Credit" value="@Model.Credit[i]" class="w-100 @creditClass" style='border:none' readonly /></td>
+                            <td></td>
+                        </tr>
+                    }
+                    
                 </tbody>
                 <tbody>
                     <tr>
@@ -124,7 +125,7 @@
         </div>
         <br />
         <div class="form-group">
-            <input type="submit" value="Create" class="btn btn-primary" onclick="validateDebitAndCredit(event)" />
+            <input type="submit" value="Save" class="btn btn-primary" onclick="validateDebitAndCredit(event)" />
             <a asp-action="Index" class="btn btn-secondary">Back to List</a>
         </div>
     </div>
@@ -217,7 +218,7 @@
                         success: function (data) {
                             if (data) {
                                 var accountNoInput = $(".cib-acct-no");
-                                var accountTitleInput = $("input[value='Cash in Bank']");
+                                var accountTitleInput = $("input[value*='Cash in Bank']");
                                 accountNoInput.val(`${data.accountNoCOA}`)
                                 accountTitleInput.val(`Cash in Bank - ${data.accountNo} ${data.accountName}`);
                             }
@@ -254,14 +255,14 @@
 
             // Create a new row with the text only and a hidden input for the value
             var newRow = `<tr>
-                                                            <td>
-                                                                <input type='hidden' name='AccountNumber' value='${accountNumber}'/>
-                                                                <input type='text' name='AccountTitle' value='${accountNumberText}' style='border:none' class='w-100' readonly />
-                                                            </td>
-                                                            <td><input name='Debit' id='debit_${accountNumber}' value='${formattedDebit}' style='border:none' class='w-100' readonly /></td>
-                                                            <td><input name='Credit' id='credit_${accountNumber}' value='${formattedCredit}' style='border:none' class='w-100' readonly /></td>
-                                                            <td><button type='button' class='btn btn-danger btn-sm' onclick='removeRow(this)'>Remove</button></td>
-                                                     </tr>`;
+                                                                    <td>
+                                                                        <input type='hidden' name='AccountNumber' value='${accountNumber}'/>
+                                                                        <input type='text' name='AccountTitle' value='${accountNumberText}' style='border:none' class='w-100' readonly />
+                                                                    </td>
+                                                                    <td><input name='Debit' id='debit_${accountNumber}' value='${formattedDebit}' style='border:none' class='w-100' readonly /></td>
+                                                                    <td><input name='Credit' id='credit_${accountNumber}' value='${formattedCredit}' style='border:none' class='w-100' readonly /></td>
+                                                                    <td><button type='button' class='btn btn-danger btn-sm' onclick='removeRow(this)'>Remove</button></td>
+                                                             </tr>`;
 
             // Append the new row to the table body
             $("#accountingEntriesBody").append(newRow);
@@ -280,6 +281,9 @@
 
         $(document).ready(function () {
             $("#calculateButton").click(updateTotalDebitAndCredit);
+        });
+        $(document).ready(function () {
+            updateTotalDebitAndCredit()
         });
 
         function updateTotalDebitAndCredit() {
@@ -322,6 +326,13 @@
                 updateDefaultEntries(totalValue);
             });
         });
+        $(document).ready(function () {
+            // Event listener for when the Total input changes
+            $(".ap-trade-debit").on("input", function () {
+                var totalValue = parseFloat($(this).val().replace(/,/g, '')) || 0;
+                updateTotalDebitAndCredit();
+            });
+        });
 
         function updateDefaultEntries(totalValue) {
             var debitField = $(".ap-trade-debit");
@@ -341,15 +352,6 @@
                 return;
             }
         }
-    </script>
-    <script>
-        $(document).ready(function () {
-            // Event listener for when the Total input changes
-            $("#Debit").on("input", function () {
-                var totalValue = parseFloat($(this).val().replace(/,/g, '')) || 0;
-                updateTotalDebitAndCredit();
-            });
-        });
     </script>
     <script>
         setTransactionDate();

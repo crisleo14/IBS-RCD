@@ -9,6 +9,7 @@ namespace Accounting_System.Models.ViewModels
 
         [Required(ErrorMessage = "The CV No is required.")]
         public int CvId { get; set; }
+        public int CVId { get; set; }
 
         [Display(Name = "Payee")]
         public string Payee { get; set; }

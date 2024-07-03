@@ -63,7 +63,7 @@ namespace Accounting_System.Controllers
 
                 if (document != null && document.Length > 0)
                 {
-                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Proof of Exemption", supplier.Name);
+                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Proof of Exemption", supplier.Number.ToString());
 
                     if (!Directory.Exists(uploadsFolder))
                     {
@@ -83,7 +83,7 @@ namespace Accounting_System.Controllers
 
                 if (registration != null && registration.Length > 0)
                 {
-                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Proof of Registration", supplier.Name);
+                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Proof of Registration", supplier.Number.ToString());
 
                     if (!Directory.Exists(uploadsFolder))
                     {

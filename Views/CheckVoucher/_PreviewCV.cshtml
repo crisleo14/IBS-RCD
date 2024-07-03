@@ -36,7 +36,7 @@
                             <thead>
                                 <tr style="border: 1px solid black;">
                                     <th colspan="2" style="padding-left:20px;">I. PAYEE DETAILS</th>
-                                    <td colspan="2" class="text-end"><b>Date : </b>@Model.Header.Date.ToShortDateString()</td>
+                                    <td colspan="2" class="text-end"><b>Date : </b>@Model.Header.Date.ToString("MM/dd/yyyy")</td>
                                 </tr>
                             </thead>
                             <tbody>
@@ -199,9 +199,9 @@
                                 <tr>
                                     <td style="padding-left:20px;">Check Date:</td>
                                     <td>
-                                        @if (Model.Header.AccruedType != "Invoicing")
+                                        @if (Model.Header.CvType != "Invoicing")
                                         {
-                                            @Html.DisplayFor(model => model.Header.CheckDate)
+                                        @Model.Header.CheckDate?.ToString("MM/dd/yyyy")
                                         }
                                     </td>
                                     <td></td>
@@ -281,7 +281,7 @@
                             <span>&nbsp;&nbsp;Date Issued:</span>
                             <span style="display: inline-block; width:50px;">@CS.DateIssued</span><br />
                             Series: CV0000000001 - CV9999999999
-                            Date and Time Created:&nbsp; @Html.DisplayFor(model => model.Header.CreatedDate)
+                            Date and Time Created:&nbsp; @Model.Header.CreatedDate.ToString("MM/dd/yyyy")
                         </p>
                     </div>
 

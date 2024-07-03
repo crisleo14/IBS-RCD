@@ -175,8 +175,13 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelector('form').addEventListener('submit', handleSubmit);
 });
 
-// Get the current date in the format "YYYY-MM-DD" (required for the date input)
-var currentDate = new Date().toISOString().slice(0, 10);
+function setTransactionDate() {
+    // Get the current date in the format "YYYY-MM-DD" (required for the date input)
+    var currentDate = new Date().toISOString().slice(0, 10);
 
-// Set the default value of the input field
-document.getElementById("TransactionDate").value = currentDate;
+    var transactionDateField = document.getElementById("TransactionDate");
+
+    if (transactionDateField.value == '0001-01-01') {
+        transactionDateField.value = currentDate;
+    }
+}
