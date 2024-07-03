@@ -202,43 +202,51 @@
         });
     </script>
     <script>
-        $(function () {
+        $(document).ready(function () {
+            $(".GetPOList").each(function () {
+                var productId = $(this).val();
+                getPO(productId)
+            });
             $(".GetPOList").change(function () {
                 var productId = $(this).val();
-                if (productId !== "") {
-                    // Make an AJAX request to get the POs based on the selected SupplierId
-                    $.ajax({
-                        url: "/SalesInvoice/GetPOs",
-                        method: "GET",
-                        data: { productId: productId }, // Corrected parameter name
-                        success: function (data) {
-                            if (data) {
-                                // Clear existing options
-                                $("#POId").empty();
-                                // Add new options based on the fetched data
-                                $.each(data, function (index, po) {
-                                    if (po && po.poNumber) { // Adjust property name to poNumber
-                                        console.log(po.id)
-                                        $('#POId').append('<option value="' + po.id + '">' + po.poNumber + '</option>'); // Adjust property names
-                                    } else {
-                                        console.error("Invalid PO object:", po);
-                                    }
-                                });
-                            } else {
-                                // Clear the fields if no POs are found
-                                $("#POId").empty();
-                            }
-                        },
-                        error: function (xhr, status, error) {
-                            console.error('Error fetching POs:', error);
-                        }
-                    });
-                } else {
-                    // Clear the fields if no supplier is selected
-                    $("#POId").empty();
-                }
+                getPO(productId)
             });
         });
+
+        function getPO(productId) {
+            if (productId !== "") {
+                // Make an AJAX request to get the POs based on the selected SupplierId
+                $.ajax({
+                    url: "/SalesInvoice/GetPOs",
+                    method: "GET",
+                    data: { productId: productId }, // Corrected parameter name
+                    success: function (data) {
+                        if (data) {
+                            // Clear existing options
+                            $("#POId").empty();
+                            // Add new options based on the fetched data
+                            $.each(data, function (index, po) {
+                                if (po && po.poNumber) { // Adjust property name to poNumber
+                                    console.log(po.id)
+                                    $('#POId').append('<option value="' + po.id + '">' + po.poNumber + '</option>'); // Adjust property names
+                                } else {
+                                    console.error("Invalid PO object:", po);
+                                }
+                            });
+                        } else {
+                            // Clear the fields if no POs are found
+                            $("#POId").empty();
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching POs:', error);
+                    }
+                });
+            } else {
+                // Clear the fields if no supplier is selected
+                $("#POId").empty();
+            }
+        }
     </script>
     <script>
         setTransactionDate();

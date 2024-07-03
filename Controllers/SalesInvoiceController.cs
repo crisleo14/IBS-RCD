@@ -256,13 +256,6 @@ namespace Accounting_System.Controllers
                     Text = p.Name
                 })
                 .ToListAsync(cancellationToken);
-                salesInvoice.PO = await _dbContext.PurchaseOrders
-                .Select(po => new SelectListItem
-                {
-                    Value = po.Id.ToString(),
-                    Text = po.PONo
-                })
-                .ToListAsync(cancellationToken);
                 return View(salesInvoice);
             }
             catch (Exception ex)
