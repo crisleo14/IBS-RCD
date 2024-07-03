@@ -248,13 +248,14 @@ namespace Accounting_System.Controllers
 
         public IActionResult InventoryBookReport(ViewModelBook model)
         {
-            ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
             if (ModelState.IsValid)
             {
                 try
                 {
-                    var inventoryBooks = _reportRepo.GetInventoryBooks(model.DateTo);
+                    var dateFrom = model.DateTo.AddDays(-model.DateTo.Day + 1);
+                    ViewBag.DateFrom = dateFrom;
+                    var inventoryBooks = _reportRepo.GetInventoryBooks(dateFrom, model.DateTo);
                     var lastRecord = inventoryBooks.LastOrDefault();
                     if (lastRecord != null)
                     {
@@ -795,11 +796,11 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var dateFrom = model.DateFrom;
                     var dateTo = model.DateTo;
+                    var dateFrom = dateTo.AddDays(-dateTo.Day + 1);
                     var extractedBy = _userManager.GetUserName(this.User);
 
-                    var inventoryBooks = _reportRepo.GetInventoryBooks(model.DateTo);
+                    var inventoryBooks = _reportRepo.GetInventoryBooks(dateFrom, dateTo);
                     if (inventoryBooks.Count == 0)
                     {
                         TempData["error"] = "No Record Found";
