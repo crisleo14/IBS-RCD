@@ -447,7 +447,6 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-
                     #region --Check if duplicate CheckNo
                     var existingHeaderModel = await _dbContext.CheckVoucherHeaders.FindAsync(viewModel.CVId, cancellationToken);
 
