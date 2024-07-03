@@ -9,6 +9,7 @@ namespace Accounting_System.Models.ViewModels
     {
         [Display(Name = "JV No")]
         public string? JVNo { get; set; }
+        public int JVId { get; set; }
 
         public long SeriesNumber { get; set; }
 

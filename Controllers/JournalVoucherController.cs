@@ -489,7 +489,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> EditJournalVoucher(int id, CancellationToken cancellationToken)
+        public async Task<IActionResult> Edit(int id, CancellationToken cancellationToken)
         {
             if (id == null)
             {
@@ -526,6 +526,8 @@ namespace Accounting_System.Controllers
 
             JournalVoucherViewModel model = new()
             {
+                JVId = existingHeaderModel.Id,
+                JVNo = existingHeaderModel.JVNo,
                 TransactionDate = existingHeaderModel.Date,
                 References = existingHeaderModel.References,
                 CVId = existingHeaderModel.CVId,
@@ -556,6 +558,69 @@ namespace Accounting_System.Controllers
             };
 
             return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(JournalVoucherViewModel viewModel, IFormFile? file, CancellationToken cancellationToken)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    #region --CV Details Entry
+
+                    var existingHeaderModel = await _dbContext.JournalVoucherHeaders.FindAsync(viewModel.JVId, cancellationToken);
+                    var existingDetailsModel = await _dbContext.JournalVoucherDetails.Where(d => d.TransactionNo == existingHeaderModel.JVNo).ToListAsync();
+                    JournalVoucherDetail detailsModel = new();
+
+                    for (int i = 0; i < existingDetailsModel.Count(); i++)
+                    {
+                        var cvd = existingDetailsModel[i];
+                        cvd.AccountNo = viewModel.AccountNumber[i];
+                        cvd.AccountName = viewModel.AccountTitle[i];
+                        cvd.Debit = viewModel.Debit[i];
+                        cvd.Credit = viewModel.Credit[i];
+                        cvd.TransactionNo = viewModel.JVNo;
+                    }
+
+                    var newDetailsModel = new List<JournalVoucherDetail>(); // Replace with the actual new details
+                    existingDetailsModel.AddRange(newDetailsModel);
+
+                    #endregion --CV Details Entry
+
+                    #region --Saving the default entries
+
+                    existingHeaderModel.JVNo = viewModel.JVNo;
+                    existingHeaderModel.Date = viewModel.TransactionDate;
+                    existingHeaderModel.References = viewModel.References;
+                    existingHeaderModel.CVId = viewModel.CVId;
+                    existingHeaderModel.Particulars = viewModel.Particulars;
+                    existingHeaderModel.CRNo = viewModel.CRNo;
+                    existingHeaderModel.JVReason = viewModel.JVReason;
+                    existingHeaderModel.CreatedBy = _userManager.GetUserName(this.User);
+
+                    #endregion --Saving the default entries
+
+                    #region --Audit Trail Recording
+
+                    AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Edit check voucher# {viewModel.JVNo}", "Check Voucher");
+                    _dbContext.Add(auditTrail);
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
+                    TempData["success"] = "Journal Voucher edited successfully";
+                    return RedirectToAction("Index");
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return View(viewModel);
+                }
+            }
+
+            TempData["error"] = "The information provided was invalid.";
+            return View(viewModel);
         }
     }
 }

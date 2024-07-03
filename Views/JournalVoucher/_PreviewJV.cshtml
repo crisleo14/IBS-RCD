@@ -100,7 +100,7 @@
                                 <td>
                                     @if (Model.Header.CheckVoucherHeader != null)
                                     {
-                                        @Model.Header.CheckVoucherHeader.CheckDate.Value.ToString("MM/dd/yyyy")
+                                        @Model.Header.CheckVoucherHeader.CheckDate?.ToString("MM/dd/yyyy")
                                     }
                                 </td>
                             </tr>

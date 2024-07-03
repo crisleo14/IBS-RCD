@@ -59,7 +59,7 @@
                         {
                             if (!item.Header.IsPosted && !item.Header.IsVoided && !item.Header.IsCanceled)
                             {
-                                <a asp-action="EditJournalVoucher" asp-route-id="@item.Header.Id" class="btn btn-light">Edit</a>
+                                <a asp-action="Edit" asp-route-id="@item.Header.Id" class="btn btn-light">Edit</a>
                                 <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#Preview-@item.Header.Id" data-bs-url="@Url.Action($"Preview/{item.Header.Id}")">
                                     Preview
                                 </button>
