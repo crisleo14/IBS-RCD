@@ -842,5 +842,169 @@ namespace Accounting_System.Controllers
 
             return Json(null);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int? id, CancellationToken cancellationToken)
+        {
+            if (id == null || _dbContext.DebitMemos == null)
+            {
+                return NotFound();
+            }
+
+            var debitMemo = await _dbContext.DebitMemos
+                .Include(cm => cm.SalesInvoice)
+                .Include(cm => cm.ServiceInvoice)
+                .ThenInclude(sv => sv.Customer)
+                .Include(cm => cm.ServiceInvoice)
+                .ThenInclude(sv => sv.Service)
+                .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+
+            if (debitMemo == null)
+            {
+                return NotFound();
+            }
+
+            debitMemo.SalesInvoices = await _dbContext.SalesInvoices
+                .Where(si => si.IsPosted)
+                .Select(si => new SelectListItem
+                {
+                    Value = si.Id.ToString(),
+                    Text = si.SINo
+                })
+                .ToListAsync(cancellationToken);
+            debitMemo.ServiceInvoices = await _dbContext.ServiceInvoices
+                .Where(sv => sv.IsPosted)
+                .Select(sv => new SelectListItem
+                {
+                    Value = sv.Id.ToString(),
+                    Text = sv.SVNo
+                })
+                .ToListAsync(cancellationToken);
+
+
+            return View(debitMemo);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(DebitMemo model, CancellationToken cancellationToken)
+        {
+            if (ModelState.IsValid)
+            {
+                var existingDM = await _dbContext
+                        .DebitMemos
+                        .FirstOrDefaultAsync(dm => dm.Id == model.Id);
+
+                model.CreatedBy = _userManager.GetUserName(this.User);
+
+                if (model.Source == "Sales Invoice")
+                {
+                    model.ServiceInvoiceId = null;
+
+                    var existingSalesInvoice = await _dbContext
+                        .SalesInvoices
+                        .Include(c => c.Customer)
+                        .Include(s => s.Product)
+                        .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId);
+
+
+                    #region -- Saving Default Enries --
+
+                    existingDM.TransactionDate = model.TransactionDate;
+                    existingDM.SalesInvoiceId = model.SalesInvoiceId;
+                    existingDM.Quantity = model.Quantity;
+                    existingDM.AdjustedPrice = model.AdjustedPrice;
+                    existingDM.Description = model.Description;
+                    existingDM.Remarks = model.Remarks;
+
+                    #endregion -- Saving Default Enries --
+
+                    existingDM.DebitAmount = (decimal)(model.Quantity * -model.AdjustedPrice);
+
+                    if (existingSalesInvoice.Customer.CustomerType == "Vatable")
+                    {
+                        existingDM.VatableSales = existingDM.DebitAmount / 1.12m;
+                        existingDM.VatAmount = existingDM.DebitAmount - existingDM.VatableSales;
+
+                        if (existingSalesInvoice.WithHoldingTaxAmount != 0)
+                        {
+                            existingDM.WithHoldingTaxAmount = existingDM.VatableSales * 0.01m;
+                        }
+                        if (existingSalesInvoice.WithHoldingVatAmount != 0)
+                        {
+                            existingDM.WithHoldingVatAmount = existingDM.VatableSales * 0.05m;
+                        }
+                        existingDM.TotalSales = existingDM.VatableSales + existingDM.VatAmount;
+                    }
+                    else
+                    {
+                        existingDM.TotalSales = existingDM.DebitAmount;
+                    }
+
+                }
+                else if (model.Source == "Service Invoice")
+                {
+                    model.SalesInvoiceId = null;
+
+                    var existingSv = await _dbContext.ServiceInvoices
+                        .Include(sv => sv.Customer)
+                        .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
+
+                    #region --Retrieval of Services
+
+                    existingDM.ServicesId = existingSv.ServicesId;
+
+                    var services = await _dbContext
+                    .Services
+                    .FirstOrDefaultAsync(s => s.Id == existingDM.ServicesId, cancellationToken);
+
+                    #endregion --Retrieval of Services
+
+                    #region -- Saving Default Enries --
+
+                    existingDM.TransactionDate = model.TransactionDate;
+                    existingDM.ServiceInvoiceId = model.ServiceInvoiceId;
+                    existingDM.Period = model.Period;
+                    existingDM.Amount = model.Amount;
+                    existingDM.Description = model.Description;
+                    existingDM.Remarks = model.Remarks;
+
+                    #endregion -- Saving Default Enries --
+
+                    existingDM.DebitAmount = -model.Amount ?? 0;
+
+                    if (existingSv.Customer.CustomerType == "Vatable")
+                    {
+                        existingDM.VatableSales = existingDM.DebitAmount / 1.12m;
+                        existingDM.VatAmount = existingDM.DebitAmount - existingDM.VatableSales;
+                        existingDM.TotalSales = existingDM.VatableSales + existingDM.VatAmount;
+                        existingDM.WithHoldingTaxAmount = existingDM.VatableSales * (services.Percent / 100m);
+
+                        if (existingSv.WithholdingVatAmount != 0)
+                        {
+                            existingDM.WithHoldingVatAmount = existingDM.VatableSales * 0.05m;
+                        }
+                    }
+                    else
+                    {
+                        existingDM.TotalSales = existingDM.DebitAmount;
+                    }
+
+                }
+
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Edit credit memo# {existingDM.DMNo}", "Credit Memo");
+                _dbContext.Add(auditTrail);
+
+                #endregion --Audit Trail Recording
+
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                TempData["success"] = "Debit Memo edited successfully";
+                return RedirectToAction("Index");
+            }
+
+            ModelState.AddModelError("", "The information you submitted is not valid!");
+            return View(model);
+        }
     }
 }
