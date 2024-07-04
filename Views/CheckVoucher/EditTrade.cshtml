@@ -245,7 +245,7 @@
 
         @* "end" hidden input to add value when submit form *@
         <div class="form-group">
-            <input type="submit" value="Edit" class="btn btn-primary" onclick="validateDebitAndCredit(event)" />
+            <input type="submit" value="Save" class="btn btn-primary" onclick="validateDebitAndCredit(event)" />
             <a asp-action="Index" class="btn btn-secondary">Back to List</a>
         </div>
     </div>
@@ -905,7 +905,7 @@
                         '<td><input type="text" name="AccountTitle" value="' + accountTitles[i] + '" class="w-100 ' + accountTitleClass + ' " style="border:none" readonly /></td>' +
                         '<td><input type="text" name="Debit" value="' + debits[i].toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '" class="' + debitClass + '" style="border:none" readonly /></td>' +
                         '<td><input type="text" name="Credit" value="' + credits[i].toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '" class="' + creditClass + '" style="border:none" readonly /></td>' +
-                        '<td></td>' +
+                        (i < 4 ? '<td></td>' : '<td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">Remove</button></td>') +
                         '</tr>';
 
                     $('.defaultEntry').append(row);
