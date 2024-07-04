@@ -108,7 +108,13 @@
                             </td>
                             <td><input name="Debit" value="@Model.Debit[i]" placeholder="0.00" class="w-100 money @apTradeDebitClass" style='border:none' required @readOnly /></td>
                             <td><input name="Credit" value="@Model.Credit[i]" class="w-100 @creditClass" style='border:none' readonly /></td>
-                            <td></td>
+                            @if(i < 2){
+                                <td></td>
+                            }
+                            else
+                            {
+                                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">Remove</button></td>
+                            }
                         </tr>
                     }
                     
