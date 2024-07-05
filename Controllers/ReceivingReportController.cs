@@ -497,8 +497,6 @@ namespace Accounting_System.Controllers
 
                     #endregion --Audit Trail Recording
 
-                    //await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.RRNo, cancellationToken);
-
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Receiving Report has been Voided.";
                 }

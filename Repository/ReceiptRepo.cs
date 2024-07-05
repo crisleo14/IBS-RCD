@@ -121,6 +121,57 @@ namespace Accounting_System.Repository
             }
         }
 
+        public async Task<int> RemoveSIPayment(int id, decimal paidAmount, decimal offsetAmount, CancellationToken cancellationToken = default)
+        {
+            var si = await _dbContext
+                .SalesInvoices
+                .FirstOrDefaultAsync(si => si.Id == id, cancellationToken);
+
+            if (si != null)
+            {
+                var total = paidAmount + offsetAmount;
+                si.AmountPaid -= total;
+                si.Balance -= si.NetDiscount - total;
+
+                if (si.IsPaid == true && si.Status == "Paid" || si.IsPaid == true && si.Status == "OverPaid")
+                {
+                    si.IsPaid = false;
+                    si.Status = "Pending";
+                }
+
+                return await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+            else
+            {
+                throw new ArgumentException("", "No record found");
+            }
+        }
+        public async Task<int> RemoveSVPayment(int? id, decimal paidAmount, decimal offsetAmount, CancellationToken cancellationToken = default)
+        {
+            var sv = await _dbContext
+                .ServiceInvoices
+                .FirstOrDefaultAsync(si => si.Id == id, cancellationToken);
+
+            if (sv != null)
+            {
+                var total = paidAmount + offsetAmount;
+                sv.AmountPaid -= total;
+                sv.Balance -= (sv.Total - sv.Discount) - total;
+
+                if (sv.IsPaid == true && sv.Status == "Paid" || sv.IsPaid == true && sv.Status == "OverPaid")
+                {
+                    sv.IsPaid = false;
+                    sv.Status = "Pending";
+                }
+
+                return await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+            else
+            {
+                throw new ArgumentException("", "No record found");
+            }
+        }
+
         public async Task<int> UpdateSv(int id, decimal paidAmount, decimal offsetAmount, CancellationToken cancellationToken = default)
         {
             var sv = await _dbContext
