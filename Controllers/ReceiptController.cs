@@ -1163,33 +1163,55 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Void(int itemId, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.CollectionReceipts.FindAsync(itemId, cancellationToken);
+            var model = await _receiptRepo.FindCR(itemId, cancellationToken);
 
             if (model != null)
             {
                 if (!model.IsVoided)
                 {
-                    if (model.IsPosted)
+                    await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                    try
                     {
-                        model.IsPosted = false;
+                        if (model.IsPosted)
+                        {
+                            model.IsPosted = false;
+                        }
+
+                        model.IsVoided = true;
+                        model.VoidedBy = _userManager.GetUserName(this.User);
+                        model.VoidedDate = DateTime.Now;
+                        var series = model.SINo != null ? model.SINo : model.SVNo;
+
+                        var findOffsetting = await _dbContext.Offsettings.Where(offset => offset.Source == model.CRNo && offset.Reference == series).ToListAsync(cancellationToken);
+
+                        await _generalRepo.RemoveRecords<CashReceiptBook>(crb => crb.RefNo == model.CRNo, cancellationToken);
+                        await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CRNo, cancellationToken);
+                        await _generalRepo.RemoveRecords<Offsetting>(offset => offset.Source == model.CRNo && offset.Reference == series, cancellationToken);
+                        if (series.Contains("SI"))
+                        {
+                            await _receiptRepo.RemoveSIPayment(model.SalesInvoice.Id, model.Total, findOffsetting.Sum(offset => offset.Amount), cancellationToken);
+                        }
+                        else
+                        {
+                            await _receiptRepo.RemoveSVPayment(model.ServiceInvoiceId, model.Total, findOffsetting.Sum(offset => offset.Amount), cancellationToken);
+                        }
+
+                        #region --Audit Trail Recording
+
+                        AuditTrail auditTrail = new(model.VoidedBy, $"Voided collection receipt# {model.CRNo}", "Collection Receipt");
+                        await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync();
+                        TempData["success"] = "Collection Receipt has been Voided.";
                     }
-
-                    model.IsVoided = true;
-                    model.VoidedBy = _userManager.GetUserName(this.User);
-                    model.VoidedDate = DateTime.Now;
-
-                    await _generalRepo.RemoveRecords<CashReceiptBook>(crb => crb.RefNo == model.CRNo, cancellationToken);
-                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CRNo, cancellationToken);
-
-                    #region --Audit Trail Recording
-
-                    AuditTrail auditTrail = new(model.VoidedBy, $"Voided collection receipt# {model.CRNo}", "Collection Receipt");
-                    await _dbContext.AddAsync(auditTrail, cancellationToken);
-
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Collection Receipt has been Voided.";
+                    catch (Exception ex)
+                    {
+                        await transaction.RollbackAsync();
+                        TempData["error"] = ex.Message;
+                    }
                 }
                 return RedirectToAction("CollectionIndex");
             }
