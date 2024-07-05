@@ -471,7 +471,8 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.ReceivingReports.FindAsync(id, cancellationToken);
+            var model = await _dbContext.ReceivingReports
+                .FindAsync(id, cancellationToken);
 
             if (model != null)
             {
@@ -489,6 +490,8 @@ namespace Accounting_System.Controllers
                     await _generalRepo.RemoveRecords<PurchaseJournalBook>(pb => pb.DocumentNo == model.RRNo, cancellationToken);
                     await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.RRNo, cancellationToken);
                     await _generalRepo.RemoveRecords<Inventory>(i => i.Reference == model.RRNo, cancellationToken);
+                    await _receivingReportRepo.RemoveQuantityReceived(model.POId, model.QuantityReceived, cancellationToken);
+                    model.QuantityReceived = 0;
 
                     #region --Audit Trail Recording
 

@@ -92,6 +92,33 @@ namespace Accounting_System.Repository
             }
         }
 
+        public async Task<int> RemoveQuantityReceived(int id, decimal quantityReceived, CancellationToken cancellationToken = default)
+        {
+            var po = await _dbContext.PurchaseOrders
+                    .FirstOrDefaultAsync(po => po.Id == id, cancellationToken);
+
+            if (po != null)
+            {
+                po.QuantityReceived -= quantityReceived;
+
+                if (po.IsReceived == true)
+                {
+                    po.IsReceived = false;
+                    po.ReceivedDate = DateTime.MaxValue;
+                }
+                if (po.QuantityReceived > po.Quantity)
+                {
+                    throw new ArgumentException("Input is exceed to remaining quantity received");
+                }
+
+                return await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+            else
+            {
+                throw new ArgumentException("No record found.");
+            }
+        }
+
         public async Task<DateOnly> ComputeDueDateAsync(int poId, DateOnly rrDate, CancellationToken cancellationToken = default)
         {
             var po = await _dbContext
