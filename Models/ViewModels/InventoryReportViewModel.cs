@@ -26,6 +26,8 @@ namespace Accounting_System.Models.ViewModels
         [Display(Name = "PO No.")]
         public int? POId { get; set; }
 
+        public string? ProductName { get; set; }
+
         public List<SelectListItem>? PO { get; set; }
     }
 }

@@ -174,7 +174,40 @@ namespace Accounting_System.Controllers
 
             return View(viewModel);
         }
+        public async Task<IActionResult> ConsolidatedPO(InventoryReportViewModel viewModel, CancellationToken cancellationToken)
+        {
+            if (ModelState.IsValid)
+            {
+                var dateFrom = viewModel.DateTo.AddDays(-viewModel.DateTo.Day + 1);
+                List<Inventory> inventories = new List<Inventory>();
+                if (viewModel.POId == null)
+                {
+                    inventories = await _dbContext.Inventories
+                        .Include(i => i.PurchaseOrder)
+                        .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId)
+                        .ToListAsync(cancellationToken);
+                }
+                else
+                {
+                    inventories = await _dbContext.Inventories
+                        .Include(i => i.PurchaseOrder)
+                        .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId && i.POId == viewModel.POId)
+                        .ToListAsync(cancellationToken);
+                }
 
+                var product = await _dbContext.Products
+                    .FindAsync(viewModel.ProductId, cancellationToken);
+
+                ViewData["Product"] = product.Name;
+                ViewBag.ProductId = viewModel.ProductId;
+                ViewBag.POId = viewModel.POId;
+
+
+                return View(inventories);
+            }
+
+            return View(viewModel);
+        }
         [HttpGet]
         public async Task<IActionResult> ActualInventory(CancellationToken cancellationToken)
         {
