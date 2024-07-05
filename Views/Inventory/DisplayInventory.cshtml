@@ -62,7 +62,7 @@
                 {
                     totalAmount += obj.Total;
                     totalQty += obj.Quantity;
-                    totalPrice = totalAmount / totalQty;
+                    totalPrice = totalAmount != 0 && totalQty != 0 ? totalAmount / totalQty : obj.Cost;
                     <tr>
                         <td>@obj.Date.ToString("MM/dd/yyyy")</td>
                         <td>@Html.DisplayFor(model => obj.Particular)</td>
@@ -91,7 +91,7 @@
                     {
                         totalAmount -= obj.Total;
                         totalQty -= obj.Quantity;
-                        totalPrice = totalAmount / totalQty;
+                        totalPrice = totalAmount != 0 && totalQty != 0 ? totalAmount / totalQty : obj.Cost;
                         <tr>
                             <td>@obj.Date.ToString("MM/dd/yyyy")</td>
                             <td>@Html.DisplayFor(model => obj.Particular)</td>
@@ -118,7 +118,7 @@
                     {
                         totalAmount += obj.Total;
                         totalQty += obj.Quantity;
-                        totalPrice = totalAmount / totalQty;
+                        totalPrice = totalAmount != 0 && totalQty != 0 ? totalAmount / totalQty : obj.Cost;
                         <tr>
                             <td>@obj.Date.ToString("MM/dd/yyyy")</td>
                             <td>@Html.DisplayFor(model => obj.Particular)</td>

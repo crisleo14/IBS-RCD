@@ -1,4 +1,5 @@
-﻿using Accounting_System.Models.MasterFile;
+﻿using Accounting_System.Models.AccountsPayable;
+using Accounting_System.Models.MasterFile;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -94,5 +95,8 @@ namespace Accounting_System.Models
         public DateTime? ValidatedDate { get; set; }
 
         public int? POId { get; set; }
+
+        [ForeignKey("POId")]
+        public PurchaseOrder? PurchaseOrder { get; set; }
     }
 }
