@@ -91,7 +91,7 @@ namespace Accounting_System.Repository
                     ValidatedDate = DateTime.Now
                 };
 
-                inventory.Total = inventory.Quantity * inventory.Cost;
+                inventory.Total = inventory.Quantity * Math.Round(inventory.Cost, 2);
                 inventory.InventoryBalance = previousInventory.InventoryBalance + inventory.Quantity;
                 inventory.TotalBalance = previousInventory.TotalBalance + inventory.Total;
                 inventory.AverageCost = inventory.TotalBalance / inventory.InventoryBalance;
@@ -115,7 +115,7 @@ namespace Accounting_System.Repository
                     ValidatedDate = DateTime.Now
                 };
 
-                inventory.Total = inventory.Quantity * inventory.Cost;
+                inventory.Total = inventory.Quantity * Math.Round(inventory.Cost, 2);
                 inventory.InventoryBalance = inventory.Quantity;
                 inventory.TotalBalance = inventory.Total;
                 inventory.AverageCost = inventory.TotalBalance / inventory.InventoryBalance;
