@@ -17,12 +17,13 @@
             <fieldset class="form-group mb-3">
                 <legend>Select Source</legend>
                 <div class="form-check form-check-inline mb-3">
-                    <input class="form-check-input" type="radio" asp-for="Source" id="inlineRadio1" value="Sales Invoice" aria-labelledby="labelInlineRadio1" onclick="toggleSelect('siList')">
+                    <input class="form-check-input" type="radio" asp-for="Source" id="inlineRadio1" value="Sales Invoice" aria-labelledby="labelInlineRadio1" onclick="toggleSelect('siList')" disabled readonly>
+                    <input type="hidden" asp-for="Source" />
                     <label class="form-check-label" for="inlineRadio1" id="labelInlineRadio1">Sales Invoice</label>
                 </div>
 
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" asp-for="Source" id="inlineRadio2" value="Service Invoice" aria-labelledby="labelInlineRadio2" onclick="toggleSelect('svList')">
+                    <input class="form-check-input" type="radio" asp-for="Source" id="inlineRadio2" value="Service Invoice" aria-labelledby="labelInlineRadio2" onclick="toggleSelect('svList')" disabled readonly>
                     <label class="form-check-label" for="inlineRadio2" id="labelInlineRadio2">Service Invoice</label>
                 </div>
                 <br />
