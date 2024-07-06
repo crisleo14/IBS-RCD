@@ -857,7 +857,7 @@ namespace Accounting_System.Controllers
                                 Description = model.ServiceInvoice.Service.Name,
                                 AccountNo = model.ServiceInvoice.Service.CurrentAndPreviousNo,
                                 AccountTitle = model.ServiceInvoice.Service.CurrentAndPreviousTitle,
-                                Debit = Math.Abs(viewModelDMCM.Total / 1.12m),
+                                Debit = Math.Round(Math.Abs(viewModelDMCM.Total / 1.12m), 2),
                                 Credit = 0,
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
