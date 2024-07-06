@@ -918,7 +918,7 @@ namespace Accounting_System.Controllers
 
                     #endregion -- Saving Default Enries --
 
-                    existingDM.DebitAmount = (decimal)(model.Quantity * -model.AdjustedPrice);
+                    existingDM.DebitAmount = (decimal)(model.Quantity * model.AdjustedPrice);
 
                     if (existingSalesInvoice.Customer.CustomerType == "Vatable")
                     {
@@ -970,7 +970,7 @@ namespace Accounting_System.Controllers
 
                     #endregion -- Saving Default Enries --
 
-                    existingDM.DebitAmount = -model.Amount ?? 0;
+                    existingDM.DebitAmount = model.Amount ?? 0;
 
                     if (existingSv.Customer.CustomerType == "Vatable")
                     {
