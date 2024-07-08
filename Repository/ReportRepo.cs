@@ -16,43 +16,47 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public List<SalesBook> GetSalesBooks(DateOnly? dateFrom, DateOnly? dateTo, string? selectedDocument)
+        public List<SalesBook> GetSalesBooks(DateOnly dateFrom, DateOnly dateTo, string? selectedDocument)
         {
-            if (dateFrom > dateTo)
+            var fromDate = dateFrom;
+            var toDate = dateTo;
+            List<SalesBook> salesBooks = new List<SalesBook>();
+
+            if (fromDate > toDate)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
 
-            Func<SalesBook, object> orderBy = null;
-            Func<SalesBook, bool> query = null;
-
-            switch (selectedDocument)
+            if (selectedDocument == null || selectedDocument == "TransactionDate")
             {
-                case "UnpostedRR":
-                case "POLiquidation":
-                    query = s => s.TransactionDate >= dateFrom && s.TransactionDate <= dateTo && s.SerialNo.Contains(selectedDocument);
-                    break;
-
-                case "DueDate":
-                    orderBy = s => s.DueDate;
-                    query = s => s.DueDate >= dateFrom && s.DueDate <= dateTo;
-                    break;
-
-                default:
-                    orderBy = s => s.TransactionDate;
-                    query = s => s.TransactionDate >= dateFrom && s.TransactionDate <= dateTo;
-                    break;
+                salesBooks = _dbContext
+                 .SalesBooks
+                 .AsEnumerable()
+                 .Where(s => s.TransactionDate >= fromDate && s.TransactionDate <= toDate)
+                 .OrderBy(s => s.TransactionDate)
+                 .ToList();
+            }
+            else if (selectedDocument == "DueDate")
+            {
+                salesBooks = _dbContext
+                 .SalesBooks
+                 .AsEnumerable()
+                 .Where(s => s.DueDate >= fromDate && s.DueDate <= toDate)
+                 .OrderBy(s => s.DueDate)
+                 .ToList();
+            }
+            else
+            {
+                salesBooks = _dbContext
+                 .SalesBooks
+                 .AsEnumerable()
+                 .Where(s => s.TransactionDate >= fromDate && s.TransactionDate <= toDate && s.SerialNo.Contains(selectedDocument))
+                 .OrderBy(s => s.TransactionDate)
+                 .ToList();
             }
 
-            // Add a null check for orderBy
-            var salesBooks = _dbContext
-                .SalesBooks
-                .AsEnumerable()
-                .Where(query)
-                .OrderBy(orderBy ?? (Func<SalesBook, object>)(s => s.TransactionDate))
-                .ToList();
-
             return salesBooks;
+
         }
 
         public List<CashReceiptBook> GetCashReceiptBooks(DateOnly? dateFrom, DateOnly? dateTo)
