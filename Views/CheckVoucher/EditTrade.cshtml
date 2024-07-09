@@ -681,7 +681,7 @@
                                     });
                                     function computeBalance() {
                                         var inputValue = $(this).val();
-                                        var balance = data.amount - data.amountPaid - inputValue;
+                                        var balance = data.amount - inputValue;
 
                                         var netOfVat = balance / 1.12;
                                         var vat = netOfVat * 0.12;
