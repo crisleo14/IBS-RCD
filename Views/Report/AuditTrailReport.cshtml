@@ -87,7 +87,7 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
             {
                 <tr class="align-text-bottom">
                     <td>
-                        @auditTrail.Date.ToString("MM/dd/yyyy")
+                        @auditTrail.Date.ToString("MM/dd/yyyy hh:mm:ss tt")
                     </td>
                     <td>
                         @Html.DisplayFor(model => auditTrail.Username)

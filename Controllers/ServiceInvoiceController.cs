@@ -261,10 +261,10 @@ namespace Accounting_System.Controllers
                             model.Total = model.Amount;
                             model.NetAmount = (model.Amount - model.Discount) / 1.12m;
                             model.VatAmount = (model.Amount - model.Discount) - model.NetAmount;
-                            model.WithholdingTaxAmount = model.NetAmount * (services.Percent / 100m);
+                            model.WithholdingTaxAmount = Math.Round(model.NetAmount * (services.Percent / 100m), 2);
                             if (customer.WithHoldingVat)
                             {
-                                model.WithholdingVatAmount = model.NetAmount * 0.05m;
+                                model.WithholdingVatAmount = Math.Round(model.NetAmount * 0.05m, 2);
                             }
                         }
                         else
@@ -364,7 +364,7 @@ namespace Accounting_System.Controllers
                                     Description = model.Service.Name,
                                     AccountNo = "1010204",
                                     AccountTitle = "AR-Non Trade Receivable",
-                                    Debit = model.Total - (model.WithholdingTaxAmount + model.WithholdingVatAmount),
+                                    Debit = Math.Round(model.Total - (model.WithholdingTaxAmount + model.WithholdingVatAmount), 2),
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
@@ -414,7 +414,7 @@ namespace Accounting_System.Controllers
                                    AccountNo = model.Service.CurrentAndPreviousNo,
                                    AccountTitle = model.Service.CurrentAndPreviousTitle,
                                    Debit = 0,
-                                   Credit = model.Total / 1.12m,
+                                   Credit = Math.Round(model.Total / 1.12m, 2),
                                    CreatedBy = model.CreatedBy,
                                    CreatedDate = model.CreatedDate
                                }
@@ -431,7 +431,7 @@ namespace Accounting_System.Controllers
                                     AccountNo = "2010301",
                                     AccountTitle = "Vat Output",
                                     Debit = 0,
-                                    Credit = model.VatAmount,
+                                    Credit = Math.Round((model.VatAmount), 2),
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
