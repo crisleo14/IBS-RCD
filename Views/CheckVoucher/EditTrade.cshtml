@@ -588,10 +588,13 @@
                 $(".payment").empty();
                 $(".balance").empty();
 
+                var amounts = @Html.Raw(Json.Serialize(Model.Amount));
+                var rrNos = @Html.Raw(Json.Serialize(Model.RRSeries));
+
                 // Loop through each selected option and add it to the table
-                rrSelect.forEach(function (rrNo, index) {
+                rrSelect.forEach(function (rrNo) {
                     var rrSelectText = $("#RRSeries option[value='" + rrNo + "']").text();
-                    var amounts = @Html.Raw(Json.Serialize(Model.Amount));
+                    var index = rrNos.indexOf(rrNo);
                     var amount = amounts[index] !== undefined ? amounts[index] : 0;
                     var newRow = `<tr>
                                                                                         <td>

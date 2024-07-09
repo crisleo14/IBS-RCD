@@ -81,15 +81,21 @@ namespace Accounting_System.Repository
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<List<SelectListItem>> GetReceivingReportListAsync(CancellationToken cancellationToken = default)
+        public async Task<List<SelectListItem>> GetReceivingReportListAsync(string[] rrNos, CancellationToken cancellationToken = default)
         {
-            return await _dbContext.ReceivingReports
+            var rrNoHashSet = new HashSet<string>(rrNos);
+
+            var rrList = await _dbContext.ReceivingReports
+                .OrderBy(rr => rrNoHashSet.Contains(rr.RRNo) ? Array.IndexOf(rrNos, rr.RRNo) : int.MaxValue) // Order by index in rrNos array if present in HashSet
+                .ThenBy(rr => rr.Id) // Secondary ordering by Id
                 .Select(rr => new SelectListItem
                 {
                     Value = rr.RRNo.ToString(),
                     Text = rr.RRNo
                 })
                 .ToListAsync(cancellationToken);
+
+            return rrList;
         }
 
         public async Task<List<SelectListItem>> GetBankAccountListAsync(CancellationToken cancellationToken = default)

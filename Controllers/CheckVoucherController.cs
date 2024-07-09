@@ -415,7 +415,7 @@ namespace Accounting_System.Controllers
                 SupplierTinNo = existingHeaderModel.Supplier.TinNo,
                 Suppliers = await _generalRepo.GetSupplierListAsync(cancellationToken),
                 RRSeries = existingHeaderModel.RRNo,
-                RR = await _generalRepo.GetReceivingReportListAsync(cancellationToken),
+                RR = await _generalRepo.GetReceivingReportListAsync(existingHeaderModel.RRNo, cancellationToken),
                 POSeries = existingHeaderModel.PONo,
                 PONo = await _generalRepo.GetPurchaseOrderListAsync(cancellationToken),
                 TransactionDate = existingHeaderModel.Date,
@@ -435,6 +435,7 @@ namespace Accounting_System.Controllers
                 CreatedBy = _userManager.GetUserName(this.User),
                 POId = poIds,
                 RRId = rrIds
+
             };
 
             return View(model);
@@ -530,6 +531,42 @@ namespace Accounting_System.Controllers
 
                     #endregion --CV Details Entry
 
+                    #region -- Partial payment of RR's
+
+                    if (viewModel.Amount != null)
+                    {
+                        var receivingReport = new ReceivingReport();
+                        for (int i = 0; i < viewModel.RRSeries.Length; i++)
+                        {
+                            var rrValue = viewModel.RRSeries[i];
+                            receivingReport = await _dbContext.ReceivingReports
+                                        .FirstOrDefaultAsync(p => p.RRNo == rrValue);
+
+                            if (i < existingHeaderModel.Amount.Length)
+                            {
+                                var amount = Math.Round(viewModel.Amount[i] - existingHeaderModel.Amount[i], 2);
+                                receivingReport.AmountPaid += amount;
+                            }
+                            else
+                            {
+                                receivingReport.AmountPaid += viewModel.Amount[i];
+                            }
+
+                            if (receivingReport.Amount <= receivingReport.AmountPaid)
+                            {
+                                receivingReport.IsPaid = true;
+                                receivingReport.PaidDate = DateTime.Now;
+                            }
+                            else
+                            {
+                                receivingReport.IsPaid = false;
+                                receivingReport.PaidDate = DateTime.MaxValue;
+                            }
+                        }
+                    }
+
+                    #endregion -- Partial payment of RR's
+
                     #region --Saving the default entries
 
                     existingHeaderModel.CVNo = viewModel.CVNo;
@@ -548,28 +585,6 @@ namespace Accounting_System.Controllers
                     existingHeaderModel.CreatedBy = viewModel.CreatedBy;
 
                     #endregion --Saving the default entries
-
-                    #region -- Partial payment of RR's
-                    //if (viewModel.Amount != null)
-                    //{
-                    //    var receivingReport = new ReceivingReport();
-                    //    for (int i = 0; i < viewModel.RRSeries.Length; i++)
-                    //    {
-                    //        var rrValue = viewModel.RRSeries[i];
-                    //        receivingReport = await _dbContext.ReceivingReports
-                    //                    .FirstOrDefaultAsync(p => p.RRNo == rrValue);
-
-                    //        receivingReport.AmountPaid += viewModel.Amount[i];
-
-                    //        if (receivingReport.Amount <= receivingReport.AmountPaid)
-                    //        {
-                    //            receivingReport.IsPaid = true;
-                    //            receivingReport.PaidDate = DateTime.Now;
-                    //        }
-                    //    }
-                    //}
-
-                    #endregion -- Partial payment of RR's
 
                     #region -- Uploading file --
 
