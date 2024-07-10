@@ -108,6 +108,10 @@ namespace Accounting_System.Controllers
                 {
                     ModelState.AddModelError("AdjustedPrice", "Cannot input more than the existing SI unit price!");
                 }
+                if (model.Quantity > existingSalesInvoice.Quantity)
+                {
+                    ModelState.AddModelError("Quantity", "Cannot input more than the existing SI quantity!");
+                }
             }
             else
             {
@@ -326,6 +330,10 @@ namespace Accounting_System.Controllers
                 if (model.AdjustedPrice > existingSalesInvoice.UnitPrice)
                 {
                     ModelState.AddModelError("AdjustedPrice", "Cannot input more than the existing SI unit price!");
+                }
+                if (model.Quantity > existingSalesInvoice.Quantity)
+                {
+                    ModelState.AddModelError("Quantity", "Cannot input more than the existing SI quantity!");
                 }
             }
             else
