@@ -15,12 +15,12 @@ var dateTo = ViewBag.DateTo;
         <div class="col-md-4">
             <div class="mb-3">
                 <label asp-for="DateFrom" class="control-label"></label>
-                <input type="date" asp-for="DateFrom" class="form-control" value="@dateFrom" />
+                <input type="date" asp-for="DateFrom" class="form-control" id="dateFrom" value="@dateFrom" />
                 <span asp-validation-for="DateFrom" class="text-danger"></span>
             </div>
             <div class="mb-3">
                 <label asp-for="DateTo" class="control-label"></label>
-                <input type="date" asp-for="DateTo" class="form-control" value="@dateTo" />
+                <input type="date" asp-for="DateTo" class="form-control" id="dateTo" value="@dateTo" />
                 <span asp-validation-for="DateTo" class="text-danger"></span>
             </div>
             <div class="mb-3">
@@ -37,10 +37,34 @@ var dateTo = ViewBag.DateTo;
     }
     <script>
         function submitForm(action) {
-            var form = document.getElementById('dynamicForm');
-            form.action = action;
-            form.submit();
+            // No need to check all inputs, only required ones
+            const dateFrom = document.getElementById("dateFrom");
+            const dateTo = document.getElementById("dateTo");
+            let allValid = true;
+
+            if (!dateFrom.value) {
+                dateFrom.setCustomValidity('This field is required');
+                dateFrom.reportValidity();
+                allValid = false;
+            } else {
+                dateFrom.setCustomValidity(''); // Clear previous error message
+            }
+
+            if (!dateTo.value) {
+                dateTo.setCustomValidity('This field is required');
+                dateTo.reportValidity();
+                allValid = false;
+            } else {
+                dateTo.setCustomValidity(''); // Clear previous error message
+            }
+
+            if (allValid) {
+                const form = document.getElementById('dynamicForm');
+                form.action = action;
+                form.submit();
+            }
         }
+
     </script>
 }
 

@@ -91,12 +91,42 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
 
+            var existingSalesInvoice = await _dbContext
+                        .SalesInvoices
+                        .Include(c => c.Customer)
+                        .Include(s => s.Product)
+                        .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId);
+
+            var existingSv = await _dbContext.ServiceInvoices
+                        .Include(sv => sv.Customer)
+                        .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
+
+
+            if (model.SalesInvoiceId != null)
+            {
+                if (model.AdjustedPrice > existingSalesInvoice.UnitPrice)
+                {
+                    ModelState.AddModelError("AdjustedPrice", "Cannot input more than the existing SI unit price!");
+                }
+                if (model.Quantity > existingSalesInvoice.Quantity)
+                {
+                    ModelState.AddModelError("Quantity", "Cannot input more than the existing SI quantity!");
+                }
+            }
+            else
+            {
+                if (model.Amount > existingSv.Amount)
+                {
+                    ModelState.AddModelError("Amount", "Cannot input more than the existing SV amount!");
+                }
+            }
+
             if (ModelState.IsValid)
             {
                 if (model.SalesInvoiceId != null)
                 {
                     var existingSIDMs = _dbContext.DebitMemos
-                                  .Where(si => si.SalesInvoiceId == model.SalesInvoiceId && !si.IsPosted && !si.IsCanceled)
+                                  .Where(si => si.SalesInvoiceId == model.SalesInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
                                   .OrderBy(s => s.Id)
                                   .ToList();
                     if (existingSIDMs.Count > 0)
@@ -106,7 +136,7 @@ namespace Accounting_System.Controllers
                     }
 
                     var existingSICMs = _dbContext.CreditMemos
-                                      .Where(si => si.SalesInvoiceId == model.SalesInvoiceId && !si.IsPosted && !si.IsCanceled)
+                                      .Where(si => si.SalesInvoiceId == model.SalesInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
                                       .OrderBy(s => s.Id)
                                       .ToList();
                     if (existingSICMs.Count > 0)
@@ -118,7 +148,7 @@ namespace Accounting_System.Controllers
                 else
                 {
                     var existingSOADMs = _dbContext.DebitMemos
-                                  .Where(si => si.ServiceInvoiceId == model.ServiceInvoiceId && !si.IsPosted && !si.IsCanceled)
+                                  .Where(si => si.ServiceInvoiceId == model.ServiceInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
                                   .OrderBy(s => s.Id)
                                   .ToList();
                     if (existingSOADMs.Count > 0)
@@ -128,7 +158,7 @@ namespace Accounting_System.Controllers
                     }
 
                     var existingSOACMs = _dbContext.CreditMemos
-                                      .Where(si => si.ServiceInvoiceId == model.ServiceInvoiceId && !si.IsPosted && !si.IsCanceled)
+                                      .Where(si => si.ServiceInvoiceId == model.ServiceInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
                                       .OrderBy(s => s.Id)
                                       .ToList();
                     if (existingSOACMs.Count > 0)
@@ -169,12 +199,6 @@ namespace Accounting_System.Controllers
                 {
                     model.ServiceInvoiceId = null;
 
-                    var existingSalesInvoice = await _dbContext
-                        .SalesInvoices
-                        .Include(c => c.Customer)
-                        .Include(s => s.Product)
-                        .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId);
-
                     model.CreditAmount = (decimal)(model.Quantity * -model.AdjustedPrice);
 
                     if (existingSalesInvoice.Customer.CustomerType == "Vatable")
@@ -200,10 +224,6 @@ namespace Accounting_System.Controllers
                 else if (model.Source == "Service Invoice")
                 {
                     model.SalesInvoiceId = null;
-
-                    var existingSv = await _dbContext.ServiceInvoices
-                        .Include(sv => sv.Customer)
-                        .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
 
                     #region --Retrieval of Services
 
@@ -296,6 +316,34 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(CreditMemo model, CancellationToken cancellationToken)
         {
+            var existingSalesInvoice = await _dbContext
+                        .SalesInvoices
+                        .Include(c => c.Customer)
+                        .Include(s => s.Product)
+                        .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId);
+            var existingSv = await _dbContext.ServiceInvoices
+                        .Include(sv => sv.Customer)
+                        .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
+
+            if (model.SalesInvoiceId != null)
+            {
+                if (model.AdjustedPrice > existingSalesInvoice.UnitPrice)
+                {
+                    ModelState.AddModelError("AdjustedPrice", "Cannot input more than the existing SI unit price!");
+                }
+                if (model.Quantity > existingSalesInvoice.Quantity)
+                {
+                    ModelState.AddModelError("Quantity", "Cannot input more than the existing SI quantity!");
+                }
+            }
+            else
+            {
+                if (model.Amount > existingSv.Amount)
+                {
+                    ModelState.AddModelError("Amount", "Cannot input more than the existing SV amount!");
+                }
+            }
+
             if (ModelState.IsValid)
             {
                 var existingCM = await _dbContext
@@ -307,13 +355,6 @@ namespace Accounting_System.Controllers
                 if (model.Source == "Sales Invoice")
                 {
                     model.ServiceInvoiceId = null;
-
-                    var existingSalesInvoice = await _dbContext
-                        .SalesInvoices
-                        .Include(c => c.Customer)
-                        .Include(s => s.Product)
-                        .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId);
-
 
                     #region -- Saving Default Enries --
 
@@ -352,10 +393,6 @@ namespace Accounting_System.Controllers
                 else if (model.Source == "Service Invoice")
                 {
                     model.SalesInvoiceId = null;
-
-                    var existingSv = await _dbContext.ServiceInvoices
-                        .Include(sv => sv.Customer)
-                        .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
 
                     #region --Retrieval of Services
 
