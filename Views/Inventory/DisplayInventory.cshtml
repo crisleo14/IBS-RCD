@@ -56,7 +56,7 @@
                     </tr>
                 }
             }
-            else
+            else if (ViewBag.ProductId != null)
             {
                 @foreach (var obj in Model.Where(ir => ir.Particular.StartsWith("Beginning Balance")).OrderBy(ir => ir.Date).ThenBy(ir => ir.Id))
                 {
