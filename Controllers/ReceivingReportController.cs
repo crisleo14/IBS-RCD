@@ -89,11 +89,11 @@ namespace Accounting_System.Controllers
                 .Where(rr => rr.PONo == po.PONo)
                 .ToList();
 
-                var totalAmountRR = po.Quantity - rr.Sum(r => r.QuantityReceived);
+                var totalAmountRR = po.Quantity - po.QuantityReceived;
 
-                if (totalAmountRR < model.QuantityReceived)
+                if (model.QuantityDelivered > totalAmountRR)
                 {
-                    TempData["error"] = "Input is exceed to remaining quantity received";
+                    TempData["error"] = "Input is exceed to remaining quantity delivered";
                     return View(model);
                 }
 
@@ -122,7 +122,7 @@ namespace Accounting_System.Controllers
                 model.SeriesNumber = getLastNumber;
                 model.RRNo = generatedRR;
                 model.CreatedBy = _userManager.GetUserName(this.User);
-                model.GainOrLoss = model.QuantityDelivered - model.QuantityReceived;
+                model.GainOrLoss = model.QuantityReceived - model.QuantityDelivered;
                 model.PONo = await _receivingReportRepo.GetPONoAsync(model.POId, cancellationToken);
                 model.DueDate = await _receivingReportRepo.ComputeDueDateAsync(model.POId, model.Date, cancellationToken);
 
@@ -216,6 +216,18 @@ namespace Accounting_System.Controllers
 
                 #endregion --Retrieve PO
 
+                var rr = _dbContext.ReceivingReports
+                .Where(rr => rr.PONo == po.PONo)
+                .ToList();
+
+                var totalAmountRR = po.Quantity - po.QuantityReceived;
+
+                if (model.QuantityDelivered > totalAmountRR)
+                {
+                    TempData["error"] = "Input is exceed to remaining quantity delivered";
+                    return View(model);
+                }
+
                 existingModel.Date = model.Date;
                 existingModel.POId = model.POId;
                 existingModel.PONo = await _receivingReportRepo.GetPONoAsync(model.POId, cancellationToken);
@@ -225,7 +237,7 @@ namespace Accounting_System.Controllers
                 existingModel.TruckOrVessels = model.TruckOrVessels;
                 existingModel.QuantityDelivered = model.QuantityDelivered;
                 existingModel.QuantityReceived = model.QuantityReceived;
-                existingModel.GainOrLoss = model.QuantityDelivered - model.QuantityReceived;
+                existingModel.GainOrLoss = model.QuantityReceived - model.QuantityDelivered;
                 existingModel.OtherRef = model.OtherRef;
                 existingModel.Remarks = model.Remarks;
 
