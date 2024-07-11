@@ -88,7 +88,8 @@ namespace Accounting_System.Controllers
                 }
             }
 
-            return View(model);
+            TempData["error"] = "Please input date from";
+            return RedirectToAction(nameof(SalesBook));
         }
 
         public async Task<IActionResult> TransactionReportsInSOA(int? siList, int? soaList)
@@ -133,7 +134,8 @@ namespace Accounting_System.Controllers
                 }
             }
 
-            return View(model);
+            TempData["error"] = "Please input date from";
+            return RedirectToAction(nameof(CashReceiptBook));
         }
 
         public async Task<IActionResult> PurchaseBook()
@@ -193,7 +195,8 @@ namespace Accounting_System.Controllers
                 }
             }
 
-            return View(model);
+            TempData["error"] = "Please input date from";
+            return RedirectToAction(nameof(PurchaseBook));
         }
 
         public IActionResult GetRR(DateOnly? dateFrom, DateOnly? dateTo, string selectedFiltering)
@@ -271,7 +274,8 @@ namespace Accounting_System.Controllers
                 }
             }
 
-            return View(model);
+            TempData["error"] = "Please input date from";
+            return RedirectToAction(nameof(InventoryBook));
         }
 
         public IActionResult GeneralLedgerBook()
@@ -303,7 +307,8 @@ namespace Accounting_System.Controllers
                 }
             }
 
-            return View(model);
+            TempData["error"] = "Please input date from";
+            return RedirectToAction(nameof(GeneralLedgerBook));
         }
 
         public IActionResult DisbursementBook()
@@ -335,7 +340,8 @@ namespace Accounting_System.Controllers
                 }
             }
 
-            return View(model);
+            TempData["error"] = "Please input date from";
+            return RedirectToAction(nameof(DisbursementBook));
         }
 
         public IActionResult JournalBook()
@@ -367,7 +373,8 @@ namespace Accounting_System.Controllers
                 }
             }
 
-            return View(model);
+            TempData["error"] = "Please input date from";
+            return RedirectToAction(nameof(JournalBook));
         }
 
         public IActionResult AuditTrail()
@@ -399,7 +406,8 @@ namespace Accounting_System.Controllers
                 }
             }
 
-            return View(model);
+            TempData["error"] = "Please input date from";
+            return RedirectToAction(nameof(AuditTrail));
         }
 
         public async Task<IActionResult> CustomerProfile()
