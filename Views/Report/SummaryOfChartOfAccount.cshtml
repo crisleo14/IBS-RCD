@@ -4,7 +4,7 @@
     ViewData["Title"] = "Chart of Accounts Summary";
     decimal totalDebit = 0m;
     decimal totalCredit = 0m;
-    decimal totalBalance = totalDebit - totalCredit;
+    decimal totalBalance = 0m;
 }
 
 <h2><b>Trial Balance</b></h2>
@@ -102,7 +102,7 @@
             <td class="text-end">Grand Total:</td>
             <td>@totalDebit.ToString("N2")</td>
             <td>@totalCredit.ToString("N2")</td>
-            <td>@totalBalance.ToString("N2")</td>
+            <td>@((totalBalance = totalDebit - totalCredit).ToString("N2"))</td>
         </tr>
     </tbody>
 </table>
