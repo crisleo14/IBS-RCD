@@ -508,7 +508,7 @@ bg-success {
 /*start here the css in nav bar menu*/
 .dropdown:hover > .dropdown-menu, .dropdown:hover > .dropdown-menu {
     display: block;
-    margin-left: .125em;
+    margin-left: 0;
 }
 
 .dropend:hover > .dropdown-menu {
@@ -516,7 +516,7 @@ bg-success {
     position: absolute;
     top: 0;
     left: 100%;
-    margin-left: .125em;
+    margin-left: 0;
 }
 
 /*end of code*/
