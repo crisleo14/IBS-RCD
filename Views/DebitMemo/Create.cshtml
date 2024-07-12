@@ -36,7 +36,7 @@
             <div class="form-group" id="siList">
                 <div class="form-group mb-3">
                     <label asp-for="SalesInvoiceId" class="control-label"></label><span class="required">*</span>
-                    <select asp-for="SalesInvoiceId" asp-items="@Model.SalesInvoices" class="form-control js-not-retain-value-select2" style="width:100%" required>
+                    <select asp-for="SalesInvoiceId" asp-items="@Model.SalesInvoices" class="form-control js-select2" style="width:100%" required>
                         <option></option>
                     </select>
                     <span asp-validation-for="SalesInvoiceId" class="text-danger"></span>
@@ -54,19 +54,19 @@
             </div>
             <div class="form-group" id="svList" style="display: none;">
                 <label asp-for="ServiceInvoiceId" class="control-label"></label><span class="required">*</span>
-                <select asp-for="ServiceInvoiceId" asp-items="@Model.ServiceInvoices" class="form-control js-not-retain-value-select2" style="width:100%" required>
+                <select asp-for="ServiceInvoiceId" asp-items="@Model.ServiceInvoices" class="form-control js-select2 salesInvoice" style="width:100%" required>
                     <option></option>
                     <span asp-validation-for="ServiceInvoiceId" class="text-danger"></span>
                 </select>
                 <div class="row g-2 mt-3">
                     <div class="col-sm mb-3">
                         <label asp-for="Period" class="control-label"></label><span class="required">*</span>
-                        <input asp-for="Period" type="month" class="form-control" required />
+                        <input asp-for="Period" type="month" class="form-control period" required />
                         <span asp-validation-for="Period" class="text-danger"></span>
                     </div>
                     <div class="col-sm">
                         <label asp-for="Amount" class="control-label"></label><span class="required">*</span>
-                        <input asp-for="Amount" class="form-control moneyInput" value="" placeholder="0.00" />
+                        <input asp-for="Amount" class="form-control moneyInput amount" value="" placeholder="0.00" />
                         <span asp-validation-for="Amount" class="text-danger"></span>
                     </div>
                 </div>
@@ -126,11 +126,17 @@
                 svList.style.display = 'none';
                 inlineRadio1.checked = true;
                 inlineRadio2.checked = false;
+                $(".amount").val("");
+                $(".js-select2").val(null).trigger('change');
+                $(".period").val("");
             } else if (id === 'svList') {
                 siList.style.display = 'none';
                 svList.style.display = 'block';
                 inlineRadio1.checked = false;
                 inlineRadio2.checked = true;
+                $("#Quantity").val("");
+                $("#AdjustedPrice").val("");
+                $(".js-select2").val(null).trigger('change');
             }
         }
     </script>

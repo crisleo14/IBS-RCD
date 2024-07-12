@@ -37,7 +37,7 @@
             <div class="form-group" id="siList">
                 <div class="form-group mb-3">
                     <label asp-for="SalesInvoiceId" class="control-label"></label><span class="required">*</span>
-                    <select asp-for="SalesInvoiceId" asp-items="@Model.SalesInvoices" class="form-control js-not-retain-value-select2" style="width:100%" required>
+                    <select asp-for="SalesInvoiceId" asp-items="@Model.SalesInvoices" class="form-control js-select2" style="width:100%" required>
                         <option></option>
                     </select>
                     <span asp-validation-for="SalesInvoiceId" class="text-danger"></span>
@@ -56,7 +56,7 @@
             <div class="form-group" id="svList" style="display: none;">
                 <div class="form-group mb-3">
                     <label asp-for="ServiceInvoiceId" class="control-label"></label><span class="required">*</span>
-                    <select asp-for="ServiceInvoiceId" asp-items="@Model.ServiceInvoices" class="form-control js-not-retain-value-select2" style="width:100%" required>
+                    <select asp-for="ServiceInvoiceId" asp-items="@Model.ServiceInvoices" class="form-control js-select2" style="width:100%" required>
                         <option></option>
                     </select>
                     <span asp-validation-for="ServiceInvoiceId" class="text-danger"></span>
@@ -125,11 +125,17 @@
                 svList.style.display = 'none';
                 inlineRadio1.checked = true;
                 inlineRadio2.checked = false;
+                $(".amount").val("");
+                $(".js-select2").val(null).trigger('change');
+                $(".period").val("");
             } else if (id === 'svList') {
                 siList.style.display = 'none';
                 svList.style.display = 'block';
                 inlineRadio1.checked = false;
                 inlineRadio2.checked = true;
+                $("#Quantity").val("");
+                $("#AdjustedPrice").val("");
+                $(".js-select2").val(null).trigger('change');
             }
         }
     </script>
