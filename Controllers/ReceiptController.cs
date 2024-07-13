@@ -1186,7 +1186,11 @@ namespace Accounting_System.Controllers
 
                         await _generalRepo.RemoveRecords<CashReceiptBook>(crb => crb.RefNo == model.CRNo, cancellationToken);
                         await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CRNo, cancellationToken);
-                        await _generalRepo.RemoveRecords<Offsetting>(offset => offset.Source == model.CRNo && offset.Reference == series, cancellationToken);
+
+                        if (findOffsetting.Any())
+                        {
+                            await _generalRepo.RemoveRecords<Offsetting>(offset => offset.Source == model.CRNo && offset.Reference == series, cancellationToken);
+                        }
                         if (series.Contains("SI"))
                         {
                             await _receiptRepo.RemoveSIPayment(model.SalesInvoice.Id, model.Total, findOffsetting.Sum(offset => offset.Amount), cancellationToken);
