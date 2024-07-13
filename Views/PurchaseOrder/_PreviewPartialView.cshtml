@@ -53,21 +53,21 @@
                 </div>
 
                 <div class="table-responsive" style="margin-top:50px;">
-                    <table class="w-100 text-center">
+                    <table class="w-100">
                         <thead>
                             <tr>
-                                <th class="w-25">Product Name</th>
-                                <th class="w-25">Quantity</th>
-                                <th class="w-25">Price</th>
-                                <th class="w-25">Amount</th>
+                                <th class="w-25 text-center">Product Name</th>
+                                <th class="w-25 text-center">Quantity</th>
+                                <th class="w-25 text-center">Price</th>
+                                <th class="w-25 text-center">Amount</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td class="w-25">@Html.DisplayFor(model => model.Product.Name)</td>
-                                <td class="w-25">@Model.Quantity.ToString("N0")</td>
-                                <td class="w-25">@Html.DisplayFor(model => model.Price)</td>
-                                <td class="w-25">@Html.DisplayFor(model => model.Amount)</td>
+                                <td class="text-center">@Html.DisplayFor(model => model.Product.Name)</td>
+                                <td class="text-center">@Model.Quantity.ToString("N0")</td>
+                                <td class="text-center">@Html.DisplayFor(model => model.Price)</td>
+                                <td class="text-center">@Html.DisplayFor(model => model.Amount)</td>
                             </tr>
                         </tbody>
                     </table>
