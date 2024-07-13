@@ -126,7 +126,8 @@
                 inlineRadio2.checked = false;
                 $(".amount").val("");
                 $(".js-select2").val(null).trigger('change');
-                $(".period").val("");
+                $(".period").prop('defaultValue', '0001-01');
+                $(".period").val($(".period").prop('defaultValue'));
             } else if (id === 'svList') {
                 siList.style.display = 'none';
                 svList.style.display = 'block';
