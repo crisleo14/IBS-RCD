@@ -19,28 +19,6 @@
     decimal amountFieldControlTotal = 0;
     decimal getLastRecordCost = 0;
 }
-<style>
-    body {
-        margin: 0 100 0 0;
-        padding: 0;
-    }
-
-    .container {
-        margin: 0;
-        padding: 0;
-    }
-
-    main {
-        margin: 0;
-        padding: 0;
-        max-width: 100%;
-    }
-
-    footer {
-        display: none;
-        visibility: hidden;
-    }
-</style>
 <br class="br-top" />
 <div class="mx-5">
 <pre>
@@ -69,25 +47,25 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
     <table class="table-hover w-100" style="margin-top:20px;">
         <thead>
             <tr class="table-bordered">
-                <th>
+                <th style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayNameFor(model => model.Date)
                 </th>
-                <th>
+                <th style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayNameFor(model => model.Product.Code)
                 </th>
-                <th>
+                <th style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayNameFor(model => model.Product.Name)
                 </th>
-                <th>
+                <th style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayNameFor(model => model.Product.Unit)
                 </th>
-                <th class="text-end">
+                <th class="text-end" style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayNameFor(model => model.Quantity)
                 </th>
-                <th class="text-end">
+                <th class="text-end" style="padding: 10px 30px 10px 30px;">
                     Price Per Unit
                 </th>
-                <th class="text-end">
+                <th class="text-end" style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayNameFor(model => model.Total)
                 </th>
             </tr>
@@ -96,25 +74,25 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
             @foreach (var inventory in Model)
             {
                 <tr class="align-text-bottom">
-                    <td>
+                    <td style="padding: 10px 30px 10px 30px;">
                         @inventory.Date.ToString("MM/dd/yyyy")
                     </td>
-                    <td>
+                    <td style="padding: 10px 30px 10px 30px;">
                         @Html.DisplayFor(model => inventory.Product.Code)
                     </td>
-                    <td>
+                    <td style="padding: 10px 30px 10px 30px;">
                         @Html.DisplayFor(model => inventory.Product.Name)
                     </td>
-                    <td>
+                    <td style="padding: 10px 30px 10px 30px;">
                         @Html.DisplayFor(model => inventory.Product.Unit)
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" style="padding: 10px 30px 10px 30px;">
                         @Html.DisplayFor(model => inventory.Quantity)
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" style="padding: 10px 30px 10px 30px;">
                         @Html.DisplayFor(model => inventory.Cost)
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" style="padding: 10px 30px 10px 30px;">
                         @Html.DisplayFor(model => inventory.Total)
                     </td>
                 </tr>
@@ -143,10 +121,10 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                     <td></td>
                     <td></td>
                     <td></td>
-                    <td class="text-center"><b>TOTAL:</b></td>
-                    <td class="text-end">@totalQuantity.ToString("N2")</td>
-                    <td class="text-end">@totalPriceUnitAmount.ToString("N2")</td>
-                    <td class="text-end">@totalAmount.ToString("N2")</td>
+                    <td class="text-center" ><b>TOTAL:</b></td>
+                    <td class="text-end" style="padding: 10px 30px 10px 30px;">@totalQuantity.ToString("N2")</td>
+                    <td class="text-end" style="padding: 10px 30px 10px 30px;">@totalPriceUnitAmount.ToString("N2")</td>
+                    <td class="text-end" style="padding: 10px 30px 10px 30px;">@totalAmount.ToString("N2")</td>
                 }
             </tr>
         </tbody>
@@ -281,7 +259,7 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
         console.log("@totalAmount");
         // Replace the placeholder in the HTML with the actual number of records
         resultPre.innerHTML = resultPre.innerHTML.replace('@numberOfRecords', (allTrElements.length - 1));
-        resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@totalAmount");
+        resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@totalAmount.ToString("N2")");
 
     </script>
 

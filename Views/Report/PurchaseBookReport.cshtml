@@ -71,7 +71,7 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
     <table class="table-hover w-100" style="margin-top:20px;">
         <thead>
             <tr class="table-bordered">
-                <th>
+                <th style="padding: 5px 20px 5px 20px;">
                 @if (ViewBag.SelectedFiltering != "DueDate")
                 {
                     @Html.DisplayNameFor(model => model.Date)
@@ -81,37 +81,37 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                     @Html.DisplayNameFor(model => model.DueDate)
                 }
                 </th>
-                <th>
+                <th style="padding: 5px 20px 5px 20px;">
                     @Html.DisplayNameFor(model => model.SupplierName)
                 </th>
-                <th>
+                <th style="padding: 5px 20px 5px 20px;">
                     @Html.DisplayNameFor(model => model.SupplierTin)
                 </th>
-                <th>
+                <th style="padding: 5px 20px 5px 20px;">
                     @Html.DisplayNameFor(model => model.SupplierAddress)
                 </th>
-                <th>
+                <th style="padding: 5px 20px 5px 20px;">
                     @Html.DisplayNameFor(model => model.PONo)
                 </th>
-                <th>
+                <th style="padding: 5px 20px 5px 20px;">
                     @Html.DisplayNameFor(model => model.DocumentNo)
                 </th>
-                <th>
+                <th style="padding: 5px 20px 5px 20px;">
                     @Html.DisplayNameFor(model => model.Description)
                 </th>
-                <th class="text-end">
+                <th class="text-end" style="padding: 5px 20px 5px 20px;">
                     Amount
                 </th>
-                <th class="text-end">
+                <th class="text-end" style="padding: 5px 20px 5px 20px;">
                     Vat Amount
                 </th>
-                <th class="text-end">
+                <th class="text-end" style="padding: 5px 20px 5px 20px;">
                     Def VAT Amount
                 </th>
-                <th class="text-end">
+                <th class="text-end" style="padding: 5px 20px 5px 20px;">
                     @Html.DisplayNameFor(model => model.WhtAmount)
                 </th>
-                <th class="text-end">
+                <th class="text-end" style="padding: 5px 20px 5px 20px;">
                     Net Purchases
                 </th>
             </tr>
@@ -121,7 +121,7 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
             @foreach (var purchase in Model)
             {
                 <tr class="align-text-bottom">
-                    <td>
+                    <td style="padding: 5px 20px 5px 20px;">
                     @if (ViewBag.SelectedFiltering != "DueDate")
                         {
                             @purchase.Date.ToString("MM/dd/yyyy")
@@ -130,40 +130,39 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                             @purchase.DueDate.ToString("MM/dd/yyyy")
                         }
                     </td>
-                    <td>
+                    <td style="padding: 5px 20px 5px 20px;">
                         @Html.DisplayFor(model => purchase.SupplierName)
                     </td>
-                    <td>
+                    <td style="padding: 5px 20px 5px 20px;">
                         @Html.DisplayFor(model => purchase.SupplierTin)
                     </td>
-                    <td>
+                    <td style="padding: 5px 20px 5px 20px;">
                         @Html.DisplayFor(model => purchase.SupplierAddress)
                     </td>
-                    <td>
+                    <td style="padding: 5px 20px 5px 20px;">
                         @Html.DisplayFor(model => purchase.PONo)
                     </td>
-                    <td>
+                    <td style="padding: 5px 20px 5px 20px;">
                         @Html.DisplayFor(model => purchase.DocumentNo)
                     </td>
-                    <td>
+                    <td style="padding: 5px 20px 5px 20px;">
                         @Html.DisplayFor(model => purchase.Description)
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" style="padding: 5px 20px 5px 20px;">
                         @Html.DisplayFor(model => purchase.Amount)
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" style="padding: 5px 20px 5px 20px;">
                         @Html.DisplayFor(model => purchase.VatAmount)
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" style="padding: 5px 20px 5px 20px;">
                         0.00
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" style="padding: 5px 20px 5px 20px;">
                         @Html.DisplayFor(model => purchase.WhtAmount)
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" style="padding: 5px 20px 5px 20px;">
                         @Html.DisplayFor(model => purchase.NetPurchases)
                     </td>
-
                 </tr>
 
                 totalAmount += purchase.Amount;
@@ -173,13 +172,6 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                 totalNetPurchases += purchase.NetPurchases;
             }
             <tr class="align-text-bottom" style="border-top: 2px solid black;">
-                @{
-                    var formattedTotalAmount = String.Format("{0:n}", totalAmount);
-                    var formattedTotalVatAmount = String.Format("{0:n}", totalVatableAmount);
-                    var formattedTotalDefAmount = String.Format("{0:n}", totalDefAmount);
-                    var formattedTotalWthAmount = String.Format("{0:n}", totalWthAmount);
-                    var formattedTotalNetPurchases = String.Format("{0:n}", totalNetPurchases);
-
                     <td></td>
                     <td></td>
                     <td></td>
@@ -187,13 +179,11 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                     <td></td>
                     <td></td>
                     <td class="text-center"><b>TOTAL:</b></td>
-                    // <td class="text-end">@totalQuantities</td>
-                    <td class="text-end">@formattedTotalAmount</td>
-                    <td class="text-end">@formattedTotalVatAmount</td>
-                    <td class="text-end">@formattedTotalDefAmount</td>
-                    <td class="text-end">@formattedTotalWthAmount</td>
-                    <td class="text-end"><div>@formattedTotalNetPurchases</div></td>
-                }
+                    <td class="text-end" style="padding: 5px 20px 5px 20px;">@totalAmount.ToString("N2")</td>
+                    <td class="text-end" style="padding: 5px 20px 5px 20px;">@totalVatableAmount.ToString("N2")</td>
+                    <td class="text-end" style="padding: 5px 20px 5px 20px;">@totalDefAmount.ToString("N2")</td>
+                    <td class="text-end" style="padding: 5px 20px 5px 20px;">@totalWthAmount.ToString("N2")</td>
+                    <td class="text-end" style="padding: 5px 20px 5px 20px;"><div>@totalNetPurchases.ToString("N2")</div></td>
             </tr>
         </tbody>
     </table>
@@ -364,10 +354,9 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
         // Get the pre tag element
         var resultPre = document.getElementById('resultPre');
 
-        console.log("@formattedTotalAmount");
         // Replace the placeholder in the HTML with the actual number of records
         resultPre.innerHTML = resultPre.innerHTML.replace('@numberOfRecords', (allTrElements.length - 1));
-        resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@formattedTotalAmount");
+        resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@totalAmount.ToString("N2")");
 
     </script>
 

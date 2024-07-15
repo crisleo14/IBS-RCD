@@ -68,31 +68,31 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
 <table class="table-hover w-100" style="margin-top:20px;">
     <thead>
         <tr class="table-bordered">
-            <th>
+            <th style="padding: 10px 30px 10px 30px;">
                 Date
             </th>
-            <th>
+            <th style="padding: 10px 30px 10px 30px;">
                 @Html.DisplayNameFor(model => model.RefNo)
             </th>
-            <th>
+            <th style="padding: 10px 30px 10px 30px;">
                 @Html.DisplayNameFor(model => model.CustomerName)
             </th>
-            <th>
+            <th style="padding: 10px 30px 10px 30px;">
                 @Html.DisplayNameFor(model => model.Bank)
             </th>
-            <th>
+            <th style="padding: 10px 30px 10px 30px;">
                 @Html.DisplayNameFor(model => model.CheckNo)
             </th>
-            <th>
+            <th style="padding: 10px 30px 10px 30px;">
                 @Html.DisplayNameFor(model => model.COA)
             </th>
-            <th>
+            <th style="padding: 10px 30px 10px 30px;">
                 @Html.DisplayNameFor(model => model.Particulars)
             </th>
-            <th class="text-end">
+            <th class="text-end" style="padding: 10px 30px 10px 30px;">
                 @Html.DisplayNameFor(model => model.Debit)
             </th>
-            <th class="text-end">
+            <th class="text-end" style="padding: 10px 30px 10px 30px;">
                 @Html.DisplayNameFor(model => model.Credit)
             </th>
         </tr>
@@ -102,31 +102,31 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
         @foreach (var cashReceipt in Model)
         {
             <tr class="align-text-bottom">
-                <td>
+                <td style="padding: 10px 30px 10px 30px;">
                     @cashReceipt.Date.ToString("MM/dd/yyyy")
                 </td>
-                <td>
+                <td style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayFor(model => cashReceipt.RefNo)
                 </td>
-                <td>
+                <td style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayFor(model => cashReceipt.CustomerName)
                 </td>
-                <td>
+                <td style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayFor(model => cashReceipt.Bank)
                 </td>
-                <td>
+                <td style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayFor(model => cashReceipt.CheckNo)
                 </td>
-                <td>
+                <td style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayFor(model => cashReceipt.COA)
                 </td>
-                <td>
+                <td style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayFor(model => cashReceipt.Particulars)
                 </td>
-                <td class="text-end">
+                <td class="text-end" style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayFor(model => cashReceipt.Debit)
                 </td>
-                <td class="text-end">
+                <td class="text-end" style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayFor(model => cashReceipt.Credit)
                 </td>
             </tr>
@@ -135,10 +135,6 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
             totalDebitAmount += cashReceipt.Debit;
         }
         <tr class="align-text-bottom" style="border-top: 2px solid black;">
-            @{
-                var formattedTotalCreditAmount = String.Format("{0:n}", totalCreditAmount);
-                var formattedTotalDebitAmount = String.Format("{0:n}", totalDebitAmount);
-
                 <td></td>
                 <td></td>
                 <td></td>
@@ -146,9 +142,8 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                 <td></td>
                 <td></td>
                 <td class="text-center"><b>TOTAL:</b></td>
-                <td class="text-end">@formattedTotalCreditAmount</td>
-                <td class="text-end"><div>@formattedTotalDebitAmount</div></td>
-            }
+                <td class="text-end" style="padding: 10px 30px 10px 30px;">@totalCreditAmount.ToString("N2")</td>
+                <td class="text-end" style="padding: 10px 30px 10px 30px;"><div>@totalDebitAmount.ToString("N2")</div></td>
         </tr>
     </tbody>
 </table>
@@ -295,10 +290,9 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
         // Get the pre tag element
         var resultPre = document.getElementById('resultPre');
 
-        console.log("@formattedTotalDebitAmount");
         // Replace the placeholder in the HTML with the actual number of records
         resultPre.innerHTML = resultPre.innerHTML.replace('@numberOfRecords', (allTrElements.length - 1));
-        resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@formattedTotalDebitAmount");
+        resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@totalDebitAmount.ToString("N2")");
 
     </script>
 

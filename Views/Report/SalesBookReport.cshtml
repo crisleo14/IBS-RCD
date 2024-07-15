@@ -72,7 +72,7 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
     <table class="table-hover w-100" style="margin-top:20px;">
         <thead>
             <tr class="table-bordered">
-                <th>
+                <th style="padding: 10px 20px 10px 20px;">
                 @if (ViewBag.SelectedDocument != "DueDate")
                 {
                     @Html.DisplayNameFor(model => model.TransactionDate)
@@ -82,40 +82,40 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                     @Html.DisplayNameFor(model => model.DueDate)
                 }
                 </th>
-                <th>
+                <th style="padding: 10px 20px 10px 20px;">
                     @Html.DisplayNameFor(model => model.SerialNo)
                 </th>
-                <th>
+                <th style="padding: 10px 20px 10px 20px;">
                     @Html.DisplayNameFor(model => model.SoldTo)
                 </th>
-                <th>
+                <th style="padding: 10px 20px 10px 20px;">
                     @Html.DisplayNameFor(model => model.TinNo)
                 </th>
-                <th>
+                <th style="padding: 10px 20px 10px 20px;">
                     @Html.DisplayNameFor(model => model.Address)
                 </th>
-                <th>
+                <th style="padding: 10px 20px 10px 20px;">
                     @Html.DisplayNameFor(model => model.Description)
                 </th>
-                <th class="text-end">
+                <th class="text-end" style="padding: 10px 20px 10px 20px;">
                     @Html.DisplayNameFor(model => model.Amount)
                 </th>
-                <th class="text-end">
+                <th class="text-end" style="padding: 10px 20px 10px 20px;">
                     @Html.DisplayNameFor(model => model.VatAmount)
                 </th>
-                <th class="text-end">
+                <th class="text-end" style="padding: 10px 20px 10px 20px;">
                     @Html.DisplayNameFor(model => model.VatableSales)
                 </th>
-                <th class="text-end">
+                <th class="text-end" style="padding: 10px 20px 10px 20px;">
                     @Html.DisplayNameFor(model => model.VatExemptSales)
                 </th>
-                <th class="text-end">
+                <th class="text-end" style="padding: 10px 20px 10px 20px;">
                     @Html.DisplayNameFor(model => model.ZeroRated)
                 </th>
-                <th class="text-end">
+                <th class="text-end" style="padding: 10px 20px 10px 20px;">
                     @Html.DisplayNameFor(model => model.Discount)
                 </th>
-                <th class="text-end">
+                <th class="text-end" style="padding: 10px 20px 10px 20px;">
                     @Html.DisplayNameFor(model => model.NetSales)
                 </th>
             </tr>
@@ -125,7 +125,7 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
             @foreach (var invoice in Model)
             {
                 <tr class="align-text-bottom">
-                    <td>
+                    <td style="padding: 10px 20px 10px 20px;">
                     @if (ViewBag.SelectedDocument != "DueDate")
                     {
                         @invoice.TransactionDate.ToString("MM/dd/yyyy")
@@ -135,40 +135,40 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                         @invoice.DueDate.ToString("MM/dd/yyyy")
                     }
                     </td>
-                    <td>
+                    <td style="padding: 10px 20px 10px 20px;">
                         @Html.DisplayFor(model => invoice.SerialNo)
                     </td>
-                    <td>
+                    <td style="padding: 10px 20px 10px 20px;">
                         @Html.DisplayFor(model => invoice.SoldTo)
                     </td>
-                    <td>
+                    <td style="padding: 10px 20px 10px 20px;">
                         @Html.DisplayFor(model => invoice.TinNo)
                     </td>
-                    <td>
+                    <td style="padding: 10px 20px 10px 20px;">
                         @Html.DisplayFor(model => invoice.Address)
                     </td>
-                    <td>
+                    <td style="padding: 10px 20px 10px 20px;">
                         @Html.DisplayFor(model => invoice.Description)
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" style="padding: 10px 20px 10px 20px;">
                         @Html.DisplayFor(model => invoice.Amount)
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" style="padding: 10px 20px 10px 20px;">
                         @Html.DisplayFor(model => invoice.VatAmount)
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" style="padding: 10px 20px 10px 20px;">
                         @Html.DisplayFor(model => invoice.VatableSales)
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" style="padding: 10px 20px 10px 20px;">
                         @Html.DisplayFor(model => invoice.VatExemptSales)
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" style="padding: 10px 20px 10px 20px;">
                         @Html.DisplayFor(model => invoice.ZeroRated)
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" style="padding: 10px 20px 10px 20px;">
                         @Html.DisplayFor(model => invoice.Discount)
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" style="padding: 10px 20px 10px 20px;">
                         @Html.DisplayFor(model => invoice.NetSales)
                     </td>
 
@@ -183,31 +183,19 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                 totalNetSales += invoice.NetSales;
             }
             <tr class="align-text-bottom" style="border-top: 2px solid black;">
-                @{
-                    var formattedTotalAmount = String.Format("{0:n}", totalAmount);
-                    var formattedTotalQuantity = String.Format("{0:n}", totalQuantity);
-                    var formattedTotalVatableSales = String.Format("{0:n}", totalVatableSales);
-                    var formattedTotalVatAmount = String.Format("{0:n}", totalVatableAmount);
-                    var formattedTotalExempted = String.Format("{0:n}", totalExempted);
-                    var formattedTotalZeroRated = String.Format("{0:n}", totalZeroRated);
-                    var formattedTotalDiscount = String.Format("{0:n}", totalDiscount);
-                    var formattedTotalNetSales = String.Format("{0:n}", totalNetSales);
-
                 <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
                 <td class="text-center"><b>TOTAL:</b></td>
-                // <td class="text-end">@totalQuantities</td>
-                <td class="text-end">@formattedTotalAmount</td>
-                <td class="text-end">@formattedTotalVatAmount</td>
-                <td class="text-end">@formattedTotalVatableSales</td>
-                <td class="text-end">@formattedTotalExempted</td>
-                <td class="text-end"><div>@formattedTotalZeroRated</div></td>
-                <td class="text-end"><div>@formattedTotalDiscount</div></td>
-                <td class="text-end"><div>@formattedTotalNetSales</div></td>
-                }
+                <td class="text-end" style="padding: 10px 20px 10px 20px;">@totalAmount.ToString("N2")</td>
+                <td class="text-end" style="padding: 10px 20px 10px 20px;">@totalVatableAmount.ToString("N2")</td>
+                <td class="text-end" style="padding: 10px 20px 10px 20px;">@totalVatableSales.ToString("N2")</td>
+                <td class="text-end" style="padding: 10px 20px 10px 20px;">@totalExempted.ToString("N2")</td>
+                <td class="text-end" style="padding: 10px 20px 10px 20px;"><div>@totalZeroRated.ToString("N2")</div></td>
+                <td class="text-end" style="padding: 10px 20px 10px 20px;"><div>@totalDiscount.ToString("N2")</div></td>
+                <td class="text-end" style="padding: 10px 20px 10px 20px;"><div>@totalNetSales.ToString("N2")</div></td>
             </tr>
         </tbody>
     </table>
@@ -386,10 +374,9 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
         // Get the pre tag element
         var resultPre = document.getElementById('resultPre');
 
-        console.log("@formattedTotalAmount");
         // Replace the placeholder in the HTML with the actual number of records
         resultPre.innerHTML = resultPre.innerHTML.replace('@numberOfRecords', (allTrElements.length - 1));
-        resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@formattedTotalAmount");
+        resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@totalAmount.ToString("N2")");
 
     </script>
 

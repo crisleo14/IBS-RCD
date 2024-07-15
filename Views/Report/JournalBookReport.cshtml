@@ -68,22 +68,22 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
     <table class="table-hover w-100" style="margin-top:20px;">
         <thead>
             <tr class="table-bordered">
-                <th>
+                <th style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayNameFor(model => model.Date)
                 </th>
-                <th>
+                <th style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayNameFor(model => model.Reference)
                 </th>
-                <th>
+                <th style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayNameFor(model => model.Description)
                 </th>
-                <th>
+                <th style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayNameFor(model => model.AccountTitle)
                 </th>
-                <th class="text-end">
+                <th class="text-end" style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayNameFor(model => model.Debit)
                 </th>
-                <th class="text-end">
+                <th class="text-end" style="padding: 10px 30px 10px 30px;">
                     @Html.DisplayNameFor(model => model.Credit)
                 </th>
             </tr>
@@ -93,22 +93,22 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
             @foreach (var journal in Model)
             {
                 <tr class="align-text-bottom">
-                    <td>
+                    <td style="padding: 10px 30px 10px 30px;">
                         @journal.Date.ToString("MM/dd/yyyy")
                     </td>
-                    <td>
+                    <td style="padding: 10px 30px 10px 30px;">
                         @Html.DisplayFor(model => journal.Reference)
                     </td>
-                    <td>
+                    <td style="padding: 10px 30px 10px 30px;">
                         @Html.DisplayFor(model => journal.Description)
                     </td>
-                    <td>
+                    <td style="padding: 10px 30px 10px 30px;">
                         @Html.DisplayFor(model => journal.AccountTitle)
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" style="padding: 10px 30px 10px 30px;">
                         @Html.DisplayFor(model => journal.Debit)
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" style="padding: 10px 30px 10px 30px;">
                         @Html.DisplayFor(model => journal.Credit)
                     </td>
 
@@ -118,17 +118,12 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                 totalDebitAmount += journal.Debit;
             }
             <tr class="align-text-bottom" style="border-top: 2px solid black;">
-                @{
-                    var formattedTotalCreditAmount = String.Format("{0:n}", totalCreditAmount);
-                    var formattedTotalDebitAmount = String.Format("{0:n}", totalDebitAmount);
-
                     <td></td>
                     <td></td>
                     <td></td>
                     <td class="text-center"><b>TOTAL:</b></td>
-                    <td class="text-end">@formattedTotalCreditAmount</td>
-                    <td class="text-end"><div>@formattedTotalDebitAmount</div></td>
-                }
+                    <td class="text-end" style="padding: 10px 30px 10px 30px;">@totalCreditAmount.ToString("N2")</td>
+                    <td class="text-end" style="padding: 10px 30px 10px 30px;"><div>@totalDebitAmount.ToString("N2")</div></td>
             </tr>
         </tbody>
     </table>
@@ -251,10 +246,9 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
         // Get the pre tag element
         var resultPre = document.getElementById('resultPre');
 
-        console.log("@formattedTotalDebitAmount");
         // Replace the placeholder in the HTML with the actual number of records
         resultPre.innerHTML = resultPre.innerHTML.replace('@numberOfRecords', (allTrElements.length - 1));
-        resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@formattedTotalDebitAmount");
+        resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@totalDebitAmount.ToString("N2")");
 
     </script>
 
