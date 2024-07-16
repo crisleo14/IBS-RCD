@@ -427,6 +427,8 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
         {
             var model = await _dbContext.JournalVoucherHeaders.FindAsync(id, cancellationToken);
+            var findJVInJB = await _dbContext.JournalBooks.Where(jb => jb.Reference == model.JVNo).ToListAsync();
+            var findJVInGL = await _dbContext.GeneralLedgerBooks.Where(jb => jb.Reference == model.JVNo).ToListAsync();
 
             if (model != null)
             {
@@ -441,8 +443,14 @@ namespace Accounting_System.Controllers
                     model.VoidedBy = _userManager.GetUserName(this.User);
                     model.VoidedDate = DateTime.Now;
 
-                    await _generalRepo.RemoveRecords<JournalBook>(crb => crb.Reference == model.JVNo);
-                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.JVNo);
+                    if (findJVInJB.Any())
+                    {
+                        await _generalRepo.RemoveRecords<JournalBook>(crb => crb.Reference == model.JVNo);
+                    }
+                    if (findJVInGL.Any())
+                    {
+                        await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.JVNo);
+                    }
 
                     #region --Audit Trail Recording
 
