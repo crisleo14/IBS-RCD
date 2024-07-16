@@ -80,7 +80,7 @@ namespace Accounting_System.Controllers
                .ToListAsync(cancellationToken);
 
             model.SalesInvoices = await _dbContext.SalesInvoices
-                .Where(si => !si.IsPaid && si.CustomerId == model.CustomerId)
+                .Where(si => !si.IsPaid && si.CustomerId == model.CustomerId && si.IsPosted)
                 .OrderBy(si => si.Id)
                 .Select(s => new SelectListItem
                 {
@@ -281,7 +281,7 @@ namespace Accounting_System.Controllers
                .ToListAsync(cancellationToken);
 
             model.SalesInvoices = await _dbContext.ServiceInvoices
-                .Where(si => !si.IsPaid && si.CustomerId == model.CustomerId)
+                .Where(si => !si.IsPaid && si.CustomerId == model.CustomerId && si.IsPosted)
                 .OrderBy(si => si.Id)
                 .Select(s => new SelectListItem
                 {
@@ -478,7 +478,7 @@ namespace Accounting_System.Controllers
         {
             var invoices = await _dbContext
                 .SalesInvoices
-                .Where(si => si.CustomerId == customerNo && !si.IsPaid)
+                .Where(si => si.CustomerId == customerNo && !si.IsPaid && si.IsPosted)
                 .OrderBy(si => si.Id)
                 .ToListAsync(cancellationToken);
 
@@ -496,7 +496,7 @@ namespace Accounting_System.Controllers
         {
             var invoices = await _dbContext
                 .ServiceInvoices
-                .Where(si => si.CustomerId == customerNo && !si.IsPaid)
+                .Where(si => si.CustomerId == customerNo && !si.IsPaid && si.IsPosted)
                 .OrderBy(si => si.Id)
                 .ToListAsync(cancellationToken);
 
