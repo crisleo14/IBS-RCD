@@ -31,7 +31,7 @@
         <tbody>
             @if (ViewBag.ProductId != null && ViewBag.POId != null)
             {
-                @foreach (var obj in Model.OrderBy(ir => ir.Date).ThenBy(ir => ir.Id))
+                @foreach (var obj in Model.OrderBy(ir => ir.Id))
                 {
                     <tr>
                         <td>@obj.Date.ToString("MM/dd/yyyy")</td>
@@ -56,7 +56,7 @@
                     </tr>
                 }
             }
-            else if (ViewBag.ProductId != null)
+            else if (ViewBag.ProductId != null && ViewBag.POId == null)
             {
                 @foreach (var obj in Model.Where(ir => ir.Particular.StartsWith("Beginning Balance")).OrderBy(ir => ir.Date).ThenBy(ir => ir.Id))
                 {
