@@ -779,7 +779,7 @@ namespace Accounting_System.Controllers
                             AccountNo = accountNo,
                             AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0],
                             Source = existingModel.CRNo,
-                            Reference = existingModel.SINo,
+                            Reference = existingModel.SINo != null ? existingModel.SINo : existingModel.SVNo,
                             Amount = currentAccountAmount,
                             CreatedBy = _userManager.GetUserName(this.User),
                             CreatedDate = DateTime.Now
