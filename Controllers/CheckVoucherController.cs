@@ -1414,7 +1414,7 @@ namespace Accounting_System.Controllers
                 AccountNumber = accountNumbers,
                 AccountTitle = accountTitles,
                 Debit = debit,
-                Credit = credit,
+                Credit = credit
             };
 
             return View(viewModel);
@@ -1440,6 +1440,37 @@ namespace Accounting_System.Controllers
                         existingModel.SINo = [viewModel.SiNo];
                         existingModel.Total = viewModel.Total;
                         existingModel.Particulars = viewModel.Particulars;
+                    }
+
+                    //For automation purposes
+                    if (viewModel.StartDate != null && viewModel.NumberOfYears != 0)
+                    {
+                        existingModel.StartDate = viewModel.StartDate;
+                        existingModel.EndDate = existingModel.StartDate.Value.AddYears(viewModel.NumberOfYears);
+                        existingModel.NumberOfMonths = (viewModel.NumberOfYears * 12);
+
+                        // Identify the account with a number that starts with '10201'
+                        decimal? amount = null;
+                        for (int i = 0; i < viewModel.AccountNumber.Length; i++)
+                        {
+                            if (viewModel.AccountNumber[i].StartsWith("10201") || viewModel.AccountNumber[i].StartsWith("10105"))
+                            {
+                                amount = viewModel.Debit[i] != 0 ? viewModel.Debit[i] : viewModel.Credit[i];
+                                break;
+                            }
+                        }
+
+                        if (amount.HasValue)
+                        {
+                            existingModel.AmountPerMonth = (amount.Value / viewModel.NumberOfYears) / 12;
+                        }
+                    }
+                    else
+                    {
+                        existingModel.StartDate = null;
+                        existingModel.EndDate = null;
+                        existingModel.NumberOfMonths = 0;
+                        existingModel.AmountPerMonth = 0;
                     }
 
                     #endregion --Saving the default entries
@@ -1545,10 +1576,25 @@ namespace Accounting_System.Controllers
                 }
                 catch (Exception ex)
                 {
+                    viewModel.Suppliers = await _dbContext.Suppliers
+                    .Select(sup => new SelectListItem
+                    {
+                        Value = sup.Id.ToString(),
+                        Text = sup.Name
+                    })
+                    .ToListAsync();
+
                     TempData["error"] = ex.Message;
                     return View(viewModel);
                 }
             }
+            viewModel.Suppliers = await _dbContext.Suppliers
+                    .Select(sup => new SelectListItem
+                    {
+                        Value = sup.Id.ToString(),
+                        Text = sup.Name
+                    })
+                    .ToListAsync();
 
             TempData["error"] = "The information provided was invalid.";
             return View(viewModel);
