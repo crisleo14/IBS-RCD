@@ -763,6 +763,49 @@ namespace Accounting_System.Controllers
                         .ToListAsync(cancellationToken);
                         if (cv.Any())
                         {
+                            viewModel.COA = await _dbContext.ChartOfAccounts
+                                .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
+                                .Select(s => new SelectListItem
+                                {
+                                    Value = s.Number,
+                                    Text = s.Number + " " + s.Name
+                                })
+                                .ToListAsync(cancellationToken);
+
+                            viewModel.Suppliers = await _dbContext.Suppliers
+                                .Select(sup => new SelectListItem
+                                {
+                                    Value = sup.Id.ToString(),
+                                    Text = sup.Name
+                                })
+                                .ToListAsync();
+
+                            viewModel.PONo = await _dbContext.PurchaseOrders
+                                .Where(po => po.SupplierId == viewModel.SupplierId && po.IsPosted)
+                                .Select(po => new SelectListItem
+                                {
+                                    Value = po.PONo.ToString(),
+                                    Text = po.PONo
+                                })
+                                .ToListAsync(cancellationToken);
+
+                            viewModel.RR = await _dbContext.ReceivingReports
+                                .Where(rr => viewModel.POSeries.Contains(rr.PONo) && !rr.IsPaid && rr.IsPosted)
+                                .Select(rr => new SelectListItem
+                                {
+                                    Value = rr.RRNo.ToString(),
+                                    Text = rr.RRNo
+                                })
+                                .ToListAsync(cancellationToken);
+
+                            viewModel.BankAccounts = await _dbContext.BankAccounts
+                                .Select(ba => new SelectListItem
+                                {
+                                    Value = ba.Id.ToString(),
+                                    Text = ba.AccountNo + " " + ba.AccountName
+                                })
+                                .ToListAsync();
+
                             TempData["error"] = "Check No. Is already exist";
                             return View(viewModel);
                         }
@@ -899,6 +942,25 @@ namespace Accounting_System.Controllers
                             Text = sup.Name
                         })
                         .ToListAsync();
+
+                    viewModel.PONo = await _dbContext.PurchaseOrders
+                                .Where(po => po.SupplierId == viewModel.SupplierId && po.IsPosted)
+                                .Select(po => new SelectListItem
+                                {
+                                    Value = po.PONo.ToString(),
+                                    Text = po.PONo
+                                })
+                                .ToListAsync(cancellationToken);
+
+                    viewModel.RR = await _dbContext.ReceivingReports
+                        .Where(rr => viewModel.POSeries.Contains(rr.PONo) && !rr.IsPaid && rr.IsPosted)
+                        .Select(rr => new SelectListItem
+                        {
+                            Value = rr.RRNo.ToString(),
+                            Text = rr.RRNo
+                        })
+                        .ToListAsync(cancellationToken);
+
                     viewModel.BankAccounts = await _dbContext.BankAccounts
                         .Select(ba => new SelectListItem
                         {
@@ -927,6 +989,25 @@ namespace Accounting_System.Controllers
                     Text = sup.Name
                 })
                 .ToListAsync();
+
+            viewModel.PONo = await _dbContext.PurchaseOrders
+                                .Where(po => po.SupplierId == viewModel.SupplierId && po.IsPosted)
+                                .Select(po => new SelectListItem
+                                {
+                                    Value = po.PONo.ToString(),
+                                    Text = po.PONo
+                                })
+                                .ToListAsync(cancellationToken);
+
+            viewModel.RR = await _dbContext.ReceivingReports
+                .Where(rr => viewModel.POSeries.Contains(rr.PONo) && !rr.IsPaid && rr.IsPosted)
+                .Select(rr => new SelectListItem
+                {
+                    Value = rr.RRNo.ToString(),
+                    Text = rr.RRNo
+                })
+                .ToListAsync(cancellationToken);
+
             viewModel.BankAccounts = await _dbContext.BankAccounts
                 .Select(ba => new SelectListItem
                 {
