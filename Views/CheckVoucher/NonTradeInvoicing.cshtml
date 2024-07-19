@@ -202,6 +202,11 @@
                     alert('Please select Account No.!');
                     return;
                 }
+                if (accountNumber.startsWith("10201") || accountNumber.startsWith("10105")) {
+                } else {
+                    $("#StartDate").val("");
+                    $("#NumberOfYears").val(0);
+                }
 
                 // Format debit and credit values with commas and two decimal places
                 var formattedDebit = debit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -336,10 +341,7 @@
                             $("#AddAccEntry").modal("show");
                         }
                     });
-                } else {
-                    $("#StartDate").val("");
-                    $("#NumberOfYears").val(0);
-                }
+                } 
             });
         </script>
         <script>
