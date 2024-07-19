@@ -139,7 +139,7 @@ namespace Accounting_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Supplier supplier, CancellationToken cancellationToken)
+        public async Task<IActionResult> Edit(int id, Supplier supplier, IFormFile? document, IFormFile? registration, CancellationToken cancellationToken)
         {
             if (id != supplier.Id)
             {
@@ -150,8 +150,80 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    _context.Update(supplier);
+                    var existingModel = await _context.Suppliers.FindAsync(supplier.Id, cancellationToken);
+
+                    if (supplier.TaxType == "Withholding Tax")
+                    {
+                        existingModel.ReasonOfExemption = null;
+                        existingModel.Validity = null;
+                        existingModel.ValidityDate = null;
+                    }
+                    else
+                    {
+                        existingModel.ReasonOfExemption = supplier.ReasonOfExemption;
+                        existingModel.Validity = supplier.Validity;
+                        existingModel.ValidityDate = supplier.ValidityDate;
+                    }
+                    existingModel.Name = supplier.Name;
+                    existingModel.Address = supplier.Address;
+                    existingModel.TinNo = supplier.TinNo;
+                    existingModel.Terms = supplier.Terms;
+                    existingModel.VatType = supplier.VatType;
+                    existingModel.TaxType = supplier.TaxType;
+                    supplier.Number = existingModel.Number;
+                    supplier.CreatedBy = _userManager.GetUserName(this.User).ToString();
+
+                    #region -- Upload file -- 
+
+                    if (document != null && document.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Proof of Exemption", supplier.Number.ToString());
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(document.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await document.CopyToAsync(stream);
+                        }
+
+                        existingModel.ProofOfExemptionFilePath = fileSavePath;
+                    }
+
+                    if (registration != null && registration.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Proof of Registration", supplier.Number.ToString());
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(registration.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await registration.CopyToAsync(stream);
+                        }
+
+                        existingModel.ProofOfRegistrationFilePath = fileSavePath;
+                    }
+                    else
+                    {
+                        TempData["error"] = "There's something wrong in your file. Contact MIS.";
+                        return View(supplier);
+                    }
+
+                    #endregion -- Upload file -- 
+
                     await _context.SaveChangesAsync(cancellationToken);
+                    TempData["success"] = $"Supplier {supplier.Name} has been edited.";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
