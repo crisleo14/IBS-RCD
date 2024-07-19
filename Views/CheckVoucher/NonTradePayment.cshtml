@@ -190,6 +190,8 @@
                             $("#Payee").val(data.payee);
                             $("#PayeeAddress").val(data.payeeAddress);
                             $("#PayeeTin").val(data.payeeTin);
+                            $("#Total").val(data.total);
+                            $(".cib-credit").val(data.total);
                         }
                     },
                     error: function (xhr, status, error) {
@@ -200,6 +202,7 @@
                 $("#Payee").val("");
                 $("#PayeeAddress").val("");
                 $("#PayeeTin").val("");
+                $("#Total").val("");
             }
         });
 

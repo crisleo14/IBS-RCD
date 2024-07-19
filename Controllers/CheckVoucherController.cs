@@ -1440,7 +1440,8 @@ namespace Accounting_System.Controllers
                     {
                         Payee = cv.Supplier.Name,
                         PayeeAddress = cv.Supplier.Address,
-                        PayeeTin = cv.Supplier.TinNo
+                        PayeeTin = cv.Supplier.TinNo,
+                        Total = cv.Total
                     });
                 }
                 return Json(null);
