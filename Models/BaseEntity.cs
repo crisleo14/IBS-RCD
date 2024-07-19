@@ -38,5 +38,7 @@ namespace Accounting_System.Models
         public string? PostedBy { get; set; }
 
         public DateTime? PostedDate { get; set; }
+
+        public string? CancellationRemarks { get; set; }
     }
 }
