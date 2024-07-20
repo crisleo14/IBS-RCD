@@ -440,7 +440,8 @@
                                     var totalEWT = 0;
                                     amountInputs.forEach(function (input) {
                                         if (data.taxType === "Withholding Tax") {
-                                            var rrAmount = parseFloat(input.value);
+                                            var rawValue = input.value.replace(/,/g, '');
+                                            var rrAmount = parseFloat(rawValue) || 0;
                                             var netOfVat = rrAmount / 1.12;
                                             var vat = netOfVat * 0.12;
                                             var ewt = netOfVat * 0.01;
@@ -448,7 +449,8 @@
                                             totalNetOfEWT += rrAmountNetOfEWT;
                                             totalEWT += ewt;
                                         } else {
-                                            var rrAmount = parseFloat(input.value);
+                                            var rawValue = input.value.replace(/,/g, '');
+                                            var rrAmount = parseFloat(rawValue) || 0;
                                             totalNetOfEWT += rrAmount;
                                         }
                                     });
@@ -699,6 +701,7 @@
                                     //compute / show existing RR
                                     var gross = data.amount - data.amountPaid;
                                     $("#amount_" + rrNo).text(gross.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                                    $(".inputAmount").val(gross.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                                     var netAmount = gross / 1.12;
                                     $("#netAmount_" + rrNo).text(netAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                                     var vatAmount = netAmount * 0.12;
@@ -710,6 +713,7 @@
 
                                     // Recalculate grand total of existing RR
                                     calculateGrandTotalRRAmount()
+                                    updateAmounts()
                                 }
                             },
                             error: function (xhr, status, error) {
@@ -721,8 +725,34 @@
                 calculateGrandTotalPayment()
                 calculateGrandTotal()
                 calculateGrandTotalRRAmount()
+                updateAmounts()
             });
         });
+
+        function updateAmounts() {
+            var amountInputs = document.querySelectorAll('.inputAmount');
+            var totalNetOfEWT = 0;
+            var totalEWT = 0;
+            amountInputs.forEach(function (input) {
+                if ($(".EWTDebit, .EWTCredit").is(':visible')) {
+                    var rawValue = input.value.replace(/,/g, '');
+                    var rrAmount = parseFloat(rawValue) || 0;
+                    var netOfVat = rrAmount / 1.12;
+                    var vat = netOfVat * 0.12;
+                    var ewt = netOfVat * 0.01;
+                    var rrAmountNetOfEWT = rrAmount - ewt;
+                    totalNetOfEWT += rrAmountNetOfEWT;
+                    totalEWT += ewt;
+                } else {
+                    var rawValue = input.value.replace(/,/g, '');
+                    var rrAmount = parseFloat(rawValue) || 0;
+                    totalNetOfEWT += rrAmount;
+                }
+            });
+            $(".totalNetOfEWT").val(totalNetOfEWT.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            $(".totalEWT").val(totalEWT.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            updateTotalDebitAndCredit();
+        }
 
         //Compute Grand Total Balance
         function calculateGrandTotal() {
