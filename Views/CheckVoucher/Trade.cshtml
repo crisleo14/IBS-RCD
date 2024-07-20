@@ -612,7 +612,7 @@
                                                                                     <input type='hidden' name='rrNo' value='${rrNo}' />
                                                                                     <input type='text' name='rrNoText' value='${rrSelectText}' style='border:none' readonly />
                                                                                 </td>
-                                                                                <td><input type='text' name='Amount' class='inputAmount money' id='paymentAmount_${rrNo}'/></td>
+                                                                                <td><input type='text' name='Amount' class='inputAmount money paymentAmount_${rrNo}'/></td>
                                                                             </tr>`;
                     var rrAmount = `<tr id='row_${rrNo}'>
                                                                                     <td style='padding-left:20px;'>
@@ -652,8 +652,8 @@
                     $(".payment").append(payment);
                     $(".balance").append(balance);
 
-                    $("#paymentAmount_" + rrNo).on('input', function () {
-                        var inputValue = $(this).val();
+                    $(".paymentAmount_" + rrNo).on('input', function () {
+                        var inputValue = $(this).val().replace(/,/g, '');
                         var netOfVat = inputValue / 1.12;
                         var vat = netOfVat * 0.12;
                         var ewt = netOfVat * 0.01;
@@ -678,8 +678,8 @@
                             data: { rrNo: rrNo },
                             success: function (data) {
                                 if (data.balance !== null) {
-                                    $("#paymentAmount_" + rrNo).on('input', function () {
-                                        var inputValue = $(this).val();
+                                    $(".paymentAmount_" + rrNo).on('input', function () {
+                                        var inputValue = $(this).val().replace(/,/g, '');
                                         var balance = data.amount - data.amountPaid - inputValue;
 
                                         var netOfVat = balance / 1.12;
@@ -701,7 +701,7 @@
                                     //compute / show existing RR
                                     var gross = data.amount - data.amountPaid;
                                     $("#amount_" + rrNo).text(gross.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                                    $(".inputAmount").val(gross.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                                    $(".paymentAmount_" + rrNo).val(gross.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                                     var netAmount = gross / 1.12;
                                     $("#netAmount_" + rrNo).text(netAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                                     var vatAmount = netAmount * 0.12;
