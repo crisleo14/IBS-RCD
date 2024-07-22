@@ -468,7 +468,7 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Cancel(int id, CancellationToken cancellationToken)
+        public async Task<IActionResult> Cancel(int id, string cancellationRemarks, CancellationToken cancellationToken)
         {
             var model = await _dbContext.JournalVoucherHeaders.FindAsync(id, cancellationToken);
 
@@ -479,6 +479,7 @@ namespace Accounting_System.Controllers
                     model.IsCanceled = true;
                     model.CanceledBy = _userManager.GetUserName(this.User);
                     model.CanceledDate = DateTime.Now;
+                    model.CancellationRemarks = cancellationRemarks;
 
                     #region --Audit Trail Recording
 

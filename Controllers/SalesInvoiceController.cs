@@ -707,7 +707,7 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Cancel(int invoiceId, CancellationToken cancellationToken)
+        public async Task<IActionResult> Cancel(int invoiceId, string cancellationRemarks, CancellationToken cancellationToken)
         {
             var model = await _dbContext.SalesInvoices.FindAsync(invoiceId, cancellationToken);
 
@@ -719,6 +719,7 @@ namespace Accounting_System.Controllers
                     model.CanceledBy = _userManager.GetUserName(this.User);
                     model.CanceledDate = DateTime.Now;
                     model.Status = "Cancelled";
+                    model.CancellationRemarks = cancellationRemarks;
 
                     #region --Audit Trail Recording
 

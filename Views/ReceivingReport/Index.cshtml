@@ -152,8 +152,12 @@
         function confirmCancel(id) {
             console.log(id);
             Swal.fire({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
+                title: "Please Input Remarks",
+                html:
+                    "<input id='cancellationRemarks' type='text' class='swal2-input' placeholder='Remarks'>",
+                focusConfirm: false,
+                allowEscapeKey: false,
+                allowOutsideClick: false,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -161,8 +165,11 @@
                 confirmButtonText: 'Yes'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Replace with the actual URL that you want to redirect to
-                    var url = `/ReceivingReport/Cancel?id=${id}`;
+                    var cancellationRemarks = $("#cancellationRemarks").val();
+                    // Encode the cancellationRemarks to make it URL safe
+                    var encodedRemarks = encodeURIComponent(cancellationRemarks);
+                    // Append the encoded remarks as a parameter in the URL
+                    var url = `/ReceivingReport/Cancel?id=${id}&cancellationRemarks=${encodedRemarks}`;
                     window.location.href = url;
                 }
             })

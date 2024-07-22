@@ -521,7 +521,7 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Cancel(int id, CancellationToken cancellationToken)
+        public async Task<IActionResult> Cancel(int id, string cancellationRemarks, CancellationToken cancellationToken)
         {
             var model = await _dbContext.ReceivingReports.FindAsync(id, cancellationToken);
 
@@ -535,6 +535,7 @@ namespace Accounting_System.Controllers
                     model.CanceledQuantity = model.QuantityDelivered < model.QuantityReceived ? model.QuantityDelivered : model.QuantityReceived;
                     model.QuantityDelivered = 0;
                     model.QuantityReceived = 0;
+                    model.CancellationRemarks = cancellationRemarks;
 
                     #region --Audit Trail Recording
 
