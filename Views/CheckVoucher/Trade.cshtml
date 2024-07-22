@@ -654,6 +654,10 @@
 
                     $(".paymentAmount_" + rrNo).on('input', function () {
                         var inputValue = $(this).val().replace(/,/g, '');
+                        paymentInputValue(inputValue)
+                    });
+
+                    function paymentInputValue(inputValue) {
                         var netOfVat = inputValue / 1.12;
                         var vat = netOfVat * 0.12;
                         var ewt = netOfVat * 0.01;
@@ -668,7 +672,7 @@
 
                         //Recalculate grand Total computted payment
                         calculateGrandTotalPayment();
-                    });
+                    }
 
                     if (rrNo !== "") {
                         // Make an AJAX request to get the balance based on the selected RRNo
@@ -714,6 +718,7 @@
                                     // Recalculate grand total of existing RR
                                     calculateGrandTotalRRAmount()
                                     updateAmounts()
+                                    paymentInputValue($(".paymentAmount_" + rrNo).val().replace(/,/g, ''))
                                 }
                             },
                             error: function (xhr, status, error) {
