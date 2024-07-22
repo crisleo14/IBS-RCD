@@ -375,18 +375,37 @@ namespace Accounting_System.Controllers
                             });
                         }
 
-                        ledgers.Add(new GeneralLedgerBook
+                        if (model.VatAmount != 0)
                         {
-                            Date = model.Date,
-                            Reference = model.RRNo,
-                            Description = "Receipt of Goods",
-                            AccountNo = "1010602",
-                            AccountTitle = "Vat Input",
-                            Debit = model.VatAmount,
-                            Credit = 0,
-                            CreatedBy = model.CreatedBy,
-                            CreatedDate = model.CreatedDate
-                        });
+                            ledgers.Add(new GeneralLedgerBook
+                            {
+                                Date = model.Date,
+                                Reference = model.RRNo,
+                                Description = "Receipt of Goods",
+                                AccountNo = "1010602",
+                                AccountTitle = "Vat Input",
+                                Debit = model.VatAmount,
+                                Credit = 0,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            });
+                        }
+
+                        if (model.EwtAmount != 0)
+                        {
+                            ledgers.Add(new GeneralLedgerBook
+                            {
+                                Date = model.Date,
+                                Reference = model.RRNo,
+                                Description = "Receipt of Goods",
+                                AccountNo = "2010302",
+                                AccountTitle = "Expanded Withholding Tax 1%",
+                                Debit = 0,
+                                Credit = model.EwtAmount,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            });
+                        }
 
                         ledgers.Add(new GeneralLedgerBook
                         {
@@ -401,18 +420,6 @@ namespace Accounting_System.Controllers
                             CreatedDate = model.CreatedDate
                         });
 
-                        ledgers.Add(new GeneralLedgerBook
-                        {
-                            Date = model.Date,
-                            Reference = model.RRNo,
-                            Description = "Receipt of Goods",
-                            AccountNo = "2010302",
-                            AccountTitle = "Expanded Withholding Tax 1%",
-                            Debit = 0,
-                            Credit = model.EwtAmount,
-                            CreatedBy = model.CreatedBy,
-                            CreatedDate = model.CreatedDate
-                        });
 
                         if (!_generalRepo.IsDebitCreditBalanced(ledgers))
                         {
