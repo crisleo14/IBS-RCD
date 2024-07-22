@@ -170,6 +170,9 @@ namespace Accounting_System.Controllers
                     existingModel.Terms = supplier.Terms;
                     existingModel.VatType = supplier.VatType;
                     existingModel.TaxType = supplier.TaxType;
+                    existingModel.Category = supplier.Category;
+                    existingModel.TradeName = supplier.TradeName;
+                    existingModel.Branch = supplier.Branch;
                     supplier.Number = existingModel.Number;
                     supplier.CreatedBy = _userManager.GetUserName(this.User).ToString();
 

@@ -57,5 +57,11 @@ namespace Accounting_System.Models.MasterFile
         [Display(Name = "Created Date")]
         [Column(TypeName = "timestamp without time zone")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        public string Category { get; set; }
+
+        public string? TradeName { get; set; }
+
+        public string Branch { get; set; }
     }
 }
