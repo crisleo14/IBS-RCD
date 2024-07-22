@@ -346,6 +346,8 @@ namespace Accounting_System.Controllers
 
                 if (inventory != null || ledgerEntries != null)
                 {
+                    #region -- Journal Voucher entry --
+
                     var header = new JournalVoucherHeader
                     {
                         SeriesNumber = await _journalVoucherRepo.GetLastSeriesNumberJV(),
@@ -378,11 +380,36 @@ namespace Accounting_System.Controllers
                     }
 
                     inventory.IsValidated = true;
-                    inventory.ValidatedBy = "Ako";
+                    inventory.ValidatedBy = _userManager.GetUserName(this.User);
                     inventory.ValidatedDate = DateTime.Now;
 
                     await _dbContext.JournalVoucherHeaders.AddAsync(header, cancellationToken);
                     await _dbContext.JournalVoucherDetails.AddRangeAsync(details, cancellationToken);
+
+                    #endregion -- Journal Voucher entry --
+
+                    #region -- Journal Book Entry --
+
+                    var journalBook = new List<JournalBook>();
+
+                    foreach (var entry in ledgerEntries)
+                    {
+                        journalBook.Add(new JournalBook
+                        {
+                            Date = entry.Date,
+                            Reference = header.JVNo,
+                            Description = "Actual Inventory",
+                            AccountTitle = entry.AccountNo + " " + entry.AccountTitle,
+                            Debit = Math.Abs(entry.Debit),
+                            Credit = Math.Abs(entry.Credit),
+                            CreatedBy = _userManager.GetUserName(this.User),
+                            CreatedDate = DateTime.Now
+                        });
+                    }
+                    await _dbContext.AddRangeAsync(journalBook, cancellationToken);
+
+                    #endregion -- Journal Book Entry --
+
                     await _dbContext.SaveChangesAsync(cancellationToken);
 
                     return Ok();
