@@ -375,7 +375,7 @@ namespace Accounting_System.Controllers
                             });
                         }
 
-                        if (model.VatAmount != 0)
+                        if (model.VatAmount > 0)
                         {
                             ledgers.Add(new GeneralLedgerBook
                             {
@@ -391,7 +391,7 @@ namespace Accounting_System.Controllers
                             });
                         }
 
-                        if (model.EwtAmount != 0)
+                        if (model.EwtAmount > 0)
                         {
                             ledgers.Add(new GeneralLedgerBook
                             {
