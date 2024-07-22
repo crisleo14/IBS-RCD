@@ -21,10 +21,10 @@ namespace Accounting_System.Models.ViewModels
         public string SupplierTinNo { get; set; }
 
         [Display(Name = "PO No")]
-        public string PoNo { get; set; }
+        public string? PoNo { get; set; }
 
         [Display(Name = "SI No")]
-        public string SiNo { get; set; }
+        public string? SiNo { get; set; }
 
         [Display(Name = "Transaction Date")]
         public DateOnly TransactionDate { get; set; }
