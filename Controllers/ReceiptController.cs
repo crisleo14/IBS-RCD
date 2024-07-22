@@ -849,7 +849,9 @@ namespace Accounting_System.Controllers
 
                         var ledgers = new List<GeneralLedgerBook>();
 
-                        ledgers.Add(
+                        if (model.CashAmount > 0 || model.CheckAmount > 0 || model.ManagerCheckAmount > 0)
+                        {
+                            ledgers.Add(
                                     new GeneralLedgerBook
                                     {
                                         Date = model.TransactionDate,
@@ -863,6 +865,7 @@ namespace Accounting_System.Controllers
                                         CreatedDate = model.CreatedDate
                                     }
                                 );
+                        }
 
                         if (model.EWT > 0)
                         {
@@ -923,7 +926,9 @@ namespace Accounting_System.Controllers
                             }
                         }
 
-                        ledgers.Add(
+                        if (model.CashAmount > 0 || model.CheckAmount > 0 || model.ManagerCheckAmount > 0 || offsetAmount > 0)
+                        {
+                            ledgers.Add(
                                 new GeneralLedgerBook
                                 {
                                     Date = model.TransactionDate,
@@ -937,6 +942,7 @@ namespace Accounting_System.Controllers
                                     CreatedDate = model.CreatedDate
                                 }
                             );
+                        }
 
                         if (model.EWT > 0)
                         {
