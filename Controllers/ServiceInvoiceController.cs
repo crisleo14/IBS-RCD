@@ -252,7 +252,7 @@ namespace Accounting_System.Controllers
 
                         #endregion --Retrieval of Customer
 
-                        #region --SOA Computation--
+                        #region --SV Computation--
 
                         var postedDate = DateOnly.FromDateTime(model.CreatedDate) >= model.Period ? DateOnly.FromDateTime(model.CreatedDate) : model.Period.AddMonths(1).AddDays(-1);
 
@@ -261,7 +261,7 @@ namespace Accounting_System.Controllers
                             model.Total = model.Amount;
                             model.NetAmount = (model.Amount - model.Discount) / 1.12m;
                             model.VatAmount = (model.Amount - model.Discount) - model.NetAmount;
-                            model.WithholdingTaxAmount = Math.Round(model.NetAmount * (services.Percent / 100m), 2);
+                            model.WithholdingTaxAmount = Math.Round(model.NetAmount * (customer.WithHoldingTax ? services.Percent / 100m : 0), 2);
                             if (customer.WithHoldingVat)
                             {
                                 model.WithholdingVatAmount = Math.Round(model.NetAmount * 0.05m, 2);
@@ -270,7 +270,7 @@ namespace Accounting_System.Controllers
                         else
                         {
                             model.NetAmount = model.Amount - model.Discount;
-                            model.WithholdingTaxAmount = model.NetAmount * (services.Percent / 100m);
+                            model.WithholdingTaxAmount = model.NetAmount * (customer.WithHoldingTax ? services.Percent / 100m : 0);
                             if (customer.WithHoldingVat)
                             {
                                 model.WithholdingVatAmount = model.NetAmount * 0.05m;
@@ -289,7 +289,7 @@ namespace Accounting_System.Controllers
                             }
                         }
 
-                        #endregion --SOA Computation--
+                        #endregion --SV Computation--
 
                         #region --Sales Book Recording
 
