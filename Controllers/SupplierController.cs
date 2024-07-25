@@ -5,6 +5,7 @@ using Accounting_System.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Controllers
@@ -35,9 +36,26 @@ namespace Accounting_System.Controllers
                         Problem("Entity set 'ApplicationDbContext.Suppliers'  is null.");
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
-            return View();
+            Supplier model = new();
+            model.DefaultExpenses = await _context.ChartOfAccounts
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number + " " + s.Name,
+                    Text = s.Number + " " + s.Name
+                })
+                .ToListAsync(cancellationToken);
+            model.WithholdingTaxList = await _context.ChartOfAccounts
+                .Where(coa => coa.Number == "2010302" || coa.Number == "2010303")
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number == "2010302" ? "1" : "2",
+                    Text = s.Number + " " + s.Name
+                })
+                .ToListAsync(cancellationToken);
+
+            return View(model);
         }
 
         [HttpPost]
@@ -49,12 +67,42 @@ namespace Accounting_System.Controllers
                 if (await _supplierRepo.IsSupplierNameExist(supplier.Name, cancellationToken))
                 {
                     ModelState.AddModelError("Name", "Supplier name already exist!");
+                    supplier.DefaultExpenses = await _context.ChartOfAccounts
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.Number + " " + s.Name,
+                            Text = s.Number + " " + s.Name
+                        })
+                        .ToListAsync(cancellationToken);
+                    supplier.WithholdingTaxList = await _context.ChartOfAccounts
+                        .Where(coa => coa.Number == "2010302" || coa.Number == "2010303")
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.Number == "2010302" ? "1" : "2",
+                            Text = s.Number + " " + s.Name
+                        })
+                        .ToListAsync(cancellationToken);
                     return View(supplier);
                 }
 
                 if (await _supplierRepo.IsSupplierTinExist(supplier.TinNo, cancellationToken))
                 {
                     ModelState.AddModelError("TinNo", "Supplier tin already exist!");
+                    supplier.DefaultExpenses = await _context.ChartOfAccounts
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.Number + " " + s.Name,
+                            Text = s.Number + " " + s.Name
+                        })
+                        .ToListAsync(cancellationToken);
+                    supplier.WithholdingTaxList = await _context.ChartOfAccounts
+                        .Where(coa => coa.Number == "2010302" || coa.Number == "2010303")
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.Number == "2010302" ? "1" : "2",
+                            Text = s.Number + " " + s.Name
+                        })
+                        .ToListAsync(cancellationToken);
                     return View(supplier);
                 }
 
@@ -103,6 +151,21 @@ namespace Accounting_System.Controllers
                 else
                 {
                     TempData["error"] = "There's something wrong in your file. Contact MIS.";
+                    supplier.DefaultExpenses = await _context.ChartOfAccounts
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.Number + " " + s.Name,
+                            Text = s.Number + " " + s.Name
+                        })
+                        .ToListAsync(cancellationToken);
+                    supplier.WithholdingTaxList = await _context.ChartOfAccounts
+                        .Where(coa => coa.Number == "2010302" || coa.Number == "2010303")
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.Number == "2010302" ? "1" : "2",
+                            Text = s.Number + " " + s.Name
+                        })
+                        .ToListAsync(cancellationToken);
                     return View(supplier);
                 }
 
@@ -134,6 +197,21 @@ namespace Accounting_System.Controllers
             {
                 return NotFound();
             }
+            supplier.DefaultExpenses = await _context.ChartOfAccounts
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number + " " + s.Name,
+                    Text = s.Number + " " + s.Name
+                })
+                .ToListAsync(cancellationToken);
+            supplier.WithholdingTaxList = await _context.ChartOfAccounts
+                .Where(coa => coa.Number == "2010302" || coa.Number == "2010303")
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number == "2010302" ? "1" : "2",
+                    Text = s.Number + " " + s.Name
+                })
+                .ToListAsync(cancellationToken);
             return View(supplier);
         }
 
@@ -152,18 +230,9 @@ namespace Accounting_System.Controllers
                 {
                     var existingModel = await _context.Suppliers.FindAsync(supplier.Id, cancellationToken);
 
-                    if (supplier.TaxType == "Withholding Tax")
-                    {
-                        existingModel.ReasonOfExemption = null;
-                        existingModel.Validity = null;
-                        existingModel.ValidityDate = null;
-                    }
-                    else
-                    {
-                        existingModel.ReasonOfExemption = supplier.ReasonOfExemption;
-                        existingModel.Validity = supplier.Validity;
-                        existingModel.ValidityDate = supplier.ValidityDate;
-                    }
+                    existingModel.ReasonOfExemption = supplier.ReasonOfExemption;
+                    existingModel.Validity = supplier.Validity;
+                    existingModel.ValidityDate = supplier.ValidityDate;
                     existingModel.Name = supplier.Name;
                     existingModel.Address = supplier.Address;
                     existingModel.TinNo = supplier.TinNo;
@@ -173,6 +242,8 @@ namespace Accounting_System.Controllers
                     existingModel.Category = supplier.Category;
                     existingModel.TradeName = supplier.TradeName;
                     existingModel.Branch = supplier.Branch;
+                    existingModel.DefaultExpenseNumber = supplier.DefaultExpenseNumber;
+                    existingModel.WithholdingTaxPercent = supplier.WithholdingTaxPercent;
                     supplier.Number = existingModel.Number;
                     supplier.CreatedBy = _userManager.GetUserName(this.User).ToString();
 
@@ -219,6 +290,21 @@ namespace Accounting_System.Controllers
                     }
                     else
                     {
+                        supplier.DefaultExpenses = await _context.ChartOfAccounts
+                            .Select(s => new SelectListItem
+                            {
+                                Value = s.Number + " " + s.Name,
+                                Text = s.Number + " " + s.Name
+                            })
+                            .ToListAsync(cancellationToken);
+                        supplier.WithholdingTaxList = await _context.ChartOfAccounts
+                            .Where(coa => coa.Number == "2010302" || coa.Number == "2010303")
+                            .Select(s => new SelectListItem
+                            {
+                                Value = s.Number == "2010302" ? "1" : "2",
+                                Text = s.Number + " " + s.Name
+                            })
+                            .ToListAsync(cancellationToken);
                         TempData["error"] = "There's something wrong in your file. Contact MIS.";
                         return View(supplier);
                     }

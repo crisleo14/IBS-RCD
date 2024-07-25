@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Accounting_System.Models.MasterFile
@@ -63,5 +64,15 @@ namespace Accounting_System.Models.MasterFile
         public string? TradeName { get; set; }
 
         public string Branch { get; set; }
+
+        public string? DefaultExpenseNumber { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? DefaultExpenses { get; set; }
+
+        public int? WithholdingTaxPercent { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? WithholdingTaxList { get; set; }
     }
 }

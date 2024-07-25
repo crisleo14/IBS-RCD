@@ -44,15 +44,24 @@
                 <label asp-for="Address" class="control-label">Address<span class="required">*</span></label>
                 <span asp-validation-for="Address" class="text-danger"></span>
             </div>
-            <div class="form-floating mb-3">
-                <input asp-for="TinNo" class="form-control" placeholder="" />
-                <label asp-for="TinNo" class="control-label">Tin No<span class="required">*</span></label>
-                <span asp-validation-for="TinNo" class="text-danger"></span>
+            <div class="row mb-3">
+                <div class="form-floating col">
+                    <input asp-for="TinNo" class="form-control" placeholder="" />
+                    <label asp-for="TinNo" class="control-label ms-2">Tin No<span class="required">*</span></label>
+                    <span asp-validation-for="TinNo" class="text-danger"></span>
+                </div>
+                <div class="form-floating col">
+                    <input asp-for="Branch" class="form-control" placeholder="" maxlength="4" />
+                    <label asp-for="Branch" class="control-label ms-2">Branch<span class="required">*</span></label>
+                    <span asp-validation-for="Branch" class="text-danger"></span>
+                </div>
             </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Branch" class="form-control" placeholder="" maxlength="4"/>
-                <label asp-for="Branch" class="control-label">Branch<span class="required">*</span></label>
-                <span asp-validation-for="Branch" class="text-danger"></span>
+            <div class="form-group mb-3" id="nonTradeList" style="display: none;">
+                <label class="control-label">Default Expense</label>
+                <select asp-for="DefaultExpenseNumber" asp-items="@Model.DefaultExpenses" class="form-select js-select2" style="width: 100%">
+                    <option></option>
+                </select>
+                <span asp-validation-for="DefaultExpenseNumber" class="text-danger"></span>
             </div>
             <div class="form-group mb-3">
                 <label asp-for="Terms" class="control-label"></label><span class="required">*</span>
@@ -93,6 +102,13 @@
                     </select>
                     <span asp-validation-for="TaxType" class="text-danger"></span>
                 </div>
+            </div>
+            <div class="form-group mb-3" id="WithholdingTaxPercent" @(Model.TaxType == "Withholding Tax" ? "" : "style=\"display: none;\"")>
+                <label class="control-label">Percent</label>
+                <select asp-for="WithholdingTaxPercent" asp-items="@Model.WithholdingTaxList" class="form-select js-select2" style="width: 100%">
+                    <option></option>
+                </select>
+                <span asp-validation-for="WithholdingTaxPercent" class="text-danger"></span>
             </div>
             <div id="exemptionFields" style="display:none;">
                 <div class="form-floating mb-3">
@@ -142,9 +158,16 @@
     <script>
         function toggleExemptionFields(selectElement) {
             const exemptionFields = document.getElementById("exemptionFields");
-            console.log(selectElement);
+            const withHoldingTaxPercent = document.getElementById("WithholdingTaxPercent");
+            var inlineRadio2 = document.getElementById('inlineRadio2');
+
             if (selectElement.value === "Exempt") {
                 exemptionFields.style.display = "block";
+                withHoldingTaxPercent.style.display = "none";
+                $(".withHoldingTaxPercent").val(null).trigger('change');
+            } else if (selectElement.value === "Withholding Tax" && inlineRadio2.checked === true) {
+                withHoldingTaxPercent.style.display = "block";
+                exemptionFields.style.display = "none";
             } else {
                 exemptionFields.style.display = "none";
             }
@@ -154,8 +177,7 @@
             const validityDateField = document.getElementById("validityDateField");
             validityDateField.style.display = radioButton.value === "Permanent" ? "none" : "block";
         }
-    </script>
-    <script>
+
         window.onload = function () {
             var inlineRadio1 = document.getElementById('inlineRadio1');
             var inlineRadio2 = document.getElementById('inlineRadio2');
@@ -175,17 +197,24 @@
             var nonTradeList = document.getElementById('nonTradeList');
             var inlineRadio1 = document.getElementById('inlineRadio1');
             var inlineRadio2 = document.getElementById('inlineRadio2');
+            const withHoldingTaxPercent = document.getElementById("WithholdingTaxPercent");
 
             if (id === 'tradeList') {
                 tradeList.style.display = 'block';
                 nonTradeList.style.display = 'none';
                 inlineRadio1.checked = true;
                 inlineRadio2.checked = false;
+                $("#DefaultExpenseNumber").val(null).trigger('change');
+                $(".withHoldingTaxPercent").val(null).trigger('change');
+                withHoldingTaxPercent.style.display = 'none';
             } else if (id === 'nonTradeList') {
                 tradeList.style.display = 'none';
                 nonTradeList.style.display = 'block';
                 inlineRadio1.checked = false;
                 inlineRadio2.checked = true;
+                $("#TradeName").val("");
+                withHoldingTaxPercent.style.display = 'block';
+                $("#TaxType").val(null).trigger('change');
             }
         }
     </script>
