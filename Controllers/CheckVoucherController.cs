@@ -152,7 +152,13 @@ namespace Accounting_System.Controllers
                     {
                         SupplierName = supplier.Name,
                         SupplierAddress = supplier.Address,
-                        SupplierTinNo = supplier.TinNo
+                        SupplierTinNo = supplier.TinNo,
+                        TaxType = supplier.TaxType,
+                        Category = supplier.Category,
+                        TaxPercent = supplier.WithholdingTaxPercent,
+                        VatType = supplier.VatType,
+                        DefaultExpense = supplier.DefaultExpenseNumber
+
                     });
                 }
                 return Json(null);
@@ -828,8 +834,10 @@ namespace Accounting_System.Controllers
                     var cashInBank = 0m;
                     for (int i = 0; i < viewModel.AccountNumber.Length; i++)
                     {
-                        cashInBank = viewModel.Credit[3];
-                        cvDetails.Add(
+                        if (viewModel.Debit[i] != 0 || viewModel.Credit[i] != 0)
+                        {
+                            cashInBank = viewModel.Credit[3];
+                            cvDetails.Add(
                             new CheckVoucherDetail
                             {
                                 AccountNo = viewModel.AccountNumber[i],
@@ -838,6 +846,7 @@ namespace Accounting_System.Controllers
                                 Credit = viewModel.Credit[i],
                                 TransactionNo = generateCVNo
                             });
+                        }
                     }
 
                     await _dbContext.CheckVoucherDetails.AddRangeAsync(cvDetails, cancellationToken);
@@ -1078,7 +1087,7 @@ namespace Accounting_System.Controllers
                     }
                     #endregion --Validating series
 
-                    #region--Saving the default entries
+                    #region -- Saving the default entries -- 
 
                     CheckVoucherHeader checkVoucherHeader = new()
                     {
@@ -1096,7 +1105,10 @@ namespace Accounting_System.Controllers
                         CvType = "Invoicing"
                     };
 
-                    //For automation purposes
+                    #endregion -- Saving the default entries -- 
+
+                    #region -- Automatic entry --
+
                     if (viewModel.StartDate != null && viewModel.NumberOfYears != 0)
                     {
                         checkVoucherHeader.StartDate = viewModel.StartDate;
@@ -1122,23 +1134,30 @@ namespace Accounting_System.Controllers
 
                     await _dbContext.AddAsync(checkVoucherHeader, cancellationToken);
 
+                    #endregion -- Automatic entry --
+
+                    #region -- cv invoiving details entry --
+
                     List<CheckVoucherDetail> checkVoucherDetails = new();
 
                     for (int i = 0; i < viewModel.AccountNumber.Length; i++)
                     {
-                        checkVoucherDetails.Add(new CheckVoucherDetail
+                        if (viewModel.Debit[i] != 0 || viewModel.Credit[i] != 0)
                         {
-                            AccountNo = viewModel.AccountNumber[i],
-                            AccountName = viewModel.AccountTitle[i],
-                            TransactionNo = checkVoucherHeader.CVNo,
-                            Debit = viewModel.Debit[i],
-                            Credit = viewModel.Credit[i]
-                        });
+                            checkVoucherDetails.Add(new CheckVoucherDetail
+                            {
+                                AccountNo = viewModel.AccountNumber[i],
+                                AccountName = viewModel.AccountTitle[i],
+                                TransactionNo = checkVoucherHeader.CVNo,
+                                Debit = viewModel.Debit[i],
+                                Credit = viewModel.Credit[i]
+                            });
+                        }
                     }
 
                     await _dbContext.CheckVoucherDetails.AddRangeAsync(checkVoucherDetails, cancellationToken);
 
-                    #endregion
+                    #endregion -- cv invoiving details entry --
 
                     #region -- Uploading file --
                     if (file != null && file.Length > 0)
@@ -1317,14 +1336,17 @@ namespace Accounting_System.Controllers
 
                     for (int i = 0; i < viewModel.AccountNumber.Length; i++)
                     {
-                        checkVoucherDetails.Add(new CheckVoucherDetail
+                        if (viewModel.Debit[i] != 0 || viewModel.Credit[i] != 0)
                         {
-                            AccountNo = viewModel.AccountNumber[i],
-                            AccountName = viewModel.AccountTitle[i],
-                            TransactionNo = checkVoucherHeader.CVNo,
-                            Debit = viewModel.Debit[i],
-                            Credit = viewModel.Credit[i]
-                        });
+                            checkVoucherDetails.Add(new CheckVoucherDetail
+                            {
+                                AccountNo = viewModel.AccountNumber[i],
+                                AccountName = viewModel.AccountTitle[i],
+                                TransactionNo = checkVoucherHeader.CVNo,
+                                Debit = viewModel.Debit[i],
+                                Credit = viewModel.Credit[i]
+                            });
+                        }
                     }
 
                     await _dbContext.CheckVoucherDetails.AddRangeAsync(checkVoucherDetails, cancellationToken);
