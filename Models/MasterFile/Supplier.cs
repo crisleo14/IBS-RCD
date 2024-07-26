@@ -72,6 +72,8 @@ namespace Accounting_System.Models.MasterFile
 
         public int? WithholdingTaxPercent { get; set; }
 
+        public string? WithholdingTaxtitle { get; set; }
+
         [NotMapped]
         public List<SelectListItem>? WithholdingTaxList { get; set; }
     }

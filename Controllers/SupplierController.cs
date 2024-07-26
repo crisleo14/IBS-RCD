@@ -50,7 +50,7 @@ namespace Accounting_System.Controllers
                 .Where(coa => coa.Number == "2010302" || coa.Number == "2010303")
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number == "2010302" ? "1" : "2",
+                    Value = s.Number + " " + s.Name,
                     Text = s.Number + " " + s.Name
                 })
                 .ToListAsync(cancellationToken);
@@ -78,7 +78,7 @@ namespace Accounting_System.Controllers
                         .Where(coa => coa.Number == "2010302" || coa.Number == "2010303")
                         .Select(s => new SelectListItem
                         {
-                            Value = s.Number == "2010302" ? "1" : "2",
+                            Value = s.Number + " " + s.Name,
                             Text = s.Number + " " + s.Name
                         })
                         .ToListAsync(cancellationToken);
@@ -99,7 +99,7 @@ namespace Accounting_System.Controllers
                         .Where(coa => coa.Number == "2010302" || coa.Number == "2010303")
                         .Select(s => new SelectListItem
                         {
-                            Value = s.Number == "2010302" ? "1" : "2",
+                            Value = s.Number + " " + s.Name,
                             Text = s.Number + " " + s.Name
                         })
                         .ToListAsync(cancellationToken);
@@ -108,6 +108,7 @@ namespace Accounting_System.Controllers
 
                 supplier.CreatedBy = _userManager.GetUserName(this.User).ToString();
                 supplier.Number = await _supplierRepo.GetLastNumber(cancellationToken);
+                supplier.WithholdingTaxPercent = supplier.WithholdingTaxtitle.StartsWith("2010302") ? 1 : 2;
 
                 if (document != null && document.Length > 0)
                 {
@@ -162,7 +163,7 @@ namespace Accounting_System.Controllers
                         .Where(coa => coa.Number == "2010302" || coa.Number == "2010303")
                         .Select(s => new SelectListItem
                         {
-                            Value = s.Number == "2010302" ? "1" : "2",
+                            Value = s.Number + " " + s.Name,
                             Text = s.Number + " " + s.Name
                         })
                         .ToListAsync(cancellationToken);
@@ -208,7 +209,7 @@ namespace Accounting_System.Controllers
                 .Where(coa => coa.Number == "2010302" || coa.Number == "2010303")
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number == "2010302" ? "1" : "2",
+                    Value = s.Number + " " + s.Name,
                     Text = s.Number + " " + s.Name
                 })
                 .ToListAsync(cancellationToken);
@@ -243,7 +244,8 @@ namespace Accounting_System.Controllers
                     existingModel.TradeName = supplier.TradeName;
                     existingModel.Branch = supplier.Branch;
                     existingModel.DefaultExpenseNumber = supplier.DefaultExpenseNumber;
-                    existingModel.WithholdingTaxPercent = supplier.WithholdingTaxPercent;
+                    existingModel.WithholdingTaxPercent = supplier.WithholdingTaxtitle.StartsWith("2010302") ? 1 : 2;
+                    existingModel.WithholdingTaxtitle = supplier.WithholdingTaxtitle;
                     supplier.Number = existingModel.Number;
                     supplier.CreatedBy = _userManager.GetUserName(this.User).ToString();
 
@@ -301,7 +303,7 @@ namespace Accounting_System.Controllers
                             .Where(coa => coa.Number == "2010302" || coa.Number == "2010303")
                             .Select(s => new SelectListItem
                             {
-                                Value = s.Number == "2010302" ? "1" : "2",
+                                Value = s.Number + " " + s.Name,
                                 Text = s.Number + " " + s.Name
                             })
                             .ToListAsync(cancellationToken);

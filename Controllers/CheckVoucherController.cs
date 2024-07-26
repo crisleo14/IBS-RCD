@@ -157,7 +157,8 @@ namespace Accounting_System.Controllers
                         Category = supplier.Category,
                         TaxPercent = supplier.WithholdingTaxPercent,
                         VatType = supplier.VatType,
-                        DefaultExpense = supplier.DefaultExpenseNumber
+                        DefaultExpense = supplier.DefaultExpenseNumber,
+                        WithholdingTax = supplier.WithholdingTaxtitle
 
                     });
                 }
