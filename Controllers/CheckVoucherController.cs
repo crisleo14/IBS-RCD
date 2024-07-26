@@ -711,6 +711,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             model.Suppliers = await _dbContext.Suppliers
+                .Where(supp => supp.Category == "Trade")
                 .Select(sup => new SelectListItem
                 {
                     Value = sup.Id.ToString(),
@@ -774,6 +775,7 @@ namespace Accounting_System.Controllers
                                 .ToListAsync(cancellationToken);
 
                             viewModel.Suppliers = await _dbContext.Suppliers
+                                .Where(supp => supp.Category == "Trade")
                                 .Select(sup => new SelectListItem
                                 {
                                     Value = sup.Id.ToString(),
@@ -937,12 +939,13 @@ namespace Accounting_System.Controllers
                         .ToListAsync(cancellationToken);
 
                     viewModel.Suppliers = await _dbContext.Suppliers
-                        .Select(sup => new SelectListItem
-                        {
-                            Value = sup.Id.ToString(),
-                            Text = sup.Name
-                        })
-                        .ToListAsync();
+                            .Where(supp => supp.Category == "Trade")
+                            .Select(sup => new SelectListItem
+                            {
+                                Value = sup.Id.ToString(),
+                                Text = sup.Name
+                            })
+                            .ToListAsync();
 
                     viewModel.PONo = await _dbContext.PurchaseOrders
                                 .Where(po => po.SupplierId == viewModel.SupplierId && po.IsPosted)
@@ -975,15 +978,16 @@ namespace Accounting_System.Controllers
                 }
             }
             viewModel.COA = await _dbContext.ChartOfAccounts
-                        .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
-                        .Select(s => new SelectListItem
-                        {
-                            Value = s.Number,
-                            Text = s.Number + " " + s.Name
-                        })
-                        .ToListAsync(cancellationToken);
+                .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number,
+                    Text = s.Number + " " + s.Name
+                })
+                .ToListAsync(cancellationToken);
 
             viewModel.Suppliers = await _dbContext.Suppliers
+                .Where(supp => supp.Category == "Trade")
                 .Select(sup => new SelectListItem
                 {
                     Value = sup.Id.ToString(),
@@ -992,13 +996,13 @@ namespace Accounting_System.Controllers
                 .ToListAsync();
 
             viewModel.PONo = await _dbContext.PurchaseOrders
-                                .Where(po => po.SupplierId == viewModel.SupplierId && po.IsPosted)
-                                .Select(po => new SelectListItem
-                                {
-                                    Value = po.PONo.ToString(),
-                                    Text = po.PONo
-                                })
-                                .ToListAsync(cancellationToken);
+                .Where(po => po.SupplierId == viewModel.SupplierId && po.IsPosted)
+                .Select(po => new SelectListItem
+                {
+                    Value = po.PONo.ToString(),
+                    Text = po.PONo
+                })
+                .ToListAsync(cancellationToken);
 
             viewModel.RR = await _dbContext.ReceivingReports
                 .Where(rr => viewModel.POSeries.Contains(rr.PONo) && !rr.IsPaid && rr.IsPosted)
@@ -1036,6 +1040,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             viewModel.Suppliers = await _dbContext.Suppliers
+                .Where(supp => supp.Category == "Non-Trade")
                 .Select(sup => new SelectListItem
                 {
                     Value = sup.Id.ToString(),
@@ -1180,6 +1185,7 @@ namespace Accounting_System.Controllers
                         .ToListAsync(cancellationToken);
 
                     viewModel.Suppliers = await _dbContext.Suppliers
+                        .Where(supp => supp.Category == "Non-Trade")
                         .Select(sup => new SelectListItem
                         {
                             Value = sup.Id.ToString(),
@@ -1202,6 +1208,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             viewModel.Suppliers = await _dbContext.Suppliers
+                .Where(supp => supp.Category == "Non-Trade")
                 .Select(sup => new SelectListItem
                 {
                     Value = sup.Id.ToString(),
