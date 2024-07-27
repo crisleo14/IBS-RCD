@@ -38,7 +38,7 @@
 
                     foreach (var inventory in inventoryWithSamePOId)
                     {
-                        if (inventory.Particular.StartsWith("Sales"))
+                        if (inventory.Particular.StartsWith("Sales") || inventory.Particular.StartsWith("Actual Inventory(Loss)"))
                         {
                             totalAmount -= inventory.Total;
                             totalQty -= inventory.Quantity;

@@ -56,7 +56,7 @@
                     </tr>
                 }
             }
-            else if (ViewBag.ProductId != null && ViewBag.POId == null)
+            else
             {
                 @foreach (var obj in Model.Where(ir => ir.Particular.StartsWith("Beginning Balance")).OrderBy(ir => ir.Date).ThenBy(ir => ir.Id))
                 {
@@ -87,7 +87,7 @@
                 }
                 @foreach (var obj in Model.Where(ir => !ir.Particular.StartsWith("Beginning Balance")).OrderBy(ir => ir.Date).ThenBy(ir => ir.Id))
                 {
-                    if (obj.Particular.StartsWith("Sales"))
+                    if (obj.Particular.StartsWith("Sales") || obj.Particular.StartsWith("Actual Inventory(Loss)"))
                     {
                         totalAmount -= obj.Total;
                         totalQty -= obj.Quantity;
