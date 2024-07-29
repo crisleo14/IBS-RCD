@@ -15,12 +15,14 @@ namespace Accounting_System.Repository
         private readonly ApplicationDbContext _dbContext;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly JournalVoucherRepo _journalVoucherRepo;
+        private readonly GeneralRepo _generalRepo;
 
-        public InventoryRepo(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, JournalVoucherRepo journalVoucherRepo)
+        public InventoryRepo(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, JournalVoucherRepo journalVoucherRepo, GeneralRepo generalRepo)
         {
             _dbContext = dbContext;
             _userManager = userManager;
             _journalVoucherRepo = journalVoucherRepo;
+            _generalRepo = generalRepo;
         }
 
         //public async Task UpdateQuantity(decimal sold, int productId, CancellationToken cancellationToken = default)
@@ -69,69 +71,127 @@ namespace Accounting_System.Repository
 
         public async Task AddPurchaseToInventoryAsync(ReceivingReport receivingReport, ClaimsPrincipal user, CancellationToken cancellationToken)
         {
-            var previousInventory = await _dbContext.Inventories
+            var sortedInventory = await _dbContext.Inventories
             .Where(i => i.ProductId == receivingReport.PurchaseOrder.Product.Id && i.POId == receivingReport.POId)
-            .OrderByDescending(i => i.Date)
-            .ThenByDescending(i => i.Id)
-            .FirstOrDefaultAsync(cancellationToken);
+            .OrderBy(i => i.Date)
+            .ThenBy(i => i.Id)
+            .ToListAsync(cancellationToken);
 
-            if (previousInventory != null)
+            var lastIndex = sortedInventory.FindLastIndex(s => s.Date <= receivingReport.Date);
+            if (lastIndex >= 0)
             {
-                Inventory inventory = new()
-                {
-                    Date = receivingReport.Date,
-                    ProductId = receivingReport.PurchaseOrder.ProductId,
-                    POId = receivingReport.POId,
-                    Particular = "Purchases",
-                    Reference = receivingReport.RRNo,
-                    Quantity = receivingReport.QuantityReceived,
-                    Cost = receivingReport.PurchaseOrder.Price / 1.12m,
-                    IsValidated = true,
-                    ValidatedBy = _userManager.GetUserName(user),
-                    ValidatedDate = DateTime.Now
-                };
-
-                inventory.Total = inventory.Quantity * Math.Round(inventory.Cost, 2);
-                inventory.InventoryBalance = previousInventory.InventoryBalance + inventory.Quantity;
-                inventory.TotalBalance = previousInventory.TotalBalance + inventory.Total;
-                inventory.AverageCost = inventory.TotalBalance / inventory.InventoryBalance;
-
-                await _dbContext.AddAsync(inventory, cancellationToken);
-                await _dbContext.SaveChangesAsync(cancellationToken);
+                sortedInventory = sortedInventory.Skip(lastIndex).ToList();
             }
-            else
+
+            var previousInventory = sortedInventory.FirstOrDefault();
+
+            decimal total = receivingReport.QuantityReceived * Math.Round(receivingReport.PurchaseOrder.Price / 1.12m, 2);
+            decimal inventoryBalance = lastIndex >= 0 ? previousInventory.InventoryBalance + receivingReport.QuantityReceived : receivingReport.QuantityReceived;
+            decimal totalBalance = lastIndex >= 0 ? previousInventory.TotalBalance + total : total;
+            decimal averageCost = totalBalance / inventoryBalance;
+
+            Inventory inventory = new()
             {
-                Inventory inventory = new()
+                Date = receivingReport.Date,
+                ProductId = receivingReport.PurchaseOrder.ProductId,
+                POId = receivingReport.POId,
+                Particular = "Purchases",
+                Reference = receivingReport.RRNo,
+                Quantity = receivingReport.QuantityReceived,
+                Cost = receivingReport.PurchaseOrder.Price / 1.12m, //unit cost
+                IsValidated = true,
+                ValidatedBy = _userManager.GetUserName(user),
+                ValidatedDate = DateTime.Now,
+                Total = total,
+                InventoryBalance = inventoryBalance,
+                TotalBalance = totalBalance,
+                AverageCost = averageCost
+            };
+
+
+            foreach (var transaction in sortedInventory.Skip(1))
+            {
+                var costOfGoodsSold = 0m;
+                if (transaction.Particular == "Sales")
                 {
-                    Date = receivingReport.Date,
-                    ProductId = receivingReport.PurchaseOrder.ProductId,
-                    POId = receivingReport.POId,
-                    Particular = "Purchases",
-                    Reference = receivingReport.RRNo,
-                    Quantity = receivingReport.QuantityReceived,
-                    Cost = receivingReport.PurchaseOrder.Price / 1.12m,
-                    IsValidated = true,
-                    ValidatedBy = _userManager.GetUserName(user),
-                    ValidatedDate = DateTime.Now
-                };
+                    transaction.Cost = averageCost;
+                    transaction.Total = transaction.Quantity * averageCost;
+                    transaction.TotalBalance = totalBalance - transaction.Total;
+                    transaction.InventoryBalance = inventoryBalance - transaction.Quantity;
+                    transaction.AverageCost = transaction.TotalBalance / transaction.InventoryBalance;
+                    costOfGoodsSold = transaction.AverageCost * transaction.Quantity;
 
-                inventory.Total = inventory.Quantity * Math.Round(inventory.Cost, 2);
-                inventory.InventoryBalance = inventory.Quantity;
-                inventory.TotalBalance = inventory.Total;
-                inventory.AverageCost = inventory.TotalBalance / inventory.InventoryBalance;
+                    averageCost = transaction.AverageCost;
+                    totalBalance = transaction.TotalBalance;
+                    inventoryBalance = transaction.InventoryBalance;
+                }
+                else if (transaction.Particular == "Purchases")
+                {
+                    transaction.TotalBalance = totalBalance + transaction.Total;
+                    transaction.InventoryBalance = inventoryBalance + transaction.Quantity;
+                    transaction.AverageCost = transaction.TotalBalance / transaction.InventoryBalance;
 
-                await _dbContext.AddAsync(inventory, cancellationToken);
-                await _dbContext.SaveChangesAsync(cancellationToken);
+                    averageCost = transaction.AverageCost;
+                    totalBalance = transaction.TotalBalance;
+                    inventoryBalance = transaction.InventoryBalance;
+                }
+
+                var journalEntries = await _dbContext.GeneralLedgerBooks
+                        .Where(j => j.Reference == transaction.Reference &&
+                                    (j.AccountNo.StartsWith("50101") || j.AccountNo.StartsWith("10104")))
+                        .ToListAsync(cancellationToken);
+
+                if (journalEntries.Count != 0)
+                {
+                    foreach (var journal in journalEntries)
+                    {
+                        if (journal.Debit != 0)
+                        {
+                            if (journal.Debit != costOfGoodsSold)
+                            {
+                                journal.Debit = costOfGoodsSold;
+                                journal.Credit = 0;
+                            }
+                        }
+                        else
+                        {
+                            if (journal.Credit != costOfGoodsSold)
+                            {
+                                journal.Credit = costOfGoodsSold;
+                                journal.Debit = 0;
+                            }
+                        }
+                    }
+                }
+
+                _dbContext.GeneralLedgerBooks.UpdateRange(journalEntries);
             }
+
+            _dbContext.Inventories.UpdateRange(sortedInventory);
+
+            await _dbContext.AddAsync(inventory, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         public async Task AddSalesToInventoryAsync(SalesInvoice salesInvoice, ClaimsPrincipal user, CancellationToken cancellationToken)
         {
-            var previousInventory = await _dbContext.Inventories
+            var sortedInventory = await _dbContext.Inventories
             .Where(i => i.ProductId == salesInvoice.Product.Id && i.POId == salesInvoice.POId)
-            .OrderByDescending(i => i.Date)
-            .ThenByDescending(i => i.Id)
-            .FirstOrDefaultAsync(cancellationToken);
+            .OrderBy(i => i.Date)
+            .ThenBy(i => i.Id)
+            .ToListAsync(cancellationToken);
+
+            var lastIndex = sortedInventory.FindLastIndex(s => s.Date <= salesInvoice.TransactionDate);
+            if (lastIndex >= 0)
+            {
+                sortedInventory = sortedInventory.Skip(lastIndex).ToList();
+            }
+            else
+            {
+                throw new ArgumentException($"Beginning inventory for {salesInvoice.Product.Name} not found!");
+            }
+
+            var previousInventory = sortedInventory.FirstOrDefault();
 
             if (previousInventory != null)
             {
@@ -139,6 +199,11 @@ namespace Accounting_System.Repository
                 {
                     throw new InvalidOperationException($"The quantity exceeds the available inventory of '{salesInvoice.Product.Name}'.");
                 }
+
+                decimal total = salesInvoice.Quantity * previousInventory.Cost;
+                decimal inventoryBalance = previousInventory.InventoryBalance - salesInvoice.Quantity;
+                decimal totalBalance = previousInventory.TotalBalance - total;
+                decimal averageCost = inventoryBalance == 0 && totalBalance == 0 ? previousInventory.AverageCost : totalBalance / inventoryBalance;
 
                 Inventory inventory = new()
                 {
@@ -151,19 +216,70 @@ namespace Accounting_System.Repository
                     POId = salesInvoice.POId,
                     IsValidated = true,
                     ValidatedBy = _userManager.GetUserName(user),
-                    ValidatedDate = DateTime.Now
+                    ValidatedDate = DateTime.Now,
+                    Total = total,
+                    InventoryBalance = inventoryBalance,
+                    TotalBalance = totalBalance,
+                    AverageCost = averageCost
                 };
 
-                inventory.Total = inventory.Quantity * inventory.Cost;
-                inventory.InventoryBalance = previousInventory.InventoryBalance - inventory.Quantity;
-                inventory.TotalBalance = previousInventory.TotalBalance - inventory.Total;
-                if (inventory.InventoryBalance == 0 && inventory.TotalBalance == 0)
+
+                foreach (var transaction in sortedInventory.Skip(1))
                 {
-                    inventory.AverageCost = previousInventory.AverageCost;
-                }
-                else
-                {
-                    inventory.AverageCost = inventory.TotalBalance / inventory.InventoryBalance;
+                    var costOfGoodsSold = 0m;
+                    if (transaction.Particular == "Sales")
+                    {
+                        transaction.Cost = averageCost;
+                        transaction.Total = transaction.Quantity * averageCost;
+                        transaction.TotalBalance = totalBalance - transaction.Total;
+                        transaction.InventoryBalance = inventoryBalance - transaction.Quantity;
+                        transaction.AverageCost = transaction.TotalBalance / transaction.InventoryBalance;
+                        costOfGoodsSold = transaction.AverageCost * transaction.Quantity;
+
+                        averageCost = transaction.AverageCost;
+                        totalBalance = transaction.TotalBalance;
+                        inventoryBalance = transaction.InventoryBalance;
+                    }
+                    else if (transaction.Particular == "Purchases")
+                    {
+                        transaction.TotalBalance = totalBalance + transaction.Total;
+                        transaction.InventoryBalance = inventoryBalance + transaction.Quantity;
+                        transaction.AverageCost = transaction.TotalBalance / transaction.InventoryBalance;
+
+                        averageCost = transaction.AverageCost;
+                        totalBalance = transaction.TotalBalance;
+                        inventoryBalance = transaction.InventoryBalance;
+                    }
+
+                    var journalEntries = await _dbContext.GeneralLedgerBooks
+                            .Where(j => j.Reference == transaction.Reference &&
+                                        (j.AccountNo.StartsWith("50101") || j.AccountNo.StartsWith("10104")))
+                            .ToListAsync(cancellationToken);
+
+                    if (journalEntries.Count != 0)
+                    {
+                        foreach (var journal in journalEntries)
+                        {
+                            if (journal.Debit != 0)
+                            {
+                                if (journal.Debit != costOfGoodsSold)
+                                {
+                                    journal.Debit = costOfGoodsSold;
+                                    journal.Credit = 0;
+                                }
+                            }
+                            else
+                            {
+                                if (journal.Credit != costOfGoodsSold)
+                                {
+                                    journal.Credit = costOfGoodsSold;
+                                    journal.Debit = 0;
+                                }
+                            }
+                        }
+                    }
+
+                    _dbContext.GeneralLedgerBooks.UpdateRange(journalEntries);
                 }
 
                 var ledgers = new List<GeneralLedgerBook>
@@ -194,9 +310,20 @@ namespace Accounting_System.Repository
                     }
                 };
 
-                await _dbContext.Inventories.AddAsync(inventory, cancellationToken);
-                await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
-                await _dbContext.SaveChangesAsync(cancellationToken);
+                _dbContext.Inventories.UpdateRange(sortedInventory);
+
+                if (_generalRepo.IsDebitCreditBalanced(ledgers))
+                {
+                    await _dbContext.Inventories.AddAsync(inventory, cancellationToken);
+                    await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                }
+                else
+                {
+                    throw new ArgumentException("Debit and Credit is not equal, check your entries.");
+                }
+
+
             }
             else
             {

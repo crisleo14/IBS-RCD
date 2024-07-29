@@ -185,6 +185,8 @@ namespace Accounting_System.Controllers
                     inventories = await _dbContext.Inventories
                         .Include(i => i.PurchaseOrder)
                         .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId)
+                        .OrderBy(i => i.Date)
+                        .ThenBy(i => i.Id)
                         .ToListAsync(cancellationToken);
                 }
                 else
@@ -192,6 +194,8 @@ namespace Accounting_System.Controllers
                     inventories = await _dbContext.Inventories
                         .Include(i => i.PurchaseOrder)
                         .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId && i.POId == viewModel.POId)
+                        .OrderBy(i => i.Date)
+                        .ThenBy(i => i.Id)
                         .ToListAsync(cancellationToken);
                 }
 

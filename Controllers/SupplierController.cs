@@ -108,7 +108,10 @@ namespace Accounting_System.Controllers
 
                 supplier.CreatedBy = _userManager.GetUserName(this.User).ToString();
                 supplier.Number = await _supplierRepo.GetLastNumber(cancellationToken);
-                supplier.WithholdingTaxPercent = supplier.WithholdingTaxtitle.StartsWith("2010302") ? 1 : 2;
+                if (supplier.WithholdingTaxtitle != null && supplier.WithholdingTaxPercent != null)
+                {
+                    supplier.WithholdingTaxPercent = supplier.WithholdingTaxtitle.StartsWith("2010302") ? 1 : 2;
+                }
 
                 if (document != null && document.Length > 0)
                 {
@@ -244,7 +247,10 @@ namespace Accounting_System.Controllers
                     existingModel.TradeName = supplier.TradeName;
                     existingModel.Branch = supplier.Branch;
                     existingModel.DefaultExpenseNumber = supplier.DefaultExpenseNumber;
-                    existingModel.WithholdingTaxPercent = supplier.WithholdingTaxtitle.StartsWith("2010302") ? 1 : 2;
+                    if (existingModel.WithholdingTaxtitle != null && existingModel.WithholdingTaxPercent != null)
+                    {
+                        existingModel.WithholdingTaxPercent = supplier.WithholdingTaxtitle.StartsWith("2010302") ? 1 : 2;
+                    }
                     existingModel.WithholdingTaxtitle = supplier.WithholdingTaxtitle;
                     supplier.Number = existingModel.Number;
                     supplier.CreatedBy = _userManager.GetUserName(this.User).ToString();

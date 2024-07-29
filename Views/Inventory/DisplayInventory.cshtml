@@ -31,7 +31,7 @@
         <tbody>
             @if (ViewBag.ProductId != null && ViewBag.POId != null)
             {
-                @foreach (var obj in Model.OrderBy(ir => ir.Id))
+                @foreach (var obj in Model.OrderBy(ir => ir.Date))
                 {
                     <tr>
                         <td>@obj.Date.ToString("MM/dd/yyyy")</td>
