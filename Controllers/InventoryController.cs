@@ -147,18 +147,26 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 var dateFrom = viewModel.DateTo.AddDays(-viewModel.DateTo.Day + 1);
+
+                var previousMonth = viewModel.DateTo.Month - 1;
+
+                var endingBalance = await _dbContext.Inventories
+                    .OrderBy(e => e.Date)
+                    .ThenBy(e => e.Id)
+                    .LastOrDefaultAsync(e => (viewModel.POId == null || e.POId == viewModel.POId) && e.Date.Month == previousMonth, cancellationToken);
+
                 List<Inventory> inventories = new List<Inventory>();
-                if (viewModel.POId == null)
+                if (endingBalance != null)
                 {
                     inventories = await _dbContext.Inventories
-                        .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId)
-                        .ToListAsync(cancellationToken);
+                       .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId && (viewModel.POId == null || i.POId == viewModel.POId) || i.Id == endingBalance.Id)
+                       .ToListAsync(cancellationToken);
                 }
                 else
                 {
                     inventories = await _dbContext.Inventories
-                        .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId && i.POId == viewModel.POId)
-                        .ToListAsync(cancellationToken);
+                       .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId && (viewModel.POId == null || i.POId == viewModel.POId))
+                       .ToListAsync(cancellationToken);
                 }
 
                 var product = await _dbContext.Products
@@ -168,12 +176,12 @@ namespace Accounting_System.Controllers
                 ViewBag.ProductId = viewModel.ProductId;
                 ViewBag.POId = viewModel.POId;
 
-
                 return View(inventories);
             }
 
             return View(viewModel);
         }
+
         public async Task<IActionResult> ConsolidatedPO(InventoryReportViewModel viewModel, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
@@ -206,12 +214,12 @@ namespace Accounting_System.Controllers
                 ViewBag.ProductId = viewModel.ProductId;
                 ViewBag.POId = viewModel.POId;
 
-
                 return View(inventories);
             }
 
             return View(viewModel);
         }
+
         [HttpGet]
         public async Task<IActionResult> ActualInventory(CancellationToken cancellationToken)
         {

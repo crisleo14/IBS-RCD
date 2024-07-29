@@ -89,6 +89,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
             sales.PO = await _dbContext.PurchaseOrders
                 .OrderBy(c => c.Id)
+                .Where(p => !p.IsReceived && p.QuantityReceived != 0 && p.IsPosted)
                 .Select(c => new SelectListItem
                 {
                     Value = c.Id.ToString(),
@@ -736,10 +737,11 @@ namespace Accounting_System.Controllers
 
             return NotFound();
         }
+
         public async Task<IActionResult> GetPOs(int productId)
         {
             var purchaseOrders = await _dbContext.PurchaseOrders
-                .Where(po => po.ProductId == productId && po.IsPosted)
+                .Where(po => po.ProductId == productId && !po.IsReceived && po.QuantityReceived != 0 && po.IsPosted)
                 .ToListAsync();
 
             if (purchaseOrders != null && purchaseOrders.Count > 0)
