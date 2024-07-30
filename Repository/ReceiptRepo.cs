@@ -71,6 +71,7 @@ namespace Accounting_System.Repository
         {
             var collectionReceipt = await _dbContext
                 .CollectionReceipts
+                .Include(cr => cr.Customer)
                 .Include(cr => cr.SalesInvoice)
                 .ThenInclude(s => s.Customer)
                 .Include(cr => cr.SalesInvoice)
@@ -112,6 +113,53 @@ namespace Accounting_System.Repository
                 {
                     si.IsPaid = true;
                     si.Status = "OverPaid";
+                }
+
+                return await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+            else
+            {
+                throw new ArgumentException("", "No record found");
+            }
+        }
+        public async Task<int> UpdateMultipleInvoice(string[] siNo, decimal[] paidAmount, decimal offsetAmount, CancellationToken cancellationToken = default)
+        {
+            if (siNo != null)
+            {
+                var salesInvoice = new SalesInvoice();
+                for (int i = 0; i < siNo.Length; i++)
+                {
+                    var siValue = siNo[i];
+                    salesInvoice = await _dbContext.SalesInvoices
+                                .FirstOrDefaultAsync(p => p.SINo == siValue);
+
+                    var amountPaid = salesInvoice.AmountPaid + paidAmount[i] + offsetAmount;
+
+                    if (!salesInvoice.IsPaid)
+                    {
+                        salesInvoice.AmountPaid += salesInvoice.Amount >= amountPaid ? paidAmount[i] + offsetAmount : paidAmount[i];
+
+                        salesInvoice.Balance = salesInvoice.NetDiscount - salesInvoice.AmountPaid;
+
+                        if (salesInvoice.Balance == 0 && salesInvoice.AmountPaid == salesInvoice.NetDiscount)
+                        {
+                            salesInvoice.IsPaid = true;
+                            salesInvoice.Status = "Paid";
+                        }
+                        else if (salesInvoice.AmountPaid > salesInvoice.NetDiscount)
+                        {
+                            salesInvoice.IsPaid = true;
+                            salesInvoice.Status = "OverPaid";
+                        }
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                    if (salesInvoice.Amount >= amountPaid)
+                    {
+                        offsetAmount = 0;
+                    }
                 }
 
                 return await _dbContext.SaveChangesAsync(cancellationToken);

@@ -1243,11 +1243,11 @@ namespace Accounting_System.Controllers
                             {
                                 Date = model.TransactionDate,
                                 RefNo = model.CRNo,
-                                CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
+                                CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.MultipleSIId != null ? model.Customer.Name : model.ServiceInvoice.Customer.Name,
                                 Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
                                 CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
                                 COA = "1010101 Cash in Bank",
-                                Particulars = model.SalesInvoiceId != null ? model.SalesInvoice.SINo : model.ServiceInvoice.SVNo,
+                                Particulars = model.SalesInvoiceId != null ? model.SalesInvoice.SINo : model.MultipleSIId != null ? string.Join(", ", model.MultipleSI.Select(si => si.ToString())) : model.ServiceInvoice.SVNo,
                                 Debit = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount,
                                 Credit = 0,
                                 CreatedBy = model.CreatedBy,
@@ -1263,11 +1263,11 @@ namespace Accounting_System.Controllers
                                 {
                                     Date = model.TransactionDate,
                                     RefNo = model.CRNo,
-                                    CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
+                                    CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.MultipleSIId != null ? model.Customer.Name : model.ServiceInvoice.Customer.Name,
                                     Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
                                     CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
                                     COA = "1010604 Creditable Withholding Tax",
-                                    Particulars = model.SalesInvoiceId != null ? model.SalesInvoice.SINo : model.ServiceInvoice.SVNo,
+                                    Particulars = model.SalesInvoiceId != null ? model.SalesInvoice.SINo : model.MultipleSIId != null ? string.Join(", ", model.MultipleSI.Select(si => si.ToString())) : model.ServiceInvoice.SVNo,
                                     Debit = model.EWT,
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
@@ -1283,11 +1283,11 @@ namespace Accounting_System.Controllers
                                 {
                                     Date = model.TransactionDate,
                                     RefNo = model.CRNo,
-                                    CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
+                                    CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.MultipleSIId != null ? model.Customer.Name : model.ServiceInvoice.Customer.Name,
                                     Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
                                     CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
                                     COA = "1010605 Creditable Withholding Vat",
-                                    Particulars = model.SalesInvoiceId != null ? model.SalesInvoice.SINo : model.ServiceInvoice.SVNo,
+                                    Particulars = model.SalesInvoiceId != null ? model.SalesInvoice.SINo : model.MultipleSIId != null ? string.Join(", ", model.MultipleSI.Select(si => si.ToString())) : model.ServiceInvoice.SVNo,
                                     Debit = model.WVAT,
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
@@ -1305,11 +1305,11 @@ namespace Accounting_System.Controllers
                                     {
                                         Date = model.TransactionDate,
                                         RefNo = model.CRNo,
-                                        CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
+                                        CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.MultipleSIId != null ? model.Customer.Name : model.ServiceInvoice.Customer.Name,
                                         Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
                                         CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
                                         COA = item.AccountNo,
-                                        Particulars = model.SalesInvoiceId != null ? model.SalesInvoice.SINo : model.ServiceInvoice.SVNo,
+                                        Particulars = model.SalesInvoiceId != null ? model.SalesInvoice.SINo : model.MultipleSIId != null ? string.Join(", ", model.MultipleSI.Select(si => si.ToString())) : model.ServiceInvoice.SVNo,
                                         Debit = item.Amount,
                                         Credit = 0,
                                         CreatedBy = model.CreatedBy,
@@ -1324,11 +1324,11 @@ namespace Accounting_System.Controllers
                         {
                             Date = model.TransactionDate,
                             RefNo = model.CRNo,
-                            CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
+                            CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.MultipleSIId != null ? model.Customer.Name : model.ServiceInvoice.Customer.Name,
                             Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
                             CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
                             COA = "1010201 AR-Trade Receivable",
-                            Particulars = model.SalesInvoiceId != null ? model.SalesInvoice.SINo : model.ServiceInvoice.SVNo,
+                            Particulars = model.SalesInvoiceId != null ? model.SalesInvoice.SINo : model.MultipleSIId != null ? string.Join(", ", model.MultipleSI.Select(si => si.ToString())) : model.ServiceInvoice.SVNo,
                             Debit = 0,
                             Credit = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + offsetAmount,
                             CreatedBy = model.CreatedBy,
@@ -1343,11 +1343,11 @@ namespace Accounting_System.Controllers
                                 {
                                     Date = model.TransactionDate,
                                     RefNo = model.CRNo,
-                                    CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
+                                    CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.MultipleSIId != null ? model.Customer.Name : model.ServiceInvoice.Customer.Name,
                                     Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
                                     CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
                                     COA = "1010202 Deferred Creditable Withholding Tax",
-                                    Particulars = model.SalesInvoiceId != null ? model.SalesInvoice.SINo : model.ServiceInvoice.SVNo,
+                                    Particulars = model.SalesInvoiceId != null ? model.SalesInvoice.SINo : model.MultipleSIId != null ? string.Join(", ", model.MultipleSI.Select(si => si.ToString())) : model.ServiceInvoice.SVNo,
                                     Debit = 0,
                                     Credit = model.EWT,
                                     CreatedBy = model.CreatedBy,
@@ -1363,11 +1363,11 @@ namespace Accounting_System.Controllers
                                 {
                                     Date = model.TransactionDate,
                                     RefNo = model.CRNo,
-                                    CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.ServiceInvoice.Customer.Name,
+                                    CustomerName = model.SalesInvoiceId != null ? model.SalesInvoice.Customer.Name : model.MultipleSIId != null ? model.Customer.Name : model.ServiceInvoice.Customer.Name,
                                     Bank = model.CheckBank ?? (model.ManagerCheckBank != null ? model.ManagerCheckBank : "--"),
                                     CheckNo = model.CheckNo ?? (model.ManagerCheckNo != null ? model.ManagerCheckNo : "--"),
                                     COA = "1010203 Deferred Creditable Withholding Vat",
-                                    Particulars = model.SalesInvoiceId != null ? model.SalesInvoice.SINo : model.ServiceInvoice.SVNo,
+                                    Particulars = model.SalesInvoiceId != null ? model.SalesInvoice.SINo : model.MultipleSIId != null ? string.Join(", ", model.MultipleSI.Select(si => si.ToString())) : model.ServiceInvoice.SVNo,
                                     Debit = 0,
                                     Credit = model.WVAT,
                                     CreatedBy = model.CreatedBy,
@@ -1390,6 +1390,10 @@ namespace Accounting_System.Controllers
                         if (model.SalesInvoiceId != null)
                         {
                             await _receiptRepo.UpdateInvoice(model.SalesInvoice.Id, model.Total, offsetAmount, cancellationToken);
+                        }
+                        else if (model.MultipleSIId != null)
+                        {
+                            await _receiptRepo.UpdateMultipleInvoice(model.MultipleSI, model.SIMultipleAmount, offsetAmount, cancellationToken);
                         }
                         else
                         {

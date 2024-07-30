@@ -81,7 +81,7 @@
                     <td>
                         @if (item.CreatedBy == UserManager.GetUserName(User))
                         {
-                            if (!item.IsPosted && !item.IsVoided && !item.IsCanceled && (item.SINo != null || item.SVNo != null))
+                            if (!item.IsPosted && !item.IsVoided && !item.IsCanceled)
                             {
                                 <a asp-action="CollectionEdit" asp-route-id="@item.Id" class="btn btn-light" title="Feature coming soon">Edit</a>
                                 <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#Preview-@item.Id" data-bs-url="@Url.Action($"Preview/{item.Id}")">
@@ -91,7 +91,7 @@
                                 <a class="btn btn-light" onclick="confirmPost(@item.Id)">Post</a>
                                 <a class="btn btn-light" onclick="confirmCancel(@item.Id)">Cancel</a>
                             }
-                            if (item.IsPosted && !item.IsVoided && !item.IsCanceled && (item.SINo != null || item.SVNo != null))
+                            if (item.IsPosted && !item.IsVoided && !item.IsCanceled)
                             {
                                 <a asp-action="CollectionPrint" asp-route-id="@item.Id" class="btn btn-light">Print</a>
                                 <a class="btn btn-light" onclick="confirmVoid(@item.Id)">Void</a>

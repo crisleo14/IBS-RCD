@@ -128,5 +128,8 @@ namespace Accounting_System.Models.AccountsReceivable
 
         [Column(TypeName = "varchar(200)")]
         public string? F2307FilePath { get; set; }
+
+        [Column(TypeName = "numeric[]")]
+        public decimal[]? SIMultipleAmount { get; set; }
     }
 }
