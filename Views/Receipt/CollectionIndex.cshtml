@@ -27,7 +27,7 @@
                 <th>
                     @Html.DisplayNameFor(model => model.Customers)
                 </th>
-                <th>
+                <th class="text-end">
                     @Html.DisplayNameFor(model => model.Total)
                 </th>
                 <th style="width: 25%"></th>
@@ -48,6 +48,14 @@
                         {
                             @Html.DisplayFor(modelItem => item.SINo)
                         }
+                        else if (item.MultipleSIId != null)
+                        {
+                            for (int i = 0; i < item.MultipleSI.Length; i ++)
+                            {
+                                var siNo = $"{item.MultipleSI[i]}, ";
+                                @siNo
+                            }
+                        }
                         else
                         {
                             @Html.DisplayFor(modelItem => item.SVNo)
@@ -58,18 +66,22 @@
                         {
                             @Html.DisplayFor(modelItem => item.SalesInvoice.Customer.Name)
                         }
+                        else if (item.MultipleSIId != null)
+                        {
+                            @Html.DisplayFor(modelItem => item.Customer.Name)
+                        }
                         else
                         {
                             @Html.DisplayFor(modelItem => item.ServiceInvoice.Customer.Name)
                         }
                     </td>
-                    <td class="text-end">
+                    <td class="text-end px-4">
                         @Html.DisplayFor(modelItem => item.Total)
                     </td>
                     <td>
                         @if (item.CreatedBy == UserManager.GetUserName(User))
                         {
-                            if (!item.IsPosted && !item.IsVoided && !item.IsCanceled)
+                            if (!item.IsPosted && !item.IsVoided && !item.IsCanceled && (item.SINo != null || item.SVNo != null))
                             {
                                 <a asp-action="CollectionEdit" asp-route-id="@item.Id" class="btn btn-light" title="Feature coming soon">Edit</a>
                                 <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#Preview-@item.Id" data-bs-url="@Url.Action($"Preview/{item.Id}")">
@@ -79,7 +91,7 @@
                                 <a class="btn btn-light" onclick="confirmPost(@item.Id)">Post</a>
                                 <a class="btn btn-light" onclick="confirmCancel(@item.Id)">Cancel</a>
                             }
-                            if (item.IsPosted && !item.IsVoided && !item.IsCanceled)
+                            if (item.IsPosted && !item.IsVoided && !item.IsCanceled && (item.SINo != null || item.SVNo != null))
                             {
                                 <a asp-action="CollectionPrint" asp-route-id="@item.Id" class="btn btn-light">Print</a>
                                 <a class="btn btn-light" onclick="confirmVoid(@item.Id)">Void</a>

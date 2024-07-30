@@ -42,6 +42,8 @@ namespace Accounting_System.Models.AccountsReceivable
         public List<SelectListItem>? ServiceInvoices { get; set; }
 
         //Customer Property
+        [ForeignKey("CustomerId")]
+        public Customer? Customer { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? Customers { get; set; }

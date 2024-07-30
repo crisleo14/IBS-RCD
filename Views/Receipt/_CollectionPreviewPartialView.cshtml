@@ -172,6 +172,10 @@
                                     {
                                         @Model.SalesInvoice.TransactionDate.ToString("MM/dd/yyyy")
                                     }
+                                    else if (Model.SalesInvoiceId == null && Model.SalesInvoiceId == null)
+                                    {
+                                        
+                                    }
                                     else
                                     {
                                         @Model.ServiceInvoice.CreatedDate.ToString("MM/dd/yyyy")
@@ -181,6 +185,10 @@
                                     @if (Model.SalesInvoiceId != null)
                                     {
                                         @Html.DisplayFor(model => model.SalesInvoice.SINo)
+                                    }
+                                    else if (Model.SalesInvoiceId == null && Model.SalesInvoiceId == null)
+                                    {
+
                                     }
                                     else
                                     {

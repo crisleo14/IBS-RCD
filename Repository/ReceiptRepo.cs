@@ -55,6 +55,7 @@ namespace Accounting_System.Repository
         {
             return await _dbContext
                 .CollectionReceipts
+                .Include(cr => cr.Customer)
                 .Include(cr => cr.SalesInvoice)
                 .ThenInclude(s => s.Customer)
                 .Include(cr => cr.SalesInvoice)
