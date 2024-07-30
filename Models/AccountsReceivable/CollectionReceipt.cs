@@ -17,6 +17,11 @@ namespace Accounting_System.Models.AccountsReceivable
         [Column(TypeName = "varchar(12)")]
         public string? SINo { get; set; }
 
+        public int[]? MultipleSIId { get; set; }
+
+        [Display(Name = "Sales Invoice No.")]
+        public string[]? MultipleSI { get; set; }
+
         [ForeignKey("SalesInvoiceId")]
         public SalesInvoice? SalesInvoice { get; set; }
 

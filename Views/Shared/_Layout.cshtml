@@ -36,7 +36,24 @@
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" asp-controller="SalesInvoice" asp-action="Index">Sales Invoice</a></li>
                                 <li><a class="dropdown-item" asp-controller="ServiceInvoice" asp-action="Index">Service Invoice</a></li>
-                                <li><a class="dropdown-item" asp-controller="Receipt" asp-action="CollectionIndex">Collection Receipt</a></li>
+                                <li class="nav-item dropend">
+                                    <a class="dropdown-item dropdown-toggle" asp-controller="Receipt" asp-action="CollectionIndex">
+                                        Collection Receipt
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Receipt" asp-action="CollectionCreateForService">For Service</a></li>
+                                        <li class="nav-item dropend">
+                                            <a class="dropdown-item dropdown-toggle" style="color: gray !important">
+                                                For Sales
+                                            </a>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" asp-controller="Receipt" asp-action="SingleCollectionCreateForSales">Single Invoice</a></li>
+                                                <li><a class="dropdown-item" asp-controller="Receipt" asp-action="MultipleCollectionCreateForSales">Multiple Invoice</a></li>
+                                            </ul>
+                                        </li>
+
+                                    </ul>
+                                </li>
                                 <li><a class="dropdown-item" asp-controller="DebitMemo" asp-action="Index">Debit Memo</a></li>
                                 <li><a class="dropdown-item" asp-controller="CreditMemo" asp-action="Index">Credit Memo</a></li>
                             </ul>

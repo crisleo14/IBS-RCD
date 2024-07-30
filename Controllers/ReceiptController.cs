@@ -41,7 +41,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> CollectionCreateForSales(CancellationToken cancellationToken)
+        public async Task<IActionResult> SingleCollectionCreateForSales(CancellationToken cancellationToken)
         {
             var viewModel = new CollectionReceipt();
 
@@ -68,7 +68,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CollectionCreateForSales(CollectionReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle, IFormFile? bir2306, IFormFile? bir2307, CancellationToken cancellationToken)
+        public async Task<IActionResult> SingleCollectionCreateForSales(CollectionReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle, IFormFile? bir2306, IFormFile? bir2307, CancellationToken cancellationToken)
         {
             model.Customers = await _dbContext.Customers
                .OrderBy(c => c.Id)
@@ -136,6 +136,222 @@ namespace Accounting_System.Controllers
 
                 model.SeriesNumber = getLastNumber;
                 model.SINo = existingSalesInvoice.SINo;
+                model.CRNo = generateCRNo;
+                model.CreatedBy = _userManager.GetUserName(this.User);
+                model.Total = computeTotalInModelIfZero;
+
+                try
+                {
+                    if (bir2306 != null && bir2306.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(bir2306.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await bir2306.CopyToAsync(stream);
+                        }
+
+                        model.F2306FilePath = fileSavePath;
+                        model.IsCertificateUpload = true;
+                    }
+
+                    if (bir2307 != null && bir2307.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(bir2307.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await bir2307.CopyToAsync(stream);
+                        }
+
+                        model.F2307FilePath = fileSavePath;
+                        model.IsCertificateUpload = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                }
+
+                await _dbContext.AddAsync(model, cancellationToken);
+
+                decimal offsetAmount = 0;
+
+                #endregion --Saving default value
+
+                #region --Audit Trail Recording
+
+                AuditTrail auditTrail = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt");
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                #endregion --Audit Trail Recording
+
+                #region --Offsetting function
+
+                var offsettings = new List<Offsetting>();
+
+                for (int i = 0; i < accountTitle.Length; i++)
+                {
+                    var currentAccountTitle = accountTitleText[i];
+                    var currentAccountAmount = accountAmount[i];
+                    offsetAmount += accountAmount[i];
+
+                    var splitAccountTitle = currentAccountTitle.Split(new[] { ' ' }, 2);
+
+                    offsettings.Add(
+                        new Offsetting
+                        {
+                            AccountNo = accountTitle[i],
+                            AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0],
+                            Source = model.CRNo,
+                            Reference = model.SINo,
+                            Amount = currentAccountAmount,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        }
+                    );
+                }
+
+                await _dbContext.AddRangeAsync(offsettings, cancellationToken);
+
+                #endregion --Offsetting function
+
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                return RedirectToAction("CollectionIndex");
+            }
+            else
+            {
+                TempData["error"] = "The information you submitted is not valid!";
+                return View(model);
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> MultipleCollectionCreateForSales(CancellationToken cancellationToken)
+        {
+            var viewModel = new CollectionReceipt();
+
+            viewModel.Customers = await _dbContext.Customers
+               .OrderBy(c => c.Id)
+               .Select(s => new SelectListItem
+               {
+                   Value = s.Id.ToString(),
+                   Text = s.Name
+               })
+               .ToListAsync(cancellationToken);
+
+            viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .OrderBy(coa => coa.Id)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number,
+                    Text = s.Number + " " + s.Name
+                })
+                .ToListAsync(cancellationToken);
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MultipleCollectionCreateForSales(CollectionReceipt model, string[] accountTitleText, decimal[] accountAmount, string[] accountTitle, IFormFile? bir2306, IFormFile? bir2307, CancellationToken cancellationToken)
+        {
+            model.Customers = await _dbContext.Customers
+               .OrderBy(c => c.Id)
+               .Select(s => new SelectListItem
+               {
+                   Value = s.Number.ToString(),
+                   Text = s.Name
+               })
+               .ToListAsync(cancellationToken);
+
+            model.SalesInvoices = await _dbContext.SalesInvoices
+                .Where(si => !si.IsPaid && si.CustomerId == model.CustomerId && si.IsPosted)
+                .OrderBy(si => si.Id)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.SINo
+                })
+                .ToListAsync(cancellationToken);
+
+            model.ChartOfAccounts = await _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .OrderBy(coa => coa.Id)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number,
+                    Text = s.Number + " " + s.Name
+                })
+                .ToListAsync(cancellationToken);
+
+            if (ModelState.IsValid)
+            {
+                #region --Validating the series
+
+                var getLastNumber = await _receiptRepo.GetLastSeriesNumberCR(cancellationToken);
+
+                if (getLastNumber > 9999999999)
+                {
+                    TempData["error"] = "You reach the maximum Series Number";
+                    return View(model);
+                }
+                var totalRemainingSeries = 9999999999 - getLastNumber;
+                if (getLastNumber >= 9999999899)
+                {
+                    TempData["warning"] = $"Collection Receipt created successfully, Warning {totalRemainingSeries} series number remaining";
+                }
+                else
+                {
+                    TempData["success"] = "Collection Receipt created successfully";
+                }
+
+                #endregion --Validating the series
+
+                #region --Saving default value
+
+                var computeTotalInModelIfZero = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + model.EWT + model.WVAT;
+                if (computeTotalInModelIfZero == 0)
+                {
+                    TempData["error"] = "Please input atleast one type form of payment";
+                    return View(model);
+                }
+                var existingSalesInvoice = await _dbContext.SalesInvoices
+                                               .Where(si => model.MultipleSIId.Contains(si.Id))
+                                               .ToListAsync(cancellationToken);
+
+                model.MultipleSI = new string[model.MultipleSIId.Length];
+                var salesInvoice = new SalesInvoice();
+                for (int i = 0; i < model.MultipleSIId.Length; i++)
+                {
+                    var siId = model.MultipleSIId[i];
+                    salesInvoice = await _dbContext.SalesInvoices
+                                .FirstOrDefaultAsync(si => si.Id == siId);
+
+                    if (salesInvoice != null)
+                    {
+                        model.MultipleSI[i] = salesInvoice.SINo;
+                    }
+                }
+
+                var generateCRNo = await _receiptRepo.GenerateCRNo(cancellationToken);
+
+                model.SeriesNumber = getLastNumber;
                 model.CRNo = generateCRNo;
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 model.Total = computeTotalInModelIfZero;
@@ -542,6 +758,35 @@ namespace Accounting_System.Controllers
                     Ewt = sv.WithholdingTaxAmount.ToString("N2"),
                     Wvat = sv.WithholdingVatAmount.ToString("N2"),
                     Total = (sv.Total - (sv.WithholdingTaxAmount + sv.WithholdingVatAmount)).ToString("N2")
+                });
+            }
+            return Json(null);
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetMultipleInvoiceDetails(int[] siNo, bool isSales, CancellationToken cancellationToken)
+        {
+            if (isSales)
+            {
+                var si = await _dbContext
+                .SalesInvoices
+                .FirstOrDefaultAsync(si => siNo.Contains(si.Id), cancellationToken);
+
+                //var amountPaid = 0m;
+                //var amount = 0m;
+                //foreach (var item in si)
+                //{
+                //    amountPaid = item.AmountPaid;
+                //    amount = item.NetDiscount;
+                //}
+
+                return Json(new
+                {
+                    Amount = si.Amount,
+                    AmountPaid = si.AmountPaid
+                    //Balance = si.Balance.ToString("N2"),
+                    //Ewt = si.WithHoldingTaxAmount.ToString("N2"),
+                    //Wvat = si.WithHoldingVatAmount.ToString("N2"),
+                    //Total = (si.NetDiscount - (si.WithHoldingTaxAmount + si.WithHoldingVatAmount)).ToString("N2")
                 });
             }
             return Json(null);
