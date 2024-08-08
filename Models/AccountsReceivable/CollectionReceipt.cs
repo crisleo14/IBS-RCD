@@ -131,5 +131,7 @@ namespace Accounting_System.Models.AccountsReceivable
 
         [Column(TypeName = "numeric[]")]
         public decimal[]? SIMultipleAmount { get; set; }
+
+        public DateOnly[]? MultipleTransactionDate { get; set; }
     }
 }

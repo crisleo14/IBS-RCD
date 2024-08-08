@@ -83,17 +83,35 @@
                         {
                             if (!item.IsPosted && !item.IsVoided && !item.IsCanceled)
                             {
-                                <a asp-action="CollectionEdit" asp-route-id="@item.Id" class="btn btn-light" title="Feature coming soon">Edit</a>
-                                <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#Preview-@item.Id" data-bs-url="@Url.Action($"Preview/{item.Id}")">
-                                    Preview
-                                </button>
-                                @await Html.PartialAsync("_CollectionPreviewPartialView", item)
+                                if (item.MultipleSIId != null)
+                                {
+                                    <a asp-action="MultipleCollectionEdit" asp-route-id="@item.Id" class="btn btn-light" title="Feature coming soon">Edit</a>
+                                    <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#PreviewMultipleSI-@item.Id" data-bs-url="@Url.Action($"PreviewMultipleSI/{item.Id}")">
+                                        Preview
+                                    </button>
+                                    @await Html.PartialAsync("_MultipleCollectionPreviewPartialView", item)
+                                }
+                                else
+                                {
+                                    <a asp-action="CollectionEdit" asp-route-id="@item.Id" class="btn btn-light" title="Feature coming soon">Edit</a>
+                                    <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#Preview-@item.Id" data-bs-url="@Url.Action($"Preview/{item.Id}")">
+                                        Preview
+                                    </button>
+                                    @await Html.PartialAsync("_CollectionPreviewPartialView", item)
+                                }
                                 <a class="btn btn-light" onclick="confirmPost(@item.Id)">Post</a>
                                 <a class="btn btn-light" onclick="confirmCancel(@item.Id)">Cancel</a>
                             }
                             if (item.IsPosted && !item.IsVoided && !item.IsCanceled)
                             {
-                                <a asp-action="CollectionPrint" asp-route-id="@item.Id" class="btn btn-light">Print</a>
+                                if (item.MultipleSIId != null)
+                                {
+                                    <a asp-action="MultipleCollectionPrint" asp-route-id="@item.Id" class="btn btn-light">Print</a>
+                                }
+                                else
+                                {
+                                    <a asp-action="CollectionPrint" asp-route-id="@item.Id" class="btn btn-light">Print</a>
+                                }
                                 <a class="btn btn-light" onclick="confirmVoid(@item.Id)">Void</a>
                             }
                         }
