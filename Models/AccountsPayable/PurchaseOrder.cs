@@ -42,7 +42,7 @@ namespace Accounting_System.Models.AccountsPayable
 
         public string? ProductNo { get; set; }
 
-        [Column(TypeName = "varchar(5)")]
+        [Column(TypeName = "varchar(10)")]
         public string Terms { get; set; }
 
         [Required]
