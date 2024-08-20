@@ -33,6 +33,12 @@
                 <th>
                     @Html.DisplayNameFor(model => model.DebitAmount)
                 </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.CreatedBy)
+                </th>
+                <th>
+                    Status
+                </th>
                 <th style="width: 25%"></th>
             </tr>
         </thead>
@@ -65,23 +71,36 @@
                         @Html.DisplayFor(modelItem => item.DebitAmount)
                     </td>
                     <td>
-                        @if (item.CreatedBy == UserManager.GetUserName(User))
+                        @Html.DisplayFor(modelItem => item.CreatedBy)
+                    </td>
+                    <td>
+                        @{
+                        var status = item.PostedBy != null && item.VoidedBy == null && item.CanceledBy == null
+                                ? "Posted"
+                                : item.VoidedBy != null
+                                    ? "Voided"
+                                    : item.CanceledBy != null
+                                        ? "Cancelled"
+                                        : "Pending";
+                        }
+                        <span class="badge rounded-pill @if(status == "Posted") {<text>bg-info</text>} else if(status == "Voided") {<text>bg-danger</text>} else if(status == "Cancelled") {<text>bg-warning</text>}">@status</span>
+                    </td>
+                    <td>
+
+                        @if (!item.IsPosted && !item.IsVoided && !item.IsCanceled)
                         {
-                            if (!item.IsPosted && !item.IsVoided && !item.IsCanceled)
-                            {
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-light">Edit</a>
-                                <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#Preview-@item.Id" data-bs-url="@Url.Action($"Preview/{item.Id}")">
-                                    Preview
-                                </button>
-                                @await Html.PartialAsync("_PreviewDebit", item)
-                                <a class="btn btn-light" onclick="confirmPost(@item.Id)">Post</a>
-                                <a class="btn btn-light" onclick="confirmCancel(@item.Id)">Cancel</a>
-                            }
-                            if (item.IsPosted && !item.IsVoided && !item.IsCanceled)
-                            {
-                                <a asp-action="Print" asp-route-id="@item.Id" class="btn btn-light">Print</a>
-                                <a class="btn btn-light" onclick="confirmVoid(@item.Id)">Void</a>
-                            }
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-light">Edit</a>
+                            <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#Preview-@item.Id" data-bs-url="@Url.Action($"Preview/{item.Id}")">
+                                Preview
+                            </button>
+                            @await Html.PartialAsync("_PreviewDebit", item)
+                            <a class="btn btn-light" onclick="confirmPost(@item.Id)">Post</a>
+                            <a class="btn btn-light" onclick="confirmCancel(@item.Id)">Cancel</a>
+                        }
+                        @if (item.IsPosted && !item.IsVoided && !item.IsCanceled)
+                        {
+                            <a asp-action="Print" asp-route-id="@item.Id" class="btn btn-light">Print</a>
+                            <a class="btn btn-light" onclick="confirmVoid(@item.Id)">Void</a>
                         }
 
                         @if (item.IsVoided)
@@ -92,13 +111,6 @@
                         {
                             <span class="badge rounded-pill bg-warning ">CANCELLED</span>
                         }
-                        else
-                        {
-                            @if (item.CreatedBy != UserManager.GetUserName(User))
-                            {
-                                <span class="badge rounded-pill bg-info ">VALID</span>
-                            }
-                        }
                     </td>
                 </tr>
             }
@@ -106,7 +118,7 @@
     </table>
 </div>
 
-@section Scripts{
+@section Scripts {
     <script>
         function confirmPost(id) {
             console.log(id);

@@ -77,6 +77,20 @@ namespace Accounting_System.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var customers = await _dbContext.Customers.FindAsync(id, cancellationToken);
+                return View(customers);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred. Please try again later.");
+            }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Customer customer, CancellationToken cancellationToken)

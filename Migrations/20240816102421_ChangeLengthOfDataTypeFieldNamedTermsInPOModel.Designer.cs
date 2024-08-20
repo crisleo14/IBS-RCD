@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240816102421_ChangeLengthOfDataTypeFieldNamedTermsInPOModel")]
+    partial class ChangeLengthOfDataTypeFieldNamedTermsInPOModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -674,10 +677,6 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer[]")
                         .HasColumnName("multiple_si_id");
 
-                    b.Property<DateOnly[]>("MultipleTransactionDate")
-                        .HasColumnType("date[]")
-                        .HasColumnName("multiple_transaction_date");
-
                     b.Property<string>("PostedBy")
                         .HasColumnType("varchar(50)")
                         .HasColumnName("posted_by");
@@ -694,10 +693,6 @@ namespace Accounting_System.Migrations
                     b.Property<string>("Remarks")
                         .HasColumnType("varchar(100)")
                         .HasColumnName("remarks");
-
-                    b.Property<decimal[]>("SIMultipleAmount")
-                        .HasColumnType("numeric[]")
-                        .HasColumnName("si_multiple_amount");
 
                     b.Property<string>("SINo")
                         .HasColumnType("varchar(12)")
@@ -741,9 +736,6 @@ namespace Accounting_System.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_collection_receipts");
-
-                    b.HasIndex("CustomerId")
-                        .HasDatabaseName("ix_collection_receipts_customer_id");
 
                     b.HasIndex("SalesInvoiceId")
                         .HasDatabaseName("ix_collection_receipts_sales_invoice_id");
@@ -2829,13 +2821,6 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.AccountsReceivable.CollectionReceipt", b =>
                 {
-                    b.HasOne("Accounting_System.Models.Customer", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_collection_receipts_customers_customer_id");
-
                     b.HasOne("Accounting_System.Models.AccountsReceivable.SalesInvoice", "SalesInvoice")
                         .WithMany()
                         .HasForeignKey("SalesInvoiceId")
@@ -2845,8 +2830,6 @@ namespace Accounting_System.Migrations
                         .WithMany()
                         .HasForeignKey("ServiceInvoiceId")
                         .HasConstraintName("fk_collection_receipts_service_invoices_service_invoice_id");
-
-                    b.Navigation("Customer");
 
                     b.Navigation("SalesInvoice");
 

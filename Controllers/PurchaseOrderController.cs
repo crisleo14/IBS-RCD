@@ -206,6 +206,7 @@ namespace Accounting_System.Controllers
                 existingModel.Price = model.Price;
                 existingModel.Amount = model.Quantity * model.Price;
                 existingModel.Remarks = model.Remarks;
+                existingModel.Terms = model.Terms;
                 existingModel.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model.SupplierId, cancellationToken);
                 existingModel.ProductNo = await _purchaseOrderRepo.GetProductNoAsync(model.ProductId, cancellationToken);
 
