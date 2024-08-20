@@ -56,7 +56,7 @@
                     </td>
                     <td>
                         @{
-                        var status = item.Header.IsPosted != null && item.Header.VoidedBy == null && item.Header.CanceledBy == null
+                        var status = item.Header.PostedBy != null && item.Header.VoidedBy == null && item.Header.CanceledBy == null
                                 ? "Posted"
                                 : item.Header.VoidedBy != null
                                     ? "Voided"
