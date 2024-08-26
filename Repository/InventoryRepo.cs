@@ -40,13 +40,13 @@ namespace Accounting_System.Repository
         //    await _dbContext.SaveChangesAsync(cancellationToken);
         //}
 
-        public async Task<bool> HasAlreadyBeginningInventory(int productId, int poId, CancellationToken cancellationToken)
+        public async Task<bool> HasAlreadyBeginningInventory(int productId, int poId, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Inventories
                 .AnyAsync(i => i.ProductId == productId && i.POId == poId, cancellationToken);
         }
 
-        public async Task AddBeginningInventory(BeginningInventoryViewModel viewModel, ClaimsPrincipal user, CancellationToken cancellationToken)
+        public async Task AddBeginningInventory(BeginningInventoryViewModel viewModel, ClaimsPrincipal user, CancellationToken cancellationToken = default)
         {
             Inventory inventory = new()
             {
@@ -69,7 +69,7 @@ namespace Accounting_System.Repository
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task AddPurchaseToInventoryAsync(ReceivingReport receivingReport, ClaimsPrincipal user, CancellationToken cancellationToken)
+        public async Task AddPurchaseToInventoryAsync(ReceivingReport receivingReport, ClaimsPrincipal user, CancellationToken cancellationToken = default)
         {
             var sortedInventory = await _dbContext.Inventories
             .Where(i => i.ProductId == receivingReport.PurchaseOrder.Product.Id && i.POId == receivingReport.POId)
@@ -173,7 +173,7 @@ namespace Accounting_System.Repository
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task AddSalesToInventoryAsync(SalesInvoice salesInvoice, ClaimsPrincipal user, CancellationToken cancellationToken)
+        public async Task AddSalesToInventoryAsync(SalesInvoice salesInvoice, ClaimsPrincipal user, CancellationToken cancellationToken = default)
         {
             var sortedInventory = await _dbContext.Inventories
             .Where(i => i.ProductId == salesInvoice.Product.Id && i.POId == salesInvoice.POId)
@@ -331,7 +331,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task AddActualInventory(ActualInventoryViewModel viewModel, ClaimsPrincipal user, CancellationToken cancellationToken)
+        public async Task AddActualInventory(ActualInventoryViewModel viewModel, ClaimsPrincipal user, CancellationToken cancellationToken = default)
         {
             #region -- Actual Inventory Entry --
 
@@ -385,7 +385,7 @@ namespace Accounting_System.Repository
             #endregion -- General Book Entry --
         }
 
-        public async Task ChangePriceToInventoryAsync(PurchaseChangePriceViewModel purchaseChangePriceViewModel, ClaimsPrincipal user, CancellationToken cancellationToken)
+        public async Task ChangePriceToInventoryAsync(PurchaseChangePriceViewModel purchaseChangePriceViewModel, ClaimsPrincipal user, CancellationToken cancellationToken = default)
         {
             var existingPO = await _dbContext.PurchaseOrders
             .Include(po => po.Supplier)

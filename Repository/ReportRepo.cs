@@ -4,6 +4,7 @@ using Accounting_System.Models.AccountsPayable;
 using Accounting_System.Models.MasterFile;
 using Accounting_System.Models.Reports;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Accounting_System.Repository
 {
@@ -16,10 +17,10 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public List<SalesBook> GetSalesBooks(DateOnly dateFrom, DateOnly dateTo, string? selectedDocument)
+        public async Task<List<SalesBook>> GetSalesBooksAsync(DateOnly dateFrom, DateOnly dateTo, string? selectedDocument, CancellationToken cancellationToken = default)
         {
-            Func<SalesBook, object> orderBy = null;
-            Func<SalesBook, bool> query = null;
+            Expression<Func<SalesBook, bool>> query = null;
+            Expression<Func<SalesBook, object>> orderBy = null;
 
             switch (selectedDocument)
             {
@@ -40,35 +41,33 @@ namespace Accounting_System.Repository
             }
 
             // Add a null check for orderBy
-            var salesBooks = _dbContext
+            var salesBooks = await _dbContext
                 .SalesBooks
-                .AsEnumerable()
                 .Where(query)
-                .OrderBy(orderBy ?? (Func<SalesBook, object>)(s => s.TransactionDate))
-                .ToList();
+                .OrderBy(orderBy ?? (s => s.TransactionDate))
+                .ToListAsync(cancellationToken);
 
             return salesBooks;
 
         }
 
-        public List<CashReceiptBook> GetCashReceiptBooks(DateOnly? dateFrom, DateOnly? dateTo)
+        public async Task<List<CashReceiptBook>> GetCashReceiptBooks(DateOnly? dateFrom, DateOnly? dateTo, CancellationToken cancellationToken = default)
         {
             if (dateFrom > dateTo)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
 
-            var cashReceiptBooks = _dbContext
+            var cashReceiptBooks = await _dbContext
              .CashReceiptBooks
-             .AsEnumerable()
              .Where(cr => cr.Date >= dateFrom && cr.Date <= dateTo)
              .OrderBy(s => s.Id)
-             .ToList();
+             .ToListAsync(cancellationToken);
 
             return cashReceiptBooks;
         }
 
-        public List<PurchaseJournalBook> GetPurchaseBooks(DateOnly? dateFrom, DateOnly? dateTo, string? selectedFiltering)
+        public async Task<List<PurchaseJournalBook>> GetPurchaseBooks(DateOnly? dateFrom, DateOnly? dateTo, string? selectedFiltering, CancellationToken cancellationToken = default)
         {
             List<PurchaseJournalBook> purchaseBook = new List<PurchaseJournalBook>();
 
@@ -77,7 +76,7 @@ namespace Accounting_System.Repository
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
 
-            Func<PurchaseJournalBook, object> orderBy;
+            Expression<Func<PurchaseJournalBook, object>> orderBy;
 
             switch (selectedFiltering)
             {
@@ -99,18 +98,17 @@ namespace Accounting_System.Repository
                     break;
             }
 
-            purchaseBook = _dbContext
+            purchaseBook = await _dbContext
                 .PurchaseJournalBooks
-                .AsEnumerable()
                 .Where(p => (selectedFiltering == "DueDate" || selectedFiltering == "POLiquidation" ? p.DueDate : p.Date) >= dateFrom &&
                             (selectedFiltering == "DueDate" || selectedFiltering == "POLiquidation" ? p.DueDate : p.Date) <= dateTo)
                 .OrderBy(orderBy)
-                .ToList();
+                .ToListAsync();
 
             return purchaseBook;
         }
 
-        public List<ReceivingReport> GetReceivingReport(DateOnly? dateFrom, DateOnly? dateTo, string? selectedFiltering)
+        public async Task<List<ReceivingReport>> GetReceivingReport(DateOnly? dateFrom, DateOnly? dateTo, string? selectedFiltering, CancellationToken cancellationToken = default)
         {
             if (dateFrom > dateTo)
             {
@@ -121,60 +119,57 @@ namespace Accounting_System.Repository
 
             if (selectedFiltering == "UnpostedRR")
             {
-                receivingReport = _dbContext
+                receivingReport = await _dbContext
                  .ReceivingReports
                  .Include(rr => rr.PurchaseOrder)
                  .ThenInclude(po => po.Supplier)
                  .Include(rr => rr.PurchaseOrder)
                  .ThenInclude(po => po.Product)
-                 .AsEnumerable()
                  .Where(rr => rr.Date >= dateFrom && rr.Date <= dateTo && !rr.IsPosted)
                  .OrderBy(rr => rr.Id)
-                 .ToList();
+                 .ToListAsync(cancellationToken);
             }
             else if (selectedFiltering == "POLiquidation")
             {
-                receivingReport = _dbContext
+                receivingReport = await _dbContext
                  .ReceivingReports
                  .Include(rr => rr.PurchaseOrder)
                  .ThenInclude(po => po.Supplier)
                  .Include(rr => rr.PurchaseOrder)
                  .ThenInclude(po => po.Product)
-                 .AsEnumerable()
                  .Where(rr => rr.DueDate >= dateFrom && rr.DueDate <= dateTo && rr.IsPosted)
                  .OrderBy(rr => rr.Id)
-                 .ToList();
+                 .ToListAsync(cancellationToken);
             }
 
             return receivingReport;
         }
 
-        public List<Inventory> GetInventoryBooks(DateOnly dateFrom, DateOnly dateTo)
+        public async Task<List<Inventory>> GetInventoryBooks(DateOnly dateFrom, DateOnly dateTo, CancellationToken cancellationToken = default)
         {
             if (dateFrom > dateTo)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
 
-            var inventoryBooks = _dbContext
+            var inventoryBooks = await _dbContext
              .Inventories
              .Include(i => i.Product)
-             .AsEnumerable()
              .Where(i => i.Date >= dateFrom && i.Date <= dateTo)
              .OrderBy(i => i.Id)
-             .ToList();
+             .ToListAsync(cancellationToken);
 
             return inventoryBooks;
         }
 
-        public List<GeneralLedgerBook> GetGeneralLedgerBooks(DateOnly? dateFrom, DateOnly? dateTo)
+        public async Task<List<GeneralLedgerBook>> GetGeneralLedgerBooks(DateOnly? dateFrom, DateOnly? dateTo, CancellationToken cancellationToken = default)
         {
             if (dateFrom > dateTo)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
 
-            Func<GeneralLedgerBook, object> orderBy;
+            Expression<Func<GeneralLedgerBook, object>> orderBy;
 
             if (dateFrom != null && dateTo != null)
             {
@@ -185,79 +180,75 @@ namespace Accounting_System.Repository
                 orderBy = i => i.Date; // Default ordering function
             }
 
-            var generalLedgerBooks = _dbContext
+            var generalLedgerBooks = await _dbContext
                 .GeneralLedgerBooks
-                .AsEnumerable()
                 .Where(i => i.Date >= dateFrom && i.Date <= dateTo && i.IsPosted)
                 .OrderBy(orderBy)
-                .ToList();
+                .ToListAsync(cancellationToken);
 
             return generalLedgerBooks;
         }
 
-        public List<DisbursementBook> GetDisbursementBooks(DateOnly? dateFrom, DateOnly? dateTo)
+        public async Task<List<DisbursementBook>> GetDisbursementBooks(DateOnly? dateFrom, DateOnly? dateTo, CancellationToken cancellationToken = default)
         {
             if (dateFrom > dateTo)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
 
-            var disbursementBooks = _dbContext
+            var disbursementBooks = await _dbContext
              .DisbursementBooks
-             .AsEnumerable()
              .Where(d => d.Date >= dateFrom && d.Date <= dateTo)
              .OrderBy(d => d.Id)
-             .ToList();
+             .ToListAsync();
 
             return disbursementBooks;
         }
 
-        public List<JournalBook> GetJournalBooks(DateOnly? dateFrom, DateOnly? dateTo)
+        public async Task<List<JournalBook>> GetJournalBooks(DateOnly? dateFrom, DateOnly? dateTo, CancellationToken cancellationToken = default)
         {
             if (dateFrom > dateTo)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
 
-            var disbursementBooks = _dbContext
+            var disbursementBooks = await _dbContext
              .JournalBooks
-             .AsEnumerable()
              .Where(d => d.Date >= dateFrom && d.Date <= dateTo)
              .OrderBy(d => d.Id)
-             .ToList();
+             .ToListAsync(cancellationToken);
 
             return disbursementBooks;
         }
 
-        public List<AuditTrail> GetAuditTrails(DateOnly? dateFrom, DateOnly? dateTo)
+        public async Task<List<AuditTrail>> GetAuditTrails(DateOnly? dateFrom, DateOnly? dateTo, CancellationToken cancellationToken = default)
         {
             if (dateFrom > dateTo)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
             }
 
-            var auditTrail = _dbContext
+            var auditTrail = await _dbContext
                 .AuditTrails
-                .AsEnumerable()
                 .Where(a => DateOnly.FromDateTime(a.Date) >= dateFrom && DateOnly.FromDateTime(a.Date) <= dateTo)
                 .OrderBy(a => a.Date)
-                .ToList();
+                .ToListAsync(cancellationToken);
 
             return auditTrail;
         }
 
-        public async Task<List<Customer>> GetCustomersAsync()
+        public async Task<List<Customer>> GetCustomersAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext
                 .Customers
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
 
-        public async Task<List<Product>> GetProductsAsync()
+        public async Task<List<Product>> GetProductsAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext
                 .Products
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
     }
 }

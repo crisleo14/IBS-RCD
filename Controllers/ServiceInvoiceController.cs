@@ -173,19 +173,19 @@ namespace Accounting_System.Controllers
                     }
                 }
 
-                _dbContext.Add(model);
+                await _dbContext.AddAsync(model, cancellationToken);
 
                 #endregion --Saving the default properties
 
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(model.CreatedBy, $"Create new service invoice# {model.SVNo}", "Service Invoice");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
-                await _dbContext.SaveChangesAsync();
-                return RedirectToAction("Index");
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                return RedirectToAction(nameof(Index));
             }
 
             return View(model);
@@ -197,14 +197,6 @@ namespace Accounting_System.Controllers
                 .FindSv(id, cancellationToken);
 
             return View(soa);
-        }
-
-        public async Task<IActionResult> Preview(int id, CancellationToken cancellationToken)
-        {
-            var soa = await _serviceInvoiceRepo
-                .FindSv(id, cancellationToken);
-
-            return PartialView("_PreviewPartialView", soa);
         }
 
         public async Task<IActionResult> PrintedSOA(int id, CancellationToken cancellationToken)
@@ -223,7 +215,7 @@ namespace Accounting_System.Controllers
                 findIdOfSOA.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }
-            return RedirectToAction("Generate", new { id = id });
+            return RedirectToAction(nameof(Generate), new { id });
         }
 
         public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
@@ -456,18 +448,18 @@ namespace Accounting_System.Controllers
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         TempData["success"] = "Service invoice has been posted.";
-                        return RedirectToAction("Index");
+                        return RedirectToAction(nameof(Index));
                     }
                     else
                     {
-                        return RedirectToAction("Index");
+                        return RedirectToAction(nameof(Index));
                     }
                 }
             }
             catch (Exception ex)
             {
                 TempData["error"] = ex.Message;
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return null;
@@ -496,7 +488,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Service invoice has been Cancelled.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();
@@ -532,7 +524,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Service invoice has been voided.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();
@@ -659,7 +651,7 @@ namespace Accounting_System.Controllers
                 #endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return View(existingModel);

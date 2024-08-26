@@ -36,16 +36,16 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<bool> IsCustomerExist(string name)
+        public async Task<bool> IsCustomerExist(string name, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Customers.
-                AnyAsync(c => c.Name.ToUpper() == name.ToUpper());
+                AnyAsync(c => c.Name.ToUpper() == name.ToUpper(), cancellationToken);
         }
 
-        public async Task<bool> IsTinNoExist(string tin)
+        public async Task<bool> IsTinNoExist(string tin, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Customers.
-                AnyAsync(c => c.TinNo.ToUpper() == tin.ToUpper());
+                AnyAsync(c => c.TinNo.ToUpper() == tin.ToUpper(), cancellationToken);
         }
 
         public async Task<int> GetLastNumber(CancellationToken cancellationToken = default)

@@ -95,7 +95,7 @@ namespace Accounting_System.Controllers
                         .SalesInvoices
                         .Include(c => c.Customer)
                         .Include(s => s.Product)
-                        .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId);
+                        .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId, cancellationToken);
 
             var existingSv = await _dbContext.ServiceInvoices
                         .Include(sv => sv.Customer)
@@ -125,20 +125,20 @@ namespace Accounting_System.Controllers
             {
                 if (model.SalesInvoiceId != null)
                 {
-                    var existingSIDMs = _dbContext.DebitMemos
+                    var existingSIDMs = await _dbContext.DebitMemos
                                   .Where(si => si.SalesInvoiceId == model.SalesInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
                                   .OrderBy(s => s.Id)
-                                  .ToList();
+                                  .ToListAsync(cancellationToken);
                     if (existingSIDMs.Count > 0)
                     {
                         ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSIDMs.First().DMNo}");
                         return View(model);
                     }
 
-                    var existingSICMs = _dbContext.CreditMemos
+                    var existingSICMs = await _dbContext.CreditMemos
                                       .Where(si => si.SalesInvoiceId == model.SalesInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
                                       .OrderBy(s => s.Id)
-                                      .ToList();
+                                      .ToListAsync(cancellationToken);
                     if (existingSICMs.Count > 0)
                     {
                         ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSICMs.First().CMNo}");
@@ -147,20 +147,20 @@ namespace Accounting_System.Controllers
                 }
                 else
                 {
-                    var existingSOADMs = _dbContext.DebitMemos
+                    var existingSOADMs = await _dbContext.DebitMemos
                                   .Where(si => si.ServiceInvoiceId == model.ServiceInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
                                   .OrderBy(s => s.Id)
-                                  .ToList();
+                                  .ToListAsync(cancellationToken);
                     if (existingSOADMs.Count > 0)
                     {
                         ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSOADMs.First().DMNo}");
                         return View(model);
                     }
 
-                    var existingSOACMs = _dbContext.CreditMemos
+                    var existingSOACMs = await _dbContext.CreditMemos
                                       .Where(si => si.ServiceInvoiceId == model.ServiceInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
                                       .OrderBy(s => s.Id)
-                                      .ToList();
+                                      .ToListAsync(cancellationToken);
                     if (existingSOACMs.Count > 0)
                     {
                         ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSOACMs.First().CMNo}");
@@ -258,13 +258,13 @@ namespace Accounting_System.Controllers
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(model.CreatedBy, $"Create new credit memo# {model.CMNo}", "Credit Memo");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
                 await _dbContext.AddAsync(model, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             ModelState.AddModelError("", "The information you submitted is not valid!");
@@ -320,7 +320,7 @@ namespace Accounting_System.Controllers
                         .SalesInvoices
                         .Include(c => c.Customer)
                         .Include(s => s.Product)
-                        .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId);
+                        .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId, cancellationToken);
             var existingSv = await _dbContext.ServiceInvoices
                         .Include(sv => sv.Customer)
                         .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
@@ -348,7 +348,7 @@ namespace Accounting_System.Controllers
             {
                 var existingCM = await _dbContext
                         .CreditMemos
-                        .FirstOrDefaultAsync(cm => cm.Id == model.Id);
+                        .FirstOrDefaultAsync(cm => cm.Id == model.Id, cancellationToken);
 
                 model.CreatedBy = _userManager.GetUserName(this.User);
 
@@ -439,13 +439,13 @@ namespace Accounting_System.Controllers
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Edit credit memo# {existingCM.CMNo}", "Credit Memo");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 TempData["success"] = "Credit Memo edited successfully";
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             ModelState.AddModelError("", "The information you submitted is not valid!");
@@ -494,7 +494,7 @@ namespace Accounting_System.Controllers
                 cm.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }
-            return RedirectToAction("Print", new { id = id });
+            return RedirectToAction(nameof(Print), new { id });
         }
 
         public async Task<IActionResult> Post(int id, CancellationToken cancellationToken, ViewModelDMCM viewModelDMCM)
@@ -944,9 +944,9 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
-                    return RedirectToAction("Index");
+                    return RedirectToAction(nameof(Index));
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();
@@ -969,8 +969,8 @@ namespace Accounting_System.Controllers
                     model.VoidedBy = _userManager.GetUserName(this.User);
                     model.VoidedDate = DateTime.Now;
 
-                    await _generalRepo.RemoveRecords<SalesBook>(crb => crb.SerialNo == model.CMNo);
-                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CMNo);
+                    await _generalRepo.RemoveRecords<SalesBook>(crb => crb.SerialNo == model.CMNo, cancellationToken);
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CMNo, cancellationToken);
 
                     #region --Audit Trail Recording
 
@@ -982,7 +982,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Credit Memo has been Voided.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();
@@ -1011,16 +1011,10 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Credit Memo has been Cancelled.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();
-        }
-
-        public async Task<IActionResult> Preview(int id, CancellationToken cancellationToken)
-        {
-            var cm = await _creditMemoRepo.FindCM(id, cancellationToken);
-            return PartialView("_PreviewCredit", cm);
         }
 
         [HttpGet]

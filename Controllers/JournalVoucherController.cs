@@ -98,7 +98,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(JournalVoucherVM? model, CancellationToken cancellationToken, string[] accountNumber, decimal[]? debit, decimal[]? credit)
+        public async Task<IActionResult> Create(JournalVoucherVM? model, string[] accountNumber, decimal[]? debit, decimal[]? credit, CancellationToken cancellationToken)
         {
             model.Header.COA = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
@@ -154,7 +154,7 @@ namespace Accounting_System.Controllers
                 {
                     var currentAccountNumber = accountNumber[i];
                     var accountTitle = await _dbContext.ChartOfAccounts
-                        .FirstOrDefaultAsync(coa => coa.Number == currentAccountNumber);
+                        .FirstOrDefaultAsync(coa => coa.Number == currentAccountNumber, cancellationToken);
                     var currentDebit = debit[i];
                     var currentCredit = credit[i];
                     totalDebit += debit[i];
@@ -193,13 +193,13 @@ namespace Accounting_System.Controllers
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(model.Header.CreatedBy, $"Create new journal voucher# {model.Header.JVNo}", "Journal Voucher");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
                 await _dbContext.AddAsync(model.Header, cancellationToken);  // Add CheckVoucherHeader to the context
                 await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
             else
             {
@@ -208,11 +208,11 @@ namespace Accounting_System.Controllers
             }
         }
 
-        public async Task<IActionResult> GetCV(int id)
+        public async Task<IActionResult> GetCV(int id, CancellationToken cancellationToken)
         {
-            var header = _dbContext.CheckVoucherHeaders
+            var header = await _dbContext.CheckVoucherHeaders
                 .Include(s => s.Supplier)
-                .FirstOrDefault(cvh => cvh.Id == id);
+                .FirstOrDefaultAsync(cvh => cvh.Id == id, cancellationToken);
 
             if (header == null)
             {
@@ -221,7 +221,7 @@ namespace Accounting_System.Controllers
 
             var details = await _dbContext.CheckVoucherDetails
                 .Where(cvd => cvd.TransactionNo == header.CVNo)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             var viewModel = new CheckVoucherVM
             {
@@ -330,13 +330,13 @@ namespace Accounting_System.Controllers
                 jv.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }
-            return RedirectToAction("Print", new { id = id });
+            return RedirectToAction(nameof(Print), new { id });
         }
 
         public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
         {
             var modelHeader = await _dbContext.JournalVoucherHeaders.FindAsync(id, cancellationToken);
-            var modelDetails = await _dbContext.JournalVoucherDetails.Where(jvd => jvd.TransactionNo == modelHeader.JVNo).ToListAsync();
+            var modelDetails = await _dbContext.JournalVoucherDetails.Where(jvd => jvd.TransactionNo == modelHeader.JVNo).ToListAsync(cancellationToken);
 
             if (modelHeader != null)
             {
@@ -417,7 +417,7 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
-                    return RedirectToAction("Index");
+                    return RedirectToAction(nameof(Index));
                 }
             }
 
@@ -427,8 +427,8 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
         {
             var model = await _dbContext.JournalVoucherHeaders.FindAsync(id, cancellationToken);
-            var findJVInJB = await _dbContext.JournalBooks.Where(jb => jb.Reference == model.JVNo).ToListAsync();
-            var findJVInGL = await _dbContext.GeneralLedgerBooks.Where(jb => jb.Reference == model.JVNo).ToListAsync();
+            var findJVInJB = await _dbContext.JournalBooks.Where(jb => jb.Reference == model.JVNo).ToListAsync(cancellationToken);
+            var findJVInGL = await _dbContext.GeneralLedgerBooks.Where(jb => jb.Reference == model.JVNo).ToListAsync(cancellationToken);
 
             if (model != null)
             {
@@ -445,11 +445,11 @@ namespace Accounting_System.Controllers
 
                     if (findJVInJB.Any())
                     {
-                        await _generalRepo.RemoveRecords<JournalBook>(crb => crb.Reference == model.JVNo);
+                        await _generalRepo.RemoveRecords<JournalBook>(crb => crb.Reference == model.JVNo, cancellationToken);
                     }
                     if (findJVInGL.Any())
                     {
-                        await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.JVNo);
+                        await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.JVNo, cancellationToken);
                     }
 
                     #region --Audit Trail Recording
@@ -462,7 +462,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Journal Voucher has been Voided.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();
@@ -491,7 +491,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Journal Voucher has been Cancelled.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();
@@ -510,7 +510,7 @@ namespace Accounting_System.Controllers
                 .FirstOrDefaultAsync(cvh => cvh.Id == id, cancellationToken);
             var existingDetailsModel = await _dbContext.JournalVoucherDetails
                 .Where(cvd => cvd.TransactionNo == existingHeaderModel.JVNo)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             if (existingHeaderModel == null || existingDetailsModel == null)
             {
@@ -521,8 +521,8 @@ namespace Accounting_System.Controllers
             var accountTitles = existingDetailsModel.Select(model => model.AccountName).ToArray();
             var debit = existingDetailsModel.Select(model => model.Debit).ToArray();
             var credit = existingDetailsModel.Select(model => model.Credit).ToArray();
-            var poIds = _dbContext.PurchaseOrders.Where(model => exisitngJV.CheckVoucherHeader.PONo.Contains(model.PONo)).Select(model => model.Id).ToArray();
-            var rrIds = _dbContext.ReceivingReports.Where(model => exisitngJV.CheckVoucherHeader.RRNo.Contains(model.RRNo)).Select(model => model.Id).ToArray();
+            var poIds = await _dbContext.PurchaseOrders.Where(model => exisitngJV.CheckVoucherHeader.PONo.Contains(model.PONo)).Select(model => model.Id).ToArrayAsync(cancellationToken);
+            var rrIds = await _dbContext.ReceivingReports.Where(model => exisitngJV.CheckVoucherHeader.RRNo.Contains(model.RRNo)).Select(model => model.Id).ToArrayAsync(cancellationToken);
 
             var coa = await _dbContext.ChartOfAccounts
                         .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
@@ -579,7 +579,7 @@ namespace Accounting_System.Controllers
                     #region --CV Details Entry
 
                     var existingHeaderModel = await _dbContext.JournalVoucherHeaders.FindAsync(viewModel.JVId, cancellationToken);
-                    var existingDetailsModel = await _dbContext.JournalVoucherDetails.Where(d => d.TransactionNo == existingHeaderModel.JVNo).ToListAsync();
+                    var existingDetailsModel = await _dbContext.JournalVoucherDetails.Where(d => d.TransactionNo == existingHeaderModel.JVNo).ToListAsync(cancellationToken);
                     JournalVoucherDetail detailsModel = new();
 
                     for (int i = 0; i < existingDetailsModel.Count(); i++)
@@ -613,13 +613,13 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Edit check voucher# {viewModel.JVNo}", "Check Voucher");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
                     TempData["success"] = "Journal Voucher edited successfully";
-                    return RedirectToAction("Index");
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {

@@ -156,7 +156,7 @@ namespace Accounting_System.Controllers
 
                         using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                         {
-                            await bir2306.CopyToAsync(stream);
+                            await bir2306.CopyToAsync(stream, cancellationToken);
                         }
 
                         model.F2306FilePath = fileSavePath;
@@ -177,7 +177,7 @@ namespace Accounting_System.Controllers
 
                         using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                         {
-                            await bir2307.CopyToAsync(stream);
+                            await bir2307.CopyToAsync(stream, cancellationToken);
                         }
 
                         model.F2307FilePath = fileSavePath;
@@ -232,7 +232,7 @@ namespace Accounting_System.Controllers
                 #endregion --Offsetting function
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction("CollectionIndex");
+                return RedirectToAction(nameof(CollectionIndex));
             }
             else
             {
@@ -342,7 +342,7 @@ namespace Accounting_System.Controllers
                 {
                     var siId = model.MultipleSIId[i];
                     salesInvoice = await _dbContext.SalesInvoices
-                                .FirstOrDefaultAsync(si => si.Id == siId);
+                                .FirstOrDefaultAsync(si => si.Id == siId, cancellationToken);
 
                     if (salesInvoice != null)
                     {
@@ -374,7 +374,7 @@ namespace Accounting_System.Controllers
 
                         using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                         {
-                            await bir2306.CopyToAsync(stream);
+                            await bir2306.CopyToAsync(stream, cancellationToken);
                         }
 
                         model.F2306FilePath = fileSavePath;
@@ -395,7 +395,7 @@ namespace Accounting_System.Controllers
 
                         using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                         {
-                            await bir2307.CopyToAsync(stream);
+                            await bir2307.CopyToAsync(stream, cancellationToken);
                         }
 
                         model.F2307FilePath = fileSavePath;
@@ -450,7 +450,7 @@ namespace Accounting_System.Controllers
                 #endregion --Offsetting function
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction("CollectionIndex");
+                return RedirectToAction(nameof(CollectionIndex));
             }
             else
             {
@@ -575,7 +575,7 @@ namespace Accounting_System.Controllers
 
                         using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                         {
-                            await bir2306.CopyToAsync(stream);
+                            await bir2306.CopyToAsync(stream, cancellationToken);
                         }
 
                         model.F2306FilePath = fileSavePath;
@@ -596,7 +596,7 @@ namespace Accounting_System.Controllers
 
                         using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                         {
-                            await bir2307.CopyToAsync(stream);
+                            await bir2307.CopyToAsync(stream, cancellationToken);
                         }
 
                         model.F2307FilePath = fileSavePath;
@@ -651,7 +651,7 @@ namespace Accounting_System.Controllers
                 #endregion --Offsetting function
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction("CollectionIndex");
+                return RedirectToAction(nameof(CollectionIndex));
             }
             else
             {
@@ -671,12 +671,6 @@ namespace Accounting_System.Controllers
             return View(cr);
         }
 
-        public async Task<IActionResult> CollectionPreview(int id, CancellationToken cancellationToken)
-        {
-            var cr = await _receiptRepo.FindCR(id, cancellationToken);
-            return PartialView("_CollectionPreviewPartialView", cr);
-        }
-
         public async Task<IActionResult> PrintedCR(int id, CancellationToken cancellationToken)
         {
             var findIdOfCR = await _receiptRepo.FindCR(id, cancellationToken);
@@ -693,7 +687,7 @@ namespace Accounting_System.Controllers
                 findIdOfCR.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }
-            return RedirectToAction("CollectionPrint", new { id = id });
+            return RedirectToAction(nameof(CollectionPrint), new { id });
         }
         public async Task<IActionResult> PrintedMultipleCR(int id, CancellationToken cancellationToken)
         {
@@ -711,7 +705,7 @@ namespace Accounting_System.Controllers
                 findIdOfCR.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }
-            return RedirectToAction("MultipleCollectionPrint", new { id = id });
+            return RedirectToAction(nameof(MultipleCollectionPrint), new { id });
         }
 
         [HttpGet]
@@ -788,10 +782,10 @@ namespace Accounting_System.Controllers
             return Json(null);
         }
 
-        public async Task<IActionResult> MultipleInvoiceBalance(int siNo)
+        public async Task<IActionResult> MultipleInvoiceBalance(int siNo, CancellationToken cancellationToken)
         {
             var salesInvoice = await _dbContext.SalesInvoices
-                .FirstOrDefaultAsync(si => si.Id == siNo);
+                .FirstOrDefaultAsync(si => si.Id == siNo, cancellationToken);
             if (salesInvoice != null)
             {
                 var amount = salesInvoice.Amount;
@@ -971,7 +965,7 @@ namespace Accounting_System.Controllers
 
                         using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                         {
-                            await bir2306.CopyToAsync(stream);
+                            await bir2306.CopyToAsync(stream, cancellationToken);
                         }
 
                         existingModel.F2306FilePath = fileSavePath;
@@ -992,7 +986,7 @@ namespace Accounting_System.Controllers
 
                         using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                         {
-                            await bir2307.CopyToAsync(stream);
+                            await bir2307.CopyToAsync(stream, cancellationToken);
                         }
 
                         existingModel.F2307FilePath = fileSavePath;
@@ -1075,7 +1069,7 @@ namespace Accounting_System.Controllers
                             CreatedBy = _userManager.GetUserName(this.User),
                             CreatedDate = DateTime.Now
                         };
-                        _dbContext.Offsettings.Add(newOffsetting);
+                        await _dbContext.Offsettings.AddAsync(newOffsetting, cancellationToken);
                     }
                 }
 
@@ -1100,7 +1094,7 @@ namespace Accounting_System.Controllers
                 #endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction("CollectionIndex");
+                return RedirectToAction(nameof(CollectionIndex));
             }
             else
             {
@@ -1193,7 +1187,7 @@ namespace Accounting_System.Controllers
                 {
                     var siId = model.MultipleSIId[i];
                     salesInvoice = await _dbContext.SalesInvoices
-                                .FirstOrDefaultAsync(si => si.Id == siId);
+                                .FirstOrDefaultAsync(si => si.Id == siId, cancellationToken);
 
                     if (salesInvoice != null)
                     {
@@ -1234,7 +1228,7 @@ namespace Accounting_System.Controllers
 
                         using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                         {
-                            await bir2306.CopyToAsync(stream);
+                            await bir2306.CopyToAsync(stream, cancellationToken);
                         }
 
                         existingModel.F2306FilePath = fileSavePath;
@@ -1255,7 +1249,7 @@ namespace Accounting_System.Controllers
 
                         using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                         {
-                            await bir2307.CopyToAsync(stream);
+                            await bir2307.CopyToAsync(stream, cancellationToken);
                         }
 
                         existingModel.F2307FilePath = fileSavePath;
@@ -1338,7 +1332,7 @@ namespace Accounting_System.Controllers
                             CreatedBy = _userManager.GetUserName(this.User),
                             CreatedDate = DateTime.Now
                         };
-                        _dbContext.Offsettings.Add(newOffsetting);
+                        await _dbContext.Offsettings.AddAsync(newOffsetting, cancellationToken);
                     }
                 }
 
@@ -1364,7 +1358,7 @@ namespace Accounting_System.Controllers
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 TempData["success"] = "Collection Receipt edited successfully";
-                return RedirectToAction("CollectionIndex");
+                return RedirectToAction(nameof(CollectionIndex));
             }
             else
             {
@@ -1714,12 +1708,12 @@ namespace Accounting_System.Controllers
                         TempData["success"] = "Collection Receipt has been Posted.";
                     }
 
-                    return RedirectToAction("CollectionIndex");
+                    return RedirectToAction(nameof(CollectionIndex));
                 }
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
-                    return RedirectToAction("CollectionIndex");
+                    return RedirectToAction(nameof(CollectionIndex));
                 }
             }
 
@@ -1773,16 +1767,16 @@ namespace Accounting_System.Controllers
                         #endregion --Audit Trail Recording
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
-                        await transaction.CommitAsync();
+                        await transaction.CommitAsync(cancellationToken);
                         TempData["success"] = "Collection Receipt has been Voided.";
                     }
                     catch (Exception ex)
                     {
-                        await transaction.RollbackAsync();
+                        await transaction.RollbackAsync(cancellationToken);
                         TempData["error"] = ex.Message;
                     }
                 }
-                return RedirectToAction("CollectionIndex");
+                return RedirectToAction(nameof(CollectionIndex));
             }
 
             return NotFound();
@@ -1811,7 +1805,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Collection Receipt has been Cancelled.";
                 }
-                return RedirectToAction("CollectionIndex");
+                return RedirectToAction(nameof(CollectionIndex));
             }
 
             return NotFound();

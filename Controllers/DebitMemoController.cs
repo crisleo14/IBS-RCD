@@ -96,7 +96,7 @@ namespace Accounting_System.Controllers
                         .SalesInvoices
                         .Include(c => c.Customer)
                         .Include(s => s.Product)
-                        .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId);
+                        .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId, cancellationToken);
 
             var existingSv = await _dbContext.ServiceInvoices
                         .Include(sv => sv.Customer)
@@ -124,20 +124,20 @@ namespace Accounting_System.Controllers
             {
                 if (model.SalesInvoiceId != null)
                 {
-                    var existingSIDMs = _dbContext.DebitMemos
+                    var existingSIDMs = await _dbContext.DebitMemos
                                   .Where(si => si.SalesInvoiceId == model.SalesInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
                                   .OrderBy(s => s.Id)
-                                  .ToList();
+                                  .ToListAsync(cancellationToken);
                     if (existingSIDMs.Count > 0)
                     {
                         ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSIDMs.First().DMNo}");
                         return View(model);
                     }
 
-                    var existingSICMs = _dbContext.CreditMemos
+                    var existingSICMs = await _dbContext.CreditMemos
                                       .Where(si => si.SalesInvoiceId == model.SalesInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
                                       .OrderBy(s => s.Id)
-                                      .ToList();
+                                      .ToListAsync(cancellationToken);
                     if (existingSICMs.Count > 0)
                     {
                         ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSICMs.First().CMNo}");
@@ -146,20 +146,20 @@ namespace Accounting_System.Controllers
                 }
                 else
                 {
-                    var existingSVDMs = _dbContext.DebitMemos
+                    var existingSVDMs = await _dbContext.DebitMemos
                                   .Where(si => si.ServiceInvoiceId == model.ServiceInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
                                   .OrderBy(s => s.Id)
-                                  .ToList();
+                                  .ToListAsync(cancellationToken);
                     if (existingSVDMs.Count > 0)
                     {
                         ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSVDMs.First().DMNo}");
                         return View(model);
                     }
 
-                    var existingSVCMs = _dbContext.CreditMemos
+                    var existingSVCMs = await _dbContext.CreditMemos
                                       .Where(si => si.ServiceInvoiceId == model.ServiceInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
                                       .OrderBy(s => s.Id)
-                                      .ToList();
+                                      .ToListAsync(cancellationToken);
                     if (existingSVCMs.Count > 0)
                     {
                         ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSVCMs.First().CMNo}");
@@ -258,14 +258,14 @@ namespace Accounting_System.Controllers
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(model.CreatedBy, $"Create new debit memo# {model.DMNo}", "Debit Memo");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
                 await _dbContext.AddAsync(model, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
             else
             {
@@ -315,7 +315,7 @@ namespace Accounting_System.Controllers
                 findIdOfDM.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }
-            return RedirectToAction("Print", new { id = id });
+            return RedirectToAction(nameof(Print), new { id });
         }
 
         public async Task<IActionResult> Post(int id, ViewModelDMCM viewModelDMCM, CancellationToken cancellationToken)
@@ -340,7 +340,7 @@ namespace Accounting_System.Controllers
                                 .SalesInvoices
                                 .Include(c => c.Customer)
                                 .Include(s => s.Product)
-                                .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId);
+                                .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId, cancellationToken);
 
                             #endregion --Retrieval of SI
 
@@ -763,12 +763,12 @@ namespace Accounting_System.Controllers
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         TempData["success"] = "Debit Memo has been Posted.";
                     }
-                    return RedirectToAction("Index");
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
-                    return RedirectToAction("Index");
+                    return RedirectToAction(nameof(Index));
                 }
             }
 
@@ -792,8 +792,8 @@ namespace Accounting_System.Controllers
                     model.VoidedBy = _userManager.GetUserName(this.User);
                     model.VoidedDate = DateTime.Now;
 
-                    await _generalRepo.RemoveRecords<SalesBook>(crb => crb.SerialNo == model.DMNo);
-                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.DMNo);
+                    await _generalRepo.RemoveRecords<SalesBook>(crb => crb.SerialNo == model.DMNo, cancellationToken);
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.DMNo, cancellationToken);
 
                     #region --Audit Trail Recording
 
@@ -805,7 +805,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Debit Memo has been Voided.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();
@@ -834,16 +834,10 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Debit Memo has been Cancelled.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();
-        }
-
-        public async Task<IActionResult> Preview(int id, CancellationToken cancellationToken)
-        {
-            var dm = await _debitMemoRepo.FindDM(id, cancellationToken);
-            return PartialView("_PreviewDebit", dm);
         }
 
         [HttpGet]
@@ -911,7 +905,7 @@ namespace Accounting_System.Controllers
                         .SalesInvoices
                         .Include(c => c.Customer)
                         .Include(s => s.Product)
-                        .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId);
+                        .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId, cancellationToken);
 
             var existingSv = await _dbContext.ServiceInvoices
                         .Include(sv => sv.Customer)
@@ -939,7 +933,7 @@ namespace Accounting_System.Controllers
             {
                 var existingDM = await _dbContext
                         .DebitMemos
-                        .FirstOrDefaultAsync(dm => dm.Id == model.Id);
+                        .FirstOrDefaultAsync(dm => dm.Id == model.Id, cancellationToken);
 
                 model.CreatedBy = _userManager.GetUserName(this.User);
 
@@ -1030,13 +1024,13 @@ namespace Accounting_System.Controllers
                 #region --Audit Trail Recording
 
                 AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Edit credit memo# {existingDM.DMNo}", "Credit Memo");
-                _dbContext.Add(auditTrail);
+                await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 TempData["success"] = "Debit Memo edited successfully";
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             ModelState.AddModelError("", "The information you submitted is not valid!");

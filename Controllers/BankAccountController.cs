@@ -110,7 +110,7 @@ namespace Accounting_System.Controllers
                 await _dbContext.AddAsync(model, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 TempData["success"] = "Bank created successfully.";
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
             else
             {
@@ -157,7 +157,7 @@ namespace Accounting_System.Controllers
             }
 
             await _dbContext.SaveChangesAsync(cancellationToken);
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
     }
 }

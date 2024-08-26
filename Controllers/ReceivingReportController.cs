@@ -85,9 +85,9 @@ namespace Accounting_System.Controllers
 
                 #endregion --Retrieve PO
 
-                var rr = _dbContext.ReceivingReports
+                var rr = await _dbContext.ReceivingReports
                 .Where(rr => rr.PONo == po.PONo)
-                .ToList();
+                .ToListAsync(cancellationToken);
 
                 var totalAmountRR = po.Quantity - po.QuantityReceived;
 
@@ -154,7 +154,7 @@ namespace Accounting_System.Controllers
                 await _dbContext.AddAsync(model, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             ModelState.AddModelError("", "The information you submitted is not valid!");
@@ -216,9 +216,9 @@ namespace Accounting_System.Controllers
 
                 #endregion --Retrieve PO
 
-                var rr = _dbContext.ReceivingReports
+                var rr = await _dbContext.ReceivingReports
                 .Where(rr => rr.PONo == po.PONo)
-                .ToList();
+                .ToListAsync(cancellationToken);
 
                 var totalAmountRR = po.Quantity - po.QuantityReceived;
 
@@ -268,7 +268,7 @@ namespace Accounting_System.Controllers
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
                 TempData["success"] = "Receiving Report updated successfully";
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return View(existingModel);
@@ -308,7 +308,7 @@ namespace Accounting_System.Controllers
                 rr.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }
-            return RedirectToAction("Print", new { id = id });
+            return RedirectToAction(nameof(Print), new { id });
         }
 
         public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
@@ -522,7 +522,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Receiving Report has been Voided.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();
@@ -554,7 +554,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Receiving Report has been Cancelled.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();

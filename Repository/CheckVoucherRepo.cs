@@ -58,7 +58,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task UpdateInvoicingVoucher(decimal paymentAmount, int invoiceVoucherId, CancellationToken cancellationToken)
+        public async Task UpdateInvoicingVoucher(decimal paymentAmount, int invoiceVoucherId, CancellationToken cancellationToken = default)
         {
             var invoiceVoucher = await _dbContext.CheckVoucherHeaders
                 .FindAsync(invoiceVoucherId, cancellationToken);

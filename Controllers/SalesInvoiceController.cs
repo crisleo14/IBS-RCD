@@ -129,7 +129,7 @@ namespace Accounting_System.Controllers
                 sales.CreatedBy = _userManager.GetUserName(this.User);
                 sales.SINo = generateCRNo;
                 sales.Amount = sales.Quantity * sales.UnitPrice;
-                sales.DueDate = await _salesInvoiceRepo.ComputeDueDateAsync(existingCustomers.Terms, sales.TransactionDate);
+                sales.DueDate = _salesInvoiceRepo.ComputeDueDateAsync(existingCustomers.Terms, sales.TransactionDate, cancellationToken);
                 if (sales.Amount >= sales.Discount)
                 {
                     if (existingCustomers.CustomerType == "Vatable")
@@ -189,7 +189,7 @@ namespace Accounting_System.Controllers
                 #endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
 
                 #endregion -- Saving Default Entries --
             }
@@ -388,7 +388,7 @@ namespace Accounting_System.Controllers
                 // Save the changes to the database
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
-                return RedirectToAction("Index"); // Redirect to a success page or the index page
+                return RedirectToAction(nameof(Index)); // Redirect to a success page or the index page
             }
             catch (Exception ex)
             {
@@ -420,14 +420,7 @@ namespace Accounting_System.Controllers
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }
-            return RedirectToAction("PrintInvoice", new { id = id });
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Preview(int? id, CancellationToken cancellationToken)
-        {
-            var invoice = await _salesInvoiceRepo.FindSalesInvoice(id, cancellationToken);
-            return PartialView("_PreviewPartialView", invoice);
+            return RedirectToAction(nameof(PrintInvoice), new { id });
         }
 
         public async Task<IActionResult> Post(int invoiceId, CancellationToken cancellationToken)
@@ -658,13 +651,13 @@ namespace Accounting_System.Controllers
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         TempData["success"] = "Sales Invoice has been Posted.";
-                        return RedirectToAction("Index");
+                        return RedirectToAction(nameof(Index));
                     }
                 }
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
-                    return RedirectToAction("Index");
+                    return RedirectToAction(nameof(Index));
                 }
             }
 
@@ -702,7 +695,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Sales Invoice has been Voided.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();
@@ -732,17 +725,17 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Sales Invoice has been Cancelled.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();
         }
 
-        public async Task<IActionResult> GetPOs(int productId)
+        public async Task<IActionResult> GetPOs(int productId, CancellationToken cancellationToken)
         {
             var purchaseOrders = await _dbContext.PurchaseOrders
                 .Where(po => po.ProductId == productId && !po.IsReceived && po.QuantityReceived != 0 && po.IsPosted)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             if (purchaseOrders != null && purchaseOrders.Count > 0)
             {

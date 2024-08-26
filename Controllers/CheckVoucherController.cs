@@ -82,11 +82,11 @@ namespace Accounting_System.Controllers
             return View(checkVoucherVMs);
         }
 
-        public async Task<IActionResult> GetPOs(int supplierId)
+        public async Task<IActionResult> GetPOs(int supplierId, CancellationToken cancellationToken)
         {
             var purchaseOrders = await _dbContext.PurchaseOrders
                 .Where(po => po.SupplierId == supplierId && po.IsPosted)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             if (purchaseOrders != null && purchaseOrders.Count > 0)
             {
@@ -97,12 +97,12 @@ namespace Accounting_System.Controllers
             return Json(null);
         }
 
-        public async Task<IActionResult> GetRRs(string[] poNumber, string? criteria)
+        public async Task<IActionResult> GetRRs(string[] poNumber, string? criteria, CancellationToken cancellationToken)
         {
             var receivingReports = await _dbContext.ReceivingReports
             .Where(rr => poNumber.Contains(rr.PONo) && !rr.IsPaid && rr.IsPosted)
             .OrderBy(rr => criteria == "Transaction Date" ? rr.Date : rr.DueDate)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
             if (receivingReports != null && receivingReports.Count > 0)
             {
@@ -113,15 +113,15 @@ namespace Accounting_System.Controllers
             return Json(null);
         }
 
-        public async Task<IActionResult> GetSI(int? supplierId, string? cvId)
+        public async Task<IActionResult> GetSI(int? supplierId, string? cvId, CancellationToken cancellationToken)
         {
             var cvh = await _dbContext.CheckVoucherHeaders
-               .FirstOrDefaultAsync(cvh => cvh.CVNo == cvId);
+               .FirstOrDefaultAsync(cvh => cvh.CVNo == cvId, cancellationToken);
 
             var id = cvId != null ? cvh.SupplierId : supplierId;
 
             var supplier = await _dbContext.Suppliers
-                .FirstOrDefaultAsync(po => po.Id == id);
+                .FirstOrDefaultAsync(po => po.Id == id, cancellationToken);
 
             if (supplier != null)
             {
@@ -139,12 +139,12 @@ namespace Accounting_System.Controllers
             return Json(null);
         }
 
-        public async Task<IActionResult> GetSupplierDetails(int? supplierId)
+        public async Task<IActionResult> GetSupplierDetails(int? supplierId, CancellationToken cancellationToken)
         {
             if (supplierId != null)
             {
                 var supplier = await _dbContext.Suppliers
-                    .FindAsync(supplierId);
+                    .FindAsync(supplierId, cancellationToken);
 
                 if (supplier != null)
                 {
@@ -167,10 +167,10 @@ namespace Accounting_System.Controllers
             return Json(null);
         }
 
-        public async Task<IActionResult> RRBalance(string rrNo)
+        public async Task<IActionResult> RRBalance(string rrNo, CancellationToken cancellationToken)
         {
             var receivingReport = await _dbContext.ReceivingReports
-                .FirstOrDefaultAsync(rr => rr.RRNo == rrNo);
+                .FirstOrDefaultAsync(rr => rr.RRNo == rrNo, cancellationToken);
             if (receivingReport != null)
             {
                 var amount = receivingReport.Amount;
@@ -193,17 +193,17 @@ namespace Accounting_System.Controllers
             return Json(null);
         }
 
-        public async Task<IActionResult> GetBankAccount(int bankId)
+        public async Task<IActionResult> GetBankAccount(int bankId, CancellationToken cancellationToken)
         {
             if (bankId != 0)
             {
-                var existingBankAccount = await _dbContext.BankAccounts.FindAsync(bankId);
+                var existingBankAccount = await _dbContext.BankAccounts.FindAsync(bankId, cancellationToken);
                 return Json(new { AccountNoCOA = existingBankAccount.AccountNoCOA, AccountNo = existingBankAccount.AccountNo, AccountName = existingBankAccount.AccountName });
             }
             return Json(null);
         }
 
-        public async Task<IActionResult> GetAutomaticEntry(DateTime startDate, DateTime? endDate)
+        public IActionResult GetAutomaticEntry(DateTime startDate, DateTime? endDate)
         {
             if (startDate != default && endDate != default)
             {
@@ -242,7 +242,7 @@ namespace Accounting_System.Controllers
                     var rrValue = header.RRNo[i];
 
                     var rr = await _dbContext.ReceivingReports
-                                .FirstOrDefaultAsync(p => p.RRNo == rrValue);
+                                .FirstOrDefaultAsync(p => p.RRNo == rrValue, cancellationToken);
 
                     if (rr != null)
                     {
@@ -278,16 +278,15 @@ namespace Accounting_System.Controllers
                 cv.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }
-            return RedirectToAction("Print", new { id = id });
+            return RedirectToAction(nameof(Print), new { id });
         }
 
         public async Task<IActionResult> Post(int cvId, CancellationToken cancellationToken)
         {
             var modelHeader = await _dbContext.CheckVoucherHeaders.FindAsync(cvId, cancellationToken);
-            var modelDetails = await _dbContext.CheckVoucherDetails.Where(cvd => cvd.TransactionNo == modelHeader.CVNo).ToListAsync();
-
             if (modelHeader != null)
             {
+                var modelDetails = await _dbContext.CheckVoucherDetails.Where(cvd => cvd.TransactionNo == modelHeader.CVNo).ToListAsync(cancellationToken);
                 try
                 {
                     if (!modelHeader.IsPosted)
@@ -371,7 +370,7 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
-                    return RedirectToAction("Index");
+                    return RedirectToAction(nameof(Index));
                 }
             }
 
@@ -391,7 +390,7 @@ namespace Accounting_System.Controllers
                 .FirstOrDefaultAsync(cvh => cvh.Id == id, cancellationToken);
             var existingDetailsModel = await _dbContext.CheckVoucherDetails
                 .Where(cvd => cvd.TransactionNo == existingHeaderModel.CVNo)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             if (existingHeaderModel == null || existingDetailsModel == null)
             {
@@ -474,7 +473,7 @@ namespace Accounting_System.Controllers
 
                     #region --CV Details Entry
 
-                    var existingDetailsModel = await _dbContext.CheckVoucherDetails.Where(d => d.TransactionNo == existingHeaderModel.CVNo).ToListAsync();
+                    var existingDetailsModel = await _dbContext.CheckVoucherDetails.Where(d => d.TransactionNo == existingHeaderModel.CVNo).ToListAsync(cancellationToken);
 
                     // Dictionary to keep track of AccountNo and their ids for comparison
                     var accountTitleDict = new Dictionary<string, List<int>>();
@@ -522,7 +521,7 @@ namespace Accounting_System.Controllers
                                 Credit = viewModel.Credit[i],
                                 TransactionNo = viewModel.CVNo
                             };
-                            _dbContext.CheckVoucherDetails.Add(newDetails);
+                            await _dbContext.CheckVoucherDetails.AddAsync(newDetails, cancellationToken);
                         }
                     }
 
@@ -547,7 +546,7 @@ namespace Accounting_System.Controllers
                         {
                             var rrValue = viewModel.RRSeries[i];
                             receivingReport = await _dbContext.ReceivingReports
-                                        .FirstOrDefaultAsync(p => p.RRNo == rrValue);
+                                        .FirstOrDefaultAsync(p => p.RRNo == rrValue, cancellationToken);
 
                             if (i < existingHeaderModel.Amount.Length)
                             {
@@ -609,7 +608,7 @@ namespace Accounting_System.Controllers
 
                         using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                         {
-                            await file.CopyToAsync(stream);
+                            await file.CopyToAsync(stream, cancellationToken);
                         }
 
                         //if necessary add field to store location path
@@ -619,13 +618,13 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(viewModel.CreatedBy, $"Create new check voucher# {viewModel.CVNo}", "Check Voucher");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
                     TempData["success"] = "Trade edited successfully";
-                    return RedirectToAction("Index");
+                    return RedirectToAction(nameof(Index));
                     #endregion -- Uploading file --
                 }
                 catch (Exception ex)
@@ -656,8 +655,8 @@ namespace Accounting_System.Controllers
                     model.VoidedBy = _userManager.GetUserName(this.User);
                     model.VoidedDate = DateTime.Now;
 
-                    await _generalRepo.RemoveRecords<DisbursementBook>(db => db.CVNo == model.CVNo);
-                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CVNo);
+                    await _generalRepo.RemoveRecords<DisbursementBook>(db => db.CVNo == model.CVNo, cancellationToken);
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CVNo, cancellationToken);
 
                     #region --Audit Trail Recording
 
@@ -669,7 +668,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Check Voucher has been Voided.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();
@@ -698,7 +697,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Check Voucher has been Cancelled.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();
@@ -724,14 +723,14 @@ namespace Accounting_System.Controllers
                     Value = sup.Id.ToString(),
                     Text = sup.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
             model.BankAccounts = await _dbContext.BankAccounts
                 .Select(ba => new SelectListItem
                 {
                     Value = ba.Id.ToString(),
                     Text = ba.AccountNo + " " + ba.AccountName
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return View(model);
         }
@@ -788,7 +787,7 @@ namespace Accounting_System.Controllers
                                     Value = sup.Id.ToString(),
                                     Text = sup.Name
                                 })
-                                .ToListAsync();
+                                .ToListAsync(cancellationToken);
 
                             viewModel.PONo = await _dbContext.PurchaseOrders
                                 .Where(po => po.SupplierId == viewModel.SupplierId && po.IsPosted)
@@ -814,7 +813,7 @@ namespace Accounting_System.Controllers
                                     Value = ba.Id.ToString(),
                                     Text = ba.AccountNo + " " + ba.AccountName
                                 })
-                                .ToListAsync();
+                                .ToListAsync(cancellationToken);
 
                             TempData["error"] = "Check No. Is already exist";
                             return View(viewModel);
@@ -888,7 +887,7 @@ namespace Accounting_System.Controllers
                         {
                             var rrValue = viewModel.RRSeries[i];
                             receivingReport = await _dbContext.ReceivingReports
-                                        .FirstOrDefaultAsync(p => p.RRNo == rrValue);
+                                        .FirstOrDefaultAsync(p => p.RRNo == rrValue, cancellationToken);
 
                             receivingReport.AmountPaid += viewModel.Amount[i];
 
@@ -919,7 +918,7 @@ namespace Accounting_System.Controllers
 
                             using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                             {
-                                await file.CopyToAsync(stream);
+                                await file.CopyToAsync(stream, cancellationToken);
                             }
 
                             //if necessary add field to store location path
@@ -929,12 +928,12 @@ namespace Accounting_System.Controllers
                         #region --Audit Trail Recording
 
                         AuditTrail auditTrail = new(item.CreatedBy, $"Create new check voucher# {item.CVNo}", "Check Voucher");
-                        _dbContext.Add(auditTrail);
+                        await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                         #endregion --Audit Trail Recording
                     }
                     await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
-                    return RedirectToAction("Index");
+                    return RedirectToAction(nameof(Index));
                     #endregion -- Uploading file --
                 }
                 catch (Exception ex)
@@ -955,7 +954,7 @@ namespace Accounting_System.Controllers
                                 Value = sup.Id.ToString(),
                                 Text = sup.Name
                             })
-                            .ToListAsync();
+                            .ToListAsync(cancellationToken);
 
                     viewModel.PONo = await _dbContext.PurchaseOrders
                                 .Where(po => po.SupplierId == viewModel.SupplierId && po.IsPosted)
@@ -981,7 +980,7 @@ namespace Accounting_System.Controllers
                             Value = ba.Id.ToString(),
                             Text = ba.AccountNo + " " + ba.AccountName
                         })
-                        .ToListAsync();
+                        .ToListAsync(cancellationToken);
 
                     TempData["error"] = ex.Message;
                     return View(viewModel);
@@ -1003,7 +1002,7 @@ namespace Accounting_System.Controllers
                     Value = sup.Id.ToString(),
                     Text = sup.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             viewModel.PONo = await _dbContext.PurchaseOrders
                 .Where(po => po.SupplierId == viewModel.SupplierId && po.IsPosted)
@@ -1029,7 +1028,7 @@ namespace Accounting_System.Controllers
                     Value = ba.Id.ToString(),
                     Text = ba.AccountNo + " " + ba.AccountName
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             TempData["error"] = "The information provided was invalid.";
             return View(viewModel);
@@ -1056,7 +1055,7 @@ namespace Accounting_System.Controllers
                     Value = sup.Id.ToString(),
                     Text = sup.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return View(viewModel);
         }
@@ -1175,7 +1174,7 @@ namespace Accounting_System.Controllers
 
                         using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                         {
-                            await file.CopyToAsync(stream);
+                            await file.CopyToAsync(stream, cancellationToken);
                         }
 
                         //if necessary add field to store location path
@@ -1186,12 +1185,12 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(checkVoucherHeader.CreatedBy, $"Create new check voucher# {checkVoucherHeader.CVNo}", "Check Voucher");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
-                    return RedirectToAction("Index");
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
@@ -1211,7 +1210,7 @@ namespace Accounting_System.Controllers
                             Value = sup.Id.ToString(),
                             Text = sup.Name
                         })
-                        .ToListAsync();
+                        .ToListAsync(cancellationToken);
 
                     TempData["error"] = ex.Message;
                     return View(viewModel);
@@ -1234,7 +1233,7 @@ namespace Accounting_System.Controllers
                     Value = sup.Id.ToString(),
                     Text = sup.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             TempData["error"] = "The information provided was invalid.";
             return View(viewModel);
@@ -1261,7 +1260,7 @@ namespace Accounting_System.Controllers
                     Value = cvh.Id.ToString(),
                     Text = cvh.CVNo
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             viewModel.Banks = await _dbContext.BankAccounts
                 .Select(ba => new SelectListItem
@@ -1269,7 +1268,7 @@ namespace Accounting_System.Controllers
                     Value = ba.Id.ToString(),
                     Text = ba.AccountNo + " " + ba.AccountName
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return View(viewModel);
         }
@@ -1369,7 +1368,7 @@ namespace Accounting_System.Controllers
 
                         using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                         {
-                            await file.CopyToAsync(stream);
+                            await file.CopyToAsync(stream, cancellationToken);
                         }
 
                         //if necessary add field to store location path
@@ -1386,12 +1385,12 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(checkVoucherHeader.CreatedBy, $"Create new check voucher# {checkVoucherHeader.CVNo}", "Check Voucher");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
-                    return RedirectToAction("Index");
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
@@ -1411,7 +1410,7 @@ namespace Accounting_System.Controllers
                             Value = cvh.Id.ToString(),
                             Text = cvh.CVNo
                         })
-                        .ToListAsync();
+                        .ToListAsync(cancellationToken);
 
                     viewModel.Banks = await _dbContext.BankAccounts
                         .Select(ba => new SelectListItem
@@ -1419,7 +1418,7 @@ namespace Accounting_System.Controllers
                             Value = ba.Id.ToString(),
                             Text = ba.AccountNo + " " + ba.AccountName
                         })
-                        .ToListAsync();
+                        .ToListAsync(cancellationToken);
 
                     TempData["error"] = ex.Message;
                     return View(viewModel);
@@ -1442,7 +1441,7 @@ namespace Accounting_System.Controllers
                     Value = cvh.Id.ToString(),
                     Text = cvh.CVNo
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             viewModel.Banks = await _dbContext.BankAccounts
                 .Select(ba => new SelectListItem
@@ -1450,20 +1449,20 @@ namespace Accounting_System.Controllers
                     Value = ba.Id.ToString(),
                     Text = ba.AccountNo + " " + ba.AccountName
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             TempData["error"] = "The information provided was invalid.";
             return View(viewModel);
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetCheckVoucherDetails(int? cvId)
+        public async Task<IActionResult> GetCheckVoucherDetails(int? cvId, CancellationToken cancellationToken)
         {
             if (cvId != null)
             {
                 var cv = await _dbContext.CheckVoucherHeaders
                     .Include(c => c.Supplier)
-                    .FirstOrDefaultAsync(c => c.Id == cvId);
+                    .FirstOrDefaultAsync(c => c.Id == cvId, cancellationToken);
 
                 if (cv != null)
                 {
@@ -1487,7 +1486,7 @@ namespace Accounting_System.Controllers
                 .Include(c => c.Supplier)
                 .FirstOrDefaultAsync(cv => cv.Id == id, cancellationToken);
 
-            var existingDetailsModel = await _dbContext.CheckVoucherDetails.Where(d => d.TransactionNo == existingModel.CVNo).ToListAsync();
+            var existingDetailsModel = await _dbContext.CheckVoucherDetails.Where(d => d.TransactionNo == existingModel.CVNo).ToListAsync(cancellationToken);
 
             existingModel.Suppliers = await _dbContext.Suppliers
                 .Select(sup => new SelectListItem
@@ -1495,7 +1494,7 @@ namespace Accounting_System.Controllers
                     Value = sup.Id.ToString(),
                     Text = sup.Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
             existingModel.COA = await _dbContext.ChartOfAccounts
                         .Where(coa => coa.Level == 4 || coa.Level == 5)
                         .Select(s => new SelectListItem
@@ -1590,7 +1589,7 @@ namespace Accounting_System.Controllers
 
                     #region --CV Details Entry
 
-                    var existingDetailsModel = await _dbContext.CheckVoucherDetails.Where(d => d.TransactionNo == existingModel.CVNo).ToListAsync();
+                    var existingDetailsModel = await _dbContext.CheckVoucherDetails.Where(d => d.TransactionNo == existingModel.CVNo).ToListAsync(cancellationToken);
 
                     // Dictionary to keep track of AccountNo and their ids for comparison
                     var accountTitleDict = new Dictionary<string, List<int>>();
@@ -1636,7 +1635,7 @@ namespace Accounting_System.Controllers
                                 Credit = viewModel.Credit[i],
                                 TransactionNo = existingModel.CVNo
                             };
-                            _dbContext.CheckVoucherDetails.Add(newDetails);
+                            await _dbContext.CheckVoucherDetails.AddAsync(newDetails, cancellationToken);
                         }
                     }
 
@@ -1668,7 +1667,7 @@ namespace Accounting_System.Controllers
 
                         using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                         {
-                            await file.CopyToAsync(stream);
+                            await file.CopyToAsync(stream, cancellationToken);
                         }
 
                         //if necessary add field to store location path
@@ -1678,13 +1677,13 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Create new check voucher# {existingModel.CVNo}", "Check Voucher");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
                     TempData["success"] = "Non-trade invoicing edited successfully";
-                    return RedirectToAction("Index");
+                    return RedirectToAction(nameof(Index));
                     #endregion -- Uploading file --
                 }
                 catch (Exception ex)
@@ -1695,7 +1694,7 @@ namespace Accounting_System.Controllers
                         Value = sup.Id.ToString(),
                         Text = sup.Name
                     })
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                     TempData["error"] = ex.Message;
                     return View(viewModel);
@@ -1707,7 +1706,7 @@ namespace Accounting_System.Controllers
                         Value = sup.Id.ToString(),
                         Text = sup.Name
                     })
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
             TempData["error"] = "The information provided was invalid.";
             return View(viewModel);
@@ -1809,7 +1808,7 @@ namespace Accounting_System.Controllers
 
                     #region --CV Details Entry
 
-                    var existingDetailsModel = await _dbContext.CheckVoucherDetails.Where(d => d.TransactionNo == existingHeaderModel.CVNo).ToListAsync();
+                    var existingDetailsModel = await _dbContext.CheckVoucherDetails.Where(d => d.TransactionNo == existingHeaderModel.CVNo).ToListAsync(cancellationToken);
 
                     // Dictionary to keep track of AccountNo and their ids for comparison
                     var accountTitleDict = new Dictionary<string, List<int>>();
@@ -1857,7 +1856,7 @@ namespace Accounting_System.Controllers
                                 Credit = viewModel.Credit[i],
                                 TransactionNo = existingHeaderModel.CVNo
                             };
-                            _dbContext.CheckVoucherDetails.Add(newDetails);
+                            await _dbContext.CheckVoucherDetails.AddAsync(newDetails, cancellationToken);
                         }
                     }
 
@@ -1931,7 +1930,7 @@ namespace Accounting_System.Controllers
 
                         using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                         {
-                            await file.CopyToAsync(stream);
+                            await file.CopyToAsync(stream, cancellationToken);
                         }
 
                         //if necessary add field to store location path
@@ -1941,13 +1940,13 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Create new check voucher# {existingHeaderModel.CVNo}", "Check Voucher");
-                    _dbContext.Add(auditTrail);
+                    await _dbContext.AddAsync(auditTrail, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
                     TempData["success"] = "Non-trade payment edited successfully";
-                    return RedirectToAction("Index");
+                    return RedirectToAction(nameof(Index));
                     #endregion -- Uploading file --
                 }
                 catch (Exception ex)

@@ -33,7 +33,7 @@ namespace Accounting_System.Controllers
             _userManager = userManager;
         }
 
-        public async Task<IActionResult> SalesBook()
+        public async Task<IActionResult> SalesBook(CancellationToken cancellationToken)
         {
             var viewModel = new ViewModelBook
             {
@@ -44,7 +44,7 @@ namespace Accounting_System.Controllers
                     Value = soa.Id.ToString(),
                     Text = soa.SVNo
                 })
-                .ToListAsync(),
+                .ToListAsync(cancellationToken),
                 SI = await _dbContext.SalesInvoices
                 .Where(si => si.IsPosted)
                 .Select(soa => new SelectListItem
@@ -52,13 +52,13 @@ namespace Accounting_System.Controllers
                     Value = soa.Id.ToString(),
                     Text = soa.SINo
                 })
-                .ToListAsync()
+                .ToListAsync(cancellationToken)
             };
 
             return View(viewModel);
         }
 
-        public IActionResult SalesBookReport(ViewModelBook model, string? selectedDocument, string? soaList, string? siList)
+        public async Task<IActionResult> SalesBookReport(ViewModelBook model, string? selectedDocument, string? soaList, string? siList, CancellationToken cancellationToken)
         {
             ViewBag.DateFrom = model.DateFrom.ToString();
             ViewBag.DateTo = model.DateTo;
@@ -68,10 +68,10 @@ namespace Accounting_System.Controllers
                 {
                     if (soaList != null || siList != null)
                     {
-                        return RedirectToAction("TransactionReportsInSOA", new { soaList = soaList, siList = siList });
+                        return RedirectToAction(nameof(TransactionReportsInSOA), new { soaList, siList });
                     }
 
-                    var salesBook = _reportRepo.GetSalesBooks(model.DateFrom, model.DateTo, selectedDocument);
+                    var salesBook = await _reportRepo.GetSalesBooksAsync(model.DateFrom, model.DateTo, selectedDocument, cancellationToken);
                     var lastRecord = salesBook.LastOrDefault();
                     if (lastRecord != null)
                     {
@@ -92,7 +92,7 @@ namespace Accounting_System.Controllers
             return RedirectToAction(nameof(SalesBook));
         }
 
-        public async Task<IActionResult> TransactionReportsInSOA(int? siList, int? soaList)
+        public async Task<IActionResult> TransactionReportsInSOA(int? siList, int? soaList, CancellationToken cancellationToken)
         {
             ViewBag.SIList = siList;
             ViewBag.SOAList = soaList;
@@ -100,7 +100,7 @@ namespace Accounting_System.Controllers
             var sales = await _dbContext
                 .SalesBooks
                 .Where(s => s.DocumentId == id)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return View(sales);
         }
@@ -110,7 +110,7 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public IActionResult CashReceiptBookReport(ViewModelBook model)
+        public async Task<IActionResult> CashReceiptBookReport(ViewModelBook model, CancellationToken cancellationToken)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -118,7 +118,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var cashReceiptBooks = _reportRepo.GetCashReceiptBooks(model.DateFrom, model.DateTo);
+                    var cashReceiptBooks = await _reportRepo.GetCashReceiptBooks(model.DateFrom, model.DateTo, cancellationToken);
                     var lastRecord = cashReceiptBooks.LastOrDefault();
                     if (lastRecord != null)
                     {
@@ -138,7 +138,7 @@ namespace Accounting_System.Controllers
             return RedirectToAction(nameof(CashReceiptBook));
         }
 
-        public async Task<IActionResult> PurchaseBook()
+        public async Task<IActionResult> PurchaseBook(CancellationToken cancellationToken)
         {
             var viewModel = new ViewModelBook
             {
@@ -149,13 +149,13 @@ namespace Accounting_System.Controllers
                     Value = po.Id.ToString(),
                     Text = po.PONo
                 })
-                .ToListAsync()
+                .ToListAsync(cancellationToken)
             };
 
             return View(viewModel);
         }
 
-        public IActionResult PurchaseBookReport(ViewModelBook model, string? selectedFiltering, string? poListFrom, string? poListTo)
+        public async Task<IActionResult> PurchaseBookReport(ViewModelBook model, string? selectedFiltering, string? poListFrom, string? poListTo, CancellationToken cancellationToken)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -165,20 +165,20 @@ namespace Accounting_System.Controllers
                 {
                     if (poListFrom != null && poListTo != null)
                     {
-                        return RedirectToAction("POLiquidationPerPO", new { poListFrom = poListFrom, poListTo = poListTo });
+                        return RedirectToAction(nameof(POLiquidationPerPO), new { poListFrom, poListTo });
                     }
                     else if (poListFrom == null && poListTo != null || poListFrom != null && poListTo == null)
                     {
                         TempData["error"] = "Please fill the two select list in PO Liquidation Per PO, lowest to highest";
-                        return RedirectToAction("PurchaseBook");
+                        return RedirectToAction(nameof(PurchaseBook));
                     }
 
                     if (selectedFiltering == "UnpostedRR" || selectedFiltering == "POLiquidation")
                     {
-                        return RedirectToAction("GetRR", new { DateFrom = model.DateFrom, DateTo = model.DateTo, selectedFiltering });
+                        return RedirectToAction(nameof(GetRR), new { model.DateFrom, model.DateTo, selectedFiltering });
                     }
 
-                    var purchaseOrders = _reportRepo.GetPurchaseBooks(model.DateFrom, model.DateTo, selectedFiltering);
+                    var purchaseOrders = await _reportRepo.GetPurchaseBooks(model.DateFrom, model.DateTo, selectedFiltering, cancellationToken);
                     var lastRecord = purchaseOrders.LastOrDefault();
                     if (lastRecord != null)
                     {
@@ -199,7 +199,7 @@ namespace Accounting_System.Controllers
             return RedirectToAction(nameof(PurchaseBook));
         }
 
-        public IActionResult GetRR(DateOnly? dateFrom, DateOnly? dateTo, string selectedFiltering)
+        public async Task<IActionResult> GetRR(DateOnly? dateFrom, DateOnly? dateTo, string selectedFiltering, CancellationToken cancellationToken)
         {
             ViewBag.DateFrom = dateFrom;
             ViewBag.DateTo = dateTo;
@@ -208,19 +208,19 @@ namespace Accounting_System.Controllers
             if (dateFrom == default && dateTo == default)
             {
                 TempData["error"] = "Please input Date From and Date To";
-                return RedirectToAction("PurchaseBook");
+                return RedirectToAction(nameof(PurchaseBook));
             }
             else if (dateFrom == default)
             {
                 TempData["error"] = "Please input Date To";
-                return RedirectToAction("PurchaseBook");
+                return RedirectToAction(nameof(PurchaseBook));
             }
 
-            var receivingReport = _reportRepo.GetReceivingReport(dateFrom, dateTo, selectedFiltering);
+            var receivingReport = await _reportRepo.GetReceivingReport(dateFrom, dateTo, selectedFiltering, cancellationToken);
             return View(receivingReport);
         }
 
-        public IActionResult POLiquidationPerPO(int? poListFrom, int? poListTo)
+        public async Task<IActionResult> POLiquidationPerPO(int? poListFrom, int? poListTo, CancellationToken cancellationToken)
         {
             var from = poListFrom;
             var to = poListTo;
@@ -228,19 +228,18 @@ namespace Accounting_System.Controllers
             if (poListFrom > poListTo)
             {
                 TempData["error"] = "Please input lowest to highest PO#!";
-                return RedirectToAction("PurchaseBook");
+                return RedirectToAction(nameof(PurchaseBook));
             }
 
-            var po = _dbContext
+            var po = await _dbContext
                  .ReceivingReports
                  .Include(rr => rr.PurchaseOrder)
                  .ThenInclude(po => po.Supplier)
                  .Include(rr => rr.PurchaseOrder)
                  .ThenInclude(po => po.Product)
-                 .AsEnumerable()
                  .Where(rr => rr.POId >= from && rr.POId <= to && rr.IsPosted)
                  .OrderBy(rr => rr.POId)
-                 .ToList();
+                 .ToListAsync(cancellationToken);
             return View(po);
         }
 
@@ -249,7 +248,7 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public IActionResult InventoryBookReport(ViewModelBook model)
+        public async Task<IActionResult> InventoryBookReport(ViewModelBook model, CancellationToken cancellationToken)
         {
             ViewBag.DateTo = model.DateTo;
             if (ModelState.IsValid)
@@ -258,7 +257,7 @@ namespace Accounting_System.Controllers
                 {
                     var dateFrom = model.DateTo.AddDays(-model.DateTo.Day + 1);
                     ViewBag.DateFrom = dateFrom;
-                    var inventoryBooks = _reportRepo.GetInventoryBooks(dateFrom, model.DateTo);
+                    var inventoryBooks = await _reportRepo.GetInventoryBooks(dateFrom, model.DateTo, cancellationToken);
                     var lastRecord = inventoryBooks.LastOrDefault();
                     if (lastRecord != null)
                     {
@@ -283,7 +282,7 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public IActionResult GeneralLedgerBookReport(ViewModelBook model)
+        public async Task<IActionResult> GeneralLedgerBookReport(ViewModelBook model, CancellationToken cancellationToken)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -291,7 +290,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var inventoryBooks = _reportRepo.GetGeneralLedgerBooks(model.DateFrom, model.DateTo);
+                    var inventoryBooks = await _reportRepo.GetGeneralLedgerBooks(model.DateFrom, model.DateTo, cancellationToken);
                     var lastRecord = inventoryBooks.LastOrDefault();
                     if (lastRecord != null)
                     {
@@ -316,7 +315,7 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public IActionResult DisbursementBookReport(ViewModelBook model)
+        public async Task<IActionResult> DisbursementBookReport(ViewModelBook model, CancellationToken cancellationToken)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -324,7 +323,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var disbursementBooks = _reportRepo.GetDisbursementBooks(model.DateFrom, model.DateTo);
+                    var disbursementBooks = await _reportRepo.GetDisbursementBooks(model.DateFrom, model.DateTo, cancellationToken);
                     var lastRecord = disbursementBooks.LastOrDefault();
                     if (lastRecord != null)
                     {
@@ -349,7 +348,7 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public IActionResult JournalBookReport(ViewModelBook model)
+        public async Task<IActionResult> JournalBookReport(ViewModelBook model, CancellationToken cancellationToken)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -357,7 +356,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var journalBooks = _reportRepo.GetJournalBooks(model.DateFrom, model.DateTo);
+                    var journalBooks = await _reportRepo.GetJournalBooks(model.DateFrom, model.DateTo, cancellationToken);
                     var lastRecord = journalBooks.LastOrDefault();
                     if (lastRecord != null)
                     {
@@ -382,7 +381,7 @@ namespace Accounting_System.Controllers
             return View();
         }
 
-        public IActionResult AuditTrailReport(ViewModelBook model)
+        public async Task<IActionResult> AuditTrailReport(ViewModelBook model, CancellationToken cancellationToken)
         {
             ViewBag.DateFrom = model.DateFrom;
             ViewBag.DateTo = model.DateTo;
@@ -390,7 +389,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var auditTrail = _reportRepo.GetAuditTrails(model.DateFrom, model.DateTo);
+                    var auditTrail = await _reportRepo.GetAuditTrails(model.DateFrom, model.DateTo, cancellationToken);
                     var lastRecord = auditTrail.LastOrDefault();
                     if (lastRecord != null)
                     {
@@ -410,16 +409,16 @@ namespace Accounting_System.Controllers
             return RedirectToAction(nameof(AuditTrail));
         }
 
-        public async Task<IActionResult> CustomerProfile()
+        public async Task<IActionResult> CustomerProfile(CancellationToken cancellationToken)
         {
-            var customers = await _reportRepo.GetCustomersAsync();
+            var customers = await _reportRepo.GetCustomersAsync(cancellationToken);
 
             return View(customers);
         }
 
-        public async Task<IActionResult> ProductList()
+        public async Task<IActionResult> ProductList(CancellationToken cancellationToken)
         {
-            var products = await _reportRepo.GetProductsAsync();
+            var products = await _reportRepo.GetProductsAsync(cancellationToken);
 
             return View(products);
         }
@@ -441,7 +440,7 @@ namespace Accounting_System.Controllers
 
         #region -- Generate Audit Trail .Txt File --
 
-        public IActionResult GenerateAuditTrailTxtFile(ViewModelBook model)
+        public async Task<IActionResult> GenerateAuditTrailTxtFile(ViewModelBook model, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
@@ -450,7 +449,7 @@ namespace Accounting_System.Controllers
                     var dateFrom = model.DateFrom;
                     var dateTo = model.DateTo;
                     var extractedBy = _userManager.GetUserName(this.User);
-                    var auditTrail = _reportRepo.GetAuditTrails(model.DateFrom, model.DateTo);
+                    var auditTrail = await _reportRepo.GetAuditTrails(model.DateFrom, model.DateTo, cancellationToken);
                     if (auditTrail.Count == 0)
                     {
                         TempData["error"] = "No Record Found";
@@ -524,7 +523,7 @@ namespace Accounting_System.Controllers
 
         #region -- Generate Disbursement Book .Txt File --
 
-        public IActionResult GenerateDisbursementBookTxtFile(ViewModelBook model)
+        public async Task<IActionResult> GenerateDisbursementBookTxtFile(ViewModelBook model, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
@@ -534,7 +533,7 @@ namespace Accounting_System.Controllers
                     var dateTo = model.DateTo;
                     var extractedBy = _userManager.GetUserName(this.User);
 
-                    var disbursementBooks = _reportRepo.GetDisbursementBooks(model.DateFrom, model.DateTo);
+                    var disbursementBooks = await _reportRepo.GetDisbursementBooks(model.DateFrom, model.DateTo, cancellationToken);
                     if (disbursementBooks.Count == 0)
                     {
                         TempData["error"] = "No Record Found";
@@ -617,7 +616,7 @@ namespace Accounting_System.Controllers
 
         #region -- Generate Cash Receipt Book .Txt File --
 
-        public IActionResult GenerateCashReceiptBookTxtFile(ViewModelBook model)
+        public async Task<IActionResult> GenerateCashReceiptBookTxtFile(ViewModelBook model, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
@@ -627,7 +626,7 @@ namespace Accounting_System.Controllers
                     var dateTo = model.DateTo;
                     var extractedBy = _userManager.GetUserName(this.User);
 
-                    var cashReceiptBooks = _reportRepo.GetCashReceiptBooks(model.DateFrom, model.DateTo);
+                    var cashReceiptBooks = await _reportRepo.GetCashReceiptBooks(model.DateFrom, model.DateTo, cancellationToken);
                     if (cashReceiptBooks.Count == 0)
                     {
                         TempData["error"] = "No Record Found";
@@ -709,7 +708,7 @@ namespace Accounting_System.Controllers
 
         #region -- Generate General Ledger Book .Txt File --
 
-        public IActionResult GenerateGeneralLedgerBookTxtFile(ViewModelBook model)
+        public async Task<IActionResult> GenerateGeneralLedgerBookTxtFile(ViewModelBook model, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
@@ -719,7 +718,7 @@ namespace Accounting_System.Controllers
                     var dateTo = model.DateTo;
                     var extractedBy = _userManager.GetUserName(this.User);
 
-                    var generalBooks = _reportRepo.GetGeneralLedgerBooks(model.DateFrom, model.DateTo);
+                    var generalBooks = await _reportRepo.GetGeneralLedgerBooks(model.DateFrom, model.DateTo, cancellationToken);
                     if (generalBooks.Count == 0)
                     {
                         TempData["error"] = "No Record Found";
@@ -798,7 +797,7 @@ namespace Accounting_System.Controllers
 
         #region -- Generate Inventory Book .Txt File --
 
-        public IActionResult GenerateInventoryBookTxtFile(ViewModelBook model)
+        public async Task<IActionResult> GenerateInventoryBookTxtFile(ViewModelBook model, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
@@ -808,7 +807,7 @@ namespace Accounting_System.Controllers
                     var dateFrom = dateTo.AddDays(-dateTo.Day + 1);
                     var extractedBy = _userManager.GetUserName(this.User);
 
-                    var inventoryBooks = _reportRepo.GetInventoryBooks(dateFrom, dateTo);
+                    var inventoryBooks = await _reportRepo.GetInventoryBooks(dateFrom, dateTo, cancellationToken);
                     if (inventoryBooks.Count == 0)
                     {
                         TempData["error"] = "No Record Found";
@@ -889,7 +888,7 @@ namespace Accounting_System.Controllers
 
         #region -- Generate Journal Book .Txt File --
 
-        public IActionResult GenerateJournalBookTxtFile(ViewModelBook model)
+        public async Task<IActionResult> GenerateJournalBookTxtFile(ViewModelBook model, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
@@ -899,7 +898,7 @@ namespace Accounting_System.Controllers
                     var dateTo = model.DateTo;
                     var extractedBy = _userManager.GetUserName(this.User);
 
-                    var journalBooks = _reportRepo.GetJournalBooks(model.DateFrom, model.DateTo);
+                    var journalBooks = await _reportRepo.GetJournalBooks(model.DateFrom, model.DateTo, cancellationToken);
                     if (journalBooks.Count == 0)
                     {
                         TempData["error"] = "No Record Found";
@@ -978,7 +977,7 @@ namespace Accounting_System.Controllers
 
         #region -- Generate Purchase Book .Txt File --
 
-        public IActionResult GeneratePurchaseBookTxtFile(ViewModelBook model, string? selectedFiltering, string? poListFrom, string? poListTo)
+        public async Task<IActionResult> GeneratePurchaseBookTxtFile(ViewModelBook model, string? selectedFiltering, string? poListFrom, string? poListTo, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
@@ -990,20 +989,20 @@ namespace Accounting_System.Controllers
 
                     if (poListFrom != null && poListTo != null)
                     {
-                        return RedirectToAction("POLiquidationPerPO", new { poListFrom = poListFrom, poListTo = poListTo });
+                        return RedirectToAction(nameof(POLiquidationPerPO), new { poListFrom, poListTo });
                     }
                     else if (poListFrom == null && poListTo != null || poListFrom != null && poListTo == null)
                     {
                         TempData["error"] = "Please fill the two select list in PO Liquidation Per PO, lowest to highest";
-                        return RedirectToAction("PurchaseBook");
+                        return RedirectToAction(nameof(PurchaseBook));
                     }
 
                     if (selectedFiltering == "UnpostedRR" || selectedFiltering == "POLiquidation")
                     {
-                        return RedirectToAction("GetRR", new { DateFrom = model.DateFrom, DateTo = model.DateTo, selectedFiltering });
+                        return RedirectToAction(nameof(GetRR), new { model.DateFrom, model.DateTo, selectedFiltering });
                     }
 
-                    var purchaseOrders = _reportRepo.GetPurchaseBooks(model.DateFrom, model.DateTo, selectedFiltering);
+                    var purchaseOrders = await _reportRepo.GetPurchaseBooks(model.DateFrom, model.DateTo, selectedFiltering, cancellationToken);
                     if (purchaseOrders.Count == 0)
                     {
                         TempData["error"] = "No Record Found";
@@ -1091,7 +1090,7 @@ namespace Accounting_System.Controllers
 
         #region -- Generate Sales Book .Txt File --
 
-        public IActionResult GenerateSalesBookTxtFile(ViewModelBook model, string? selectedDocument, string? soaList, string? siList)
+        public async Task<IActionResult> GenerateSalesBookTxtFile(ViewModelBook model, string? selectedDocument, string? soaList, string? siList, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
@@ -1103,10 +1102,10 @@ namespace Accounting_System.Controllers
 
                     if (soaList != null || siList != null)
                     {
-                        return RedirectToAction("TransactionReportsInSOA", new { soaList = soaList, siList = siList });
+                        return RedirectToAction(nameof(TransactionReportsInSOA), new { soaList, siList });
                     }
 
-                    var salesBook = _reportRepo.GetSalesBooks(model.DateFrom, model.DateTo, selectedDocument);
+                    var salesBook = await _reportRepo.GetSalesBooksAsync(model.DateFrom, model.DateTo, selectedDocument, cancellationToken);
                     if (salesBook.Count == 0)
                     {
                         TempData["error"] = "No Record Found";

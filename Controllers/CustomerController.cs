@@ -43,13 +43,13 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _customerRepo.IsCustomerExist(customer.Name))
+                if (await _customerRepo.IsCustomerExist(customer.Name, cancellationToken))
                 {
                     ModelState.AddModelError("Name", "Customer already exist!");
                     return View(customer);
                 }
 
-                if (await _customerRepo.IsTinNoExist(customer.TinNo))
+                if (await _customerRepo.IsTinNoExist(customer.TinNo, cancellationToken))
                 {
                     ModelState.AddModelError("TinNo", "Tin# already exist!");
                     return View(customer);
@@ -68,7 +68,7 @@ namespace Accounting_System.Controllers
                 #endregion --Audit Trail Recording
 
                 TempData["success"] = "Customer created successfully";
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
             else
             {

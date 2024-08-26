@@ -127,7 +127,7 @@ namespace Accounting_System.Controllers
 
                     using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                     {
-                        await document.CopyToAsync(stream);
+                        await document.CopyToAsync(stream, cancellationToken);
                     }
 
                     supplier.ProofOfExemptionFilePath = fileSavePath;
@@ -147,7 +147,7 @@ namespace Accounting_System.Controllers
 
                     using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                     {
-                        await registration.CopyToAsync(stream);
+                        await registration.CopyToAsync(stream, cancellationToken);
                     }
 
                     supplier.ProofOfRegistrationFilePath = fileSavePath;
@@ -271,7 +271,7 @@ namespace Accounting_System.Controllers
 
                         using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                         {
-                            await document.CopyToAsync(stream);
+                            await document.CopyToAsync(stream, cancellationToken);
                         }
 
                         existingModel.ProofOfExemptionFilePath = fileSavePath;
@@ -291,7 +291,7 @@ namespace Accounting_System.Controllers
 
                         using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                         {
-                            await registration.CopyToAsync(stream);
+                            await registration.CopyToAsync(stream, cancellationToken);
                         }
 
                         existingModel.ProofOfRegistrationFilePath = fileSavePath;

@@ -254,16 +254,16 @@ namespace Accounting_System.Controllers
             return View(viewModel);
         }
 
-        public IActionResult GetProducts(int poId, int id, DateOnly dateTo)
+        public async Task<IActionResult> GetProducts(int poId, int id, DateOnly dateTo, CancellationToken cancellationToken)
         {
             if (id != 0)
             {
                 var dateFrom = dateTo.AddDays(-dateTo.Day + 1);
 
-                var getPerBook = _dbContext.Inventories
+                var getPerBook = await _dbContext.Inventories
                     .Where(i => i.Date >= dateFrom && i.Date <= dateTo && i.ProductId == id && i.POId == poId)
                     .OrderByDescending(model => model.Id)
-                    .FirstOrDefault();
+                    .FirstOrDefaultAsync(cancellationToken);
 
                 if (getPerBook != null)
                 {
@@ -362,8 +362,8 @@ namespace Accounting_System.Controllers
 
                     var header = new JournalVoucherHeader
                     {
-                        SeriesNumber = await _journalVoucherRepo.GetLastSeriesNumberJV(),
-                        JVNo = await _journalVoucherRepo.GenerateJVNo(),
+                        SeriesNumber = await _journalVoucherRepo.GetLastSeriesNumberJV(cancellationToken),
+                        JVNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken),
                         JVReason = "Actual Inventory",
                         Particulars = inventory.Particular,
                         Date = inventory.Date,

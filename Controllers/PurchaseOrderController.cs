@@ -127,7 +127,7 @@ namespace Accounting_System.Controllers
                 #endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
             else
             {
@@ -220,7 +220,7 @@ namespace Accounting_System.Controllers
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
                 TempData["success"] = "Purchase Order updated successfully";
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return View(model);
@@ -260,7 +260,7 @@ namespace Accounting_System.Controllers
                 po.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }
-            return RedirectToAction("Print", new { id = id });
+            return RedirectToAction(nameof(Print), new { id });
         }
 
         public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
@@ -285,7 +285,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Purchase Order has been Posted.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();
@@ -318,7 +318,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Purchase Order has been Voided.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();
@@ -347,17 +347,10 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Purchase Order has been Cancelled.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Preview(int? id, CancellationToken cancellationToken)
-        {
-            var po = await _purchaseOrderRepo.FindPurchaseOrder(id, cancellationToken);
-            return PartialView("_PreviewPartialView", po);
         }
 
         [HttpGet]
@@ -403,7 +396,7 @@ namespace Accounting_System.Controllers
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Change Price updated successfully";
-                    return RedirectToAction("Index");
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
@@ -455,7 +448,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Purchase Order has been Closed.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return NotFound();

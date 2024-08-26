@@ -78,7 +78,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<DateOnly> ComputeDueDateAsync(string customerTerms, DateOnly date)
+        public DateOnly ComputeDueDateAsync(string customerTerms, DateOnly date, CancellationToken cancellationToken = default)
         {
             if (customerTerms != null)
             {
