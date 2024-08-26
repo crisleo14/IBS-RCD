@@ -18,17 +18,6 @@ $(document).ready(function () {
         width: 'resolve'
     });
 });
-$(document).ready(function () {
-    // Initialize Select2
-    $('.js-not-retain-value-select2').select2({
-        placeholder: "Select an option",
-        allowClear: true,
-        width: 'resolve'
-    });
-
-    // Clear the selected value when the page is loaded
-    $('.js-not-retain-value-select2').val(null).trigger('change');
-});
 
 // hack to fix jquery 3.6 focus security patch that bugs auto search in select-2
 $(document).on('select2:open', () => {
