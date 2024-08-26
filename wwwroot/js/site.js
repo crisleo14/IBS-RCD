@@ -2,22 +2,6 @@
 // for details on configuring this project to bundle and minify static web assets.
 
 // Write your JavaScript code.
-//$(document).ready(function () {
-//    $('select').each(function () {
-//        $(this).select2({
-//            placeholder: "Select an option",
-//            allowClear: true
-//        });
-//    });
-//});
-
-//$(document).ready(function () {
-//    $('.js-multiple-not-retain-value').select2({
-//        placeholder: "Select an option",
-//        width: 'resolve'
-//    });
-//    $('.js-multiple-not-retain-value').val([]).trigger('change');
-//});
 
 $(document).ready(function () {
     $('.js-multiple').select2({
@@ -46,18 +30,15 @@ $(document).ready(function () {
     $('.js-not-retain-value-select2').val(null).trigger('change');
 });
 
-//sorting and paginatio with search can used in all modules
-$(document).ready(function () {
-    $('#myTable').DataTable();
+// hack to fix jquery 3.6 focus security patch that bugs auto search in select-2
+$(document).on('select2:open', () => {
+    document.querySelector('.select2-search__field').focus();
 });
 
-//myOwnTable in Print Invoice report
 $(document).ready(function () {
-    var table = $('#myOwnTable').DataTable({
-        "stateSave": true,
-        "autoWidth": false
+    $('#dataTable').DataTable({
+        stateSave: true,
     });
-    table.order([0, 'desc']).draw();
 });
 
 //Money Input formatting

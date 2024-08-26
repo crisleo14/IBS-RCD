@@ -8,148 +8,158 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     var model = new CollectionReceipt();
 }
-<h1>Collection Receipt</h1>
-<hr />
 
-<div class="table-responsive">
-    <table class="table table-hover" id="myOwnTable">
-        <thead>
-            <tr>
-                <th>
-                    CR No.
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.TransactionDate)
-                </th>
-                <th>
-                    Invoice No.
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.Customers)
-                </th>
-                <th class="text-end">
-                    @Html.DisplayNameFor(model => model.Total)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.CreatedBy)
-                </th>
-                <th>
-                    Status
-                </th>
-                <th style="width: 25%"></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.CRNo)
-                    </td>
-                    <td>
-                        @item.TransactionDate.ToString("MM/dd/yyyy")
-                    </td>
-                    <td>
-                        @if (item.SalesInvoiceId != null)
-                        {
-                            @Html.DisplayFor(modelItem => item.SINo)
-                        }
-                        else if (item.MultipleSIId != null)
-                        {
-                            for (int i = 0; i < item.MultipleSI.Length; i ++)
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">COLLECTION RECEIPT</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4 table-responsive">
+        <div class="row pb-3">
+            <div class="col-6">
+            </div>
+        </div>
+        <table class="table table-bordered table-striped" id="dataTable">
+            <thead>
+                <tr class="text-nowrap">
+                    <th>
+                        CR No.
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.TransactionDate)
+                    </th>
+                    <th>
+                        Invoice No.
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Customers)
+                    </th>
+                    <th class="text-end">
+                        @Html.DisplayNameFor(model => model.Total)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.CreatedBy)
+                    </th>
+                    <th>
+                        Status
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.CRNo)
+                        </td>
+                        <td>
+                            @item.TransactionDate.ToString("MM/dd/yyyy")
+                        </td>
+                        <td>
+                            @if (item.SalesInvoiceId != null)
                             {
-                                var siNo = $"{item.MultipleSI[i]}, ";
-                                @siNo
+                                @Html.DisplayFor(modelItem => item.SINo)
                             }
-                        }
-                        else
-                        {
-                            @Html.DisplayFor(modelItem => item.SVNo)
-                        }
-                    </td>
-                    <td>
-                        @if (item.SalesInvoiceId != null)
-                        {
-                            @Html.DisplayFor(modelItem => item.SalesInvoice.Customer.Name)
-                        }
-                        else if (item.MultipleSIId != null)
-                        {
-                            @Html.DisplayFor(modelItem => item.Customer.Name)
-                        }
-                        else
-                        {
-                            @Html.DisplayFor(modelItem => item.ServiceInvoice.Customer.Name)
-                        }
-                    </td>
-                    <td class="text-end px-4">
-                        @Html.DisplayFor(modelItem => item.Total)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.CreatedBy)
-                    </td>
-                    <td>
-                        @{
-                        var status = item.PostedBy != null && item.VoidedBy == null && item.CanceledBy == null
+                            else if (item.MultipleSIId != null)
+                            {
+                                for (int i = 0; i < item.MultipleSI.Length; i++)
+                                {
+                                    var siNo = $"{item.MultipleSI[i]}, ";
+                                    @siNo
+                                }
+                            }
+                            else
+                            {
+                                @Html.DisplayFor(modelItem => item.SVNo)
+                            }
+                        </td>
+                        <td>
+                            @if (item.SalesInvoiceId != null)
+                            {
+                                @Html.DisplayFor(modelItem => item.SalesInvoice.Customer.Name)
+                            }
+                            else if (item.MultipleSIId != null)
+                            {
+                                @Html.DisplayFor(modelItem => item.Customer.Name)
+                            }
+                            else
+                            {
+                                @Html.DisplayFor(modelItem => item.ServiceInvoice.Customer.Name)
+                            }
+                        </td>
+                        <td class="text-end px-4">
+                            @Html.DisplayFor(modelItem => item.Total)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.CreatedBy)
+                        </td>
+                        <td>
+                            @{
+                                var status = item.PostedBy != null && item.VoidedBy == null && item.CanceledBy == null
                                 ? "Posted"
                                 : item.VoidedBy != null
-                                    ? "Voided"
-                                    : item.CanceledBy != null
-                                        ? "Cancelled"
-                                        : "Pending";
-                        }
-                        <span class="badge rounded-pill @if(status == "Posted") {<text>bg-info</text>} else if(status == "Voided") {<text>bg-danger</text>} else if(status == "Cancelled") {<text>bg-warning</text>}">@status</span>
-                    </td>
-                    <td>
-                        @if (!item.IsPosted && !item.IsVoided && !item.IsCanceled)
-                        {
-                            if (!item.IsPosted && !item.IsVoided && !item.IsCanceled)
-                            {
-                                if (item.MultipleSIId != null)
-                                {
-                                    <a asp-action="MultipleCollectionEdit" asp-route-id="@item.Id" class="btn btn-light" title="Feature coming soon">Edit</a>
-                                    <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#PreviewMultipleSI-@item.Id" data-bs-url="@Url.Action($"PreviewMultipleSI/{item.Id}")">
-                                        Preview
-                                    </button>
-                                    @await Html.PartialAsync("_MultipleCollectionPreviewPartialView", item)
-                                }
-                                else
-                                {
-                                    <a asp-action="CollectionEdit" asp-route-id="@item.Id" class="btn btn-light" title="Feature coming soon">Edit</a>
-                                    <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#Preview-@item.Id" data-bs-url="@Url.Action($"Preview/{item.Id}")">
-                                        Preview
-                                    </button>
-                                    @await Html.PartialAsync("_CollectionPreviewPartialView", item)
-                                }
-                                <a class="btn btn-light" onclick="confirmPost(@item.Id)">Post</a>
-                                <a class="btn btn-light" onclick="confirmCancel(@item.Id)">Cancel</a>
+                                ? "Voided"
+                                : item.CanceledBy != null
+                                ? "Cancelled"
+                                : "Pending";
                             }
-                            if (item.IsPosted && !item.IsVoided && !item.IsCanceled)
-                            {
-                                if (item.MultipleSIId != null)
-                                {
-                                    <a asp-action="MultipleCollectionPrint" asp-route-id="@item.Id" class="btn btn-light">Print</a>
-                                }
-                                else
-                                {
-                                    <a asp-action="CollectionPrint" asp-route-id="@item.Id" class="btn btn-light">Print</a>
-                                }
-                                <a class="btn btn-light" onclick="confirmVoid(@item.Id)">Void</a>
-                            }
-                        }
-
-                        @if (item.IsVoided)
-                        {
-                            <span class="badge rounded-pill bg-danger ">VOIDED</span>
-                        }
-                        else if (item.IsCanceled)
-                        {
-                            <span class="badge rounded-pill bg-warning ">CANCELLED</span>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                            <span class="badge rounded-pill @if(status == "Posted") {<text>bg-info</text>} else if(status == "Voided") {<text>bg-danger</text>} else if(status == "Cancelled") {<text>bg-warning</text>}">@status</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="dropdown" style="@(item.VoidedBy != null || item.CanceledBy != null ? "display:none;" : "")">
+                                <button class="btn btn-light dropdown-toggle" type="button" id="actionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Actions
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="actionsDropdown">
+                                    @if (!item.IsPosted && !item.IsVoided && !item.IsCanceled)
+                                    {
+                                        if (item.MultipleSIId != null)
+                                        {
+                                            <li><a asp-action="MultipleCollectionEdit" asp-route-id="@item.Id" class="dropdown-item" title="Feature coming soon">Edit</a></li>
+                                            <li>
+                                                <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#PreviewMultipleSI-@item.Id" data-bs-url="@Url.Action($"PreviewMultipleSI/{item.Id}")">
+                                                    Preview
+                                                </button>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            <li><a asp-action="CollectionEdit" asp-route-id="@item.Id" class="dropdown-item" title="Feature coming soon">Edit</a></li>
+                                            <li>
+                                                <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#Preview-@item.Id" data-bs-url="@Url.Action($"Preview/{item.Id}")">
+                                                    Preview
+                                                </button>
+                                            </li>
+                                        }
+                                        <li><a class="dropdown-item" onclick="confirmPost(@item.Id)">Post</a></li>
+                                        <li><a class="dropdown-item" onclick="confirmCancel(@item.Id)">Cancel</a></li>
+                                    }
+                                    @if (item.IsPosted && !item.IsVoided && !item.IsCanceled)
+                                    {
+                                        if (item.MultipleSIId != null)
+                                        {
+                                            <li><a asp-action="MultipleCollectionPrint" asp-route-id="@item.Id" class="dropdown-item">Print</a></li>
+                                        }
+                                        else
+                                        {
+                                            <li><a asp-action="CollectionPrint" asp-route-id="@item.Id" class="dropdown-item">Print</a></li>
+                                        }
+                                        <li><a class="dropdown-item" onclick="confirmVoid(@item.Id)">Void</a></li>
+                                    }
+                                </ul>
+                            </div>
+                            @await Html.PartialAsync("_MultipleCollectionPreviewPartialView", item)
+                            @await Html.PartialAsync("_CollectionPreviewPartialView", item)
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
 
 @section Scripts {

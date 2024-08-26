@@ -506,17 +506,23 @@ bg-success {
 }
 
 /*start here the css in nav bar menu*/
-.dropdown:hover > .dropdown-menu, .dropdown:hover > .dropdown-menu {
-    display: block;
-    margin-left: 0;
+.dropdown-layout .dropdown-menu {
+    display: none;
 }
 
-.dropend:hover > .dropdown-menu {
+.dropdown-layout:hover > .dropdown-menu, .dropend:hover > .dropdown-menu {
     display: block;
-    position: absolute;
-    top: 0;
-    left: 100%;
-    margin-left: 0;
+}
+
+@media screen and (min-width:992px) {
+    .dropend:hover > .dropdown-menu {
+        position: absolute;
+        top: 0;
+        left: 100%;
+    }
+
+    .dropend .dropdown-toggle {
+    }
 }
 
 /*end of code*/
@@ -534,13 +540,3 @@ input[type=number] {
     color: red;
     margin-left: 2px;
 }
-
-#myOwnTable {
-    table-layout: fixed;
-}
-
-    #myOwnTable td {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
