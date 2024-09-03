@@ -580,20 +580,67 @@ namespace Accounting_System.Controllers
 
                     var existingHeaderModel = await _dbContext.JournalVoucherHeaders.FindAsync(viewModel.JVId, cancellationToken);
                     var existingDetailsModel = await _dbContext.JournalVoucherDetails.Where(d => d.TransactionNo == existingHeaderModel.JVNo).ToListAsync(cancellationToken);
-                    JournalVoucherDetail detailsModel = new();
 
-                    for (int i = 0; i < existingDetailsModel.Count(); i++)
+                    // Dictionary to keep track of AccountNo and their ids for comparison
+                    var accountTitleDict = new Dictionary<string, List<int>>();
+                    foreach (var details in existingDetailsModel)
                     {
-                        var cvd = existingDetailsModel[i];
-                        cvd.AccountNo = viewModel.AccountNumber[i];
-                        cvd.AccountName = viewModel.AccountTitle[i];
-                        cvd.Debit = viewModel.Debit[i];
-                        cvd.Credit = viewModel.Credit[i];
-                        cvd.TransactionNo = viewModel.JVNo;
+                        if (!accountTitleDict.ContainsKey(details.AccountNo))
+                        {
+                            accountTitleDict[details.AccountNo] = new List<int>();
+                        }
+                        accountTitleDict[details.AccountNo].Add(details.Id);
                     }
 
-                    var newDetailsModel = new List<JournalVoucherDetail>(); // Replace with the actual new details
-                    existingDetailsModel.AddRange(newDetailsModel);
+                    // Add or update records
+                    for (int i = 0; i < viewModel.AccountTitle.Length; i++)
+                    {
+
+                        if (accountTitleDict.TryGetValue(viewModel.AccountNumber[i], out var ids))
+                        {
+                            // Update the first matching record and remove it from the list
+                            var detailsId = ids.First();
+                            ids.RemoveAt(0);
+                            var details = existingDetailsModel.First(o => o.Id == detailsId);
+
+                            var acctNo = await _dbContext.ChartOfAccounts
+                                .FirstOrDefaultAsync(x => x.Name == viewModel.AccountTitle[i]);
+
+                            details.AccountNo = acctNo.Number ?? throw new ArgumentNullException("Account title not found!");
+                            details.AccountName = viewModel.AccountTitle[i];
+                            details.Debit = viewModel.Debit[i];
+                            details.Credit = viewModel.Credit[i];
+                            details.TransactionNo = existingHeaderModel.JVNo;
+
+                            if (ids.Count == 0)
+                            {
+                                accountTitleDict.Remove(viewModel.AccountNumber[i]);
+                            }
+                        }
+                        else
+                        {
+                            // Add new record
+                            var newDetails = new CheckVoucherDetail
+                            {
+                                AccountNo = viewModel.AccountNumber[i],
+                                AccountName = viewModel.AccountTitle[i],
+                                Debit = viewModel.Debit[i],
+                                Credit = viewModel.Credit[i],
+                                TransactionNo = existingHeaderModel.JVNo
+                            };
+                            await _dbContext.CheckVoucherDetails.AddAsync(newDetails, cancellationToken);
+                        }
+                    }
+
+                    // Remove remaining records that were duplicates
+                    foreach (var ids in accountTitleDict.Values)
+                    {
+                        foreach (var id in ids)
+                        {
+                            var details = existingDetailsModel.First(o => o.Id == id);
+                            _dbContext.JournalVoucherDetails.Remove(details);
+                        }
+                    }
 
                     #endregion --CV Details Entry
 

@@ -182,7 +182,7 @@
             </tr>
             <tr>
                 <td style="padding-left:20px;">Particulars :</td>
-                <td><pre style="line-height: 1; margin: 0; padding: 0">@Html.DisplayFor(model => model.Header.Particulars)</pre></td>
+                <td><pre class="pre">@Html.DisplayFor(model => model.Header.Particulars)</pre></td>
                 <td></td>
             </tr>
             <tr>
@@ -275,7 +275,7 @@
         <span>&nbsp;&nbsp;Date Issued:</span>
         <span style="display: inline-block;">@CS.DateIssued</span><br />
         Series: CV0000000001 - CV9999999999
-        Date and Time Created:&nbsp; @Model.Header.CreatedDate.ToString("MM/dd/yyyy")
+        Date and Time Created:&nbsp; @Model.Header.CreatedDate
     </p>
 </div>
 <br />

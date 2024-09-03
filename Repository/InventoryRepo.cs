@@ -200,7 +200,7 @@ namespace Accounting_System.Repository
                     throw new InvalidOperationException($"The quantity exceeds the available inventory of '{salesInvoice.Product.Name}'.");
                 }
 
-                decimal total = salesInvoice.Quantity * previousInventory.Cost;
+                decimal total = salesInvoice.Quantity * previousInventory.AverageCost;
                 decimal inventoryBalance = previousInventory.InventoryBalance - salesInvoice.Quantity;
                 decimal totalBalance = previousInventory.TotalBalance - total;
                 decimal averageCost = inventoryBalance == 0 && totalBalance == 0 ? previousInventory.AverageCost : totalBalance / inventoryBalance;
@@ -233,7 +233,7 @@ namespace Accounting_System.Repository
                         transaction.Total = transaction.Quantity * averageCost;
                         transaction.TotalBalance = totalBalance - transaction.Total;
                         transaction.InventoryBalance = inventoryBalance - transaction.Quantity;
-                        transaction.AverageCost = transaction.TotalBalance / transaction.InventoryBalance;
+                        transaction.AverageCost = transaction.TotalBalance == 0 && transaction.InventoryBalance == 0 ? previousInventory.AverageCost : transaction.TotalBalance / transaction.InventoryBalance;
                         costOfGoodsSold = transaction.AverageCost * transaction.Quantity;
 
                         averageCost = transaction.AverageCost;

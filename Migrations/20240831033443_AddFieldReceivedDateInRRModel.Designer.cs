@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240831033443_AddFieldReceivedDateInRRModel")]
+    partial class AddFieldReceivedDateInRRModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1182,10 +1185,6 @@ namespace Accounting_System.Migrations
                     b.Property<decimal>("Quantity")
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("quantity");
-
-                    b.Property<int>("ReceivingReportId")
-                        .HasColumnType("integer")
-                        .HasColumnName("receiving_report_id");
 
                     b.Property<string>("Remarks")
                         .IsRequired()

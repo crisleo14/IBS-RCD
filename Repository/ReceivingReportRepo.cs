@@ -65,7 +65,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<int> UpdatePOAsync(int id, decimal quantityReceived, CancellationToken cancellationToken = default)
+        public async Task UpdatePOAsync(int id, decimal quantityReceived, CancellationToken cancellationToken = default)
         {
             var po = await _dbContext.PurchaseOrders
                     .FirstOrDefaultAsync(po => po.Id == id, cancellationToken);
@@ -78,13 +78,13 @@ namespace Accounting_System.Repository
                 {
                     po.IsReceived = true;
                     po.ReceivedDate = DateTime.Now;
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                 }
                 if (po.QuantityReceived > po.Quantity)
                 {
                     throw new ArgumentException("Input is exceed to remaining quantity received");
                 }
-
-                return await _dbContext.SaveChangesAsync(cancellationToken);
             }
             else
             {

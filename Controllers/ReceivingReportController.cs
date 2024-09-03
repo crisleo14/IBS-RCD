@@ -222,7 +222,7 @@ namespace Accounting_System.Controllers
 
                 var totalAmountRR = po.Quantity - po.QuantityReceived;
 
-                if (model.QuantityDelivered > totalAmountRR)
+                if (model.QuantityDelivered > totalAmountRR && !existingModel.IsPosted)
                 {
                     TempData["error"] = "Input is exceed to remaining quantity delivered";
                     return View(model);
@@ -240,6 +240,8 @@ namespace Accounting_System.Controllers
                 existingModel.GainOrLoss = model.QuantityReceived - model.QuantityDelivered;
                 existingModel.OtherRef = model.OtherRef;
                 existingModel.Remarks = model.Remarks;
+                existingModel.ReceivedDate = model.ReceivedDate;
+
 
                 if (po.Supplier.VatType == "Vatable")
                 {
@@ -319,6 +321,12 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
+                    if (model.ReceivedDate == null)
+                    {
+                        TempData["error"] = "Please indicate the received date.";
+                        return RedirectToAction(nameof(Index));
+                    }
+
                     if (!model.IsPosted)
                     {
                         model.IsPosted = true;

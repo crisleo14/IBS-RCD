@@ -23,7 +23,7 @@ namespace Accounting_System.Repository
 
         private async void DoWork(object state)
         {
-            if (DateTime.Now.Day == DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month))
+            if (31 == DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month))
             {
                 using (var scope = _serviceProvider.CreateScope())
                 {

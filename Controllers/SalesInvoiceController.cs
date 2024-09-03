@@ -257,6 +257,33 @@ namespace Accounting_System.Controllers
                     Text = p.Name
                 })
                 .ToListAsync(cancellationToken);
+
+                salesInvoice.PO = await _dbContext.PurchaseOrders
+               .OrderBy(p => p.PONo)
+               .Where(po => po.ProductId == salesInvoice.ProductId && po.QuantityReceived != 0 && po.PostedBy != null)
+               .Select(p => new SelectListItem
+               {
+                   Value = p.Id.ToString(),
+                   Text = p.PONo
+               })
+               .ToListAsync(cancellationToken);
+
+                var receivingReports = await _dbContext.ReceivingReports
+                    .Where(rr => rr.POId == salesInvoice.POId && rr.ReceivedDate != null)
+                    .Select(rr => new
+                    {
+                        rr.Id,
+                        rr.RRNo,
+                        rr.ReceivedDate
+                    })
+                    .ToListAsync();
+
+                salesInvoice.RR = receivingReports.Select(rr => new SelectListItem
+                {
+                    Value = rr.Id.ToString(),
+                    Text = rr.RRNo
+                }).ToList();
+
                 return View(salesInvoice);
             }
             catch (Exception ex)
@@ -318,6 +345,8 @@ namespace Accounting_System.Controllers
                     existingModel.Discount = model.Discount;
                     existingModel.Amount = model.Quantity * model.UnitPrice;
                     existingModel.ProductId = model.ProductId;
+                    existingModel.ReceivingReportId = model.ReceivingReportId;
+                    existingModel.DueDate = _salesInvoiceRepo.ComputeDueDateAsync(existingModel.Customer.Terms, existingModel.TransactionDate, cancellationToken);
 
                     if (existingModel.Amount >= model.Discount)
                     {
@@ -744,6 +773,21 @@ namespace Accounting_System.Controllers
             }
 
             return Json(null);
+        }
+
+        public IActionResult GetRRs(int purchaseOrderId)
+        {
+            var rrs = _dbContext.ReceivingReports
+                              .Where(rr => rr.POId == purchaseOrderId && rr.ReceivedDate != null)
+                              .Select(rr => new
+                              {
+                                  rr.Id,
+                                  rr.RRNo,
+                                  rr.ReceivedDate
+                              })
+                              .ToList();
+
+            return Json(rrs);
         }
     }
 }

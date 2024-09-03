@@ -20,8 +20,8 @@
 
         </div>
 
-    <table class="table table-bordered table-striped" id="dataTable">
-        <thead>
+    <table class="table table-bordered table-hover" id="dataTable">
+        <thead class="table-secondary">
             <tr>
                 <th class="text-nowrap">
                     @Html.DisplayNameFor(model => model.Header.CVNo)
@@ -58,7 +58,7 @@
                         @Html.DisplayFor(modelItem => item.Header.Supplier.Name)
                     </td>
                     <td>
-                        @Html.DisplayFor(modelItem => item.Header.Category)
+                        @item.Header.Category @item.Header.CvType
                     </td>
                     <td>
                         @Html.DisplayFor(modelItem => item.Header.CreatedBy)

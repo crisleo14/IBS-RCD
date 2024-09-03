@@ -129,5 +129,10 @@ namespace Accounting_System.Models.AccountsReceivable
 
         [NotMapped]
         public List<SelectListItem>? PO { get; set; }
+
+        [NotMapped]
+        public List<SelectListItem>? RR { get; set; }
+
+        public int ReceivingReportId { get; set; }
     }
 }

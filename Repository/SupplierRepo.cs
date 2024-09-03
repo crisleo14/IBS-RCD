@@ -29,16 +29,16 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<bool> IsSupplierNameExist(string supplierName, CancellationToken cancellationToken = default)
+        public async Task<bool> IsSupplierNameExist(string supplierName, string category, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Suppliers
-                .AnyAsync(s => s.Name.ToUpper() == supplierName.ToUpper(), cancellationToken);
+                .AnyAsync(s => s.Name.ToUpper() == supplierName.ToUpper() && s.Category == category, cancellationToken);
         }
 
-        public async Task<bool> IsSupplierTinExist(string supplierName, CancellationToken cancellationToken = default)
+        public async Task<bool> IsSupplierTinExist(string supplierName, string category, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Suppliers
-                .AnyAsync(s => s.Name.ToUpper() == supplierName.ToUpper(), cancellationToken);
+                .AnyAsync(s => s.Name.ToUpper() == supplierName.ToUpper() && s.Category == category, cancellationToken);
         }
     }
 }

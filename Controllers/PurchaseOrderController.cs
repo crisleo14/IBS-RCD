@@ -359,7 +359,7 @@ namespace Accounting_System.Controllers
             PurchaseChangePriceViewModel po = new();
 
             po.PO = await _dbContext.PurchaseOrders
-                .Where(po => po.FinalPrice == 0 || po.FinalPrice == null && po.IsPosted)
+                .Where(po => po.FinalPrice == 0 || po.FinalPrice == null && po.IsPosted && po.QuantityReceived != 0)
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
@@ -402,7 +402,7 @@ namespace Accounting_System.Controllers
                 {
 
                     model.PO = await _dbContext.PurchaseOrders
-                        .Where(po => po.FinalPrice == 0 || po.FinalPrice == null && po.IsPosted)
+                        .Where(po => po.FinalPrice == 0 || po.FinalPrice == null && po.IsPosted && po.QuantityReceived != 0)
                         .Select(s => new SelectListItem
                         {
                             Value = s.Id.ToString(),

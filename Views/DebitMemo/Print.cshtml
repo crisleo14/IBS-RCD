@@ -65,7 +65,7 @@
 
     <div class="table-responsive" style="margin-top:20px;">
         <table class="table-bordered w-100 text-center">
-            <thead>
+            <thead class="text-nowrap">
                 <tr>
                     <th>INVOICE NO.</th>
                     <th>INVOICE DATE</th>
@@ -79,7 +79,7 @@
                     <td>@Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
                     <td>@Model.SalesInvoice.TransactionDate.ToString("MM/dd/yyyy")</td>
                     <td>@Html.DisplayFor(model => model.SalesInvoice.Product.Name)</td>
-                    <td>@Html.DisplayFor(model => model.Description)</td>
+                    <td><p style="margin: 0; padding: 0;">@Html.DisplayFor(model => model.Description)</p></td>
                     <td>@Html.DisplayFor(model => model.DebitAmount)</td>
                 </tr>
 
@@ -297,7 +297,7 @@ else if (Model.Source == "Service Invoice")
         <span>&nbsp;&nbsp;Date Issued:</span>
         <span style="display: inline-block;">@CS.DateIssued</span><br />
         Series: DM0000000001 - DM9999999999
-        Date and Time Created:&nbsp; @Model.CreatedDate.ToString("MM/dd/yyyy")
+        Date and Time Created:&nbsp; @Model.CreatedDate
     </p>
 </div>
 <br />

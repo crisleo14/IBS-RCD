@@ -40,6 +40,7 @@ namespace Accounting_System.Controllers
         {
             Supplier model = new();
             model.DefaultExpenses = await _context.ChartOfAccounts
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .Select(s => new SelectListItem
                 {
                     Value = s.Number + " " + s.Name,
@@ -64,7 +65,7 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _supplierRepo.IsSupplierNameExist(supplier.Name, cancellationToken))
+                if (await _supplierRepo.IsSupplierNameExist(supplier.Name, supplier.Category, cancellationToken))
                 {
                     ModelState.AddModelError("Name", "Supplier name already exist!");
                     supplier.DefaultExpenses = await _context.ChartOfAccounts
@@ -85,7 +86,7 @@ namespace Accounting_System.Controllers
                     return View(supplier);
                 }
 
-                if (await _supplierRepo.IsSupplierTinExist(supplier.TinNo, cancellationToken))
+                if (await _supplierRepo.IsSupplierTinExist(supplier.TinNo, supplier.Category, cancellationToken))
                 {
                     ModelState.AddModelError("TinNo", "Supplier tin already exist!");
                     supplier.DefaultExpenses = await _context.ChartOfAccounts
@@ -202,6 +203,7 @@ namespace Accounting_System.Controllers
                 return NotFound();
             }
             supplier.DefaultExpenses = await _context.ChartOfAccounts
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .Select(s => new SelectListItem
                 {
                     Value = s.Number + " " + s.Name,

@@ -92,6 +92,12 @@ namespace Accounting_System.Controllers
                     return View(services);
                 }
 
+                if (services.Percent == 0)
+                {
+                    ModelState.AddModelError("Percent", "Please input percent!");
+                    return View(services);
+                }
+
                 var currentAndPrevious = await _dbContext.ChartOfAccounts
                     .FindAsync(services.CurrentAndPreviousId, cancellationToken);
 
@@ -149,6 +155,11 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
+                if (services.Percent == 0)
+                {
+                    ModelState.AddModelError("Percent", "Please input percent!");
+                    return View(services);
+                }
                 try
                 {
                     _dbContext.Update(services);

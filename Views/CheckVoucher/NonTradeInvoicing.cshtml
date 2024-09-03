@@ -86,8 +86,10 @@
                     <tbody id="accountingEntriesBody">
                         <tr>
                             <td>
-                                <input type="hidden" name="AccountNumber" class="defaultExpenseNumber" />
-                                <input name='AccountTitle' class="w-100 defaultExpenseTitle" style='border:none' readonly />
+                                <input type="hidden" name="AccountTitle" class="defaultExpenseTitle" />
+                                <select asp-for="AccountNumber" asp-items="@Model.DefaultExpenses" class="form-select defaultExpenseText js-select-defaultExpense" style="width: 100%">
+                                    <option></option>
+                                </select>
                             </td>
                             <td><input name="Debit" value='0.00' class="w-100 netOfVat" style='border:none' readonly /></td>
                             <td><input name="Credit" value='0.00' class="w-100" style='border:none' readonly /></td>
@@ -211,18 +213,17 @@
                                 $("#SupplierName").val(data.supplierName);
                                 $("#SupplierAddress").val(data.supplierAddress);
                                 $("#SupplierTinNo").val(data.supplierTinNo);
-                                $(".defaultExpenseNumber").val(data.defaultExpense !== null ? data.defaultExpense.split(' ')[0] : null);
-                                $(".defaultExpenseTitle").val(data.defaultExpense !== null ? data.defaultExpense.replace(/^\s*\S+\s*/, '').trim() : null);
                                 $(".withholdingTaxNumber").val(data.withholdingTax !== null ? data.withholdingTax.split(' ')[0] : null);
                                 $(".withholdingTaxTitle").val(data.withholdingTax !== null ? data.withholdingTax.replace(/^\s*\S+\s*/, '').trim() : null);
+                                $(".defaultExpenseText").val(data.defaultExpense !== null ? data.defaultExpense.split(' ')[0] : null).trigger('change');
+                                getDefaultExpense(data.defaultExpense)
                             } else {
                                 $("#SupplierName").val("");
                                 $("#SupplierAddress").val("");
                                 $("#SupplierTinNo").val("");
-                                $(".defaultExpenseNumber").val("");
-                                $(".defaultExpenseTitle").val("");
                                 $(".withholdingTaxNumber").val("");
                                 $(".withholdingTaxtitle").val("");
+                                $(".defaultExpenseText").val(null).trigger('change');
                             }
                             $(document).ready(function () {
                                 $(".supplier").change(function () {
@@ -298,12 +299,19 @@
                     $("#SupplierName").val("");
                     $("#SupplierAddress").val("");
                     $("#SupplierTinNo").val("");
-                    $(".defaultExpenseNumber").val("");
-                    $(".defaultExpenseTitle").val("");
                     $(".withholdingTaxNumber").val("");
                     $(".withholdingTaxtitle").val("");
+                    $(".defaultExpenseText").val(null).trigger('change');
                 }
             };
+        </script>
+        <script>
+            function getDefaultExpense(defaultExpense) {
+                var defaultExpenseTitle = defaultExpense.replace(/^\S+\s/, '');
+                var defaultExpenseNumber = defaultExpense.split(' ')[0];
+                $(".defaultExpenseTitle").val(defaultExpenseTitle);
+                $(".defaultExpenseText").val(defaultExpenseNumber);
+            }
         </script>
         <script>
             function saveAccountingEntry() {
@@ -321,11 +329,6 @@
                     event.preventDefault();
                     alert('Please select Account No.!');
                     return;
-                }
-                if (accountNumber.startsWith("10201") || accountNumber.startsWith("10105")) {
-                } else {
-                    $("#StartDate").val("");
-                    $("#NumberOfYears").val(0);
                 }
 
                 // Format debit and credit values with commas and two decimal places
@@ -462,5 +465,17 @@
         </script>
         <script>
             setTransactionDate();
+        </script>
+        <script>
+            $(document).ready(function () {
+
+                $('.js-select-defaultExpense').select2({
+                    placeholder: "Select an option...",
+                    allowClear: true,
+                    width: 'resolve',
+                    theme: 'classic',
+                    multiple: false // Set multiple to false if the model data is an array, true otherwise
+                });
+            });
         </script>
     }

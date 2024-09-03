@@ -22,8 +22,8 @@
             <div class="col-6">
             </div>
         </div>
-        <table class="table table-bordered table-striped" id="dataTable">
-            <thead>
+        <table class="table table-bordered table-hover" id="dataTable">
+            <thead class="table-secondary">
                 <tr class="text-nowrap">
                     <th>
                         CR No.
@@ -52,7 +52,7 @@
             <tbody>
                 @foreach (var item in Model)
                 {
-                    <tr>
+                    <tr class="text-truncate">
                         <td>
                             @Html.DisplayFor(modelItem => item.CRNo)
                         </td>

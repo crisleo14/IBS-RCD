@@ -540,3 +540,29 @@ input[type=number] {
     color: red;
     margin-left: 2px;
 }
+
+/*.dataTable {
+    table-layout: fixed;
+    width: 100%;
+}
+
+    .dataTable th,
+    .dataTable td {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .dataTable thead {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }*/
+
+.pre {
+    margin: 0;
+    padding: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    text-align: justify;
+}

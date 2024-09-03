@@ -1048,6 +1048,15 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
 
+            viewModel.DefaultExpenses = await _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Number,
+                    Text = s.Name
+                })
+                .ToListAsync(cancellationToken);
+
             viewModel.Suppliers = await _dbContext.Suppliers
                 .Where(supp => supp.Category == "Non-Trade")
                 .Select(sup => new SelectListItem
@@ -1107,6 +1116,14 @@ namespace Accounting_System.Controllers
 
                     #endregion -- Saving the default entries -- 
 
+                    #region -- Get Supplier --
+
+                    var supplier = await _dbContext.Suppliers
+                        .Where(s => s.Id == viewModel.SupplierId)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    #endregion -- Get Supplier --
+
                     #region -- Automatic entry --
 
                     if (viewModel.StartDate != null && viewModel.NumberOfYears != 0)
@@ -1119,10 +1136,14 @@ namespace Accounting_System.Controllers
                         decimal? amount = null;
                         for (int i = 0; i < viewModel.AccountNumber.Length; i++)
                         {
+                            if (supplier.TaxType == "Exempt" && (i == 2 || i == 3))
+                            {
+                                continue;
+                            }
+
                             if (viewModel.AccountNumber[i].StartsWith("10201") || viewModel.AccountNumber[i].StartsWith("10105"))
                             {
                                 amount = viewModel.Debit[i] != 0 ? viewModel.Debit[i] : viewModel.Credit[i];
-                                break;
                             }
                         }
 
@@ -1504,10 +1525,10 @@ namespace Accounting_System.Controllers
                         })
                         .ToListAsync(cancellationToken);
 
-            var accountNumbers = existingDetailsModel.Select(model => model.AccountNo).ToArray();
-            var accountTitles = existingDetailsModel.Select(model => model.AccountName).ToArray();
-            var debit = existingDetailsModel.Select(model => model.Debit).ToArray();
-            var credit = existingDetailsModel.Select(model => model.Credit).ToArray();
+            var accountNumbers = existingDetailsModel.OrderBy(x => x.Id).Select(model => model.AccountNo).ToArray();
+            var accountTitles = existingDetailsModel.OrderBy(x => x.Id).Select(model => model.AccountName).ToArray();
+            var debit = existingDetailsModel.OrderBy(x => x.Id).Select(model => model.Debit).ToArray();
+            var credit = existingDetailsModel.OrderBy(x => x.Id).Select(model => model.Credit).ToArray();
 
             CheckVoucherNonTradeInvoicingViewModel viewModel = new()
             {
@@ -1525,6 +1546,14 @@ namespace Accounting_System.Controllers
                 Particulars = existingModel.Particulars,
                 AccountNumber = accountNumbers,
                 AccountTitle = accountTitles,
+                DefaultExpenses = await _dbContext.ChartOfAccounts
+                        .Where(coa => coa.Level == 4 || coa.Level == 5)
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.Number,
+                            Text = s.Name
+                        })
+                        .ToListAsync(cancellationToken),
                 Debit = debit,
                 Credit = credit
             };
@@ -1613,7 +1642,10 @@ namespace Accounting_System.Controllers
                             ids.RemoveAt(0);
                             var details = existingDetailsModel.First(o => o.Id == detailsId);
 
-                            details.AccountNo = viewModel.AccountNumber[i];
+                            var acctNo = await _dbContext.ChartOfAccounts
+                                .FirstOrDefaultAsync(x => x.Name == viewModel.AccountTitle[i]);
+
+                            details.AccountNo = acctNo.Number ?? throw new ArgumentNullException("Account title not found!");
                             details.AccountName = viewModel.AccountTitle[i];
                             details.Debit = viewModel.Debit[i];
                             details.Credit = viewModel.Credit[i];

@@ -102,10 +102,18 @@
 
                 <div class="form-group mb-3">
                     <label asp-for="POId" class="control-label">Suppliers PO No.<span class="required">*</span></label>
-                    <select asp-for="POId" class="form-control js-select2" asp-items="@Model.PO">
+                    <select asp-for="POId" class="form-control js-select2 GetRRList" asp-items="@Model.PO">
                         <option></option>
                     </select>
                     <span asp-validation-for="POId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="ReceivingReportId" class="control-label">RR No<span class="required">*</span></label>
+                    <select asp-for="ReceivingReportId" class="form-control js-select2" asp-items="@Model.RR">
+                        <option></option>
+                    </select>
+                    <span asp-validation-for="ReceivingReportId" class="text-danger"></span>
                 </div>
 
                 <div class="form-floating mb-3">
@@ -220,23 +228,23 @@
                     $.ajax({
                         url: "/SalesInvoice/GetPOs",
                         method: "GET",
-                        data: { productId: productId }, // Corrected parameter name
+                        data: { productId: productId },
                         success: function (data) {
                             if (data) {
                                 // Clear existing options
                                 $("#POId").empty();
+                                // Add "No Value" option
+                                $('#POId').append('<option value="">Select PO</option>');
                                 // Add new options based on the fetched data
                                 $.each(data, function (index, po) {
-                                    if (po && po.poNumber) { // Adjust property name to poNumber
-                                        console.log(po.id)
-                                        $('#POId').append('<option value="' + po.id + '">' + po.poNumber + '</option>'); // Adjust property names
-                                    } else {
-                                        console.error("Invalid PO object:", po);
+                                    if (po && po.poNumber) {
+                                        $('#POId').append('<option value="' + po.id + '">' + po.poNumber + '</option>');
                                     }
                                 });
                             } else {
                                 // Clear the fields if no POs are found
                                 $("#POId").empty();
+                                $('#POId').append('<option value="">No Value</option>');
                             }
                         },
                         error: function (xhr, status, error) {
@@ -246,11 +254,68 @@
                 } else {
                     // Clear the fields if no supplier is selected
                     $("#POId").empty();
+                    $('#POId').append('<option value="">No Value</option>');
                 }
             });
         });
     </script>
     <script>
         setTransactionDate();
+    </script>
+    <script>
+        $(function () {
+            $(".GetRRList").change(function () {
+                var purchaseOrderId = $(this).val();
+                if (purchaseOrderId !== "") {
+                    // Make an AJAX request to get the RRs based on the selected PurchaseOrderId
+                    $.ajax({
+                        url: "/SalesInvoice/GetRRs",
+                        method: "GET",
+                        data: { purchaseOrderId: purchaseOrderId },
+                        success: function (data) {
+                            if (data) {
+                                // Clear existing options in the RR dropdown
+                                $("#ReceivingReportId").empty();
+                                $('#ReceivingReportId').append('<option value="">Select RR</option>');
+                                // Reset transaction date
+                                $("input[name='TransactionDate']").val("");
+                                $.each(data, function (index, rr) {
+                                    if (rr && rr.rrNo && rr.receivedDate) {
+                                        $('#ReceivingReportId').append('<option value="' + rr.id + '" data-rr-date="' + rr.receivedDate + '">' + rr.rrNo + '</option>');
+                                    } else {
+                                        console.error("Invalid RR object:", rr);
+                                    }
+                                });
+                                // If only one RR is returned, auto-select it and set the TransactionDate
+                                if (data.length === 1) {
+                                    $("#ReceivingReportId").val(data[0].id);
+                                    $("input[name='TransactionDate']").val(data[0].receivedDate);
+                                }
+                            } else {
+                                // Clear the fields if no RRs are found
+                                $("#ReceivingReportId").empty();
+                                $("input[name='TransactionDate']").val("");
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Error fetching RRs:', error);
+                        }
+                    });
+                } else {
+                    // Clear the fields if no PO is selected
+                    $("#ReceivingReportId").empty();
+                    $("input[name='TransactionDate']").val("");
+                }
+            });
+            // Update TransactionDate when an RR is selected
+            $("#ReceivingReportId").change(function () {
+                var rrId = $(this).val();
+                if (rrId !== "") {
+                    var selectedRR = $(this).find("option:selected").data("rr-date");
+                    console.log(selectedRR)
+                    $("input[name='TransactionDate']").val(selectedRR);
+                }
+            });
+        });
     </script>
 }

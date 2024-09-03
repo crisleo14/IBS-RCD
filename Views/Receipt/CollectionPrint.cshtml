@@ -126,7 +126,7 @@
                 words = words.Replace("-", " ");
             }
             <tr>
-                <td colspan="2" style="padding-left:10px;">The sum of Pesos:<br /> @words</td>
+                <td colspan="2" style="padding-left:10px;">The sum of Pesos:<br /> <p style="margin: 0; padding: 0;">@words</p></td>
             </tr>
             <tr>
                 <td>&nbsp;</td>
@@ -413,7 +413,7 @@
         <span>&nbsp;&nbsp;Date Issued:</span>
         <span style="display: inline-block;">@CS.DateIssued</span><br />
         Series: CR0000000001 - CR9999999999
-        Date and Time Created:&nbsp;@Model.CreatedDate.ToString("MM/dd/yyyy")
+        Date and Time Created:&nbsp;@Model.CreatedDate
     </p>
 </div>
 

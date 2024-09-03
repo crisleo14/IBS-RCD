@@ -98,7 +98,7 @@
                     }
                 </td>
             </tr>
-            <tr>
+            <tr class="text-nowrap">
                 <td>PAYEE</td>
                 <td>
                     @if (Model.Header.CheckVoucherHeader != null)
@@ -107,12 +107,12 @@
                     }
                 </td>
                 <td>JV Reason :</td>
-                <td>@Html.DisplayFor(model => model.Header.JVReason)</td>
+                <td><p style="margin: 0; padding: 0; text-align: justify">@Html.DisplayFor(model => model.Header.JVReason)</p></td>
             </tr>
 
             <tr>
                 <td>PARTICULARS:</td>
-                <td><pre style="line-height: 1; margin: 0; padding: 0">@Html.DisplayFor(model => model.Header.Particulars)</pre></td>
+                <td><pre class="pre">@Html.DisplayFor(model => model.Header.Particulars)</pre></td>
                 <td></td>
                 <td></td>
             </tr>
@@ -191,7 +191,7 @@
         <span>&nbsp;&nbsp;Date Issued:</span>
         <span style="display: inline-block;">@CS.DateIssued</span><br />
         Series: JV0000000001 - JV9999999999
-        Date and Time Created:&nbsp; @Model.Header.CreatedDate.ToString("MM/dd/yyyy")
+        Date and Time Created:&nbsp; @Model.Header.CreatedDate
     </p>
 </div>
 <br />
