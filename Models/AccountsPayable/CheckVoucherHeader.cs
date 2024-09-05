@@ -114,5 +114,9 @@ namespace Accounting_System.Models.AccountsPayable
         public decimal AmountPaid { get; set; }
 
         public bool IsPaid { get; set; }
+
+        //Ibs records
+        public int? OriginalSupplierId { get; set; }
+        public int? OriginalBankId { get; set; }
     }
 }

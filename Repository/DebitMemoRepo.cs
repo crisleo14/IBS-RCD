@@ -83,7 +83,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<Services> GetServicesAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<Services> GetServicesAsync(int? id, CancellationToken cancellationToken = default)
         {
             var services = await _dbContext
                 .Services

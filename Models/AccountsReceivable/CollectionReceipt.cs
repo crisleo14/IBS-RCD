@@ -49,7 +49,7 @@ namespace Accounting_System.Models.AccountsReceivable
         public List<SelectListItem>? Customers { get; set; }
 
         [Required(ErrorMessage = "Customer is required.")]
-        public int CustomerId { get; set; }
+        public int? CustomerId { get; set; }
 
         //COA Property
 
@@ -133,5 +133,10 @@ namespace Accounting_System.Models.AccountsReceivable
         public decimal[]? SIMultipleAmount { get; set; }
 
         public DateOnly[]? MultipleTransactionDate { get; set; }
+
+        //Ibs records
+        public int? OriginalSalesInvoiceId { get; set; }
+        public int? OriginalServiceInvoiceId { get; set; }
+        public int? OriginalCustomerId { get; set; }
     }
 }

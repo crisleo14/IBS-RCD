@@ -18,7 +18,7 @@ namespace Accounting_System.Models.AccountsReceivable
 
         [Required]
         [Display(Name = "Customer No")]
-        public int CustomerId { get; set; }
+        public int? CustomerId { get; set; }
 
         [ForeignKey("CustomerId")]
         public Customer? Customer { get; set; }
@@ -35,7 +35,7 @@ namespace Accounting_System.Models.AccountsReceivable
 
         [Required]
         [Display(Name = "Product No")]
-        public int ProductId { get; set; }
+        public int? ProductId { get; set; }
 
         [ForeignKey("ProductId")]
         public Product? Product { get; set; }
@@ -125,7 +125,7 @@ namespace Accounting_System.Models.AccountsReceivable
         public PurchaseOrder? PurchaseOrder { get; set; }
 
         [Display(Name = "PO No.")]
-        public int POId { get; set; }
+        public int? POId { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? PO { get; set; }
@@ -134,5 +134,10 @@ namespace Accounting_System.Models.AccountsReceivable
         public List<SelectListItem>? RR { get; set; }
 
         public int ReceivingReportId { get; set; }
+
+        //Ibs records
+        public int? OriginalCustomerId { get; set; }
+        public int? OriginalProductId { get; set; }
+        public int? OriginalPOId { get; set; }
     }
 }

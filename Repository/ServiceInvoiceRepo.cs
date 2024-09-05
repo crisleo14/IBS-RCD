@@ -78,7 +78,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<Services> GetServicesAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<Services> GetServicesAsync(int? id, CancellationToken cancellationToken = default)
         {
             var services = await _dbContext
                 .Services
@@ -94,7 +94,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<Customer> FindCustomerAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<Customer> FindCustomerAsync(int? id, CancellationToken cancellationToken = default)
         {
             var customer = await _dbContext
                 .Customers

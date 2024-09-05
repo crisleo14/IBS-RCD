@@ -13,7 +13,7 @@ namespace Accounting_System.Models.AccountsReceivable
 
         [Display(Name = "Customer")]
         [Required(ErrorMessage = "The Customer is required.")]
-        public int CustomerId { get; set; }
+        public int? CustomerId { get; set; }
 
         [ForeignKey("CustomerId")]
         public Customer? Customer { get; set; }
@@ -23,7 +23,7 @@ namespace Accounting_System.Models.AccountsReceivable
 
         [Required(ErrorMessage = "The Service is required.")]
         [Display(Name = "Particulars")]
-        public int ServicesId { get; set; }
+        public int? ServicesId { get; set; }
 
         [ForeignKey("ServicesId")]
         public Services? Service { get; set; }
@@ -92,5 +92,9 @@ namespace Accounting_System.Models.AccountsReceivable
         public string? Instructions { get; set; }
 
         public bool IsPaid { get; set; }
+
+        //Ibs records
+        public int? OriginalCustomerId { get; set; }
+        public int? OriginalServicesId { get; set; }
     }
 }

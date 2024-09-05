@@ -123,8 +123,8 @@ namespace Accounting_System.Controllers
                 model.RRNo = generatedRR;
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 model.GainOrLoss = model.QuantityReceived - model.QuantityDelivered;
-                model.PONo = await _receivingReportRepo.GetPONoAsync(model.POId, cancellationToken);
-                model.DueDate = await _receivingReportRepo.ComputeDueDateAsync(model.POId, model.Date, cancellationToken);
+                model.PONo = await _receivingReportRepo.GetPONoAsync(model?.POId, cancellationToken);
+                model.DueDate = await _receivingReportRepo.ComputeDueDateAsync(model?.POId, model.Date, cancellationToken);
 
                 if (po.Supplier.VatType == "Vatable")
                 {
@@ -517,7 +517,7 @@ namespace Accounting_System.Controllers
                     await _generalRepo.RemoveRecords<PurchaseJournalBook>(pb => pb.DocumentNo == model.RRNo, cancellationToken);
                     await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.RRNo, cancellationToken);
                     await _generalRepo.RemoveRecords<Inventory>(i => i.Reference == model.RRNo, cancellationToken);
-                    await _receivingReportRepo.RemoveQuantityReceived(model.POId, model.QuantityReceived, cancellationToken);
+                    await _receivingReportRepo.RemoveQuantityReceived(model?.POId, model.QuantityReceived, cancellationToken);
                     model.QuantityReceived = 0;
 
                     #region --Audit Trail Recording

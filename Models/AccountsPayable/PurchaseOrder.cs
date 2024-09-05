@@ -20,7 +20,7 @@ namespace Accounting_System.Models.AccountsPayable
 
         [Required]
         [Display(Name = "Supplier Name")]
-        public int SupplierId { get; set; }
+        public int? SupplierId { get; set; }
 
         [ForeignKey("SupplierId")]
         public Supplier? Supplier { get; set; }
@@ -32,7 +32,7 @@ namespace Accounting_System.Models.AccountsPayable
 
         [Required]
         [Display(Name = "Product Name")]
-        public int ProductId { get; set; }
+        public int? ProductId { get; set; }
 
         [ForeignKey("ProductId")]
         public Product? Product { get; set; }
@@ -77,5 +77,10 @@ namespace Accounting_System.Models.AccountsPayable
 
         [NotMapped]
         public List<ReceivingReport>? RrList { get; set; }
+
+        //Ibs records
+        public int? OriginalSupplierId { get; set; }
+
+        public int? OriginalProductId { get; set; }
     }
 }

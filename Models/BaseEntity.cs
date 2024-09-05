@@ -40,5 +40,7 @@ namespace Accounting_System.Models
         public DateTime? PostedDate { get; set; }
 
         public string? CancellationRemarks { get; set; }
+
+        public string OriginalSeriesNumber { get; set; }
     }
 }

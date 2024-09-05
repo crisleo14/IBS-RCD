@@ -22,7 +22,7 @@ namespace Accounting_System.Models.AccountsPayable
 
         [Display(Name = "PO No.")]
         [Required]
-        public int POId { get; set; }
+        public int? POId { get; set; }
 
         [ForeignKey("POId")]
         public PurchaseOrder? PurchaseOrder { get; set; }
@@ -104,5 +104,8 @@ namespace Accounting_System.Models.AccountsPayable
 
         [Column(TypeName = "date")]
         public DateOnly? ReceivedDate { get; set; }
+
+        //Ibs records
+        public int? OriginalPOId { get; set; }
     }
 }

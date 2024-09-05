@@ -729,7 +729,7 @@ namespace Accounting_System.Controllers
 
                             #region --Retrieval of Services
 
-                            var services = await _creditMemoRepo.GetServicesAsync(model.ServicesId, cancellationToken);
+                            var services = await _creditMemoRepo.GetServicesAsync(model?.ServicesId, cancellationToken);
 
                             #endregion --Retrieval of Services
 

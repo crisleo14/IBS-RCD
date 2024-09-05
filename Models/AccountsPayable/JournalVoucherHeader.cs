@@ -37,5 +37,9 @@ namespace Accounting_System.Models
 
         [NotMapped]
         public List<SelectListItem>? COA { get; set; }
+
+
+        //Ibs records
+        public int? OriginalCVId { get; set; }
     }
 }

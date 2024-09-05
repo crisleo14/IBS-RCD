@@ -14,7 +14,7 @@ namespace Accounting_System.Models
         [Column(TypeName = "date")]
         public DateOnly Date { get; set; }
 
-        public int ProductId { get; set; }
+        public int? ProductId { get; set; }
 
         [ForeignKey("ProductId")]
         public Product Product { get; set; }
@@ -98,5 +98,9 @@ namespace Accounting_System.Models
 
         [ForeignKey("POId")]
         public PurchaseOrder? PurchaseOrder { get; set; }
+
+        //Ibs records
+        public int? OriginalProductId { get; set; }
+        public int? OriginalPOId { get; set; }
     }
 }

@@ -59,7 +59,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<int> GetSupplierNoAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<int> GetSupplierNoAsync(int? id, CancellationToken cancellationToken = default)
         {
             if (id != 0)
             {
@@ -74,7 +74,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<string> GetProductNoAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<string> GetProductNoAsync(int? id, CancellationToken cancellationToken = default)
         {
             if (id != 0)
             {

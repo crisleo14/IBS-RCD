@@ -49,5 +49,8 @@ namespace Accounting_System.Models.ViewModels
 
         [Required]
         public decimal[] Credit { get; set; }
+
+        //Ibs records
+        public int? OriginalCVId { get; set; }
     }
 }

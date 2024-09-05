@@ -87,6 +87,10 @@ namespace Accounting_System.Models.AccountsReceivable
         [Column(TypeName = "numeric(18,2)")]
         public decimal UnearnedAmount { get; set; }
 
-        public int ServicesId { get; set; }
+        public int? ServicesId { get; set; }
+
+        //Ibs records
+        public int? OriginalSalesInvoiceId { get; set; }
+        public int? OriginalServiceInvoiceId { get; set; }
     }
 }

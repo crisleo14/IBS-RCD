@@ -105,13 +105,13 @@ namespace Accounting_System.Controllers
 
                 #region --Retrieval of Services
 
-                var services = await _serviceInvoiceRepo.GetServicesAsync(model.ServicesId, cancellationToken);
+                var services = await _serviceInvoiceRepo.GetServicesAsync(model?.ServicesId, cancellationToken);
 
                 #endregion --Retrieval of Services
 
                 #region --Retrieval of Customer
 
-                var customer = await _serviceInvoiceRepo.FindCustomerAsync(model.CustomerId, cancellationToken);
+                var customer = await _serviceInvoiceRepo.FindCustomerAsync(model?.CustomerId, cancellationToken);
 
                 #endregion --Retrieval of Customer
 

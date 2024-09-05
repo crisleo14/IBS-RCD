@@ -50,7 +50,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<string> GetPONoAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<string> GetPONoAsync(int? id, CancellationToken cancellationToken = default)
         {
             if (id != 0)
             {
@@ -92,7 +92,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<int> RemoveQuantityReceived(int id, decimal quantityReceived, CancellationToken cancellationToken = default)
+        public async Task<int> RemoveQuantityReceived(int? id, decimal quantityReceived, CancellationToken cancellationToken = default)
         {
             var po = await _dbContext.PurchaseOrders
                     .FirstOrDefaultAsync(po => po.Id == id, cancellationToken);
@@ -119,7 +119,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<DateOnly> ComputeDueDateAsync(int poId, DateOnly rrDate, CancellationToken cancellationToken = default)
+        public async Task<DateOnly> ComputeDueDateAsync(int? poId, DateOnly rrDate, CancellationToken cancellationToken = default)
         {
             var po = await _dbContext
                 .PurchaseOrders
