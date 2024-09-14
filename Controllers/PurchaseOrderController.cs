@@ -591,33 +591,25 @@ namespace Accounting_System.Controllers
                                 OriginalSupplierId = int.TryParse(worksheet.Cells[row, 17].Text, out int originalSupplierId) ? originalSupplierId : 0,
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 18].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
+                            var getProduct = await _dbContext.Products
+                                .Where(p => p.OriginalProductId == purchaseOrder.OriginalProductId)
+                                .FirstOrDefaultAsync();
+
+                            purchaseOrder.ProductId = getProduct.Id;
+
+                            purchaseOrder.ProductNo = getProduct.Code;
+
+                            var getSupplier = await _dbContext.Suppliers
+                                .Where(c => c.OriginalSupplierId == purchaseOrder.OriginalSupplierId)
+                                .FirstOrDefaultAsync();
+
+                            purchaseOrder.SupplierId = getSupplier.Id;
+
+                            purchaseOrder.SupplierNo = getSupplier.Number;
 
                             await _dbContext.PurchaseOrders.AddAsync(purchaseOrder);
                             await _dbContext.SaveChangesAsync();
-
-                            var po = await _dbContext
-                                .PurchaseOrders
-                                .FirstOrDefaultAsync(po => po.Id == purchaseOrder.Id);
-
-                            var getProduct = await _dbContext.Products
-                                .Where(p => p.OriginalProductId == po.OriginalProductId)
-                                .FirstOrDefaultAsync();
-
-                            po.ProductId = getProduct.Id;
-
-                            po.ProductNo = getProduct.Code;
-
-                            var getSupplier = await _dbContext.Suppliers
-                                .Where(c => c.OriginalSupplierId == po.OriginalSupplierId)
-                                .FirstOrDefaultAsync();
-
-                            po.SupplierId = getSupplier.Id;
-
-                            po.SupplierNo = getSupplier.Number;
-
-                            await _dbContext.SaveChangesAsync();
                         }
-
                     }
                 }
                 catch (OperationCanceledException oce)

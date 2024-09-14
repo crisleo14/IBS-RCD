@@ -773,20 +773,14 @@ namespace Accounting_System.Controllers
                                 OriginalSeriesNumber = worksheet.Cells[row, 25].Text,
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 26].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
-                            await _dbContext.ReceivingReports.AddAsync(receivingReport);
-                            await _dbContext.SaveChangesAsync();
-
-                            var rr = await _dbContext
-                                .ReceivingReports
-                                .FirstOrDefaultAsync(s => s.Id == receivingReport.Id);
-
                             var getPO = await _dbContext.PurchaseOrders
                                 .Where(c => c.OriginalDocumentId == receivingReport.OriginalPOId)
                                 .FirstOrDefaultAsync();
 
-                            rr.POId = getPO.Id;
-                            rr.PONo = getPO.PONo;
+                            receivingReport.POId = getPO.Id;
+                            receivingReport.PONo = getPO.PONo;
 
+                            await _dbContext.ReceivingReports.AddAsync(receivingReport);
                             await _dbContext.SaveChangesAsync();
                         }
                     }

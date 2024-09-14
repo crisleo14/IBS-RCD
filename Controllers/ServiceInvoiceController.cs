@@ -810,23 +810,17 @@ namespace Accounting_System.Controllers
                                 OriginalServicesId = int.TryParse(worksheet.Cells[row, 22].Text, out int originalServicesId) ? originalServicesId : 0,
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 23].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
-                            await _dbContext.ServiceInvoices.AddAsync(serviceInvoice);
-                            await _dbContext.SaveChangesAsync();
-
-                            var sv = await _dbContext
-                                .ServiceInvoices
-                                .FirstOrDefaultAsync(s => s.Id == serviceInvoice.Id);
-
-                            sv.CustomerId = await _dbContext.Customers
+                            serviceInvoice.CustomerId = await _dbContext.Customers
                                 .Where(sv => sv.OriginalCustomerId == serviceInvoice.OriginalCustomerId)
                                 .Select(sv => sv.Id)
                                 .FirstOrDefaultAsync();
 
-                            sv.ServicesId = await _dbContext.Services
+                            serviceInvoice.ServicesId = await _dbContext.Services
                                 .Where(sv => sv.OriginalServiceId == serviceInvoice.OriginalServicesId)
                                 .Select(sv => sv.Id)
                                 .FirstOrDefaultAsync();
 
+                            await _dbContext.ServiceInvoices.AddAsync(serviceInvoice);
                             await _dbContext.SaveChangesAsync();
                         }
                     }

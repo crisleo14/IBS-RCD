@@ -963,33 +963,27 @@ namespace Accounting_System.Controllers
                                 OriginalSeriesNumber = worksheet.Cells[row, 28].Text,
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 29].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
-                            await _dbContext.SalesInvoices.AddAsync(invoice);
-                            await _dbContext.SaveChangesAsync();
-
-                            var si = await _dbContext
-                                .SalesInvoices
-                                .FirstOrDefaultAsync(s => s.Id == invoice.Id);
-
-                            si.CustomerId = await _dbContext.Customers
+                            invoice.CustomerId = await _dbContext.Customers
                                 .Where(c => c.OriginalCustomerId == invoice.OriginalCustomerId)
                                 .Select(c => c.Id)
                                 .FirstOrDefaultAsync();
 
-                            si.ProductId = await _dbContext.Products
+                            invoice.ProductId = await _dbContext.Products
                                 .Where(c => c.OriginalProductId == invoice.OriginalProductId)
                                 .Select(c => c.Id)
                                 .FirstOrDefaultAsync();
 
-                            si.ReceivingReportId = await _dbContext.ReceivingReports
+                            invoice.ReceivingReportId = await _dbContext.ReceivingReports
                                 .Where(c => c.OriginalDocumentId == invoice.OriginalReceivingReportId)
                                 .Select(c => c.Id)
                                 .FirstOrDefaultAsync();
 
-                            si.POId = await _dbContext.PurchaseOrders
+                            invoice.POId = await _dbContext.PurchaseOrders
                                 .Where(c => c.OriginalDocumentId == invoice.OriginalPOId)
                                 .Select(c => c.Id)
                                 .FirstOrDefaultAsync();
 
+                            await _dbContext.SalesInvoices.AddAsync(invoice);
                             await _dbContext.SaveChangesAsync();
                         }
 
