@@ -207,7 +207,7 @@ namespace Accounting_System.Controllers
         #region -- export xlsx record --
 
         [HttpPost]
-        public IActionResult Export(string selectedRecord)
+        public async Task<IActionResult> Export(string selectedRecord)
         {
             if (string.IsNullOrEmpty(selectedRecord))
             {
@@ -218,10 +218,10 @@ namespace Accounting_System.Controllers
             var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
 
             // Retrieve the selected invoices from the database
-            var selectedList = _dbContext.Services
+            var selectedList = await _dbContext.Services
                 .Where(service => recordIds.Contains(service.Id))
                 .OrderBy(service => service.Id)
-                .ToList();
+                .ToListAsync();
 
             // Create the Excel package
             using var package = new ExcelPackage();
@@ -256,7 +256,7 @@ namespace Accounting_System.Controllers
             }
 
             // Convert the Excel package to a byte array
-            var excelBytes = package.GetAsByteArray();
+            var excelBytes = await package.GetAsByteArrayAsync();
 
             return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ServiceList.xlsx");
         }
@@ -308,22 +308,6 @@ namespace Accounting_System.Controllers
                             };
                             await _dbContext.Services.AddAsync(services);
                             await _dbContext.SaveChangesAsync();
-
-                            //var svcs = await _dbContext
-                            //    .Services
-                            //    .FirstOrDefaultAsync(svcs => svcs.Id == services.Id);
-
-                            //sv.CustomerId = await _dbContext.Customers
-                            //    .Where(sv => sv.OriginalCustomerId == serviceInvoice.OriginalCustomerId)
-                            //    .Select(sv => sv.Id)
-                            //    .FirstOrDefaultAsync();
-
-                            //sv.ServicesId = await _dbContext.Services
-                            //    .Where(sv => sv.OriginalServiceId == serviceInvoice.OriginalServicesId)
-                            //    .Select(sv => sv.Id)
-                            //    .FirstOrDefaultAsync();
-
-                            //await _dbContext.SaveChangesAsync();
                         }
 
                     }

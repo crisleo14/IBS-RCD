@@ -2141,7 +2141,7 @@ namespace Accounting_System.Controllers
                     }
 
                     // Convert the Excel package to a byte array
-                    var excelBytes = package.GetAsByteArray();
+                    var excelBytes = await package.GetAsByteArrayAsync();
 
                     return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "CheckVoucherList.xlsx");
                 }

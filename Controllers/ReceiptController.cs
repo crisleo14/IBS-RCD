@@ -1833,10 +1833,10 @@ namespace Accounting_System.Controllers
             var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
 
             // Retrieve the selected invoices from the database
-            var selectedList = _dbContext.CollectionReceipts
+            var selectedList = await _dbContext.CollectionReceipts
                 .Where(cr => recordIds.Contains(cr.Id))
                 .OrderBy(cr => cr.CRNo)
-                .ToList();
+                .ToListAsync();
 
             using (var package = new ExcelPackage())
             {
@@ -1954,7 +1954,7 @@ namespace Accounting_System.Controllers
                 }
 
                 // Convert the Excel package to a byte array
-                var excelBytes = package.GetAsByteArray();
+                var excelBytes = await package.GetAsByteArrayAsync();
 
                 return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "CollectionReceiptList.xlsx");
             }

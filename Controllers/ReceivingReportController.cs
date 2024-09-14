@@ -622,7 +622,7 @@ namespace Accounting_System.Controllers
         #region -- export xlsx record --
 
         [HttpPost]
-        public IActionResult Export(string selectedRecord)
+        public async Task<IActionResult> Export(string selectedRecord)
         {
             if (string.IsNullOrEmpty(selectedRecord))
             {
@@ -633,10 +633,10 @@ namespace Accounting_System.Controllers
             var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
 
             // Retrieve the selected records from the database
-            var selectedList = _dbContext.ReceivingReports
+            var selectedList = await _dbContext.ReceivingReports
                 .Where(rr => recordIds.Contains(rr.Id))
                 .OrderBy(rr => rr.RRNo)
-                .ToList();
+                .ToListAsync();
 
             // Create the Excel package
             using var package = new ExcelPackage();
@@ -705,7 +705,7 @@ namespace Accounting_System.Controllers
             }
 
             // Convert the Excel package to a byte array
-            var excelBytes = package.GetAsByteArray();
+            var excelBytes = await package.GetAsByteArrayAsync();
 
             return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ReceivingReportList.xlsx");
         }

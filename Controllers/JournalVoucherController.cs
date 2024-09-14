@@ -701,10 +701,10 @@ namespace Accounting_System.Controllers
             var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
 
             // Retrieve the selected invoices from the database
-            var selectedList = _dbContext.JournalVoucherHeaders
+            var selectedList = await _dbContext.JournalVoucherHeaders
                 .Where(jv => recordIds.Contains(jv.Id))
                 .OrderBy(jv => jv.JVNo)
-                .ToList();
+                .ToListAsync();
 
             // Create the Excel package
             using (var package = new ExcelPackage())
@@ -772,7 +772,7 @@ namespace Accounting_System.Controllers
 
 
                 // Convert the Excel package to a byte array
-                var excelBytes = package.GetAsByteArray();
+                var excelBytes = await package.GetAsByteArrayAsync();
 
                 return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "JournalVoucherList.xlsx");
             }

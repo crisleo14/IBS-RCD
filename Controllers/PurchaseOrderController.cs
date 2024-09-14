@@ -464,7 +464,7 @@ namespace Accounting_System.Controllers
         #region -- export xlsx record --
 
         [HttpPost]
-        public IActionResult Export(string selectedRecord)
+        public async Task<IActionResult> Export(string selectedRecord)
         {
             if (string.IsNullOrEmpty(selectedRecord))
             {
@@ -475,10 +475,10 @@ namespace Accounting_System.Controllers
             var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
 
             // Retrieve the selected invoices from the database
-            var selectedList = _dbContext.PurchaseOrders
+            var selectedList = await _dbContext.PurchaseOrders
                 .Where(po => recordIds.Contains(po.Id))
                 .OrderBy(po => po.PONo)
-                .ToList();
+                .ToListAsync();
 
             // Create the Excel package
             using var package = new ExcelPackage();
@@ -531,7 +531,7 @@ namespace Accounting_System.Controllers
             }
 
             // Convert the Excel package to a byte array
-            var excelBytes = package.GetAsByteArray();
+            var excelBytes = await package.GetAsByteArrayAsync();
 
             return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "PurchaseOrderList.xlsx");
         }
@@ -597,10 +597,10 @@ namespace Accounting_System.Controllers
 
                             var po = await _dbContext
                                 .PurchaseOrders
-                                .FirstOrDefaultAsync(s => s.Id == purchaseOrder.Id);
+                                .FirstOrDefaultAsync(po => po.Id == purchaseOrder.Id);
 
                             var getProduct = await _dbContext.Products
-                                .Where(c => c.OriginalProductId == po.OriginalProductId)
+                                .Where(p => p.OriginalProductId == po.OriginalProductId)
                                 .FirstOrDefaultAsync();
 
                             po.ProductId = getProduct.Id;
