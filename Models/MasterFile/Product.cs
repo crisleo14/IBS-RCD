@@ -9,7 +9,7 @@ namespace Accounting_System.Models.MasterFile
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        public string Code { get; set; }
+        public string? Code { get; set; }
         public string Name { get; set; }
         public string Unit { get; set; }
 
@@ -19,5 +19,7 @@ namespace Accounting_System.Models.MasterFile
 
         [Display(Name = "Created Date")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        public int OriginalProductId { get; set; }
     }
 }

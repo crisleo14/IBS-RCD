@@ -76,5 +76,7 @@ namespace Accounting_System.Models.MasterFile
 
         [NotMapped]
         public List<SelectListItem>? WithholdingTaxList { get; set; }
+
+        public int? OriginalSupplierId { get; set; }
     }
 }

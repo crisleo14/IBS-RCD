@@ -1,0 +1,158 @@
+﻿@model IEnumerable<Accounting_System.Models.Customer>
+
+@{
+    ViewData["Title"] = "Customer";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">CUSTOMER MASTER FILE</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4 table-responsive">
+        <div class="row pb-3">
+            <div class="col-6">
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col"><input type="file" class="form-control" id="fileInput" /></div>
+                        <div class="col"><button class="btn btn-primary" onclick="uploadFile()">Upload</button></div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-6 text-end">
+                <p>
+                    <button type="button" class="btn btn-primary" onclick="exportToCsv()">Export Selected to CSV</button>
+                </p>
+            </div>
+        </div>
+
+        <table class="table table-bordered table-hover" id="dataTable">
+            <thead class="table-secondary">
+                <tr class="text-primary">
+                    <th>
+                        @Html.DisplayNameFor(model => model.Number)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Name)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.TinNo)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.BusinessStyle)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Terms)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.CustomerType)
+                    </th>
+                    <th>
+                        <input type="checkbox" class="text-center" id="selectAll" onclick="toggleSelectAll(this)">
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Number)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Name)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.TinNo)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.BusinessStyle)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Terms)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.CustomerType)
+                        </td>
+                        <td>
+                            <input type="checkbox" class="selectCheckbox text-center" value="@item.Id">
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+@section Scripts{
+    <script>
+        function toggleSelectAll(selectAllCheckbox) {
+            const checkboxes = document.querySelectorAll('.selectCheckbox');
+            checkboxes.forEach(checkbox => checkbox.checked = selectAllCheckbox.checked);
+        }
+
+        function exportToCsv() {
+            const selectedIds = Array.from(document.querySelectorAll('.selectCheckbox:checked'))
+                .map(checkbox => checkbox.value)
+                .join(',');
+
+            if (selectedIds) {
+                fetch('/Customer/Export', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded' // Corrected Content-Type
+                    },
+                    body: new URLSearchParams({ selectedRecord: selectedIds })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to download file');
+                        }
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'CustomerList.xlsx';
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                    })
+                    .catch(error => console.error('Error:', error));
+            } else {
+                alert('No Customer selected.');
+            }
+        }
+
+        function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("Please select a file to upload.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/Customer/Import', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert(result.message);
+                    } else {
+                        alert(`Error: ${result.message}`);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+}

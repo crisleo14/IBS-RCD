@@ -50,5 +50,8 @@ namespace Accounting_System.Models
 
         [Display(Name = "Created Date")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        public int OriginalCustomerId { get; set; }
+        public int OriginalCustomerNumber { get; set; }
     }
 }

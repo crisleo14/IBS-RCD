@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 
 namespace Accounting_System.Controllers
 {
@@ -30,6 +31,13 @@ namespace Accounting_System.Controllers
         }
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
+        {
+            return _context.Suppliers != null ?
+                        View(await _context.Suppliers.ToListAsync(cancellationToken)) :
+                        Problem("Entity set 'ApplicationDbContext.Suppliers'  is null.");
+        }
+
+        public async Task<IActionResult> ImportExportIndex(CancellationToken cancellationToken)
         {
             return _context.Suppliers != null ?
                         View(await _context.Suppliers.ToListAsync(cancellationToken)) :
@@ -344,5 +352,164 @@ namespace Accounting_System.Controllers
         {
             return (_context.Suppliers?.Any(e => e.Id == id)).GetValueOrDefault();
         }
+
+        //Download as .xlsx file.(Export)
+        #region -- export xlsx record --
+
+        [HttpPost]
+        public IActionResult Export(string selectedRecord)
+        {
+            if (string.IsNullOrEmpty(selectedRecord))
+            {
+                // Handle the case where no invoices are selected
+                return RedirectToAction(nameof(Index));
+            }
+
+            var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
+
+            // Retrieve the selected invoices from the database
+            var selectedList = _context.Suppliers
+                .Where(supp => recordIds.Contains(supp.Id))
+                .OrderBy(supp => supp.Number)
+                .ToList();
+
+            // Create the Excel package
+            using var package = new ExcelPackage();
+            // Add a new worksheet to the Excel package
+            var worksheet = package.Workbook.Worksheets.Add("Supplier");
+
+            worksheet.Cells["A1"].Value = "Name";
+            worksheet.Cells["B1"].Value = "Address";
+            worksheet.Cells["C1"].Value = "TinNo";
+            worksheet.Cells["D1"].Value = "Terms";
+            worksheet.Cells["E1"].Value = "VatType";
+            worksheet.Cells["F1"].Value = "TaxType";
+            worksheet.Cells["G1"].Value = "ProofOfRegistrationFilePath";
+            worksheet.Cells["H1"].Value = "ReasonOfExemption";
+            worksheet.Cells["I1"].Value = "Validity";
+            worksheet.Cells["J1"].Value = "ValidityDate";
+            worksheet.Cells["K1"].Value = "ProofOfExemptionFilePath";
+            worksheet.Cells["L1"].Value = "CreatedBy";
+            worksheet.Cells["M1"].Value = "CreatedDate";
+            worksheet.Cells["N1"].Value = "Branch";
+            worksheet.Cells["O1"].Value = "Category";
+            worksheet.Cells["P1"].Value = "TradeName";
+            worksheet.Cells["Q1"].Value = "DefaultExpenseNumber";
+            worksheet.Cells["R1"].Value = "WithholdingTaxPercent";
+            worksheet.Cells["S1"].Value = "WithholdingTaxTitle";
+            worksheet.Cells["T1"].Value = "OriginalSupplierId";
+
+            int row = 2;
+
+            foreach (var item in selectedList)
+            {
+                worksheet.Cells[row, 1].Value = item.Name;
+                worksheet.Cells[row, 2].Value = item.Address;
+                worksheet.Cells[row, 3].Value = item.TinNo;
+                worksheet.Cells[row, 4].Value = item.Terms;
+                worksheet.Cells[row, 5].Value = item.VatType;
+                worksheet.Cells[row, 6].Value = item.TaxType;
+                worksheet.Cells[row, 7].Value = item.ProofOfRegistrationFilePath;
+                worksheet.Cells[row, 8].Value = item.ReasonOfExemption;
+                worksheet.Cells[row, 9].Value = item.Validity;
+                worksheet.Cells[row, 10].Value = item.ValidityDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                worksheet.Cells[row, 11].Value = item.ProofOfExemptionFilePath;
+                worksheet.Cells[row, 12].Value = item.CreatedBy;
+                worksheet.Cells[row, 13].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                worksheet.Cells[row, 14].Value = item.Branch;
+                worksheet.Cells[row, 15].Value = item.Category;
+                worksheet.Cells[row, 16].Value = item.TradeName;
+                worksheet.Cells[row, 17].Value = item.DefaultExpenseNumber;
+                worksheet.Cells[row, 18].Value = item.WithholdingTaxPercent;
+                worksheet.Cells[row, 19].Value = item.WithholdingTaxtitle;
+                worksheet.Cells[row, 20].Value = item.Id;
+
+                row++;
+            }
+
+            // Convert the Excel package to a byte array
+            var excelBytes = package.GetAsByteArray();
+
+            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "SupplierList.xlsx");
+        }
+
+        #endregion -- export xlsx record --
+
+        //Upload as .xlsx file.(Import)
+        #region -- import xlsx record --
+
+        [HttpPost]
+        public async Task<IActionResult> Import(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                stream.Position = 0;
+
+                try
+                {
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                        if (worksheet == null)
+                        {
+                            return RedirectToAction(nameof(Index), new { errorMessage = "The Excel file contains no worksheets." });
+                        }
+
+                        var rowCount = worksheet.Dimension.Rows;
+
+                        for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                        {
+                            var supplier = new Supplier
+                            {
+                                Number = await _supplierRepo.GetLastNumber(),
+                                Name = worksheet.Cells[row, 1].Text,
+                                Address = worksheet.Cells[row, 2].Text,
+                                TinNo = worksheet.Cells[row, 3].Text,
+                                Terms = worksheet.Cells[row, 4].Text,
+                                VatType = worksheet.Cells[row, 5].Text,
+                                TaxType = worksheet.Cells[row, 6].Text,
+                                ProofOfRegistrationFilePath = worksheet.Cells[row, 7].Text,
+                                ReasonOfExemption = worksheet.Cells[row, 8].Text,
+                                Validity = worksheet.Cells[row, 9].Text,
+                                ValidityDate = DateTime.TryParse(worksheet.Cells[row, 10].Text, out DateTime validityDate) ? validityDate : default,
+                                ProofOfExemptionFilePath = worksheet.Cells[row, 11].Text,
+                                CreatedBy = worksheet.Cells[row, 12].Text,
+                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 13].Text, out DateTime createdDate) ? createdDate : default,
+                                Branch = worksheet.Cells[row, 14].Text,
+                                Category = worksheet.Cells[row, 15].Text,
+                                TradeName = worksheet.Cells[row, 16].Text,
+                                DefaultExpenseNumber = worksheet.Cells[row, 17].Text,
+                                WithholdingTaxPercent = int.TryParse(worksheet.Cells[row, 18].Text, out int withholdingTaxPercent) ? withholdingTaxPercent : 0,
+                                WithholdingTaxtitle = worksheet.Cells[row, 19].Text,
+                                OriginalSupplierId = int.TryParse(worksheet.Cells[row, 20].Text, out int originalSupplierId) ? originalSupplierId : 0,
+                            };
+                            await _context.Suppliers.AddAsync(supplier);
+                            await _context.SaveChangesAsync();
+                        }
+
+                    }
+                }
+                catch (OperationCanceledException oce)
+                {
+                    TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        #endregion -- import xlsx record --
     }
 }

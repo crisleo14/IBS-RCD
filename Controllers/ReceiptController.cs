@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 
 namespace Accounting_System.Controllers
 {
@@ -34,6 +35,12 @@ namespace Accounting_System.Controllers
         }
 
         public async Task<IActionResult> CollectionIndex(CancellationToken cancellationToken)
+        {
+            var viewData = await _receiptRepo.GetCRAsync(cancellationToken);
+
+            return View(viewData);
+        }
+        public async Task<IActionResult> ImportExportIndex(CancellationToken cancellationToken)
         {
             var viewData = await _receiptRepo.GetCRAsync(cancellationToken);
 
@@ -1810,5 +1817,302 @@ namespace Accounting_System.Controllers
 
             return NotFound();
         }
+
+        //Download as .xlsx file.(Export)
+        #region -- export xlsx record --
+
+        [HttpPost]
+        public async Task<IActionResult> Export(string selectedRecord)
+        {
+            if (string.IsNullOrEmpty(selectedRecord))
+            {
+                // Handle the case where no invoices are selected
+                return RedirectToAction(nameof(Index));
+            }
+
+            var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
+
+            // Retrieve the selected invoices from the database
+            var selectedList = _dbContext.CollectionReceipts
+                .Where(cr => recordIds.Contains(cr.Id))
+                .OrderBy(cr => cr.CRNo)
+                .ToList();
+
+            using (var package = new ExcelPackage())
+            {
+                // Add a new worksheet to the Excel package
+                var worksheet = package.Workbook.Worksheets.Add("CollectionReceipt");
+
+                var worksheet2 = package.Workbook.Worksheets.Add("Offsetting");
+
+                worksheet.Cells["A1"].Value = "TransactionDate";
+                worksheet.Cells["B1"].Value = "ReferenceNo";
+                worksheet.Cells["C1"].Value = "Remarks";
+                worksheet.Cells["D1"].Value = "CashAmount";
+                worksheet.Cells["E1"].Value = "CheckDate";
+                worksheet.Cells["F1"].Value = "CheckNo";
+                worksheet.Cells["G1"].Value = "CheckBank";
+                worksheet.Cells["H1"].Value = "CheckBranch";
+                worksheet.Cells["I1"].Value = "CheckAmount";
+                worksheet.Cells["J1"].Value = "ManagerCheckDate";
+                worksheet.Cells["K1"].Value = "ManagerCheckNo";
+                worksheet.Cells["L1"].Value = "ManagerCheckBank";
+                worksheet.Cells["M1"].Value = "ManagerCheckBranch";
+                worksheet.Cells["N1"].Value = "ManagerCheckAmount";
+                worksheet.Cells["O1"].Value = "EWT";
+                worksheet.Cells["P1"].Value = "WVAT";
+                worksheet.Cells["Q1"].Value = "Total";
+                worksheet.Cells["R1"].Value = "IsCertificateUpload";
+                worksheet.Cells["S1"].Value = "f2306FilePath";
+                worksheet.Cells["T1"].Value = "f2307FilePath";
+                worksheet.Cells["U1"].Value = "CreatedBy";
+                worksheet.Cells["V1"].Value = "CreatedDate";
+                worksheet.Cells["W1"].Value = "CancellationRemarks";
+                worksheet.Cells["X1"].Value = "MultipleSI";
+                worksheet.Cells["Y1"].Value = "MultipleSIId";
+                worksheet.Cells["Z1"].Value = "SIMultipleAmount";
+                worksheet.Cells["AA1"].Value = "MultipleTransactionDate";
+                worksheet.Cells["AB1"].Value = "OriginalCustomerId";
+                worksheet.Cells["AC1"].Value = "OriginalSalesInvoiceId";
+                worksheet.Cells["AD1"].Value = "OriginalSeriesNumber";
+                worksheet.Cells["AE1"].Value = "OriginalServiceInvoiceId";
+                worksheet.Cells["AF1"].Value = "OriginalDocumentId";
+
+                worksheet2.Cells["A1"].Value = "AccountNo";
+                worksheet2.Cells["B1"].Value = "Source";
+                worksheet2.Cells["C1"].Value = "Reference";
+                worksheet2.Cells["D1"].Value = "IsRemoved";
+                worksheet2.Cells["E1"].Value = "Amount";
+                worksheet2.Cells["F1"].Value = "CreatedBy";
+                worksheet2.Cells["G1"].Value = "CreatedDate";
+                worksheet2.Cells["H1"].Value = "AccountTitle";
+
+                int row = 2;
+
+                foreach (var item in selectedList)
+                {
+                    worksheet.Cells[row, 1].Value = item.TransactionDate.ToString("yyyy-MM-dd");
+                    worksheet.Cells[row, 2].Value = item.ReferenceNo;
+                    worksheet.Cells[row, 3].Value = item.Remarks;
+                    worksheet.Cells[row, 4].Value = item.CashAmount;
+                    worksheet.Cells[row, 5].Value = item.CheckDate;
+                    worksheet.Cells[row, 6].Value = item.CheckNo;
+                    worksheet.Cells[row, 7].Value = item.CheckBank;
+                    worksheet.Cells[row, 8].Value = item.CheckBranch;
+                    worksheet.Cells[row, 9].Value = item.CheckAmount;
+                    worksheet.Cells[row, 10].Value = item.ManagerCheckDate?.ToString("yyyy-MM-dd");
+                    worksheet.Cells[row, 11].Value = item.ManagerCheckNo;
+                    worksheet.Cells[row, 12].Value = item.ManagerCheckBank;
+                    worksheet.Cells[row, 13].Value = item.ManagerCheckBranch;
+                    worksheet.Cells[row, 14].Value = item.ManagerCheckAmount;
+                    worksheet.Cells[row, 15].Value = item.EWT;
+                    worksheet.Cells[row, 16].Value = item.WVAT;
+                    worksheet.Cells[row, 17].Value = item.Total;
+                    worksheet.Cells[row, 18].Value = item.IsCertificateUpload;
+                    worksheet.Cells[row, 19].Value = item.F2306FilePath;
+                    worksheet.Cells[row, 20].Value = item.F2307FilePath;
+                    worksheet.Cells[row, 21].Value = item.CreatedBy;
+                    worksheet.Cells[row, 22].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 23].Value = item.CancellationRemarks;
+                    if (item.MultipleSIId != null)
+                    {
+                        worksheet.Cells[row, 24].Value = string.Join(", ", item.MultipleSI.Select(si => si.ToString()));
+                        worksheet.Cells[row, 25].Value = string.Join(", ", item.MultipleSIId.Select(siId => siId.ToString()));
+                        worksheet.Cells[row, 26].Value = string.Join(" ", item.SIMultipleAmount.Select(multipleSI => multipleSI.ToString("N2")));
+                        worksheet.Cells[row, 27].Value = string.Join(", ", item.MultipleTransactionDate.Select(multipleTransactionDate => multipleTransactionDate.ToString("yyyy-MM-dd")));
+                    }
+                    worksheet.Cells[row, 28].Value = item.CustomerId;
+                    worksheet.Cells[row, 29].Value = item.SalesInvoiceId;
+                    worksheet.Cells[row, 30].Value = item.CRNo;
+                    worksheet.Cells[row, 31].Value = item.ServiceInvoiceId;
+                    worksheet.Cells[row, 32].Value = item.Id;
+
+                    row++;
+                }
+
+                var crNos = selectedList.Select(item => item.CRNo).ToList();
+
+                var getOffsetting = await _dbContext.Offsettings
+                    .Where(offset => crNos.Contains(offset.Source))
+                    .OrderBy(offset => offset.Id)
+                    .ToListAsync();
+
+                int offsetRow = 2;
+
+                foreach (var item in getOffsetting)
+                {
+                    worksheet2.Cells[offsetRow, 1].Value = item.AccountNo;
+                    worksheet2.Cells[offsetRow, 2].Value = item.Source;
+                    worksheet2.Cells[offsetRow, 3].Value = item.Reference;
+                    worksheet2.Cells[offsetRow, 4].Value = item.IsRemoved;
+                    worksheet2.Cells[offsetRow, 5].Value = item.Amount;
+                    worksheet2.Cells[offsetRow, 6].Value = item.CreatedBy;
+                    worksheet2.Cells[offsetRow, 7].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet2.Cells[offsetRow, 8].Value = item.AccountTitle;
+
+                    offsetRow++;
+                }
+
+                // Convert the Excel package to a byte array
+                var excelBytes = package.GetAsByteArray();
+
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "CollectionReceiptList.xlsx");
+            }
+        }
+
+        #endregion -- export xlsx record --
+
+        //Upload as .xlsx file.(Import)
+        #region -- import xlsx record --
+
+        [HttpPost]
+        public async Task<IActionResult> Import(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                stream.Position = 0;
+
+                try
+                {
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "CollectionReceipt");
+
+                        var worksheet2 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "Offsetting");
+
+                        if (worksheet == null)
+                        {
+                            return RedirectToAction(nameof(Index), new { errorMessage = "The Excel file contains no worksheets." });
+                        }
+
+                        var rowCount = worksheet.Dimension.Rows;
+
+                        for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                        {
+                            var collectionReceipt = new CollectionReceipt
+                            {
+                                CRNo = await _receiptRepo.GenerateCRNo(),
+                                SeriesNumber = await _receiptRepo.GetLastSeriesNumberCR(),
+                                TransactionDate = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly transactionDate) ? transactionDate : default,
+                                ReferenceNo = worksheet.Cells[row, 2].Text,
+                                Remarks = worksheet.Cells[row, 3].Text,
+                                CashAmount = decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal cashAmount) ? cashAmount : 0,
+                                CheckDate = worksheet.Cells[row, 5].Text,
+                                CheckNo = worksheet.Cells[row, 6].Text,
+                                CheckBank = worksheet.Cells[row, 7].Text,
+                                CheckBranch = worksheet.Cells[row, 8].Text,
+                                CheckAmount = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal checkAmount) ? checkAmount : 0,
+                                ManagerCheckDate = DateOnly.TryParse(worksheet.Cells[row, 10].Text, out DateOnly managerCheckDate) ? managerCheckDate : null,
+                                ManagerCheckNo = worksheet.Cells[row, 11].Text,
+                                ManagerCheckBank = worksheet.Cells[row, 12].Text,
+                                ManagerCheckBranch = worksheet.Cells[row, 13].Text,
+                                ManagerCheckAmount = decimal.TryParse(worksheet.Cells[row, 14].Text, out decimal managerCheckAmount) ? managerCheckAmount : 0,
+                                EWT = decimal.TryParse(worksheet.Cells[row, 15].Text, out decimal ewt) ? ewt : 0,
+                                WVAT = decimal.TryParse(worksheet.Cells[row, 16].Text, out decimal wvat) ? wvat : 0,
+                                Total = decimal.TryParse(worksheet.Cells[row, 17].Text, out decimal total) ? total : 0,
+                                IsCertificateUpload = bool.TryParse(worksheet.Cells[row, 18].Text, out bool isCertificateUpload) ? isCertificateUpload : false,
+                                F2306FilePath = worksheet.Cells[row, 19].Text,
+                                F2307FilePath = worksheet.Cells[row, 20].Text,
+                                CreatedBy = worksheet.Cells[row, 21].Text,
+                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 22].Text, out DateTime createdDate) ? createdDate : default,
+                                CancellationRemarks = worksheet.Cells[row, 23].Text,
+                                MultipleSI = worksheet.Cells[row, 24].Text.Split(',').Select(si => si.Trim()).ToArray(),
+                                MultipleSIId = worksheet.Cells[row, 25].Text.Split(',').Select(multipleId => int.TryParse(multipleId.Trim(), out int multipleSIId) ? multipleSIId : 0).ToArray(),
+                                SIMultipleAmount = worksheet.Cells[row, 26].Text.Split(' ').Select(multipleAmount => decimal.TryParse(multipleAmount.Trim(), out decimal siMultipleAmount) ? siMultipleAmount : 0).ToArray(),
+                                MultipleTransactionDate = worksheet.Cells[row, 27].Text.Split(',').Select(date => DateOnly.TryParse(date.Trim(), out DateOnly parsedDate) ? parsedDate : default).ToArray(),
+                                OriginalCustomerId = int.TryParse(worksheet.Cells[row, 28].Text, out int originalCustomerId) ? originalCustomerId : 0,
+                                OriginalSalesInvoiceId = int.TryParse(worksheet.Cells[row, 29].Text, out int originalSalesInvoiceId) ? originalSalesInvoiceId : 0,
+                                OriginalSeriesNumber = worksheet.Cells[row, 30].Text,
+                                OriginalServiceInvoiceId = int.TryParse(worksheet.Cells[row, 31].Text, out int originalServiceInvoiceId) ? originalServiceInvoiceId : 0,
+                                OriginalDocumentId = int.TryParse(worksheet.Cells[row, 32].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                            };
+
+                            collectionReceipt.CustomerId = await _dbContext.Customers
+                                .Where(c => c.OriginalCustomerId == collectionReceipt.OriginalCustomerId)
+                                .Select(c => (int?)c.Id)
+                                .FirstOrDefaultAsync();
+
+                            var getSI = await _dbContext.SalesInvoices
+                                        .Where(si => si.OriginalDocumentId == collectionReceipt.OriginalSalesInvoiceId)
+                                        .Select(si => new { si.Id, si.SINo })
+                                        .FirstOrDefaultAsync();
+
+                            collectionReceipt.SalesInvoiceId = getSI?.Id;
+                            collectionReceipt.SINo = getSI?.SINo;
+
+                            var getSV = await _dbContext.ServiceInvoices
+                                .Where(sv => sv.OriginalDocumentId == collectionReceipt.OriginalServiceInvoiceId)
+                                .Select(sv => new { sv.Id, sv.SVNo })
+                                .FirstOrDefaultAsync();
+
+                            collectionReceipt.ServiceInvoiceId = getSV?.Id;
+                            collectionReceipt.SVNo = getSV?.SVNo;
+
+                            foreach (var item in collectionReceipt.MultipleSIId)
+                            {
+                                if (item == 0)
+                                {
+                                    collectionReceipt.MultipleSIId = null;
+                                }
+                            }
+                            foreach (var item in collectionReceipt.SIMultipleAmount)
+                            {
+                                if (item == 0)
+                                {
+                                    collectionReceipt.SIMultipleAmount = null;
+                                }
+                            }
+
+                            await _dbContext.CollectionReceipts.AddAsync(collectionReceipt);
+                            await _dbContext.SaveChangesAsync();
+                        }
+
+                        var offsetRowCount = worksheet2.Dimension.Rows;
+                        for (int offsetRow = 2; offsetRow <= offsetRowCount; offsetRow++)
+                        {
+                            var offsetting = new Offsetting
+                            {
+                                AccountNo = worksheet2.Cells[offsetRow, 1].Text,
+                                Reference = worksheet2.Cells[offsetRow, 3].Text,
+                                IsRemoved = bool.TryParse(worksheet2.Cells[offsetRow, 4].Text, out bool isRemoved) ? isRemoved : false,
+                                Amount = decimal.TryParse(worksheet2.Cells[offsetRow, 5].Text, out decimal amount) ? amount : 0,
+                                CreatedBy = worksheet2.Cells[offsetRow, 6].Text,
+                                CreatedDate = DateTime.TryParse(worksheet2.Cells[offsetRow, 7].Text, out DateTime createdDate) ? createdDate : default,
+                                AccountTitle = worksheet2.Cells[offsetRow, 8].Text,
+                            };
+
+                            offsetting.Source = await _dbContext.CollectionReceipts
+                                .Where(cr => cr.OriginalSeriesNumber == worksheet2.Cells[offsetRow, 2].Text)
+                                .Select(cr => cr.CRNo)
+                                .FirstOrDefaultAsync();
+
+                            await _dbContext.Offsettings.AddAsync(offsetting);
+                            await _dbContext.SaveChangesAsync();
+                        }
+
+                    }
+                }
+                catch (OperationCanceledException oce)
+                {
+                    TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        #endregion -- import xlsx record --
     }
 }

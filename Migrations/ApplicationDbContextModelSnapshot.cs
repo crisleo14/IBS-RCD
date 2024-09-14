@@ -144,8 +144,11 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("original_bank_id");
 
+                    b.Property<int>("OriginalDocumentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("original_document_id");
+
                     b.Property<string>("OriginalSeriesNumber")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("original_series_number");
 
@@ -324,12 +327,15 @@ namespace Accounting_System.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_voided");
 
+                    b.Property<int>("OriginalDocumentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("original_document_id");
+
                     b.Property<int?>("OriginalProductId")
                         .HasColumnType("integer")
                         .HasColumnName("original_product_id");
 
                     b.Property<string>("OriginalSeriesNumber")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("original_series_number");
 
@@ -502,12 +508,15 @@ namespace Accounting_System.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("net_amount_of_ewt");
 
+                    b.Property<int>("OriginalDocumentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("original_document_id");
+
                     b.Property<int?>("OriginalPOId")
                         .HasColumnType("integer")
                         .HasColumnName("original_po_id");
 
                     b.Property<string>("OriginalSeriesNumber")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("original_series_number");
 
@@ -725,12 +734,15 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("original_customer_id");
 
+                    b.Property<int>("OriginalDocumentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("original_document_id");
+
                     b.Property<int?>("OriginalSalesInvoiceId")
                         .HasColumnType("integer")
                         .HasColumnName("original_sales_invoice_id");
 
                     b.Property<string>("OriginalSeriesNumber")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("original_series_number");
 
@@ -884,12 +896,15 @@ namespace Accounting_System.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_voided");
 
+                    b.Property<int>("OriginalDocumentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("original_document_id");
+
                     b.Property<int?>("OriginalSalesInvoiceId")
                         .HasColumnType("integer")
                         .HasColumnName("original_sales_invoice_id");
 
                     b.Property<string>("OriginalSeriesNumber")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("original_series_number");
 
@@ -1056,12 +1071,15 @@ namespace Accounting_System.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_voided");
 
+                    b.Property<int>("OriginalDocumentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("original_document_id");
+
                     b.Property<int?>("OriginalSalesInvoiceId")
                         .HasColumnType("integer")
                         .HasColumnName("original_sales_invoice_id");
 
                     b.Property<string>("OriginalSeriesNumber")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("original_series_number");
 
@@ -1245,6 +1263,10 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("original_customer_id");
 
+                    b.Property<int>("OriginalDocumentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("original_document_id");
+
                     b.Property<int?>("OriginalPOId")
                         .HasColumnType("integer")
                         .HasColumnName("original_po_id");
@@ -1253,8 +1275,11 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("original_product_id");
 
+                    b.Property<int?>("OriginalReceivingReportId")
+                        .HasColumnType("integer")
+                        .HasColumnName("original_receiving_report_id");
+
                     b.Property<string>("OriginalSeriesNumber")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("original_series_number");
 
@@ -1451,8 +1476,11 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("original_customer_id");
 
+                    b.Property<int>("OriginalDocumentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("original_document_id");
+
                     b.Property<string>("OriginalSeriesNumber")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("original_series_number");
 
@@ -1665,6 +1693,14 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("number");
 
+                    b.Property<int>("OriginalCustomerId")
+                        .HasColumnType("integer")
+                        .HasColumnName("original_customer_id");
+
+                    b.Property<int>("OriginalCustomerNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("original_customer_number");
+
                     b.Property<string>("Terms")
                         .IsRequired()
                         .HasColumnType("text")
@@ -1850,8 +1886,11 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("original_cv_id");
 
+                    b.Property<int>("OriginalDocumentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("original_document_id");
+
                     b.Property<string>("OriginalSeriesNumber")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("original_series_number");
 
@@ -1921,10 +1960,6 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text")
                         .HasColumnName("bank");
 
-                    b.Property<string>("BankCode")
-                        .HasColumnType("text")
-                        .HasColumnName("bank_code");
-
                     b.Property<string>("Branch")
                         .IsRequired()
                         .HasColumnType("text")
@@ -1937,6 +1972,10 @@ namespace Accounting_System.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_date");
+
+                    b.Property<int?>("OriginalBankId")
+                        .HasColumnType("integer")
+                        .HasColumnName("original_bank_id");
 
                     b.Property<long>("SeriesNumber")
                         .HasColumnType("bigint")
@@ -1958,7 +1997,6 @@ namespace Accounting_System.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Code")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("code");
 
@@ -1974,6 +2012,10 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("name");
+
+                    b.Property<int>("OriginalProductId")
+                        .HasColumnType("integer")
+                        .HasColumnName("original_product_id");
 
                     b.Property<string>("Unit")
                         .IsRequired()
@@ -2030,6 +2072,10 @@ namespace Accounting_System.Migrations
                     b.Property<int>("Number")
                         .HasColumnType("integer")
                         .HasColumnName("number");
+
+                    b.Property<int?>("OriginalSupplierId")
+                        .HasColumnType("integer")
+                        .HasColumnName("original_supplier_id");
 
                     b.Property<string>("ProofOfExemptionFilePath")
                         .HasColumnType("varchar(200)")
@@ -2624,6 +2670,10 @@ namespace Accounting_System.Migrations
                     b.Property<int>("Number")
                         .HasColumnType("integer")
                         .HasColumnName("number");
+
+                    b.Property<int?>("OriginalServiceId")
+                        .HasColumnType("integer")
+                        .HasColumnName("original_service_id");
 
                     b.Property<int>("Percent")
                         .HasColumnType("integer")

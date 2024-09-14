@@ -41,6 +41,8 @@ namespace Accounting_System.Models
 
         public string? CancellationRemarks { get; set; }
 
-        public string OriginalSeriesNumber { get; set; }
+        public string? OriginalSeriesNumber { get; set; }
+
+        public int OriginalDocumentId { get; set; }
     }
 }

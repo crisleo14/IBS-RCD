@@ -145,7 +145,6 @@
                         method: "GET",
                         data: { customerId: customerId },
                         success: function (data) {
-                            console.log(data);
                             if (data) {
                                 $("#soldTo").val(data.soldTo);
                                 $("#address").val(data.address);

@@ -12,8 +12,6 @@ namespace Accounting_System.Models.MasterFile
         public string Bank { get; set; }
         public string Branch { get; set; }
 
-        public string? BankCode { get; set; }
-
         [Display(Name = "Account No")]
         public string AccountNo { get; set; }
 
@@ -30,5 +28,7 @@ namespace Accounting_System.Models.MasterFile
         public string? AccountNoCOA { get; set; }
 
         public long SeriesNumber { get; set; }
+
+        public int? OriginalBankId { get; set; }
     }
 }

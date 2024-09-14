@@ -139,5 +139,7 @@ namespace Accounting_System.Models.AccountsReceivable
         public int? OriginalCustomerId { get; set; }
         public int? OriginalProductId { get; set; }
         public int? OriginalPOId { get; set; }
+
+        public int? OriginalReceivingReportId { get; set; }
     }
 }

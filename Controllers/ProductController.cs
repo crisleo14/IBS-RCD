@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 
 namespace Accounting_System.Controllers
 {
@@ -26,6 +27,12 @@ namespace Accounting_System.Controllers
         }
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
+        {
+            return _dbContext.Products != null ?
+                        View(await _dbContext.Products.ToListAsync(cancellationToken)) :
+                        Problem("Entity set 'ApplicationDbContext.Products'  is null.");
+        }
+        public async Task<IActionResult> ImportExportIndex(CancellationToken cancellationToken)
         {
             return _dbContext.Products != null ?
                         View(await _dbContext.Products.ToListAsync(cancellationToken)) :
@@ -133,5 +140,123 @@ namespace Accounting_System.Controllers
         {
             return (_dbContext.Products?.Any(e => e.Id == id)).GetValueOrDefault();
         }
+
+        //Download as .xlsx file.(Export)
+        #region -- export xlsx record --
+
+        [HttpPost]
+        public IActionResult Export(string selectedRecord)
+        {
+            if (string.IsNullOrEmpty(selectedRecord))
+            {
+                // Handle the case where no invoices are selected
+                return RedirectToAction(nameof(Index));
+            }
+
+            var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
+
+            // Retrieve the selected invoices from the database
+            var selectedList = _dbContext.Products
+                .Where(p => recordIds.Contains(p.Id))
+                .OrderBy(p => p.Id)
+                .ToList();
+
+            // Create the Excel package
+            using var package = new ExcelPackage();
+            // Add a new worksheet to the Excel package
+            var worksheet = package.Workbook.Worksheets.Add("Product");
+
+            worksheet.Cells["A1"].Value = "ProductCode";
+            worksheet.Cells["B1"].Value = "ProductName";
+            worksheet.Cells["C1"].Value = "ProductUnit";
+            worksheet.Cells["D1"].Value = "CreatedBy";
+            worksheet.Cells["E1"].Value = "CreatedDate";
+            worksheet.Cells["F1"].Value = "OriginalProductId";
+            worksheet.Cells["G1"].Value = "OriginalProductCode";
+
+            int row = 2;
+
+            foreach (var item in selectedList)
+            {
+                worksheet.Cells[row, 1].Value = item.Code;
+                worksheet.Cells[row, 2].Value = item.Name;
+                worksheet.Cells[row, 3].Value = item.Unit;
+                worksheet.Cells[row, 4].Value = item.CreatedBy;
+                worksheet.Cells[row, 5].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                worksheet.Cells[row, 6].Value = item.Id;
+                worksheet.Cells[row, 7].Value = item.Code;
+
+                row++;
+            }
+
+            // Convert the Excel package to a byte array
+            var excelBytes = package.GetAsByteArray();
+
+            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ProductList.xlsx");
+        }
+
+        #endregion -- export xlsx record --
+
+        //Upload as .xlsx file.(Import)
+        #region -- import xlsx record --
+
+        [HttpPost]
+        public async Task<IActionResult> Import(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                stream.Position = 0;
+
+                try
+                {
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                        if (worksheet == null)
+                        {
+                            return RedirectToAction(nameof(Index), new { errorMessage = "The Excel file contains no worksheets." });
+                        }
+
+                        var rowCount = worksheet.Dimension.Rows;
+
+                        for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                        {
+                            var product = new Product
+                            {
+                                Code = worksheet.Cells[row, 1].Text,
+                                Name = worksheet.Cells[row, 2].Text,
+                                Unit = worksheet.Cells[row, 3].Text,
+                                CreatedBy = worksheet.Cells[row, 4].Text,
+                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 5].Text, out DateTime createdDate) ? createdDate : default,
+                                OriginalProductId = int.TryParse(worksheet.Cells[row, 6].Text, out int originalProductId) ? originalProductId : 0,
+                            };
+                            await _dbContext.Products.AddAsync(product);
+                            await _dbContext.SaveChangesAsync();
+                        }
+
+                    }
+                }
+                catch (OperationCanceledException oce)
+                {
+                    TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        #endregion -- import xlsx record --
     }
 }

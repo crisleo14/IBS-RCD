@@ -74,7 +74,7 @@
                                     <td>
                                         @if (Model.Header.Category == "Non-Trade")
                                         {
-                                            @for (int i = 0; i < Model.Header.SINo.Length; i++)
+                                            @for (int i = 0; i < Model.Header.SINo?.Length; i++)
                                             {
                                                 if (i != Model.Header.SINo.Length - 1)
                                                 {

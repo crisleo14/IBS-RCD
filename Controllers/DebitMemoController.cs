@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 
 namespace Accounting_System.Controllers
 {
@@ -32,6 +33,20 @@ namespace Accounting_System.Controllers
         }
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
+        {
+            var dm = await _dbContext.DebitMemos
+                .Include(dm => dm.SalesInvoice)
+                .ThenInclude(s => s.Customer)
+                .Include(dm => dm.SalesInvoice)
+                .ThenInclude(s => s.Product)
+                .Include(dm => dm.ServiceInvoice)
+                .ThenInclude(sv => sv.Customer)
+                .Include(dm => dm.ServiceInvoice)
+                .ThenInclude(sv => sv.Service)
+                .ToListAsync(cancellationToken);
+            return View(dm);
+        }
+        public async Task<IActionResult> ImportExportIndex(CancellationToken cancellationToken)
         {
             var dm = await _dbContext.DebitMemos
                 .Include(dm => dm.SalesInvoice)
@@ -1036,5 +1051,188 @@ namespace Accounting_System.Controllers
             ModelState.AddModelError("", "The information you submitted is not valid!");
             return View(model);
         }
+
+        //Download as .xlsx file.(Export)
+        #region -- export xlsx record --
+
+        [HttpPost]
+        public IActionResult Export(string selectedRecord)
+        {
+            if (string.IsNullOrEmpty(selectedRecord))
+            {
+                // Handle the case where no invoices are selected
+                return RedirectToAction(nameof(Index));
+            }
+
+            var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
+
+            // Retrieve the selected invoices from the database
+            var selectedList = _dbContext.DebitMemos
+                .Where(dm => recordIds.Contains(dm.Id))
+                .OrderBy(dm => dm.DMNo)
+                .ToList();
+
+            // Create the Excel package
+            using var package = new ExcelPackage();
+            // Add a new worksheet to the Excel package
+            var worksheet = package.Workbook.Worksheets.Add("DebitMemo");
+
+            worksheet.Cells["A1"].Value = "TransactionDate";
+            worksheet.Cells["B1"].Value = "DebitAmount";
+            worksheet.Cells["C1"].Value = "Description";
+            worksheet.Cells["D1"].Value = "VatableSales";
+            worksheet.Cells["E1"].Value = "VatAmount";
+            worksheet.Cells["F1"].Value = "TotalSales";
+            worksheet.Cells["G1"].Value = "AdjustedPrice";
+            worksheet.Cells["H1"].Value = "Quantity";
+            worksheet.Cells["I1"].Value = "WithholdingVatAmount";
+            worksheet.Cells["J1"].Value = "WithholdingTaxAmount";
+            worksheet.Cells["K1"].Value = "Source";
+            worksheet.Cells["L1"].Value = "Remarks";
+            worksheet.Cells["M1"].Value = "Period";
+            worksheet.Cells["N1"].Value = "Amount";
+            worksheet.Cells["O1"].Value = "CurrentAndPreviousAmount";
+            worksheet.Cells["P1"].Value = "UnearnedAmount";
+            worksheet.Cells["Q1"].Value = "ServicesId";
+            worksheet.Cells["R1"].Value = "CreatedBy";
+            worksheet.Cells["S1"].Value = "CreatedDate";
+            worksheet.Cells["T1"].Value = "CancellationRemarks";
+            worksheet.Cells["U1"].Value = "OriginalSalesInvoiceId";
+            worksheet.Cells["V1"].Value = "OriginalSeriesNumber";
+            worksheet.Cells["W1"].Value = "OriginalServiceInvoiceId";
+            worksheet.Cells["X1"].Value = "OriginalDocumentId";
+
+            int row = 2;
+
+            foreach (var item in selectedList)
+            {
+                worksheet.Cells[row, 1].Value = item.TransactionDate.ToString("yyyy-MM-dd");
+                worksheet.Cells[row, 2].Value = item.DebitAmount;
+                worksheet.Cells[row, 3].Value = item.Description;
+                worksheet.Cells[row, 4].Value = item.VatableSales;
+                worksheet.Cells[row, 5].Value = item.VatAmount;
+                worksheet.Cells[row, 6].Value = item.TotalSales;
+                worksheet.Cells[row, 7].Value = item.AdjustedPrice;
+                worksheet.Cells[row, 8].Value = item.Quantity;
+                worksheet.Cells[row, 9].Value = item.WithHoldingVatAmount;
+                worksheet.Cells[row, 10].Value = item.WithHoldingTaxAmount;
+                worksheet.Cells[row, 11].Value = item.Source;
+                worksheet.Cells[row, 12].Value = item.Remarks;
+                worksheet.Cells[row, 13].Value = item.Period;
+                worksheet.Cells[row, 14].Value = item.Amount;
+                worksheet.Cells[row, 15].Value = item.CurrentAndPreviousAmount;
+                worksheet.Cells[row, 16].Value = item.UnearnedAmount;
+                worksheet.Cells[row, 17].Value = item.ServicesId;
+                worksheet.Cells[row, 18].Value = item.CreatedBy;
+                worksheet.Cells[row, 19].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                worksheet.Cells[row, 20].Value = item.CancellationRemarks;
+                worksheet.Cells[row, 21].Value = item.SalesInvoiceId;
+                worksheet.Cells[row, 22].Value = item.DMNo;
+                worksheet.Cells[row, 23].Value = item.ServiceInvoiceId;
+                worksheet.Cells[row, 24].Value = item.Id;
+
+                row++;
+            }
+
+            // Convert the Excel package to a byte array
+            var excelBytes = package.GetAsByteArray();
+
+            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "DebitMemoList.xlsx");
+        }
+
+        #endregion -- export xlsx record --
+
+        //Upload as .xlsx file.(Import)
+        #region -- import xlsx record --
+
+        [HttpPost]
+        public async Task<IActionResult> Import(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                stream.Position = 0;
+
+                try
+                {
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                        if (worksheet == null)
+                        {
+                            return RedirectToAction(nameof(Index), new { errorMessage = "The Excel file contains no worksheets." });
+                        }
+
+                        var rowCount = worksheet.Dimension.Rows;
+
+                        for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                        {
+                            var debitMemo = new DebitMemo
+                            {
+                                DMNo = await _debitMemoRepo.GenerateDMNo(),
+                                SeriesNumber = await _debitMemoRepo.GetLastSeriesNumber(),
+                                TransactionDate = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly transactionDate) ? transactionDate : default,
+                                DebitAmount = decimal.TryParse(worksheet.Cells[row, 2].Text, out decimal debitAmount) ? debitAmount : 0,
+                                Description = worksheet.Cells[row, 3].Text,
+                                VatableSales = decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal vatableSales) ? vatableSales : 0,
+                                VatAmount = decimal.TryParse(worksheet.Cells[row, 5].Text, out decimal vatAmount) ? vatAmount : 0,
+                                TotalSales = decimal.TryParse(worksheet.Cells[row, 6].Text, out decimal totalSales) ? totalSales : 0,
+                                AdjustedPrice = decimal.TryParse(worksheet.Cells[row, 7].Text, out decimal adjustedPrice) ? adjustedPrice : 0,
+                                Quantity = decimal.TryParse(worksheet.Cells[row, 8].Text, out decimal quantity) ? quantity : 0,
+                                WithHoldingVatAmount = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal withHoldingVatAmount) ? withHoldingVatAmount : 0,
+                                WithHoldingTaxAmount = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal withHoldingTaxAmount) ? withHoldingTaxAmount : 0,
+                                Source = worksheet.Cells[row, 11].Text,
+                                Remarks = worksheet.Cells[row, 12].Text,
+                                Period = DateOnly.TryParse(worksheet.Cells[row, 13].Text, out DateOnly period) ? period : default,
+                                Amount = decimal.TryParse(worksheet.Cells[row, 14].Text, out decimal amount) ? amount : 0,
+                                CurrentAndPreviousAmount = decimal.TryParse(worksheet.Cells[row, 15].Text, out decimal currentAndPreviousAmount) ? currentAndPreviousAmount : 0,
+                                UnearnedAmount = decimal.TryParse(worksheet.Cells[row, 16].Text, out decimal unearnedAmount) ? unearnedAmount : 0,
+                                ServicesId = int.TryParse(worksheet.Cells[row, 17].Text, out int servicesId) ? servicesId : 0,
+                                CreatedBy = worksheet.Cells[row, 18].Text,
+                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 19].Text, out DateTime createdDate) ? createdDate : default,
+                                CancellationRemarks = worksheet.Cells[row, 20].Text,
+                                OriginalSalesInvoiceId = int.TryParse(worksheet.Cells[row, 21].Text, out int originalSalesInvoiceId) ? originalSalesInvoiceId : 0,
+                                OriginalSeriesNumber = worksheet.Cells[row, 22].Text,
+                                OriginalServiceInvoiceId = int.TryParse(worksheet.Cells[row, 23].Text, out int originalServiceInvoiceId) ? originalServiceInvoiceId : 0,
+                                OriginalDocumentId = int.TryParse(worksheet.Cells[row, 24].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                            };
+
+                            debitMemo.SalesInvoiceId = await _dbContext.SalesInvoices
+                                .Where(c => c.OriginalDocumentId == debitMemo.OriginalSalesInvoiceId)
+                                .Select(c => (int?)c.Id)
+                                .FirstOrDefaultAsync();
+
+                            debitMemo.ServiceInvoiceId = await _dbContext.ServiceInvoices
+                                .Where(c => c.OriginalDocumentId == debitMemo.OriginalServiceInvoiceId)
+                                .Select(c => (int?)c.Id)
+                                .FirstOrDefaultAsync();
+
+                            await _dbContext.DebitMemos.AddAsync(debitMemo);
+                            await _dbContext.SaveChangesAsync();
+                        }
+
+                    }
+                }
+                catch (OperationCanceledException oce)
+                {
+                    TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        #endregion -- import xlsx record --
     }
 }

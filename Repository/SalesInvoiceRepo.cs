@@ -26,7 +26,6 @@ namespace Accounting_System.Repository
         {
             var lastInvoice = await _dbContext
                 .SalesInvoices
-                .Include(c => c.Customer)
                 .OrderByDescending(s => s.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 

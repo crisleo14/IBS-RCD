@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 
 namespace Accounting_System.Controllers
 {
@@ -31,6 +32,22 @@ namespace Accounting_System.Controllers
         }
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
+        {
+            var purchaseOrders = await _purchaseOrderRepo.GetPurchaseOrderAsync(cancellationToken);
+
+            foreach (var po in purchaseOrders)
+            {
+                var rrList = await _dbContext.ReceivingReports
+                    .Where(rr => rr.PONo == po.PONo)
+                    .ToListAsync(cancellationToken);
+
+                po.RrList = rrList;
+            }
+
+            return View(purchaseOrders);
+        }
+
+        public async Task<IActionResult> ImportExportIndex(CancellationToken cancellationToken)
         {
             var purchaseOrders = await _purchaseOrderRepo.GetPurchaseOrderAsync(cancellationToken);
 
@@ -453,5 +470,181 @@ namespace Accounting_System.Controllers
 
             return NotFound();
         }
+        //Download as .xlsx file.(Export)
+        #region -- export xlsx record --
+
+        [HttpPost]
+        public IActionResult Export(string selectedRecord)
+        {
+            if (string.IsNullOrEmpty(selectedRecord))
+            {
+                // Handle the case where no invoices are selected
+                return RedirectToAction(nameof(Index));
+            }
+
+            var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
+
+            // Retrieve the selected invoices from the database
+            var selectedList = _dbContext.PurchaseOrders
+                .Where(po => recordIds.Contains(po.Id))
+                .OrderBy(po => po.PONo)
+                .ToList();
+
+            // Create the Excel package
+            using var package = new ExcelPackage();
+            // Add a new worksheet to the Excel package
+            var worksheet = package.Workbook.Worksheets.Add("PurchaseOrder");
+
+            worksheet.Cells["A1"].Value = "Date";
+            worksheet.Cells["B1"].Value = "Terms";
+            worksheet.Cells["C1"].Value = "Quantity";
+            worksheet.Cells["D1"].Value = "Price";
+            worksheet.Cells["E1"].Value = "Amount";
+            worksheet.Cells["F1"].Value = "FinalPrice";
+            worksheet.Cells["G1"].Value = "QuantityReceived";
+            worksheet.Cells["H1"].Value = "IsReceived";
+            worksheet.Cells["I1"].Value = "ReceivedDate";
+            worksheet.Cells["J1"].Value = "Remarks";
+            worksheet.Cells["K1"].Value = "CreatedBy";
+            worksheet.Cells["L1"].Value = "CreatedDate";
+            worksheet.Cells["M1"].Value = "IsClosed";
+            worksheet.Cells["N1"].Value = "CancellationRemarks";
+            worksheet.Cells["O1"].Value = "OriginalProductId";
+            worksheet.Cells["P1"].Value = "OriginalSeriesNumber";
+            worksheet.Cells["Q1"].Value = "OriginalSupplierId";
+            worksheet.Cells["R1"].Value = "OriginalDocumentId";
+
+            int row = 2;
+
+            foreach (var item in selectedList)
+            {
+                worksheet.Cells[row, 1].Value = item.Date.ToString("yyyy-MM-dd");
+                worksheet.Cells[row, 2].Value = item.Terms;
+                worksheet.Cells[row, 3].Value = item.Quantity;
+                worksheet.Cells[row, 4].Value = item.Price;
+                worksheet.Cells[row, 5].Value = item.Amount;
+                worksheet.Cells[row, 6].Value = item.FinalPrice;
+                worksheet.Cells[row, 7].Value = item.QuantityReceived;
+                worksheet.Cells[row, 8].Value = item.IsReceived;
+                worksheet.Cells[row, 9].Value = item.ReceivedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                worksheet.Cells[row, 10].Value = item.Remarks;
+                worksheet.Cells[row, 11].Value = item.CreatedBy;
+                worksheet.Cells[row, 12].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                worksheet.Cells[row, 13].Value = item.IsClosed;
+                worksheet.Cells[row, 14].Value = item.CancellationRemarks;
+                worksheet.Cells[row, 15].Value = item.ProductId;
+                worksheet.Cells[row, 16].Value = item.SeriesNumber;
+                worksheet.Cells[row, 17].Value = item.SupplierId;
+                worksheet.Cells[row, 18].Value = item.Id;
+
+                row++;
+            }
+
+            // Convert the Excel package to a byte array
+            var excelBytes = package.GetAsByteArray();
+
+            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "PurchaseOrderList.xlsx");
+        }
+
+        #endregion -- export xlsx record --
+
+        //Upload as .xlsx file.(Import)
+        #region -- import xlsx record --
+
+        [HttpPost]
+        public async Task<IActionResult> Import(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                stream.Position = 0;
+
+                try
+                {
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                        if (worksheet == null)
+                        {
+                            return RedirectToAction(nameof(Index), new { errorMessage = "The Excel file contains no worksheets." });
+                        }
+
+                        var rowCount = worksheet.Dimension.Rows;
+
+                        for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                        {
+                            var purchaseOrder = new PurchaseOrder
+                            {
+                                PONo = await _purchaseOrderRepo.GeneratePONo(),
+                                SeriesNumber = await _purchaseOrderRepo.GetLastSeriesNumber(),
+                                Date = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
+                                Terms = worksheet.Cells[row, 2].Text,
+                                Quantity = decimal.TryParse(worksheet.Cells[row, 3].Text, out decimal quantity) ? quantity : 0,
+                                Price = decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal price) ? price : 0,
+                                Amount = decimal.TryParse(worksheet.Cells[row, 5].Text, out decimal amount) ? amount : 0,
+                                FinalPrice = decimal.TryParse(worksheet.Cells[row, 6].Text, out decimal finalPrice) ? finalPrice : 0,
+                                QuantityReceived = decimal.TryParse(worksheet.Cells[row, 6].Text, out decimal quantityReceived) ? quantityReceived : 0,
+                                IsReceived = bool.TryParse(worksheet.Cells[row, 8].Text, out bool isReceived) ? isReceived : default,
+                                ReceivedDate = DateTime.TryParse(worksheet.Cells[row, 9].Text, out DateTime receivedDate) ? receivedDate : default,
+                                Remarks = worksheet.Cells[row, 10].Text,
+                                CreatedBy = worksheet.Cells[row, 11].Text,
+                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 12].Text, out DateTime createdDate) ? createdDate : default,
+                                IsClosed = bool.TryParse(worksheet.Cells[row, 13].Text, out bool isClosed) ? isClosed : default,
+                                CancellationRemarks = worksheet.Cells[row, 14].Text != "" ? worksheet.Cells[row, 14].Text : null,
+                                OriginalProductId = int.TryParse(worksheet.Cells[row, 15].Text, out int originalProductId) ? originalProductId : 0,
+                                OriginalSeriesNumber = worksheet.Cells[row, 16].Text,
+                                OriginalSupplierId = int.TryParse(worksheet.Cells[row, 17].Text, out int originalSupplierId) ? originalSupplierId : 0,
+                                OriginalDocumentId = int.TryParse(worksheet.Cells[row, 18].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                            };
+
+                            await _dbContext.PurchaseOrders.AddAsync(purchaseOrder);
+                            await _dbContext.SaveChangesAsync();
+
+                            var po = await _dbContext
+                                .PurchaseOrders
+                                .FirstOrDefaultAsync(s => s.Id == purchaseOrder.Id);
+
+                            var getProduct = await _dbContext.Products
+                                .Where(c => c.OriginalProductId == po.OriginalProductId)
+                                .FirstOrDefaultAsync();
+
+                            po.ProductId = getProduct.Id;
+
+                            po.ProductNo = getProduct.Code;
+
+                            var getSupplier = await _dbContext.Suppliers
+                                .Where(c => c.OriginalSupplierId == po.OriginalSupplierId)
+                                .FirstOrDefaultAsync();
+
+                            po.SupplierId = getSupplier.Id;
+
+                            po.SupplierNo = getSupplier.Number;
+
+                            await _dbContext.SaveChangesAsync();
+                        }
+
+                    }
+                }
+                catch (OperationCanceledException oce)
+                {
+                    TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        #endregion -- import xlsx record --
     }
 }

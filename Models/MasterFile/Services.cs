@@ -52,5 +52,7 @@ namespace Accounting_System.Models
 
         [Display(Name = "Created Date")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        public int? OriginalServiceId { get; set; }
     }
 }

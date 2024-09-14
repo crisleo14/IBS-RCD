@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 
 namespace Accounting_System.Controllers
 {
@@ -27,6 +28,12 @@ namespace Accounting_System.Controllers
         }
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
+        {
+            return _dbContext.Services != null ?
+                        View(await _dbContext.Services.ToListAsync(cancellationToken)) :
+                        Problem("Entity set 'ApplicationDbContext.Services'  is null.");
+        }
+        public async Task<IActionResult> ImportExportIndex(CancellationToken cancellationToken)
         {
             return _dbContext.Services != null ?
                         View(await _dbContext.Services.ToListAsync(cancellationToken)) :
@@ -195,5 +202,147 @@ namespace Accounting_System.Controllers
         {
             return (_dbContext.Services?.Any(e => e.Id == id)).GetValueOrDefault();
         }
+
+        //Download as .xlsx file.(Export)
+        #region -- export xlsx record --
+
+        [HttpPost]
+        public IActionResult Export(string selectedRecord)
+        {
+            if (string.IsNullOrEmpty(selectedRecord))
+            {
+                // Handle the case where no invoices are selected
+                return RedirectToAction(nameof(Index));
+            }
+
+            var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
+
+            // Retrieve the selected invoices from the database
+            var selectedList = _dbContext.Services
+                .Where(service => recordIds.Contains(service.Id))
+                .OrderBy(service => service.Id)
+                .ToList();
+
+            // Create the Excel package
+            using var package = new ExcelPackage();
+            // Add a new worksheet to the Excel package
+            var worksheet = package.Workbook.Worksheets.Add("Services");
+
+            worksheet.Cells["A1"].Value = "CurrentAndPreviousTitle";
+            worksheet.Cells["B1"].Value = "UneranedTitle";
+            worksheet.Cells["C1"].Value = "Name";
+            worksheet.Cells["D1"].Value = "Percent";
+            worksheet.Cells["E1"].Value = "CreatedBy";
+            worksheet.Cells["F1"].Value = "CreatedDate";
+            worksheet.Cells["G1"].Value = "CurrentAndPreviousNo";
+            worksheet.Cells["H1"].Value = "UnearnedNo";
+            worksheet.Cells["I1"].Value = "OriginalServiceId";
+
+            int row = 2;
+
+            foreach (var item in selectedList)
+            {
+                worksheet.Cells[row, 1].Value = item.CurrentAndPreviousTitle;
+                worksheet.Cells[row, 2].Value = item.UnearnedTitle;
+                worksheet.Cells[row, 3].Value = item.Name;
+                worksheet.Cells[row, 4].Value = item.Percent;
+                worksheet.Cells[row, 5].Value = item.CreatedBy;
+                worksheet.Cells[row, 6].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                worksheet.Cells[row, 7].Value = item.CurrentAndPreviousNo;
+                worksheet.Cells[row, 8].Value = item.UnearnedNo;
+                worksheet.Cells[row, 9].Value = item.Id;
+
+                row++;
+            }
+
+            // Convert the Excel package to a byte array
+            var excelBytes = package.GetAsByteArray();
+
+            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ServiceList.xlsx");
+        }
+
+        #endregion -- export xlsx record --
+
+        //Upload as .xlsx file.(Import)
+        #region -- import xlsx record --
+
+        [HttpPost]
+        public async Task<IActionResult> Import(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                stream.Position = 0;
+
+                try
+                {
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                        if (worksheet == null)
+                        {
+                            return RedirectToAction(nameof(Index), new { errorMessage = "The Excel file contains no worksheets." });
+                        }
+
+                        var rowCount = worksheet.Dimension.Rows;
+
+                        for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                        {
+                            var services = new Services
+                            {
+                                Number = await _serviceRepo.GetLastNumber(),
+                                CurrentAndPreviousTitle = worksheet.Cells[row, 1].Text,
+                                UnearnedTitle = worksheet.Cells[row, 2].Text,
+                                Name = worksheet.Cells[row, 3].Text,
+                                Percent = int.TryParse(worksheet.Cells[row, 4].Text, out int percent) ? percent : 0,
+                                CreatedBy = worksheet.Cells[row, 5].Text,
+                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 6].Text, out DateTime createdDate) ? createdDate : default,
+                                CurrentAndPreviousNo = worksheet.Cells[row, 7].Text,
+                                UnearnedNo = worksheet.Cells[row, 8].Text,
+                                OriginalServiceId = int.TryParse(worksheet.Cells[row, 9].Text, out int originalServiceId) ? originalServiceId : 0,
+                            };
+                            await _dbContext.Services.AddAsync(services);
+                            await _dbContext.SaveChangesAsync();
+
+                            //var svcs = await _dbContext
+                            //    .Services
+                            //    .FirstOrDefaultAsync(svcs => svcs.Id == services.Id);
+
+                            //sv.CustomerId = await _dbContext.Customers
+                            //    .Where(sv => sv.OriginalCustomerId == serviceInvoice.OriginalCustomerId)
+                            //    .Select(sv => sv.Id)
+                            //    .FirstOrDefaultAsync();
+
+                            //sv.ServicesId = await _dbContext.Services
+                            //    .Where(sv => sv.OriginalServiceId == serviceInvoice.OriginalServicesId)
+                            //    .Select(sv => sv.Id)
+                            //    .FirstOrDefaultAsync();
+
+                            //await _dbContext.SaveChangesAsync();
+                        }
+
+                    }
+                }
+                catch (OperationCanceledException oce)
+                {
+                    TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        #endregion -- import xlsx record --
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 
 namespace Accounting_System.Controllers
 {
@@ -37,6 +38,13 @@ namespace Accounting_System.Controllers
         }
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
+        {
+            var salesInvoice = await _salesInvoiceRepo.GetSalesInvoicesAsync(cancellationToken);
+
+            return View(salesInvoice);
+        }
+
+        public async Task<IActionResult> ImportExportIndex(CancellationToken cancellationToken)
         {
             var salesInvoice = await _salesInvoiceRepo.GetSalesInvoicesAsync(cancellationToken);
 
@@ -336,6 +344,7 @@ namespace Accounting_System.Controllers
                 {
                     #region -- Saving Default Enries --
 
+                    existingModel.CustomerId = model.CustomerId;
                     existingModel.TransactionDate = model.TransactionDate;
                     existingModel.OtherRefNo = model.OtherRefNo;
                     existingModel.POId = model.POId;
@@ -763,10 +772,10 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetPOs(int productId, CancellationToken cancellationToken)
         {
             var purchaseOrders = await _dbContext.PurchaseOrders
-                .Where(po => po.ProductId == productId && !po.IsReceived && po.QuantityReceived != 0 && po.IsPosted)
+                .Where(po => po.ProductId == productId && po.QuantityReceived != 0 && po.IsPosted)
                 .ToListAsync(cancellationToken);
 
-            if (purchaseOrders != null && purchaseOrders.Count > 0)
+            if (purchaseOrders.Count > 0)
             {
                 var poList = purchaseOrders.Select(po => new { Id = po.Id, PONumber = po.PONo }).ToList();
                 return Json(poList);
@@ -789,5 +798,219 @@ namespace Accounting_System.Controllers
 
             return Json(rrs);
         }
+
+        //Download as .xlsx file.(Export)
+        #region -- export xlsx record --
+
+        [HttpPost]
+        public IActionResult Export(string selectedRecord)
+        {
+            if (string.IsNullOrEmpty(selectedRecord))
+            {
+                // Handle the case where no invoices are selected
+                return RedirectToAction(nameof(Index));
+            }
+
+            var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
+
+            // Retrieve the selected invoices from the database
+            var selectedList = _dbContext.SalesInvoices
+                .Where(invoice => recordIds.Contains(invoice.Id))
+                .OrderBy(invoice => invoice.SINo)
+                .ToList();
+
+            // Create the Excel package
+            using var package = new ExcelPackage();
+            // Add a new worksheet to the Excel package
+            var worksheet = package.Workbook.Worksheets.Add("SalesInvoice");
+
+            worksheet.Cells["A1"].Value = "OtherRefNo";
+            worksheet.Cells["B1"].Value = "Quantity";
+            worksheet.Cells["C1"].Value = "UnitPrice";
+            worksheet.Cells["D1"].Value = "Amount";
+            worksheet.Cells["E1"].Value = "Remarks";
+            worksheet.Cells["F1"].Value = "VatableSales";
+            worksheet.Cells["G1"].Value = "VatAmount";
+            worksheet.Cells["H1"].Value = "Status";
+            worksheet.Cells["I1"].Value = "TransactionDate";
+            worksheet.Cells["J1"].Value = "Discount";
+            worksheet.Cells["K1"].Value = "NetDiscount";
+            worksheet.Cells["L1"].Value = "VatExempt";
+            worksheet.Cells["M1"].Value = "ZeroRated";
+            worksheet.Cells["N1"].Value = "WithholdingVatAmount";
+            worksheet.Cells["O1"].Value = "WithholdingTaxAmount";
+            worksheet.Cells["P1"].Value = "AmountPaid";
+            worksheet.Cells["Q1"].Value = "Balance";
+            worksheet.Cells["R1"].Value = "IsPaid";
+            worksheet.Cells["S1"].Value = "IsTaxAndVatPaid";
+            worksheet.Cells["T1"].Value = "DueDate";
+            worksheet.Cells["U1"].Value = "CreatedBy";
+            worksheet.Cells["V1"].Value = "CreatedDate";
+            worksheet.Cells["W1"].Value = "POId";
+            worksheet.Cells["X1"].Value = "CancellationRemarks";
+            worksheet.Cells["Y1"].Value = "OriginalReceivingReportId";
+            worksheet.Cells["Z1"].Value = "OriginalCustomerId";
+            worksheet.Cells["AA1"].Value = "OriginalPOId";
+            worksheet.Cells["AB1"].Value = "OriginalProductId";
+            worksheet.Cells["AC1"].Value = "OriginalSeriesNumber";
+            worksheet.Cells["AD1"].Value = "OriginalDocumentId";
+
+            int row = 2;
+
+            foreach (var item in selectedList)
+            {
+                worksheet.Cells[row, 1].Value = item.OtherRefNo;
+                worksheet.Cells[row, 2].Value = item.Quantity;
+                worksheet.Cells[row, 3].Value = item.UnitPrice;
+                worksheet.Cells[row, 4].Value = item.Amount;
+                worksheet.Cells[row, 5].Value = item.Remarks;
+                worksheet.Cells[row, 6].Value = item.VatableSales;
+                worksheet.Cells[row, 7].Value = item.VatAmount;
+                worksheet.Cells[row, 8].Value = item.Status;
+                worksheet.Cells[row, 9].Value = item.TransactionDate.ToString("yyyy-MM-dd");
+                worksheet.Cells[row, 10].Value = item.Discount;
+                worksheet.Cells[row, 11].Value = item.NetDiscount;
+                worksheet.Cells[row, 12].Value = item.VatExempt;
+                worksheet.Cells[row, 13].Value = item.ZeroRated;
+                worksheet.Cells[row, 14].Value = item.WithHoldingVatAmount;
+                worksheet.Cells[row, 15].Value = item.WithHoldingTaxAmount;
+                worksheet.Cells[row, 16].Value = item.AmountPaid;
+                worksheet.Cells[row, 17].Value = item.Balance;
+                worksheet.Cells[row, 18].Value = item.IsPaid;
+                worksheet.Cells[row, 19].Value = item.IsTaxAndVatPaid;
+                worksheet.Cells[row, 20].Value = item.DueDate.ToString("yyyy-MM-dd");
+                worksheet.Cells[row, 21].Value = item.CreatedBy;
+                worksheet.Cells[row, 22].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                worksheet.Cells[row, 23].Value = item.CancellationRemarks;
+                worksheet.Cells[row, 24].Value = item.ReceivingReportId;
+                worksheet.Cells[row, 25].Value = item.CustomerId;
+                worksheet.Cells[row, 26].Value = item.POId;
+                worksheet.Cells[row, 27].Value = item.ProductId;
+                worksheet.Cells[row, 28].Value = item.SINo;
+                worksheet.Cells[row, 29].Value = item.Id;
+
+                row++;
+            }
+
+            // Convert the Excel package to a byte array
+            var excelBytes = package.GetAsByteArray();
+
+            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "SalesInvoiceList.xlsx");
+        }
+
+        #endregion -- export xlsx record --
+
+        //Upload as .xlsx file.(Import)
+        #region -- import xlsx record --
+
+        [HttpPost]
+        public async Task<IActionResult> Import(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                stream.Position = 0;
+
+                try
+                {
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                        if (worksheet == null)
+                        {
+                            return RedirectToAction(nameof(Index), new { errorMessage = "The Excel file contains no worksheets." });
+                        }
+
+                        var rowCount = worksheet.Dimension.Rows;
+
+                        for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                        {
+                            var invoice = new SalesInvoice
+                            {
+                                SINo = await _salesInvoiceRepo.GenerateSINo(),
+                                SeriesNumber = await _salesInvoiceRepo.GetLastSeriesNumber(),
+                                OtherRefNo = worksheet.Cells[row, 1].Text,
+                                Quantity = decimal.TryParse(worksheet.Cells[row, 2].Text, out decimal quantity) ? quantity : 0,
+                                UnitPrice = decimal.TryParse(worksheet.Cells[row, 3].Text, out decimal unitPrice) ? unitPrice : 0,
+                                Amount = decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal amount) ? amount : 0,
+                                Remarks = worksheet.Cells[row, 5].Text,
+                                VatableSales = decimal.TryParse(worksheet.Cells[row, 6].Text, out decimal vatableSales) ? vatableSales : 0,
+                                VatAmount = decimal.TryParse(worksheet.Cells[row, 7].Text, out decimal vatAmount) ? vatAmount : 0,
+                                Status = worksheet.Cells[row, 8].Text,
+                                TransactionDate = DateOnly.TryParse(worksheet.Cells[row, 9].Text, out DateOnly transactionDate) ? transactionDate : default,
+                                Discount = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal discount) ? discount : 0,
+                                NetDiscount = decimal.TryParse(worksheet.Cells[row, 11].Text, out decimal netDiscount) ? netDiscount : 0,
+                                VatExempt = decimal.TryParse(worksheet.Cells[row, 12].Text, out decimal vatExempt) ? vatExempt : 0,
+                                ZeroRated = decimal.TryParse(worksheet.Cells[row, 13].Text, out decimal zeroRated) ? zeroRated : 0,
+                                WithHoldingVatAmount = decimal.TryParse(worksheet.Cells[row, 14].Text, out decimal withHoldingVatAmount) ? withHoldingVatAmount : 0,
+                                WithHoldingTaxAmount = decimal.TryParse(worksheet.Cells[row, 15].Text, out decimal withHoldingTaxAmount) ? withHoldingTaxAmount : 0,
+                                AmountPaid = decimal.TryParse(worksheet.Cells[row, 16].Text, out decimal amountPaid) ? amountPaid : 0,
+                                Balance = decimal.TryParse(worksheet.Cells[row, 17].Text, out decimal balance) ? balance : 0,
+                                IsPaid = bool.TryParse(worksheet.Cells[row, 18].Text, out bool isPaid) ? isPaid : false,
+                                IsTaxAndVatPaid = bool.TryParse(worksheet.Cells[row, 19].Text, out bool isTaxAndVatPaid) ? isTaxAndVatPaid : false,
+                                DueDate = DateOnly.TryParse(worksheet.Cells[row, 20].Text, out DateOnly dueDate) ? dueDate : default,
+                                CreatedBy = worksheet.Cells[row, 21].Text,
+                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 22].Text, out DateTime createdDate) ? createdDate : default,
+                                CancellationRemarks = worksheet.Cells[row, 23].Text != "" ? worksheet.Cells[row, 23].Text : null,
+                                OriginalReceivingReportId = int.TryParse(worksheet.Cells[row, 24].Text, out int receivingReportId) ? receivingReportId : 0,
+                                OriginalCustomerId = int.TryParse(worksheet.Cells[row, 25].Text, out int customerId) ? customerId : 0,
+                                OriginalPOId = int.TryParse(worksheet.Cells[row, 26].Text, out int poId) ? poId : 0,
+                                OriginalProductId = int.TryParse(worksheet.Cells[row, 27].Text, out int productId) ? productId : 0,
+                                OriginalSeriesNumber = worksheet.Cells[row, 28].Text,
+                                OriginalDocumentId = int.TryParse(worksheet.Cells[row, 29].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                            };
+                            await _dbContext.SalesInvoices.AddAsync(invoice);
+                            await _dbContext.SaveChangesAsync();
+
+                            var si = await _dbContext
+                                .SalesInvoices
+                                .FirstOrDefaultAsync(s => s.Id == invoice.Id);
+
+                            si.CustomerId = await _dbContext.Customers
+                                .Where(c => c.OriginalCustomerId == invoice.OriginalCustomerId)
+                                .Select(c => c.Id)
+                                .FirstOrDefaultAsync();
+
+                            si.ProductId = await _dbContext.Products
+                                .Where(c => c.OriginalProductId == invoice.OriginalProductId)
+                                .Select(c => c.Id)
+                                .FirstOrDefaultAsync();
+
+                            si.ReceivingReportId = await _dbContext.ReceivingReports
+                                .Where(c => c.OriginalDocumentId == invoice.OriginalReceivingReportId)
+                                .Select(c => c.Id)
+                                .FirstOrDefaultAsync();
+
+                            si.POId = await _dbContext.PurchaseOrders
+                                .Where(c => c.OriginalDocumentId == invoice.OriginalPOId)
+                                .Select(c => c.Id)
+                                .FirstOrDefaultAsync();
+
+                            await _dbContext.SaveChangesAsync();
+                        }
+
+                    }
+                }
+                catch (OperationCanceledException oce)
+                {
+                    TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        #endregion -- import xlsx record --
     }
 }

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 
 namespace Accounting_System.Controllers
 {
@@ -35,6 +36,38 @@ namespace Accounting_System.Controllers
         }
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
+        {
+            var headers = await _dbContext.JournalVoucherHeaders
+                .Include(j => j.CheckVoucherHeader)
+                .ThenInclude(cv => cv.Supplier)
+                .ToListAsync(cancellationToken);
+
+            var details = await _dbContext.JournalVoucherDetails
+                .ToListAsync(cancellationToken);
+
+            // Create a list to store CheckVoucherVM objectssw
+            var journalVoucherVMs = new List<JournalVoucherVM>();
+
+            // Retrieve details for each header
+            foreach (var header in headers)
+            {
+                var headerJVNo = header.JVNo;
+                var headerDetails = details.Where(d => d.TransactionNo == headerJVNo).ToList();
+
+                // Create a new CheckVoucherVM object for each header and its associated details
+                var journalVoucherVM = new JournalVoucherVM
+                {
+                    Header = header,
+                    Details = headerDetails
+                };
+
+                // Add the CheckVoucherVM object to the list
+                journalVoucherVMs.Add(journalVoucherVM);
+            }
+
+            return View(journalVoucherVMs);
+        }
+        public async Task<IActionResult> ImportExportIndex(CancellationToken cancellationToken)
         {
             var headers = await _dbContext.JournalVoucherHeaders
                 .Include(j => j.CheckVoucherHeader)
@@ -678,5 +711,201 @@ namespace Accounting_System.Controllers
             TempData["error"] = "The information provided was invalid.";
             return View(viewModel);
         }
+
+        //Download as .xlsx file.(Export)
+        #region -- export xlsx record --
+
+        [HttpPost]
+        public async Task<IActionResult> Export(string selectedRecord)
+        {
+            if (string.IsNullOrEmpty(selectedRecord))
+            {
+                // Handle the case where no invoices are selected
+                return RedirectToAction(nameof(Index));
+            }
+
+            var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
+
+            // Retrieve the selected invoices from the database
+            var selectedList = _dbContext.JournalVoucherHeaders
+                .Where(jv => recordIds.Contains(jv.Id))
+                .OrderBy(jv => jv.JVNo)
+                .ToList();
+
+            // Create the Excel package
+            using (var package = new ExcelPackage())
+            {
+                // Add a new worksheet to the Excel package
+                var worksheet = package.Workbook.Worksheets.Add("JournalVoucherHeader");
+                var worksheet2 = package.Workbook.Worksheets.Add("JournalVoucherDetails");
+
+                worksheet.Cells["A1"].Value = "TransactionDate";
+                worksheet.Cells["B1"].Value = "Reference";
+                worksheet.Cells["C1"].Value = "Particulars";
+                worksheet.Cells["D1"].Value = "CRNo";
+                worksheet.Cells["E1"].Value = "JVReason";
+                worksheet.Cells["F1"].Value = "CreatedBy";
+                worksheet.Cells["G1"].Value = "CreatedDate";
+                worksheet.Cells["H1"].Value = "CancellationRemarks";
+                worksheet.Cells["I1"].Value = "OriginalCVId";
+                worksheet.Cells["J1"].Value = "OriginalSeriesNumber";
+                worksheet.Cells["K1"].Value = "OriginalDocumentId";
+
+                worksheet2.Cells["A1"].Value = "AccountNo";
+                worksheet2.Cells["B1"].Value = "AccountName";
+                worksheet2.Cells["C1"].Value = "TransactionNo";
+                worksheet2.Cells["D1"].Value = "Debit";
+                worksheet2.Cells["E1"].Value = "Credit";
+
+                int row = 2;
+
+                foreach (var item in selectedList)
+                {
+                    worksheet.Cells[row, 1].Value = item.Date.ToString("yyyy-MM-dd");
+                    worksheet.Cells[row, 2].Value = item.References;
+                    worksheet.Cells[row, 3].Value = item.Particulars;
+                    worksheet.Cells[row, 4].Value = item.CRNo;
+                    worksheet.Cells[row, 5].Value = item.JVReason;
+                    worksheet.Cells[row, 6].Value = item.CreatedBy;
+                    worksheet.Cells[row, 7].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 8].Value = item.CancellationRemarks;
+                    worksheet.Cells[row, 9].Value = item.CVId;
+                    worksheet.Cells[row, 10].Value = item.JVNo;
+                    worksheet.Cells[row, 11].Value = item.Id;
+
+                    row++;
+                }
+
+                var jvNos = selectedList.Select(item => item.JVNo).ToList();
+
+                var getJVDetails = await _dbContext.JournalVoucherDetails
+                    .Where(jvd => jvNos.Contains(jvd.TransactionNo))
+                    .OrderBy(jvd => jvd.Id)
+                    .ToListAsync();
+
+                int cvdRow = 2;
+
+                foreach (var item in getJVDetails)
+                {
+                    worksheet2.Cells[cvdRow, 1].Value = item.AccountNo;
+                    worksheet2.Cells[cvdRow, 2].Value = item.AccountName;
+                    worksheet2.Cells[cvdRow, 3].Value = item.TransactionNo;
+                    worksheet2.Cells[cvdRow, 4].Value = item.Debit;
+                    worksheet2.Cells[cvdRow, 5].Value = item.Credit;
+
+                    cvdRow++;
+                }
+
+
+                // Convert the Excel package to a byte array
+                var excelBytes = package.GetAsByteArray();
+
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "JournalVoucherList.xlsx");
+            }
+        }
+
+        #endregion -- export xlsx record --
+
+        //Upload as .xlsx file.(Import)
+        #region -- import xlsx record --
+
+        [HttpPost]
+        public async Task<IActionResult> Import(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                stream.Position = 0;
+
+                try
+                {
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "JournalVoucherHeader");
+
+                        var worksheet2 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "JournalVoucherDetails");
+
+                        if (worksheet == null)
+                        {
+                            return RedirectToAction(nameof(Index), new { errorMessage = "The Excel file contains no worksheets." });
+                        }
+
+                        if (worksheet2 == null)
+                        {
+                            return RedirectToAction(nameof(Index), new { errorMessage = "The Excel file contains no worksheets." });
+                        }
+
+                        var rowCount = worksheet.Dimension.Rows;
+
+                        for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                        {
+                            var journalVoucherHeader = new JournalVoucherHeader
+                            {
+                                JVNo = await _journalVoucherRepo.GenerateJVNo(),
+                                SeriesNumber = await _journalVoucherRepo.GetLastSeriesNumberJV(),
+                                Date = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly date) ? date : default,
+                                References = worksheet.Cells[row, 2].Text,
+                                Particulars = worksheet.Cells[row, 3].Text,
+                                CRNo = worksheet.Cells[row, 4].Text,
+                                JVReason = worksheet.Cells[row, 5].Text,
+                                CreatedBy = worksheet.Cells[row, 6].Text,
+                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 7].Text, out DateTime createdDate) ? createdDate : default,
+                                CancellationRemarks = worksheet.Cells[row, 8].Text,
+                                OriginalCVId = int.TryParse(worksheet.Cells[row, 9].Text, out int originalCVId) ? originalCVId : 0,
+                                OriginalSeriesNumber = worksheet.Cells[row, 10].Text,
+                                OriginalDocumentId = int.TryParse(worksheet.Cells[row, 11].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                            };
+                            journalVoucherHeader.CVId = await _dbContext.CheckVoucherHeaders
+                                .Where(c => c.OriginalDocumentId == journalVoucherHeader.OriginalCVId)
+                                .Select(c => c.Id)
+                                .FirstOrDefaultAsync();
+
+                            await _dbContext.JournalVoucherHeaders.AddAsync(journalVoucherHeader);
+                            await _dbContext.SaveChangesAsync();
+                        }
+
+                        var jvdRowCount = worksheet2.Dimension.Rows;
+                        for (int jvdRow = 2; jvdRow <= jvdRowCount; jvdRow++)
+                        {
+                            var journalVoucherDetails = new JournalVoucherDetail
+                            {
+                                AccountNo = worksheet2.Cells[jvdRow, 1].Text,
+                                AccountName = worksheet2.Cells[jvdRow, 2].Text,
+                                Debit = decimal.TryParse(worksheet2.Cells[jvdRow, 4].Text, out decimal debit) ? debit : 0,
+                                Credit = decimal.TryParse(worksheet2.Cells[jvdRow, 5].Text, out decimal credit) ? credit : 0,
+                            };
+
+                            journalVoucherDetails.TransactionNo = await _dbContext.JournalVoucherHeaders
+                                .Where(jvh => jvh.OriginalSeriesNumber == worksheet2.Cells[jvdRow, 3].Text)
+                                .Select(jvh => jvh.JVNo)
+                                .FirstOrDefaultAsync();
+
+                            await _dbContext.JournalVoucherDetails.AddAsync(journalVoucherDetails);
+                            await _dbContext.SaveChangesAsync();
+                        }
+
+                    }
+                }
+                catch (OperationCanceledException oce)
+                {
+                    TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        #endregion -- import xlsx record --
     }
 }
