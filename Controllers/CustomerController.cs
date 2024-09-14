@@ -2,6 +2,7 @@
 using Accounting_System.Models;
 using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
+using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -25,15 +26,14 @@ namespace Accounting_System.Controllers
             this._userManager = userManager;
         }
 
-        public async Task<IActionResult> Index(CancellationToken cancellationToken)
+        public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
         {
             var customer = await _customerRepo.GetCustomersAsync(cancellationToken);
 
-            return View(customer);
-        }
-        public async Task<IActionResult> ImportExportIndex(CancellationToken cancellationToken)
-        {
-            var customer = await _customerRepo.GetCustomersAsync(cancellationToken);
+            if (view == nameof(DynamicView.Customer))
+            {
+                return View("ImportExportIndex", customer);
+            }
 
             return View(customer);
         }

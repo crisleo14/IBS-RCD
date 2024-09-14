@@ -4,7 +4,7 @@
     {
         SalesInvoice,
         ServiceInvoice,
-        Receipt,
+        CollectionReceipt,
         DebitMemo,
         CreditMemo,
         PurchaseOrder,

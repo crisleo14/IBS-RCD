@@ -139,19 +139,19 @@
                                 Import / Export
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" asp-controller="SalesInvoice" asp-action="ImportExportIndex">Sales Invoice</a></li>
-                                <li><a class="dropdown-item" asp-controller="ServiceInvoice" asp-action="ImportExportIndex">Service Invoice</a></li>
-                                <li><a class="dropdown-item" asp-controller="Receipt" asp-action="ImportExportIndex">Collection Receipt</a></li>
-                                <li><a class="dropdown-item" asp-controller="DebitMemo" asp-action="ImportExportIndex">Debit Memo</a></li>
-                                <li><a class="dropdown-item" asp-controller="CreditMemo" asp-action="ImportExportIndex">Credit Memo</a></li>
-                                <li><a class="dropdown-item" asp-controller="PurchaseOrder" asp-action="ImportExportIndex">Purchase Order</a></li>
-                                <li><a class="dropdown-item" asp-controller="ReceivingReport" asp-action="ImportExportIndex">Receiving Report</a></li>
-                                <li><a class="dropdown-item" asp-controller="CheckVoucher" asp-action="ImportExportIndex">Check Voucher</a></li>
-                                <li><a class="dropdown-item" asp-controller="JournalVoucher" asp-action="ImportExportIndex">Journal Voucher</a></li>
-                                <li><a class="dropdown-item" asp-controller="Customer" asp-action="ImportExportIndex">Customer Master File</a></li>
-                                <li><a class="dropdown-item" asp-controller="Product" asp-action="ImportExportIndex">Product Master File</a></li>
-                                <li><a class="dropdown-item" asp-controller="Supplier" asp-action="ImportExportIndex">Supplier Master File</a></li>
-                                <li><a class="dropdown-item" asp-controller="Service" asp-action="ImportExportIndex">Service Master File</a></li>
+                                <li><a class="dropdown-item" asp-controller="SalesInvoice" asp-action="Index" asp-route-view="@nameof(DynamicView.SalesInvoice)">Sales Invoice</a></li>
+                                <li><a class="dropdown-item" asp-controller="ServiceInvoice" asp-action="Index" asp-route-view="@nameof(DynamicView.ServiceInvoice)">Service Invoice</a></li>
+                                <li><a class="dropdown-item" asp-controller="Receipt" asp-action="CollectionIndex" asp-route-view="@nameof(DynamicView.CollectionReceipt)">Collection Receipt</a></li>
+                                <li><a class="dropdown-item" asp-controller="DebitMemo" asp-action="Index" asp-route-view="@nameof(DynamicView.DebitMemo)">Debit Memo</a></li>
+                                <li><a class="dropdown-item" asp-controller="CreditMemo" asp-action="Index" asp-route-view="@nameof(DynamicView.CreditMemo)">Credit Memo</a></li>
+                                <li><a class="dropdown-item" asp-controller="PurchaseOrder" asp-action="Index" asp-route-view="@nameof(DynamicView.PurchaseOrder)">Purchase Order</a></li>
+                                <li><a class="dropdown-item" asp-controller="ReceivingReport" asp-action="Index" asp-route-view="@nameof(DynamicView.ReceivingReport)">Receiving Report</a></li>
+                                <li><a class="dropdown-item" asp-controller="CheckVoucher" asp-action="Index" asp-route-view="@nameof(DynamicView.CheckVoucher)">Check Voucher</a></li>
+                                <li><a class="dropdown-item" asp-controller="JournalVoucher" asp-action="Index" asp-route-view="@nameof(DynamicView.JournalVoucher)">Journal Voucher</a></li>
+                                <li><a class="dropdown-item" asp-controller="Customer" asp-action="Index" asp-route-view="@nameof(DynamicView.Customer)">Customer Master File</a></li>
+                                <li><a class="dropdown-item" asp-controller="Product" asp-action="Index" asp-route-view="@nameof(DynamicView.Product)">Product Master File</a></li>
+                                <li><a class="dropdown-item" asp-controller="Supplier" asp-action="Index" asp-route-view="@nameof(DynamicView.Supplier)">Supplier Master File</a></li>
+                                <li><a class="dropdown-item" asp-controller="Service" asp-action="Index" asp-route-view="@nameof(DynamicView.Service)">Service Master File</a></li>
                                 <li><a class="dropdown-item" asp-controller="BankAccount" asp-action="Index" asp-route-view="@nameof(DynamicView.BankAccount)">Bank Account Master File</a></li>
                             </ul>
                         </li>

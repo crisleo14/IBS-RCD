@@ -3,6 +3,7 @@ using Accounting_System.Models;
 using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
+using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -34,15 +35,14 @@ namespace Accounting_System.Controllers
             _generalRepo = generalRepo;
         }
 
-        public async Task<IActionResult> CollectionIndex(CancellationToken cancellationToken)
+        public async Task<IActionResult> CollectionIndex(string? view, CancellationToken cancellationToken)
         {
             var viewData = await _receiptRepo.GetCRAsync(cancellationToken);
 
-            return View(viewData);
-        }
-        public async Task<IActionResult> ImportExportIndex(CancellationToken cancellationToken)
-        {
-            var viewData = await _receiptRepo.GetCRAsync(cancellationToken);
+            if (view == nameof(DynamicView.CollectionReceipt))
+            {
+                return View("ImportExportIndex", viewData);
+            }
 
             return View(viewData);
         }
@@ -1827,7 +1827,7 @@ namespace Accounting_System.Controllers
             if (string.IsNullOrEmpty(selectedRecord))
             {
                 // Handle the case where no invoices are selected
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(CollectionIndex));
             }
 
             var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
@@ -1970,7 +1970,7 @@ namespace Accounting_System.Controllers
         {
             if (file == null || file.Length == 0)
             {
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(CollectionIndex));
             }
 
             using (var stream = new MemoryStream())
@@ -1988,7 +1988,7 @@ namespace Accounting_System.Controllers
 
                         if (worksheet == null)
                         {
-                            return RedirectToAction(nameof(Index), new { errorMessage = "The Excel file contains no worksheets." });
+                            return RedirectToAction(nameof(CollectionIndex), new { errorMessage = "The Excel file contains no worksheets." });
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
@@ -2101,16 +2101,16 @@ namespace Accounting_System.Controllers
                 catch (OperationCanceledException oce)
                 {
                     TempData["error"] = oce.Message;
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(CollectionIndex));
                 }
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(CollectionIndex));
                 }
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(CollectionIndex));
         }
 
         #endregion -- import xlsx record --

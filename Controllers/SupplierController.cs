@@ -2,6 +2,7 @@
 using Accounting_System.Models.MasterFile;
 using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
+using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -30,18 +31,16 @@ namespace Accounting_System.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        public async Task<IActionResult> Index(CancellationToken cancellationToken)
+        public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
         {
-            return _context.Suppliers != null ?
-                        View(await _context.Suppliers.ToListAsync(cancellationToken)) :
-                        Problem("Entity set 'ApplicationDbContext.Suppliers'  is null.");
-        }
+            var data = await _context.Suppliers.ToListAsync(cancellationToken);
 
-        public async Task<IActionResult> ImportExportIndex(CancellationToken cancellationToken)
-        {
-            return _context.Suppliers != null ?
-                        View(await _context.Suppliers.ToListAsync(cancellationToken)) :
-                        Problem("Entity set 'ApplicationDbContext.Suppliers'  is null.");
+            if (view == nameof(DynamicView.Supplier))
+            {
+                return View("ImportExportIndex", data);
+            }
+
+            return View(data);
         }
 
         public async Task<IActionResult> Create(CancellationToken cancellationToken)

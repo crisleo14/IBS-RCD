@@ -3,6 +3,7 @@ using Accounting_System.Models.AccountsPayable;
 using Accounting_System.Models.Reports;
 using Accounting_System.Models.ViewModels;
 using Accounting_System.Repository;
+using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -31,7 +32,7 @@ namespace Accounting_System.Controllers
             _inventoryRepo = inventoryRepo;
         }
 
-        public async Task<IActionResult> Index(CancellationToken cancellationToken)
+        public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
         {
             var purchaseOrders = await _purchaseOrderRepo.GetPurchaseOrderAsync(cancellationToken);
 
@@ -44,20 +45,9 @@ namespace Accounting_System.Controllers
                 po.RrList = rrList;
             }
 
-            return View(purchaseOrders);
-        }
-
-        public async Task<IActionResult> ImportExportIndex(CancellationToken cancellationToken)
-        {
-            var purchaseOrders = await _purchaseOrderRepo.GetPurchaseOrderAsync(cancellationToken);
-
-            foreach (var po in purchaseOrders)
+            if (view == nameof(DynamicView.PurchaseOrder))
             {
-                var rrList = await _dbContext.ReceivingReports
-                    .Where(rr => rr.PONo == po.PONo)
-                    .ToListAsync(cancellationToken);
-
-                po.RrList = rrList;
+                return View("ImportExportIndex", purchaseOrders);
             }
 
             return View(purchaseOrders);

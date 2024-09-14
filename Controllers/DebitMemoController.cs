@@ -4,6 +4,7 @@ using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.Reports;
 using Accounting_System.Models.ViewModels;
 using Accounting_System.Repository;
+using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -32,7 +33,7 @@ namespace Accounting_System.Controllers
             _generalRepo = generalRepo;
         }
 
-        public async Task<IActionResult> Index(CancellationToken cancellationToken)
+        public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
         {
             var dm = await _dbContext.DebitMemos
                 .Include(dm => dm.SalesInvoice)
@@ -42,22 +43,14 @@ namespace Accounting_System.Controllers
                 .Include(dm => dm.ServiceInvoice)
                 .ThenInclude(sv => sv.Customer)
                 .Include(dm => dm.ServiceInvoice)
-                .ThenInclude(sv => sv.Service)
+            .ThenInclude(sv => sv.Service)
                 .ToListAsync(cancellationToken);
-            return View(dm);
-        }
-        public async Task<IActionResult> ImportExportIndex(CancellationToken cancellationToken)
-        {
-            var dm = await _dbContext.DebitMemos
-                .Include(dm => dm.SalesInvoice)
-                .ThenInclude(s => s.Customer)
-                .Include(dm => dm.SalesInvoice)
-                .ThenInclude(s => s.Product)
-                .Include(dm => dm.ServiceInvoice)
-                .ThenInclude(sv => sv.Customer)
-                .Include(dm => dm.ServiceInvoice)
-                .ThenInclude(sv => sv.Service)
-                .ToListAsync(cancellationToken);
+
+            if (view == nameof(DynamicView.DebitMemo))
+            {
+                return View("ImportExportIndex", dm);
+            }
+
             return View(dm);
         }
 

@@ -3,6 +3,7 @@ using Accounting_System.Models;
 using Accounting_System.Models.AccountsPayable;
 using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
+using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -34,25 +35,19 @@ namespace Accounting_System.Controllers
             _inventoryRepo = inventoryRepo;
         }
 
-        public async Task<IActionResult> Index(CancellationToken cancellationToken)
+        public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
         {
             var rr = await _dbContext.ReceivingReports
                 .Include(p => p.PurchaseOrder)
                 .ThenInclude(s => s.Supplier)
                 .Include(p => p.PurchaseOrder)
-                .ThenInclude(prod => prod.Product)
+            .ThenInclude(prod => prod.Product)
                 .ToListAsync(cancellationToken);
 
-            return View(rr);
-        }
-        public async Task<IActionResult> ImportExportIndex(CancellationToken cancellationToken)
-        {
-            var rr = await _dbContext.ReceivingReports
-                .Include(p => p.PurchaseOrder)
-                .ThenInclude(s => s.Supplier)
-                .Include(p => p.PurchaseOrder)
-                .ThenInclude(prod => prod.Product)
-                .ToListAsync(cancellationToken);
+            if (view == nameof(DynamicView.ReceivingReport))
+            {
+                return View("ImportExportIndex", rr);
+            }
 
             return View(rr);
         }

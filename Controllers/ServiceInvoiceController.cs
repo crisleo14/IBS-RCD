@@ -3,6 +3,7 @@ using Accounting_System.Models;
 using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
+using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -31,17 +32,15 @@ namespace Accounting_System.Controllers
             _generalRepo = generalRepo;
         }
 
-        public async Task<IActionResult> Index(CancellationToken cancellationToken)
+        public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
         {
             var results = await _serviceInvoiceRepo
                 .GetSvListAsync(cancellationToken);
 
-            return View(results);
-        }
-        public async Task<IActionResult> ImportExportIndex(CancellationToken cancellationToken)
-        {
-            var results = await _serviceInvoiceRepo
-                .GetSvListAsync(cancellationToken);
+            if (view == nameof(DynamicView.ServiceInvoice))
+            {
+                return View("ImportExportIndex", results);
+            }
 
             return View(results);
         }

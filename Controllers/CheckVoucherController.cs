@@ -4,6 +4,7 @@ using Accounting_System.Models.AccountsPayable;
 using Accounting_System.Models.Reports;
 using Accounting_System.Models.ViewModels;
 using Accounting_System.Repository;
+using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -35,7 +36,7 @@ namespace Accounting_System.Controllers
             _generalRepo = generalRepo;
         }
 
-        public async Task<IActionResult> Index(CancellationToken cancellationToken)
+        public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
         {
             var headers = await _dbContext.CheckVoucherHeaders
                 .Include(s => s.Supplier)
@@ -80,52 +81,9 @@ namespace Accounting_System.Controllers
                 checkVoucherVMs.Add(checkVoucherVM);
             }
 
-            return View(checkVoucherVMs);
-        }
-
-        public async Task<IActionResult> ImportExportIndex(CancellationToken cancellationToken)
-        {
-            var headers = await _dbContext.CheckVoucherHeaders
-                .Include(s => s.Supplier)
-                .ToListAsync(cancellationToken);
-
-            var details = await _dbContext.CheckVoucherDetails
-                .ToListAsync(cancellationToken);
-
-            // Create a list to store CheckVoucherVM objects
-            var checkVoucherVMs = new List<CheckVoucherVM>();
-
-            // Retrieve details for each header
-            foreach (var header in headers)
+            if (view == nameof(DynamicView.CheckVoucher))
             {
-                var headerDetails = details.Where(d => d.TransactionNo == header.CVNo).ToList();
-
-                if (header.Category == "Trade" && header.RRNo != null)
-                {
-                    var siArray = new string[header.RRNo.Length];
-                    for (int i = 0; i < header.RRNo.Length; i++)
-                    {
-                        var rrValue = header.RRNo[i];
-
-                        var rr = await _dbContext.ReceivingReports
-                                    .FirstOrDefaultAsync(p => p.RRNo == rrValue);
-                        if (rr != null)
-                        {
-                            siArray[i] = rr.SupplierInvoiceNumber;
-                        }
-                    }
-
-                    ViewBag.SINoArray = siArray;
-                }
-                // Create a new CheckVoucherVM object for each header and its associated details
-                var checkVoucherVM = new CheckVoucherVM
-                {
-                    Header = header,
-                    Details = headerDetails
-                };
-
-                // Add the CheckVoucherVM object to the list
-                checkVoucherVMs.Add(checkVoucherVM);
+                return View("ImportExportIndex", checkVoucherVMs);
             }
 
             return View(checkVoucherVMs);
@@ -2191,7 +2149,7 @@ namespace Accounting_System.Controllers
             catch (Exception ex)
             {
                 TempData["error"] = ex.Message;
-                return RedirectToAction(nameof(ImportExportIndex));
+                return RedirectToAction(nameof(Index));
             }
 
         }
@@ -2313,16 +2271,16 @@ namespace Accounting_System.Controllers
                 catch (OperationCanceledException oce)
                 {
                     TempData["error"] = oce.Message;
-                    return RedirectToAction(nameof(ImportExportIndex));
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(ImportExportIndex));
+                    return RedirectToAction(nameof(Index));
                 }
             }
 
-            return RedirectToAction(nameof(ImportExportIndex));
+            return RedirectToAction(nameof(Index));
         }
 
         #endregion -- import xlsx record --
