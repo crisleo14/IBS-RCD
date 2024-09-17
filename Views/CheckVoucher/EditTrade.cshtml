@@ -3,253 +3,264 @@
 @model CheckVoucherTradeViewModel
 
 @{
-    ViewData["Title"] = "Edit Trade";
+    ViewData["Title"] = "EDIT TRADE";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<h1>Edit</h1>
-
-<h4>Check Voucher(Trade)</h4>
-<hr />
-
-<form asp-action="EditTrade" method="post" enctype="multipart/form-data">
-    <div class="row">
-        <div class="col-md-4">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group mb-3">
-                <label asp-for="SupplierId" class="control-label"></label>
-                <select asp-for="SupplierId" asp-items="@Model.Suppliers" class="form-select js-select2 GetPOList supplier" style="width:100%">
-                    <option></option>
-                </select>
-                <span asp-validation-for="SupplierId" class="text-danger"></span>
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">@ViewData["Title"]</h2>
             </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Payee" type="text" class="form-control supplierName" placeholder="" />
-                <label asp-for="Payee" class="control-label"></label>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="SupplierAddress" type="text" class="form-control" placeholder="" readonly />
-                <label asp-for="SupplierAddress" class="control-label"></label>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="SupplierTinNo" type="text" class="form-control" placeholder="" readonly />
-                <label asp-for="SupplierTinNo" class="control-label"></label>
-            </div>
-            <div class="form-group mb-3">
-                <label asp-for="POSeries" class="control-label">Suppliers PO No.</label>
-                <select asp-for="POSeries" asp-items="@Model.PONo" class="form-select js-multiple GetRRList" multiple="multiple" style="width:100%" required>
-                    <option></option>
-                </select>
-                <span asp-validation-for="POSeries" class="text-danger"></span>
-            </div>
-            <div class="form-group mb-3">
-                <input type="hidden" id="criteriaInput" name="criteria" />
-                <label asp-for="RRSeries" class="control-label"></label>
-                <select asp-for="RRSeries" asp-items="@Model.RR" class="form-select js-multiple" multiple="multiple" style="width:100%">
-                    <option></option>
-                </select>
-                <span asp-validation-for="RRSeries" class="text-danger"></span>
-            </div>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th class="w-100">RR List</th>
-                        <th class="w-20">
-                            Amount
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="rrAmountList">
-                </tbody>
-            </table>
-            <div class="form-group mb-3">
-                <label asp-for="TransactionDate" class="control-label"></label>
-                <input asp-for="TransactionDate" type="Date" class="form-control" />
-                <span asp-validation-for="TransactionDate" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="BankId" class="control-label"></label>
-                <select asp-for="BankId" asp-items="@Model.BankAccounts" class="form-select js-select2" id="bankAccounts" style="width:100%">
-                    <option></option>
-                </select>
-                <span asp-validation-for="BankId" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="CheckNo" type="text" class="form-control" placeholder="" />
-                <span asp-validation-for="CheckNo" class="text-danger"></span>
-                <label asp-for="CheckNo" class="control-label">Check No</label>
-            </div>
-            <div class="form-group mb-3">
-                <label asp-for="CheckDate" class="control-label"></label>
-                <input asp-for="CheckDate" type="date" class="form-control" />
-                <span asp-validation-for="CheckDate" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Particulars" type="text" class="form-control" placeholder="" />
-                <span asp-validation-for="Particulars" class="text-danger"></span>
-                <label asp-for="Particulars" class="control-label">Particulars</label>
-            </div>
-            <div class="form-group mb-3">
-                <label class="control-label">Upload File (Optional)</label>
-                <input name="file" type="file" class="form-control" />
-            </div>
-        </div>
-        <div class="col-8">
-            <div class="row mb-3">
-                <table style="border:dotted 1px;">
-                    <thead class="m-2">
-                        <tr>
-                            <th colspan="6" class="text-center py-4">RR AMOUNT</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <th style="width:19%; padding-left:20px;">RR No's</th>
-                            <th class="text-end" style="width:14%;">Gross</th>
-                            <th class="text-end" style="width:14%;">Net of Vat</th>
-                            <th class="text-end" style="width:14%;">Vat</th>
-                            <th class="text-end" style="width:14%;">EWT</th>
-                            <th class="text-end" style="width:25%; padding-right:20px;">Net of EWT</th>
-                        </tr>
-                    </tbody>
-                    <tbody class="rrAmount">
-                    </tbody>
-                    <tbody>
-                        <tr style="border-bottom:double;">
-                            <td class="pt-1"></td>
-                        </tr>
-                        <tr>
-                            <td class="text-end fw-bold p-3">Grand Total:</td>
-                            <td class="text-end" id="grandTotalRRAmount">0.00</td>
-                            <td class="text-end" id="grandTotalNetAmount">0.00</td>
-                            <td class="text-end" id="grandTotalVatAmount">0.00</td>
-                            <td class="text-end" id="grandTotalEWTAmount">0.00</td>
-                            <td class="text-end" id="grandTotalNetOfEWT" style="padding-right:20px;">0.00</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="row mb-3">
-                <table style="border:dotted 1px;">
-                    <thead class="m-2">
-                        <tr>
-                            <th colspan="6" class="text-center py-4">PAYMENT</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <th style="width:19%; padding-left:20px;">RR No's</th>
-                            <th class="text-end" style="width:14%;">Gross</th>
-                            <th class="text-end" style="width:14%;">Net of Vat</th>
-                            <th class="text-end" style="width:14%;">Vat</th>
-                            <th class="text-end" style="width:14%;">EWT</th>
-                            <th class="text-end" style="width:25%; padding-right:20px;">Net of EWT</th>
-                        </tr>
-                    </tbody>
-                    <tbody class="payment">
-                    </tbody>
-                    <tbody>
-                        <tr style="border-bottom:double;">
-                            <td class="pt-1"></td>
-                        </tr>
-                        <tr>
-                            <td class="text-end fw-bold p-3">Grand Total:</td>
-                            <td class="text-end" id="grandTotalPayment">0.00</td>
-                            <td class="text-end" id="grandTotalNetOfVatPayment">0.00</td>
-                            <td class="text-end" id="grandTotalVatPayment">0.00</td>
-                            <td class="text-end" id="grandTotalEWTPayment">0.00</td>
-                            <td class="text-end" id="grandTotalNetOfEWTPayment" style="padding-right:20px;">0.00</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="row mb-3">
-                <table style="border:dotted 1px;">
-                    <thead class="m-2">
-                        <tr>
-                            <th colspan="6" class="text-center py-4">REMAINING BALANCE</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <th style="width:19%; padding-left:20px;">RR No's</th>
-                            <th class="text-end" style="width:14%;">Gross</th>
-                            <th class="text-end" style="width:14%;">Net of Vat</th>
-                            <th class="text-end" style="width:14%;">Vat</th>
-                            <th class="text-end" style="width:14%;">EWT</th>
-                            <th class="text-end" style="width:25%; padding-right:20px;">Net of EWT</th>
-                        </tr>
-                    </tbody>
-                    <tbody class="balance">
-                    </tbody>
-                    <tbody>
-                        <tr style="border-bottom:double;">
-                            <td class="pt-1"></td>
-                        </tr>
-                        <tr>
-                            <td class="text-end fw-bold p-3">Grand Total:</td>
-                            <td class="text-end" id="grandTotal">0.00</td>
-                            <td class="text-end" id="grandTotalNetOfVat">0.00</td>
-                            <td class="text-end" id="grandTotalVat">0.00</td>
-                            <td class="text-end" id="grandTotalEWT">0.00</td>
-                            <td class="text-end" id="grandTotalRRAmountNetOfEWT" style="padding-right:20px;">0.00</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <br />
-        <div class="form-group">
-            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#AddAccEntry">
-                Add Entry
-            </button>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th class="w-50">Account No.</th>
-                        <th class="w-25">
-                            Debit
-                        </th>
-                        <th class="w-25">
-                            Credit
-                        </th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody id="accountingEntriesBody" class="defaultEntry">
-                </tbody>
-                <tbody>
-                    <tr>
-                        <td class="text-end">TOTAL:</td>
-                        <td class="totalDebit">0.00</td>
-                        <td class="totalCredit">0.00</td>
-                        <td></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <br />
-        @* "start" hidden input to add value when submit form *@
-        <input type="hidden" asp-for="CVId" />
-        <input type="hidden" asp-for="CVNo" />
-        <input type="hidden" asp-for="CreatedBy" />
-        @for (int i = 0; i < Model.POId.Length; i++)
-        {
-            <input type="hidden" name="POId[@i]" value="@Model.POId[i]" />
-        }
-
-        @for (int i = 0; i < Model.RRId.Length; i++)
-        {
-            <input type="hidden" name="RRId[@i]" value="@Model.RRId[i]" />
-        }
-
-        @* "end" hidden input to add value when submit form *@
-        <div class="form-group">
-            <input type="submit" value="Save" class="btn btn-primary" onclick="validateDebitAndCredit(event)" />
-            <a asp-action="Index" class="btn btn-secondary">Back to List</a>
         </div>
     </div>
-</form>
+    <div class="card-body p-4">
+        <form asp-action="EditTrade" method="post" enctype="multipart/form-data">
+            <div class="row">
+                <div class="col-md-4">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="form-group mb-3">
+                        <label asp-for="SupplierId" class="control-label"></label>
+                        <select asp-for="SupplierId" asp-items="@Model.Suppliers" class="form-select js-select2 GetPOList supplier" style="width:100%">
+                            <option></option>
+                        </select>
+                        <span asp-validation-for="SupplierId" class="text-danger"></span>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input asp-for="Payee" type="text" class="form-control supplierName" placeholder="" />
+                        <label asp-for="Payee" class="control-label"></label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input asp-for="SupplierAddress" type="text" class="form-control" placeholder="" readonly />
+                        <label asp-for="SupplierAddress" class="control-label"></label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input asp-for="SupplierTinNo" type="text" class="form-control" placeholder="" readonly />
+                        <label asp-for="SupplierTinNo" class="control-label"></label>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label asp-for="POSeries" class="control-label">Suppliers PO No.</label>
+                        <select asp-for="POSeries" asp-items="@Model.PONo" class="form-select js-multiple GetRRList" multiple="multiple" style="width:100%" required>
+                            <option></option>
+                        </select>
+                        <span asp-validation-for="POSeries" class="text-danger"></span>
+                    </div>
+                    <div class="form-group mb-3">
+                        <input type="hidden" id="criteriaInput" name="criteria" />
+                        <label asp-for="RRSeries" class="control-label"></label>
+                        <select asp-for="RRSeries" asp-items="@Model.RR" class="form-select js-multiple" multiple="multiple" style="width:100%">
+                            <option></option>
+                        </select>
+                        <span asp-validation-for="RRSeries" class="text-danger"></span>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th class="w-100">RR List</th>
+                                <th class="w-20">
+                                    Amount
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="rrAmountList">
+                        </tbody>
+                    </table>
+                    <div class="form-group mb-3">
+                        <label asp-for="TransactionDate" class="control-label"></label>
+                        <input asp-for="TransactionDate" type="Date" class="form-control" />
+                        <span asp-validation-for="TransactionDate" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="BankId" class="control-label"></label>
+                        <select asp-for="BankId" asp-items="@Model.BankAccounts" class="form-select js-select2" id="bankAccounts" style="width:100%">
+                            <option></option>
+                        </select>
+                        <span asp-validation-for="BankId" class="text-danger"></span>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input asp-for="CheckNo" type="text" class="form-control" placeholder="" />
+                        <span asp-validation-for="CheckNo" class="text-danger"></span>
+                        <label asp-for="CheckNo" class="control-label">Check No</label>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label asp-for="CheckDate" class="control-label"></label>
+                        <input asp-for="CheckDate" type="date" class="form-control" />
+                        <span asp-validation-for="CheckDate" class="text-danger"></span>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input asp-for="Particulars" type="text" class="form-control" placeholder="" />
+                        <span asp-validation-for="Particulars" class="text-danger"></span>
+                        <label asp-for="Particulars" class="control-label">Particulars</label>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="control-label">Upload File (Optional)</label>
+                        <input name="file" type="file" class="form-control" />
+                    </div>
+                </div>
+                <div class="col-8">
+                    <div class="row mb-3">
+                        <table style="border:dotted 1px;">
+                            <thead class="m-2">
+                                <tr>
+                                    <th colspan="6" class="text-center py-4">RR AMOUNT</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th style="width:19%; padding-left:20px;">RR No's</th>
+                                    <th class="text-end" style="width:14%;">Gross</th>
+                                    <th class="text-end" style="width:14%;">Net of Vat</th>
+                                    <th class="text-end" style="width:14%;">Vat</th>
+                                    <th class="text-end" style="width:14%;">EWT</th>
+                                    <th class="text-end" style="width:25%; padding-right:20px;">Net of EWT</th>
+                                </tr>
+                            </tbody>
+                            <tbody class="rrAmount">
+                            </tbody>
+                            <tbody>
+                                <tr style="border-bottom:double;">
+                                    <td class="pt-1"></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-end fw-bold p-3">Grand Total:</td>
+                                    <td class="text-end" id="grandTotalRRAmount">0.00</td>
+                                    <td class="text-end" id="grandTotalNetAmount">0.00</td>
+                                    <td class="text-end" id="grandTotalVatAmount">0.00</td>
+                                    <td class="text-end" id="grandTotalEWTAmount">0.00</td>
+                                    <td class="text-end" id="grandTotalNetOfEWT" style="padding-right:20px;">0.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row mb-3">
+                        <table style="border:dotted 1px;">
+                            <thead class="m-2">
+                                <tr>
+                                    <th colspan="6" class="text-center py-4">PAYMENT</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th style="width:19%; padding-left:20px;">RR No's</th>
+                                    <th class="text-end" style="width:14%;">Gross</th>
+                                    <th class="text-end" style="width:14%;">Net of Vat</th>
+                                    <th class="text-end" style="width:14%;">Vat</th>
+                                    <th class="text-end" style="width:14%;">EWT</th>
+                                    <th class="text-end" style="width:25%; padding-right:20px;">Net of EWT</th>
+                                </tr>
+                            </tbody>
+                            <tbody class="payment">
+                            </tbody>
+                            <tbody>
+                                <tr style="border-bottom:double;">
+                                    <td class="pt-1"></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-end fw-bold p-3">Grand Total:</td>
+                                    <td class="text-end" id="grandTotalPayment">0.00</td>
+                                    <td class="text-end" id="grandTotalNetOfVatPayment">0.00</td>
+                                    <td class="text-end" id="grandTotalVatPayment">0.00</td>
+                                    <td class="text-end" id="grandTotalEWTPayment">0.00</td>
+                                    <td class="text-end" id="grandTotalNetOfEWTPayment" style="padding-right:20px;">0.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row mb-3">
+                        <table style="border:dotted 1px;">
+                            <thead class="m-2">
+                                <tr>
+                                    <th colspan="6" class="text-center py-4">REMAINING BALANCE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th style="width:19%; padding-left:20px;">RR No's</th>
+                                    <th class="text-end" style="width:14%;">Gross</th>
+                                    <th class="text-end" style="width:14%;">Net of Vat</th>
+                                    <th class="text-end" style="width:14%;">Vat</th>
+                                    <th class="text-end" style="width:14%;">EWT</th>
+                                    <th class="text-end" style="width:25%; padding-right:20px;">Net of EWT</th>
+                                </tr>
+                            </tbody>
+                            <tbody class="balance">
+                            </tbody>
+                            <tbody>
+                                <tr style="border-bottom:double;">
+                                    <td class="pt-1"></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-end fw-bold p-3">Grand Total:</td>
+                                    <td class="text-end" id="grandTotal">0.00</td>
+                                    <td class="text-end" id="grandTotalNetOfVat">0.00</td>
+                                    <td class="text-end" id="grandTotalVat">0.00</td>
+                                    <td class="text-end" id="grandTotalEWT">0.00</td>
+                                    <td class="text-end" id="grandTotalRRAmountNetOfEWT" style="padding-right:20px;">0.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <br />
+                <div class="form-group">
+                    <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#AddAccEntry">
+                        Add Entry
+                    </button>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th class="w-50">Account No.</th>
+                                <th class="w-25">
+                                    Debit
+                                </th>
+                                <th class="w-25">
+                                    Credit
+                                </th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="accountingEntriesBody" class="defaultEntry">
+                        </tbody>
+                        <tbody>
+                            <tr>
+                                <td class="text-end">TOTAL:</td>
+                                <td class="totalDebit">0.00</td>
+                                <td class="totalCredit">0.00</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <br />
+                @* "start" hidden input to add value when submit form *@
+                <input type="hidden" asp-for="CVId" />
+                <input type="hidden" asp-for="CVNo" />
+                <input type="hidden" asp-for="CreatedBy" />
+                @for (int i = 0; i < Model.POId.Length; i++)
+                {
+                    <input type="hidden" name="POId[@i]" value="@Model.POId[i]" />
+                }
+
+                @for (int i = 0; i < Model.RRId.Length; i++)
+                {
+                    <input type="hidden" name="RRId[@i]" value="@Model.RRId[i]" />
+                }
+
+                @* "end" hidden input to add value when submit form *@
+                <div class="row pt-2">
+                    <div class="col-6 col-md-3">
+                        <button type="submit" class="btn btn-primary form-control" onclick="validateDebitAndCredit(event)">Save</button>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a asp-controller="CheckVoucher" asp-action="Index" class="btn btn-outline-primary border  form-control ">Back to List</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 
 
 <!-- Modal -->

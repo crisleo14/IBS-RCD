@@ -3,15 +3,18 @@
 @model DebitMemo
 
 @{
-    ViewData["Title"] = "Edit Debit Memo";
+    ViewData["Title"] = "EDIT DEBIT MEMO";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-<h1>Edit</h1>
-<h4>Debit Memo</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">@ViewData["Title"]</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <fieldset class="form-group mb-3">
@@ -44,7 +47,7 @@
                 </div>
                 <div class="form-group mb-3">
                     <label class="control-label">Quantity</label>
-                    <input asp-for="Quantity" class="form-control money"  placeholder="0.00" required />
+                    <input asp-for="Quantity" class="form-control money" placeholder="0.00" required />
                     <span asp-validation-for="Quantity" class="text-danger"></span>
                 </div>
                 <div class="form-group mb-3">
@@ -83,15 +86,17 @@
                 <label asp-for="Remarks" class="control-label">Remarks</label>
                 <span asp-validation-for="Remarks" class="text-danger"></span>
             </div>
-
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            <div class="row pt-2">
+                <div class="col-6 col-md-3">
+                    <button type="submit" class="btn btn-primary form-control">Save</button>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a asp-controller="DebitMemo" asp-action="Index" class="btn btn-outline-primary border  form-control ">Back to List</a>
+                </div>
             </div>
         </form>
     </div>
 </div>
-
 
 @section Scripts {
     @{

@@ -2,16 +2,18 @@
 @model Supplier
 
 @{
-    ViewData["Title"] = "Create Supplier";
+    ViewData["Title"] = "CREATE SUPPLIER";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-<h1>Create</h1>
-
-<h4>Supplier</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">@ViewData["Title"]</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
         <form asp-action="Create" method="post" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <fieldset class="form-group mb-3">
@@ -27,7 +29,7 @@
                     <label class="form-check-label" for="inlineRadio2" id="labelInlineRadio2">Non-Trade</label>
                 </div>
                 <br />
-                <span  class="text-danger"></span>
+                <span class="text-danger"></span>
             </fieldset>
             <div class="form-floating mb-3" id="tradeList" style="display: none;">
                 <input asp-for="TradeName" class="form-control" placeholder="" />
@@ -35,25 +37,25 @@
                 <span asp-validation-for="TradeName" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
-                <input asp-for="Name" class="form-control" placeholder=""/>
+                <input asp-for="Name" class="form-control" placeholder="" />
                 <label asp-for="Name" class="control-label">Name<span class="required">*</span></label>
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
-                <input asp-for="Address" class="form-control" placeholder=""/>
+                <input asp-for="Address" class="form-control" placeholder="" />
                 <label asp-for="Address" class="control-label">Address<span class="required">*</span></label>
                 <span asp-validation-for="Address" class="text-danger"></span>
             </div>
             <div class="row mb-3">
                 <div class="form-floating col">
-                <input asp-for="TinNo" class="form-control" placeholder="" />
-                <label asp-for="TinNo" class="control-label ms-2">Tin No<span class="required">*</span></label>
-                <span asp-validation-for="TinNo" class="text-danger"></span>
+                    <input asp-for="TinNo" class="form-control" placeholder="" />
+                    <label asp-for="TinNo" class="control-label ms-2">Tin No<span class="required">*</span></label>
+                    <span asp-validation-for="TinNo" class="text-danger"></span>
                 </div>
                 <div class="form-floating col">
-                <input asp-for="Branch" class="form-control" placeholder="" maxlength="4" />
-                <label asp-for="Branch" class="control-label ms-2">Branch<span class="required">*</span></label>
-                <span asp-validation-for="Branch" class="text-danger"></span>
+                    <input asp-for="Branch" class="form-control" placeholder="" maxlength="4" />
+                    <label asp-for="Branch" class="control-label ms-2">Branch<span class="required">*</span></label>
+                    <span asp-validation-for="Branch" class="text-danger"></span>
                 </div>
             </div>
             <div class="form-group mb-3" id="nonTradeList" style="display: none;">
@@ -143,9 +145,13 @@
                 <input class="form-control form-control-sm" name="registration" type='file' required>
                 <span asp-validation-for="ProofOfRegistrationFilePath" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <button type="submit" value="Create" class="btn btn-primary">Submit</button>
-                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            <div class="row pt-2">
+                <div class="col-6 col-md-3">
+                    <button type="submit" class="btn btn-primary form-control">Create</button>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a asp-controller="Supplier" asp-action="Index" class="btn btn-outline-primary border  form-control ">Back to List</a>
+                </div>
             </div>
         </form>
     </div>
