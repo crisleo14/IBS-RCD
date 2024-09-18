@@ -197,12 +197,12 @@ namespace Accounting_System.Controllers
 
                 #endregion --Saving the default entries
 
-                #region --Audit Trail Recording
+                //#region --Audit Trail Recording
 
-                AuditTrail auditTrail = new(model.Header.CreatedBy, $"Create new journal voucher# {model.Header.JVNo}", "Journal Voucher");
-                await _dbContext.AddAsync(auditTrail, cancellationToken);
+                //AuditTrail auditTrail = new(model.Header.CreatedBy, $"Create new journal voucher# {model.Header.JVNo}", "Journal Voucher");
+                //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                #endregion --Audit Trail Recording
+                //#endregion --Audit Trail Recording
 
                 await _dbContext.AddAsync(model.Header, cancellationToken);  // Add CheckVoucherHeader to the context
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -326,13 +326,13 @@ namespace Accounting_System.Controllers
             var jv = await _dbContext.JournalVoucherHeaders.FindAsync(id, cancellationToken);
             if (jv != null && !jv.IsPrinted)
             {
-                #region --Audit Trail Recording
+                //#region --Audit Trail Recording
 
-                var printedBy = _userManager.GetUserName(this.User);
-                AuditTrail auditTrail = new(printedBy, $"Printed original copy of jv# {jv.JVNo}", "Journal Vouchers");
-                await _dbContext.AddAsync(auditTrail, cancellationToken);
+                //var printedBy = _userManager.GetUserName(this.User);
+                //AuditTrail auditTrail = new(printedBy, $"Printed original copy of jv# {jv.JVNo}", "Journal Vouchers");
+                //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                #endregion --Audit Trail Recording
+                //#endregion --Audit Trail Recording
 
                 jv.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -409,12 +409,12 @@ namespace Accounting_System.Controllers
 
                         #endregion --Journal Book Recording(JV)--
 
-                        #region --Audit Trail Recording
+                        //#region --Audit Trail Recording
 
-                        AuditTrail auditTrail = new(modelHeader.PostedBy, $"Posted journal voucher# {modelHeader.JVNo}", "Journal Voucher");
-                        await _dbContext.AddAsync(auditTrail, cancellationToken);
+                        //AuditTrail auditTrail = new(modelHeader.PostedBy, $"Posted journal voucher# {modelHeader.JVNo}", "Journal Voucher");
+                        //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                        #endregion --Audit Trail Recording
+                        //#endregion --Audit Trail Recording
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         TempData["success"] = "Journal Voucher has been Posted.";
@@ -459,12 +459,12 @@ namespace Accounting_System.Controllers
                         await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.JVNo, cancellationToken);
                     }
 
-                    #region --Audit Trail Recording
+                    //#region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.VoidedBy, $"Voided journal voucher# {model.JVNo}", "Journal Voucher");
-                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    //AuditTrail auditTrail = new(model.VoidedBy, $"Voided journal voucher# {model.JVNo}", "Journal Voucher");
+                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                    #endregion --Audit Trail Recording
+                    //#endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Journal Voucher has been Voided.";
@@ -488,12 +488,12 @@ namespace Accounting_System.Controllers
                     model.CanceledDate = DateTime.Now;
                     model.CancellationRemarks = cancellationRemarks;
 
-                    #region --Audit Trail Recording
+                    //#region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled journal voucher# {model.JVNo}", "Journal Voucher");
-                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    //AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled journal voucher# {model.JVNo}", "Journal Voucher");
+                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                    #endregion --Audit Trail Recording
+                    //#endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Journal Voucher has been Cancelled.";
@@ -664,12 +664,12 @@ namespace Accounting_System.Controllers
 
                     #endregion --Saving the default entries
 
-                    #region --Audit Trail Recording
+                    //#region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Edit check voucher# {viewModel.JVNo}", "Check Voucher");
-                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    //AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Edit check voucher# {viewModel.JVNo}", "Check Voucher");
+                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                    #endregion --Audit Trail Recording
+                    //#endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
                     TempData["success"] = "Journal Voucher edited successfully";

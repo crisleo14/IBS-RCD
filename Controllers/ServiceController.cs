@@ -1,6 +1,5 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
-using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
 using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
@@ -122,12 +121,12 @@ namespace Accounting_System.Controllers
 
                 TempData["success"] = "Services created successfully";
 
-                #region --Audit Trail Recording
+                //#region --Audit Trail Recording
 
-                AuditTrail auditTrail = new(services.CreatedBy, $"Created new service {services.Name}", "Service");
-                await _dbContext.AddAsync(auditTrail, cancellationToken);
+                //AuditTrail auditTrail = new(services.CreatedBy, $"Created new service {services.Name}", "Service");
+                //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                #endregion --Audit Trail Recording
+                //#endregion --Audit Trail Recording
 
                 await _dbContext.AddAsync(services, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -173,12 +172,12 @@ namespace Accounting_System.Controllers
 
                     TempData["success"] = "Services updated successfully";
 
-                    #region --Audit Trail Recording
+                    //#region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Update service {services.Name}", "Service");
-                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    //AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Update service {services.Name}", "Service");
+                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                    #endregion --Audit Trail Recording
+                    //#endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                 }

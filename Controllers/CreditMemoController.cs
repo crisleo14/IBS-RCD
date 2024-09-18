@@ -262,12 +262,12 @@ namespace Accounting_System.Controllers
                     }
                 }
 
-                #region --Audit Trail Recording
+                //#region --Audit Trail Recording
 
-                AuditTrail auditTrail = new(model.CreatedBy, $"Create new credit memo# {model.CMNo}", "Credit Memo");
-                await _dbContext.AddAsync(auditTrail, cancellationToken);
+                //AuditTrail auditTrail = new(model.CreatedBy, $"Create new credit memo# {model.CMNo}", "Credit Memo");
+                //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                #endregion --Audit Trail Recording
+                //#endregion --Audit Trail Recording
 
                 await _dbContext.AddAsync(model, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -443,12 +443,12 @@ namespace Accounting_System.Controllers
 
                 }
 
-                #region --Audit Trail Recording
+                //#region --Audit Trail Recording
 
-                AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Edit credit memo# {existingCM.CMNo}", "Credit Memo");
-                await _dbContext.AddAsync(auditTrail, cancellationToken);
+                //AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Edit credit memo# {existingCM.CMNo}", "Credit Memo");
+                //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                #endregion --Audit Trail Recording
+                //#endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 TempData["success"] = "Credit Memo edited successfully";
@@ -490,13 +490,13 @@ namespace Accounting_System.Controllers
             var cm = await _dbContext.CreditMemos.FindAsync(id, cancellationToken);
             if (cm != null && !cm.IsPrinted)
             {
-                #region --Audit Trail Recording
+                //#region --Audit Trail Recording
 
-                var printedBy = _userManager.GetUserName(this.User);
-                AuditTrail auditTrail = new(printedBy, $"Printed original copy of cm# {cm.CMNo}", "Credit Memo");
-                await _dbContext.AddAsync(auditTrail, cancellationToken);
+                //var printedBy = _userManager.GetUserName(this.User);
+                //AuditTrail auditTrail = new(printedBy, $"Printed original copy of cm# {cm.CMNo}", "Credit Memo");
+                //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                #endregion --Audit Trail Recording
+                //#endregion --Audit Trail Recording
 
                 cm.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -935,12 +935,12 @@ namespace Accounting_System.Controllers
                             #endregion --General Ledger Book Recording(SOA)--
                         }
 
-                        #region --Audit Trail Recording
+                        //#region --Audit Trail Recording
 
-                        AuditTrail auditTrail = new(model.PostedBy, $"Posted credit memo# {model.CMNo}", "Credit Memo");
-                        await _dbContext.AddAsync(auditTrail, cancellationToken);
+                        //AuditTrail auditTrail = new(model.PostedBy, $"Posted credit memo# {model.CMNo}", "Credit Memo");
+                        //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                        #endregion --Audit Trail Recording
+                        //#endregion --Audit Trail Recording
 
                         //await _receiptRepo.UpdateCreditMemo(model.SalesInvoice.Id, model.Total, offsetAmount);
 
@@ -979,12 +979,12 @@ namespace Accounting_System.Controllers
                     await _generalRepo.RemoveRecords<SalesBook>(crb => crb.SerialNo == model.CMNo, cancellationToken);
                     await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CMNo, cancellationToken);
 
-                    #region --Audit Trail Recording
+                    //#region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.VoidedBy, $"Voided credit memo# {model.CMNo}", "Credit Memo");
-                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    //AuditTrail auditTrail = new(model.VoidedBy, $"Voided credit memo# {model.CMNo}", "Credit Memo");
+                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                    #endregion --Audit Trail Recording
+                    //#endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Credit Memo has been Voided.";
@@ -1008,12 +1008,12 @@ namespace Accounting_System.Controllers
                     model.CanceledDate = DateTime.Now;
                     model.CancellationRemarks = cancellationRemarks;
 
-                    #region --Audit Trail Recording
+                    //#region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled credit memo# {model.CMNo}", "Credit Memo");
-                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    //AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled credit memo# {model.CMNo}", "Credit Memo");
+                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                    #endregion --Audit Trail Recording
+                    //#endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Credit Memo has been Cancelled.";

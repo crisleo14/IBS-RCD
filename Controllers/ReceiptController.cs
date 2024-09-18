@@ -201,12 +201,12 @@ namespace Accounting_System.Controllers
 
                 #endregion --Saving default value
 
-                #region --Audit Trail Recording
+                //#region --Audit Trail Recording
 
-                AuditTrail auditTrail = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt");
-                await _dbContext.AddAsync(auditTrail, cancellationToken);
+                //AuditTrail auditTrail = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt");
+                //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                #endregion --Audit Trail Recording
+                //#endregion --Audit Trail Recording
 
                 #region --Offsetting function
 
@@ -419,12 +419,12 @@ namespace Accounting_System.Controllers
 
                 #endregion --Saving default value
 
-                #region --Audit Trail Recording
+                //#region --Audit Trail Recording
 
-                AuditTrail auditTrail = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt");
-                await _dbContext.AddAsync(auditTrail, cancellationToken);
+                //AuditTrail auditTrail = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt");
+                //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                #endregion --Audit Trail Recording
+                //#endregion --Audit Trail Recording
 
                 #region --Offsetting function
 
@@ -620,12 +620,12 @@ namespace Accounting_System.Controllers
 
                 #endregion --Saving default value
 
-                #region --Audit Trail Recording
+                //#region --Audit Trail Recording
 
-                AuditTrail auditTrail = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt");
-                await _dbContext.AddAsync(auditTrail, cancellationToken);
+                //AuditTrail auditTrail = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt");
+                //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                #endregion --Audit Trail Recording
+                //#endregion --Audit Trail Recording
 
                 #region --Offsetting function
 
@@ -683,13 +683,13 @@ namespace Accounting_System.Controllers
             var findIdOfCR = await _receiptRepo.FindCR(id, cancellationToken);
             if (findIdOfCR != null && !findIdOfCR.IsPrinted)
             {
-                #region --Audit Trail Recording
+                //#region --Audit Trail Recording
 
-                var printedBy = _userManager.GetUserName(this.User);
-                AuditTrail auditTrail = new(printedBy, $"Printed original copy of cr# {findIdOfCR.CRNo}", "Collection Receipt");
-                await _dbContext.AddAsync(auditTrail, cancellationToken);
+                //var printedBy = _userManager.GetUserName(this.User);
+                //AuditTrail auditTrail = new(printedBy, $"Printed original copy of cr# {findIdOfCR.CRNo}", "Collection Receipt");
+                //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                #endregion --Audit Trail Recording
+                //#endregion --Audit Trail Recording
 
                 findIdOfCR.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -701,13 +701,13 @@ namespace Accounting_System.Controllers
             var findIdOfCR = await _receiptRepo.FindCR(id, cancellationToken);
             if (findIdOfCR != null && !findIdOfCR.IsPrinted)
             {
-                #region --Audit Trail Recording
+                //#region --Audit Trail Recording
 
-                var printedBy = _userManager.GetUserName(this.User);
-                AuditTrail auditTrail = new(printedBy, $"Printed original copy of cr# {findIdOfCR.CRNo}", "Collection Receipt");
-                await _dbContext.AddAsync(auditTrail, cancellationToken);
+                //var printedBy = _userManager.GetUserName(this.User);
+                //AuditTrail auditTrail = new(printedBy, $"Printed original copy of cr# {findIdOfCR.CRNo}", "Collection Receipt");
+                //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                #endregion --Audit Trail Recording
+                //#endregion --Audit Trail Recording
 
                 findIdOfCR.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -1092,13 +1092,13 @@ namespace Accounting_System.Controllers
 
                 #endregion --Offsetting function
 
-                #region --Audit Trail Recording
+                //#region --Audit Trail Recording
 
-                var modifiedBy = _userManager.GetUserName(this.User);
-                AuditTrail auditTrail = new(modifiedBy, $"Edited receipt# {existingModel.CRNo}", "Collection Receipt");
-                await _dbContext.AddAsync(auditTrail, cancellationToken);
+                //var modifiedBy = _userManager.GetUserName(this.User);
+                //AuditTrail auditTrail = new(modifiedBy, $"Edited receipt# {existingModel.CRNo}", "Collection Receipt");
+                //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                #endregion --Audit Trail Recording
+                //#endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction(nameof(CollectionIndex));
@@ -1355,13 +1355,13 @@ namespace Accounting_System.Controllers
 
                 #endregion --Offsetting function
 
-                #region --Audit Trail Recording
+                //#region --Audit Trail Recording
 
-                var modifiedBy = _userManager.GetUserName(this.User);
-                AuditTrail auditTrail = new(modifiedBy, $"Edited receipt# {existingModel.CRNo}", "Collection Receipt");
-                await _dbContext.AddAsync(auditTrail, cancellationToken);
+                //var modifiedBy = _userManager.GetUserName(this.User);
+                //AuditTrail auditTrail = new(modifiedBy, $"Edited receipt# {existingModel.CRNo}", "Collection Receipt");
+                //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                #endregion --Audit Trail Recording
+                //#endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 TempData["success"] = "Collection Receipt edited successfully";
@@ -1691,12 +1691,12 @@ namespace Accounting_System.Controllers
 
                         #endregion --Cash Receipt Book Recording
 
-                        #region --Audit Trail Recording
+                        //#region --Audit Trail Recording
 
-                        AuditTrail auditTrail = new(model.PostedBy, $"Posted collection receipt# {model.CRNo}", "Collection Receipt");
-                        await _dbContext.AddAsync(auditTrail, cancellationToken);
+                        //AuditTrail auditTrail = new(model.PostedBy, $"Posted collection receipt# {model.CRNo}", "Collection Receipt");
+                        //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                        #endregion --Audit Trail Recording
+                        //#endregion --Audit Trail Recording
 
                         if (model.SalesInvoiceId != null)
                         {
@@ -1766,12 +1766,12 @@ namespace Accounting_System.Controllers
                             await _receiptRepo.RemoveSVPayment(model.ServiceInvoiceId, model.Total, findOffsetting.Sum(offset => offset.Amount), cancellationToken);
                         }
 
-                        #region --Audit Trail Recording
+                        //#region --Audit Trail Recording
 
-                        AuditTrail auditTrail = new(model.VoidedBy, $"Voided collection receipt# {model.CRNo}", "Collection Receipt");
-                        await _dbContext.AddAsync(auditTrail, cancellationToken);
+                        //AuditTrail auditTrail = new(model.VoidedBy, $"Voided collection receipt# {model.CRNo}", "Collection Receipt");
+                        //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                        #endregion --Audit Trail Recording
+                        //#endregion --Audit Trail Recording
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         await transaction.CommitAsync(cancellationToken);
@@ -1802,12 +1802,12 @@ namespace Accounting_System.Controllers
                     model.CanceledDate = DateTime.Now;
                     model.CancellationRemarks = cancellationRemarks;
 
-                    #region --Audit Trail Recording
+                    //#region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled collection receipt# {model.CRNo}", "Collection Receipt");
-                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    //AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled collection receipt# {model.CRNo}", "Collection Receipt");
+                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                    #endregion --Audit Trail Recording
+                    //#endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Collection Receipt has been Cancelled.";

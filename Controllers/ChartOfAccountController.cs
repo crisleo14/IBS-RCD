@@ -1,6 +1,5 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
-using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -131,12 +130,12 @@ namespace Accounting_System.Controllers
                 {
                     _dbContext.Update(chartOfAccount);
 
-                    #region --Audit Trail Recording
+                    //#region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Updated chart of account {chartOfAccount.Number} {chartOfAccount.Name}", "Chart of Account");
-                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    //AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Updated chart of account {chartOfAccount.Number} {chartOfAccount.Name}", "Chart of Account");
+                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                    #endregion --Audit Trail Recording
+                    //#endregion --Audit Trail Recording
 
                     TempData["success"] = "Chart of account updated successfully";
 

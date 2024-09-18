@@ -263,12 +263,12 @@ namespace Accounting_System.Controllers
                     }
                 }
 
-                #region --Audit Trail Recording
+                //#region --Audit Trail Recording
 
-                AuditTrail auditTrail = new(model.CreatedBy, $"Create new debit memo# {model.DMNo}", "Debit Memo");
-                await _dbContext.AddAsync(auditTrail, cancellationToken);
+                //AuditTrail auditTrail = new(model.CreatedBy, $"Create new debit memo# {model.DMNo}", "Debit Memo");
+                //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                #endregion --Audit Trail Recording
+                //#endregion --Audit Trail Recording
 
                 await _dbContext.AddAsync(model, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -312,13 +312,13 @@ namespace Accounting_System.Controllers
             var findIdOfDM = await _debitMemoRepo.FindDM(id, cancellationToken);
             if (findIdOfDM != null && !findIdOfDM.IsPrinted)
             {
-                #region --Audit Trail Recording
+                //#region --Audit Trail Recording
 
-                var printedBy = _userManager.GetUserName(this.User);
-                AuditTrail auditTrail = new(printedBy, $"Printed original copy of dm# {findIdOfDM.DMNo}", "Debit Memo");
-                await _dbContext.AddAsync(auditTrail, cancellationToken);
+                //var printedBy = _userManager.GetUserName(this.User);
+                //AuditTrail auditTrail = new(printedBy, $"Printed original copy of dm# {findIdOfDM.DMNo}", "Debit Memo");
+                //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                #endregion --Audit Trail Recording
+                //#endregion --Audit Trail Recording
 
                 findIdOfDM.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -761,12 +761,12 @@ namespace Accounting_System.Controllers
                             #endregion --General Ledger Book Recording(SV)--
                         }
 
-                        #region --Audit Trail Recording
+                        //#region --Audit Trail Recording
 
-                        AuditTrail auditTrail = new(model.PostedBy, $"Posted debit memo# {model.DMNo}", "Debit Memo");
-                        await _dbContext.AddAsync(auditTrail, cancellationToken);
+                        //AuditTrail auditTrail = new(model.PostedBy, $"Posted debit memo# {model.DMNo}", "Debit Memo");
+                        //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                        #endregion --Audit Trail Recording
+                        //#endregion --Audit Trail Recording
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         TempData["success"] = "Debit Memo has been Posted.";
@@ -803,12 +803,12 @@ namespace Accounting_System.Controllers
                     await _generalRepo.RemoveRecords<SalesBook>(crb => crb.SerialNo == model.DMNo, cancellationToken);
                     await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.DMNo, cancellationToken);
 
-                    #region --Audit Trail Recording
+                    //#region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.VoidedBy, $"Voided debit memo# {model.DMNo}", "Debit Memo");
-                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    //AuditTrail auditTrail = new(model.VoidedBy, $"Voided debit memo# {model.DMNo}", "Debit Memo");
+                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                    #endregion --Audit Trail Recording
+                    //#endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Debit Memo has been Voided.";
@@ -832,12 +832,12 @@ namespace Accounting_System.Controllers
                     model.CanceledDate = DateTime.Now;
                     model.CancellationRemarks = cancellationRemarks;
 
-                    #region --Audit Trail Recording
+                    //#region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled debit memo# {model.DMNo}", "Debit Memo");
-                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    //AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled debit memo# {model.DMNo}", "Debit Memo");
+                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                    #endregion --Audit Trail Recording
+                    //#endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Debit Memo has been Cancelled.";
@@ -1029,12 +1029,12 @@ namespace Accounting_System.Controllers
 
                 }
 
-                #region --Audit Trail Recording
+                //#region --Audit Trail Recording
 
-                AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Edit credit memo# {existingDM.DMNo}", "Credit Memo");
-                await _dbContext.AddAsync(auditTrail, cancellationToken);
+                //AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Edit credit memo# {existingDM.DMNo}", "Credit Memo");
+                //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                #endregion --Audit Trail Recording
+                //#endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 TempData["success"] = "Debit Memo edited successfully";

@@ -188,10 +188,18 @@ namespace Accounting_System.Controllers
                     return View(sales);
                 }
 
+                //#region --Audit Trail Recording
+
+                //AuditTrail auditTrail = new(sales.CreatedBy, $"Create new invoice# {sales.SINo}", "Sales Invoice");
+                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                //#endregion --Audit Trail Recording
+
                 #region --Audit Trail Recording
 
-                AuditTrail auditTrail = new(sales.CreatedBy, $"Create new invoice# {sales.SINo}", "Sales Invoice");
-                await _dbContext.AddAsync(auditTrail, cancellationToken);
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                AuditTrail auditTrailBook = new(sales.CreatedBy, $"Create new invoice# {sales.SINo}", "Sales Invoice", ipAddress);
+                await _dbContext.AddAsync(auditTrailBook, cancellationToken);
 
                 #endregion --Audit Trail Recording
 
@@ -400,13 +408,13 @@ namespace Accounting_System.Controllers
                             }
                         }
 
-                        #region --Audit Trail Recording
+                        //#region --Audit Trail Recording
 
-                        var modifiedBy = _userManager.GetUserName(this.User);
-                        AuditTrail auditTrail = new(modifiedBy, $"Edited invoice# {existingModel.SINo}", "Sales Invoice");
-                        await _dbContext.AddAsync(auditTrail, cancellationToken);
+                        //var modifiedBy = _userManager.GetUserName(this.User);
+                        //AuditTrail auditTrail = new(modifiedBy, $"Edited invoice# {existingModel.SINo}", "Sales Invoice");
+                        //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                        #endregion --Audit Trail Recording
+                        //#endregion --Audit Trail Recording
                     }
                     else
                     {
@@ -447,13 +455,13 @@ namespace Accounting_System.Controllers
             {
                 sales.IsPrinted = true;
 
-                #region --Audit Trail Recording
+                //#region --Audit Trail Recording
 
-                var printedBy = _userManager.GetUserName(this.User);
-                AuditTrail auditTrail = new(printedBy, $"Printed original copy of invoice# {sales.SINo}", "Sales Invoice");
-                await _dbContext.AddAsync(auditTrail, cancellationToken);
+                //var printedBy = _userManager.GetUserName(this.User);
+                //AuditTrail auditTrail = new(printedBy, $"Printed original copy of invoice# {sales.SINo}", "Sales Invoice");
+                //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                #endregion --Audit Trail Recording
+                //#endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }
@@ -679,12 +687,12 @@ namespace Accounting_System.Controllers
 
                         #endregion
 
-                        #region --Audit Trail Recording
+                        //#region --Audit Trail Recording
 
-                        AuditTrail auditTrail = new(model.PostedBy, $"Posted invoice# {model.SINo}", "Sales Invoice");
-                        await _dbContext.AddAsync(auditTrail, cancellationToken);
+                        //AuditTrail auditTrail = new(model.PostedBy, $"Posted invoice# {model.SINo}", "Sales Invoice");
+                        //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                        #endregion --Audit Trail Recording
+                        //#endregion --Audit Trail Recording
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         TempData["success"] = "Sales Invoice has been Posted.";
@@ -722,12 +730,12 @@ namespace Accounting_System.Controllers
                     await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.SINo, cancellationToken);
                     await _generalRepo.RemoveRecords<Inventory>(i => i.Reference == model.SINo, cancellationToken);
 
-                    #region --Audit Trail Recording
+                    //#region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.VoidedBy, $"Voided invoice# {model.SINo}", "Sales Invoice");
-                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    //AuditTrail auditTrail = new(model.VoidedBy, $"Voided invoice# {model.SINo}", "Sales Invoice");
+                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                    #endregion --Audit Trail Recording
+                    //#endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Sales Invoice has been Voided.";
@@ -752,12 +760,12 @@ namespace Accounting_System.Controllers
                     model.Status = "Cancelled";
                     model.CancellationRemarks = cancellationRemarks;
 
-                    #region --Audit Trail Recording
+                    //#region --Audit Trail Recording
 
-                    AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled invoice# {model.SINo}", "Sales Invoice");
-                    await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    //AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled invoice# {model.SINo}", "Sales Invoice");
+                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
 
-                    #endregion --Audit Trail Recording
+                    //#endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Sales Invoice has been Cancelled.";

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Net;
 
 namespace Accounting_System.Models.Reports
 {
@@ -16,11 +17,27 @@ namespace Accounting_System.Models.Reports
         [Display(Name = "Document Type")]
         public string DocumentType { get; set; }
 
-        public AuditTrail(string username, string activity, string documentType)
+        public AuditTrail()
+        {
+
+        }
+
+        public AuditTrail(string username, string activity, string documentType, string ipAddress)
         {
             Username = username;
             Date = DateTime.Now;
-            MachineName = Environment.MachineName;
+
+            // Attempt to resolve IP to hostname, fallback to IP if resolution fails
+            try
+            {
+                var hostEntry = Dns.GetHostEntry(ipAddress);
+                MachineName = hostEntry.HostName;
+            }
+            catch (Exception)
+            {
+                MachineName = ipAddress; // Fallback to IP address
+            }
+
             Activity = activity;
             DocumentType = documentType;
         }
