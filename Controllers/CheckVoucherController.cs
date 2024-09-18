@@ -497,7 +497,7 @@ namespace Accounting_System.Controllers
                     // Add or update records
                     for (int i = 0; i < viewModel.AccountTitle.Length; i++)
                     {
-                        cashInBank = viewModel.Credit[3];
+                        cashInBank = viewModel.Credit[2];
 
                         if (accountTitleDict.TryGetValue(viewModel.AccountNumber[i], out var ids))
                         {
@@ -843,7 +843,7 @@ namespace Accounting_System.Controllers
                     {
                         if (viewModel.Debit[i] != 0 || viewModel.Credit[i] != 0)
                         {
-                            cashInBank = viewModel.Credit[3];
+                            cashInBank = viewModel.Credit[2];
                             cvDetails.Add(
                             new CheckVoucherDetail
                             {
