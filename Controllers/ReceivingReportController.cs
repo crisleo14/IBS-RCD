@@ -1,5 +1,4 @@
 ﻿using Accounting_System.Data;
-using Accounting_System.Models;
 using Accounting_System.Models.AccountsPayable;
 using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
@@ -508,6 +507,10 @@ namespace Accounting_System.Controllers
             var model = await _dbContext.ReceivingReports
                 .FindAsync(id, cancellationToken);
 
+            var existingInventory = await _dbContext.Inventories
+                .Include(i => i.Product)
+                .FirstOrDefaultAsync(i => i.Reference == model.RRNo);
+
             if (model != null)
             {
                 if (!model.IsVoided)
@@ -523,7 +526,7 @@ namespace Accounting_System.Controllers
 
                     await _generalRepo.RemoveRecords<PurchaseJournalBook>(pb => pb.DocumentNo == model.RRNo, cancellationToken);
                     await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.RRNo, cancellationToken);
-                    await _generalRepo.RemoveRecords<Inventory>(i => i.Reference == model.RRNo, cancellationToken);
+                    await _inventoryRepo.VoidInventory(existingInventory, cancellationToken);
                     await _receivingReportRepo.RemoveQuantityReceived(model?.POId, model.QuantityReceived, cancellationToken);
                     model.QuantityReceived = 0;
 

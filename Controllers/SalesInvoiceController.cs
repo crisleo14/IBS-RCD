@@ -713,32 +713,44 @@ namespace Accounting_System.Controllers
         {
             var model = await _dbContext.SalesInvoices.FindAsync(invoiceId, cancellationToken);
 
-            if (model != null)
+            var existingInventory = await _dbContext.Inventories
+                .Include(i => i.Product)
+                .FirstOrDefaultAsync(i => i.Reference == model.SINo);
+
+            if (model != null && existingInventory != null)
             {
-                if (!model.IsVoided)
+                try
                 {
-                    if (model.IsPosted)
+                    if (!model.IsVoided)
                     {
-                        model.IsPosted = false;
+                        if (model.IsPosted)
+                        {
+                            model.IsPosted = false;
+                        }
+
+                        model.IsVoided = true;
+                        model.VoidedBy = _userManager.GetUserName(this.User);
+                        model.VoidedDate = DateTime.Now;
+
+                        await _generalRepo.RemoveRecords<SalesBook>(sb => sb.SerialNo == model.SINo, cancellationToken);
+                        await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.SINo, cancellationToken);
+                        await _inventoryRepo.VoidInventory(existingInventory, cancellationToken);
+
+                        //#region --Audit Trail Recording
+
+                        //AuditTrail auditTrail = new(model.VoidedBy, $"Voided invoice# {model.SINo}", "Sales Invoice");
+                        //await _dbContext.AddAsync(auditTrail, cancellationToken);
+
+                        //#endregion --Audit Trail Recording
+
+                        //await _dbContext.SaveChangesAsync(cancellationToken);
+                        TempData["success"] = "Sales Invoice has been Voided.";
                     }
-
-                    model.IsVoided = true;
-                    model.VoidedBy = _userManager.GetUserName(this.User);
-                    model.VoidedDate = DateTime.Now;
-
-                    await _generalRepo.RemoveRecords<SalesBook>(sb => sb.SerialNo == model.SINo, cancellationToken);
-                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.SINo, cancellationToken);
-                    await _generalRepo.RemoveRecords<Inventory>(i => i.Reference == model.SINo, cancellationToken);
-
-                    //#region --Audit Trail Recording
-
-                    //AuditTrail auditTrail = new(model.VoidedBy, $"Voided invoice# {model.SINo}", "Sales Invoice");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
-
-                    //#endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Sales Invoice has been Voided.";
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index));
                 }
                 return RedirectToAction(nameof(Index));
             }
