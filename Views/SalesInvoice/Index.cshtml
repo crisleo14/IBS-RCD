@@ -26,126 +26,105 @@
                 </a>
             </div>
         </div>
-        <table class="table table-bordered table-hover" id="dataTable">
+        <table class="table table-bordered table-hover" id="salesInvoiceTable">
             <thead class="table-secondary">
                 <tr class="text-nowrap">
-                    <th>
-                        @Html.DisplayNameFor(model => model.SINo)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.Customer.Name)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.TransactionDate)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.Customer.Terms)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.Amount)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.CreatedBy)
-                    </th>
-                    <th>
-                        Status
-                    </th>
-                    <th style="width: 25%"></th>
+                    <th>@Html.DisplayNameFor(model => model.SINo)</th>
+                    <th>@Html.DisplayNameFor(model => model.Customer.Name)</th>
+                    <th>@Html.DisplayNameFor(model => model.TransactionDate)</th>
+                    <th>@Html.DisplayNameFor(model => model.Customer.Terms)</th>
+                    <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                    <th>@Html.DisplayNameFor(model => model.CreatedBy)</th>
+                    <th>Status</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var invoice in Model)
-                {
-                    <tr class="align-text-bottom">
-                        <td>
-                            @Html.DisplayFor(model => invoice.SINo)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(model => invoice.Customer.Name)
-                        </td>
-                        <td>
-                            @invoice.TransactionDate.ToString("MM/dd/yyyy")
-                        </td>
-                        <td>
-                            @Html.DisplayFor(model => invoice.Customer.Terms)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(model => invoice.Amount)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(model => invoice.CreatedBy)
-                        </td>
-                        <td>
-                            @{
-                            var status = invoice.PostedBy != null && invoice.VoidedBy == null && invoice.CanceledBy == null
-                                    ? "Posted"
-                                    : invoice.VoidedBy != null
-                                        ? "Voided"
-                                        : invoice.CanceledBy != null
-                                            ? "Cancelled"
-                                            : "Pending";
-                            }
-                            <span class="badge rounded-pill @if(status == "Posted") {<text>bg-info</text>} else if(status == "Voided") {<text>bg-danger</text>} else if(status == "Cancelled") {<text>bg-warning</text>}">@status</span>
-                        </td>
-                        <td class="text-center">
-                            @if (!invoice.IsPosted && !invoice.IsVoided && !invoice.IsCanceled)
-                            {
-                                <a asp-action="Edit" asp-route-id="@invoice.Id" class="btn btn-light">Edit</a>
-                                <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#Preview-@invoice.Id" data-bs-url="@Url.Action($"Preview/{invoice.Id}")">
-                                    Preview
-                                </button>
-                                @await Html.PartialAsync("_PreviewPartialView", invoice)
-                                <a class="btn btn-light" onclick="confirmPost(@invoice.Id)">Post</a>
-                                <a class="btn btn-light" onclick="confirmCancel(@invoice.Id)">Cancel</a>
-                            }
-                            @if (invoice.IsPosted && !invoice.IsVoided && !invoice.IsCanceled)
-                            {
-                                <a asp-action="PrintInvoice" asp-route-id="@invoice.Id" class="btn btn-light">Print</a>
-                                if (invoice.AmountPaid == 0)
-                                {
-                                    <a class="btn btn-light" onclick="confirmVoid(@invoice.Id)">Void</a>
-                                }
-                                else
-                                {
-                                    <button class="btn btn-light" disabled readonly>Void</button>
-                                }
-                            }
-
-                            @if (invoice.IsVoided)
-                            {
-                                <span class="badge rounded-pill bg-danger ">VOIDED</span>
-                            }
-                            else if (invoice.IsCanceled)
-                            {
-                                <span class="badge rounded-pill bg-warning ">CANCELLED</span>
-                            }
-                        </td>
-                    </tr>
-                }
             </tbody>
         </table>
     </div>
 </div>
+
 @section Scripts {
     <script>
-        function confirmPost(invoiceId) {
-            console.log(invoiceId);
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Replace with the actual URL that you want to redirect to
-                    var url = `/SalesInvoice/Post?invoiceId=${invoiceId}`;
-                    window.location.href = url;
-                }
-            })
-        }
+        $(document).ready(function () {
+            $('#salesInvoiceTable').DataTable({
+                processing: true,
+                serverSide: true,
+                stateSave: true,
+                ajax: {
+                    url: '@Url.Action("GetSalesInvoices", "SalesInvoice")',
+                    type: 'POST',
+                    data: function (d) {
+                        return $.extend({}, d, {
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        });
+                    },
+                    error: function (xhr, error, thrown) {
+                        console.log(xhr.responseText);
+                    }
+                },
+                columns: [
+                    { data: 'siNo' },
+                    { data: 'customer.name' },
+                    {
+                        "data": "transactionDate",
+                        "name": "transactionDate",
+                        "render": function (data, type, row) {
+                            // Assuming 'Date' is in ISO format like "2024-07-12T00:00:00"
+                            var date = new Date(data);
+                            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
+                        }
+                    },
+                    { data: 'customer.terms' },
+                    { data: 'amount' },
+                    { data: 'createdBy' },
+                    {
+                        "data": null,
+                        "render": function (data, type, row) {
+                            var status = row.isPosted && !row.isVoided && !row.isCanceled
+                                ? "Posted"
+                                : row.isVoided
+                                    ? "Voided"
+                                    : row.isCanceled
+                                        ? "Cancelled"
+                                        : "Pending";
+
+                            var statusClass = status == "Posted" ? "bg-info" :
+                                status == "Voided" ? "bg-danger" :
+                                    status == "Cancelled" ? "bg-warning" : "";
+
+                            return `<span class="badge rounded-pill ${statusClass}">${status}</span>`;
+                        }
+                    }
+,
+                    {
+                        "data": null,
+                        "render": function (data, type, row) {
+                            let dropdown = `<div class="dropdown" style="${row.isVoided || row.isCanceled ? 'display:none;' : ''}">`;
+                            dropdown += `<button class="btn btn-light dropdown-toggle" type="button" id="actionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">Actions</button>`;
+                            dropdown += `<ul class="dropdown-menu" aria-labelledby="actionsDropdown">`;
+                            if (!row.isPosted && !row.isVoided && !row.isCanceled) {
+                                dropdown += `<li><a href="/SalesInvoice/Edit?id=${row.id}" class="dropdown-item">Edit</a></li>`;
+                                dropdown += `<li><a href="/SalesInvoice/PrintInvoice?id=${row.id}" class="dropdown-item">Preview</a></li>`;
+                                dropdown += `<li><a class="dropdown-item" onclick="confirmCancel(${row.id})">Cancel</a></li>`;
+                            }
+                            if (row.isPosted && !row.isVoided && !row.isCanceled) {
+                                dropdown += `<li><a href="/SalesInvoice/PrintInvoice?id=${row.id}" class="dropdown-item">Print</a></li>`;
+                                if (row.amountPaid === 0) {
+                                    dropdown += `<li><a class="dropdown-item" onclick="confirmVoid(${row.id})">Void</a></li>`;
+                                } else {
+                                    dropdown += `<li><button class="dropdown-item" disabled readonly>Void</button></li>`;
+                                }
+                            }
+                            dropdown += `</ul></div>`;
+                            return dropdown;
+                        }
+                    }
+                ],
+                order: [[0, 'desc']] // Sort by TransactionDate by default
+            });
+        });
     </script>
     <script>
         function confirmVoid(invoiceId) {
