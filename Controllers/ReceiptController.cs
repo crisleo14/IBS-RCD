@@ -1988,7 +1988,13 @@ namespace Accounting_System.Controllers
 
                         if (worksheet == null)
                         {
-                            return RedirectToAction(nameof(CollectionIndex), new { errorMessage = "The Excel file contains no worksheets." });
+                            TempData["error"] = "The Excel file contains no worksheets.";
+                            return RedirectToAction(nameof(CollectionIndex), new { view = DynamicView.CollectionReceipt });
+                        }
+                        if (worksheet.ToString() != "CollectionReceipt")
+                        {
+                            TempData["error"] = "The Excel file is not related to collection receipt.";
+                            return RedirectToAction(nameof(Index), new { view = DynamicView.CollectionReceipt });
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
@@ -2101,16 +2107,16 @@ namespace Accounting_System.Controllers
                 catch (OperationCanceledException oce)
                 {
                     TempData["error"] = oce.Message;
-                    return RedirectToAction(nameof(CollectionIndex));
+                    return RedirectToAction(nameof(CollectionIndex), new { view = DynamicView.CollectionReceipt });
                 }
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(CollectionIndex));
+                    return RedirectToAction(nameof(CollectionIndex), new { view = DynamicView.CollectionReceipt });
                 }
             }
-
-            return RedirectToAction(nameof(CollectionIndex));
+            TempData["success"] = "Uploading Success!";
+            return RedirectToAction(nameof(CollectionIndex), new { view = DynamicView.CollectionReceipt });
         }
 
         #endregion -- import xlsx record --

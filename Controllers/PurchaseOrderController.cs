@@ -515,7 +515,7 @@ namespace Accounting_System.Controllers
                 worksheet.Cells[row, 6].Value = item.FinalPrice;
                 worksheet.Cells[row, 7].Value = item.QuantityReceived;
                 worksheet.Cells[row, 8].Value = item.IsReceived;
-                worksheet.Cells[row, 9].Value = item.ReceivedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                worksheet.Cells[row, 9].Value = item.ReceivedDate != default ? item.ReceivedDate.ToString("yyyy-MM-dd HH:mm:ss.ffffff zzz") : default;
                 worksheet.Cells[row, 10].Value = item.Remarks;
                 worksheet.Cells[row, 11].Value = item.CreatedBy;
                 worksheet.Cells[row, 12].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
@@ -560,7 +560,13 @@ namespace Accounting_System.Controllers
                         var worksheet = package.Workbook.Worksheets.FirstOrDefault();
                         if (worksheet == null)
                         {
-                            return RedirectToAction(nameof(Index), new { errorMessage = "The Excel file contains no worksheets." });
+                            TempData["error"] = "The Excel file contains no worksheets.";
+                            return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
+                        }
+                        if (worksheet.ToString() != nameof(DynamicView.PurchaseOrder))
+                        {
+                            TempData["error"] = "The Excel file is not related to purchase order.";
+                            return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
@@ -614,16 +620,16 @@ namespace Accounting_System.Controllers
                 catch (OperationCanceledException oce)
                 {
                     TempData["error"] = oce.Message;
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
                 }
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
                 }
             }
-
-            return RedirectToAction(nameof(Index));
+            TempData["success"] = "Uploading Success!";
+            return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
         }
 
         #endregion -- import xlsx record --

@@ -20,10 +20,10 @@
     <div class="card-body p-4 table-responsive">
         <div class="row pb-3">
             <div class="col-6">
-                <form id="uploadForm" enctype="multipart/form-data">
+                <form asp-action="Import" method="post" enctype="multipart/form-data">
                     <div class="row">
-                        <div class="col"><input type="file" class="form-control" id="fileInput" /></div>
-                        <div class="col"><button class="btn btn-primary" onclick="uploadFile()">Upload</button></div>
+                        <div class="col"><input class="form-control form-control-sm" name="file" type='file' required></div>
+                        <div class="col"><button type="submit" class="btn btn-primary">Upload</button></div>
                     </div>
                 </form>
             </div>
@@ -218,33 +218,6 @@
             } else {
                 alert('No SalesInvoice selected.');
             }
-        }
-
-        function uploadFile() {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
-
-            if (!file) {
-                alert("Please select a file to upload.");
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('file', file);
-
-            fetch('/SalesInvoice/Import', {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
-                .then(result => {
-                    if (result.success) {
-                        alert(result.message);
-                    } else {
-                        alert(`Error: ${result.message}`);
-                    }
-                })
-                .catch(error => console.error('Error:', error));
         }
     </script>
 }

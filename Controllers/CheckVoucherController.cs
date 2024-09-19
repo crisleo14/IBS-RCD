@@ -2077,7 +2077,7 @@ namespace Accounting_System.Controllers
                         {
                             worksheet.Cells[row, 2].Value = string.Join(", ", item.RRNo.Select(rrNo => rrNo.ToString()));
                         }
-                        if (item.SINo != null && item.SINo.Contains(null))
+                        if (item.SINo != null && !item.SINo.Contains(null))
                         {
                             worksheet.Cells[row, 3].Value = string.Join(", ", item.SINo.Select(siNo => siNo.ToString()));
                         }
@@ -2182,12 +2182,18 @@ namespace Accounting_System.Controllers
 
                         if (worksheet == null)
                         {
-                            return RedirectToAction(nameof(Index), new { errorMessage = "The Excel file contains no worksheets." });
+                            TempData["error"] = "The Excel file contains no worksheets of check voucher header.";
+                            return RedirectToAction(nameof(Index), new { view = DynamicView.CheckVoucher });
                         }
-
                         if (worksheet2 == null)
                         {
-                            return RedirectToAction(nameof(Index), new { errorMessage = "The Excel file contains no check voucher details." });
+                            TempData["error"] = "The Excel file contains no worksheets of check voucher details.";
+                            return RedirectToAction(nameof(Index), new { view = DynamicView.CheckVoucher });
+                        }
+                        if (worksheet.ToString() != "CheckVoucherHeader")
+                        {
+                            TempData["error"] = "The Excel file is not related to check voucher.";
+                            return RedirectToAction(nameof(Index), new { view = DynamicView.CheckVoucher });
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
@@ -2271,16 +2277,16 @@ namespace Accounting_System.Controllers
                 catch (OperationCanceledException oce)
                 {
                     TempData["error"] = oce.Message;
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.CheckVoucher });
                 }
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.CheckVoucher });
                 }
             }
-
-            return RedirectToAction(nameof(Index));
+            TempData["success"] = "Uploading Success!";
+            return RedirectToAction(nameof(Index), new { view = DynamicView.CheckVoucher });
         }
 
         #endregion -- import xlsx record --

@@ -221,7 +221,13 @@ namespace Accounting_System.Controllers
                         var worksheet = package.Workbook.Worksheets.FirstOrDefault();
                         if (worksheet == null)
                         {
-                            return RedirectToAction(nameof(Index), new { errorMessage = "The Excel file contains no worksheets." });
+                            TempData["error"] = "The Excel file contains no worksheets.";
+                            return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
+                        }
+                        if (worksheet.ToString() != nameof(DynamicView.BankAccount))
+                        {
+                            TempData["error"] = "The Excel file is not related to bank account master file.";
+                            return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
@@ -258,16 +264,16 @@ namespace Accounting_System.Controllers
                 catch (OperationCanceledException oce)
                 {
                     TempData["error"] = oce.Message;
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
                 }
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
                 }
             }
-
-            return RedirectToAction(nameof(Index));
+            TempData["success"] = "Uploading Success!";
+            return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
         }
 
         #endregion -- import xlsx record --

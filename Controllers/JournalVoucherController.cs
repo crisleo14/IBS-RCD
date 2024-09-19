@@ -806,12 +806,18 @@ namespace Accounting_System.Controllers
 
                         if (worksheet == null)
                         {
-                            return RedirectToAction(nameof(Index), new { errorMessage = "The Excel file contains no worksheets." });
+                            TempData["error"] = "The Excel file contains no worksheets of journal voucher header.";
+                            return RedirectToAction(nameof(Index), new { view = DynamicView.JournalVoucher });
                         }
-
                         if (worksheet2 == null)
                         {
-                            return RedirectToAction(nameof(Index), new { errorMessage = "The Excel file contains no worksheets." });
+                            TempData["error"] = "The Excel file contains no worksheets of journal voucher details.";
+                            return RedirectToAction(nameof(Index), new { view = DynamicView.JournalVoucher });
+                        }
+                        if (worksheet.ToString() != "JournalVoucherHeader")
+                        {
+                            TempData["error"] = "The Excel file is not related to journal voucher.";
+                            return RedirectToAction(nameof(Index), new { view = DynamicView.JournalVoucher });
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
@@ -868,16 +874,16 @@ namespace Accounting_System.Controllers
                 catch (OperationCanceledException oce)
                 {
                     TempData["error"] = oce.Message;
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.JournalVoucher });
                 }
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.JournalVoucher });
                 }
             }
-
-            return RedirectToAction(nameof(Index));
+            TempData["success"] = "Uploading Success!";
+            return RedirectToAction(nameof(Index), new { view = DynamicView.JournalVoucher });
         }
 
         #endregion -- import xlsx record --
