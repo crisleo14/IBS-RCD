@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
+using System.Linq.Dynamic.Core;
 
 namespace Accounting_System.Controllers
 {
@@ -40,14 +41,78 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
         {
-            var salesInvoice = await _salesInvoiceRepo.GetSalesInvoicesAsync(cancellationToken);
+            var salesInvoices = await _salesInvoiceRepo.GetSalesInvoicesAsync(cancellationToken);
 
             if (view == nameof(DynamicView.SalesInvoice))
             {
-                return View("ImportExportIndex", salesInvoice);
+                return View("ImportExportIndex", salesInvoices);
             }
 
-            return View(salesInvoice);
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetSalesInvoices([FromForm] DataTablesParameters parameters, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var salesInvoices = await _salesInvoiceRepo.GetSalesInvoicesAsync(cancellationToken);
+                // Search filter
+                if (!string.IsNullOrEmpty(parameters.Search?.Value))
+                {
+                    var searchValue = parameters.Search.Value.ToLower();
+
+                    salesInvoices = salesInvoices
+                        .Where(s =>
+                            s.SINo.ToLower().Contains(searchValue) ||
+                            s.Customer.Name.ToLower().Contains(searchValue) ||
+                            s.Customer.Terms.ToLower().Contains(searchValue) ||
+                            s.Product.Code.ToLower().Contains(searchValue) ||
+                            s.Product.Name.ToLower().Contains(searchValue) ||
+                            s.OtherRefNo.ToLower().Contains(searchValue) ||
+                            s.TransactionDate.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
+                            s.Quantity.ToString().Contains(searchValue) ||
+                            s.UnitPrice.ToString().Contains(searchValue) ||
+                            s.Amount.ToString().Contains(searchValue) ||
+                            s.Remarks.ToLower().Contains(searchValue) ||
+                            s.CreatedBy.ToLower().Contains(searchValue)
+                            )
+                        .ToList();
+                }
+
+                // Sorting
+                if (parameters.Order != null && parameters.Order.Count > 0)
+                {
+                    var orderColumn = parameters.Order[0];
+                    var columnName = parameters.Columns[orderColumn.Column].Data;
+                    var sortDirection = orderColumn.Dir.ToLower() == "asc" ? "ascending" : "descending";
+
+                    salesInvoices = salesInvoices
+                        .AsQueryable()
+                        .OrderBy($"{columnName} {sortDirection}")
+                        .ToList();
+                }
+
+                var totalRecords = salesInvoices.Count();
+
+                var pagedData = salesInvoices
+                    .Skip(parameters.Start)
+                    .Take(parameters.Length)
+                    .ToList();
+
+                return Json(new
+                {
+                    draw = parameters.Draw,
+                    recordsTotal = totalRecords,
+                    recordsFiltered = totalRecords,
+                    data = pagedData
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpGet]
@@ -696,7 +761,7 @@ namespace Accounting_System.Controllers
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         TempData["success"] = "Sales Invoice has been Posted.";
-                        return RedirectToAction(nameof(Index));
+                        return RedirectToAction(nameof(PrintInvoice), new { id = invoiceId });
                     }
                 }
                 catch (Exception ex)
@@ -1012,7 +1077,6 @@ namespace Accounting_System.Controllers
                             await _dbContext.SalesInvoices.AddAsync(invoice);
                             await _dbContext.SaveChangesAsync();
                         }
-
                     }
                 }
                 catch (OperationCanceledException oce)

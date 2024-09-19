@@ -82,7 +82,6 @@
                 <td>@Html.DisplayFor(model => model.UnitPrice)</td>
                 <td>@Html.DisplayFor(model => model.Amount)</td>
             </tr>
-
         </tbody>
     </table>
 </div>
@@ -150,7 +149,6 @@
                         <tr class="h-100">
                             <td style="position:relative; top:-35px; left:4%;">INSTRUCTIONS: <br /><pre class="pre">@Html.DisplayFor(model => model.Remarks)</pre></td>
                         </tr>
-
                     </tbody>
                 </table>
             </td>
@@ -169,7 +167,6 @@
                                 <br />
                                 <p style="margin-top:20px;"><span style="display: inline-block; width:110px;" class="underline">Azh Adolfo</span></p>
                             </td>
-
                         </tr>
                         <tr class="align-text-top">
                             <td colspan="2">
@@ -179,7 +176,6 @@
                                 </div>
                             </td>
                         </tr>
-
                     </tbody>
                 </table>
             </td>
@@ -195,7 +191,6 @@
                                     @Html.DisplayFor(model => model.VatableSales)
                                 }
                             </td>
-
                         </tr>
                         <tr style="padding-left: 8%;">
                             <td><b>Zero-Rated Sales: </b></td>
@@ -280,10 +275,8 @@
             <td class="align-text-top">RECEIVED the above items in good order and condition. The Undersigned agrees to pay the total amount of this invoice in accordance to the terms appearing to the terms above.</td>
             <td class="align-text-top">CONDITION OF SALE - Interest at the rate of 38% per annum will be charge on all overdue accounts and in the event of judicial proceedings to enforce collection, the purchaser will pay a reasonable compensation not less than 25% of the amount due of the attorney's fees and expense of collection in addition to the costs of suit. Any action arising out of the transaction covered by sales invoice shall be brought in the appropriate courts of Pasig City and/or Metro Manila. Goods remain in the property of FILPRIDE RESOURCES INC. until paid in full.</td>
         </tr>
-
     </tbody>
 </table>
-
 
 <p style="margin-top:20px;" class="p-italic">
     This is a system generated invoice, no signature required.
@@ -298,7 +291,6 @@
     Date and Time Created:&nbsp;@Model.CreatedDate
 </p>
 
-
 @if (!Model.IsPrinted)
 {
     <div class="text-end">
@@ -312,7 +304,14 @@ else
     </div>
 }
 
-<a asp-action="PrintedInvoice" class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" style="margin-top: 25px;" id="printButton">Print</a>
+@if (Model.PostedBy == null)
+{
+    <a id="approveButton" class="btn btn-success" onclick="confirmPost(@Model.Id)" style="margin-top: 25px;">Post</a>
+}
+else
+{
+    <a asp-action="PrintedInvoice" class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" style="margin-top: 25px;" id="printButton">Print</a>
+}
 <a asp-action="Index" class="btn" style="margin-top: 25px;" id="otherButton">Back</a>
 
 @section Scripts {
@@ -320,6 +319,26 @@ else
         function printPage() {
             // Call the print function
             window.print();
+        }
+    </script>
+    <script>
+        function confirmPost(invoiceId) {
+            console.log(invoiceId);
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Replace with the actual URL that you want to redirect to
+                    var url = `/SalesInvoice/Post?invoiceId=${invoiceId}`;
+                    window.location.href = url;
+                }
+            })
         }
     </script>
 }
