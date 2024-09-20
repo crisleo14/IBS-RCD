@@ -14,7 +14,7 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public async Task<List<ServiceInvoice>> GetSvListAsync(CancellationToken cancellationToken = default)
+        public async Task<List<ServiceInvoice>> GetServiceInvoicesAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext
                 .ServiceInvoices

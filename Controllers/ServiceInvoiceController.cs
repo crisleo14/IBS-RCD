@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
+using System.Linq.Dynamic.Core;
 
 namespace Accounting_System.Controllers
 {
@@ -34,15 +35,67 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
         {
-            var results = await _serviceInvoiceRepo
-                .GetSvListAsync(cancellationToken);
+            var serviceInvoices = await _serviceInvoiceRepo.GetServiceInvoicesAsync(cancellationToken);
 
             if (view == nameof(DynamicView.ServiceInvoice))
             {
-                return View("ImportExportIndex", results);
+                return View("ImportExportIndex", serviceInvoices);
             }
 
-            return View(results);
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetServiceInvoices([FromForm] DataTablesParameters parameters, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var serviceInvoices = await _serviceInvoiceRepo.GetServiceInvoicesAsync(cancellationToken);
+                // Search filter
+                if (!string.IsNullOrEmpty(parameters.Search?.Value))
+                {
+                    var searchValue = parameters.Search.Value.ToLower();
+                    serviceInvoices = serviceInvoices
+                        .Where(s =>
+                            s.SVNo.ToLower().Contains(searchValue) ||
+                            s.Customer.Name.ToLower().Contains(searchValue) ||
+                            s.Service.Name.ToLower().Contains(searchValue) ||
+                            s.Period.ToString("MMM yyyy").ToLower().Contains(searchValue) ||
+                            s.Amount.ToString().ToLower().Contains(searchValue) ||
+                            s.Instructions?.ToLower().Contains(searchValue) == true ||
+                            s.CreatedBy.ToLower().Contains(searchValue)
+                            )
+                        .ToList();
+                }
+                // Sorting
+                if (parameters.Order != null && parameters.Order.Count > 0)
+                {
+                    var orderColumn = parameters.Order[0];
+                    var columnName = parameters.Columns[orderColumn.Column].Data;
+                    var sortDirection = orderColumn.Dir.ToLower() == "asc" ? "ascending" : "descending";
+                    serviceInvoices = serviceInvoices
+                        .AsQueryable()
+                        .OrderBy($"{columnName} {sortDirection}")
+                        .ToList();
+                }
+                var totalRecords = serviceInvoices.Count();
+                var pagedData = serviceInvoices
+                    .Skip(parameters.Start)
+                    .Take(parameters.Length)
+                    .ToList();
+                return Json(new
+                {
+                    draw = parameters.Draw,
+                    recordsTotal = totalRecords,
+                    recordsFiltered = totalRecords,
+                    data = pagedData
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpGet]
@@ -198,7 +251,7 @@ namespace Accounting_System.Controllers
             return View(model);
         }
 
-        public async Task<IActionResult> Generate(int id, CancellationToken cancellationToken)
+        public async Task<IActionResult> PrintInvoice(int id, CancellationToken cancellationToken)
         {
             var soa = await _serviceInvoiceRepo
                 .FindSv(id, cancellationToken);
@@ -206,7 +259,7 @@ namespace Accounting_System.Controllers
             return View(soa);
         }
 
-        public async Task<IActionResult> PrintedSOA(int id, CancellationToken cancellationToken)
+        public async Task<IActionResult> PrintedInvoice(int id, CancellationToken cancellationToken)
         {
             var findIdOfSOA = await _serviceInvoiceRepo.FindSv(id, cancellationToken);
             if (findIdOfSOA != null && !findIdOfSOA.IsPrinted)
@@ -222,7 +275,7 @@ namespace Accounting_System.Controllers
                 findIdOfSOA.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }
-            return RedirectToAction(nameof(Generate), new { id });
+            return RedirectToAction(nameof(PrintInvoice), new { id });
         }
 
         public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
@@ -455,18 +508,18 @@ namespace Accounting_System.Controllers
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         TempData["success"] = "Service invoice has been posted.";
-                        return RedirectToAction(nameof(Index));
+                        return RedirectToAction(nameof(PrintInvoice), new { id = id });
                     }
                     else
                     {
-                        return RedirectToAction(nameof(Index));
+                        return RedirectToAction(nameof(PrintInvoice), new { id = id });
                     }
                 }
             }
             catch (Exception ex)
             {
                 TempData["error"] = ex.Message;
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(PrintInvoice), new { id = id });
             }
 
             return null;
