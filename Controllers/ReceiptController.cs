@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
+using System.Linq.Dynamic.Core;
 
 namespace Accounting_System.Controllers
 {
@@ -37,14 +38,68 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> CollectionIndex(string? view, CancellationToken cancellationToken)
         {
-            var viewData = await _receiptRepo.GetCRAsync(cancellationToken);
+            var collectionReceipts = await _receiptRepo.GetCollectionReceiptsAsync(cancellationToken);
 
             if (view == nameof(DynamicView.CollectionReceipt))
             {
-                return View("ImportExportIndex", viewData);
+                return View("ImportExportIndex", collectionReceipts);
             }
 
-            return View(viewData);
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetCollectionReceipts([FromForm] DataTablesParameters parameters, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var collectionReceipts = await _receiptRepo.GetCollectionReceiptsAsync(cancellationToken);
+                // Search filter
+                if (!string.IsNullOrEmpty(parameters.Search?.Value))
+                {
+                    var searchValue = parameters.Search.Value.ToLower();
+                    collectionReceipts = collectionReceipts
+                        .Where(cr =>
+                            cr.CRNo.ToLower().Contains(searchValue) ||
+                            cr.TransactionDate.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
+                            cr.SINo?.ToLower().Contains(searchValue) == true ||
+                            cr.SVNo?.ToLower().Contains(searchValue) == true ||
+                            cr.MultipleSI?.Contains(searchValue) == true ||
+                            cr.Customer.Name.ToLower().Contains(searchValue) ||
+                            cr.Total.ToString().ToLower().Contains(searchValue) ||
+                            cr.CreatedBy.ToLower().Contains(searchValue)
+                            )
+                        .ToList();
+                }
+                // Sorting
+                if (parameters.Order != null && parameters.Order.Count > 0)
+                {
+                    var orderColumn = parameters.Order[0];
+                    var columnName = parameters.Columns[orderColumn.Column].Data;
+                    var sortDirection = orderColumn.Dir.ToLower() == "asc" ? "ascending" : "descending";
+                    collectionReceipts = collectionReceipts
+                        .AsQueryable()
+                        .OrderBy($"{columnName} {sortDirection}")
+                        .ToList();
+                }
+                var totalRecords = collectionReceipts.Count();
+                var pagedData = collectionReceipts
+                    .Skip(parameters.Start)
+                    .Take(parameters.Length)
+                    .ToList();
+                return Json(new
+                {
+                    draw = parameters.Draw,
+                    recordsTotal = totalRecords,
+                    recordsFiltered = totalRecords,
+                    data = pagedData
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpGet]
@@ -678,7 +733,7 @@ namespace Accounting_System.Controllers
             return View(cr);
         }
 
-        public async Task<IActionResult> PrintedCR(int id, CancellationToken cancellationToken)
+        public async Task<IActionResult> PrintedCollectionReceipt(int id, CancellationToken cancellationToken)
         {
             var findIdOfCR = await _receiptRepo.FindCR(id, cancellationToken);
             if (findIdOfCR != null && !findIdOfCR.IsPrinted)
@@ -1380,6 +1435,7 @@ namespace Accounting_System.Controllers
 
             if (model != null)
             {
+                var collectionPrint = model.MultipleSIId != null ? nameof(MultipleCollectionPrint) : nameof(CollectionPrint);
                 try
                 {
                     if (!model.IsPosted)
@@ -1710,20 +1766,17 @@ namespace Accounting_System.Controllers
                         {
                             await _receiptRepo.UpdateSv(model.ServiceInvoice.Id, model.Total, offsetAmount, cancellationToken);
                         }
-
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         TempData["success"] = "Collection Receipt has been Posted.";
                     }
-
-                    return RedirectToAction(nameof(CollectionIndex));
+                    return RedirectToAction(collectionPrint, new { id = itemId });
                 }
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(CollectionIndex));
+                    return RedirectToAction(collectionPrint, new { id = itemId });
                 }
             }
-
             return NotFound();
         }
 
@@ -1757,13 +1810,22 @@ namespace Accounting_System.Controllers
                         {
                             await _generalRepo.RemoveRecords<Offsetting>(offset => offset.Source == model.CRNo && offset.Reference == series, cancellationToken);
                         }
-                        if (series.Contains("SI"))
+                        if (model.SINo != null)
                         {
                             await _receiptRepo.RemoveSIPayment(model.SalesInvoice.Id, model.Total, findOffsetting.Sum(offset => offset.Amount), cancellationToken);
                         }
-                        else
+                        else if (model.SVNo != null)
                         {
                             await _receiptRepo.RemoveSVPayment(model.ServiceInvoiceId, model.Total, findOffsetting.Sum(offset => offset.Amount), cancellationToken);
+                        }
+                        else if (model.MultipleSI != null)
+                        {
+                            await _receiptRepo.RemoveMultipleSIPayment(model.MultipleSIId, model.SIMultipleAmount, findOffsetting.Sum(offset => offset.Amount), cancellationToken);
+                        }
+                        else
+                        {
+                            TempData["error"] = "No series number found";
+                            return RedirectToAction(nameof(Index));
                         }
 
                         //#region --Audit Trail Recording

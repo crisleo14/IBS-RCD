@@ -22,166 +22,134 @@
             <div class="col-6">
             </div>
         </div>
-        <table class="table table-bordered table-hover" id="dataTable">
+        <table class="table table-bordered table-hover" id="collectionReceiptTable">
             <thead class="table-secondary">
                 <tr class="text-nowrap">
-                    <th>
-                        CR No.
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.TransactionDate)
-                    </th>
-                    <th>
-                        Invoice No.
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.Customers)
-                    </th>
-                    <th class="text-end">
-                        @Html.DisplayNameFor(model => model.Total)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.CreatedBy)
-                    </th>
-                    <th>
-                        Status
-                    </th>
+                    <th>CR No.</th>
+                    <th>@Html.DisplayNameFor(model => model.TransactionDate)</th>
+                    <th>Invoice No.</th>
+                    <th>@Html.DisplayNameFor(model => model.Customers)</th>
+                    <th>@Html.DisplayNameFor(model => model.Total)</th>
+                    <th>@Html.DisplayNameFor(model => model.CreatedBy)</th>
+                    <th>Status</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr class="text-truncate">
-                        <td>
-                            @Html.DisplayFor(modelItem => item.CRNo)
-                        </td>
-                        <td>
-                            @item.TransactionDate.ToString("MM/dd/yyyy")
-                        </td>
-                        <td>
-                            @if (item.SalesInvoiceId != null)
-                            {
-                                @Html.DisplayFor(modelItem => item.SINo)
-                            }
-                            else if (item.MultipleSIId != null)
-                            {
-                                for (int i = 0; i < item.MultipleSI.Length; i++)
-                                {
-                                    var siNo = $"{item.MultipleSI[i]}, ";
-                                    @siNo
-                                }
-                            }
-                            else
-                            {
-                                @Html.DisplayFor(modelItem => item.SVNo)
-                            }
-                        </td>
-                        <td>
-                            @if (item.SalesInvoiceId != null)
-                            {
-                                @Html.DisplayFor(modelItem => item.SalesInvoice.Customer.Name)
-                            }
-                            else if (item.MultipleSIId != null)
-                            {
-                                @Html.DisplayFor(modelItem => item.Customer.Name)
-                            }
-                            else
-                            {
-                                @Html.DisplayFor(modelItem => item.ServiceInvoice.Customer.Name)
-                            }
-                        </td>
-                        <td class="text-end px-4">
-                            @Html.DisplayFor(modelItem => item.Total)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.CreatedBy)
-                        </td>
-                        <td>
-                            @{
-                                var status = item.PostedBy != null && item.VoidedBy == null && item.CanceledBy == null
-                                ? "Posted"
-                                : item.VoidedBy != null
-                                ? "Voided"
-                                : item.CanceledBy != null
-                                ? "Cancelled"
-                                : "Pending";
-                            }
-                            <span class="badge rounded-pill @if(status == "Posted") {<text>bg-info</text>} else if(status == "Voided") {<text>bg-danger</text>} else if(status == "Cancelled") {<text>bg-warning</text>}">@status</span>
-                        </td>
-                        <td class="text-center">
-                            <div class="dropdown" style="@(item.VoidedBy != null || item.CanceledBy != null ? "display:none;" : "")">
-                                <button class="btn btn-light dropdown-toggle" type="button" id="actionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Actions
-                                </button>
-                                <ul class="dropdown-menu" aria-labelledby="actionsDropdown">
-                                    @if (!item.IsPosted && !item.IsVoided && !item.IsCanceled)
-                                    {
-                                        if (item.MultipleSIId != null)
-                                        {
-                                            <li><a asp-action="MultipleCollectionEdit" asp-route-id="@item.Id" class="dropdown-item" title="Feature coming soon">Edit</a></li>
-                                            <li>
-                                                <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#PreviewMultipleSI-@item.Id" data-bs-url="@Url.Action($"PreviewMultipleSI/{item.Id}")">
-                                                    Preview
-                                                </button>
-                                            </li>
-                                        }
-                                        else
-                                        {
-                                            <li><a asp-action="CollectionEdit" asp-route-id="@item.Id" class="dropdown-item" title="Feature coming soon">Edit</a></li>
-                                            <li>
-                                                <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#Preview-@item.Id" data-bs-url="@Url.Action($"Preview/{item.Id}")">
-                                                    Preview
-                                                </button>
-                                            </li>
-                                        }
-                                        <li><a class="dropdown-item" onclick="confirmPost(@item.Id)">Post</a></li>
-                                        <li><a class="dropdown-item" onclick="confirmCancel(@item.Id)">Cancel</a></li>
-                                    }
-                                    @if (item.IsPosted && !item.IsVoided && !item.IsCanceled)
-                                    {
-                                        if (item.MultipleSIId != null)
-                                        {
-                                            <li><a asp-action="MultipleCollectionPrint" asp-route-id="@item.Id" class="dropdown-item">Print</a></li>
-                                        }
-                                        else
-                                        {
-                                            <li><a asp-action="CollectionPrint" asp-route-id="@item.Id" class="dropdown-item">Print</a></li>
-                                        }
-                                        <li><a class="dropdown-item" onclick="confirmVoid(@item.Id)">Void</a></li>
-                                    }
-                                </ul>
-                            </div>
-                            @await Html.PartialAsync("_MultipleCollectionPreviewPartialView", item)
-                            @await Html.PartialAsync("_CollectionPreviewPartialView", item)
-                        </td>
-                    </tr>
-                }
             </tbody>
         </table>
     </div>
 </div>
-
 @section Scripts {
     <script>
-        function confirmPost(itemId) {
-            console.log(itemId);
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Replace with the actual URL that you want to redirect to
-                    var url = `/Receipt/Post?itemId=${itemId}`;
-                    window.location.href = url;
-                }
-            })
-        }
+        $(document).ready(function () {
+            $('#collectionReceiptTable').DataTable({
+                "processing": true,
+                "serverSide": true,
+                "stateSave": true,
+                "ajax": {
+                    "url": "@Url.Action("GetCollectionReceipts", "Receipt")",
+                    "type": "POST",
+                    "data": function (d) {
+                        return $.extend({}, d, {
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        });
+                    },
+                    "dataSrc": function (json) {
+                        console.log(json); // Log the returned data to the console
+                        return json.data; // Return the data to populate the DataTable
+                    }
+                },
+                "columns": [
+                    { "data": "crNo" },
+                    {
+                        "data": "transactionDate",
+                        "name": "transactionDate",
+                        "render": function (data, type, row) {
+                            var date = new Date(data);
+                            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
+                        }
+                    },
+                    {
+                        "data": "id",
+                        "render": function (data, type, row) {
+                            if (row.salesInvoiceId != null) {
+                                return row.siNo;
+                            } else if (row.multipleSIId != null && Array.isArray(row.multipleSIId)) {
+                                return row.multipleSI.map(function (si) {
+                                    return si;
+                                }).join(", "); // Concatenate multiple siNo values with a comma
+                            } else {
+                                return row.svNo;
+                            }
+                        }
+                    },
+                    { "data": "customer.name" },
+                    { "data": "total", "render": $.fn.dataTable.render.number(',', '.', 4) },
+                    { "data": "createdBy" },
+                    {
+                        "data": "null",
+                        "render": function (data, type, row) {
+                            var status = row.isPosted && !row.isVoided && !row.isCanceled
+                                ? "Posted"
+                                : row.isVoided
+                                    ? "Voided"
+                                    : row.isCanceled
+                                        ? "Cancelled"
+                                        : "Pending";
+
+                            var statusClass = status == "Posted" ? "bg-info" :
+                                status == "Voided" ? "bg-danger" :
+                                    status == "Cancelled" ? "bg-warning" : "";
+
+                            return `<span class="badge rounded-pill ${statusClass}">${status}</span>`;
+                        }     
+                    },
+                    {
+                        "data": null,
+                        "orderable": false,
+                        "render": function (data, type, row) {
+                            let dropdownHtml = `
+                                            <div class="dropdown" style="${row.voidedBy != null || row.canceledBy != null ? 'display:none;' : ''}">
+                                                <button class="btn btn-light dropdown-toggle" type="button" id="actionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    Actions
+                                                </button>
+                                                <ul class="dropdown-menu" aria-labelledby="actionsDropdown">`;
+
+                            if (row.postedBy == null) {
+                                if (row.multipleSIId != null) {
+                                    dropdownHtml += `
+                                                <li><a href="@Url.Action("MultipleCollectionEdit", "Receipt")/${row.id}" class="dropdown-item">Edit</a></li>
+                                                <li><a href="@Url.Action("MultipleCollectionPrint", "Receipt")/${row.id}" class="dropdown-item">Preview</a></li>`;
+                                } else {
+                                    dropdownHtml += `
+                                                <li><a href="@Url.Action("CollectionEdit", "Receipt")/${row.id}" class="dropdown-item">Edit</a></li>
+                                                <li><a href="@Url.Action("CollectionPrint", "Receipt")/${row.id}" class="dropdown-item">Preview</a></li>`;
+                                }
+                                dropdownHtml += `<li><a class="dropdown-item" onclick="confirmCancel(${row.id})">Cancel</a></li>`;
+                            } else {
+                                if (row.multipleSIId != null) {
+                                    dropdownHtml += `
+                                                <li><a href="@Url.Action("MultipleCollectionPrint", "Receipt")/${row.id}" class="dropdown-item">Print</a></li>`;
+                                } else {
+                                    dropdownHtml += `
+                                                <li><a href="@Url.Action("CollectionPrint", "Receipt")/${row.id}" class="dropdown-item">Print</a></li>`;
+                                }
+                                dropdownHtml += `<li><a class="dropdown-item" onclick="confirmVoid(${row.id})">Void</a></li>`;
+                            }
+
+                            dropdownHtml += `</ul></div>`;
+                            return dropdownHtml;
+                        }
+                    }
+
+                ],
+
+                "order": [[1, "asc"]],
+                "pageLength": 10 // Default number of rows per page
+            });
+        });
+
     </script>
     <script>
         function confirmVoid(itemId) {

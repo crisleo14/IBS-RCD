@@ -51,7 +51,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<List<CollectionReceipt>> GetCRAsync(CancellationToken cancellationToken = default)
+        public async Task<List<CollectionReceipt>> GetCollectionReceiptsAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext
                 .CollectionReceipts
@@ -266,6 +266,32 @@ namespace Accounting_System.Repository
             else
             {
                 throw new ArgumentException("Invalid id value. The id must be greater than 0.");
+            }
+        }
+
+        public async Task RemoveMultipleSIPayment(int[] id, decimal[] paidAmount, decimal offsetAmount, CancellationToken cancellationToken = default)
+        {
+            var salesInvoices = await _dbContext
+                .SalesInvoices
+                .Where(si => id.Contains(si.Id))
+                .ToListAsync(cancellationToken);
+
+            if (salesInvoices != null)
+            {
+                for (int i = 0; i < paidAmount.Length; i++)
+                {
+                    var total = paidAmount[i] + offsetAmount;
+                    salesInvoices[i].AmountPaid -= total;
+                    salesInvoices[i].Balance += total;
+
+                    if (salesInvoices[i].IsPaid == true && salesInvoices[i].Status == "Paid" || salesInvoices[i].IsPaid == true && salesInvoices[i].Status == "OverPaid")
+                    {
+                        salesInvoices[i].IsPaid = false;
+                        salesInvoices[i].Status = "Pending";
+                    }
+                }
+
+                await _dbContext.SaveChangesAsync(cancellationToken);
             }
         }
     }
