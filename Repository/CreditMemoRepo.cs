@@ -120,5 +120,18 @@ namespace Accounting_System.Repository
                 throw new ArgumentException("Invalid id value. The id must be greater than 0.");
             }
         }
+        public async Task<List<CreditMemo>> GetCreditMemosAsync(CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.CreditMemos
+                .Include(cm => cm.SalesInvoice)
+                .ThenInclude(s => s.Customer)
+                .Include(cm => cm.SalesInvoice)
+                .ThenInclude(s => s.Product)
+                .Include(cm => cm.ServiceInvoice)
+                .ThenInclude(sv => sv.Customer)
+                .Include(cm => cm.ServiceInvoice)
+                .ThenInclude(sv => sv.Service)
+                .ToListAsync(cancellationToken);
+        }
     }
 }

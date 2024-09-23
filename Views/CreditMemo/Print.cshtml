@@ -8,7 +8,6 @@
 @{
     ViewData["Title"] = "Print Credit Memo";
 }
-
 <br />
 <div class="text-end">
     <img src="~/img/Filpride.jpg" height="" width="130px" />
@@ -20,12 +19,10 @@
         Kalaklan, Olongapo City, 2200 Zambales, Philippines<br />
         VAT Reg. TIN: 000-216-589-00000
     </p>
-
     <h3><span style="display: inline-block;"><b>CREDIT MEMO</b></span></h3>
     <div class="text-end" style="margin-top:-60px;">
         <h6><b>No.&nbsp;@Html.DisplayFor(model => model.CMNo)</b></h6>
     </div>
-
 </div>
 <br />
 @if (Model.Source == "Sales Invoice")
@@ -47,7 +44,6 @@
                         <span><b>Business Style:</b></span>
                         &nbsp;@Html.DisplayFor(model => model.SalesInvoice.Customer.BusinessStyle) &nbsp;
                     </td>
-
                     <td class="w-25 text-nowrap">
 
                         <b>Date :</b> @Model.TransactionDate.ToString("MM/dd/yyyy")
@@ -56,43 +52,40 @@
             </tbody>
         </table>
     </div>
-
-<div class="table-responsive" style="margin-top:20px;">
-    <table class="table-bordered w-100 text-center">
-        <thead class="text-nowrap">
-            <tr>
-                <th>INVOICE NO.</th>
-                <th>INVOICE DATE</th>
-                <th>PRODUCT</th>
-                <th>DESCRIPTION</th>
-                <th>AMOUNT</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr style="height:80px;">
-                <td>@Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
-                <td>@Model.SalesInvoice.TransactionDate.ToString("MM/dd/yyyy")</td>
-                <td>@Html.DisplayFor(model => model.SalesInvoice.Product.Name)</td>
-                <td><p style="margin: 0; padding: 0;">@Html.DisplayFor(model => model.Description)</p></td>
-                <td>@Math.Abs(Model.CreditAmount).ToString("N2")</td>
-            </tr>
-
-        </tbody>
-    </table>
-</div>
-
-<div style="margin-top:20px;">
-    <table class="w-100">
-        <tbody>
-            <tr>
-                <td>
-                </td>
-                <td style="width:40%;">
-                    <div>
-                        <table class="w-100">
-                            <tbody class="text-nowrap">
-                                <tr>
-                                    <td class="w-50"><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
+    <div class="table-responsive" style="margin-top:20px;">
+        <table class="table-bordered w-100 text-center">
+            <thead class="text-nowrap">
+                <tr>
+                    <th>INVOICE NO.</th>
+                    <th>INVOICE DATE</th>
+                    <th>PRODUCT</th>
+                    <th>DESCRIPTION</th>
+                    <th>AMOUNT</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="height:80px;">
+                    <td>@Html.DisplayFor(model => model.SalesInvoice.SINo)</td>
+                    <td>@Model.SalesInvoice.TransactionDate.ToString("MM/dd/yyyy")</td>
+                    <td>@Html.DisplayFor(model => model.SalesInvoice.Product.Name)</td>
+                    <td><p style="margin: 0; padding: 0;">@Html.DisplayFor(model => model.Description)</p></td>
+                    <td>@Math.Abs(Model.CreditAmount).ToString("N2")</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div style="margin-top:20px;">
+        <table class="w-100">
+            <tbody>
+                <tr>
+                    <td>
+                    </td>
+                    <td style="width:40%;">
+                        <div>
+                            <table class="w-100">
+                                <tbody class="text-nowrap">
+                                    <tr>
+                                        <td class="w-50"><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
                                         @if (Model.VatableSales != 0)
                                         {
                                             <td class="text-end">@Math.Abs(Model.VatableSales).ToString("N2")</td>
@@ -101,10 +94,9 @@
                                         {
                                             <td class="text-end"></td>
                                         }
-
-                                </tr>
-                                <tr>
-                                    <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
+                                    </tr>
+                                    <tr>
+                                        <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
                                         @if (Model.SalesInvoice.Customer.CustomerType == "Zero Rated")
                                         {
                                             <td class="text-end">@Math.Abs(Model.CreditAmount).ToString("N2")</td>
@@ -113,10 +105,9 @@
                                         {
                                             <td class="text-end"></td>
                                         }
-
-                                </tr>
-                                <tr>
-                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT-Exempt Sales: </b></p></td>
+                                    </tr>
+                                    <tr>
+                                        <td><p style="height: 9px; margin-left:8%;"><b>VAT-Exempt Sales: </b></p></td>
 
                                         @if (Model.SalesInvoice.Customer.CustomerType == "Exempt")
                                         {
@@ -126,9 +117,9 @@
                                         {
                                             <td class="text-end"></td>
                                         }
-                                </tr>
-                                <tr>
-                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
+                                    </tr>
+                                    <tr>
+                                        <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
 
                                         @if (Model.VatAmount != 0)
                                         {
@@ -138,18 +129,18 @@
                                         {
                                             <td class="text-end"></td>
                                         }
-                                </tr>
-                                <tr>
-                                    <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
-                                    <td class="text-end">@Math.Abs(Model.TotalSales).ToString("N2")</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+                                    </tr>
+                                    <tr>
+                                        <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
+                                        <td class="text-end">@Math.Abs(Model.TotalSales).ToString("N2")</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 }
 else if (Model.Source == "Service Invoice")
@@ -171,59 +162,55 @@ else if (Model.Source == "Service Invoice")
                         <span><b>Business Style:</b></span>
                         &nbsp;@Html.DisplayFor(model => model.ServiceInvoice.Customer.BusinessStyle) &nbsp;
                     </td>
-
                     <td class="w-25 text-nowrap">
-
                         <b>Date :</b> @Model.TransactionDate.ToString("MM/dd/yyyy")
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
-
-<div class="table-responsive" style="margin-top:20px;">
-    <table class="table-bordered w-100 text-center">
-        <thead>
-            <tr>
-                <th>SOA NO.</th>
-                <th>SOA DATE</th>
-                <th>SERVICE</th>
-                <th>DESCRIPTION</th>
-                <th>AMOUNT</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr style="height:80px;">
-                <td>@Html.DisplayFor(model => model.ServiceInvoice.SVNo)</td>
-                <td class="pt-2">
-                    <p style="line-height:15px">
-                        @Model.Period.ToString("MMMM yyyy")
-                    </p>
-                </td>
-                <td>@Html.DisplayFor(model => model.ServiceInvoice.Service.Name)</td>
-                <td>@Html.DisplayFor(model => model.Description)</td>
-                <td class="pt-2">
-                    <p style="line-height:15px">
-                        @Math.Abs(Model.Amount ?? 0)
-                    </p>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-
-<div style="margin-top:20px;">
-    <table class="w-100">
-        <tbody>
-            <tr>
-                <td>
-                </td>
-                <td style="width:40%;">
-                    <div>
-                        <table class="w-100">
-                            <tbody class="text-nowrap">
-                                <tr>
-                                    <td class="w-50"><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
+    <div class="table-responsive" style="margin-top:20px;">
+        <table class="table-bordered w-100 text-center">
+            <thead>
+                <tr>
+                    <th>SOA NO.</th>
+                    <th>SOA DATE</th>
+                    <th>SERVICE</th>
+                    <th>DESCRIPTION</th>
+                    <th>AMOUNT</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="height:80px;">
+                    <td>@Html.DisplayFor(model => model.ServiceInvoice.SVNo)</td>
+                    <td class="pt-2">
+                        <p style="line-height:15px">
+                            @Model.Period.ToString("MMMM yyyy")
+                        </p>
+                    </td>
+                    <td>@Html.DisplayFor(model => model.ServiceInvoice.Service.Name)</td>
+                    <td>@Html.DisplayFor(model => model.Description)</td>
+                    <td class="pt-2">
+                        <p style="line-height:15px">
+                            @Math.Abs(Model.Amount ?? 0)
+                        </p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div style="margin-top:20px;">
+        <table class="w-100">
+            <tbody>
+                <tr>
+                    <td>
+                    </td>
+                    <td style="width:40%;">
+                        <div>
+                            <table class="w-100">
+                                <tbody class="text-nowrap">
+                                    <tr>
+                                        <td class="w-50"><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
                                         @if (Model.VatableSales != 0)
                                         {
                                             <td class="text-end">@Html.DisplayFor(model => model.VatableSales)</td>
@@ -232,10 +219,9 @@ else if (Model.Source == "Service Invoice")
                                         {
                                             <td class="text-end"></td>
                                         }
-
-                                </tr>
-                                <tr>
-                                    <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
+                                    </tr>
+                                    <tr>
+                                        <td><p style="height: 9px; margin-left:8%;"><b>Zero-Rated Sales: </b></p></td>
                                         @if (Model.ServiceInvoice.Customer.CustomerType == "Zero Rated")
                                         {
                                             <td class="text-end">@Math.Abs(Model.CreditAmount)</td>
@@ -244,10 +230,9 @@ else if (Model.Source == "Service Invoice")
                                         {
                                             <td class="text-end"></td>
                                         }
-
-                                </tr>
-                                <tr>
-                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT-Exempt Sales: </b></p></td>
+                                    </tr>
+                                    <tr>
+                                        <td><p style="height: 9px; margin-left:8%;"><b>VAT-Exempt Sales: </b></p></td>
 
                                         @if (Model.ServiceInvoice.Customer.CustomerType == "Exempt")
                                         {
@@ -257,9 +242,9 @@ else if (Model.Source == "Service Invoice")
                                         {
                                             <td class="text-end"></td>
                                         }
-                                </tr>
-                                <tr>
-                                    <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
+                                    </tr>
+                                    <tr>
+                                        <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
 
                                         @if (Model.VatAmount != 0)
                                         {
@@ -269,28 +254,25 @@ else if (Model.Source == "Service Invoice")
                                         {
                                             <td class="text-end"></td>
                                         }
-                                </tr>
-                                <tr>
-                                    <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
-                                    <td class="text-end">@Math.Abs(Model.TotalSales)</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+                                    </tr>
+                                    <tr>
+                                        <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
+                                        <td class="text-end">@Math.Abs(Model.TotalSales)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 }
-
 <div style="margin-top:20px;">
     <p>
         <i>This is a system generated invoice, no signature required.</i>
     </p>
 </div>
-
-
 <br />
 <div class="text-center w-100" style="margin-top:20px;">
     <p>
@@ -304,7 +286,6 @@ else if (Model.Source == "Service Invoice")
     </p>
 </div>
 <br />
-
 <div class="text-start w-100 footer" style="margin-top:50px;">
     <p style="line-height: 1;">
         <em>
@@ -318,7 +299,6 @@ else if (Model.Source == "Service Invoice")
         </em>
     </p>
 </div>
-
 @if (!Model.IsPrinted)
 {
     <div class="text-end">
@@ -331,11 +311,17 @@ else
         REPRINT COPY
     </div>
 }
+@if (Model.PostedBy == null)
+{
+    <a class="btn btn-success" onclick="confirmPost(@Model.Id)" style="margin-top: 25px;">Post</a>
+}
+else
+{
+    <a asp-action="Printed" class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" style="margin-top: 25px;" id="printButton">Print</a>
+}
+<a asp-action="Index" class="btn" id="otherButton" style="margin-top: 25px;">Back</a>
 
-<a asp-action="Printed" class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" id="printButton">Print</a>
-<a asp-action="Index" class="btn" id="otherButton">Back</a>
-
-@section Scripts{
+@section Scripts {
     <script>
         var originalFontSizes = [];
         function printPage() {
@@ -396,6 +382,26 @@ else
 
             // Restore the header and footer's visibility after printing (optional)
             document.querySelector("header").style.display = "";
+        }
+    </script>
+    <script>
+        function confirmPost(id) {
+            console.log(id);
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Replace with the actual URL that you want to redirect to
+                    var url = `/CreditMemo/Post?id=${id}`;
+                    window.location.href = url;
+                }
+            })
         }
     </script>
 }
