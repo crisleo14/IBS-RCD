@@ -56,14 +56,14 @@ namespace Accounting_System.Controllers
                 {
                     var searchValue = parameters.Search.Value.ToLower();
                     serviceInvoices = serviceInvoices
-                        .Where(s =>
-                            s.SVNo.ToLower().Contains(searchValue) ||
-                            s.Customer.Name.ToLower().Contains(searchValue) ||
-                            s.Service.Name.ToLower().Contains(searchValue) ||
-                            s.Period.ToString("MMM yyyy").ToLower().Contains(searchValue) ||
-                            s.Amount.ToString().ToLower().Contains(searchValue) ||
-                            s.Instructions?.ToLower().Contains(searchValue) == true ||
-                            s.CreatedBy.ToLower().Contains(searchValue)
+                        .Where(sv =>
+                            sv.SVNo.ToLower().Contains(searchValue) ||
+                            sv.Customer.Name.ToLower().Contains(searchValue) ||
+                            sv.Service.Name.ToLower().Contains(searchValue) ||
+                            sv.Period.ToString("MMM yyyy").ToLower().Contains(searchValue) ||
+                            sv.Amount.ToString().ToLower().Contains(searchValue) ||
+                            sv.Instructions?.ToLower().Contains(searchValue) == true ||
+                            sv.CreatedBy.ToLower().Contains(searchValue)
                             )
                         .ToList();
                 }

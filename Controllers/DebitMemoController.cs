@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
+using System.Linq.Dynamic.Core;
 
 namespace Accounting_System.Controllers
 {
@@ -35,23 +36,66 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
         {
-            var dm = await _dbContext.DebitMemos
-                .Include(dm => dm.SalesInvoice)
-                .ThenInclude(s => s.Customer)
-                .Include(dm => dm.SalesInvoice)
-                .ThenInclude(s => s.Product)
-                .Include(dm => dm.ServiceInvoice)
-                .ThenInclude(sv => sv.Customer)
-                .Include(dm => dm.ServiceInvoice)
-            .ThenInclude(sv => sv.Service)
-                .ToListAsync(cancellationToken);
 
             if (view == nameof(DynamicView.DebitMemo))
             {
-                return View("ImportExportIndex", dm);
+                return View("ImportExportIndex", _debitMemoRepo.GetDebitMemosAsync(cancellationToken));
             }
 
-            return View(dm);
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetDebitMemos([FromForm] DataTablesParameters parameters, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var debitMemos = await _debitMemoRepo.GetDebitMemosAsync(cancellationToken);
+                // Search filter
+                if (!string.IsNullOrEmpty(parameters.Search?.Value))
+                {
+                    var searchValue = parameters.Search.Value.ToLower();
+                    debitMemos = debitMemos
+                        .Where(dm =>
+                            dm.DMNo.ToLower().Contains(searchValue) ||
+                            dm.TransactionDate.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
+                            (dm.SalesInvoice?.SINo?.Contains(searchValue) == true) ||
+                            (dm.ServiceInvoice?.SVNo?.Contains(searchValue) == true) ||
+                            dm.Source.ToLower().Contains(searchValue) ||
+                            dm.DebitAmount.ToString().ToLower().Contains(searchValue) ||
+                            dm.CreatedBy.ToLower().Contains(searchValue)
+                            )
+                        .ToList();
+                }
+                // Sorting
+                if (parameters.Order != null && parameters.Order.Count > 0)
+                {
+                    var orderColumn = parameters.Order[0];
+                    var columnName = parameters.Columns[orderColumn.Column].Data;
+                    var sortDirection = orderColumn.Dir.ToLower() == "asc" ? "ascending" : "descending";
+                    debitMemos = debitMemos
+                        .AsQueryable()
+                        .OrderBy($"{columnName} {sortDirection}")
+                        .ToList();
+                }
+                var totalRecords = debitMemos.Count();
+                var pagedData = debitMemos
+                    .Skip(parameters.Start)
+                    .Take(parameters.Length)
+                    .ToList();
+                return Json(new
+                {
+                    draw = parameters.Draw,
+                    recordsTotal = totalRecords,
+                    recordsFiltered = totalRecords,
+                    data = pagedData
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpGet]
@@ -771,12 +815,12 @@ namespace Accounting_System.Controllers
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         TempData["success"] = "Debit Memo has been Posted.";
                     }
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Print), new { id = id });
                 }
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Print), new { id = id });
                 }
             }
 

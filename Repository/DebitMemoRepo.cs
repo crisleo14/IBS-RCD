@@ -14,11 +14,17 @@ namespace Accounting_System.Repository
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<List<DebitMemo>> GetDMAsync(CancellationToken cancellationToken = default)
+        public async Task<List<DebitMemo>> GetDebitMemosAsync(CancellationToken cancellationToken = default)
         {
-            return await _dbContext
-                .DebitMemos
-                .OrderByDescending(d => d.Id)
+            return await _dbContext.DebitMemos
+                .Include(dm => dm.SalesInvoice)
+                .ThenInclude(s => s.Customer)
+                .Include(dm => dm.SalesInvoice)
+                .ThenInclude(s => s.Product)
+                .Include(dm => dm.ServiceInvoice)
+                .ThenInclude(sv => sv.Customer)
+                .Include(dm => dm.ServiceInvoice)
+                .ThenInclude(sv => sv.Service)
                 .ToListAsync(cancellationToken);
         }
 
