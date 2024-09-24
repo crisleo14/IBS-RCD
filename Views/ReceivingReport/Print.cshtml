@@ -8,7 +8,6 @@
 @{
     ViewData["Title"] = "Print Receiving Report";
 }
-
 <br />
 <div class="text-end">
     <img src="~/img/Filpride.jpg" height="" width="130px" />
@@ -21,18 +20,14 @@
         VAT Reg. TIN: 000-216-589-00000
     </p>
 </div>
-
 <h3><span style="display: inline-block; margin-top:50px;"><b>RECEIVING REPORT</b></span></h3>
 <div class="text-end" style="margin-top:-50px;">
     <h6><b>No.&nbsp;@Html.DisplayFor(model => model.RRNo)</b></h6>
 </div>
-
-
 <div class="w-100 text-end" style="margin-top:20px; padding-bottom:10px;">
     <span><b>Date:</b></span>
     <span class="underline" style="display: inline-block; width: 20%; text-align:center;">@Model.Date.ToString("MM/dd/yyyy")</span><br />
 </div>
-
 <div>
     <table class="table-bordered w-100">
         <tbody>
@@ -42,7 +37,6 @@
         </tbody>
     </table>
 </div>
-
 <div style="margin-top:20px;">
     <table class="table-bordered w-100">
         <tbody>
@@ -70,7 +64,6 @@
         </tbody>
     </table>
 </div>
-
 <div>
     <table class="table-bordered w-100 mt-2">
         <tbody>
@@ -80,7 +73,6 @@
         </tbody>
     </table>
 </div>
-
 <div style="margin-top:10px;">
     <table class="table-bordered w-100">
         <tbody>
@@ -90,7 +82,6 @@
         </tbody>
     </table>
 </div>
-
 <div class="text-center w-100" style="margin-top:10px;">
     <p>
         <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br />
@@ -102,7 +93,6 @@
         Date and Time Created:&nbsp; @Model.CreatedDate
     </p>
 </div>
-
 <div class="text-start w-100" >
     <p style="line-height: 1;">
         <em>
@@ -116,7 +106,6 @@
         </em>
     </p>
 </div>
-
 @if (!Model.IsPrinted)
 {
     <div class="text-end">
@@ -130,8 +119,15 @@ else
     </div>
  }
 
-<a asp-action="Printed" class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" id="printButton">Print</a>
-<a asp-action="Index" class="btn" id="otherButton">Back</a>
+@if (Model.PostedBy == null)
+{
+    <a id="approveButton" class="btn btn-success" onclick="confirmPost(@Model.Id)" style="margin-top: 25px;">Post</a>
+}
+else
+{
+    <a asp-action="Printed" class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" style="margin-top: 25px;" id="printButton">Print</a>
+}
+<a asp-action="Index" class="btn" style="margin-top: 25px;" id="otherButton">Back</a>
 
 @section Scripts{
     <script>
@@ -180,6 +176,26 @@ else
 
             // Restore the header and footer's visibility after printing (optional)
             document.querySelector("header").style.display = "";
+        }
+    </script>
+    <script>
+        function confirmPost(id) {
+            console.log(id);
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Replace with the actual URL that you want to redirect to
+                    var url = `/ReceivingReport/Post?id=${id}`;
+                    window.location.href = url;
+                }
+            })
         }
     </script>
 }

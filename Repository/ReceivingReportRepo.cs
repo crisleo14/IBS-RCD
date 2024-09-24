@@ -240,5 +240,24 @@ namespace Accounting_System.Repository
                 throw new ArgumentException("Invalid id value. The id must be greater than 0.");
             }
         }
+
+        public async Task<List<ReceivingReport>> GetReceivingReportsAsync(CancellationToken cancellationToken = default)
+        {
+            var rr = await _dbContext.ReceivingReports
+                .Include(p => p.PurchaseOrder)
+                .ThenInclude(s => s.Supplier)
+                .Include(p => p.PurchaseOrder)
+                .ThenInclude(prod => prod.Product)
+                .ToListAsync(cancellationToken);
+
+            if (rr != null)
+            {
+                return rr;
+            }
+            else
+            {
+                throw new ArgumentException("Error in get data of rr's.");
+            }
+        }
     }
 }

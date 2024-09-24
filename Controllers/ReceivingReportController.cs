@@ -1,4 +1,5 @@
 ﻿using Accounting_System.Data;
+using Accounting_System.Models;
 using Accounting_System.Models.AccountsPayable;
 using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
+using System.Linq.Dynamic.Core;
 
 namespace Accounting_System.Controllers
 {
@@ -36,19 +38,66 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
         {
-            var rr = await _dbContext.ReceivingReports
-                .Include(p => p.PurchaseOrder)
-                .ThenInclude(s => s.Supplier)
-                .Include(p => p.PurchaseOrder)
-            .ThenInclude(prod => prod.Product)
-                .ToListAsync(cancellationToken);
+            var rr = await _receivingReportRepo.GetReceivingReportsAsync(cancellationToken);
 
             if (view == nameof(DynamicView.ReceivingReport))
             {
                 return View("ImportExportIndex", rr);
             }
 
-            return View(rr);
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetReceivingReports([FromForm] DataTablesParameters parameters, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var receivingReports = await _receivingReportRepo.GetReceivingReportsAsync(cancellationToken);
+                // Search filter
+                if (!string.IsNullOrEmpty(parameters.Search?.Value))
+                {
+                    var searchValue = parameters.Search.Value.ToLower();
+                    receivingReports = receivingReports
+                        .Where(rr =>
+                            rr.RRNo.ToLower().Contains(searchValue) ||
+                            rr.Date.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
+                            rr.PONo.ToLower().Contains(searchValue) ||
+                            rr.QuantityDelivered.ToString().ToLower().Contains(searchValue) ||
+                            rr.QuantityReceived.ToString().ToLower().Contains(searchValue) ||
+                            rr.CreatedBy.ToLower().Contains(searchValue)
+                            )
+                        .ToList();
+                }
+                // Sorting
+                if (parameters.Order != null && parameters.Order.Count > 0)
+                {
+                    var orderColumn = parameters.Order[0];
+                    var columnName = parameters.Columns[orderColumn.Column].Data;
+                    var sortDirection = orderColumn.Dir.ToLower() == "asc" ? "ascending" : "descending";
+                    receivingReports = receivingReports
+                        .AsQueryable()
+                        .OrderBy($"{columnName} {sortDirection}")
+                        .ToList();
+                }
+                var totalRecords = receivingReports.Count();
+                var pagedData = receivingReports
+                    .Skip(parameters.Start)
+                    .Take(parameters.Length)
+                    .ToList();
+                return Json(new
+                {
+                    draw = parameters.Draw,
+                    recordsTotal = totalRecords,
+                    recordsFiltered = totalRecords,
+                    data = pagedData
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpGet]
@@ -485,17 +534,17 @@ namespace Accounting_System.Controllers
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         TempData["success"] = "Receiving Report has been Posted.";
-                        return RedirectToAction(nameof(Index));
+                        return RedirectToAction(nameof(Print), new { id = id });
                     }
                     else
                     {
-                        return RedirectToAction(nameof(Index));
+                        return RedirectToAction(nameof(Print), new { id = id });
                     }
                 }
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Print), new { id = id });
                 }
             }
 
