@@ -1,4 +1,5 @@
 ﻿using Accounting_System.Data;
+using Accounting_System.Models;
 using Accounting_System.Models.AccountsPayable;
 using Accounting_System.Models.ViewModels;
 using Accounting_System.Repository;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
+using System.Linq.Dynamic.Core;
 
 namespace Accounting_System.Controllers
 {
@@ -35,21 +37,64 @@ namespace Accounting_System.Controllers
         {
             var purchaseOrders = await _purchaseOrderRepo.GetPurchaseOrderAsync(cancellationToken);
 
-            foreach (var po in purchaseOrders)
-            {
-                var rrList = await _dbContext.ReceivingReports
-                    .Where(rr => rr.PONo == po.PONo)
-                    .ToListAsync(cancellationToken);
-
-                po.RrList = rrList;
-            }
-
             if (view == nameof(DynamicView.PurchaseOrder))
             {
                 return View("ImportExportIndex", purchaseOrders);
             }
 
-            return View(purchaseOrders);
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetPurchaseOrders([FromForm] DataTablesParameters parameters, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var purchaseOrders = await _purchaseOrderRepo.GetPurchaseOrderAsync(cancellationToken);
+                // Search filter
+                if (!string.IsNullOrEmpty(parameters.Search?.Value))
+                {
+                    var searchValue = parameters.Search.Value.ToLower();
+                    purchaseOrders = purchaseOrders
+                        .Where(po =>
+                            po.PONo.ToLower().Contains(searchValue) ||
+                            po.Date.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
+                            po.Supplier.Name.ToLower().Contains(searchValue) ||
+                            po.Product.Name.ToLower().Contains(searchValue) ||
+                            po.Amount.ToString().ToLower().Contains(searchValue) ||
+                            po.CreatedBy.ToLower().Contains(searchValue)
+                            )
+                        .ToList();
+                }
+                // Sorting
+                if (parameters.Order != null && parameters.Order.Count > 0)
+                {
+                    var orderColumn = parameters.Order[0];
+                    var columnName = parameters.Columns[orderColumn.Column].Data;
+                    var sortDirection = orderColumn.Dir.ToLower() == "asc" ? "ascending" : "descending";
+                    purchaseOrders = purchaseOrders
+                        .AsQueryable()
+                        .OrderBy($"{columnName} {sortDirection}")
+                        .ToList();
+                }
+                var totalRecords = purchaseOrders.Count();
+                var pagedData = purchaseOrders
+                    .Skip(parameters.Start)
+                    .Take(parameters.Length)
+                    .ToList();
+                return Json(new
+                {
+                    draw = parameters.Draw,
+                    recordsTotal = totalRecords,
+                    recordsFiltered = totalRecords,
+                    data = pagedData
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpGet]
@@ -291,7 +336,7 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Purchase Order has been Posted.";
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Print), new { id = id });
             }
 
             return NotFound();
@@ -434,15 +479,35 @@ namespace Accounting_System.Controllers
             return View(nameof(ChangePrice));
         }
 
+        [HttpGet]
         public async Task<IActionResult> ClosePO(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.PurchaseOrders.FindAsync(id, cancellationToken);
+            var purchaseOrder = await _dbContext.PurchaseOrders.FindAsync(id, cancellationToken);
 
-            if (model != null)
+            if (purchaseOrder != null)
             {
-                if (!model.IsClosed)
+                var rrList = await _dbContext.ReceivingReports
+                    .Where(rr => rr.PONo == purchaseOrder.PONo)
+                    .ToListAsync(cancellationToken);
+
+                purchaseOrder.RrList = rrList;
+
+                return View(purchaseOrder);
+            }
+
+            return NotFound();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ClosePO(PurchaseOrder model, CancellationToken cancellationToken)
+        {
+            var purchaseOrder = await _dbContext.PurchaseOrders.FindAsync(model.Id, cancellationToken);
+
+            if (purchaseOrder != null)
+            {
+                if (!purchaseOrder.IsClosed)
                 {
-                    model.IsClosed = true;
+                    purchaseOrder.IsClosed = true;
 
                     //#region --Audit Trail Recording
 
@@ -459,6 +524,7 @@ namespace Accounting_System.Controllers
 
             return NotFound();
         }
+
         //Download as .xlsx file.(Export)
         #region -- export xlsx record --
 

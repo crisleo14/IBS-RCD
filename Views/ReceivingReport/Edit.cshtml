@@ -27,7 +27,7 @@
                 <input type="hidden" asp-for="POId" />
             </div>
             <div class="form-floating mb-3">
-                <input asp-for="ReceivedDate" type="date" class="form-control bg-light" placeholder="" readonly="@Model.IsPosted" />
+                <input asp-for="ReceivedDate" type="date" class="@(Model.IsPosted ? "form-control bg-light" : "form-control")" placeholder="" readonly="@Model.IsPosted" />
                 <label asp-for="ReceivedDate" class="control-label">Received Date</label>
                 <span asp-validation-for="ReceivedDate" class="text-danger"></span>
             </div>

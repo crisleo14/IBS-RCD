@@ -57,14 +57,14 @@ namespace Accounting_System.Controllers
                 {
                     var searchValue = parameters.Search.Value.ToLower();
                     creditMemos = creditMemos
-                        .Where(dm =>
-                            dm.CMNo.ToLower().Contains(searchValue) ||
-                            dm.TransactionDate.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
-                            (dm.SalesInvoice?.SINo?.Contains(searchValue) == true) ||
-                            (dm.ServiceInvoice?.SVNo?.Contains(searchValue) == true) ||
-                            dm.Source.ToLower().Contains(searchValue) ||
-                            dm.CreditAmount.ToString().ToLower().Contains(searchValue) ||
-                            dm.CreatedBy.ToLower().Contains(searchValue)
+                        .Where(cm =>
+                            cm.CMNo.ToLower().Contains(searchValue) ||
+                            cm.TransactionDate.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
+                            (cm.SalesInvoice?.SINo?.Contains(searchValue) == true) ||
+                            (cm.ServiceInvoice?.SVNo?.Contains(searchValue) == true) ||
+                            cm.Source.ToLower().Contains(searchValue) ||
+                            cm.CreditAmount.ToString().ToLower().Contains(searchValue) ||
+                            cm.CreatedBy.ToLower().Contains(searchValue)
                             )
                         .ToList();
                 }
