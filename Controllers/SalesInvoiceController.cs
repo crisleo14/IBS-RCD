@@ -939,14 +939,13 @@ namespace Accounting_System.Controllers
             worksheet.Cells["T1"].Value = "DueDate";
             worksheet.Cells["U1"].Value = "CreatedBy";
             worksheet.Cells["V1"].Value = "CreatedDate";
-            worksheet.Cells["W1"].Value = "POId";
-            worksheet.Cells["X1"].Value = "CancellationRemarks";
-            worksheet.Cells["Y1"].Value = "OriginalReceivingReportId";
-            worksheet.Cells["Z1"].Value = "OriginalCustomerId";
-            worksheet.Cells["AA1"].Value = "OriginalPOId";
-            worksheet.Cells["AB1"].Value = "OriginalProductId";
-            worksheet.Cells["AC1"].Value = "OriginalSeriesNumber";
-            worksheet.Cells["AD1"].Value = "OriginalDocumentId";
+            worksheet.Cells["W1"].Value = "CancellationRemarks";
+            worksheet.Cells["X1"].Value = "OriginalReceivingReportId";
+            worksheet.Cells["Y1"].Value = "OriginalCustomerId";
+            worksheet.Cells["Z1"].Value = "OriginalPOId";
+            worksheet.Cells["AA1"].Value = "OriginalProductId";
+            worksheet.Cells["AB1"].Value = "OriginalSeriesNumber";
+            worksheet.Cells["AC1"].Value = "OriginalDocumentId";
 
             int row = 2;
 
