@@ -103,6 +103,15 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetAllCollectionReceiptIds(CancellationToken cancellationToken)
+        {
+            var collectionReceiptIds = await _dbContext.CollectionReceipts
+                                     .Select(cr => cr.Id) // Assuming Id is the primary key
+                                     .ToListAsync(cancellationToken);
+            return Json(collectionReceiptIds);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> SingleCollectionCreateForSales(CancellationToken cancellationToken)
         {
             var viewModel = new CollectionReceipt();

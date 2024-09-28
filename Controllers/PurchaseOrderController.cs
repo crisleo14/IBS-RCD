@@ -98,6 +98,15 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetAllPurchaseOrderIds(CancellationToken cancellationToken)
+        {
+            var purchaseOrderIds = await _dbContext.PurchaseOrders
+                                     .Select(po => po.Id) // Assuming Id is the primary key
+                                     .ToListAsync(cancellationToken);
+            return Json(purchaseOrderIds);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
             var viewModel = new PurchaseOrder();

@@ -75,6 +75,15 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetAllJournalVoucherIds(CancellationToken cancellationToken)
+        {
+            var journalVoucherIds = await _dbContext.JournalVoucherHeaders
+                                     .Select(jv => jv.Id) // Assuming Id is the primary key
+                                     .ToListAsync(cancellationToken);
+            return Json(journalVoucherIds);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
             var viewModel = new JournalVoucherVM

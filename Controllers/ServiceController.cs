@@ -39,6 +39,15 @@ namespace Accounting_System.Controllers
             return View(data);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAllServiceIds(CancellationToken cancellationToken)
+        {
+            var serviceIds = await _dbContext.Services
+                                     .Select(s => s.Id) // Assuming Id is the primary key
+                                     .ToListAsync(cancellationToken);
+            return Json(serviceIds);
+        }
+
         public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
             var viewModel = new Services();

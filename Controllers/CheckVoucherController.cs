@@ -89,6 +89,15 @@ namespace Accounting_System.Controllers
             return View(checkVoucherVMs);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAllCheckVoucherIds(CancellationToken cancellationToken)
+        {
+            var checkVoucherIds = await _dbContext.CheckVoucherHeaders 
+                                     .Select(cv => cv.Id) // Assuming Id is the primary key
+                                     .ToListAsync(cancellationToken);
+            return Json(checkVoucherIds);
+        }
+
         public async Task<IActionResult> GetPOs(int supplierId, CancellationToken cancellationToken)
         {
             var purchaseOrders = await _dbContext.PurchaseOrders

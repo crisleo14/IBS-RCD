@@ -42,6 +42,16 @@ namespace Accounting_System.Controllers
             return View(data);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAllSupplierIds(CancellationToken cancellationToken)
+        {
+            var supplierIds = await _context.Suppliers
+                                     .Select(s => s.Id) // Assuming Id is the primary key
+                                     .ToListAsync(cancellationToken);
+            return Json(supplierIds);
+        }
+
+
         public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
             Supplier model = new();

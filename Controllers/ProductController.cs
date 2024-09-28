@@ -38,6 +38,15 @@ namespace Accounting_System.Controllers
             return View(data);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAllProductIds(CancellationToken cancellationToken)
+        {
+            var productIds = await _dbContext.Products
+                                     .Select(p => p.Id) // Assuming Id is the primary key
+                                     .ToListAsync(cancellationToken);
+            return Json(productIds);
+        }
+
         public IActionResult Create()
         {
             return View();

@@ -39,6 +39,15 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetAllBankAccountIds(CancellationToken cancellationToken)
+        {
+            var bankAccountIds = await _dbContext.BankAccounts
+                                     .Select(ba => ba.Id) // Assuming Id is the primary key
+                                     .ToListAsync(cancellationToken);
+            return Json(bankAccountIds);
+        }
+
+        [HttpGet]
         public IActionResult Create()
         {
             return View();

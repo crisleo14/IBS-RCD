@@ -99,6 +99,15 @@ namespace Accounting_System.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAllCreditMemoIds(CancellationToken cancellationToken)
+        {
+            var creditMemoIds = await _dbContext.CreditMemos
+                                     .Select(cm => cm.Id) // Assuming Id is the primary key
+                                     .ToListAsync(cancellationToken);
+            return Json(creditMemoIds);
+        }
+
         public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
             var viewModel = new CreditMemo();

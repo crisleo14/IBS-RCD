@@ -58,7 +58,7 @@
                     <th>
                         Status
                     </th>
-                    <th>
+                    <th data-orderable="false">
                         <input type="checkbox" class="text-center" id="selectAll" onclick="toggleSelectAll(this)">
                     </th>
                 </tr>
@@ -138,46 +138,71 @@
         </table>
     </div>
 </div>
-
 @section Scripts {
     <script>
+        let selectedRecords = new Set(); // To track selected record IDs
+        let allRecordsSelected = false;  // Flag to check if "Select All" is toggled across all pages
         function toggleSelectAll(selectAllCheckbox) {
             const checkboxes = document.querySelectorAll('.selectCheckbox');
-            checkboxes.forEach(checkbox => checkbox.checked = selectAllCheckbox.checked);
+            if (selectAllCheckbox.checked) {
+                // Select all visible checkboxes and mark all records as selected
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = true;
+                    selectedRecords.add(checkbox.value);
+                });
+                allRecordsSelected = true;
+            } else {
+                // Unselect all visible checkboxes and mark all records as unselected
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                    selectedRecords.clear();  // Clear the set
+                });
+                allRecordsSelected = false;
+            }
         }
-
+        // Update selectedRecords when individual checkboxes are toggled
+        document.addEventListener('change', function (e) {
+            if (e.target && e.target.classList.contains('selectCheckbox')) {
+                if (e.target.checked) {
+                    selectedRecords.add(e.target.value);
+                } else {
+                    selectedRecords.delete(e.target.value);
+                }
+            }
+        });
         function exportToCsv() {
-            const selectedIds = Array.from(document.querySelectorAll('.selectCheckbox:checked'))
-                .map(checkbox => checkbox.value)
-                .join(',');
-
-            if (selectedIds) {
-                fetch('/Receipt/Export', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded' // Corrected Content-Type
-                    },
-                    body: new URLSearchParams({ selectedRecord: selectedIds })
-                })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Failed to download file');
-                        }
-                        return response.blob();
-                    })
-                    .then(blob => {
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'CollectionReceiptList.xlsx';
-                        document.body.appendChild(a);
-                        a.click();
-                        a.remove();
+            let selectedIds = '';
+            if (allRecordsSelected) {
+                // Optionally make an AJAX call to get all IDs if "Select All" was selected
+                // Example of a call:
+                fetch('@Url.Action("GetAllCollectionReceiptIds", "Receipt")')
+                    .then(response => response.json())
+                    .then(data => {
+                        selectedIds = data.join(',');
+                        submitForm(selectedIds);
                     })
                     .catch(error => console.error('Error:', error));
             } else {
-                alert('No CollectionReceipt selected.');
+                // Only get IDs from selected checkboxes in current set
+                selectedIds = Array.from(selectedRecords).join(',');
+                if (selectedIds) {
+                    submitForm(selectedIds);
+                } else {
+                    alert('No CollectionReceipt selected.');
+                }
             }
+        }
+        function submitForm(selectedIds) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '@Url.Action("Export", "Receipt")';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'selectedRecord';
+            input.value = selectedIds;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
         }
     </script>
 }

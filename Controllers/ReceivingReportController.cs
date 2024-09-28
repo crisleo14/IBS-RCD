@@ -101,6 +101,15 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetAllReceivingReportIds(CancellationToken cancellationToken)
+        {
+            var receivingReportIds = await _dbContext.ReceivingReports
+                                     .Select(rr => rr.Id) // Assuming Id is the primary key
+                                     .ToListAsync(cancellationToken);
+            return Json(receivingReportIds);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
             var viewModel = new ReceivingReport();

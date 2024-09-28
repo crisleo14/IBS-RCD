@@ -39,7 +39,7 @@ namespace Accounting_System.Controllers
 
             if (view == nameof(DynamicView.DebitMemo))
             {
-                return View("ImportExportIndex", _debitMemoRepo.GetDebitMemosAsync(cancellationToken));
+                return View("ImportExportIndex", await _debitMemoRepo.GetDebitMemosAsync(cancellationToken));
             }
 
             return View();
@@ -96,6 +96,15 @@ namespace Accounting_System.Controllers
                 TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllDebitMemoIds(CancellationToken cancellationToken)
+        {
+            var debitMemoIds = await _dbContext.DebitMemos
+                                     .Select(dm => dm.Id) // Assuming Id is the primary key
+                                     .ToListAsync(cancellationToken);
+            return Json(debitMemoIds);
         }
 
         [HttpGet]

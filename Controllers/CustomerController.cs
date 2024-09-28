@@ -39,6 +39,15 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetAllCustomerIds(CancellationToken cancellationToken)
+        {
+            var customerIds = await _dbContext.Customers
+                                     .Select(c => c.Id) // Assuming Id is the primary key
+                                     .ToListAsync(cancellationToken);
+            return Json(customerIds);
+        }
+
+        [HttpGet]
         public IActionResult Create()
         {
             return View(new Customer());
