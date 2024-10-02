@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Accounting_System.Models.AccountsPayable;
 
 namespace Accounting_System.Models
 {
@@ -25,5 +26,10 @@ namespace Accounting_System.Models
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]
         public decimal Credit { get; set; }
+
+        public int CVHeaderId { get; set; }
+
+        [ForeignKey("CVHeaderId")]
+        public CheckVoucherHeader Header { get; set; }
     }
 }

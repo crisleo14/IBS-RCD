@@ -118,5 +118,7 @@ namespace Accounting_System.Models.AccountsPayable
         //Ibs records
         public int? OriginalSupplierId { get; set; }
         public int? OriginalBankId { get; set; }
+
+        public ICollection<CheckVoucherDetail> Details { get; set; }
     }
 }

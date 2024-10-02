@@ -38,55 +38,17 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
         {
-            var headers = await _dbContext.CheckVoucherHeaders
+            var model = await _dbContext.CheckVoucherHeaders
                 .Include(s => s.Supplier)
+                .Include(cvd => cvd.Details)
                 .ToListAsync(cancellationToken);
-
-            var details = await _dbContext.CheckVoucherDetails
-                .ToListAsync(cancellationToken);
-
-            // Create a list to store CheckVoucherVM objects
-            var checkVoucherVMs = new List<CheckVoucherVM>();
-
-            // Retrieve details for each header
-            foreach (var header in headers)
-            {
-                var headerDetails = details.Where(d => d.TransactionNo == header.CVNo).ToList();
-
-                if (header.Category == "Trade" && header.RRNo != null)
-                {
-                    var siArray = new string[header.RRNo.Length];
-                    for (int i = 0; i < header.RRNo.Length; i++)
-                    {
-                        var rrValue = header.RRNo[i];
-
-                        var rr = await _dbContext.ReceivingReports
-                                    .FirstOrDefaultAsync(p => p.RRNo == rrValue);
-                        if (rr != null)
-                        {
-                            siArray[i] = rr.SupplierInvoiceNumber;
-                        }
-                    }
-
-                    ViewBag.SINoArray = siArray;
-                }
-                // Create a new CheckVoucherVM object for each header and its associated details
-                var checkVoucherVM = new CheckVoucherVM
-                {
-                    Header = header,
-                    Details = headerDetails
-                };
-
-                // Add the CheckVoucherVM object to the list
-                checkVoucherVMs.Add(checkVoucherVM);
-            }
 
             if (view == nameof(DynamicView.CheckVoucher))
             {
-                return View("ImportExportIndex", checkVoucherVMs);
+                return View("ImportExportIndex", model);
             }
 
-            return View(checkVoucherVMs);
+            return View(model);
         }
 
         [HttpGet]
@@ -487,6 +449,62 @@ namespace Accounting_System.Controllers
                     }
                     #endregion --Check if duplicate CheckNo
 
+                    #region -- Partial payment of RR's
+
+                    if (viewModel.Amount != null)
+                    {
+                        var receivingReport = new ReceivingReport();
+                        for (int i = 0; i < viewModel.RRSeries.Length; i++)
+                        {
+                            var rrValue = viewModel.RRSeries[i];
+                            receivingReport = await _dbContext.ReceivingReports
+                                        .FirstOrDefaultAsync(p => p.RRNo == rrValue, cancellationToken);
+
+                            if (i < existingHeaderModel.Amount.Length)
+                            {
+                                var amount = Math.Round(viewModel.Amount[i] - existingHeaderModel.Amount[i], 2);
+                                receivingReport.AmountPaid += amount;
+                            }
+                            else
+                            {
+                                receivingReport.AmountPaid += viewModel.Amount[i];
+                            }
+
+                            if (receivingReport.Amount <= receivingReport.AmountPaid)
+                            {
+                                receivingReport.IsPaid = true;
+                                receivingReport.PaidDate = DateTime.Now;
+                            }
+                            else
+                            {
+                                receivingReport.IsPaid = false;
+                                receivingReport.PaidDate = DateTime.MaxValue;
+                            }
+                        }
+                    }
+
+                    #endregion -- Partial payment of RR's
+
+                    #region --Saving the default entries
+                    var cashInBank = viewModel.Credit[2];
+
+                    existingHeaderModel.CVNo = viewModel.CVNo;
+                    existingHeaderModel.Date = viewModel.TransactionDate;
+                    existingHeaderModel.RRNo = viewModel.RRSeries;
+                    existingHeaderModel.PONo = viewModel.POSeries;
+                    existingHeaderModel.SupplierId = viewModel.SupplierId;
+                    existingHeaderModel.Particulars = viewModel.Particulars;
+                    existingHeaderModel.BankId = viewModel.BankId;
+                    existingHeaderModel.CheckNo = viewModel.CheckNo;
+                    existingHeaderModel.Category = "Trade";
+                    existingHeaderModel.Payee = viewModel.Payee;
+                    existingHeaderModel.CheckDate = viewModel.CheckDate;
+                    existingHeaderModel.Total = cashInBank;
+                    existingHeaderModel.Amount = viewModel.Amount;
+                    existingHeaderModel.CreatedBy = viewModel.CreatedBy;
+
+                    #endregion --Saving the default entries
+
                     #region --CV Details Entry
 
                     var existingDetailsModel = await _dbContext.CheckVoucherDetails.Where(d => d.TransactionNo == existingHeaderModel.CVNo).ToListAsync(cancellationToken);
@@ -502,12 +520,10 @@ namespace Accounting_System.Controllers
                         accountTitleDict[details.AccountNo].Add(details.Id);
                     }
 
-                    var cashInBank = 0m;
+                    
                     // Add or update records
                     for (int i = 0; i < viewModel.AccountTitle.Length; i++)
                     {
-                        cashInBank = viewModel.Credit[2];
-
                         if (accountTitleDict.TryGetValue(viewModel.AccountNumber[i], out var ids))
                         {
                             // Update the first matching record and remove it from the list
@@ -552,61 +568,6 @@ namespace Accounting_System.Controllers
                     }
 
                     #endregion --CV Details Entry
-
-                    #region -- Partial payment of RR's
-
-                    if (viewModel.Amount != null)
-                    {
-                        var receivingReport = new ReceivingReport();
-                        for (int i = 0; i < viewModel.RRSeries.Length; i++)
-                        {
-                            var rrValue = viewModel.RRSeries[i];
-                            receivingReport = await _dbContext.ReceivingReports
-                                        .FirstOrDefaultAsync(p => p.RRNo == rrValue, cancellationToken);
-
-                            if (i < existingHeaderModel.Amount.Length)
-                            {
-                                var amount = Math.Round(viewModel.Amount[i] - existingHeaderModel.Amount[i], 2);
-                                receivingReport.AmountPaid += amount;
-                            }
-                            else
-                            {
-                                receivingReport.AmountPaid += viewModel.Amount[i];
-                            }
-
-                            if (receivingReport.Amount <= receivingReport.AmountPaid)
-                            {
-                                receivingReport.IsPaid = true;
-                                receivingReport.PaidDate = DateTime.Now;
-                            }
-                            else
-                            {
-                                receivingReport.IsPaid = false;
-                                receivingReport.PaidDate = DateTime.MaxValue;
-                            }
-                        }
-                    }
-
-                    #endregion -- Partial payment of RR's
-
-                    #region --Saving the default entries
-
-                    existingHeaderModel.CVNo = viewModel.CVNo;
-                    existingHeaderModel.Date = viewModel.TransactionDate;
-                    existingHeaderModel.RRNo = viewModel.RRSeries;
-                    existingHeaderModel.PONo = viewModel.POSeries;
-                    existingHeaderModel.SupplierId = viewModel.SupplierId;
-                    existingHeaderModel.Particulars = viewModel.Particulars;
-                    existingHeaderModel.BankId = viewModel.BankId;
-                    existingHeaderModel.CheckNo = viewModel.CheckNo;
-                    existingHeaderModel.Category = "Trade";
-                    existingHeaderModel.Payee = viewModel.Payee;
-                    existingHeaderModel.CheckDate = viewModel.CheckDate;
-                    existingHeaderModel.Total = cashInBank;
-                    existingHeaderModel.Amount = viewModel.Amount;
-                    existingHeaderModel.CreatedBy = viewModel.CreatedBy;
-
-                    #endregion --Saving the default entries
 
                     #region -- Uploading file --
 
@@ -844,31 +805,10 @@ namespace Accounting_System.Controllers
 
                     #endregion --Retrieve Supplier
 
-                    #region --CV Details Entry
-                    var generateCVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken);
-                    var cvDetails = new List<CheckVoucherDetail>();
-                    var cashInBank = 0m;
-                    for (int i = 0; i < viewModel.AccountNumber.Length; i++)
-                    {
-                        if (viewModel.Debit[i] != 0 || viewModel.Credit[i] != 0)
-                        {
-                            cashInBank = viewModel.Credit[2];
-                            cvDetails.Add(
-                            new CheckVoucherDetail
-                            {
-                                AccountNo = viewModel.AccountNumber[i],
-                                AccountName = viewModel.AccountTitle[i],
-                                Debit = viewModel.Debit[i],
-                                Credit = viewModel.Credit[i],
-                                TransactionNo = generateCVNo
-                            });
-                        }
-                    }
-
-                    await _dbContext.CheckVoucherDetails.AddRangeAsync(cvDetails, cancellationToken);
-                    #endregion --CV Details Entry
-
                     #region --Saving the default entries
+
+                    var generateCVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken);
+                    var cashInBank = viewModel.Credit[2];
                     var cvh = new List<CheckVoucherHeader>();
                     cvh.Add(
                             new CheckVoucherHeader
@@ -892,8 +832,32 @@ namespace Accounting_System.Controllers
                     );
 
                     await _dbContext.CheckVoucherHeaders.AddRangeAsync(cvh, cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
 
                     #endregion --Saving the default entries
+
+                    #region --CV Details Entry
+
+                    var cvDetails = new List<CheckVoucherDetail>();
+                    for (int i = 0; i < viewModel.AccountNumber.Length; i++)
+                    {
+                        if (viewModel.Debit[i] != 0 || viewModel.Credit[i] != 0)
+                        {
+                            cvDetails.Add(
+                            new CheckVoucherDetail
+                            {
+                                AccountNo = viewModel.AccountNumber[i],
+                                AccountName = viewModel.AccountTitle[i],
+                                Debit = viewModel.Debit[i],
+                                Credit = viewModel.Credit[i],
+                                TransactionNo = generateCVNo,
+                                CVHeaderId = cvh.Select(cvh => cvh.Id).FirstOrDefault()
+                            });
+                        }
+                    }
+
+                    await _dbContext.CheckVoucherDetails.AddRangeAsync(cvDetails, cancellationToken);
+                    #endregion --CV Details Entry
 
                     #region -- Partial payment of RR's
                     if (viewModel.Amount != null)
@@ -1129,7 +1093,6 @@ namespace Accounting_System.Controllers
                         Category = "Non-Trade",
                         CvType = "Invoicing"
                     };
-
                     #endregion -- Saving the default entries -- 
 
                     #region -- Get Supplier --
@@ -1169,7 +1132,8 @@ namespace Accounting_System.Controllers
                         }
                     }
 
-                    await _dbContext.AddAsync(checkVoucherHeader, cancellationToken);
+                    await _dbContext.CheckVoucherHeaders.AddAsync(checkVoucherHeader, cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
 
                     #endregion -- Automatic entry --
 
@@ -1187,7 +1151,8 @@ namespace Accounting_System.Controllers
                                 AccountName = viewModel.AccountTitle[i],
                                 TransactionNo = checkVoucherHeader.CVNo,
                                 Debit = viewModel.Debit[i],
-                                Credit = viewModel.Credit[i]
+                                Credit = viewModel.Credit[i],
+                                CVHeaderId = checkVoucherHeader.Id
                             });
                         }
                     }
@@ -1367,7 +1332,8 @@ namespace Accounting_System.Controllers
                         CheckAmount = viewModel.Total
                     };
 
-                    await _dbContext.AddAsync(checkVoucherHeader, cancellationToken);
+                    await _dbContext.CheckVoucherHeaders.AddAsync(checkVoucherHeader, cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
 
                     List<CheckVoucherDetail> checkVoucherDetails = new();
 
@@ -1381,7 +1347,8 @@ namespace Accounting_System.Controllers
                                 AccountName = viewModel.AccountTitle[i],
                                 TransactionNo = checkVoucherHeader.CVNo,
                                 Debit = viewModel.Debit[i],
-                                Credit = viewModel.Credit[i]
+                                Credit = viewModel.Credit[i],
+                                CVHeaderId = checkVoucherHeader.Id
                             });
                         }
                     }
@@ -1854,74 +1821,9 @@ namespace Accounting_System.Controllers
                     }
                     #endregion --Check if duplicate CheckNo
 
-                    #region --CV Details Entry
-
-                    var existingDetailsModel = await _dbContext.CheckVoucherDetails.Where(d => d.TransactionNo == existingHeaderModel.CVNo).ToListAsync(cancellationToken);
-
-                    // Dictionary to keep track of AccountNo and their ids for comparison
-                    var accountTitleDict = new Dictionary<string, List<int>>();
-                    foreach (var details in existingDetailsModel)
-                    {
-                        if (!accountTitleDict.ContainsKey(details.AccountNo))
-                        {
-                            accountTitleDict[details.AccountNo] = new List<int>();
-                        }
-                        accountTitleDict[details.AccountNo].Add(details.Id);
-                    }
-
-                    var cashInBank = 0m;
-                    // Add or update records
-                    for (int i = 0; i < viewModel.AccountTitle.Length; i++)
-                    {
-                        cashInBank = viewModel.Credit[1];
-
-                        if (accountTitleDict.TryGetValue(viewModel.AccountNumber[i], out var ids))
-                        {
-                            // Update the first matching record and remove it from the list
-                            var detailsId = ids.First();
-                            ids.RemoveAt(0);
-                            var details = existingDetailsModel.First(o => o.Id == detailsId);
-
-                            details.AccountNo = viewModel.AccountNumber[i];
-                            details.AccountName = viewModel.AccountTitle[i];
-                            details.Debit = viewModel.Debit[i];
-                            details.Credit = viewModel.Credit[i];
-                            details.TransactionNo = existingHeaderModel.CVNo;
-
-                            if (ids.Count == 0)
-                            {
-                                accountTitleDict.Remove(viewModel.AccountNumber[i]);
-                            }
-                        }
-                        else
-                        {
-                            // Add new record
-                            var newDetails = new CheckVoucherDetail
-                            {
-                                AccountNo = viewModel.AccountNumber[i],
-                                AccountName = viewModel.AccountTitle[i],
-                                Debit = viewModel.Debit[i],
-                                Credit = viewModel.Credit[i],
-                                TransactionNo = existingHeaderModel.CVNo
-                            };
-                            await _dbContext.CheckVoucherDetails.AddAsync(newDetails, cancellationToken);
-                        }
-                    }
-
-                    // Remove remaining records that were duplicates
-                    foreach (var ids in accountTitleDict.Values)
-                    {
-                        foreach (var id in ids)
-                        {
-                            var details = existingDetailsModel.First(o => o.Id == id);
-                            _dbContext.CheckVoucherDetails.Remove(details);
-                        }
-                    }
-
-                    #endregion --CV Details Entry
-
                     #region --Saving the default entries
 
+                    var cashInBank = viewModel.Credit[1];
                     existingHeaderModel.Reference = invoicing.CVNo;
                     existingHeaderModel.Id = existingHeaderModel.Id;
                     existingHeaderModel.CVNo = existingHeaderModel.CVNo;
@@ -1939,6 +1841,71 @@ namespace Accounting_System.Controllers
                     existingHeaderModel.CreatedBy = _userManager.GetUserName(this.User);
 
                     #endregion --Saving the default entries
+
+                    #region --CV Details Entry
+
+                    var existingDetailsModel = await _dbContext.CheckVoucherDetails.Where(d => d.TransactionNo == existingHeaderModel.CVNo).ToListAsync(cancellationToken);
+
+                    // Dictionary to keep track of AccountNo and their ids for comparison
+                    var accountTitleDict = new Dictionary<string, List<int>>();
+                    foreach (var details in existingDetailsModel)
+                    {
+                        if (!accountTitleDict.ContainsKey(details.AccountNo))
+                        {
+                            accountTitleDict[details.AccountNo] = new List<int>();
+                        }
+                        accountTitleDict[details.AccountNo].Add(details.Id);
+                    }
+
+                    // Add or update records
+                    for (int i = 0; i < viewModel.AccountTitle.Length; i++)
+                    {
+                        if (accountTitleDict.TryGetValue(viewModel.AccountNumber[i], out var ids))
+                        {
+                            // Update the first matching record and remove it from the list
+                            var detailsId = ids.First();
+                            ids.RemoveAt(0);
+                            var details = existingDetailsModel.First(o => o.Id == detailsId);
+
+                            details.AccountNo = viewModel.AccountNumber[i];
+                            details.AccountName = viewModel.AccountTitle[i];
+                            details.Debit = viewModel.Debit[i];
+                            details.Credit = viewModel.Credit[i];
+                            details.TransactionNo = existingHeaderModel.CVNo;
+                            details.CVHeaderId = existingHeaderModel.Id;
+
+                            if (ids.Count == 0)
+                            {
+                                accountTitleDict.Remove(viewModel.AccountNumber[i]);
+                            }
+                        }
+                        else
+                        {
+                            // Add new record
+                            var newDetails = new CheckVoucherDetail
+                            {
+                                AccountNo = viewModel.AccountNumber[i],
+                                AccountName = viewModel.AccountTitle[i],
+                                Debit = viewModel.Debit[i],
+                                Credit = viewModel.Credit[i],
+                                TransactionNo = existingHeaderModel.CVNo,
+                                CVHeaderId = existingHeaderModel.Id
+                            };
+                            await _dbContext.CheckVoucherDetails.AddAsync(newDetails, cancellationToken);
+                        }
+                    }
+
+                    // Remove remaining records that were duplicates
+                    foreach (var ids in accountTitleDict.Values)
+                    {
+                        foreach (var id in ids)
+                        {
+                            var details = existingDetailsModel.First(o => o.Id == id);
+                            _dbContext.CheckVoucherDetails.Remove(details);
+                        }
+                    }
+
+                    #endregion --CV Details Entry
 
                     #region -- Partial payment of RR's
                     //if (viewModel.Amount != null)

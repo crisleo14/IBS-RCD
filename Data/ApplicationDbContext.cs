@@ -56,6 +56,28 @@ namespace Accounting_System.Data
         {
             base.OnModelCreating(builder);
 
+            #region -- Implement ICollection
+
+            #region --CheckVoucher
+
+            builder.Entity<CheckVoucherDetail>(cvd =>
+            {
+                cvd.HasOne(cvh => cvh.Header)
+                .WithMany(cvd => cvd.Details)
+                .HasForeignKey(cv => cv.CVHeaderId)
+                .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            #endregion --CheckVoucher
+
+            #region --JournalVoucher
+
+
+
+            #endregion --JournalVoucher
+
+            #endregion --Filpride
+
             #region--Filpride
 
             #region -- Accounts Receivable --
