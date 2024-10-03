@@ -4,7 +4,6 @@
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
-
 @{
     ViewData["Title"] = "Journal Voucher";
     var totalDebit = 0m;
@@ -21,14 +20,11 @@
         Kalaklan, Olongapo City, 2200 Zambales, Philippines<br />
         VAT Reg. TIN: 000-216-589-00000
     </p>
-
     <h3><span style="display: inline-block;"><b>JOURNAL VOUCHER</b></span></h3>
     <div class="text-end" style="margin-top:-60px;">
         <h6><b>No.&nbsp;@Html.DisplayFor(model => model.Header.JVNo)</b></h6>
     </div>
-
 </div>
-
 <div class="table-responsive" style="margin-top:50px;">
     <table class="w-100">
         <tbody>
@@ -109,7 +105,6 @@
                 <td>JV Reason :</td>
                 <td><p style="margin: 0; padding: 0; text-align: justify">@Html.DisplayFor(model => model.Header.JVReason)</p></td>
             </tr>
-
             <tr>
                 <td>PARTICULARS:</td>
                 <td><pre class="pre">@Html.DisplayFor(model => model.Header.Particulars)</pre></td>
@@ -119,7 +114,6 @@
         </tbody>
     </table>
 </div>
-
 <div class="table-responsive" style="margin-top:20px;">
     <table class="w-100">
         <thead>
@@ -152,7 +146,6 @@
         </tbody>
     </table>
 </div>
-
 <div class="table-responsive" style="margin-top:20px;">
     <table class="w-100">
         <tbody class="text-center">
@@ -182,7 +175,6 @@
     </table>
 </div>
 <br />
-
 <div class="text-center w-100" style="margin-top:20px;">
     <p >
         <em><strong>"THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX"</strong></em><br /><br />
@@ -208,7 +200,6 @@
         </em>
     </p>
 </div>
-
 @if (!Model.Header.IsPrinted)
 {
     <div class="text-end">
@@ -221,13 +212,37 @@ else
         REPRINT COPY
     </div>
 }
-
 <div>
-    <a asp-action="Printed" class="btn btn-success" asp-route-id="@Model.Header.Id" onclick="printPage()" id="printButton">Print</a>
-    <a asp-action="Index" class="btn" id="otherButton">Back</a>
+    @if (Model.Header.PostedBy == null)
+    {
+        <a id="approveButton" class="btn btn-success" onclick="confirmPost(@Model.Header.Id)" style="margin-top: 25px;">Post</a>
+    }
+    else
+    {
+        <a asp-action="Printed" class="btn btn-success" asp-route-id="@Model.Header.Id" onclick="printPage()" style="margin-top: 25px;" id="printButton">Print</a>
+    }
+    <a asp-action="Index" class="btn" style="margin-top: 25px;" id="otherButton">Back</a>
 </div>
-
 @section Scripts {
+    <script>
+        function confirmPost(id) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Post'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Replace with the actual URL that you want to redirect to
+                    var url = `/JournalVoucher/Post?id=${id}`;
+                    window.location.href = url;
+                }
+            })
+        }
+    </script>
     <script>
         var originalFontSizes = [];
         function printPage() {

@@ -7,7 +7,6 @@
     ViewData["Title"] = "Journal Voucher";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
 <div class="card shadow border-0 mt-4">
     <div class="card-header bg-secondary bg-gradient ml-0 py-3">
         <div class="row">
@@ -26,116 +25,96 @@
                 </a>
             </div>
         </div>
-        <table class="table table-bordered table-hover" id="dataTable">
+        <table class="table table-bordered table-hover" id="journalVoucherTable">
             <thead class="table-secondary">
                 <tr>
-                    <th>
-                        @Html.DisplayNameFor(model => model.JVNo)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.Date)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.CheckVoucherHeader.CVNo)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.CRNo)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.JVReason)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.CreatedBy)
-                    </th>
-                    <th>
-                        Status
-                    </th>
-                    <th style="width:25%"></th>
+                    <th>@Html.DisplayNameFor(model => model.JVNo)</th>
+                    <th>@Html.DisplayNameFor(model => model.Date)</th>
+                    <th>@Html.DisplayNameFor(model => model.CheckVoucherHeader.CVNo)</th>
+                    <th>@Html.DisplayNameFor(model => model.CRNo)</th>
+                    <th>@Html.DisplayNameFor(model => model.JVReason)</th>
+                    <th>@Html.DisplayNameFor(model => model.CreatedBy)</th>
+                    <th>Status</th>
+                    <th></th>
                 </tr>
             </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.JVNo)
-                        </td>
-                        <td>
-                            @item.Date.ToString("MM/dd/yyyy")
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.CheckVoucherHeader.CVNo)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.CRNo)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.JVReason)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.CreatedBy)
-                        </td>
-                        <td>
-                            @{
-                            var status = item.PostedBy != null && item.VoidedBy == null && item.CanceledBy == null
-                                    ? "Posted"
-                                    : item.VoidedBy != null
-                                        ? "Voided"
-                                        : item.CanceledBy != null
-                                            ? "Cancelled"
-                                            : "Pending";
-                            }
-                            <span class="badge rounded-pill @if(status == "Posted") {<text>bg-info</text>} else if(status == "Voided") {<text>bg-danger</text>} else if(status == "Cancelled") {<text>bg-warning</text>}">@status</span>
-                        </td>
-                        <td>
-                            @if (!item.IsPosted && !item.IsVoided && !item.IsCanceled)
-                            {
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-light">Edit</a>
-                                <a class="btn btn-light" onclick="confirmPost(@item.Id)">Post</a>
-                                <a class="btn btn-light" onclick="confirmCancel(@item.Id)">Cancel</a>
-                            }
-                            @if (item.IsPosted && !item.IsVoided && !item.IsCanceled)
-                            {
-                                <a asp-action="Print" asp-route-id="@item.Id" class="btn btn-light">Print</a>
-                                <a class="btn btn-light" onclick="confirmVoid(@item.Id)">Void</a>
-                            }
-
-                            @if (item.IsVoided)
-                            {
-                                <span class="badge rounded-pill bg-danger ">VOIDED</span>
-                            }
-                            else if (item.IsCanceled)
-                            {
-                                <span class="badge rounded-pill bg-warning ">CANCELLED</span>
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
         </table>
     </div>
 </div>
-
-
 @section Scripts {
     <script>
-        function confirmPost(id) {
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Post'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Replace with the actual URL that you want to redirect to
-                    var url = `/JournalVoucher/Post?id=${id}`;
-                    window.location.href = url;
-                }
-            })
-        }
+        $(document).ready(function () {
+            $('#journalVoucherTable').DataTable({
+                processing: true,
+                serverSide: true,
+                stateSave: true,
+                ajax: {
+                    url: '@Url.Action("GetJournalVouchers", "JournalVoucher")',
+                    type: 'POST',
+                    data: function (d) {
+                        return $.extend({}, d, {
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        });
+                    },
+                    error: function (xhr, error, thrown) {
+                        console.log(xhr.responseText);
+                    }
+                },
+                columns: [
+                    { data: 'jvNo' },
+                    {
+                        "data": "date",
+                        "name": "date",
+                        "render": function (data, type, row) {
+                            // Assuming 'Date' is in ISO format like "2024-07-12T00:00:00"
+                            var date = new Date(data);
+                            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
+                        }
+                    },
+                    { data: 'checkVoucherHeader.cvNo' },
+                    { data: 'crNo' },
+                    { data: 'jvReason' },
+                    { data: 'createdBy' },
+                    {
+                        "data": null,
+                        "render": function (data, type, row) {
+                            var status = row.isPosted && !row.isVoided && !row.isCanceled
+                                ? "Posted"
+                                : row.isVoided
+                                    ? "Voided"
+                                    : row.isCanceled
+                                        ? "Cancelled"
+                                        : "Pending";
+                            var statusClass = status == "Posted" ? "bg-info" :
+                                status == "Voided" ? "bg-danger" :
+                                    status == "Cancelled" ? "bg-warning" : "";
+                            return `<span class="badge rounded-pill ${statusClass}">${status}</span>`;
+                        }
+                    }
+,
+                    {
+                        "data": null,
+                        "render": function (data, type, row) {
+                            let dropdown = `<div class="dropdown" style="${row.isVoided || row.isCanceled ? 'display:none;' : ''}">`;
+                            dropdown += `<button class="btn btn-light dropdown-toggle" type="button" id="actionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">Actions</button>`;
+                            dropdown += `<ul class="dropdown-menu" aria-labelledby="actionsDropdown">`;
+                            if (!row.isPosted && !row.isVoided && !row.isCanceled) {
+                                dropdown += `<li><a href="/JournalVoucher/Edit?id=${row.id}" class="dropdown-item">Edit</a></li>`;
+                                dropdown += `<li><a href="/JournalVoucher/Print?id=${row.id}" class="dropdown-item">Preview</a></li>`;
+                                dropdown += `<li><a class="dropdown-item" onclick="confirmCancel(${row.id})">Cancel</a></li>`;
+                            }
+                            if (row.isPosted && !row.isVoided && !row.isCanceled) {
+                                dropdown += `<li><a href="/JournalVoucher/Print?id=${row.id}" class="dropdown-item">Print</a></li>`;
+                                dropdown += `<li><a class="dropdown-item" onclick="confirmVoid(${row.id})">Void</a></li>`;
+                            }
+                            dropdown += `</ul></div>`;
+                            return dropdown;
+                        }
+                    }
+                ],
+                order: [[0, 'desc']] // Sort by TransactionDate by default
+            });
+        });
     </script>
     <script>
         function confirmVoid(Id) {

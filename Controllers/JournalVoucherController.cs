@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
+using System.Linq.Dynamic.Core;
 
 namespace Accounting_System.Controllers
 {
@@ -38,18 +39,67 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.JournalVoucherHeaders
-                .Include(j => j.CheckVoucherHeader)
-                .ThenInclude(cv => cv.Supplier)
-                .Include(jvd => jvd.Details)
-                .ToListAsync(cancellationToken);
-
             if (view == nameof(DynamicView.JournalVoucher))
             {
-                return View("ImportExportIndex", model);
+                var journalVouchers = await _journalVoucherRepo.GetJournalVouchersAsync(cancellationToken);
+
+                return View("ImportExportIndex", journalVouchers);
             }
 
-            return View(model);
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetJournalVouchers([FromForm] DataTablesParameters parameters, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var journalVouchers = await _journalVoucherRepo.GetJournalVouchersAsync(cancellationToken);
+                // Search filter
+                if (!string.IsNullOrEmpty(parameters.Search?.Value))
+                {
+                    var searchValue = parameters.Search.Value.ToLower();
+                    journalVouchers = journalVouchers
+                        .Where(jv =>
+                            jv.JVNo.ToLower().Contains(searchValue) ||
+                            jv.Date.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
+                            jv.CheckVoucherHeader.CVNo.ToLower().Contains(searchValue) ||
+                            jv.CRNo.ToLower().Contains(searchValue) ||
+                            jv.JVReason.ToLower().Contains(searchValue) ||
+                            jv.CheckVoucherHeader.CVNo.ToLower().Contains(searchValue) ||
+                            jv.CreatedBy.ToLower().Contains(searchValue)
+                            )
+                        .ToList();
+                }
+                // Sorting
+                if (parameters.Order != null && parameters.Order.Count > 0)
+                {
+                    var orderColumn = parameters.Order[0];
+                    var columnName = parameters.Columns[orderColumn.Column].Data;
+                    var sortDirection = orderColumn.Dir.ToLower() == "asc" ? "ascending" : "descending";
+                    journalVouchers = journalVouchers
+                        .AsQueryable()
+                        .OrderBy($"{columnName} {sortDirection}")
+                        .ToList();
+                }
+                var totalRecords = journalVouchers.Count();
+                var pagedData = journalVouchers
+                    .Skip(parameters.Start)
+                    .Take(parameters.Length)
+                    .ToList();
+                return Json(new
+                {
+                    draw = parameters.Draw,
+                    recordsTotal = totalRecords,
+                    recordsFiltered = totalRecords,
+                    data = pagedData
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpGet]
@@ -386,12 +436,12 @@ namespace Accounting_System.Controllers
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         TempData["success"] = "Journal Voucher has been Posted.";
                     }
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Print), new { id = id });
                 }
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Print), new { id = id });
                 }
             }
 

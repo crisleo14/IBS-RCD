@@ -13,11 +13,11 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public async Task<List<JournalVoucherHeader>> GetJournalVouchers(CancellationToken cancellationToken = default)
+        public async Task<List<JournalVoucherHeader>> GetJournalVouchersAsync(CancellationToken cancellationToken = default)
         {
-            return await _dbContext
-                .JournalVoucherHeaders
-                .OrderByDescending(cv => cv.Id)
+            return await _dbContext.JournalVoucherHeaders
+                .Include(j => j.CheckVoucherHeader)
+                .ThenInclude(cv => cv.Supplier)
                 .ToListAsync(cancellationToken);
         }
 
