@@ -38,17 +38,13 @@ namespace Accounting_System.Models.ViewModels
         [NotMapped]
         public List<SelectListItem>? COA { get; set; }
 
-        [Required]
-        public string[] AccountNumber { get; set; }
+        public string[]? AccountNumber { get; set; } = null;
 
-        [Required]
-        public string[] AccountTitle { get; set; }
+        public string[]? AccountTitle { get; set; } = null;
 
-        [Required]
-        public decimal[] Debit { get; set; }
+        public decimal[] Debit { get; set; } = new decimal[0];
 
-        [Required]
-        public decimal[] Credit { get; set; }
+        public decimal[] Credit { get; set; } = new decimal[0];
 
         //Ibs records
         public int? OriginalCVId { get; set; }

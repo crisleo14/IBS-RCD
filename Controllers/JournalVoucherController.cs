@@ -38,40 +38,18 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
         {
-            var headers = await _dbContext.JournalVoucherHeaders
+            var model = await _dbContext.JournalVoucherHeaders
                 .Include(j => j.CheckVoucherHeader)
                 .ThenInclude(cv => cv.Supplier)
+                .Include(jvd => jvd.Details)
                 .ToListAsync(cancellationToken);
-
-            var details = await _dbContext.JournalVoucherDetails
-                .ToListAsync(cancellationToken);
-
-            // Create a list to store CheckVoucherVM objectssw
-            var journalVoucherVMs = new List<JournalVoucherVM>();
-
-            // Retrieve details for each header
-            foreach (var header in headers)
-            {
-                var headerJVNo = header.JVNo;
-                var headerDetails = details.Where(d => d.TransactionNo == headerJVNo).ToList();
-
-                // Create a new CheckVoucherVM object for each header and its associated details
-                var journalVoucherVM = new JournalVoucherVM
-                {
-                    Header = header,
-                    Details = headerDetails
-                };
-
-                // Add the CheckVoucherVM object to the list
-                journalVoucherVMs.Add(journalVoucherVM);
-            }
 
             if (view == nameof(DynamicView.JournalVoucher))
             {
-                return View("ImportExportIndex", journalVoucherVMs);
+                return View("ImportExportIndex", model);
             }
 
-            return View(journalVoucherVMs);
+            return View(model);
         }
 
         [HttpGet]
@@ -102,6 +80,7 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
             viewModel.Header.CheckVoucherHeaders = await _dbContext.CheckVoucherHeaders
+                .Where(cvh => cvh.IsPosted)
                 .OrderBy(c => c.Id)
                 .Select(cvh => new SelectListItem
                 {
@@ -157,11 +136,24 @@ namespace Accounting_System.Controllers
                     TempData["success"] = "Check Voucher created successfully";
                 }
 
-                #endregion --Validating series
+                #endregion --Validating series         
+
+                #region --Saving the default entries
+
+                var generateJVNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken);
+
+                //JV Header Entry
+                model.Header.SeriesNumber = getLastNumber;
+                model.Header.JVNo = generateJVNo;
+                model.Header.CreatedBy = _userManager.GetUserName(this.User);
+
+                await _dbContext.AddAsync(model.Header, cancellationToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+
+                #endregion --Saving the default entries
 
                 #region --CV Details Entry
 
-                var generateJVNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken);
                 var cvDetails = new List<JournalVoucherDetail>();
 
                 var totalDebit = 0m;
@@ -183,7 +175,8 @@ namespace Accounting_System.Controllers
                             AccountName = accountTitle.Name,
                             TransactionNo = generateJVNo,
                             Debit = currentDebit,
-                            Credit = currentCredit
+                            Credit = currentCredit,
+                            JVHeaderId = model.Header.Id
                         }
                     );
                 }
@@ -193,18 +186,9 @@ namespace Accounting_System.Controllers
                     return View(model);
                 }
 
-                await _dbContext.AddRangeAsync(cvDetails, cancellationToken);
+                await _dbContext.JournalVoucherDetails.AddRangeAsync(cvDetails, cancellationToken);
 
                 #endregion --CV Details Entry
-
-                #region --Saving the default entries
-
-                //JV Header Entry
-                model.Header.SeriesNumber = getLastNumber;
-                model.Header.JVNo = generateJVNo;
-                model.Header.CreatedBy = _userManager.GetUserName(this.User);
-
-                #endregion --Saving the default entries
 
                 //#region --Audit Trail Recording
 
@@ -213,7 +197,6 @@ namespace Accounting_System.Controllers
 
                 //#endregion --Audit Trail Recording
 
-                await _dbContext.AddAsync(model.Header, cancellationToken);  // Add CheckVoucherHeader to the context
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction(nameof(Index));
             }
@@ -226,57 +209,32 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> GetCV(int id, CancellationToken cancellationToken)
         {
-            var header = await _dbContext.CheckVoucherHeaders
+            var model = await _dbContext.CheckVoucherHeaders
                 .Include(s => s.Supplier)
+                .Include(cvd => cvd.Details)
                 .FirstOrDefaultAsync(cvh => cvh.Id == id, cancellationToken);
 
-            if (header == null)
+            if (model != null)
             {
-                return NotFound();
-            }
-
-            var details = await _dbContext.CheckVoucherDetails
-                .Where(cvd => cvd.TransactionNo == header.CVNo)
-                .ToListAsync(cancellationToken);
-
-            var viewModel = new CheckVoucherVM
-            {
-                Header = header,
-                Details = details
-            };
-
-            if (viewModel != null)
-            {
-                var cvNo = viewModel.Header.CVNo;
-                var date = viewModel.Header.Date;
-                var name = viewModel.Header.Supplier.Name;
-                var address = viewModel.Header.Supplier.Address;
-                var tinNo = viewModel.Header.Supplier.TinNo;
-                var poNo = viewModel.Header.PONo;
-                var siNo = viewModel.Header.SINo;
-                var payee = viewModel.Header.Payee;
-                var amount = viewModel.Header.Total;
-                var particulars = viewModel.Header.Particulars;
-                var checkNo = viewModel.Header.CheckNo;
-                var totalDebit = viewModel.Details.Select(cvd => cvd.Debit).Sum();
-                var totalCredit = viewModel.Details.Select(cvd => cvd.Credit).Sum();
-
                 return Json(new
                 {
-                    CVNo = cvNo,
-                    Date = date,
-                    Name = name,
-                    Address = address,
-                    TinNo = tinNo,
-                    PONo = poNo,
-                    SINo = siNo,
-                    Payee = payee,
-                    Amount = amount,
-                    Particulars = particulars,
-                    CheckNo = checkNo,
-                    ViewModel = viewModel,
-                    TotalDebit = totalDebit,
-                    TotalCredit = totalCredit,
+                    CVNo = model.CVNo,
+                    Date = model.Date,
+                    Name = model.Supplier.Name,
+                    Address = model.Supplier.Address,
+                    TinNo = model.Supplier.TinNo,
+                    PONo = model.PONo,
+                    SINo = model.SINo,
+                    Payee = model.Payee,
+                    Amount = model.Total,
+                    Particulars = model.Particulars,
+                    CheckNo = model.CheckNo,
+                    AccountNo = model.Details.Select(jvd => jvd.AccountNo),
+                    AccountName = model.Details.Select(jvd => jvd.AccountName),
+                    Debit = model.Details.Select(jvd => jvd.Debit),
+                    Credit = model.Details.Select(jvd => jvd.Credit),
+                    TotalDebit = model.Details.Select(cvd => cvd.Debit).Sum(),
+                    TotalCredit = model.Details.Select(cvd => cvd.Credit).Sum(),
                 });
             }
 
@@ -592,14 +550,28 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    #region --CV Details Entry
+                    var model = await _dbContext.JournalVoucherHeaders
+                                    .Include(jvd => jvd.Details)
+                                    .FirstOrDefaultAsync(jvh => jvh.Id == viewModel.JVId, cancellationToken);
 
-                    var existingHeaderModel = await _dbContext.JournalVoucherHeaders.FindAsync(viewModel.JVId, cancellationToken);
-                    var existingDetailsModel = await _dbContext.JournalVoucherDetails.Where(d => d.TransactionNo == existingHeaderModel.JVNo).ToListAsync(cancellationToken);
+                    #region --Saving the default entries
+
+                    model.JVNo = viewModel.JVNo;
+                    model.Date = viewModel.TransactionDate;
+                    model.References = viewModel.References;
+                    model.CVId = viewModel.CVId;
+                    model.Particulars = viewModel.Particulars;
+                    model.CRNo = viewModel.CRNo;
+                    model.JVReason = viewModel.JVReason;
+                    model.CreatedBy = _userManager.GetUserName(this.User);
+
+                    #endregion --Saving the default entries
+
+                    #region --CV Details Entry
 
                     // Dictionary to keep track of AccountNo and their ids for comparison
                     var accountTitleDict = new Dictionary<string, List<int>>();
-                    foreach (var details in existingDetailsModel)
+                    foreach (var details in model.Details)
                     {
                         if (!accountTitleDict.ContainsKey(details.AccountNo))
                         {
@@ -609,24 +581,25 @@ namespace Accounting_System.Controllers
                     }
 
                     // Add or update records
-                    for (int i = 0; i < viewModel.AccountTitle.Length; i++)
+                    for (int i = 0; i < viewModel.AccountTitle?.Length; i++)
                     {
 
-                        if (accountTitleDict.TryGetValue(viewModel.AccountNumber[i], out var ids))
+                        if (accountTitleDict.TryGetValue(viewModel.AccountNumber?[i], out var ids))
                         {
                             // Update the first matching record and remove it from the list
                             var detailsId = ids.First();
                             ids.RemoveAt(0);
-                            var details = existingDetailsModel.First(o => o.Id == detailsId);
+                            var details = model.Details.First(o => o.Id == detailsId);
 
                             var acctNo = await _dbContext.ChartOfAccounts
                                 .FirstOrDefaultAsync(x => x.Name == viewModel.AccountTitle[i]);
 
-                            details.AccountNo = acctNo.Number ?? throw new ArgumentNullException("Account title not found!");
+                            details.AccountNo = acctNo?.Number ?? "";
                             details.AccountName = viewModel.AccountTitle[i];
                             details.Debit = viewModel.Debit[i];
                             details.Credit = viewModel.Credit[i];
-                            details.TransactionNo = existingHeaderModel.JVNo;
+                            details.TransactionNo = model.JVNo;
+                            details.JVHeaderId = model.Id;
 
                             if (ids.Count == 0)
                             {
@@ -636,15 +609,16 @@ namespace Accounting_System.Controllers
                         else
                         {
                             // Add new record
-                            var newDetails = new CheckVoucherDetail
+                            var newDetails = new JournalVoucherDetail
                             {
                                 AccountNo = viewModel.AccountNumber[i],
                                 AccountName = viewModel.AccountTitle[i],
                                 Debit = viewModel.Debit[i],
                                 Credit = viewModel.Credit[i],
-                                TransactionNo = existingHeaderModel.JVNo
+                                TransactionNo = model.JVNo,
+                                JVHeaderId = model.Id
                             };
-                            await _dbContext.CheckVoucherDetails.AddAsync(newDetails, cancellationToken);
+                            await _dbContext.JournalVoucherDetails.AddAsync(newDetails, cancellationToken);
                         }
                     }
 
@@ -653,25 +627,12 @@ namespace Accounting_System.Controllers
                     {
                         foreach (var id in ids)
                         {
-                            var details = existingDetailsModel.First(o => o.Id == id);
+                            var details = model.Details.First(o => o.Id == id);
                             _dbContext.JournalVoucherDetails.Remove(details);
                         }
                     }
 
                     #endregion --CV Details Entry
-
-                    #region --Saving the default entries
-
-                    existingHeaderModel.JVNo = viewModel.JVNo;
-                    existingHeaderModel.Date = viewModel.TransactionDate;
-                    existingHeaderModel.References = viewModel.References;
-                    existingHeaderModel.CVId = viewModel.CVId;
-                    existingHeaderModel.Particulars = viewModel.Particulars;
-                    existingHeaderModel.CRNo = viewModel.CRNo;
-                    existingHeaderModel.JVReason = viewModel.JVReason;
-                    existingHeaderModel.CreatedBy = _userManager.GetUserName(this.User);
-
-                    #endregion --Saving the default entries
 
                     //#region --Audit Trail Recording
 

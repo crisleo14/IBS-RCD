@@ -181,7 +181,7 @@
                                 {
                                     <tr>
                                         <input type="hidden" name="AccountNumber" value="@Model.AccountNumber[i]" />
-                                        <td><input type="text" name="AccountTitle" value="@Model.AccountTitle[i]" class="w-100" style="border:none" readonly /></td>
+                                        <td><input type="text" name="AccountTitle" value="@Model.AccountTitle?[i]" class="w-100" style="border:none" readonly /></td>
                                         <td><input type="text" name="Debit" value="@Model.Debit[i]" class="w-100" style="border:none" readonly /></td>
                                         <td><input type="text" name="Credit" value="@Model.Credit[i]" class="w-100" style="border:none" readonly /></td>
                                         <td><button type='button' class='btn btn-danger btn-sm' onclick='removeRow(this)'>Remove</button></td>
@@ -376,17 +376,12 @@
                                 $("#checkNo").text(data.checkNo);
                                 $("#totalDebit").text(data.totalDebit);
                                 $("#totalCredit").text(data.totalCredit);
-
-                                if (data.viewModel !== null && data.viewModel.details !== undefined) {
-                                    for (let i = 0; i < data.viewModel.details.length; i++) {
-                                        var row = $("<tr></tr>");
-                                        row.append("<td style='width:60%; padding-left:20px;'>" + data.viewModel.details[i].accountNo + " " + data.viewModel.details[i].accountName + "</td>");
-                                        row.append("<td class='text-end' style='width:7%;'>" + data.viewModel.details[i].debit + "</td>");
-                                        row.append("<td class='text-end' style='width:7%;'>" + data.viewModel.details[i].credit + "</td>");
-                                        $("#tableBody").append(row);
-                                    }
-                                } else {
-                                    console.error("Invalid data structure or lengths.");
+                                for (let i = 0; i < data.accountNo.length; i++) {
+                                    var row = $("<tr></tr>");
+                                    row.append("<td style='width:60%; padding-left:20px;'>" + data.accountNo[i] + " " + data.accountName[i] + "</td>");
+                                    row.append("<td class='text-end' style='width:7%;'>" + data.debit[i] + "</td>");
+                                    row.append("<td class='text-end' style='width:7%;'>" + data.credit[i] + "</td>");
+                                    $("#tableBody").append(row);
                                 }
                             } else {
                                 clearFields();

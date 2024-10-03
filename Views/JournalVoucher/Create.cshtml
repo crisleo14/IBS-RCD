@@ -19,8 +19,7 @@
             <div class="row">
                 <div class="col-md-4">
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-
+                    <input asp-for="Header.Details" type="hidden" value="Header.Details" />
                     <div class="form-group mb-3">
                         <label asp-for="Header.Date" class="control-label"></label><span class="required">*</span>
                         <input asp-for="Header.Date" type="Date" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
@@ -375,13 +374,13 @@
                                 $("#totalDebit").text("");
                                 $("#totalCredit").text("");
                             }
-                            if (data.viewModel !== null) {
+                            if (data.accountNo !== null) {
 
-                                for (let i = 0; i < data.viewModel.details.length; i++) {
+                                for (let i = 0; i < data.accountNo.length; i++) {
                                     var row = $("<tr></tr>");
-                                    row.append("<td style='width:60%; padding-left:20px;'>" + data.viewModel.details[i].accountNo + " " + data.viewModel.details[i].accountName + "</td>");
-                                    row.append("<td class='text-end' style='width:7%;'>" + data.viewModel.details[i].debit + "</td>");
-                                    row.append("<td class='text-end' style='width:7%;'>" + data.viewModel.details[i].credit + "</td>");
+                                    row.append("<td style='width:60%; padding-left:20px;'>" + data.accountNo[i] + " " + data.accountName[i] + "</td>");
+                                    row.append("<td class='text-end' style='width:7%;'>" + data.debit[i] + "</td>");
+                                    row.append("<td class='text-end' style='width:7%;'>" + data.credit[i] + "</td>");
                                     $("#tableBody").append(row);
                                 }
                             }

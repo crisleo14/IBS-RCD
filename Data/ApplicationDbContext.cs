@@ -72,7 +72,13 @@ namespace Accounting_System.Data
 
             #region --JournalVoucher
 
-
+            builder.Entity<JournalVoucherDetail>(cvd =>
+            {
+                cvd.HasOne(cvh => cvh.Header)
+                .WithMany(cvd => cvd.Details)
+                .HasForeignKey(cv => cv.JVHeaderId)
+                .OnDelete(DeleteBehavior.Restrict);
+            });
 
             #endregion --JournalVoucher
 

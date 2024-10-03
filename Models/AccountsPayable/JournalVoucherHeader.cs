@@ -41,5 +41,8 @@ namespace Accounting_System.Models
 
         //Ibs records
         public int? OriginalCVId { get; set; }
+
+        //ICollection
+        public ICollection<JournalVoucherDetail> Details { get; set; }
     }
 }

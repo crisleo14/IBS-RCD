@@ -21,5 +21,10 @@ namespace Accounting_System.Models.AccountsPayable
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]
         public decimal Credit { get; set; }
+
+        public int JVHeaderId { get; set; }
+
+        [ForeignKey("JVHeaderId")]
+        public JournalVoucherHeader Header { get; set; }
     }
 }
