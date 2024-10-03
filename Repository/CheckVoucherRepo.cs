@@ -13,11 +13,10 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public async Task<List<CheckVoucherHeader>> GetCheckVouchers(CancellationToken cancellationToken = default)
+        public async Task<List<CheckVoucherHeader>> GetCheckVouchersAsync(CancellationToken cancellationToken = default)
         {
-            return await _dbContext
-                .CheckVoucherHeaders
-                .OrderByDescending(cv => cv.Id)
+            return await _dbContext.CheckVoucherHeaders
+                .Include(s => s.Supplier)
                 .ToListAsync(cancellationToken);
         }
 

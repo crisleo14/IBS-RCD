@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
+using System.Linq.Dynamic.Core;
 
 namespace Accounting_System.Controllers
 {
@@ -38,17 +39,67 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.CheckVoucherHeaders
-                .Include(s => s.Supplier)
-                .Include(cvd => cvd.Details)
-                .ToListAsync(cancellationToken);
-
             if (view == nameof(DynamicView.CheckVoucher))
             {
-                return View("ImportExportIndex", model);
+                var checkVouchers = await _checkVoucherRepo.GetCheckVouchersAsync(cancellationToken);
+
+                return View("ImportExportIndex", checkVouchers);
             }
 
-            return View(model);
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetCheckVouchers([FromForm] DataTablesParameters parameters, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var checkVouchers = await _checkVoucherRepo.GetCheckVouchersAsync(cancellationToken);
+                // Search filter
+                if (!string.IsNullOrEmpty(parameters.Search?.Value))
+                {
+                    var searchValue = parameters.Search.Value.ToLower();
+                    checkVouchers = checkVouchers
+                        .Where(cv =>
+                            cv.CVNo.ToLower().Contains(searchValue) ||
+                            cv.Date.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
+                            cv.Supplier.Name.ToLower().Contains(searchValue) ||
+                            cv.Category.ToLower().Contains(searchValue) ||
+                            cv.Category.ToLower().Contains(searchValue) ||
+                            cv.CvType.ToLower().Contains(searchValue) ||
+                            cv.CreatedBy.ToLower().Contains(searchValue)
+                            )
+                        .ToList();
+                }
+                // Sorting
+                if (parameters.Order != null && parameters.Order.Count > 0)
+                {
+                    var orderColumn = parameters.Order[0];
+                    var columnName = parameters.Columns[orderColumn.Column].Data;
+                    var sortDirection = orderColumn.Dir.ToLower() == "asc" ? "ascending" : "descending";
+                    checkVouchers = checkVouchers
+                        .AsQueryable()
+                        .OrderBy($"{columnName} {sortDirection}")
+                        .ToList();
+                }
+                var totalRecords = checkVouchers.Count();
+                var pagedData = checkVouchers
+                    .Skip(parameters.Start)
+                    .Take(parameters.Length)
+                    .ToList();
+                return Json(new
+                {
+                    draw = parameters.Draw,
+                    recordsTotal = totalRecords,
+                    recordsFiltered = totalRecords,
+                    data = pagedData
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpGet]
@@ -343,12 +394,12 @@ namespace Accounting_System.Controllers
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         TempData["success"] = "Check Voucher has been Posted.";
                     }
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Print), new { id = cvId });
                 }
                 catch (Exception ex)
                 {
                     TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Print), new { id = cvId });
                 }
             }
 
