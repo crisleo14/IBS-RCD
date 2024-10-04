@@ -1,5 +1,5 @@
-﻿@using Accounting_System.Models.ViewModels
-@model IEnumerable<CheckVoucherVM>
+﻿@using Accounting_System.Models.AccountsPayable
+@model IEnumerable<CheckVoucherHeader>
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
@@ -36,19 +36,19 @@
             <thead class="table-secondary">
                 <tr>
                     <th class="text-nowrap">
-                        @Html.DisplayNameFor(model => model.Header.CVNo)
+                        @Html.DisplayNameFor(model => model.CVNo)
                     </th>
                     <th>
-                        @Html.DisplayNameFor(model => model.Header.Date)
+                        @Html.DisplayNameFor(model => model.Date)
                     </th>
                     <th>
                         Supplier
                     </th>
                     <th>
-                        @Html.DisplayNameFor(model => model.Header.Category)
+                        @Html.DisplayNameFor(model => model.Category)
                     </th>
                     <th>
-                        @Html.DisplayNameFor(model => model.Header.CreatedBy)
+                        @Html.DisplayNameFor(model => model.CreatedBy)
                     </th>
                     <th>
                         Status
@@ -63,27 +63,27 @@
                 {
                     <tr>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Header.CVNo)
+                            @Html.DisplayFor(modelItem => item.CVNo)
                         </td>
                         <td>
-                            @item.Header.Date.ToString("MM/dd/yyyy")
+                            @item.Date.ToString("MM/dd/yyyy")
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Header.Supplier.Name)
+                            @Html.DisplayFor(modelItem => item.Supplier.Name)
                         </td>
                         <td>
-                            @item.Header.Category @item.Header.CvType
+                            @item.Category @item.CvType
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Header.CreatedBy)
+                            @Html.DisplayFor(modelItem => item.CreatedBy)
                         </td>
                         <td>
                             @{
-                                var status = item.Header.PostedBy != null && item.Header.VoidedBy == null && item.Header.CanceledBy == null
+                                var status = item.PostedBy != null && item.VoidedBy == null && item.CanceledBy == null
                                 ? "Posted"
-                                : item.Header.VoidedBy != null
+                                : item.VoidedBy != null
                                 ? "Voided"
-                                : item.Header.CanceledBy != null
+                                : item.CanceledBy != null
                                 ? "Cancelled"
                                 : "Pending";
                             }
@@ -96,7 +96,7 @@
 }">@status</span>
                         </td>
                         <td>
-                            <input type="checkbox" class="selectCheckbox text-center" value="@item.Header.Id">
+                            <input type="checkbox" class="selectCheckbox text-center" value="@item.Id">
                         </td>
                     </tr>
                 }
