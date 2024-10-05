@@ -1,5 +1,6 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models.MasterFile;
+using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
 using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
@@ -91,12 +92,16 @@ namespace Accounting_System.Controllers
 
                 #endregion -- COA Entry --
 
-                //#region --Audit Trail Recording
+                #region --Audit Trail Recording
 
-                //AuditTrail auditTrail = new(model.CreatedBy, $"Created new bank {model.AccountName}", "Bank Account");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                if (model.OriginalBankId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Created new bank {model.AccountName}", "Bank Account", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
 
-                //#endregion --Audit Trail Recording
+                #endregion --Audit Trail Recording
 
                 await _dbContext.AddAsync(model, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -134,12 +139,17 @@ namespace Accounting_System.Controllers
 
                 TempData["success"] = "Bank edited successfully.";
 
-                //#region --Audit Trail Recording
+                #region --Audit Trail Recording
 
-                //AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Updated bank {model.AccountName}", "Bank Account");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                if (model.OriginalBankId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Updated bank {model.AccountName}", "Bank Account", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
 
-                //#endregion --Audit Trail Recording
+                #endregion --Audit Trail Recording
+
             }
             else
             {

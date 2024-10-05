@@ -296,13 +296,18 @@ namespace Accounting_System.Controllers
             var cv = await _dbContext.CheckVoucherHeaders.FindAsync(id, cancellationToken);
             if (cv != null && !cv.IsPrinted)
             {
-                //#region --Audit Trail Recording
 
-                //var printedBy = _userManager.GetUserName(this.User);
-                //AuditTrail auditTrail = new(printedBy, $"Printed original copy of cv# {cv.CVNo}", "Check Vouchers");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                #region --Audit Trail Recording
 
-                //#endregion --Audit Trail Recording
+                if (cv.OriginalSeriesNumber == null && cv.OriginalDocumentId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    var printedBy = _userManager.GetUserName(this.User);
+                    AuditTrail auditTrailBook = new(printedBy, $"Printed original copy of cv# {cv.CVNo}", "Check Vouchers", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
+
+                #endregion --Audit Trail Recording
 
                 cv.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -384,12 +389,16 @@ namespace Accounting_System.Controllers
 
                         #endregion --Disbursement Book Recording(CV)--
 
-                        //#region --Audit Trail Recording
+                        #region --Audit Trail Recording
 
-                        //AuditTrail auditTrail = new(modelHeader.PostedBy, $"Posted check voucher# {modelHeader.CVNo}", "Check Voucher");
-                        //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                        if (modelHeader.OriginalSeriesNumber == null && modelHeader.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(modelHeader.PostedBy, $"Posted check voucher# {modelHeader.CVNo}", "Check Voucher", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
 
-                        //#endregion --Audit Trail Recording
+                        #endregion --Audit Trail Recording
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         TempData["success"] = "Check Voucher has been Posted.";
@@ -643,12 +652,16 @@ namespace Accounting_System.Controllers
                         // model.Header.SupportingFilePath = fileSavePath
                     }
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(viewModel.CreatedBy, $"Create new check voucher# {viewModel.CVNo}", "Check Voucher");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (existingHeaderModel.OriginalSeriesNumber == null && existingHeaderModel.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(viewModel.CreatedBy, $"Create new check voucher# {viewModel.CVNo}", "Check Voucher", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
                     TempData["success"] = "Trade edited successfully";
@@ -686,12 +699,16 @@ namespace Accounting_System.Controllers
                     await _generalRepo.RemoveRecords<DisbursementBook>(db => db.CVNo == model.CVNo, cancellationToken);
                     await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CVNo, cancellationToken);
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(model.VoidedBy, $"Voided check voucher# {model.CVNo}", "Check Voucher");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided check voucher# {model.CVNo}", "Check Voucher", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Check Voucher has been Voided.";
@@ -715,12 +732,16 @@ namespace Accounting_System.Controllers
                     model.CanceledDate = DateTime.Now;
                     model.CancellationRemarks = cancellationRemarks;
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled check voucher# {model.CVNo}", "Check Voucher");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled check voucher# {model.CVNo}", "Check Voucher", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Check Voucher has been Cancelled.";
@@ -956,12 +977,16 @@ namespace Accounting_System.Controllers
                             // model.Header.SupportingFilePath = fileSavePath
                         }
 
-                        //#region --Audit Trail Recording
+                        #region --Audit Trail Recording
 
-                        //AuditTrail auditTrail = new(item.CreatedBy, $"Create new check voucher# {item.CVNo}", "Check Voucher");
-                        //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                        if (item.OriginalSeriesNumber == null && item.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(item.CreatedBy, $"Create new check voucher# {item.CVNo}", "Check Voucher", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
 
-                        //#endregion --Audit Trail Recording
+                        #endregion --Audit Trail Recording
                     }
                     await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
                     return RedirectToAction(nameof(Index));
@@ -1235,12 +1260,16 @@ namespace Accounting_System.Controllers
                     }
                     #endregion -- Uploading file --
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(checkVoucherHeader.CreatedBy, $"Create new check voucher# {checkVoucherHeader.CVNo}", "Check Voucher");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (checkVoucherHeader.OriginalSeriesNumber == null && checkVoucherHeader.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(checkVoucherHeader.CreatedBy, $"Create new check voucher# {checkVoucherHeader.CVNo}", "Check Voucher", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     return RedirectToAction(nameof(Index));
@@ -1437,12 +1466,16 @@ namespace Accounting_System.Controllers
 
                     #endregion
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(checkVoucherHeader.CreatedBy, $"Create new check voucher# {checkVoucherHeader.CVNo}", "Check Voucher");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (checkVoucherHeader.OriginalSeriesNumber == null && checkVoucherHeader.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(checkVoucherHeader.CreatedBy, $"Create new check voucher# {checkVoucherHeader.CVNo}", "Check Voucher", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     return RedirectToAction(nameof(Index));
@@ -1740,12 +1773,16 @@ namespace Accounting_System.Controllers
                         // model.Header.SupportingFilePath = fileSavePath
                     }
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Create new check voucher# {existingModel.CVNo}", "Check Voucher");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (existingModel.OriginalSeriesNumber == null && existingModel.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Create new check voucher# {existingModel.CVNo}", "Check Voucher", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
                     TempData["success"] = "Non-trade invoicing edited successfully";
@@ -2003,12 +2040,16 @@ namespace Accounting_System.Controllers
                         // model.Header.SupportingFilePath = fileSavePath
                     }
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Create new check voucher# {existingHeaderModel.CVNo}", "Check Voucher");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (existingHeaderModel.OriginalSeriesNumber == null && existingHeaderModel.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Create new check voucher# {existingHeaderModel.CVNo}", "Check Voucher", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
                     TempData["success"] = "Non-trade payment edited successfully";

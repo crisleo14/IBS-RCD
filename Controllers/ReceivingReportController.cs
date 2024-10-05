@@ -208,12 +208,16 @@ namespace Accounting_System.Controllers
                     model.NetAmountOfEWT = model.Amount - model.EwtAmount;
                 }
 
-                //#region --Audit Trail Recording
+                #region --Audit Trail Recording
 
-                //AuditTrail auditTrail = new(model.CreatedBy, $"Create new rr# {model.RRNo}", "Receiving Report");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new rr# {model.RRNo}", "Receiving Report", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
 
-                //#endregion --Audit Trail Recording
+                #endregion --Audit Trail Recording
 
                 await _dbContext.AddAsync(model, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -324,12 +328,16 @@ namespace Accounting_System.Controllers
                     existingModel.EwtAmount = existingModel.NetAmount * .01m;
                 }
 
-                //#region --Audit Trail Recording
+                #region --Audit Trail Recording
 
-                //AuditTrail auditTrail = new(existingModel.CreatedBy, $"Edit rr# {existingModel.RRNo}", "Receiving Report");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit rr# {existingModel.RRNo}", "Receiving Report", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
 
-                //#endregion --Audit Trail Recording
+                #endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -363,13 +371,18 @@ namespace Accounting_System.Controllers
             var rr = await _dbContext.ReceivingReports.FindAsync(id, cancellationToken);
             if (rr != null && !rr.IsPrinted)
             {
-                //#region --Audit Trail Recording
 
-                //var printedBy = _userManager.GetUserName(this.User);
-                //AuditTrail auditTrail = new(printedBy, $"Printed original copy of rr# {rr.RRNo}", "Receiving Report");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                #region --Audit Trail Recording
 
-                //#endregion --Audit Trail Recording
+                if (rr.OriginalSeriesNumber == null && rr.OriginalDocumentId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    var printedBy = _userManager.GetUserName(this.User);
+                    AuditTrail auditTrailBook = new(printedBy, $"Printed original copy of rr# {rr.RRNo}", "Receiving Report", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
+
+                #endregion --Audit Trail Recording
 
                 rr.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -534,12 +547,16 @@ namespace Accounting_System.Controllers
                         await _dbContext.AddRangeAsync(purchaseBook, cancellationToken);
                         #endregion --Purchase Book Recording
 
-                        //#region --Audit Trail Recording
+                        #region --Audit Trail Recording
 
-                        //AuditTrail auditTrail = new(model.PostedBy, $"Posted receiving# {model.RRNo}", "Receiving Report");
-                        //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(model.PostedBy, $"Posted rr# {model.RRNo}", "Receiving Report", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
 
-                        //#endregion --Audit Trail Recording
+                        #endregion --Audit Trail Recording
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         TempData["success"] = "Receiving Report has been Posted.";
@@ -588,12 +605,16 @@ namespace Accounting_System.Controllers
                     await _receivingReportRepo.RemoveQuantityReceived(model?.POId, model.QuantityReceived, cancellationToken);
                     model.QuantityReceived = 0;
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(model.VoidedBy, $"Voided receiving# {model.RRNo}", "Receiving Report");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided rr# {model.RRNo}", "Receiving Report", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Receiving Report has been Voided.";
@@ -620,12 +641,16 @@ namespace Accounting_System.Controllers
                     model.QuantityReceived = 0;
                     model.CancellationRemarks = cancellationRemarks;
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled receiving# {model.RRNo}", "Receiving Report");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled rr# {model.RRNo}", "Receiving Report", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Receiving Report has been Cancelled.";

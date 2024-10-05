@@ -1,5 +1,6 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models.MasterFile;
+using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
 using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
@@ -192,12 +193,16 @@ namespace Accounting_System.Controllers
 
                 await _context.AddAsync(supplier, cancellationToken);
 
-                //#region --Audit Trail Recording
+                #region --Audit Trail Recording
 
-                //AuditTrail auditTrail = new(supplier.CreatedBy, $"Create new supplier {supplier.Name}", "Supplier Master File");
-                //await _context.AddAsync(auditTrail, cancellationToken);
+                if (supplier.OriginalSupplierId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    AuditTrail auditTrailBook = new(supplier.CreatedBy, $"Create new supplier {supplier.Name}", "Supplier Master File", ipAddress);
+                    await _context.AddAsync(auditTrailBook, cancellationToken);
+                }
 
-                //#endregion --Audit Trail Recording
+                #endregion --Audit Trail Recording
 
                 await _context.SaveChangesAsync(cancellationToken);
                 TempData["success"] = $"Supplier {supplier.Name} has been created.";
@@ -336,6 +341,17 @@ namespace Accounting_System.Controllers
                     }
 
                     #endregion -- Upload file -- 
+
+                    #region --Audit Trail Recording
+
+                    if (supplier.OriginalSupplierId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Update supplier {supplier.Name}", "Supplier Master File", ipAddress);
+                        await _context.AddAsync(auditTrailBook, cancellationToken);
+                    }
+
+                    #endregion --Audit Trail Recording
 
                     await _context.SaveChangesAsync(cancellationToken);
                     TempData["success"] = $"Supplier {supplier.Name} has been edited.";

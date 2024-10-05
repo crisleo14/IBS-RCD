@@ -1,5 +1,6 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
+using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
 using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
@@ -76,12 +77,16 @@ namespace Accounting_System.Controllers
                 await _dbContext.AddAsync(customer, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
-                //#region --Audit Trail Recording
+                #region --Audit Trail Recording
 
-                //AuditTrail auditTrail = new(customer.CreatedBy, $"Created new customer {customer.Name}", "Customer");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                if (customer.OriginalCustomerId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    AuditTrail auditTrailBook = new(customer.CreatedBy, $"Created new customer {customer.Name}", "Customer", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
 
-                //#endregion --Audit Trail Recording
+                #endregion --Audit Trail Recording
 
                 TempData["success"] = "Customer created successfully";
                 return RedirectToAction(nameof(Index));
@@ -130,12 +135,16 @@ namespace Accounting_System.Controllers
                     existingModel.WithHoldingTax = customer.WithHoldingTax;
                     existingModel.WithHoldingVat = customer.WithHoldingVat;
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Updated customer {customer.Name}", "Customer");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (customer.OriginalCustomerId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Updated customer {customer.Name}", "Customer", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     _dbContext.Update(existingModel);
                     await _dbContext.SaveChangesAsync(cancellationToken);

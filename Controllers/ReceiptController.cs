@@ -265,12 +265,16 @@ namespace Accounting_System.Controllers
 
                 #endregion --Saving default value
 
-                //#region --Audit Trail Recording
+                #region --Audit Trail Recording
 
-                //AuditTrail auditTrail = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
 
-                //#endregion --Audit Trail Recording
+                #endregion --Audit Trail Recording
 
                 #region --Offsetting function
 
@@ -483,12 +487,16 @@ namespace Accounting_System.Controllers
 
                 #endregion --Saving default value
 
-                //#region --Audit Trail Recording
+                #region --Audit Trail Recording
 
-                //AuditTrail auditTrail = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
 
-                //#endregion --Audit Trail Recording
+                #endregion --Audit Trail Recording
 
                 #region --Offsetting function
 
@@ -684,12 +692,16 @@ namespace Accounting_System.Controllers
 
                 #endregion --Saving default value
 
-                //#region --Audit Trail Recording
+                #region --Audit Trail Recording
 
-                //AuditTrail auditTrail = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
 
-                //#endregion --Audit Trail Recording
+                #endregion --Audit Trail Recording
 
                 #region --Offsetting function
 
@@ -747,13 +759,18 @@ namespace Accounting_System.Controllers
             var findIdOfCR = await _receiptRepo.FindCR(id, cancellationToken);
             if (findIdOfCR != null && !findIdOfCR.IsPrinted)
             {
-                //#region --Audit Trail Recording
 
-                //var printedBy = _userManager.GetUserName(this.User);
-                //AuditTrail auditTrail = new(printedBy, $"Printed original copy of cr# {findIdOfCR.CRNo}", "Collection Receipt");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                #region --Audit Trail Recording
 
-                //#endregion --Audit Trail Recording
+                if (findIdOfCR.OriginalSeriesNumber == null && findIdOfCR.OriginalDocumentId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    var printedBy = _userManager.GetUserName(this.User);
+                    AuditTrail auditTrailBook = new(printedBy, $"Printed original copy of cr# {findIdOfCR.CRNo}", "Collection Receipt", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
+
+                #endregion --Audit Trail Recording
 
                 findIdOfCR.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -765,13 +782,18 @@ namespace Accounting_System.Controllers
             var findIdOfCR = await _receiptRepo.FindCR(id, cancellationToken);
             if (findIdOfCR != null && !findIdOfCR.IsPrinted)
             {
-                //#region --Audit Trail Recording
 
-                //var printedBy = _userManager.GetUserName(this.User);
-                //AuditTrail auditTrail = new(printedBy, $"Printed original copy of cr# {findIdOfCR.CRNo}", "Collection Receipt");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                #region --Audit Trail Recording
 
-                //#endregion --Audit Trail Recording
+                if (findIdOfCR.OriginalSeriesNumber == null && findIdOfCR.OriginalDocumentId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    var printedBy = _userManager.GetUserName(this.User);
+                    AuditTrail auditTrailBook = new(printedBy, $"Printed original copy of cr# {findIdOfCR.CRNo}", "Collection Receipt", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
+
+                #endregion --Audit Trail Recording
 
                 findIdOfCR.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -1156,13 +1178,17 @@ namespace Accounting_System.Controllers
 
                 #endregion --Offsetting function
 
-                //#region --Audit Trail Recording
+                #region --Audit Trail Recording
 
-                //var modifiedBy = _userManager.GetUserName(this.User);
-                //AuditTrail auditTrail = new(modifiedBy, $"Edited receipt# {existingModel.CRNo}", "Collection Receipt");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                if (existingModel.OriginalSeriesNumber == null && existingModel.OriginalDocumentId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    var modifiedBy = _userManager.GetUserName(this.User);
+                    AuditTrail auditTrailBook = new(modifiedBy, $"Edited collection receipt# {existingModel.CRNo}", "Collection Receipt", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
 
-                //#endregion --Audit Trail Recording
+                #endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction(nameof(CollectionIndex));
@@ -1419,13 +1445,17 @@ namespace Accounting_System.Controllers
 
                 #endregion --Offsetting function
 
-                //#region --Audit Trail Recording
+                #region --Audit Trail Recording
 
-                //var modifiedBy = _userManager.GetUserName(this.User);
-                //AuditTrail auditTrail = new(modifiedBy, $"Edited receipt# {existingModel.CRNo}", "Collection Receipt");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    var modifiedBy = _userManager.GetUserName(this.User);
+                    AuditTrail auditTrailBook = new(modifiedBy, $"Edited collection receipt# {existingModel.CRNo}", "Collection Receipt", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
 
-                //#endregion --Audit Trail Recording
+                #endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 TempData["success"] = "Collection Receipt edited successfully";
@@ -1756,12 +1786,16 @@ namespace Accounting_System.Controllers
 
                         #endregion --Cash Receipt Book Recording
 
-                        //#region --Audit Trail Recording
+                        #region --Audit Trail Recording
 
-                        //AuditTrail auditTrail = new(model.PostedBy, $"Posted collection receipt# {model.CRNo}", "Collection Receipt");
-                        //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(model.PostedBy, $"Posted collection receipt# {model.CRNo}", "Collection Receipt", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
 
-                        //#endregion --Audit Trail Recording
+                        #endregion --Audit Trail Recording
 
                         if (model.SalesInvoiceId != null)
                         {
@@ -1837,12 +1871,16 @@ namespace Accounting_System.Controllers
                             return RedirectToAction(nameof(Index));
                         }
 
-                        //#region --Audit Trail Recording
+                        #region --Audit Trail Recording
 
-                        //AuditTrail auditTrail = new(model.VoidedBy, $"Voided collection receipt# {model.CRNo}", "Collection Receipt");
-                        //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided collection receipt# {model.CRNo}", "Collection Receipt", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
 
-                        //#endregion --Audit Trail Recording
+                        #endregion --Audit Trail Recording
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         await transaction.CommitAsync(cancellationToken);
@@ -1873,12 +1911,16 @@ namespace Accounting_System.Controllers
                     model.CanceledDate = DateTime.Now;
                     model.CancellationRemarks = cancellationRemarks;
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled collection receipt# {model.CRNo}", "Collection Receipt");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled collection receipt# {model.CRNo}", "Collection Receipt", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Collection Receipt has been Cancelled.";

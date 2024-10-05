@@ -1,5 +1,7 @@
 ﻿using Accounting_System.Data;
+using Accounting_System.Models;
 using Accounting_System.Models.MasterFile;
+using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
 using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
@@ -72,12 +74,16 @@ namespace Accounting_System.Controllers
 
                 product.CreatedBy = _userManager.GetUserName(this.User).ToUpper();
 
-                //#region --Audit Trail Recording
+                #region --Audit Trail Recording
 
-                //AuditTrail auditTrail = new(product.CreatedBy, $"Created new product {product.Name}", "Product");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                if (product.OriginalProductId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    AuditTrail auditTrailBook = new(product.CreatedBy, $"Created new product {product.Name}", "Product", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
 
-                //#endregion --Audit Trail Recording
+                #endregion --Audit Trail Recording
 
                 await _dbContext.AddAsync(product, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -118,12 +124,16 @@ namespace Accounting_System.Controllers
                 {
                     _dbContext.Update(product);
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Updated product {product.Name}", "Product");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (product.OriginalProductId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Updated product {product.Name}", "Product", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     TempData["success"] = "Product updated successfully";
                     await _dbContext.SaveChangesAsync(cancellationToken);

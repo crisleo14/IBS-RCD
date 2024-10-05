@@ -246,12 +246,16 @@ namespace Accounting_System.Controllers
 
                 #endregion --Saving the default properties
 
-                //#region --Audit Trail Recording
+                #region --Audit Trail Recording
 
-                //AuditTrail auditTrail = new(model.CreatedBy, $"Create new service invoice# {model.SVNo}", "Service Invoice");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new service invoice# {model.SVNo}", "Service Invoice", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
 
-                //#endregion --Audit Trail Recording
+                #endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction(nameof(Index));
@@ -273,13 +277,18 @@ namespace Accounting_System.Controllers
             var findIdOfSOA = await _serviceInvoiceRepo.FindSv(id, cancellationToken);
             if (findIdOfSOA != null && !findIdOfSOA.IsPrinted)
             {
-                //#region --Audit Trail Recording
 
-                //var printedBy = _userManager.GetUserName(this.User);
-                //AuditTrail auditTrail = new(printedBy, $"Printed original copy of sv# {findIdOfSOA.SVNo}", "Service Invoice");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                #region --Audit Trail Recording
 
-                //#endregion --Audit Trail Recording
+                if (findIdOfSOA.OriginalSeriesNumber == null && findIdOfSOA.OriginalDocumentId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    var printedBy = _userManager.GetUserName(this.User);
+                    AuditTrail auditTrailBook = new(printedBy, $"Printed original copy of sv# {findIdOfSOA.SVNo}", "Service Invoice", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
+
+                #endregion --Audit Trail Recording
 
                 findIdOfSOA.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -508,12 +517,16 @@ namespace Accounting_System.Controllers
 
                         #endregion --General Ledger Book Recording
 
-                        //#region --Audit Trail Recording
+                        #region --Audit Trail Recording
 
-                        //AuditTrail auditTrail = new(model.PostedBy, $"Posted service invoice# {model.SVNo}", "Service Invoice");
-                        //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(model.PostedBy, $"Posted service invoice# {model.SVNo}", "Service Invoice", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
 
-                        //#endregion --Audit Trail Recording
+                        #endregion --Audit Trail Recording
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         TempData["success"] = "Service invoice has been posted.";
@@ -547,12 +560,16 @@ namespace Accounting_System.Controllers
                     model.CanceledDate = DateTime.Now;
                     model.CancellationRemarks = cancellationRemarks;
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled service invoice# {model.SVNo}", "Service Invoice");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled service invoice# {model.SVNo}", "Service Invoice", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Service invoice has been Cancelled.";
@@ -580,12 +597,16 @@ namespace Accounting_System.Controllers
                     model.VoidedBy = _userManager.GetUserName(this.User);
                     model.VoidedDate = DateTime.Now;
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(model.VoidedBy, $"Voided service invoice# {model.SVNo}", "Service Invoice");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided service invoice# {model.SVNo}", "Service Invoice", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     await _generalRepo.RemoveRecords<SalesBook>(gl => gl.SerialNo == model.SVNo, cancellationToken);
                     await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.SVNo, cancellationToken);
@@ -712,12 +733,16 @@ namespace Accounting_System.Controllers
 
                 #endregion --Saving the default properties
 
-                //#region --Audit Trail Recording
+                #region --Audit Trail Recording
 
-                //AuditTrail auditTrail = new(existingModel.CreatedBy, $"Edit service invoice# {existingModel.SVNo}", "Service Invoice");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit service invoice# {existingModel.SVNo}", "Service Invoice", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
 
-                //#endregion --Audit Trail Recording
+                #endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction(nameof(Index));

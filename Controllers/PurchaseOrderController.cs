@@ -1,6 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Models.AccountsPayable;
+using Accounting_System.Models.Reports;
 using Accounting_System.Models.ViewModels;
 using Accounting_System.Repository;
 using Accounting_System.Utility;
@@ -179,12 +180,16 @@ namespace Accounting_System.Controllers
 
                 await _dbContext.AddAsync(model, cancellationToken);
 
-                //#region --Audit Trail Recording
+                #region --Audit Trail Recording
 
-                //AuditTrail auditTrail = new(model.CreatedBy, $"Create new purchase order# {model.PONo}", "Purchase Order");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new purchase order# {model.PONo}", "Purchase Order", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
 
-                //#endregion --Audit Trail Recording
+                #endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction(nameof(Index));
@@ -270,12 +275,16 @@ namespace Accounting_System.Controllers
                 existingModel.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model?.SupplierId, cancellationToken);
                 existingModel.ProductNo = await _purchaseOrderRepo.GetProductNoAsync(model?.ProductId, cancellationToken);
 
-                //#region --Audit Trail Recording
+                #region --Audit Trail Recording
 
-                //AuditTrail auditTrail = new(existingModel.CreatedBy, $"Edit purchase order# {existingModel.PONo}", "Purchase Order");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit purchase order# {existingModel.PONo}", "Purchase Order", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
 
-                //#endregion --Audit Trail Recording
+                #endregion --Audit Trail Recording
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -309,13 +318,18 @@ namespace Accounting_System.Controllers
             var po = await _dbContext.PurchaseOrders.FindAsync(id, cancellationToken);
             if (po != null && !po.IsPrinted)
             {
-                //#region --Audit Trail Recording
 
-                //var printedBy = _userManager.GetUserName(this.User);
-                //AuditTrail auditTrail = new(printedBy, $"Printed original copy of po# {po.PONo}", "Purchase Order");
-                //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                #region --Audit Trail Recording
 
-                //#endregion --Audit Trail Recording
+                if (po.OriginalSeriesNumber == null && po.OriginalDocumentId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    var printedBy = _userManager.GetUserName(this.User);
+                    AuditTrail auditTrailBook = new(printedBy, $"Printed original copy of po# {po.PONo}", "Purchase Order", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
+
+                #endregion --Audit Trail Recording
 
                 po.IsPrinted = true;
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -335,12 +349,16 @@ namespace Accounting_System.Controllers
                     model.PostedBy = _userManager.GetUserName(this.User);
                     model.PostedDate = DateTime.Now;
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(model.PostedBy, $"Posted purchase order# {model.PONo}", "Purchase Order");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(model.PostedBy, $"Posted purchase order# {model.PONo}", "Purchase Order", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Purchase Order has been Posted.";
@@ -368,12 +386,16 @@ namespace Accounting_System.Controllers
                     model.VoidedBy = _userManager.GetUserName(this.User);
                     model.VoidedDate = DateTime.Now;
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(model.VoidedBy, $"Voided purchase order# {model.PONo}", "Purchase Order");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided purchase order# {model.PONo}", "Purchase Order", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Purchase Order has been Voided.";
@@ -397,12 +419,16 @@ namespace Accounting_System.Controllers
                     model.CanceledDate = DateTime.Now;
                     model.CancellationRemarks = cancellationRemarks;
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(model.CanceledBy, $"Cancelled purchase order# {model.PONo}", "Purchase Order");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled purchase order# {model.PONo}", "Purchase Order", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Purchase Order has been Cancelled.";
@@ -447,12 +473,16 @@ namespace Accounting_System.Controllers
 
                     #endregion
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(existingModel.CreatedBy, $"Change price, purchase order# {existingModel.PONo}", "Purchase Order");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (existingModel.OriginalSeriesNumber == null && existingModel.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Change price, purchase order# {existingModel.PONo}", "Purchase Order", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Change Price updated successfully";
@@ -518,12 +548,16 @@ namespace Accounting_System.Controllers
                 {
                     purchaseOrder.IsClosed = true;
 
-                    //#region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                    //AuditTrail auditTrail = new(_userManager.GetUserName(this.User), $"Closed purchase order# {model.PONo}", "Purchase Order");
-                    //await _dbContext.AddAsync(auditTrail, cancellationToken);
+                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Closed purchase order# {model.PONo}", "Purchase Order", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
-                    //#endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     TempData["success"] = "Purchase Order has been Closed.";
