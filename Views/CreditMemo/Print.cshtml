@@ -7,6 +7,8 @@
 
 @{
     ViewData["Title"] = "Print Credit Memo";
+    decimal netOfVatAmount = Model.CreditAmount / 1.12m;
+    decimal vatAmount = netOfVatAmount * 0.12m;
 }
 <br />
 <div class="text-end">
@@ -86,9 +88,9 @@
                                 <tbody class="text-nowrap">
                                     <tr>
                                         <td class="w-50"><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
-                                        @if (Model.VatableSales != 0)
+                                        @if (netOfVatAmount != 0)
                                         {
-                                            <td class="text-end">@Math.Abs(Model.VatableSales).ToString("N2")</td>
+                                            <td class="text-end">@Math.Abs(netOfVatAmount).ToString("N2")</td>
                                         }
                                         else
                                         {
@@ -121,9 +123,9 @@
                                     <tr>
                                         <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
 
-                                        @if (Model.VatAmount != 0)
+                                        @if (vatAmount != 0)
                                         {
-                                            <td class="text-end">@Math.Abs(Model.VatAmount).ToString("N2")</td>
+                                            <td class="text-end">@Math.Abs(vatAmount).ToString("N2")</td>
                                         }
                                         else
                                         {
@@ -132,7 +134,7 @@
                                     </tr>
                                     <tr>
                                         <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
-                                        <td class="text-end">@Math.Abs(Model.TotalSales).ToString("N2")</td>
+                                        <td class="text-end">@Math.Abs(Model.CreditAmount).ToString("N2")</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -211,9 +213,9 @@ else if (Model.Source == "Service Invoice")
                                 <tbody class="text-nowrap">
                                     <tr>
                                         <td class="w-50"><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
-                                        @if (Model.VatableSales != 0)
+                                        @if (netOfVatAmount != 0)
                                         {
-                                            <td class="text-end">@Html.DisplayFor(model => model.VatableSales)</td>
+                                            <td class="text-end">@Html.DisplayFor(model => netOfVatAmount)</td>
                                         }
                                         else
                                         {
@@ -246,9 +248,9 @@ else if (Model.Source == "Service Invoice")
                                     <tr>
                                         <td><p style="height: 9px; margin-left:8%;"><b>VAT Amount: </b></p></td>
 
-                                        @if (Model.VatAmount != 0)
+                                        @if (vatAmount != 0)
                                         {
-                                            <td class="text-end">@Html.DisplayFor(model => model.VatAmount)</td>
+                                            <td class="text-end">@Html.DisplayFor(model => vatAmount)</td>
                                         }
                                         else
                                         {
@@ -257,7 +259,7 @@ else if (Model.Source == "Service Invoice")
                                     </tr>
                                     <tr>
                                         <td><p style="height: 9px; margin-left:8%;"><b>TOTAL SALES: </b></p></td>
-                                        <td class="text-end">@Math.Abs(Model.TotalSales)</td>
+                                        <td class="text-end">@Math.Abs(Model.CreditAmount)</td>
                                     </tr>
                                 </tbody>
                             </table>

@@ -141,7 +141,7 @@ namespace Accounting_System.Controllers
             {
                 #region --Retrieve PO
 
-                var po = await _dbContext
+                var existingPo = await _dbContext
                             .PurchaseOrders
                             .Include(po => po.Supplier)
                             .Include(po => po.Product)
@@ -149,11 +149,7 @@ namespace Accounting_System.Controllers
 
                 #endregion --Retrieve PO
 
-                var rr = await _dbContext.ReceivingReports
-                .Where(rr => rr.PONo == po.PONo)
-                .ToListAsync(cancellationToken);
-
-                var totalAmountRR = po.Quantity - po.QuantityReceived;
+                var totalAmountRR = existingPo.Quantity - existingPo.QuantityReceived;
 
                 if (model.QuantityDelivered > totalAmountRR)
                 {
@@ -190,23 +186,7 @@ namespace Accounting_System.Controllers
                 model.PONo = await _receivingReportRepo.GetPONoAsync(model?.POId, cancellationToken);
                 model.DueDate = await _receivingReportRepo.ComputeDueDateAsync(model?.POId, model.Date, cancellationToken);
 
-                if (po.Supplier.VatType == "Vatable")
-                {
-                    model.Amount = model.QuantityDelivered < model.QuantityReceived ? model.QuantityDelivered * po.Price : model.QuantityReceived * po.Price;
-                    model.NetAmount = model.Amount / 1.12m;
-                    model.VatAmount = model.NetAmount * .12m;
-                }
-                else
-                {
-                    model.Amount = model.QuantityDelivered < model.QuantityReceived ? model.QuantityDelivered * po.Price : model.QuantityReceived * po.Price;
-                    model.NetAmount = model.Amount;
-                }
-
-                if (po.Supplier.TaxType == "Withholding Tax")
-                {
-                    model.EwtAmount = model.NetAmount * .01m;
-                    model.NetAmountOfEWT = model.Amount - model.EwtAmount;
-                }
+                model.Amount = model.QuantityReceived * existingPo.Price;
 
                 #region --Audit Trail Recording
 
@@ -309,24 +289,7 @@ namespace Accounting_System.Controllers
                 existingModel.OtherRef = model.OtherRef;
                 existingModel.Remarks = model.Remarks;
                 existingModel.ReceivedDate = model.ReceivedDate;
-
-
-                if (po.Supplier.VatType == "Vatable")
-                {
-                    existingModel.Amount = model.QuantityReceived * po.Price;
-                    existingModel.NetAmount = existingModel.Amount / 1.12m;
-                    existingModel.VatAmount = existingModel.NetAmount * .12m;
-                }
-                else
-                {
-                    existingModel.Amount = model.QuantityReceived * po.Price;
-                    existingModel.NetAmount = existingModel.Amount;
-                }
-
-                if (po.Supplier.TaxType == "Withholding Tax")
-                {
-                    existingModel.EwtAmount = existingModel.NetAmount * .01m;
-                }
+                existingModel.Amount = model.QuantityReceived * po.Price;
 
                 #region --Audit Trail Recording
 
@@ -414,6 +377,31 @@ namespace Accounting_System.Controllers
 
                         var ledgers = new List<GeneralLedgerBook>();
 
+                        decimal netOfVatAmount = 0;
+                        decimal vatAmount = 0;
+                        decimal ewtAmount = 0;
+                        decimal netOfEwtAmount = 0;
+
+                        if (model.PurchaseOrder.Supplier.VatType == CS.VatType_Vatable)
+                        {
+                            netOfVatAmount = _generalRepo.ComputeNetOfVat(model.Amount);
+                            vatAmount = _generalRepo.ComputeVatAmount(netOfVatAmount);
+                        }
+                        else
+                        {
+                            netOfVatAmount = model.Amount;
+                        }
+
+                        if (model.PurchaseOrder.Supplier.TaxType == CS.TaxType_WithTax)
+                        {
+                            ewtAmount = _generalRepo.ComputeEwtAmount(netOfVatAmount, 0.01m);
+                            netOfEwtAmount = _generalRepo.ComputeNetOfEwt(model.Amount, ewtAmount);
+                        }
+                        else
+                        {
+                            netOfEwtAmount = model.Amount;
+                        }
+
                         if (model.PurchaseOrder.Product.Name == "Biodiesel")
                         {
                             ledgers.Add(new GeneralLedgerBook
@@ -423,7 +411,7 @@ namespace Accounting_System.Controllers
                                 Description = "Receipt of Goods",
                                 AccountNo = "1010401",
                                 AccountTitle = "Inventory - Biodiesel",
-                                Debit = model.NetAmount,
+                                Debit = netOfVatAmount,
                                 Credit = 0,
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
@@ -438,7 +426,7 @@ namespace Accounting_System.Controllers
                                 Description = "Receipt of Goods",
                                 AccountNo = "1010402",
                                 AccountTitle = "Inventory - Econogas",
-                                Debit = model.NetAmount,
+                                Debit = netOfVatAmount,
                                 Credit = 0,
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
@@ -453,14 +441,14 @@ namespace Accounting_System.Controllers
                                 Description = "Receipt of Goods",
                                 AccountNo = "1010403",
                                 AccountTitle = "Inventory - Envirogas",
-                                Debit = model.NetAmount,
+                                Debit = netOfVatAmount,
                                 Credit = 0,
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
                             });
                         }
 
-                        if (model.VatAmount > 0)
+                        if (vatAmount > 0)
                         {
                             ledgers.Add(new GeneralLedgerBook
                             {
@@ -469,14 +457,14 @@ namespace Accounting_System.Controllers
                                 Description = "Receipt of Goods",
                                 AccountNo = "1010602",
                                 AccountTitle = "Vat Input",
-                                Debit = model.VatAmount,
+                                Debit = vatAmount,
                                 Credit = 0,
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
                             });
                         }
 
-                        if (model.EwtAmount > 0)
+                        if (ewtAmount > 0)
                         {
                             ledgers.Add(new GeneralLedgerBook
                             {
@@ -486,7 +474,7 @@ namespace Accounting_System.Controllers
                                 AccountNo = "2010302",
                                 AccountTitle = "Expanded Withholding Tax 1%",
                                 Debit = 0,
-                                Credit = model.EwtAmount,
+                                Credit = ewtAmount,
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
                             });
@@ -500,7 +488,7 @@ namespace Accounting_System.Controllers
                             AccountNo = "2010101",
                             AccountTitle = "AP-Trade Payable",
                             Debit = 0,
-                            Credit = model.Amount - model.EwtAmount,
+                            Credit = netOfEwtAmount,
                             CreatedBy = model.CreatedBy,
                             CreatedDate = model.CreatedDate
                         });
@@ -536,9 +524,9 @@ namespace Accounting_System.Controllers
                             DocumentNo = model.RRNo,
                             Description = model.PurchaseOrder.Product.Name,
                             Amount = model.Amount,
-                            VatAmount = model.VatAmount,
-                            WhtAmount = model.EwtAmount,
-                            NetPurchases = model.NetAmount,
+                            VatAmount = vatAmount,
+                            WhtAmount = ewtAmount,
+                            NetPurchases = netOfVatAmount,
                             CreatedBy = model.CreatedBy,
                             PONo = model.PurchaseOrder.PONo,
                             DueDate = model.DueDate
@@ -738,23 +726,19 @@ namespace Accounting_System.Controllers
             worksheet.Cells["G1"].Value = "QuantityReceived";
             worksheet.Cells["H1"].Value = "GainOrLoss";
             worksheet.Cells["I1"].Value = "Amount";
-            worksheet.Cells["J1"].Value = "NetAmount";
-            worksheet.Cells["K1"].Value = "VatAmount";
-            worksheet.Cells["L1"].Value = "EWTAmount";
-            worksheet.Cells["M1"].Value = "OtherRef";
-            worksheet.Cells["N1"].Value = "Remarks";
-            worksheet.Cells["O1"].Value = "AmountPaid";
-            worksheet.Cells["P1"].Value = "IsPaid";
-            worksheet.Cells["Q1"].Value = "PaidDate";
-            worksheet.Cells["R1"].Value = "CanceledQuantity";
-            worksheet.Cells["S1"].Value = "NetAmountOfEWT";
-            worksheet.Cells["T1"].Value = "CreatedBy";
-            worksheet.Cells["U1"].Value = "CreatedDate";
-            worksheet.Cells["V1"].Value = "CancellationRemarks";
-            worksheet.Cells["W1"].Value = "ReceivedDate";
-            worksheet.Cells["X1"].Value = "OriginalPOId";
-            worksheet.Cells["Y1"].Value = "OriginalSeriesNumber";
-            worksheet.Cells["Z1"].Value = "OriginalDocumentId";
+            worksheet.Cells["J1"].Value = "OtherRef";
+            worksheet.Cells["K1"].Value = "Remarks";
+            worksheet.Cells["L1"].Value = "AmountPaid";
+            worksheet.Cells["M1"].Value = "IsPaid";
+            worksheet.Cells["N1"].Value = "PaidDate";
+            worksheet.Cells["O1"].Value = "CanceledQuantity";
+            worksheet.Cells["P1"].Value = "CreatedBy";
+            worksheet.Cells["Q1"].Value = "CreatedDate";
+            worksheet.Cells["R1"].Value = "CancellationRemarks";
+            worksheet.Cells["S1"].Value = "ReceivedDate";
+            worksheet.Cells["T1"].Value = "OriginalPOId";
+            worksheet.Cells["U1"].Value = "OriginalSeriesNumber";
+            worksheet.Cells["V1"].Value = "OriginalDocumentId";
 
             int row = 2;
 
@@ -769,16 +753,12 @@ namespace Accounting_System.Controllers
                 worksheet.Cells[row, 7].Value = item.QuantityReceived;
                 worksheet.Cells[row, 8].Value = item.GainOrLoss;
                 worksheet.Cells[row, 9].Value = item.Amount;
-                worksheet.Cells[row, 10].Value = item.NetAmount;
-                worksheet.Cells[row, 11].Value = item.VatAmount;
-                worksheet.Cells[row, 12].Value = item.EwtAmount;
                 worksheet.Cells[row, 13].Value = item.OtherRef;
                 worksheet.Cells[row, 14].Value = item.Remarks;
                 worksheet.Cells[row, 15].Value = item.AmountPaid;
                 worksheet.Cells[row, 16].Value = item.IsPaid;
                 worksheet.Cells[row, 17].Value = item.PaidDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
                 worksheet.Cells[row, 18].Value = item.CanceledQuantity;
-                worksheet.Cells[row, 19].Value = item.NetAmountOfEWT;
                 worksheet.Cells[row, 20].Value = item.CreatedBy;
                 worksheet.Cells[row, 21].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
                 worksheet.Cells[row, 22].Value = item.CancellationRemarks;
@@ -847,23 +827,19 @@ namespace Accounting_System.Controllers
                                 QuantityReceived = decimal.TryParse(worksheet.Cells[row, 7].Text, out decimal quantityReceived) ? quantityReceived : 0,
                                 GainOrLoss = decimal.TryParse(worksheet.Cells[row, 8].Text, out decimal gainOrLoss) ? gainOrLoss : 0,
                                 Amount = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amount) ? amount : 0,
-                                NetAmount = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal netAmount) ? netAmount : 0,
-                                VatAmount = decimal.TryParse(worksheet.Cells[row, 11].Text, out decimal vatAmount) ? vatAmount : 0,
-                                EwtAmount = decimal.TryParse(worksheet.Cells[row, 12].Text, out decimal ewtAmount) ? ewtAmount : 0,
-                                OtherRef = worksheet.Cells[row, 13].Text != "" ? worksheet.Cells[row, 13].Text : null,
-                                Remarks = worksheet.Cells[row, 14].Text,
-                                AmountPaid = decimal.TryParse(worksheet.Cells[row, 15].Text, out decimal amountPaid) ? amountPaid : 0,
-                                IsPaid = bool.TryParse(worksheet.Cells[row, 16].Text, out bool IsPaid) ? IsPaid : default,
-                                PaidDate = DateTime.TryParse(worksheet.Cells[row, 17].Text, out DateTime paidDate) ? paidDate : default,
-                                CanceledQuantity = decimal.TryParse(worksheet.Cells[row, 18].Text, out decimal netAmountOfEWT) ? netAmountOfEWT : 0,
-                                NetAmountOfEWT = decimal.TryParse(worksheet.Cells[row, 19].Text, out decimal balance) ? balance : 0,
-                                CreatedBy = worksheet.Cells[row, 20].Text,
-                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 21].Text, out DateTime createdDate) ? createdDate : default,
-                                CancellationRemarks = worksheet.Cells[row, 22].Text != "" ? worksheet.Cells[row, 22].Text : null,
-                                ReceivedDate = DateOnly.TryParse(worksheet.Cells[row, 23].Text, out DateOnly receivedDate) ? receivedDate : default,
-                                OriginalPOId = int.TryParse(worksheet.Cells[row, 24].Text, out int OriginalPOId) ? OriginalPOId : 0,
-                                OriginalSeriesNumber = worksheet.Cells[row, 25].Text,
-                                OriginalDocumentId = int.TryParse(worksheet.Cells[row, 26].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                                OtherRef = worksheet.Cells[row, 10].Text != "" ? worksheet.Cells[row, 13].Text : null,
+                                Remarks = worksheet.Cells[row, 11].Text,
+                                AmountPaid = decimal.TryParse(worksheet.Cells[row, 12].Text, out decimal amountPaid) ? amountPaid : 0,
+                                IsPaid = bool.TryParse(worksheet.Cells[row, 13].Text, out bool IsPaid) ? IsPaid : default,
+                                PaidDate = DateTime.TryParse(worksheet.Cells[row, 14].Text, out DateTime paidDate) ? paidDate : default,
+                                CanceledQuantity = decimal.TryParse(worksheet.Cells[row, 15].Text, out decimal netAmountOfEWT) ? netAmountOfEWT : 0,
+                                CreatedBy = worksheet.Cells[row, 16].Text,
+                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 17].Text, out DateTime createdDate) ? createdDate : default,
+                                CancellationRemarks = worksheet.Cells[row, 18].Text != "" ? worksheet.Cells[row, 18].Text : null,
+                                ReceivedDate = DateOnly.TryParse(worksheet.Cells[row, 19].Text, out DateOnly receivedDate) ? receivedDate : default,
+                                OriginalPOId = int.TryParse(worksheet.Cells[row, 20].Text, out int OriginalPOId) ? OriginalPOId : 0,
+                                OriginalSeriesNumber = worksheet.Cells[row, 21].Text,
+                                OriginalDocumentId = int.TryParse(worksheet.Cells[row, 22].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
                             var getPO = await _dbContext.PurchaseOrders
                                 .Where(c => c.OriginalDocumentId == receivingReport.OriginalPOId)

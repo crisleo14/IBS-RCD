@@ -49,27 +49,11 @@ namespace Accounting_System.Models.AccountsReceivable
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]
-        public decimal VatAmount { get; set; }
-
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
-        public decimal NetAmount { get; set; }
-
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
         public decimal Total { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]
         public decimal Discount { get; set; }
-
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
-        public decimal WithholdingTaxAmount { get; set; }
-
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
-        public decimal WithholdingVatAmount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "numeric(18,2)")]

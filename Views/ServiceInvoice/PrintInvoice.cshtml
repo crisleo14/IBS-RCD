@@ -102,7 +102,7 @@
                                 <td class="text-end">
                                     @if (Model.Customer.CustomerType == "Vatable")
                                     {
-                                        <p class="mb-0">@Html.DisplayFor(model => model.NetAmount)</p>
+                                        <p class="mb-0">@((Model.Total / 1.12m).ToString("N2"))</p>
                                     }
                                 </td>
                             </tr>
@@ -114,7 +114,7 @@
                                     {
                                         if (Model.Discount > 0)
                                         {
-                                            <p class="mb-0">@Html.DisplayFor(model => model.NetAmount)</p>
+                                            <p class="mb-0">@((Model.Total - Model.Discount).ToString("N2"))</p>
                                         }
                                         else
                                         {
@@ -132,7 +132,7 @@
                                     {
                                         if (Model.Discount > 0)
                                         {
-                                            <p class="mb-0">@Html.DisplayFor(model => model.NetAmount)</p>
+                                            <p class="mb-0">@((Model.Total - Model.Discount).ToString("N2"))</p>
                                         }
                                         else
                                         {
@@ -147,7 +147,7 @@
                                 <td class="text-end">
                                     @if (Model.Customer.CustomerType == "Vatable")
                                     {
-                                        <p class="mb-0">@Html.DisplayFor(model => model.VatAmount)</p>
+                                        <p class="mb-0">@(((Model.Total / 1.12m) * 0.12m).ToString("N2"))</p>
                                     }
                                 </td>
                             </tr>

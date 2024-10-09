@@ -67,18 +67,6 @@ namespace Accounting_System.Models.AccountsPayable
         [Column(TypeName = "numeric(18,2)")]
         public decimal Amount { get; set; }
 
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
-        public decimal NetAmount { get; set; }
-
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
-        public decimal VatAmount { get; set; }
-
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
-        public decimal EwtAmount { get; set; }
-
         [Display(Name = "Other Reference")]
         [Column(TypeName = "varchar(100)")]
         public string? OtherRef { get; set; }
@@ -97,10 +85,6 @@ namespace Accounting_System.Models.AccountsPayable
 
         [Column(TypeName = "numeric(18,2)")]
         public decimal CanceledQuantity { get; set; }
-
-        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
-        public decimal NetAmountOfEWT { get; set; }
 
         [Column(TypeName = "date")]
         public DateOnly? ReceivedDate { get; set; }

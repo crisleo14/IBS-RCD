@@ -261,26 +261,6 @@ namespace Accounting_System.Controllers
                     model.ServiceInvoiceId = null;
 
                     model.CreditAmount = (decimal)(model.Quantity * -model.AdjustedPrice);
-
-                    if (existingSalesInvoice.Customer.CustomerType == "Vatable")
-                    {
-                        model.VatableSales = model.CreditAmount / 1.12m;
-                        model.VatAmount = model.CreditAmount - model.VatableSales;
-
-                        if (existingSalesInvoice.WithHoldingTaxAmount != 0)
-                        {
-                            model.WithHoldingTaxAmount = model.VatableSales * 0.01m;
-                        }
-                        if (existingSalesInvoice.WithHoldingVatAmount != 0)
-                        {
-                            model.WithHoldingVatAmount = model.VatableSales * 0.05m;
-                        }
-                        model.TotalSales = model.VatableSales + model.VatAmount;
-                    }
-                    else
-                    {
-                        model.TotalSales = model.CreditAmount;
-                    }
                 }
                 else if (model.Source == "Service Invoice")
                 {
@@ -297,23 +277,6 @@ namespace Accounting_System.Controllers
                     #endregion --Retrieval of Services
 
                     model.CreditAmount = -model.Amount ?? 0;
-
-                    if (existingSv.Customer.CustomerType == "Vatable")
-                    {
-                        model.VatableSales = model.CreditAmount / 1.12m;
-                        model.VatAmount = model.CreditAmount - model.VatableSales;
-                        model.TotalSales = model.VatableSales + model.VatAmount;
-                        model.WithHoldingTaxAmount = model.VatableSales * (services.Percent / 100m);
-
-                        if (existingSv.WithholdingVatAmount != 0)
-                        {
-                            model.WithHoldingVatAmount = model.VatableSales * 0.05m;
-                        }
-                    }
-                    else
-                    {
-                        model.TotalSales = model.CreditAmount;
-                    }
                 }
 
                 #region --Audit Trail Recording
@@ -433,27 +396,6 @@ namespace Accounting_System.Controllers
                     #endregion -- Saving Default Enries --
 
                     existingCM.CreditAmount = (decimal)(model.Quantity * -model.AdjustedPrice);
-
-                    if (existingSalesInvoice.Customer.CustomerType == "Vatable")
-                    {
-                        existingCM.VatableSales = existingCM.CreditAmount / 1.12m;
-                        existingCM.VatAmount = existingCM.CreditAmount - existingCM.VatableSales;
-
-                        if (existingSalesInvoice.WithHoldingTaxAmount != 0)
-                        {
-                            existingCM.WithHoldingTaxAmount = existingCM.VatableSales * 0.01m;
-                        }
-                        if (existingSalesInvoice.WithHoldingVatAmount != 0)
-                        {
-                            existingCM.WithHoldingVatAmount = existingCM.VatableSales * 0.05m;
-                        }
-                        existingCM.TotalSales = existingCM.VatableSales + existingCM.VatAmount;
-                    }
-                    else
-                    {
-                        existingCM.TotalSales = existingCM.CreditAmount;
-                    }
-
                 }
                 else if (model.Source == "Service Invoice")
                 {
@@ -481,24 +423,6 @@ namespace Accounting_System.Controllers
                     #endregion -- Saving Default Enries --
 
                     existingCM.CreditAmount = -model.Amount ?? 0;
-
-                    if (existingSv.Customer.CustomerType == "Vatable")
-                    {
-                        existingCM.VatableSales = existingCM.CreditAmount / 1.12m;
-                        existingCM.VatAmount = existingCM.CreditAmount - existingCM.VatableSales;
-                        existingCM.TotalSales = existingCM.VatableSales + existingCM.VatAmount;
-                        existingCM.WithHoldingTaxAmount = existingCM.VatableSales * (services.Percent / 100m);
-
-                        if (existingSv.WithholdingVatAmount != 0)
-                        {
-                            existingCM.WithHoldingVatAmount = existingCM.VatableSales * 0.05m;
-                        }
-                    }
-                    else
-                    {
-                        existingCM.TotalSales = existingCM.CreditAmount;
-                    }
-
                 }
 
                 #region --Audit Trail Recording
@@ -609,10 +533,10 @@ namespace Accounting_System.Controllers
                                 sales.Address = model.SalesInvoice.Customer.Address;
                                 sales.Description = model.SalesInvoice.Product.Name;
                                 sales.Amount = model.CreditAmount;
-                                sales.VatAmount = model.VatAmount;
-                                sales.VatableSales = model.VatableSales;
+                                sales.VatableSales = (_generalRepo.ComputeNetOfVat(Math.Abs(sales.Amount))) * -1;
+                                sales.VatAmount = (_generalRepo.ComputeVatAmount(Math.Abs(sales.VatableSales))) * -1;
                                 //sales.Discount = model.Discount;
-                                sales.NetSales = model.VatableSales;
+                                sales.NetSales = (_generalRepo.ComputeNetOfVat(Math.Abs(sales.Amount))) * -1;
                                 sales.CreatedBy = model.CreatedBy;
                                 sales.CreatedDate = model.CreatedDate;
                                 sales.DueDate = existingSI.DueDate;
@@ -629,7 +553,7 @@ namespace Accounting_System.Controllers
                                 sales.Amount = model.CreditAmount;
                                 sales.VatExemptSales = model.CreditAmount;
                                 //sales.Discount = model.Discount;
-                                sales.NetSales = model.VatableSales;
+                                sales.NetSales = (_generalRepo.ComputeNetOfVat(Math.Abs(sales.Amount))) * -1;
                                 sales.CreatedBy = model.CreatedBy;
                                 sales.CreatedDate = model.CreatedDate;
                                 sales.DueDate = existingSI.DueDate;
@@ -646,7 +570,7 @@ namespace Accounting_System.Controllers
                                 sales.Amount = model.CreditAmount;
                                 sales.ZeroRated = model.CreditAmount;
                                 //sales.Discount = model.Discount;
-                                sales.NetSales = model.VatableSales;
+                                sales.NetSales = (_generalRepo.ComputeNetOfVat(Math.Abs(sales.Amount))) * -1;
                                 sales.CreatedBy = model.CreatedBy;
                                 sales.CreatedDate = model.CreatedDate;
                                 sales.DueDate = existingSI.DueDate;
@@ -657,6 +581,29 @@ namespace Accounting_System.Controllers
                             #endregion --Sales Book Recording(SI)--
 
                             #region --General Ledger Book Recording(SI)--
+
+                            decimal withHoldingTaxAmount = 0;
+                            decimal withHoldingVatAmount = 0;
+                            decimal netOfVatAmount = 0;
+                            decimal vatAmount = 0;
+                            if (model.SalesInvoice.Customer.CustomerType == CS.VatType_Vatable)
+                            {
+                                netOfVatAmount = (_generalRepo.ComputeNetOfVat(Math.Abs(model.CreditAmount))) * -1;
+                                vatAmount = (_generalRepo.ComputeVatAmount(Math.Abs(netOfVatAmount))) * -1;
+                            }
+                            else
+                            {
+                                netOfVatAmount = model.CreditAmount; 
+                            }
+                            if (model.SalesInvoice.Customer.WithHoldingTax)
+                            {
+                                withHoldingTaxAmount = (_generalRepo.ComputeEwtAmount(Math.Abs(netOfVatAmount), 0.01m)) * -1;
+
+                            }
+                            if (model.SalesInvoice.Customer.WithHoldingVat)
+                            {
+                                withHoldingVatAmount = (_generalRepo.ComputeEwtAmount(Math.Abs(netOfVatAmount), 0.05m)) * -1;
+                            }
 
                             var ledgers = new List<GeneralLedgerBook>();
 
@@ -669,13 +616,13 @@ namespace Accounting_System.Controllers
                                     AccountNo = "1010201",
                                     AccountTitle = "AR-Trade Receivable",
                                     Debit = 0,
-                                    Credit = Math.Abs(model.CreditAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount)),
+                                    Credit = Math.Abs(model.CreditAmount - (withHoldingTaxAmount + withHoldingVatAmount)),
                                     CreatedBy = model.CreatedBy,
                                     CreatedDate = model.CreatedDate
                                 }
                             );
 
-                            if (model.WithHoldingTaxAmount < 0)
+                            if (withHoldingTaxAmount < 0)
                             {
                                 ledgers.Add(
                                     new GeneralLedgerBook
@@ -686,13 +633,13 @@ namespace Accounting_System.Controllers
                                         AccountNo = "1010202",
                                         AccountTitle = "Deferred Creditable Withholding Tax",
                                         Debit = 0,
-                                        Credit = Math.Abs(model.WithHoldingTaxAmount),
+                                        Credit = Math.Abs(withHoldingTaxAmount),
                                         CreatedBy = model.CreatedBy,
                                         CreatedDate = model.CreatedDate
                                     }
                                 );
                             }
-                            if (model.WithHoldingVatAmount < 0)
+                            if (withHoldingVatAmount < 0)
                             {
                                 ledgers.Add(
                                     new GeneralLedgerBook
@@ -703,7 +650,7 @@ namespace Accounting_System.Controllers
                                         AccountNo = "1010203",
                                         AccountTitle = "Deferred Creditable Withholding Vat",
                                         Debit = 0,
-                                        Credit = Math.Abs(model.WithHoldingVatAmount),
+                                        Credit = Math.Abs(withHoldingVatAmount),
                                         CreatedBy = model.CreatedBy,
                                         CreatedDate = model.CreatedDate
                                     }
@@ -719,9 +666,7 @@ namespace Accounting_System.Controllers
                                         Description = model.SalesInvoice.Product.Name,
                                         AccountNo = "4010101",
                                         AccountTitle = "Sales - Biodiesel",
-                                        Debit = model.VatableSales < 0
-                                                    ? Math.Abs(model.VatableSales)
-                                                    : Math.Abs(model.CreditAmount),
+                                        Debit = Math.Abs(netOfVatAmount),
                                         CreatedBy = model.CreatedBy,
                                         Credit = 0,
                                         CreatedDate = model.CreatedDate
@@ -738,9 +683,7 @@ namespace Accounting_System.Controllers
                                         Description = model.SalesInvoice.Product.Name,
                                         AccountNo = "4010102",
                                         AccountTitle = "Sales - Econogas",
-                                        Debit = model.VatableSales < 0
-                                                    ? Math.Abs(model.VatableSales)
-                                                    : Math.Abs(model.CreditAmount),
+                                        Debit = Math.Abs(netOfVatAmount),
                                         Credit = 0,
                                         CreatedBy = model.CreatedBy,
                                         CreatedDate = model.CreatedDate
@@ -757,9 +700,7 @@ namespace Accounting_System.Controllers
                                         Description = model.SalesInvoice.Product.Name,
                                         AccountNo = "4010103",
                                         AccountTitle = "Sales - Envirogas",
-                                        Debit = model.VatableSales < 0
-                                                    ? Math.Abs(model.VatableSales)
-                                                    : Math.Abs(model.CreditAmount),
+                                        Debit = Math.Abs(netOfVatAmount),
                                         Credit = 0,
                                         CreatedBy = model.CreatedBy,
                                         CreatedDate = model.CreatedDate
@@ -767,7 +708,7 @@ namespace Accounting_System.Controllers
                                 );
                             }
 
-                            if (model.VatAmount < 0)
+                            if (vatAmount < 0)
                             {
                                 ledgers.Add(
                                     new GeneralLedgerBook
@@ -777,7 +718,7 @@ namespace Accounting_System.Controllers
                                         Description = model.SalesInvoice.Product.Name,
                                         AccountNo = "2010301",
                                         AccountTitle = "Vat Output",
-                                        Debit = Math.Abs(model.VatAmount),
+                                        Debit = Math.Abs(vatAmount),
                                         Credit = 0,
                                         CreatedBy = model.CreatedBy,
                                         CreatedDate = model.CreatedDate
@@ -908,7 +849,29 @@ namespace Accounting_System.Controllers
 
                             #endregion --Sales Book Recording(SV)--
 
-                            #region --General Ledger Book Recording(SOA)--
+                            #region --General Ledger Book Recording(SV)--
+
+                            decimal withHoldingTaxAmount = 0;
+                            decimal withHoldingVatAmount = 0;
+                            decimal netOfVatAmount = 0;
+                            decimal vatAmount = 0;
+                            if (model.ServiceInvoice.Customer.CustomerType == CS.VatType_Vatable)
+                            {
+                                netOfVatAmount = (_generalRepo.ComputeNetOfVat(Math.Abs(model.CreditAmount))) * -1;
+                                vatAmount = (_generalRepo.ComputeVatAmount(Math.Abs(netOfVatAmount))) * -1;
+                            }
+                            else
+                            {
+                                netOfVatAmount = model.CreditAmount;
+                            }
+                            if (model.ServiceInvoice.Customer.WithHoldingTax)
+                            {
+                                withHoldingTaxAmount = (_generalRepo.ComputeEwtAmount(Math.Abs(netOfVatAmount), 0.01m)) * -1;
+                            }
+                            if (model.ServiceInvoice.Customer.WithHoldingVat)
+                            {
+                                withHoldingVatAmount = (_generalRepo.ComputeEwtAmount(Math.Abs(netOfVatAmount), 0.05m)) * -1;
+                            }
 
                             var ledgers = new List<GeneralLedgerBook>();
 
@@ -921,12 +884,12 @@ namespace Accounting_System.Controllers
                                         AccountNo = "1010204",
                                         AccountTitle = "AR-Non Trade Receivable",
                                         Debit = 0,
-                                        Credit = Math.Abs(model.CreditAmount - (model.WithHoldingTaxAmount + model.WithHoldingVatAmount)),
+                                        Credit = Math.Abs(model.CreditAmount - (withHoldingTaxAmount + withHoldingVatAmount)),
                                         CreatedBy = model.CreatedBy,
                                         CreatedDate = model.CreatedDate
                                     }
                                 );
-                            if (model.WithHoldingTaxAmount < 0)
+                            if (withHoldingTaxAmount < 0)
                             {
                                 ledgers.Add(
                                     new GeneralLedgerBook
@@ -937,13 +900,13 @@ namespace Accounting_System.Controllers
                                         AccountNo = "1010202",
                                         AccountTitle = "Deferred Creditable Withholding Tax",
                                         Debit = 0,
-                                        Credit = Math.Abs(model.WithHoldingTaxAmount),
+                                        Credit = Math.Abs(withHoldingTaxAmount),
                                         CreatedBy = model.CreatedBy,
                                         CreatedDate = model.CreatedDate
                                     }
                                 );
                             }
-                            if (model.WithHoldingVatAmount < 0)
+                            if (withHoldingVatAmount < 0)
                             {
                                 ledgers.Add(
                                     new GeneralLedgerBook
@@ -954,7 +917,7 @@ namespace Accounting_System.Controllers
                                         AccountNo = "1010203",
                                         AccountTitle = "Deferred Creditable Withholding Vat",
                                         Debit = 0,
-                                        Credit = Math.Abs(model.WithHoldingVatAmount),
+                                        Credit = Math.Abs(withHoldingVatAmount),
                                         CreatedBy = model.CreatedBy,
                                         CreatedDate = model.CreatedDate
                                     }
@@ -974,7 +937,7 @@ namespace Accounting_System.Controllers
                                 CreatedDate = model.CreatedDate
                             });
 
-                            if (model.VatAmount < 0)
+                            if (vatAmount < 0)
                             {
                                 ledgers.Add(
                                     new GeneralLedgerBook
@@ -984,7 +947,7 @@ namespace Accounting_System.Controllers
                                         Description = model.ServiceInvoice.Service.Name,
                                         AccountNo = "2010304",
                                         AccountTitle = "Deferred Vat Output",
-                                        Debit = Math.Abs(model.VatAmount),
+                                        Debit = Math.Abs(vatAmount),
                                         Credit = 0,
                                         CreatedBy = model.CreatedBy,
                                         CreatedDate = model.CreatedDate
@@ -999,7 +962,7 @@ namespace Accounting_System.Controllers
 
                             await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
 
-                            #endregion --General Ledger Book Recording(SOA)--
+                            #endregion --General Ledger Book Recording(SV)--
                         }
 
                         #region --Audit Trail Recording
@@ -1147,27 +1110,22 @@ namespace Accounting_System.Controllers
             worksheet.Cells["A1"].Value = "TransactionDate";
             worksheet.Cells["B1"].Value = "DebitAmount";
             worksheet.Cells["C1"].Value = "Description";
-            worksheet.Cells["D1"].Value = "VatableSales";
-            worksheet.Cells["E1"].Value = "VatAmount";
-            worksheet.Cells["F1"].Value = "TotalSales";
-            worksheet.Cells["G1"].Value = "AdjustedPrice";
-            worksheet.Cells["H1"].Value = "Quantity";
-            worksheet.Cells["I1"].Value = "WithholdingVatAmount";
-            worksheet.Cells["J1"].Value = "WithholdingTaxAmount";
-            worksheet.Cells["K1"].Value = "Source";
-            worksheet.Cells["L1"].Value = "Remarks";
-            worksheet.Cells["M1"].Value = "Period";
-            worksheet.Cells["N1"].Value = "Amount";
-            worksheet.Cells["O1"].Value = "CurrentAndPreviousAmount";
-            worksheet.Cells["P1"].Value = "UnearnedAmount";
-            worksheet.Cells["Q1"].Value = "ServicesId";
-            worksheet.Cells["R1"].Value = "CreatedBy";
-            worksheet.Cells["S1"].Value = "CreatedDate";
-            worksheet.Cells["T1"].Value = "CancellationRemarks";
-            worksheet.Cells["U1"].Value = "OriginalSalesInvoiceId";
-            worksheet.Cells["V1"].Value = "OriginalSeriesNumber";
-            worksheet.Cells["W1"].Value = "OriginalServiceInvoiceId";
-            worksheet.Cells["X1"].Value = "OriginalDocumentId";
+            worksheet.Cells["D1"].Value = "AdjustedPrice";
+            worksheet.Cells["E1"].Value = "Quantity";
+            worksheet.Cells["F1"].Value = "Source";
+            worksheet.Cells["G1"].Value = "Remarks";
+            worksheet.Cells["H1"].Value = "Period";
+            worksheet.Cells["I1"].Value = "Amount";
+            worksheet.Cells["J1"].Value = "CurrentAndPreviousAmount";
+            worksheet.Cells["K1"].Value = "UnearnedAmount";
+            worksheet.Cells["L1"].Value = "ServicesId";
+            worksheet.Cells["M1"].Value = "CreatedBy";
+            worksheet.Cells["N1"].Value = "CreatedDate";
+            worksheet.Cells["O1"].Value = "CancellationRemarks";
+            worksheet.Cells["P1"].Value = "OriginalSalesInvoiceId";
+            worksheet.Cells["Q1"].Value = "OriginalSeriesNumber";
+            worksheet.Cells["R1"].Value = "OriginalServiceInvoiceId";
+            worksheet.Cells["S1"].Value = "OriginalDocumentId";
 
             int row = 2;
 
@@ -1176,13 +1134,8 @@ namespace Accounting_System.Controllers
                 worksheet.Cells[row, 1].Value = item.TransactionDate.ToString("yyyy-MM-dd");
                 worksheet.Cells[row, 2].Value = item.CreditAmount;
                 worksheet.Cells[row, 3].Value = item.Description;
-                worksheet.Cells[row, 4].Value = item.VatableSales;
-                worksheet.Cells[row, 5].Value = item.VatAmount;
-                worksheet.Cells[row, 6].Value = item.TotalSales;
                 worksheet.Cells[row, 7].Value = item.AdjustedPrice;
                 worksheet.Cells[row, 8].Value = item.Quantity;
-                worksheet.Cells[row, 9].Value = item.WithHoldingVatAmount;
-                worksheet.Cells[row, 10].Value = item.WithHoldingTaxAmount;
                 worksheet.Cells[row, 11].Value = item.Source;
                 worksheet.Cells[row, 12].Value = item.Remarks;
                 worksheet.Cells[row, 13].Value = item.Period;
@@ -1252,27 +1205,22 @@ namespace Accounting_System.Controllers
                                 TransactionDate = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly transactionDate) ? transactionDate : default,
                                 CreditAmount = decimal.TryParse(worksheet.Cells[row, 2].Text, out decimal debitAmount) ? debitAmount : 0,
                                 Description = worksheet.Cells[row, 3].Text,
-                                VatableSales = decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal vatableSales) ? vatableSales : 0,
-                                VatAmount = decimal.TryParse(worksheet.Cells[row, 5].Text, out decimal vatAmount) ? vatAmount : 0,
-                                TotalSales = decimal.TryParse(worksheet.Cells[row, 6].Text, out decimal totalSales) ? totalSales : 0,
-                                AdjustedPrice = decimal.TryParse(worksheet.Cells[row, 7].Text, out decimal adjustedPrice) ? adjustedPrice : 0,
-                                Quantity = decimal.TryParse(worksheet.Cells[row, 8].Text, out decimal quantity) ? quantity : 0,
-                                WithHoldingVatAmount = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal withHoldingVatAmount) ? withHoldingVatAmount : 0,
-                                WithHoldingTaxAmount = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal withHoldingTaxAmount) ? withHoldingTaxAmount : 0,
-                                Source = worksheet.Cells[row, 11].Text,
-                                Remarks = worksheet.Cells[row, 12].Text,
-                                Period = DateOnly.TryParse(worksheet.Cells[row, 13].Text, out DateOnly period) ? period : default,
-                                Amount = decimal.TryParse(worksheet.Cells[row, 14].Text, out decimal amount) ? amount : 0,
-                                CurrentAndPreviousAmount = decimal.TryParse(worksheet.Cells[row, 15].Text, out decimal currentAndPreviousAmount) ? currentAndPreviousAmount : 0,
-                                UnearnedAmount = decimal.TryParse(worksheet.Cells[row, 16].Text, out decimal unearnedAmount) ? unearnedAmount : 0,
-                                ServicesId = int.TryParse(worksheet.Cells[row, 17].Text, out int servicesId) ? servicesId : 0,
-                                CreatedBy = worksheet.Cells[row, 18].Text,
-                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 19].Text, out DateTime createdDate) ? createdDate : default,
-                                CancellationRemarks = worksheet.Cells[row, 20].Text,
-                                OriginalSalesInvoiceId = int.TryParse(worksheet.Cells[row, 21].Text, out int originalSalesInvoiceId) ? originalSalesInvoiceId : 0,
-                                OriginalSeriesNumber = worksheet.Cells[row, 22].Text,
-                                OriginalServiceInvoiceId = int.TryParse(worksheet.Cells[row, 23].Text, out int originalServiceInvoiceId) ? originalServiceInvoiceId : 0,
-                                OriginalDocumentId = int.TryParse(worksheet.Cells[row, 24].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                                AdjustedPrice = decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal adjustedPrice) ? adjustedPrice : 0,
+                                Quantity = decimal.TryParse(worksheet.Cells[row, 5].Text, out decimal quantity) ? quantity : 0,
+                                Source = worksheet.Cells[row, 6].Text,
+                                Remarks = worksheet.Cells[row, 7].Text,
+                                Period = DateOnly.TryParse(worksheet.Cells[row, 8].Text, out DateOnly period) ? period : default,
+                                Amount = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amount) ? amount : 0,
+                                CurrentAndPreviousAmount = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal currentAndPreviousAmount) ? currentAndPreviousAmount : 0,
+                                UnearnedAmount = decimal.TryParse(worksheet.Cells[row, 11].Text, out decimal unearnedAmount) ? unearnedAmount : 0,
+                                ServicesId = int.TryParse(worksheet.Cells[row, 12].Text, out int servicesId) ? servicesId : 0,
+                                CreatedBy = worksheet.Cells[row, 13].Text,
+                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 14].Text, out DateTime createdDate) ? createdDate : default,
+                                CancellationRemarks = worksheet.Cells[row, 15].Text,
+                                OriginalSalesInvoiceId = int.TryParse(worksheet.Cells[row, 16].Text, out int originalSalesInvoiceId) ? originalSalesInvoiceId : 0,
+                                OriginalSeriesNumber = worksheet.Cells[row, 17].Text,
+                                OriginalServiceInvoiceId = int.TryParse(worksheet.Cells[row, 18].Text, out int originalServiceInvoiceId) ? originalServiceInvoiceId : 0,
+                                OriginalDocumentId = int.TryParse(worksheet.Cells[row, 19].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
 
                             creditMemo.SalesInvoiceId = await _dbContext.SalesInvoices

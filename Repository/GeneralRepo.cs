@@ -10,6 +10,8 @@ namespace Accounting_System.Repository
     {
         private readonly ApplicationDbContext _dbContext;
 
+        private const decimal VatRate = 0.12m;
+
         public GeneralRepo(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
@@ -48,8 +50,8 @@ namespace Accounting_System.Repository
         {
             try
             {
-                decimal totalDebit = ledgers.Sum(j => j.Debit);
-                decimal totalCredit = ledgers.Sum(j => j.Credit);
+                decimal totalDebit = Math.Round(ledgers.Sum(j => j.Debit), 2);
+                decimal totalCredit = Math.Round(ledgers.Sum(j => j.Credit), 2);
 
                 return totalDebit == totalCredit;
             }
@@ -119,6 +121,56 @@ namespace Accounting_System.Repository
                     Text = s.Number + " " + s.Name
                 })
                 .ToListAsync(cancellationToken);
+        }
+
+        public decimal ComputeNetOfVat(decimal grossAmount)
+        {
+            if (grossAmount <= 0)
+            {
+                throw new ArgumentException("Gross amount cannot be negative or zero.");
+            }
+
+            return grossAmount / (1 + VatRate);
+        }
+
+        public decimal ComputeVatAmount(decimal netOfVatAmount)
+        {
+            if (netOfVatAmount <= 0)
+            {
+                throw new ArgumentException("Net of vat amount cannot be negative or zero.");
+            }
+
+            return netOfVatAmount * VatRate;
+        }
+
+        public decimal ComputeEwtAmount(decimal netOfVatAmount, decimal percent)
+        {
+            if (netOfVatAmount <= 0)
+            {
+                throw new ArgumentException("Net of vat amount cannot be negative or zero.");
+            }
+
+            if (percent <= 0)
+            {
+                throw new ArgumentException("Ewt percent cannot be negative or zero.");
+            }
+
+            return netOfVatAmount * percent;
+        }
+
+        public decimal ComputeNetOfEwt(decimal grossAmount, decimal ewtAmount)
+        {
+            if (grossAmount <= 0)
+            {
+                throw new ArgumentException("Gross amount cannot be negative or zero.");
+            }
+
+            if (ewtAmount <= 0)
+            {
+                throw new ArgumentException("Ewt amount cannot be negative or zero.");
+            }
+
+            return grossAmount - ewtAmount;
         }
     }
 }

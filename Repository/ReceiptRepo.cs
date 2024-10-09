@@ -100,16 +100,18 @@ namespace Accounting_System.Repository
 
             if (si != null)
             {
+                decimal netDiscount = si.Amount - si.Discount;
+
                 var total = paidAmount + offsetAmount;
                 si.AmountPaid += total;
-                si.Balance = si.NetDiscount - si.AmountPaid;
+                si.Balance = netDiscount - si.AmountPaid;
 
-                if (si.Balance == 0 && si.AmountPaid == si.NetDiscount)
+                if (si.Balance == 0 && si.AmountPaid == netDiscount)
                 {
                     si.IsPaid = true;
                     si.Status = "Paid";
                 }
-                else if (si.AmountPaid > si.NetDiscount)
+                else if (si.AmountPaid > netDiscount)
                 {
                     si.IsPaid = true;
                     si.Status = "OverPaid";
@@ -129,6 +131,8 @@ namespace Accounting_System.Repository
                 var salesInvoice = new SalesInvoice();
                 for (int i = 0; i < siNo.Length; i++)
                 {
+                    decimal netDiscount = salesInvoice.Amount - salesInvoice.Discount;
+
                     var siValue = siNo[i];
                     salesInvoice = await _dbContext.SalesInvoices
                                 .FirstOrDefaultAsync(p => p.SINo == siValue);
@@ -139,14 +143,14 @@ namespace Accounting_System.Repository
                     {
                         salesInvoice.AmountPaid += salesInvoice.Amount >= amountPaid ? paidAmount[i] + offsetAmount : paidAmount[i];
 
-                        salesInvoice.Balance = salesInvoice.NetDiscount - salesInvoice.AmountPaid;
+                        salesInvoice.Balance = netDiscount - salesInvoice.AmountPaid;
 
-                        if (salesInvoice.Balance == 0 && salesInvoice.AmountPaid == salesInvoice.NetDiscount)
+                        if (salesInvoice.Balance == 0 && salesInvoice.AmountPaid == netDiscount)
                         {
                             salesInvoice.IsPaid = true;
                             salesInvoice.Status = "Paid";
                         }
-                        else if (salesInvoice.AmountPaid > salesInvoice.NetDiscount)
+                        else if (salesInvoice.AmountPaid > netDiscount)
                         {
                             salesInvoice.IsPaid = true;
                             salesInvoice.Status = "OverPaid";
@@ -178,9 +182,11 @@ namespace Accounting_System.Repository
 
             if (si != null)
             {
+                decimal netDiscount = si.Amount - si.Discount;
+
                 var total = paidAmount + offsetAmount;
                 si.AmountPaid -= total;
-                si.Balance -= si.NetDiscount - total;
+                si.Balance -= netDiscount - total;
 
                 if (si.IsPaid == true && si.Status == "Paid" || si.IsPaid == true && si.Status == "OverPaid")
                 {

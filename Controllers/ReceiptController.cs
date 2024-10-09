@@ -844,32 +844,43 @@ namespace Accounting_System.Controllers
             {
                 var si = await _dbContext
                 .SalesInvoices
+                .Include(c => c.Customer)
                 .FirstOrDefaultAsync(si => si.Id == invoiceNo, cancellationToken);
+
+                decimal netDiscount = si.Amount - si.Discount;
+                decimal netOfVatAmount = si.Customer.CustomerType == CS.VatType_Vatable ? _generalRepo.ComputeNetOfVat(netDiscount) : netDiscount;
+                decimal withHoldingTaxAmount = si.Customer.WithHoldingTax ? _generalRepo.ComputeEwtAmount(netOfVatAmount, 0.01m) : 0;
+                decimal withHoldingVatAmount = si.Customer.WithHoldingVat ? _generalRepo.ComputeEwtAmount(netOfVatAmount, 0.05m) : 0;
 
                 return Json(new
                 {
-                    Amount = si.NetDiscount.ToString("N2"),
+                    Amount = netDiscount.ToString("N2"),
                     AmountPaid = si.AmountPaid.ToString("N2"),
                     Balance = si.Balance.ToString("N2"),
-                    Ewt = si.WithHoldingTaxAmount.ToString("N2"),
-                    Wvat = si.WithHoldingVatAmount.ToString("N2"),
-                    Total = (si.NetDiscount - (si.WithHoldingTaxAmount + si.WithHoldingVatAmount)).ToString("N2")
+                    Ewt = withHoldingTaxAmount.ToString("N2"),
+                    Wvat = withHoldingVatAmount.ToString("N2"),
+                    Total = (netDiscount - (withHoldingTaxAmount + withHoldingVatAmount)).ToString("N2")
                 });
             }
             else if (isServices && !isSales)
             {
                 var sv = await _dbContext
                 .ServiceInvoices
+                .Include(c => c.Customer)
                 .FirstOrDefaultAsync(si => si.Id == invoiceNo, cancellationToken);
+
+                decimal netOfVatAmount = sv.Customer.CustomerType == CS.VatType_Vatable ? _generalRepo.ComputeNetOfVat(sv.Amount) - sv.Discount : sv.Amount - sv.Discount;
+                decimal withHoldingTaxAmount = sv.Customer.WithHoldingTax ? _generalRepo.ComputeEwtAmount(netOfVatAmount, 0.01m) : 0;
+                decimal withHoldingVatAmount = sv.Customer.WithHoldingVat ? _generalRepo.ComputeEwtAmount(netOfVatAmount, 0.05m) : 0;
 
                 return Json(new
                 {
                     Amount = sv.Total.ToString("N2"),
                     AmountPaid = sv.AmountPaid.ToString("N2"),
                     Balance = sv.Balance.ToString("N2"),
-                    Ewt = sv.WithholdingTaxAmount.ToString("N2"),
-                    Wvat = sv.WithholdingVatAmount.ToString("N2"),
-                    Total = (sv.Total - (sv.WithholdingTaxAmount + sv.WithholdingVatAmount)).ToString("N2")
+                    Ewt = withHoldingTaxAmount.ToString("N2"),
+                    Wvat = withHoldingVatAmount.ToString("N2"),
+                    Total = (sv.Total - (withHoldingTaxAmount + withHoldingVatAmount)).ToString("N2")
                 });
             }
             return Json(null);
@@ -878,15 +889,16 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> MultipleInvoiceBalance(int siNo, CancellationToken cancellationToken)
         {
             var salesInvoice = await _dbContext.SalesInvoices
+                .Include(c => c.Customer)
                 .FirstOrDefaultAsync(si => si.Id == siNo, cancellationToken);
             if (salesInvoice != null)
             {
                 var amount = salesInvoice.Amount;
                 var amountPaid = salesInvoice.AmountPaid;
-                var netAmount = salesInvoice.NetDiscount;
-                var vatAmount = salesInvoice.VatAmount;
-                var ewtAmount = salesInvoice.WithHoldingTaxAmount;
-                var wvatAmount = salesInvoice.WithHoldingVatAmount;
+                var netAmount = salesInvoice.Amount - salesInvoice.Discount;
+                var vatAmount = salesInvoice.Customer.CustomerType == CS.VatType_Vatable ? _generalRepo.ComputeVatAmount((netAmount / 1.12m) * 0.12m) : 0;
+                var ewtAmount = salesInvoice.Customer.WithHoldingTax ? _generalRepo.ComputeEwtAmount((netAmount / 1.12m), 0.01m) : 0;
+                var wvatAmount = salesInvoice.Customer.WithHoldingVat ? _generalRepo.ComputeEwtAmount((netAmount / 1.12m), 0.05m) : 0;
                 var balance = amount - amountPaid;
 
                 return Json(new
@@ -912,14 +924,19 @@ namespace Accounting_System.Controllers
                 .SalesInvoices
                 .FirstOrDefaultAsync(si => siNo.Contains(si.Id), cancellationToken);
 
+                decimal netDiscount = si.Amount - si.Discount;
+                decimal netOfVatAmount = si.Customer.CustomerType == CS.VatType_Vatable ? _generalRepo.ComputeNetOfVat(netDiscount) : netDiscount;
+                decimal withHoldingTaxAmount = si.Customer.WithHoldingTax ? _generalRepo.ComputeEwtAmount(netOfVatAmount, 0.01m) : 0;
+                decimal withHoldingVatAmount = si.Customer.WithHoldingVat ? _generalRepo.ComputeEwtAmount(netOfVatAmount, 0.05m) : 0;
+
                 return Json(new
                 {
-                    Amount = si.Amount,
+                    Amount = netDiscount,
                     AmountPaid = si.AmountPaid,
                     Balance = si.Balance,
-                    WithholdingTax = si.WithHoldingTaxAmount,
-                    WithholdingVat = si.WithHoldingVatAmount,
-                    Total = si.NetDiscount - (si.WithHoldingTaxAmount + si.WithHoldingVatAmount)
+                    WithholdingTax = withHoldingTaxAmount,
+                    WithholdingVat = withHoldingVatAmount,
+                    Total = netDiscount - (withHoldingTaxAmount + withHoldingVatAmount)
                 });
             }
             return Json(null);

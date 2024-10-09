@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241008081450_RemoveComputedAmountInDebitMemoTable")]
+    partial class RemoveComputedAmountInDebitMemoTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -479,6 +482,10 @@ namespace Accounting_System.Migrations
                         .HasColumnType("date")
                         .HasColumnName("due_date");
 
+                    b.Property<decimal>("EwtAmount")
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ewt_amount");
+
                     b.Property<decimal>("GainOrLoss")
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("gain_or_loss");
@@ -502,6 +509,14 @@ namespace Accounting_System.Migrations
                     b.Property<bool>("IsVoided")
                         .HasColumnType("boolean")
                         .HasColumnName("is_voided");
+
+                    b.Property<decimal>("NetAmount")
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("net_amount");
+
+                    b.Property<decimal>("NetAmountOfEWT")
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("net_amount_of_ewt");
 
                     b.Property<int>("OriginalDocumentId")
                         .HasColumnType("integer")
@@ -577,6 +592,10 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(100)")
                         .HasColumnName("truck_or_vessels");
+
+                    b.Property<decimal>("VatAmount")
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("vat_amount");
 
                     b.Property<string>("VoidedBy")
                         .HasColumnType("varchar(50)")
@@ -1391,6 +1410,10 @@ namespace Accounting_System.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_voided");
 
+                    b.Property<decimal>("NetAmount")
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("net_amount");
+
                     b.Property<int?>("OriginalCustomerId")
                         .HasColumnType("integer")
                         .HasColumnName("original_customer_id");
@@ -1449,6 +1472,10 @@ namespace Accounting_System.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("unearned_amount");
 
+                    b.Property<decimal>("VatAmount")
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("vat_amount");
+
                     b.Property<string>("VoidedBy")
                         .HasColumnType("varchar(50)")
                         .HasColumnName("voided_by");
@@ -1456,6 +1483,14 @@ namespace Accounting_System.Migrations
                     b.Property<DateTime?>("VoidedDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("voided_date");
+
+                    b.Property<decimal>("WithholdingTaxAmount")
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("withholding_tax_amount");
+
+                    b.Property<decimal>("WithholdingVatAmount")
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("withholding_vat_amount");
 
                     b.HasKey("Id")
                         .HasName("pk_service_invoices");
@@ -2301,7 +2336,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("Credit")
-                        .HasColumnType("numeric(18,4)")
+                        .HasColumnType("numeric(18,2)")
                         .HasColumnName("credit");
 
                     b.Property<DateOnly>("Date")
@@ -2309,7 +2344,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("date");
 
                     b.Property<decimal>("Debit")
-                        .HasColumnType("numeric(18,4)")
+                        .HasColumnType("numeric(18,2)")
                         .HasColumnName("debit");
 
                     b.Property<string>("Description")
