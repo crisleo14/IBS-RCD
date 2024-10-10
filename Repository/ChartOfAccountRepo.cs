@@ -1,4 +1,6 @@
 ﻿using Accounting_System.Data;
+using Accounting_System.Models;
+using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -93,6 +95,13 @@ namespace Accounting_System.Repository
 
             // Return the modified accounts
             return accountDictionary.Values.Where(x => x.Level == 1);
+        }
+
+        public async Task<List<ChartOfAccount>> GetChartOfAccountAsync(CancellationToken cancellationToken = default)
+        {
+            return await _dbContext
+                .ChartOfAccounts
+                .ToListAsync(cancellationToken);
         }
     }
 }

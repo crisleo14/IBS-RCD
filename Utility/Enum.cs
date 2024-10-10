@@ -15,6 +15,7 @@
         Product,
         Supplier,
         Service,
-        BankAccount
+        BankAccount,
+        ChartOfAccount
     }
 }
