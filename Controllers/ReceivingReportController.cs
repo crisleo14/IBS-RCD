@@ -753,19 +753,19 @@ namespace Accounting_System.Controllers
                 worksheet.Cells[row, 7].Value = item.QuantityReceived;
                 worksheet.Cells[row, 8].Value = item.GainOrLoss;
                 worksheet.Cells[row, 9].Value = item.Amount;
-                worksheet.Cells[row, 13].Value = item.OtherRef;
-                worksheet.Cells[row, 14].Value = item.Remarks;
-                worksheet.Cells[row, 15].Value = item.AmountPaid;
-                worksheet.Cells[row, 16].Value = item.IsPaid;
-                worksheet.Cells[row, 17].Value = item.PaidDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                worksheet.Cells[row, 18].Value = item.CanceledQuantity;
-                worksheet.Cells[row, 20].Value = item.CreatedBy;
-                worksheet.Cells[row, 21].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                worksheet.Cells[row, 22].Value = item.CancellationRemarks;
-                worksheet.Cells[row, 23].Value = item.ReceivedDate?.ToString("yyyy-MM-dd");
-                worksheet.Cells[row, 24].Value = item.POId;
-                worksheet.Cells[row, 25].Value = item.RRNo;
-                worksheet.Cells[row, 26].Value = item.Id;
+                worksheet.Cells[row, 10].Value = item.OtherRef;
+                worksheet.Cells[row, 11].Value = item.Remarks;
+                worksheet.Cells[row, 12].Value = item.AmountPaid;
+                worksheet.Cells[row, 13].Value = item.IsPaid;
+                worksheet.Cells[row, 14].Value = item.PaidDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                worksheet.Cells[row, 15].Value = item.CanceledQuantity;
+                worksheet.Cells[row, 16].Value = item.CreatedBy;
+                worksheet.Cells[row, 17].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                worksheet.Cells[row, 18].Value = item.CancellationRemarks;
+                worksheet.Cells[row, 19].Value = item.ReceivedDate?.ToString("yyyy-MM-dd");
+                worksheet.Cells[row, 20].Value = item.POId;
+                worksheet.Cells[row, 21].Value = item.RRNo;
+                worksheet.Cells[row, 22].Value = item.Id;
 
                 row++;
             }

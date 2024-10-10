@@ -1114,22 +1114,22 @@ namespace Accounting_System.Controllers
                 worksheet.Cells[row, 1].Value = item.TransactionDate.ToString("yyyy-MM-dd");
                 worksheet.Cells[row, 2].Value = item.DebitAmount;
                 worksheet.Cells[row, 3].Value = item.Description;
-                worksheet.Cells[row, 7].Value = item.AdjustedPrice;
-                worksheet.Cells[row, 8].Value = item.Quantity;
-                worksheet.Cells[row, 11].Value = item.Source;
-                worksheet.Cells[row, 12].Value = item.Remarks;
-                worksheet.Cells[row, 13].Value = item.Period;
-                worksheet.Cells[row, 14].Value = item.Amount;
-                worksheet.Cells[row, 15].Value = item.CurrentAndPreviousAmount;
-                worksheet.Cells[row, 16].Value = item.UnearnedAmount;
-                worksheet.Cells[row, 17].Value = item.ServicesId;
-                worksheet.Cells[row, 18].Value = item.CreatedBy;
-                worksheet.Cells[row, 19].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                worksheet.Cells[row, 20].Value = item.CancellationRemarks;
-                worksheet.Cells[row, 21].Value = item.SalesInvoiceId;
-                worksheet.Cells[row, 22].Value = item.DMNo;
-                worksheet.Cells[row, 23].Value = item.ServiceInvoiceId;
-                worksheet.Cells[row, 24].Value = item.Id;
+                worksheet.Cells[row, 4].Value = item.AdjustedPrice;
+                worksheet.Cells[row, 5].Value = item.Quantity;
+                worksheet.Cells[row, 6].Value = item.Source;
+                worksheet.Cells[row, 7].Value = item.Remarks;
+                worksheet.Cells[row, 8].Value = item.Period;
+                worksheet.Cells[row, 9].Value = item.Amount;
+                worksheet.Cells[row, 10].Value = item.CurrentAndPreviousAmount;
+                worksheet.Cells[row, 11].Value = item.UnearnedAmount;
+                worksheet.Cells[row, 12].Value = item.ServicesId;
+                worksheet.Cells[row, 13].Value = item.CreatedBy;
+                worksheet.Cells[row, 14].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                worksheet.Cells[row, 15].Value = item.CancellationRemarks;
+                worksheet.Cells[row, 16].Value = item.SalesInvoiceId;
+                worksheet.Cells[row, 17].Value = item.DMNo;
+                worksheet.Cells[row, 18].Value = item.ServiceInvoiceId;
+                worksheet.Cells[row, 19].Value = item.Id;
 
                 row++;
             }
