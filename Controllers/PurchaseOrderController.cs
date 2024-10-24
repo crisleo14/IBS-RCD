@@ -609,9 +609,10 @@ namespace Accounting_System.Controllers
             worksheet.Cells["M1"].Value = "IsClosed";
             worksheet.Cells["N1"].Value = "CancellationRemarks";
             worksheet.Cells["O1"].Value = "OriginalProductId";
-            worksheet.Cells["P1"].Value = "OriginalSeriesNumber";
+            worksheet.Cells["P1"].Value = "OriginalJVNo";
             worksheet.Cells["Q1"].Value = "OriginalSupplierId";
             worksheet.Cells["R1"].Value = "OriginalDocumentId";
+            worksheet.Cells["S1"].Value = "OriginalSeriesNumber";
 
             int row = 2;
 
@@ -632,9 +633,10 @@ namespace Accounting_System.Controllers
                 worksheet.Cells[row, 13].Value = item.IsClosed;
                 worksheet.Cells[row, 14].Value = item.CancellationRemarks;
                 worksheet.Cells[row, 15].Value = item.ProductId;
-                worksheet.Cells[row, 16].Value = item.SeriesNumber;
+                worksheet.Cells[row, 16].Value = item.PONo;
                 worksheet.Cells[row, 17].Value = item.SupplierId;
                 worksheet.Cells[row, 18].Value = item.Id;
+                worksheet.Cells[row, 19].Value = item.SeriesNumber;
 
                 row++;
             }
@@ -685,8 +687,8 @@ namespace Accounting_System.Controllers
                         {
                             var purchaseOrder = new PurchaseOrder
                             {
-                                PONo = await _purchaseOrderRepo.GeneratePONo(),
-                                SeriesNumber = await _purchaseOrderRepo.GetLastSeriesNumber(),
+                                PONo = worksheet.Cells[row, 16].Text,
+                                SeriesNumber = int.TryParse(worksheet.Cells[row, 19].Text, out int seriesNumber) ? seriesNumber : 0,
                                 Date = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
                                 Terms = worksheet.Cells[row, 2].Text,
                                 Quantity = decimal.TryParse(worksheet.Cells[row, 3].Text, out decimal quantity) ? quantity : 0,

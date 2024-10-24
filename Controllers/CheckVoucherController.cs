@@ -2127,9 +2127,10 @@ namespace Accounting_System.Controllers
                     worksheet.Cells["Z1"].Value = "IsPaid";
                     worksheet.Cells["AA1"].Value = "CancellationRemarks";
                     worksheet.Cells["AB1"].Value = "OriginalBankId";
-                    worksheet.Cells["AC1"].Value = "OriginalSeriesNumber";
+                    worksheet.Cells["AC1"].Value = "OriginalCVNo";
                     worksheet.Cells["AD1"].Value = "OriginalSupplierId";
                     worksheet.Cells["AE1"].Value = "OriginalDocumentId";
+                    worksheet.Cells["AF1"].Value = "OriginalSeriesNumber";
 
                     worksheet2.Cells["A1"].Value = "AccountNo";
                     worksheet2.Cells["B1"].Value = "AccountName";
@@ -2189,6 +2190,7 @@ namespace Accounting_System.Controllers
                         worksheet.Cells[row, 29].Value = item.CVNo;
                         worksheet.Cells[row, 30].Value = item.SupplierId;
                         worksheet.Cells[row, 31].Value = item.Id;
+                        worksheet.Cells[row, 32].Value = item.SeriesNumber;
 
                         row++;
                     }
@@ -2278,8 +2280,8 @@ namespace Accounting_System.Controllers
                         {
                             var checkVoucherHeader = new CheckVoucherHeader
                             {
-                                CVNo = await _checkVoucherRepo.GenerateCVNo(),
-                                SeriesNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(),
+                                CVNo = worksheet.Cells[row, 29].Text,
+                                SeriesNumber = int.TryParse(worksheet.Cells[row, 32].Text, out int seriesNumber) ? seriesNumber : 0,
                                 Date = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly date) ? date : default,
                                 RRNo = worksheet.Cells[row, 2].Text.Split(',').Select(rrNo => rrNo.Trim()).ToArray(),
                                 SINo = worksheet.Cells[row, 3].Text.Split(',').Select(siNo => siNo.Trim()).ToArray(),

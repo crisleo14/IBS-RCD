@@ -1124,9 +1124,10 @@ namespace Accounting_System.Controllers
             worksheet.Cells["N1"].Value = "CreatedDate";
             worksheet.Cells["O1"].Value = "CancellationRemarks";
             worksheet.Cells["P1"].Value = "OriginalSalesInvoiceId";
-            worksheet.Cells["Q1"].Value = "OriginalSeriesNumber";
+            worksheet.Cells["Q1"].Value = "OriginalCMNo";
             worksheet.Cells["R1"].Value = "OriginalServiceInvoiceId";
             worksheet.Cells["S1"].Value = "OriginalDocumentId";
+            worksheet.Cells["T1"].Value = "OriginalSeriesNumber";
 
             int row = 2;
 
@@ -1151,6 +1152,7 @@ namespace Accounting_System.Controllers
                 worksheet.Cells[row, 17].Value = item.CMNo;
                 worksheet.Cells[row, 18].Value = item.ServiceInvoiceId;
                 worksheet.Cells[row, 19].Value = item.Id;
+                worksheet.Cells[row, 20].Value = item.SeriesNumber;
 
                 row++;
             }
@@ -1201,8 +1203,8 @@ namespace Accounting_System.Controllers
                         {
                             var creditMemo = new CreditMemo
                             {
-                                CMNo = await _creditMemoRepo.GenerateCMNo(),
-                                SeriesNumber = await _creditMemoRepo.GetLastSeriesNumber(),
+                                CMNo = worksheet.Cells[row, 17].Text,
+                                SeriesNumber = int.TryParse(worksheet.Cells[row, 20].Text, out int seriesNumber) ? seriesNumber : 0,
                                 TransactionDate = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly transactionDate) ? transactionDate : default,
                                 CreditAmount = decimal.TryParse(worksheet.Cells[row, 2].Text, out decimal debitAmount) ? debitAmount : 0,
                                 Description = worksheet.Cells[row, 3].Text,

@@ -738,8 +738,9 @@ namespace Accounting_System.Controllers
             worksheet.Cells["R1"].Value = "CancellationRemarks";
             worksheet.Cells["S1"].Value = "ReceivedDate";
             worksheet.Cells["T1"].Value = "OriginalPOId";
-            worksheet.Cells["U1"].Value = "OriginalSeriesNumber";
+            worksheet.Cells["U1"].Value = "OriginalRRNo";
             worksheet.Cells["V1"].Value = "OriginalDocumentId";
+            worksheet.Cells["W1"].Value = "OriginalSeriesNumber";
 
             int row = 2;
 
@@ -767,6 +768,7 @@ namespace Accounting_System.Controllers
                 worksheet.Cells[row, 20].Value = item.POId;
                 worksheet.Cells[row, 21].Value = item.RRNo;
                 worksheet.Cells[row, 22].Value = item.Id;
+                worksheet.Cells[row, 23].Value = item.SeriesNumber;
 
                 row++;
             }
@@ -817,8 +819,8 @@ namespace Accounting_System.Controllers
                         {
                             var receivingReport = new ReceivingReport
                             {
-                                RRNo = await _receivingReportRepo.GenerateRRNo(),
-                                SeriesNumber = await _receivingReportRepo.GetLastSeriesNumber(),
+                                RRNo = worksheet.Cells[row, 21].Text,
+                                SeriesNumber = int.TryParse(worksheet.Cells[row, 23].Text, out int seriesNumber) ? seriesNumber : 0,
                                 Date = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly date) ? date : default,
                                 DueDate = DateOnly.TryParse(worksheet.Cells[row, 2].Text, out DateOnly dueDate) ? dueDate : default,
                                 SupplierInvoiceNumber = worksheet.Cells[row, 3].Text != "" ? worksheet.Cells[row, 3].Text : null,

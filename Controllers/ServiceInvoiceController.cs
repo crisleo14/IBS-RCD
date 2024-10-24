@@ -746,9 +746,10 @@ namespace Accounting_System.Controllers
             worksheet.Cells["N1"].Value = "CreatedDate";
             worksheet.Cells["O1"].Value = "CancellationRemarks";
             worksheet.Cells["P1"].Value = "OriginalCustomerId";
-            worksheet.Cells["Q1"].Value = "OriginalSeriesNumber";
+            worksheet.Cells["Q1"].Value = "OriginalSVNo";
             worksheet.Cells["R1"].Value = "OriginalServicesId";
             worksheet.Cells["S1"].Value = "OriginalDocumentId";
+            worksheet.Cells["T1"].Value = "OriginalSeriesNumber";
 
             int row = 2;
 
@@ -773,6 +774,7 @@ namespace Accounting_System.Controllers
                 worksheet.Cells[row, 17].Value = item.SVNo;
                 worksheet.Cells[row, 18].Value = item.ServicesId;
                 worksheet.Cells[row, 19].Value = item.Id;
+                worksheet.Cells[row, 20].Value = item.SeriesNumber;
 
                 row++;
             }
@@ -823,8 +825,8 @@ namespace Accounting_System.Controllers
                         {
                             var serviceInvoice = new ServiceInvoice
                             {
-                                SVNo = await _serviceInvoiceRepo.GenerateSvNo(),
-                                SeriesNumber = await _serviceInvoiceRepo.GetLastSeriesNumber(),
+                                SVNo = worksheet.Cells[row, 17].Text,
+                                SeriesNumber = int.TryParse(worksheet.Cells[row, 20].Text, out int seriesNumber) ? seriesNumber : 0,
                                 DueDate = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
                                 Period = DateOnly.TryParse(worksheet.Cells[row, 2].Text, out DateOnly period) ? period : default,
                                 Amount = decimal.TryParse(worksheet.Cells[row, 3].Text, out decimal amount) ? amount : 0,

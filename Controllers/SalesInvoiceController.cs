@@ -871,8 +871,9 @@ namespace Accounting_System.Controllers
             worksheet.Cells["R1"].Value = "OriginalCustomerId";
             worksheet.Cells["S1"].Value = "OriginalPOId";
             worksheet.Cells["T1"].Value = "OriginalProductId";
-            worksheet.Cells["U1"].Value = "OriginalSeriesNumber";
+            worksheet.Cells["U1"].Value = "OriginalSINo";
             worksheet.Cells["V1"].Value = "OriginalDocumentId";
+            worksheet.Cells["W1"].Value = "OriginalSeriesNumber";
 
             int row = 2;
 
@@ -900,6 +901,7 @@ namespace Accounting_System.Controllers
                 worksheet.Cells[row, 20].Value = item.ProductId;
                 worksheet.Cells[row, 21].Value = item.SINo;
                 worksheet.Cells[row, 22].Value = item.Id;
+                worksheet.Cells[row, 23].Value = item.SeriesNumber;
 
                 row++;
             }
@@ -950,8 +952,8 @@ namespace Accounting_System.Controllers
                         {
                             var invoice = new SalesInvoice
                             {
-                                SINo = await _salesInvoiceRepo.GenerateSINo(),
-                                SeriesNumber = await _salesInvoiceRepo.GetLastSeriesNumber(),
+                                SINo = worksheet.Cells[row, 21].Text,
+                                SeriesNumber = int.TryParse(worksheet.Cells[row, 23].Text, out int seriesNumber) ? seriesNumber : 0,
                                 OtherRefNo = worksheet.Cells[row, 1].Text,
                                 Quantity = decimal.TryParse(worksheet.Cells[row, 2].Text, out decimal quantity) ? quantity : 0,
                                 UnitPrice = decimal.TryParse(worksheet.Cells[row, 3].Text, out decimal unitPrice) ? unitPrice : 0,

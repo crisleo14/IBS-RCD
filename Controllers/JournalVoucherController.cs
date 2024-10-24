@@ -767,8 +767,9 @@ namespace Accounting_System.Controllers
                 worksheet.Cells["G1"].Value = "CreatedDate";
                 worksheet.Cells["H1"].Value = "CancellationRemarks";
                 worksheet.Cells["I1"].Value = "OriginalCVId";
-                worksheet.Cells["J1"].Value = "OriginalSeriesNumber";
+                worksheet.Cells["J1"].Value = "OriginalJVNo";
                 worksheet.Cells["K1"].Value = "OriginalDocumentId";
+                worksheet.Cells["L1"].Value = "OriginalSeriesNumber";
 
                 worksheet2.Cells["A1"].Value = "AccountNo";
                 worksheet2.Cells["B1"].Value = "AccountName";
@@ -793,6 +794,7 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 9].Value = item.CVId;
                     worksheet.Cells[row, 10].Value = item.JVNo;
                     worksheet.Cells[row, 11].Value = item.Id;
+                    worksheet.Cells[row, 12].Value = item.SeriesNumber;
 
                     row++;
                 }
@@ -877,8 +879,8 @@ namespace Accounting_System.Controllers
                         {
                             var journalVoucherHeader = new JournalVoucherHeader
                             {
-                                JVNo = await _journalVoucherRepo.GenerateJVNo(),
-                                SeriesNumber = await _journalVoucherRepo.GetLastSeriesNumberJV(),
+                                JVNo = worksheet.Cells[row, 10].Text,
+                                SeriesNumber = int.TryParse(worksheet.Cells[row, 12].Text, out int seriesNumber) ? seriesNumber : 0,
                                 Date = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly date) ? date : default,
                                 References = worksheet.Cells[row, 2].Text,
                                 Particulars = worksheet.Cells[row, 3].Text,

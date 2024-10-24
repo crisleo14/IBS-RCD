@@ -2004,9 +2004,10 @@ namespace Accounting_System.Controllers
                 worksheet.Cells["AA1"].Value = "MultipleTransactionDate";
                 worksheet.Cells["AB1"].Value = "OriginalCustomerId";
                 worksheet.Cells["AC1"].Value = "OriginalSalesInvoiceId";
-                worksheet.Cells["AD1"].Value = "OriginalSeriesNumber";
+                worksheet.Cells["AD1"].Value = "OriginalCRNo";
                 worksheet.Cells["AE1"].Value = "OriginalServiceInvoiceId";
                 worksheet.Cells["AF1"].Value = "OriginalDocumentId";
+                worksheet.Cells["AG1"].Value = "OriginalSeriesNumber";
 
                 worksheet2.Cells["A1"].Value = "AccountNo";
                 worksheet2.Cells["B1"].Value = "Source";
@@ -2056,6 +2057,7 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 30].Value = item.CRNo;
                     worksheet.Cells[row, 31].Value = item.ServiceInvoiceId;
                     worksheet.Cells[row, 32].Value = item.Id;
+                    worksheet.Cells[row, 33].Value = item.SeriesNumber;
 
                     row++;
                 }
@@ -2133,8 +2135,8 @@ namespace Accounting_System.Controllers
                         {
                             var collectionReceipt = new CollectionReceipt
                             {
-                                CRNo = await _receiptRepo.GenerateCRNo(),
-                                SeriesNumber = await _receiptRepo.GetLastSeriesNumberCR(),
+                                CRNo = worksheet.Cells[row, 30].Text,
+                                SeriesNumber = int.TryParse(worksheet.Cells[row, 33].Text, out int seriesNumber) ? seriesNumber : 0,
                                 TransactionDate = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly transactionDate) ? transactionDate : default,
                                 ReferenceNo = worksheet.Cells[row, 2].Text,
                                 Remarks = worksheet.Cells[row, 3].Text,
