@@ -306,6 +306,16 @@ namespace Accounting_System.Controllers
                                 OriginalChartOfAccountId = int.TryParse(worksheet.Cells[row, 10].Text, out int originalChartOfAccountId) ? originalChartOfAccountId : 0,
                             };
 
+                            var chartOfAccountList = _dbContext
+                            .ChartOfAccounts
+                            .Where(c => c.OriginalChartOfAccountId == coa.OriginalChartOfAccountId || c.Id == coa.OriginalChartOfAccountId)
+                            .ToList();
+
+                            if (chartOfAccountList.Any())
+                            {
+                                continue;
+                            }
+
                             await _dbContext.ChartOfAccounts.AddAsync(coa);
                             await _dbContext.SaveChangesAsync();
                         }

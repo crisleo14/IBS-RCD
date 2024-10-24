@@ -975,6 +975,17 @@ namespace Accounting_System.Controllers
                                 OriginalSeriesNumber = worksheet.Cells[row, 21].Text,
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 22].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
+
+                            var invoiceList = _dbContext
+                                .SalesInvoices
+                                .Where(si => si.OriginalDocumentId == invoice.OriginalDocumentId || si.Id == invoice.OriginalDocumentId)
+                                .ToList();
+
+                            if (invoiceList.Any())
+                            {
+                                continue;
+                            }
+
                             invoice.CustomerId = await _dbContext.Customers
                                 .Where(c => c.OriginalCustomerId == invoice.OriginalCustomerId)
                                 .Select(c => c.Id)

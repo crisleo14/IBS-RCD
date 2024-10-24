@@ -1,6 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Models.AccountsPayable;
+using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
 using Accounting_System.Utility;
@@ -841,6 +842,17 @@ namespace Accounting_System.Controllers
                                 OriginalSeriesNumber = worksheet.Cells[row, 21].Text,
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 22].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
+
+                            var receivingReportList = _dbContext
+                            .ReceivingReports
+                            .Where(rr => rr.OriginalDocumentId == receivingReport.OriginalDocumentId || rr.Id == receivingReport.OriginalDocumentId)
+                            .ToList();
+
+                            if (receivingReportList.Any())
+                            {
+                                continue;
+                            }
+
                             var getPO = await _dbContext.PurchaseOrders
                                 .Where(c => c.OriginalDocumentId == receivingReport.OriginalPOId)
                                 .FirstOrDefaultAsync();

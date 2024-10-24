@@ -1,5 +1,6 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
+using Accounting_System.Models.MasterFile;
 using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
 using Accounting_System.Utility;
@@ -278,6 +279,17 @@ namespace Accounting_System.Controllers
                                 OriginalCustomerId = int.TryParse(worksheet.Cells[row, 11].Text, out int customerId) ? customerId : 0,
                                 OriginalCustomerNumber = int.TryParse(worksheet.Cells[row, 12].Text, out int customerNumber) ? customerNumber : 0,
                             };
+
+                            var customerList = _dbContext
+                            .Customers
+                            .Where(c => c.OriginalCustomerId == customer.OriginalCustomerId || c.Id == customer.OriginalCustomerId)
+                            .ToList();
+
+                            if (customerList.Any())
+                            {
+                                continue;
+                            }
+
                             await _dbContext.Customers.AddAsync(customer);
                             await _dbContext.SaveChangesAsync();
                         }

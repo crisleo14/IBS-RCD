@@ -241,28 +241,16 @@
                             <td><b>TOTAL SALES: </b></td>
 
                             <td class="text-end">
-                                @{
-                                    var totalSales = Model.Amount;
-                                    var formattedTotalSales = String.Format("{0:N2}", totalSales);
-                                    var otherDiscount = Model.Amount - Model.Discount;
-                                    var formattedOtherDiscount = String.Format("{0:N2}", otherDiscount);
-                                }
                                 @if (Model.Discount == 0)
                                 {
-                                    if (Model.Customer.CustomerType == "Vatable")
-                                    {
-                                        @Html.DisplayFor(model => formattedTotalSales)
-                                    }
-                                    else
-                                    {
-                                        @Model.Amount.ToString("N2")
-                                    }
+                                    @Model.Amount.ToString("N2")
                                 }
                                 else
                                 {
+                                    var otherDiscount = Model.Amount - Model.Discount;
                                     @if (Model.Discount != 0)
                                     {
-                                        @Html.DisplayFor(model => formattedOtherDiscount)
+                                        @otherDiscount.ToString("N2")
                                     }
                                 }
                             </td>

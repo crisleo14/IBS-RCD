@@ -775,6 +775,8 @@ namespace Accounting_System.Controllers
                 worksheet2.Cells["C1"].Value = "TransactionNo";
                 worksheet2.Cells["D1"].Value = "Debit";
                 worksheet2.Cells["E1"].Value = "Credit";
+                worksheet2.Cells["E1"].Value = "JVHeaderId";
+                worksheet2.Cells["F1"].Value = "OriginaldocumentId";
 
                 int row = 2;
 
@@ -811,6 +813,8 @@ namespace Accounting_System.Controllers
                     worksheet2.Cells[cvdRow, 3].Value = item.TransactionNo;
                     worksheet2.Cells[cvdRow, 4].Value = item.Debit;
                     worksheet2.Cells[cvdRow, 5].Value = item.Credit;
+                    worksheet2.Cells[cvdRow, 5].Value = item.JVHeaderId;
+                    worksheet2.Cells[cvdRow, 6].Value = item.Id;
 
                     cvdRow++;
                 }
@@ -867,6 +871,8 @@ namespace Accounting_System.Controllers
 
                         var rowCount = worksheet.Dimension.Rows;
 
+                        var jvId = 0;
+                        var journalVoucherHeaderList = new List<JournalVoucherHeader>();
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var journalVoucherHeader = new JournalVoucherHeader
@@ -885,6 +891,17 @@ namespace Accounting_System.Controllers
                                 OriginalSeriesNumber = worksheet.Cells[row, 10].Text,
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 11].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
+
+                            journalVoucherHeaderList = _dbContext
+                                .JournalVoucherHeaders
+                                .Where(jv => jv.OriginalDocumentId == journalVoucherHeader.OriginalDocumentId || jv.Id == journalVoucherHeader.OriginalDocumentId)
+                                .ToList();
+
+                            if (journalVoucherHeaderList.Any())
+                            {
+                                continue;
+                            }
+
                             journalVoucherHeader.CVId = await _dbContext.CheckVoucherHeaders
                                 .Where(c => c.OriginalDocumentId == journalVoucherHeader.OriginalCVId)
                                 .Select(c => c.Id)
@@ -892,28 +909,43 @@ namespace Accounting_System.Controllers
 
                             await _dbContext.JournalVoucherHeaders.AddAsync(journalVoucherHeader);
                             await _dbContext.SaveChangesAsync();
+
+                            jvId = journalVoucherHeader.Id;
                         }
 
-                        var jvdRowCount = worksheet2.Dimension.Rows;
-                        for (int jvdRow = 2; jvdRow <= jvdRowCount; jvdRow++)
+                        if(journalVoucherHeaderList.Count <= 0)
                         {
-                            var journalVoucherDetails = new JournalVoucherDetail
+                            var jvdRowCount = worksheet2.Dimension.Rows;
+                            for (int jvdRow = 2; jvdRow <= jvdRowCount; jvdRow++)
                             {
-                                AccountNo = worksheet2.Cells[jvdRow, 1].Text,
-                                AccountName = worksheet2.Cells[jvdRow, 2].Text,
-                                Debit = decimal.TryParse(worksheet2.Cells[jvdRow, 4].Text, out decimal debit) ? debit : 0,
-                                Credit = decimal.TryParse(worksheet2.Cells[jvdRow, 5].Text, out decimal credit) ? credit : 0,
-                            };
+                                var journalVoucherDetails = new JournalVoucherDetail
+                                {
+                                    AccountNo = worksheet2.Cells[jvdRow, 1].Text,
+                                    AccountName = worksheet2.Cells[jvdRow, 2].Text,
+                                    Debit = decimal.TryParse(worksheet2.Cells[jvdRow, 4].Text, out decimal debit) ? debit : 0,
+                                    Credit = decimal.TryParse(worksheet2.Cells[jvdRow, 5].Text, out decimal credit) ? credit : 0,
+                                    JVHeaderId = jvId,
+                                };
 
-                            journalVoucherDetails.TransactionNo = await _dbContext.JournalVoucherHeaders
-                                .Where(jvh => jvh.OriginalSeriesNumber == worksheet2.Cells[jvdRow, 3].Text)
-                                .Select(jvh => jvh.JVNo)
-                                .FirstOrDefaultAsync();
+                                var journalVoucherDetailsList = _dbContext
+                                    .JournalVoucherDetails
+                                    .Where(jv => jv.JVHeaderId == int.Parse(worksheet2.Cells[jvdRow, 6].Text) || jv.Id == int.Parse(worksheet2.Cells[jvdRow, 6].Text))
+                                    .ToList();
 
-                            await _dbContext.JournalVoucherDetails.AddAsync(journalVoucherDetails);
-                            await _dbContext.SaveChangesAsync();
+                                if (journalVoucherDetailsList.Any())
+                                {
+                                    continue;
+                                }
+
+                                journalVoucherDetails.TransactionNo = await _dbContext.JournalVoucherHeaders
+                                    .Where(jvh => jvh.OriginalSeriesNumber == worksheet2.Cells[jvdRow, 3].Text)
+                                    .Select(jvh => jvh.JVNo)
+                                    .FirstOrDefaultAsync();
+
+                                await _dbContext.JournalVoucherDetails.AddAsync(journalVoucherDetails);
+                                await _dbContext.SaveChangesAsync();
+                            }
                         }
-
                     }
                 }
                 catch (OperationCanceledException oce)

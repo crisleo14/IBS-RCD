@@ -200,7 +200,7 @@ namespace Accounting_System.Controllers
             {
                 worksheet.Cells[row, 1].Value = item.Branch;
                 worksheet.Cells[row, 2].Value = item.CreatedBy;
-                worksheet.Cells[row, 3].Value = item.CreatedDate;
+                worksheet.Cells[row, 3].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
                 worksheet.Cells[row, 4].Value = item.AccountName;
                 worksheet.Cells[row, 5].Value = item.AccountNo;
                 worksheet.Cells[row, 6].Value = item.Bank;
@@ -255,7 +255,6 @@ namespace Accounting_System.Controllers
                         {
                             var bankAccount = new BankAccount
                             {
-
                                 SeriesNumber = await _bankAccountRepo.GetLastSeriesNumber(),
                                 Branch = worksheet.Cells[row, 1].Text,
                                 CreatedBy = worksheet.Cells[row, 2].Text,
@@ -266,6 +265,16 @@ namespace Accounting_System.Controllers
                                 OriginalBankId = int.TryParse(worksheet.Cells[row, 7].Text, out int originalBankId) ? originalBankId : 0,
                             };
                             bankAccount.AccountNoCOA = "1010101" + bankAccount.SeriesNumber.ToString("D2");
+
+                            var bankAccountList = _dbContext
+                            .BankAccounts
+                            .Where(ba => ba.OriginalBankId == bankAccount.OriginalBankId || ba.Id == bankAccount.OriginalBankId)
+                            .ToList();
+
+                            if (bankAccountList.Any())
+                            {
+                                continue;
+                            }
 
                             #region -- COA Entry --
 

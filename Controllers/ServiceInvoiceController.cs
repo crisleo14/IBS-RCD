@@ -845,6 +845,17 @@ namespace Accounting_System.Controllers
                                 OriginalServicesId = int.TryParse(worksheet.Cells[row, 18].Text, out int originalServicesId) ? originalServicesId : 0,
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 19].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
+
+                            var serviceInvoiceList = _dbContext
+                                .ServiceInvoices
+                                .Where(sv => sv.OriginalDocumentId == serviceInvoice.OriginalDocumentId || sv.Id == serviceInvoice.OriginalDocumentId)
+                                .ToList();
+
+                            if (serviceInvoiceList.Any())
+                            {
+                                continue;
+                            }
+
                             serviceInvoice.CustomerId = await _dbContext.Customers
                                 .Where(sv => sv.OriginalCustomerId == serviceInvoice.OriginalCustomerId)
                                 .Select(sv => sv.Id)

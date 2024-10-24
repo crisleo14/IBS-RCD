@@ -1,5 +1,6 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
+using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.MasterFile;
 using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
@@ -260,6 +261,17 @@ namespace Accounting_System.Controllers
                                 CreatedDate = DateTime.TryParse(worksheet.Cells[row, 5].Text, out DateTime createdDate) ? createdDate : default,
                                 OriginalProductId = int.TryParse(worksheet.Cells[row, 6].Text, out int originalProductId) ? originalProductId : 0,
                             };
+
+                            var productList = _dbContext
+                            .Products
+                            .Where(p => p.OriginalProductId == product.OriginalProductId || p.Id == product.OriginalProductId)
+                            .ToList();
+
+                            if (productList.Any())
+                            {
+                                continue;
+                            }
+
                             await _dbContext.Products.AddAsync(product);
                             await _dbContext.SaveChangesAsync();
                         }

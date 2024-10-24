@@ -1,6 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Models.AccountsReceivable;
+using Accounting_System.Models.MasterFile;
 using Accounting_System.Models.Reports;
 using Accounting_System.Models.ViewModels;
 using Accounting_System.Repository;
@@ -1212,6 +1213,16 @@ namespace Accounting_System.Controllers
                                 .Where(c => c.OriginalDocumentId == debitMemo.OriginalServiceInvoiceId)
                                 .Select(c => (int?)c.Id)
                                 .FirstOrDefaultAsync();
+
+                            var debitMemoList = _dbContext
+                            .DebitMemos
+                            .Where(dm => dm.OriginalDocumentId == debitMemo.OriginalDocumentId || dm.Id == debitMemo.OriginalDocumentId)
+                            .ToList();
+
+                            if (debitMemoList.Any())
+                            {
+                                continue;
+                            }
 
                             await _dbContext.DebitMemos.AddAsync(debitMemo);
                             await _dbContext.SaveChangesAsync();

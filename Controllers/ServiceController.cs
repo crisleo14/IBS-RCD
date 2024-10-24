@@ -1,5 +1,6 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
+using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.MasterFile;
 using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
@@ -330,6 +331,17 @@ namespace Accounting_System.Controllers
                                 UnearnedNo = worksheet.Cells[row, 8].Text,
                                 OriginalServiceId = int.TryParse(worksheet.Cells[row, 9].Text, out int originalServiceId) ? originalServiceId : 0,
                             };
+
+                            var servicesList = _dbContext
+                            .ServiceInvoices
+                            .Where(s => s.OriginalServicesId == services.OriginalServiceId || s.Id == services.OriginalServiceId)
+                            .ToList();
+
+                            if (servicesList.Any())
+                            {
+                                continue;
+                            }
+
                             await _dbContext.Services.AddAsync(services);
                             await _dbContext.SaveChangesAsync();
                         }

@@ -1,6 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Models.AccountsReceivable;
+using Accounting_System.Models.MasterFile;
 using Accounting_System.Models.Reports;
 using Accounting_System.Models.ViewModels;
 using Accounting_System.Repository;
@@ -1223,15 +1224,30 @@ namespace Accounting_System.Controllers
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 19].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
 
-                            creditMemo.SalesInvoiceId = await _dbContext.SalesInvoices
-                                .Where(c => c.OriginalDocumentId == creditMemo.OriginalSalesInvoiceId)
-                                .Select(c => (int?)c.Id)
-                                .FirstOrDefaultAsync();
+                            var creditMemoList = _dbContext
+                            .CreditMemos
+                            .Where(cm => cm.OriginalDocumentId == creditMemo.OriginalDocumentId || cm.Id == creditMemo.OriginalDocumentId)
+                            .ToList();
 
-                            creditMemo.ServiceInvoiceId = await _dbContext.ServiceInvoices
-                                .Where(c => c.OriginalDocumentId == creditMemo.OriginalServiceInvoiceId)
-                                .Select(c => (int?)c.Id)
+                            if (creditMemoList.Any())
+                            {
+                                continue;
+                            }
+
+                            if (creditMemo.OriginalSalesInvoiceId != 0)
+                            {
+                                creditMemo.SalesInvoiceId = await _dbContext.SalesInvoices
+                                .Where(c => c.OriginalDocumentId == creditMemo.OriginalSalesInvoiceId)
+                                .Select(c => c.Id)
                                 .FirstOrDefaultAsync();
+                            }
+                            else
+                            {
+                                creditMemo.ServiceInvoiceId = await _dbContext.ServiceInvoices
+                                    .Where(c => c.OriginalDocumentId == creditMemo.OriginalServiceInvoiceId)
+                                    .Select(c => c.Id)
+                                    .FirstOrDefaultAsync();
+                            }
 
                             await _dbContext.CreditMemos.AddAsync(creditMemo);
                             await _dbContext.SaveChangesAsync();

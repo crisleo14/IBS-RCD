@@ -1,6 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Models.AccountsPayable;
+using Accounting_System.Models.MasterFile;
 using Accounting_System.Models.Reports;
 using Accounting_System.Models.ViewModels;
 using Accounting_System.Repository;
@@ -12,6 +13,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using System.Linq.Dynamic.Core;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Accounting_System.Controllers
 {
@@ -2133,6 +2136,8 @@ namespace Accounting_System.Controllers
                     worksheet2.Cells["C1"].Value = "TransactionNo";
                     worksheet2.Cells["D1"].Value = "Debit";
                     worksheet2.Cells["E1"].Value = "Credit";
+                    worksheet2.Cells["F1"].Value = "CVHeaderId";
+                    worksheet2.Cells["G1"].Value = "OriginalDocumentId";
 
                     int row = 2;
 
@@ -2204,6 +2209,8 @@ namespace Accounting_System.Controllers
                         worksheet2.Cells[cvdRow, 3].Value = item.TransactionNo;
                         worksheet2.Cells[cvdRow, 4].Value = item.Debit;
                         worksheet2.Cells[cvdRow, 5].Value = item.Credit;
+                        worksheet2.Cells[cvdRow, 6].Value = item.CVHeaderId;
+                        worksheet2.Cells[cvdRow, 7].Value = item.Id;
 
                         cvdRow++;
                     }
@@ -2265,7 +2272,8 @@ namespace Accounting_System.Controllers
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
-
+                        var cvId = 0;
+                        var checkVoucherHeadersList = new List<CheckVoucherHeader>();
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var checkVoucherHeader = new CheckVoucherHeader
@@ -2304,6 +2312,17 @@ namespace Accounting_System.Controllers
                                 OriginalSupplierId = int.TryParse(worksheet.Cells[row, 30].Text, out int originalSupplierId) ? originalSupplierId : 0,
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 31].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
+
+                            checkVoucherHeadersList = _dbContext
+                            .CheckVoucherHeaders
+                            .Where(cv => cv.OriginalDocumentId == checkVoucherHeader.OriginalDocumentId || cv.Id == checkVoucherHeader.OriginalDocumentId)
+                            .ToList();
+
+                            if (checkVoucherHeadersList.Any())
+                            {
+                                continue;
+                            }
+
                             checkVoucherHeader.SupplierId = await _dbContext.Suppliers
                                 .Where(supp => supp.OriginalSupplierId == checkVoucherHeader.OriginalSupplierId)
                                 .Select(supp => supp.Id)
@@ -2319,6 +2338,8 @@ namespace Accounting_System.Controllers
 
                             await _dbContext.CheckVoucherHeaders.AddAsync(checkVoucherHeader);
                             await _dbContext.SaveChangesAsync();
+
+                            cvId = checkVoucherHeader.Id;
                         }
 
                         var cvdRowCount = worksheet2.Dimension.Rows;
@@ -2330,12 +2351,23 @@ namespace Accounting_System.Controllers
                                 AccountName = worksheet2.Cells[cvdRow, 2].Text,
                                 Debit = decimal.TryParse(worksheet2.Cells[cvdRow, 4].Text, out decimal debit) ? debit : 0,
                                 Credit = decimal.TryParse(worksheet2.Cells[cvdRow, 5].Text, out decimal credit) ? credit : 0,
+                                CVHeaderId = cvId,
                             };
 
                             checkVoucherDetails.TransactionNo = await _dbContext.CheckVoucherHeaders
                                 .Where(cvh => cvh.OriginalSeriesNumber == worksheet2.Cells[cvdRow, 3].Text)
                                 .Select(cvh => cvh.CVNo)
                                 .FirstOrDefaultAsync();
+
+                            var checkVoucherDetailsList = _dbContext
+                            .CheckVoucherDetails
+                            .Where(cv => cv.CVHeaderId == int.Parse(worksheet2.Cells[cvdRow, 7].Text) || cv.Id == int.Parse(worksheet2.Cells[cvdRow, 7].Text))
+                            .ToList();
+
+                            if (checkVoucherDetailsList.Any())
+                            {
+                                continue;
+                            }
 
                             await _dbContext.CheckVoucherDetails.AddAsync(checkVoucherDetails);
                             await _dbContext.SaveChangesAsync();

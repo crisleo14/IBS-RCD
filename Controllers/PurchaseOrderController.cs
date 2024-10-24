@@ -1,6 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Models.AccountsPayable;
+using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.Reports;
 using Accounting_System.Models.ViewModels;
 using Accounting_System.Repository;
@@ -705,6 +706,17 @@ namespace Accounting_System.Controllers
                                 OriginalSupplierId = int.TryParse(worksheet.Cells[row, 17].Text, out int originalSupplierId) ? originalSupplierId : 0,
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 18].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
+
+                            var purchaseOrderList = _dbContext
+                            .PurchaseOrders
+                            .Where(po => po.OriginalDocumentId == purchaseOrder.OriginalDocumentId || po.Id == purchaseOrder.OriginalDocumentId)
+                            .ToList();
+
+                            if (purchaseOrderList.Any())
+                            {
+                                continue;
+                            }
+
                             var getProduct = await _dbContext.Products
                                 .Where(p => p.OriginalProductId == purchaseOrder.OriginalProductId)
                                 .FirstOrDefaultAsync();

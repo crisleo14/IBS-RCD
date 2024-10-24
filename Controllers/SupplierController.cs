@@ -1,4 +1,5 @@
 ﻿using Accounting_System.Data;
+using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.MasterFile;
 using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
@@ -519,6 +520,17 @@ namespace Accounting_System.Controllers
                                 WithholdingTaxtitle = worksheet.Cells[row, 19].Text,
                                 OriginalSupplierId = int.TryParse(worksheet.Cells[row, 20].Text, out int originalSupplierId) ? originalSupplierId : 0,
                             };
+
+                            var supplierList = _context
+                            .Suppliers
+                            .Where(supp => supp.OriginalSupplierId == supplier.OriginalSupplierId || supp.Id == supplier.OriginalSupplierId)
+                            .ToList();
+
+                            if (supplierList.Any())
+                            {
+                                continue;
+                            }
+
                             await _context.Suppliers.AddAsync(supplier);
                             await _context.SaveChangesAsync();
                         }
