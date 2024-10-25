@@ -575,7 +575,7 @@ namespace Accounting_System.Controllers
                 .Include(i => i.Product)
                 .FirstOrDefaultAsync(i => i.Reference == model.RRNo);
 
-            if (model != null)
+            if (model != null && existingInventory != null)
             {
                 if (!model.IsVoided)
                 {
@@ -584,29 +584,37 @@ namespace Accounting_System.Controllers
                         model.IsPosted = false;
                     }
 
-                    model.IsVoided = true;
-                    model.VoidedBy = _userManager.GetUserName(this.User);
-                    model.VoidedDate = DateTime.Now;
-
-                    await _generalRepo.RemoveRecords<PurchaseJournalBook>(pb => pb.DocumentNo == model.RRNo, cancellationToken);
-                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.RRNo, cancellationToken);
-                    await _inventoryRepo.VoidInventory(existingInventory, cancellationToken);
-                    await _receivingReportRepo.RemoveQuantityReceived(model?.POId, model.QuantityReceived, cancellationToken);
-                    model.QuantityReceived = 0;
-
-                    #region --Audit Trail Recording
-
-                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    try
                     {
-                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided rr# {model.RRNo}", "Receiving Report", ipAddress);
-                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        model.IsVoided = true;
+                        model.VoidedBy = _userManager.GetUserName(this.User);
+                        model.VoidedDate = DateTime.Now;
+
+                        await _generalRepo.RemoveRecords<PurchaseJournalBook>(pb => pb.DocumentNo == model.RRNo, cancellationToken);
+                        await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.RRNo, cancellationToken);
+                        await _inventoryRepo.VoidInventory(existingInventory, cancellationToken);
+                        await _receivingReportRepo.RemoveQuantityReceived(model?.POId, model.QuantityReceived, cancellationToken);
+                        model.QuantityReceived = 0;
+
+                        #region --Audit Trail Recording
+
+                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided rr# {model.RRNo}", "Receiving Report", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        TempData["success"] = "Receiving Report has been Voided.";
                     }
-
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Receiving Report has been Voided.";
+                    catch (Exception ex)
+                    {
+                        TempData["error"] = ex.Message;
+                        return RedirectToAction(nameof(Index));
+                    }
                 }
                 return RedirectToAction(nameof(Index));
             }
