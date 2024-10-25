@@ -199,6 +199,29 @@ namespace Accounting_System.Controllers
             return Json(null);
         }
 
+        public async Task<IActionResult> GetDefaultExpense(int? supplierId)
+        {
+            var supplier = await _dbContext.Suppliers
+                .Where(supp => supp.Id == supplierId)
+                .Select(supp => supp.DefaultExpenseNumber)
+                .FirstOrDefaultAsync();
+            var defaultExpense = await _dbContext.ChartOfAccounts
+                .Where(coa => (coa.Level == 4 || coa.Level == 5))
+                .OrderBy(coa => coa.Id)
+                .ToListAsync();
+            if (defaultExpense != null && defaultExpense.Count > 0)
+            {
+                var defaultExpenseList = defaultExpense.Select(coa => new
+                {
+                    AccountNumber = coa.Number,
+                    AccountTitle = coa.Name,
+                    IsSelected = coa.Number == supplier?.Split(' ')[0]
+                }).ToList();
+                return Json(defaultExpenseList);
+            }
+            return Json(null);
+        }
+
         public async Task<IActionResult> RRBalance(string rrNo, CancellationToken cancellationToken)
         {
             var receivingReport = await _dbContext.ReceivingReports
@@ -1104,15 +1127,6 @@ namespace Accounting_System.Controllers
                 {
                     Value = s.Number,
                     Text = s.Number + " " + s.Name
-                })
-                .ToListAsync(cancellationToken);
-
-            viewModel.DefaultExpenses = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
-                .Select(s => new SelectListItem
-                {
-                    Value = s.Number,
-                    Text = s.Name
                 })
                 .ToListAsync(cancellationToken);
 

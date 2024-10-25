@@ -252,8 +252,8 @@
             // Get the values from the modal inputs
             var accountNumber = $("#AccountNo").val();
             var accountNumberText = $("#AccountNo option:selected").text().replace(/^\S+\s/, '');
-            var debit = parseFloat($("#Debit").val().replace(/,/g, '')) || 0.00;
-            var credit = parseFloat($("#Credit").val().replace(/,/g, '')) || 0.00;
+            var debit = parseNumber($("#Debit").val());
+            var credit = parseNumber($("#Credit").val());
 
             if (debit === 0 && credit === 0) {
                 event.preventDefault();
@@ -266,8 +266,8 @@
             }
 
             // Format debit and credit values with commas and two decimal places
-            var formattedDebit = debit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            var formattedCredit = credit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            var formattedDebit = formatNumber(debit);
+            var formattedCredit = formatNumber(credit);
 
             // Create a new row with the text only and a hidden input for the value
             var newRow = `<tr>
@@ -317,15 +317,15 @@
                 debitInput = debitInput ? String(debitInput) : ""; // convert to string if not null/undefined
                 creditInput = creditInput ? String(creditInput) : "";
 
-                var debit = parseFloat(debitInput.replace(/,/g, '')) || 0;
-                var credit = parseFloat(creditInput.replace(/,/g, '')) || 0;
+                var debit = parseNumber(debitInput);
+                var credit = parseNumber(creditInput);
 
                 totalDebit += debit;
                 totalCredit += credit;
             });
             // Display the total debit value
-            $(".totalDebit").text(totalDebit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-            $(".totalCredit").text(totalCredit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            $(".totalDebit").text(formatNumber(totalDebit));
+            $(".totalCredit").text(formatNumber(totalCredit));
         }
 
         // Function to remove the corresponding row
@@ -338,14 +338,14 @@
         $(document).ready(function () {
             // Event listener for when the Total input changes
             $("#Total").on("input", function () {
-                var totalValue = parseFloat($(this).val().replace(/,/g, '')) || 0;
+                var totalValue = parseNumber($(this).val());
                 updateDefaultEntries(totalValue);
             });
         });
         $(document).ready(function () {
             // Event listener for when the Total input changes
             $(".ap-trade-debit").on("input", function () {
-                var totalValue = parseFloat($(this).val().replace(/,/g, '')) || 0;
+                var totalValue = parseNumber($(this).val());
                 updateTotalDebitAndCredit();
             });
         });
@@ -353,15 +353,15 @@
         function updateDefaultEntries(totalValue) {
             var debitField = $(".ap-trade-debit");
             var creditField = $(".cib-credit");
-            debitField.val(totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-            creditField.val(totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            debitField.val(formatNumber(totalValue));
+            creditField.val(formatNumber(totalValue));
             updateTotalDebitAndCredit();
         }
     </script>
     <script>
         function validateDebitAndCredit(event) {
-            var debit = parseFloat($(".totalDebit").text().replace(/,/g, '')) || 0.00;
-            var credit = parseFloat($(".totalCredit").text().replace(/,/g, '')) || 0.00;
+            var debit = parseNumber($(".totalDebit").text());
+            var credit = parseNumber($(".totalCredit").text());
             if (debit !== credit) {
                 event.preventDefault();
                 alert('Total Debit and Credit do not match.');
