@@ -163,71 +163,57 @@ namespace Accounting_System.Controllers
             var existingSv = await _dbContext.ServiceInvoices
                         .Include(sv => sv.Customer)
                         .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
-            if (model.SalesInvoiceId != null)
-            {
-                if (model.AdjustedPrice < existingSalesInvoice.UnitPrice)
-                {
-                    ModelState.AddModelError("AdjustedPrice", "Cannot input less than the existing SI unit price!");
-                }
-                if (model.Quantity < existingSalesInvoice.Quantity)
-                {
-                    ModelState.AddModelError("Quantity", "Cannot input more than the existing SI quantity!");
-                }
-            }
-            else
-            {
-                if (model.Amount < existingSv.Amount)
-                {
-                    ModelState.AddModelError("Amount", "Cannot input less than the existing SV amount!");
-                }
-            }
 
             if (ModelState.IsValid)
             {
+                #region -- checking for unposted DM or CM --
+
                 if (model.SalesInvoiceId != null)
                 {
-                    var existingSIDMs = await _dbContext.DebitMemos
+                    var existingSidMs = await _dbContext.DebitMemos
                                   .Where(si => si.SalesInvoiceId == model.SalesInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
                                   .OrderBy(s => s.Id)
                                   .ToListAsync(cancellationToken);
-                    if (existingSIDMs.Count > 0)
+                    if (existingSidMs.Count > 0)
                     {
-                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSIDMs.First().DMNo}");
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSidMs.First().DMNo}");
                         return View(model);
                     }
 
-                    var existingSICMs = await _dbContext.CreditMemos
+                    var existingSicMs = await _dbContext.CreditMemos
                                       .Where(si => si.SalesInvoiceId == model.SalesInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
                                       .OrderBy(s => s.Id)
                                       .ToListAsync(cancellationToken);
-                    if (existingSICMs.Count > 0)
+                    if (existingSicMs.Count > 0)
                     {
-                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSICMs.First().CMNo}");
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSicMs.First().CMNo}");
                         return View(model);
                     }
                 }
                 else
                 {
-                    var existingSVDMs = await _dbContext.DebitMemos
+                    var existingSvdMs = await _dbContext.DebitMemos
                                   .Where(si => si.ServiceInvoiceId == model.ServiceInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
                                   .OrderBy(s => s.Id)
                                   .ToListAsync(cancellationToken);
-                    if (existingSVDMs.Count > 0)
+                    if (existingSvdMs.Count > 0)
                     {
-                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSVDMs.First().DMNo}");
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSvdMs.First().DMNo}");
                         return View(model);
                     }
 
-                    var existingSVCMs = await _dbContext.CreditMemos
+                    var existingSvcMs = await _dbContext.CreditMemos
                                       .Where(si => si.ServiceInvoiceId == model.ServiceInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
                                       .OrderBy(s => s.Id)
                                       .ToListAsync(cancellationToken);
-                    if (existingSVCMs.Count > 0)
+                    if (existingSvcMs.Count > 0)
                     {
-                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSVCMs.First().CMNo}");
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSvcMs.First().CMNo}");
                         return View(model);
                     }
                 }
+
+                #endregion
 
                 #region --Validating the series--
 
@@ -250,10 +236,10 @@ namespace Accounting_System.Controllers
 
                 #endregion --Validating the series--
 
-                var generateDMNo = await _debitMemoRepo.GenerateDMNo(cancellationToken);
+                var generateDmNo = await _debitMemoRepo.GenerateDMNo(cancellationToken);
 
                 model.SeriesNumber = getLastNumber;
-                model.DMNo = generateDMNo;
+                model.DMNo = generateDmNo;
                 model.CreatedBy = _userManager.GetUserName(this.User);
 
                 if (model.Source == "Sales Invoice")
@@ -268,7 +254,7 @@ namespace Accounting_System.Controllers
 
                     #region --Retrieval of Services
 
-                    model.ServicesId = existingSv.ServicesId;
+                    model.ServicesId = existingSv?.ServicesId;
 
                     var services = await _dbContext
                     .Services

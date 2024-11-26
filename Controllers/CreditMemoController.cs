@@ -163,28 +163,10 @@ namespace Accounting_System.Controllers
                         .Include(sv => sv.Customer)
                         .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
 
-
-            if (model.SalesInvoiceId != null)
-            {
-                if (model.AdjustedPrice > existingSalesInvoice.UnitPrice)
-                {
-                    ModelState.AddModelError("AdjustedPrice", "Cannot input more than the existing SI unit price!");
-                }
-                if (model.Quantity > existingSalesInvoice.Quantity)
-                {
-                    ModelState.AddModelError("Quantity", "Cannot input more than the existing SI quantity!");
-                }
-            }
-            else
-            {
-                if (model.Amount > existingSv.Amount)
-                {
-                    ModelState.AddModelError("Amount", "Cannot input more than the existing SV amount!");
-                }
-            }
-
             if (ModelState.IsValid)
             {
+                #region -- checking for unposted DM or CM --
+
                 if (model.SalesInvoiceId != null)
                 {
                     var existingSIDMs = await _dbContext.DebitMemos
@@ -229,6 +211,8 @@ namespace Accounting_System.Controllers
                         return View(model);
                     }
                 }
+
+                #endregion
 
                 #region --Validating the series--
 
