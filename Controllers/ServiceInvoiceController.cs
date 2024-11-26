@@ -689,12 +689,12 @@ namespace Accounting_System.Controllers
 
                 #region --Audit Trail Recording
 
-                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                {
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit service invoice# {existingModel.SVNo}", "Service Invoice", ipAddress);
-                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                }
+                // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                // {
+                //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                //     AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit service invoice# {existingModel.SVNo}", "Service Invoice", ipAddress);
+                //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                // }
 
                 #endregion --Audit Trail Recording
 
@@ -860,13 +860,13 @@ namespace Accounting_System.Controllers
 
                             serviceInvoice.CustomerId = await _dbContext.Customers
                                 .Where(sv => sv.OriginalCustomerId == serviceInvoice.OriginalCustomerId)
-                                .Select(sv => sv.Id)
-                                .FirstOrDefaultAsync();
+                                .Select(sv => (int?)sv.Id)
+                                .FirstOrDefaultAsync() ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
 
                             serviceInvoice.ServicesId = await _dbContext.Services
                                 .Where(sv => sv.OriginalServiceId == serviceInvoice.OriginalServicesId)
-                                .Select(sv => sv.Id)
-                                .FirstOrDefaultAsync();
+                                .Select(sv => (int?)sv.Id)
+                                .FirstOrDefaultAsync() ?? throw new InvalidOperationException("Please upload the Excel file for the service master file first.");
 
                             await _dbContext.ServiceInvoices.AddAsync(serviceInvoice);
                             await _dbContext.SaveChangesAsync();
@@ -876,6 +876,11 @@ namespace Accounting_System.Controllers
                 catch (OperationCanceledException oce)
                 {
                     TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
+                }
+                catch (InvalidOperationException ioe)
+                {
+                    TempData["warning"] = ioe.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
                 }
                 catch (Exception ex)

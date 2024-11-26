@@ -428,12 +428,12 @@ namespace Accounting_System.Controllers
 
                 #region --Audit Trail Recording
 
-                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                {
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit credit memo# {existingCM.CMNo}", "Credit Memo", ipAddress);
-                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                }
+                // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                // {
+                //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                //     AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit credit memo# {existingCM.CMNo}", "Credit Memo", ipAddress);
+                //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                // }
 
                 #endregion --Audit Trail Recording
 
@@ -1226,29 +1226,29 @@ namespace Accounting_System.Controllers
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 19].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
 
+                            creditMemo.SalesInvoiceId = await _dbContext.SalesInvoices
+                            .Where(c => c.OriginalDocumentId == creditMemo.OriginalSalesInvoiceId)
+                            .Select(c => (int?)c.Id)
+                            .FirstOrDefaultAsync();
+
+                            creditMemo.ServiceInvoiceId = await _dbContext.ServiceInvoices
+                                .Where(c => c.OriginalDocumentId == creditMemo.OriginalServiceInvoiceId)
+                                .Select(c => (int?)c.Id)
+                                .FirstOrDefaultAsync();
+                            
                             var creditMemoList = _dbContext
-                            .CreditMemos
-                            .Where(cm => cm.OriginalDocumentId == creditMemo.OriginalDocumentId || cm.Id == creditMemo.OriginalDocumentId)
-                            .ToList();
+                                .CreditMemos
+                                .Where(cm => cm.OriginalDocumentId == creditMemo.OriginalDocumentId || cm.Id == creditMemo.OriginalDocumentId)
+                                .ToList();
 
                             if (creditMemoList.Any())
                             {
                                 continue;
                             }
-
-                            if (creditMemo.OriginalSalesInvoiceId != 0)
+                            
+                            if (creditMemo.SalesInvoiceId == null && creditMemo.ServiceInvoiceId == null)
                             {
-                                creditMemo.SalesInvoiceId = await _dbContext.SalesInvoices
-                                .Where(c => c.OriginalDocumentId == creditMemo.OriginalSalesInvoiceId)
-                                .Select(c => c.Id)
-                                .FirstOrDefaultAsync();
-                            }
-                            else
-                            {
-                                creditMemo.ServiceInvoiceId = await _dbContext.ServiceInvoices
-                                    .Where(c => c.OriginalDocumentId == creditMemo.OriginalServiceInvoiceId)
-                                    .Select(c => c.Id)
-                                    .FirstOrDefaultAsync();
+                                throw new InvalidOperationException("Please upload the Excel file for the sales invoice or service invoice first.");
                             }
 
                             await _dbContext.CreditMemos.AddAsync(creditMemo);
@@ -1260,6 +1260,11 @@ namespace Accounting_System.Controllers
                 catch (OperationCanceledException oce)
                 {
                     TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.CreditMemo });
+                }
+                catch (InvalidOperationException ioe)
+                {
+                    TempData["warning"] = ioe.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.CreditMemo });
                 }
                 catch (Exception ex)

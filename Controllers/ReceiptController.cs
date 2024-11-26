@@ -1197,13 +1197,13 @@ namespace Accounting_System.Controllers
 
                 #region --Audit Trail Recording
 
-                if (existingModel.OriginalSeriesNumber == null && existingModel.OriginalDocumentId == 0)
-                {
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    var modifiedBy = _userManager.GetUserName(this.User);
-                    AuditTrail auditTrailBook = new(modifiedBy, $"Edited collection receipt# {existingModel.CRNo}", "Collection Receipt", ipAddress);
-                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                }
+                // if (existingModel.OriginalSeriesNumber == null && existingModel.OriginalDocumentId == 0)
+                // {
+                //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                //     var modifiedBy = _userManager.GetUserName(this.User);
+                //     AuditTrail auditTrailBook = new(modifiedBy, $"Edited collection receipt# {existingModel.CRNo}", "Collection Receipt", ipAddress);
+                //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                // }
 
                 #endregion --Audit Trail Recording
 
@@ -1464,13 +1464,13 @@ namespace Accounting_System.Controllers
 
                 #region --Audit Trail Recording
 
-                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                {
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    var modifiedBy = _userManager.GetUserName(this.User);
-                    AuditTrail auditTrailBook = new(modifiedBy, $"Edited collection receipt# {existingModel.CRNo}", "Collection Receipt", ipAddress);
-                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                }
+                // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                // {
+                //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                //     var modifiedBy = _userManager.GetUserName(this.User);
+                //     AuditTrail auditTrailBook = new(modifiedBy, $"Edited collection receipt# {existingModel.CRNo}", "Collection Receipt", ipAddress);
+                //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                // }
 
                 #endregion --Audit Trail Recording
 
@@ -2170,27 +2170,43 @@ namespace Accounting_System.Controllers
                                 OriginalServiceInvoiceId = int.TryParse(worksheet.Cells[row, 31].Text, out int originalServiceInvoiceId) ? originalServiceInvoiceId : 0,
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 32].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
-
+                            var collectionReceiptList = _dbContext.CollectionReceipts.
+                                Where(cr =>
+                                    cr.OriginalDocumentId == collectionReceipt.OriginalDocumentId ||
+                                    cr.Id == collectionReceipt.OriginalDocumentId)
+                                .ToList();
+                            
+                            if (collectionReceiptList.Any())
+                            {
+                                continue;
+                            }
+                            
                             collectionReceipt.CustomerId = await _dbContext.Customers
                                 .Where(c => c.OriginalCustomerId == collectionReceipt.OriginalCustomerId)
                                 .Select(c => (int?)c.Id)
-                                .FirstOrDefaultAsync();
+                                .FirstOrDefaultAsync() ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
 
-                            var getSI = await _dbContext.SalesInvoices
+                            var getSi = await _dbContext.SalesInvoices
                                         .Where(si => si.OriginalDocumentId == collectionReceipt.OriginalSalesInvoiceId)
                                         .Select(si => new { si.Id, si.SINo })
                                         .FirstOrDefaultAsync();
 
-                            collectionReceipt.SalesInvoiceId = getSI?.Id;
-                            collectionReceipt.SINo = getSI?.SINo;
+                            collectionReceipt.SalesInvoiceId = getSi?.Id;
+                            collectionReceipt.SINo = getSi?.SINo;
 
-                            var getSV = await _dbContext.ServiceInvoices
+                            var getSv = await _dbContext.ServiceInvoices
                                 .Where(sv => sv.OriginalDocumentId == collectionReceipt.OriginalServiceInvoiceId)
                                 .Select(sv => new { sv.Id, sv.SVNo })
                                 .FirstOrDefaultAsync();
 
-                            collectionReceipt.ServiceInvoiceId = getSV?.Id;
-                            collectionReceipt.SVNo = getSV?.SVNo;
+                            collectionReceipt.ServiceInvoiceId = getSv?.Id;
+                            collectionReceipt.SVNo = getSv?.SVNo;
+
+                            if((getSv == null && !collectionReceipt.OriginalSalesInvoiceId.HasValue) &&
+                               (getSi == null && !collectionReceipt.OriginalServiceInvoiceId.HasValue))
+                            {
+                                throw new InvalidOperationException("Please upload the Excel file for the sales invoice or service invoice first.");
+                            }
 
                             foreach (var item in collectionReceipt.MultipleSIId)
                             {
@@ -2239,6 +2255,11 @@ namespace Accounting_System.Controllers
                 catch (OperationCanceledException oce)
                 {
                     TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(CollectionIndex), new { view = DynamicView.CollectionReceipt });
+                }
+                catch (InvalidOperationException ioe)
+                {
+                    TempData["warning"] = ioe.Message;
                     return RedirectToAction(nameof(CollectionIndex), new { view = DynamicView.CollectionReceipt });
                 }
                 catch (Exception ex)

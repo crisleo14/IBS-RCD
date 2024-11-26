@@ -294,12 +294,12 @@ namespace Accounting_System.Controllers
 
                 #region --Audit Trail Recording
 
-                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                {
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit rr# {existingModel.RRNo}", "Receiving Report", ipAddress);
-                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                }
+                // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                // {
+                //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                //     AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit rr# {existingModel.RRNo}", "Receiving Report", ipAddress);
+                //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                // }
 
                 #endregion --Audit Trail Recording
 
@@ -867,8 +867,15 @@ namespace Accounting_System.Controllers
                                 .Where(c => c.OriginalDocumentId == receivingReport.OriginalPOId)
                                 .FirstOrDefaultAsync();
 
-                            receivingReport.POId = getPO.Id;
-                            receivingReport.PONo = getPO.PONo;
+                            if (getPO != null)
+                            {
+                                receivingReport.POId = getPO.Id;
+                                receivingReport.PONo = getPO.PONo;
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException("Please upload the Excel file for the purchase order first.");
+                            }
 
                             await _dbContext.ReceivingReports.AddAsync(receivingReport);
                             await _dbContext.SaveChangesAsync();
@@ -878,6 +885,11 @@ namespace Accounting_System.Controllers
                 catch (OperationCanceledException oce)
                 {
                     TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.ReceivingReport });
+                }
+                catch (InvalidOperationException ioe)
+                {
+                    TempData["warning"] = ioe.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.ReceivingReport });
                 }
                 catch (Exception ex)

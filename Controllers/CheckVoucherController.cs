@@ -680,12 +680,12 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    if (existingHeaderModel.OriginalSeriesNumber == null && existingHeaderModel.OriginalDocumentId == 0)
-                    {
-                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(viewModel.CreatedBy, $"Create new check voucher# {viewModel.CVNo}", "Check Voucher", ipAddress);
-                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                    }
+                    // if (existingHeaderModel.OriginalSeriesNumber == null && existingHeaderModel.OriginalDocumentId == 0)
+                    // {
+                    //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    //     AuditTrail auditTrailBook = new(viewModel.CreatedBy, $"Create new check voucher# {viewModel.CVNo}", "Check Voucher", ipAddress);
+                    //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    // }
 
                     #endregion --Audit Trail Recording
 
@@ -1792,12 +1792,12 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    if (existingModel.OriginalSeriesNumber == null && existingModel.OriginalDocumentId == 0)
-                    {
-                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Create new check voucher# {existingModel.CVNo}", "Check Voucher", ipAddress);
-                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                    }
+                    // if (existingModel.OriginalSeriesNumber == null && existingModel.OriginalDocumentId == 0)
+                    // {
+                    //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    //     AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Create new check voucher# {existingModel.CVNo}", "Check Voucher", ipAddress);
+                    //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    // }
 
                     #endregion --Audit Trail Recording
 
@@ -2059,12 +2059,12 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    if (existingHeaderModel.OriginalSeriesNumber == null && existingHeaderModel.OriginalDocumentId == 0)
-                    {
-                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Create new check voucher# {existingHeaderModel.CVNo}", "Check Voucher", ipAddress);
-                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                    }
+                    // if (existingHeaderModel.OriginalSeriesNumber == null && existingHeaderModel.OriginalDocumentId == 0)
+                    // {
+                    //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    //     AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Create new check voucher# {existingHeaderModel.CVNo}", "Check Voucher", ipAddress);
+                    //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    // }
 
                     #endregion --Audit Trail Recording
 
@@ -2341,15 +2341,15 @@ namespace Accounting_System.Controllers
 
                             checkVoucherHeader.SupplierId = await _dbContext.Suppliers
                                 .Where(supp => supp.OriginalSupplierId == checkVoucherHeader.OriginalSupplierId)
-                                .Select(supp => supp.Id)
-                                .FirstOrDefaultAsync();
+                                .Select(supp => (int?)supp.Id)
+                                .FirstOrDefaultAsync() ?? throw new InvalidOperationException("Please upload the Excel file for the supplier master file first.");
 
                             if (checkVoucherHeader.CvType != "Invoicing")
                             {
                                 checkVoucherHeader.BankId = await _dbContext.BankAccounts
                                 .Where(bank => bank.OriginalBankId == checkVoucherHeader.OriginalBankId)
-                                .Select(bank => bank.Id)
-                                .FirstOrDefaultAsync();
+                                .Select(bank => (int?)bank.Id)
+                                .FirstOrDefaultAsync() ?? throw new InvalidOperationException("Please upload the Excel file for the bank account master file first.");
                             }
 
                             await _dbContext.CheckVoucherHeaders.AddAsync(checkVoucherHeader);
@@ -2393,6 +2393,11 @@ namespace Accounting_System.Controllers
                 catch (OperationCanceledException oce)
                 {
                     TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.CheckVoucher });
+                }
+                catch (InvalidOperationException ioe)
+                {
+                    TempData["warning"] = ioe.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.CheckVoucher });
                 }
                 catch (Exception ex)

@@ -179,7 +179,7 @@ namespace Accounting_System.Controllers
                 return View(inventories);
             }
 
-            return View(viewModel);
+            return RedirectToAction(nameof(InventoryReport));
         }
 
         public async Task<IActionResult> ConsolidatedPO(InventoryReportViewModel viewModel, CancellationToken cancellationToken)
@@ -217,7 +217,7 @@ namespace Accounting_System.Controllers
                 return View(inventories);
             }
 
-            return View(viewModel);
+            return RedirectToAction(nameof(InventoryReport));
         }
 
         [HttpGet]

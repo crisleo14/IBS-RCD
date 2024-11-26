@@ -1045,12 +1045,12 @@ namespace Accounting_System.Controllers
 
                 #region --Audit Trail Recording
 
-                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                {
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit debit memo# {existingDM.DMNo}", "Debit Memo", ipAddress);
-                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                }
+                // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                // {
+                //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                //     AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit debit memo# {existingDM.DMNo}", "Debit Memo", ipAddress);
+                //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                // }
 
                 #endregion --Audit Trail Recording
 
@@ -1171,6 +1171,7 @@ namespace Accounting_System.Controllers
                             TempData["error"] = "The Excel file contains no worksheets.";
                             return RedirectToAction(nameof(Index), new { view = DynamicView.DebitMemo });
                         }
+
                         if (worksheet.ToString() != nameof(DynamicView.DebitMemo))
                         {
                             TempData["error"] = "The Excel file is not related to debit memo.";
@@ -1179,31 +1180,66 @@ namespace Accounting_System.Controllers
 
                         var rowCount = worksheet.Dimension.Rows;
 
-                        for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                        for (int row = 2; row <= rowCount; row++) // Assuming the first row is the header
                         {
                             var debitMemo = new DebitMemo
                             {
                                 DMNo = worksheet.Cells[row, 17].Text,
-                                SeriesNumber = int.TryParse(worksheet.Cells[row, 20].Text, out int seriesNumber) ? seriesNumber : 0,
-                                TransactionDate = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly transactionDate) ? transactionDate : default,
-                                DebitAmount = decimal.TryParse(worksheet.Cells[row, 2].Text, out decimal debitAmount) ? debitAmount : 0,
+                                SeriesNumber = int.TryParse(worksheet.Cells[row, 20].Text, out int seriesNumber)
+                                    ? seriesNumber
+                                    : 0,
+                                TransactionDate =
+                                    DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly transactionDate)
+                                        ? transactionDate
+                                        : default,
+                                DebitAmount = decimal.TryParse(worksheet.Cells[row, 2].Text, out decimal debitAmount)
+                                    ? debitAmount
+                                    : 0,
                                 Description = worksheet.Cells[row, 3].Text,
-                                AdjustedPrice = decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal adjustedPrice) ? adjustedPrice : 0,
-                                Quantity = decimal.TryParse(worksheet.Cells[row, 5].Text, out decimal quantity) ? quantity : 0,
+                                AdjustedPrice =
+                                    decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal adjustedPrice)
+                                        ? adjustedPrice
+                                        : 0,
+                                Quantity = decimal.TryParse(worksheet.Cells[row, 5].Text, out decimal quantity)
+                                    ? quantity
+                                    : 0,
                                 Source = worksheet.Cells[row, 6].Text,
                                 Remarks = worksheet.Cells[row, 7].Text,
-                                Period = DateOnly.TryParse(worksheet.Cells[row, 8].Text, out DateOnly period) ? period : default,
-                                Amount = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amount) ? amount : 0,
-                                CurrentAndPreviousAmount = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal currentAndPreviousAmount) ? currentAndPreviousAmount : 0,
-                                UnearnedAmount = decimal.TryParse(worksheet.Cells[row, 11].Text, out decimal unearnedAmount) ? unearnedAmount : 0,
-                                ServicesId = int.TryParse(worksheet.Cells[row, 12].Text, out int servicesId) ? servicesId : 0,
+                                Period = DateOnly.TryParse(worksheet.Cells[row, 8].Text, out DateOnly period)
+                                    ? period
+                                    : default,
+                                Amount =
+                                    decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amount) ? amount : 0,
+                                CurrentAndPreviousAmount =
+                                    decimal.TryParse(worksheet.Cells[row, 10].Text,
+                                        out decimal currentAndPreviousAmount)
+                                        ? currentAndPreviousAmount
+                                        : 0,
+                                UnearnedAmount =
+                                    decimal.TryParse(worksheet.Cells[row, 11].Text, out decimal unearnedAmount)
+                                        ? unearnedAmount
+                                        : 0,
+                                ServicesId = int.TryParse(worksheet.Cells[row, 12].Text, out int servicesId)
+                                    ? servicesId
+                                    : 0,
                                 CreatedBy = worksheet.Cells[row, 13].Text,
-                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 14].Text, out DateTime createdDate) ? createdDate : default,
+                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 14].Text, out DateTime createdDate)
+                                    ? createdDate
+                                    : default,
                                 CancellationRemarks = worksheet.Cells[row, 15].Text,
-                                OriginalSalesInvoiceId = int.TryParse(worksheet.Cells[row, 16].Text, out int originalSalesInvoiceId) ? originalSalesInvoiceId : 0,
+                                OriginalSalesInvoiceId =
+                                    int.TryParse(worksheet.Cells[row, 16].Text, out int originalSalesInvoiceId)
+                                        ? originalSalesInvoiceId
+                                        : 0,
                                 OriginalSeriesNumber = worksheet.Cells[row, 17].Text,
-                                OriginalServiceInvoiceId = int.TryParse(worksheet.Cells[row, 18].Text, out int originalServiceInvoiceId) ? originalServiceInvoiceId : 0,
-                                OriginalDocumentId = int.TryParse(worksheet.Cells[row, 19].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                                OriginalServiceInvoiceId =
+                                    int.TryParse(worksheet.Cells[row, 18].Text, out int originalServiceInvoiceId)
+                                        ? originalServiceInvoiceId
+                                        : 0,
+                                OriginalDocumentId =
+                                    int.TryParse(worksheet.Cells[row, 19].Text, out int originalDocumentId)
+                                        ? originalDocumentId
+                                        : 0,
                             };
 
                             debitMemo.SalesInvoiceId = await _dbContext.SalesInvoices
@@ -1217,13 +1253,21 @@ namespace Accounting_System.Controllers
                                 .FirstOrDefaultAsync();
 
                             var debitMemoList = _dbContext
-                            .DebitMemos
-                            .Where(dm => dm.OriginalDocumentId == debitMemo.OriginalDocumentId || dm.Id == debitMemo.OriginalDocumentId)
-                            .ToList();
+                                .DebitMemos
+                                .Where(dm =>
+                                    dm.OriginalDocumentId == debitMemo.OriginalDocumentId ||
+                                    dm.Id == debitMemo.OriginalDocumentId)
+                                .ToList();
 
                             if (debitMemoList.Any())
                             {
                                 continue;
+                            }
+
+                            if (debitMemo.SalesInvoiceId == null && debitMemo.ServiceInvoiceId == null)
+                            {
+                                throw new InvalidOperationException(
+                                    "Please upload the Excel file for the sales invoice or service invoice first.");
                             }
 
                             await _dbContext.DebitMemos.AddAsync(debitMemo);
@@ -1235,6 +1279,11 @@ namespace Accounting_System.Controllers
                 catch (OperationCanceledException oce)
                 {
                     TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.DebitMemo });
+                }
+                catch (InvalidOperationException ioe)
+                {
+                    TempData["warning"] = ioe.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.DebitMemo });
                 }
                 catch (Exception ex)

@@ -397,13 +397,13 @@ namespace Accounting_System.Controllers
                     {
                         #region --Audit Trail Recording
 
-                        if (existingModel.OriginalSeriesNumber == null && existingModel.OriginalDocumentId == 0)
-                        {
-                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            var modifiedBy = _userManager.GetUserName(this.User);
-                            AuditTrail auditTrailBook = new(modifiedBy, $"Edited invoice# {existingModel.SINo}", "Sales Invoice", ipAddress);
-                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                        }
+                        // if (existingModel.OriginalSeriesNumber == null && existingModel.OriginalDocumentId == 0)
+                        // {
+                        //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        //     var modifiedBy = _userManager.GetUserName(this.User);
+                        //     AuditTrail auditTrailBook = new(modifiedBy, $"Edited invoice# {existingModel.SINo}", "Sales Invoice", ipAddress);
+                        //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        // }
 
                         #endregion --Audit Trail Recording
                     }
@@ -940,6 +940,7 @@ namespace Accounting_System.Controllers
                             TempData["error"] = "The Excel file contains no worksheets.";
                             return RedirectToAction(nameof(Index), new { view = DynamicView.SalesInvoice });
                         }
+
                         if (worksheet.ToString() != nameof(DynamicView.SalesInvoice))
                         {
                             TempData["error"] = "The Excel file is not related to sales invoice.";
@@ -948,39 +949,75 @@ namespace Accounting_System.Controllers
 
                         var rowCount = worksheet.Dimension.Rows;
 
-                        for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                        for (int row = 2; row <= rowCount; row++) // Assuming the first row is the header
                         {
                             var invoice = new SalesInvoice
                             {
                                 SINo = worksheet.Cells[row, 21].Text,
-                                SeriesNumber = int.TryParse(worksheet.Cells[row, 23].Text, out int seriesNumber) ? seriesNumber : 0,
+                                SeriesNumber = int.TryParse(worksheet.Cells[row, 23].Text, out int seriesNumber)
+                                    ? seriesNumber
+                                    : 0,
                                 OtherRefNo = worksheet.Cells[row, 1].Text,
-                                Quantity = decimal.TryParse(worksheet.Cells[row, 2].Text, out decimal quantity) ? quantity : 0,
-                                UnitPrice = decimal.TryParse(worksheet.Cells[row, 3].Text, out decimal unitPrice) ? unitPrice : 0,
-                                Amount = decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal amount) ? amount : 0,
+                                Quantity = decimal.TryParse(worksheet.Cells[row, 2].Text, out decimal quantity)
+                                    ? quantity
+                                    : 0,
+                                UnitPrice = decimal.TryParse(worksheet.Cells[row, 3].Text, out decimal unitPrice)
+                                    ? unitPrice
+                                    : 0,
+                                Amount =
+                                    decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal amount) ? amount : 0,
                                 Remarks = worksheet.Cells[row, 5].Text,
                                 Status = worksheet.Cells[row, 6].Text,
-                                TransactionDate = DateOnly.TryParse(worksheet.Cells[row, 7].Text, out DateOnly transactionDate) ? transactionDate : default,
-                                Discount = decimal.TryParse(worksheet.Cells[row, 8].Text, out decimal discount) ? discount : 0,
-                                AmountPaid = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amountPaid) ? amountPaid : 0,
-                                Balance = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal balance) ? balance : 0,
+                                TransactionDate =
+                                    DateOnly.TryParse(worksheet.Cells[row, 7].Text, out DateOnly transactionDate)
+                                        ? transactionDate
+                                        : default,
+                                Discount = decimal.TryParse(worksheet.Cells[row, 8].Text, out decimal discount)
+                                    ? discount
+                                    : 0,
+                                AmountPaid = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amountPaid)
+                                    ? amountPaid
+                                    : 0,
+                                Balance = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal balance)
+                                    ? balance
+                                    : 0,
                                 IsPaid = bool.TryParse(worksheet.Cells[row, 11].Text, out bool isPaid) ? isPaid : false,
-                                IsTaxAndVatPaid = bool.TryParse(worksheet.Cells[row, 12].Text, out bool isTaxAndVatPaid) ? isTaxAndVatPaid : false,
-                                DueDate = DateOnly.TryParse(worksheet.Cells[row, 13].Text, out DateOnly dueDate) ? dueDate : default,
+                                IsTaxAndVatPaid = bool.TryParse(worksheet.Cells[row, 12].Text, out bool isTaxAndVatPaid)
+                                    ? isTaxAndVatPaid
+                                    : false,
+                                DueDate = DateOnly.TryParse(worksheet.Cells[row, 13].Text, out DateOnly dueDate)
+                                    ? dueDate
+                                    : default,
                                 CreatedBy = worksheet.Cells[row, 14].Text,
-                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 15].Text, out DateTime createdDate) ? createdDate : default,
-                                CancellationRemarks = worksheet.Cells[row, 16].Text != "" ? worksheet.Cells[row, 16].Text : null,
-                                OriginalReceivingReportId = int.TryParse(worksheet.Cells[row, 17].Text, out int receivingReportId) ? receivingReportId : 0,
-                                OriginalCustomerId = int.TryParse(worksheet.Cells[row, 18].Text, out int customerId) ? customerId : 0,
+                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 15].Text, out DateTime createdDate)
+                                    ? createdDate
+                                    : default,
+                                CancellationRemarks = worksheet.Cells[row, 16].Text != ""
+                                    ? worksheet.Cells[row, 16].Text
+                                    : null,
+                                OriginalReceivingReportId =
+                                    int.TryParse(worksheet.Cells[row, 17].Text, out int receivingReportId)
+                                        ? receivingReportId
+                                        : 0,
+                                OriginalCustomerId = int.TryParse(worksheet.Cells[row, 18].Text, out int customerId)
+                                    ? customerId
+                                    : 0,
                                 OriginalPOId = int.TryParse(worksheet.Cells[row, 19].Text, out int poId) ? poId : 0,
-                                OriginalProductId = int.TryParse(worksheet.Cells[row, 20].Text, out int productId) ? productId : 0,
+                                OriginalProductId = int.TryParse(worksheet.Cells[row, 20].Text, out int productId)
+                                    ? productId
+                                    : 0,
                                 OriginalSeriesNumber = worksheet.Cells[row, 21].Text,
-                                OriginalDocumentId = int.TryParse(worksheet.Cells[row, 22].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                                OriginalDocumentId =
+                                    int.TryParse(worksheet.Cells[row, 22].Text, out int originalDocumentId)
+                                        ? originalDocumentId
+                                        : 0,
                             };
 
                             var invoiceList = _dbContext
                                 .SalesInvoices
-                                .Where(si => si.OriginalDocumentId == invoice.OriginalDocumentId || si.Id == invoice.OriginalDocumentId)
+                                .Where(si =>
+                                    si.OriginalDocumentId == invoice.OriginalDocumentId ||
+                                    si.Id == invoice.OriginalDocumentId)
                                 .ToList();
 
                             if (invoiceList.Any())
@@ -989,24 +1026,33 @@ namespace Accounting_System.Controllers
                             }
 
                             invoice.CustomerId = await _dbContext.Customers
-                                .Where(c => c.OriginalCustomerId == invoice.OriginalCustomerId)
-                                .Select(c => c.Id)
-                                .FirstOrDefaultAsync();
+                                                     .Where(c => c.OriginalCustomerId == invoice.OriginalCustomerId)
+                                                     .Select(c => (int?)c.Id)
+                                                     .FirstOrDefaultAsync() ??
+                                                 throw new InvalidOperationException(
+                                                     "Please upload the Excel file for the customer master file first.");
 
                             invoice.ProductId = await _dbContext.Products
-                                .Where(c => c.OriginalProductId == invoice.OriginalProductId)
-                                .Select(c => c.Id)
-                                .FirstOrDefaultAsync();
+                                                    .Where(c => c.OriginalProductId == invoice.OriginalProductId)
+                                                    .Select(c => (int?)c.Id)
+                                                    .FirstOrDefaultAsync() ??
+                                                throw new InvalidOperationException(
+                                                    "Please upload the Excel file for the product master file first.");
 
                             invoice.ReceivingReportId = await _dbContext.ReceivingReports
-                                .Where(c => c.OriginalDocumentId == invoice.OriginalReceivingReportId)
-                                .Select(c => c.Id)
-                                .FirstOrDefaultAsync();
+                                                            .Where(c => c.OriginalDocumentId ==
+                                                                        invoice.OriginalReceivingReportId)
+                                                            .Select(c => (int?)c.Id)
+                                                            .FirstOrDefaultAsync() ??
+                                                        throw new InvalidOperationException(
+                                                            "Please upload the Excel file for the receiving report first.");
 
                             invoice.POId = await _dbContext.PurchaseOrders
-                                .Where(c => c.OriginalDocumentId == invoice.OriginalPOId)
-                                .Select(c => c.Id)
-                                .FirstOrDefaultAsync();
+                                               .Where(c => c.OriginalDocumentId == invoice.OriginalPOId)
+                                               .Select(c => (int?)c.Id)
+                                               .FirstOrDefaultAsync() ??
+                                           throw new InvalidOperationException(
+                                               "Please upload the Excel file for the purchase order first.");
 
                             await _dbContext.SalesInvoices.AddAsync(invoice);
                             await _dbContext.SaveChangesAsync();
@@ -1016,6 +1062,11 @@ namespace Accounting_System.Controllers
                 catch (OperationCanceledException oce)
                 {
                     TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.SalesInvoice });
+                }
+                catch (InvalidOperationException ioe)
+                {
+                    TempData["warning"] = ioe.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.SalesInvoice });
                 }
                 catch (Exception ex)

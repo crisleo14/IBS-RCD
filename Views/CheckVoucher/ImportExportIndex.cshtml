@@ -88,23 +88,23 @@
                                 : "Pending";
                             }
                             <span class="badge rounded-pill @if(status == "Posted") {
-                        <text>bg-info</text>
-} else if(status == "Voided") {
-                        <text>bg-danger</text>
-} else if(status == "Cancelled") {
-                        <text>bg-warning</text>
-}">@status</span>
-                        </td>
-                        <td>
-                            <input type="checkbox" class="selectCheckbox text-center" value="@item.Id">
-                        </td>
+                            <text>bg-info</text>
+                                } else if(status == "Voided") {
+                                                        <text>bg-danger</text>
+                                } else if(status == "Cancelled") {
+                                                        <text>bg-warning</text>
+                                }">@status</span>
+                            </td>
+                            <td>
+                                <input type="checkbox" class="selectCheckbox text-center" value="@item.Id">
+                            </td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
 </div>
-</div>
+
 @section Scripts {
     <script>
         let selectedRecords = new Set(); // To track selected record IDs

@@ -278,12 +278,12 @@ namespace Accounting_System.Controllers
 
                 #region --Audit Trail Recording
 
-                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                {
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit purchase order# {existingModel.PONo}", "Purchase Order", ipAddress);
-                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                }
+                // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                // {
+                //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                //     AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit purchase order# {existingModel.PONo}", "Purchase Order", ipAddress);
+                //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                // }
 
                 #endregion --Audit Trail Recording
 
@@ -723,17 +723,31 @@ namespace Accounting_System.Controllers
                                 .Where(p => p.OriginalProductId == purchaseOrder.OriginalProductId)
                                 .FirstOrDefaultAsync();
 
-                            purchaseOrder.ProductId = getProduct.Id;
+                            if (getProduct != null)
+                            {
+                                purchaseOrder.ProductId = getProduct.Id;
 
-                            purchaseOrder.ProductNo = getProduct.Code;
+                                purchaseOrder.ProductNo = getProduct.Code;
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException("Please upload the Excel file for the product master file first.");
+                            }
 
                             var getSupplier = await _dbContext.Suppliers
                                 .Where(c => c.OriginalSupplierId == purchaseOrder.OriginalSupplierId)
                                 .FirstOrDefaultAsync();
 
-                            purchaseOrder.SupplierId = getSupplier.Id;
+                            if (getSupplier != null)
+                            {
+                                purchaseOrder.SupplierId = getSupplier.Id;
 
-                            purchaseOrder.SupplierNo = getSupplier.Number;
+                                purchaseOrder.SupplierNo = getSupplier.Number;
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException("Please upload the Excel file for the supplier master file first.");
+                            }
 
                             await _dbContext.PurchaseOrders.AddAsync(purchaseOrder);
                             await _dbContext.SaveChangesAsync();
@@ -743,6 +757,11 @@ namespace Accounting_System.Controllers
                 catch (OperationCanceledException oce)
                 {
                     TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
+                }
+                catch (InvalidOperationException ioe)
+                {
+                    TempData["warning"] = ioe.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
                 }
                 catch (Exception ex)

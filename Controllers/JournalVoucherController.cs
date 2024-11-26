@@ -707,12 +707,12 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                    {
-                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit journal voucher# {viewModel.JVNo}", "Journal Voucher", ipAddress);
-                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                    }
+                    // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    // {
+                    //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    //     AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit journal voucher# {viewModel.JVNo}", "Journal Voucher", ipAddress);
+                    //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    // }
 
                     #endregion --Audit Trail Recording
 
@@ -906,8 +906,8 @@ namespace Accounting_System.Controllers
 
                             journalVoucherHeader.CVId = await _dbContext.CheckVoucherHeaders
                                 .Where(c => c.OriginalDocumentId == journalVoucherHeader.OriginalCVId)
-                                .Select(c => c.Id)
-                                .FirstOrDefaultAsync();
+                                .Select(c => (int?)c.Id)
+                                .FirstOrDefaultAsync() ?? throw new InvalidOperationException("Please upload the Excel file for the check voucher first.");
 
                             await _dbContext.JournalVoucherHeaders.AddAsync(journalVoucherHeader);
                             await _dbContext.SaveChangesAsync();
@@ -953,6 +953,11 @@ namespace Accounting_System.Controllers
                 catch (OperationCanceledException oce)
                 {
                     TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.JournalVoucher });
+                }
+                catch (InvalidOperationException ioe)
+                {
+                    TempData["warning"] = ioe.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.JournalVoucher });
                 }
                 catch (Exception ex)
