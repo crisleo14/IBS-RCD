@@ -77,7 +77,12 @@
                         }
                     },
                     { data: 'customer.terms' },
-                    { data: 'amount' },
+                    { 
+                        data: 'amount',
+                        render: function (data, type, row) {
+                            return formatNumber(data);
+                        }
+                    },
                     { data: 'createdBy' },
                     {
                         "data": null,

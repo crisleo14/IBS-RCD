@@ -109,7 +109,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 document.addEventListener('DOMContentLoaded', function () {
     function formatNumberWithCommas(value) {
-        return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        const [integerPart, decimalPart] = value.toString().split('.');
+        const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        return decimalPart ? `${formattedIntegerPart}.${decimalPart}` : formattedIntegerPart;
     }
 
     function removeCommas(value) {
@@ -145,6 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelector('form').addEventListener('submit', handleSubmit);
 });
+
 
 function setTransactionDate() {
     // Get the current date in the format "YYYY-MM-DD" (required for the date input)

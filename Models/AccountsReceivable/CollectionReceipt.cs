@@ -73,7 +73,7 @@ namespace Accounting_System.Models.AccountsReceivable
 
         //Cash
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
+        [Column(TypeName = "numeric(18,4)")]
         public decimal CashAmount { get; set; }
 
         //Check
@@ -89,7 +89,7 @@ namespace Accounting_System.Models.AccountsReceivable
         public string? CheckBranch { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
+        [Column(TypeName = "numeric(18,4)")]
         public decimal CheckAmount { get; set; }
 
         //Manager's Check
@@ -106,19 +106,19 @@ namespace Accounting_System.Models.AccountsReceivable
         public string? ManagerCheckBranch { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
+        [Column(TypeName = "numeric(18,4)")]
         public decimal ManagerCheckAmount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
+        [Column(TypeName = "numeric(18,4)")]
         public decimal EWT { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
+        [Column(TypeName = "numeric(18,4)")]
         public decimal WVAT { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
+        [Column(TypeName = "numeric(18,4)")]
         public decimal Total { get; set; }
 
         public bool IsCertificateUpload { get; set; }
@@ -129,7 +129,7 @@ namespace Accounting_System.Models.AccountsReceivable
         [Column(TypeName = "varchar(200)")]
         public string? F2307FilePath { get; set; }
 
-        [Column(TypeName = "numeric[]")]
+        [Column(TypeName = "numeric(18,4)[]")]
         public decimal[]? SIMultipleAmount { get; set; }
 
         public DateOnly[]? MultipleTransactionDate { get; set; }

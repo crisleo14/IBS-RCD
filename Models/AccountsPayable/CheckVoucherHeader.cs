@@ -44,9 +44,10 @@ namespace Accounting_System.Models.AccountsPayable
         public List<SelectListItem>? Suppliers { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
+        [Column(TypeName = "numeric(18,4)")]
         public decimal Total { get; set; }
 
+        [Column(TypeName = "numeric(18,4)[]")]
         public decimal[]? Amount { get; set; }
 
         public string? Particulars { get; set; }
@@ -90,7 +91,8 @@ namespace Accounting_System.Models.AccountsPayable
 
         public DateTime? LastCreatedDate { get; set; }
 
-        [Column(TypeName = "numeric(18,2)")]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,4)")]
         public decimal AmountPerMonth { get; set; }
 
         public bool IsComplete { get; set; }
@@ -106,11 +108,11 @@ namespace Accounting_System.Models.AccountsPayable
         public string? CvType { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
+        [Column(TypeName = "numeric(18,4)")]
         public decimal CheckAmount { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "numeric(18,2)")]
+        [Column(TypeName = "numeric(18,4)")]
         public decimal AmountPaid { get; set; }
 
         public bool IsPaid { get; set; }

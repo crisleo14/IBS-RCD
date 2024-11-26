@@ -76,7 +76,12 @@
                             return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
                         }
                     },
-                    { data: 'amount' },
+                    { 
+                        data: 'amount',
+                        render: function (data, type, row) {
+                            return formatNumber(data);
+                        }
+                    },
                     { data: 'createdBy' },
                     {
                         "data": null,

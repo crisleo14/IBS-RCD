@@ -76,10 +76,10 @@
                             @Html.DisplayFor(modelItem => item.PurchaseOrder.PONo)
                         </td>
                         <td>
-                            @item.QuantityDelivered.ToString("N0")
+                            @item.QuantityDelivered.ToString("N2")
                         </td>
                         <td>
-                            @item.QuantityReceived.ToString("N0")
+                            @item.QuantityReceived.ToString("N2")
                         </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.PurchaseOrder.CreatedBy)

@@ -85,7 +85,12 @@
                         }
                     },
                     { "data": "customer.name" },
-                    { "data": "total", "render": $.fn.dataTable.render.number(',', '.', 4) },
+                    { 
+                        "data": "total",
+                        render: function (data, type, row) {
+                            return formatNumber(data);
+                        }
+                    },
                     { "data": "createdBy" },
                     {
                         "data": "null",

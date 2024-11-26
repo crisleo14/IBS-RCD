@@ -74,8 +74,18 @@
                         }
                     },
                     { data: 'poNo' },
-                    { data: 'quantityDelivered' },
-                    { data: 'quantityReceived' },
+                    { 
+                        data: 'quantityDelivered',
+                        render: function (data, type, row) {
+                            return formatNumber(data);
+                        }
+                    },
+                    { 
+                        data: 'quantityReceived',
+                        render: function (data, type, row) {
+                            return formatNumber(data);
+                        }
+                    },
                     { data: 'createdBy' },
                     {
                         "data": null,

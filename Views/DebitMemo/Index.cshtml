@@ -85,7 +85,12 @@
                         }
                     },
                     { data: 'source' },
-                    { data: 'debitAmount', "render": $.fn.dataTable.render.number(',', '.', 2) },
+                    { 
+                        data: 'debitAmount',
+                        render: function (data, type, row) {
+                            return formatNumber(data);
+                        }
+                    },
                     { data: 'createdBy' },
                     {
                         "data": null,

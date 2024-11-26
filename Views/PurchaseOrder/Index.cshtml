@@ -76,7 +76,12 @@
                     },
                     { data: 'supplier.name' },
                     { data: 'product.name' },
-                    { data: 'amount' },
+                    {
+                        data: 'amount',
+                        render: function (data, type, row) {
+                            return formatNumber(data);
+                        }
+                    },
                     { data: 'createdBy' },
                     {
                         "data": null,

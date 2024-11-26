@@ -83,7 +83,12 @@
                         }
                     },
                     { data: 'source' },
-                    { data: 'creditAmount' },
+                    { 
+                        data: 'creditAmount',
+                        render: function (data, type, row) {
+                            return formatNumber(data);
+                        }
+                    },
                     { data: 'createdBy' },
                     {
                         "data": null,

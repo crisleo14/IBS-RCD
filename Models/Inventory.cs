@@ -25,11 +25,11 @@ namespace Accounting_System.Models
         [Column(TypeName = "varchar(12)")]
         public string? Reference { get; set; }
 
-        [Column(TypeName = "numeric(18,2)")]
+        [Column(TypeName = "numeric(18,4)")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Quantity { get; set; }
 
-        [Column(TypeName = "numeric(18,2)")]
+        [Column(TypeName = "numeric(18,4)")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Cost { get; set; }
 
@@ -38,7 +38,7 @@ namespace Accounting_System.Models
         /// Formula : Quantity * Cost
         ///
         /// </summary>
-        [Column(TypeName = "numeric(18,2)")]
+        [Column(TypeName = "numeric(18,4)")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Total { get; set; }
 
@@ -54,7 +54,7 @@ namespace Accounting_System.Models
         /// </para>
         ///
         /// </summary>
-        [Column(TypeName = "numeric(18,2)")]
+        [Column(TypeName = "numeric(18,4)")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Display(Name = "Inventory Balance")]
         public decimal InventoryBalance { get; set; }
@@ -64,7 +64,7 @@ namespace Accounting_System.Models
         /// <para>Formula: TotalBalance / InventoryBalance</para>
         ///
         /// </summary>
-        [Column(TypeName = "numeric(18,2)")]
+        [Column(TypeName = "numeric(18,4)")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Display(Name = "Average Cost")]
         public decimal AverageCost { get; set; }
@@ -78,7 +78,7 @@ namespace Accounting_System.Models
         ///         <para>Sales: PreviousTotalBalance - TotalBalance</para>
         ///
         /// </summary>
-        [Column(TypeName = "numeric(18,2)")]
+        [Column(TypeName = "numeric(18,4)")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         [Display(Name = "Total Balance")]
         public decimal TotalBalance { get; set; }
