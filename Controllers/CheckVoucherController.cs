@@ -355,6 +355,29 @@ namespace Accounting_System.Controllers
                         modelHeader.PostedBy = _userManager.GetUserName(this.User);
                         modelHeader.PostedDate = DateTime.Now;
 
+                        #region -- Partial payment of RR's
+                        
+                        if (modelHeader.Category == "Trade")
+                        {
+                            var receivingReport = new ReceivingReport();
+                            for (int i = 0; i < modelHeader.RRNo.Length; i++)
+                            {
+                                var rrValue = modelHeader.RRNo[i];
+                                receivingReport = await _dbContext.ReceivingReports
+                                    .FirstOrDefaultAsync(p => p.RRNo == rrValue, cancellationToken);
+
+                                receivingReport.AmountPaid += modelHeader.Amount[i];
+
+                                if (receivingReport.Amount <= receivingReport.AmountPaid)
+                                {
+                                    receivingReport.IsPaid = true;
+                                    receivingReport.PaidDate = DateTime.Now;
+                                }
+                            }
+                        }
+
+                        #endregion -- Partial payment of RR's
+                        
                         #region --General Ledger Book Recording(CV)--
 
                         var ledgers = new List<GeneralLedgerBook>();
@@ -709,6 +732,17 @@ namespace Accounting_System.Controllers
         {
             var model = await _dbContext.CheckVoucherHeaders.FindAsync(id, cancellationToken);
 
+            CheckVoucherDetail getPaymentDetails = new();
+            CheckVoucherHeader getInvoicingReference = new();
+            CheckVoucherDetail getInvoicingDetails = new();
+
+            if (model.CvType == "Payment")
+            {
+                getInvoicingReference = await _dbContext.CheckVoucherHeaders
+                    .Where(cvh => cvh.CVNo == model.Reference)
+                    .FirstOrDefaultAsync(cancellationToken);
+            }
+            
             if (model != null)
             {
                 if (!model.IsVoided)
@@ -718,6 +752,37 @@ namespace Accounting_System.Controllers
                         model.IsPosted = false;
                     }
 
+                    //Remove payment in normal invoicing
+                    getInvoicingReference.AmountPaid -= model.Total;
+
+                    if (getInvoicingReference.IsPaid)
+                    {
+                        getInvoicingReference.IsPaid = false;
+                    }
+                    
+                    #region -- Partial payment of RR's
+                    
+                    if (model.Amount != null)
+                    {
+                        var receivingReport = new ReceivingReport();
+                        for (int i = 0; i < model.RRNo.Length; i++)
+                        {
+                            var rrValue = model.RRNo[i];
+                            receivingReport = await _dbContext.ReceivingReports
+                                .FirstOrDefaultAsync(p => p.RRNo == rrValue, cancellationToken);
+
+                            receivingReport.AmountPaid -= model.Amount[i];
+
+                            if (receivingReport.IsPaid)
+                            {
+                                receivingReport.IsPaid = false;
+                                receivingReport.PaidDate = DateTime.MinValue;
+                            }
+                        }
+                    }
+
+                    #endregion -- Partial payment of RR's
+                    
                     model.IsVoided = true;
                     model.VoidedBy = _userManager.GetUserName(this.User);
                     model.VoidedDate = DateTime.Now;
@@ -818,7 +883,8 @@ namespace Accounting_System.Controllers
                 try
                 {
                     #region --Validating series
-                    var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(cancellationToken);
+                    var generateCvNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken);
+                    var getLastNumber = long.Parse(generateCvNo.Substring(2));
 
                     if (getLastNumber > 9999999999)
                     {
@@ -905,14 +971,13 @@ namespace Accounting_System.Controllers
 
                     #region --Saving the default entries
 
-                    var generateCVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken);
+                    
                     var cashInBank = viewModel.Credit[2];
                     var cvh = new List<CheckVoucherHeader>();
                     cvh.Add(
                             new CheckVoucherHeader
                             {
-                                CVNo = generateCVNo,
-                                SeriesNumber = getLastNumber,
+                                CVNo = generateCvNo,
                                 Date = viewModel.TransactionDate,
                                 RRNo = viewModel.RRSeries,
                                 PONo = viewModel.POSeries,
@@ -948,7 +1013,7 @@ namespace Accounting_System.Controllers
                                 AccountName = viewModel.AccountTitle[i],
                                 Debit = viewModel.Debit[i],
                                 Credit = viewModel.Credit[i],
-                                TransactionNo = generateCVNo,
+                                TransactionNo = generateCvNo,
                                 CVHeaderId = cvh.Select(cvh => cvh.Id).FirstOrDefault()
                             });
                         }
@@ -956,28 +1021,6 @@ namespace Accounting_System.Controllers
 
                     await _dbContext.CheckVoucherDetails.AddRangeAsync(cvDetails, cancellationToken);
                     #endregion --CV Details Entry
-
-                    #region -- Partial payment of RR's
-                    if (viewModel.Amount != null)
-                    {
-                        var receivingReport = new ReceivingReport();
-                        for (int i = 0; i < viewModel.RRSeries.Length; i++)
-                        {
-                            var rrValue = viewModel.RRSeries[i];
-                            receivingReport = await _dbContext.ReceivingReports
-                                        .FirstOrDefaultAsync(p => p.RRNo == rrValue, cancellationToken);
-
-                            receivingReport.AmountPaid += viewModel.Amount[i];
-
-                            if (receivingReport.Amount <= receivingReport.AmountPaid)
-                            {
-                                receivingReport.IsPaid = true;
-                                receivingReport.PaidDate = DateTime.Now;
-                            }
-                        }
-                    }
-
-                    #endregion -- Partial payment of RR's
 
                     #region -- Uploading file --
                     foreach (var item in cvh.ToList())
@@ -1150,7 +1193,8 @@ namespace Accounting_System.Controllers
                 try
                 {
                     #region --Validating series
-                    var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(cancellationToken);
+                    var generateCvNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken);
+                    var getLastNumber = long.Parse(generateCvNo.Substring(2));
 
                     if (getLastNumber > 9999999999)
                     {
@@ -1173,8 +1217,7 @@ namespace Accounting_System.Controllers
 
                     CheckVoucherHeader checkVoucherHeader = new()
                     {
-                        CVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken),
-                        SeriesNumber = getLastNumber,
+                        CVNo = generateCvNo,
                         Date = viewModel.TransactionDate,
                         Payee = viewModel.SupplierName,
                         PONo = viewModel.PoNo != null ? [viewModel.PoNo] : null,
@@ -1380,7 +1423,8 @@ namespace Accounting_System.Controllers
                 try
                 {
                     #region --Validating series
-                    var getLastNumber = await _checkVoucherRepo.GetLastSeriesNumberCV(cancellationToken);
+                    var generateCvNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken);
+                    var getLastNumber = long.Parse(generateCvNo.Substring(2));
 
                     if (getLastNumber > 9999999999)
                     {
@@ -1410,8 +1454,7 @@ namespace Accounting_System.Controllers
 
                     CheckVoucherHeader checkVoucherHeader = new()
                     {
-                        CVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken),
-                        SeriesNumber = getLastNumber,
+                        CVNo = generateCvNo,
                         Date = viewModel.TransactionDate,
                         PONo = invoicingVoucher.PONo,
                         SINo = invoicingVoucher.SINo,
@@ -2144,7 +2187,6 @@ namespace Accounting_System.Controllers
                     worksheet.Cells["AC1"].Value = "OriginalCVNo";
                     worksheet.Cells["AD1"].Value = "OriginalSupplierId";
                     worksheet.Cells["AE1"].Value = "OriginalDocumentId";
-                    worksheet.Cells["AF1"].Value = "OriginalSeriesNumber";
 
                     worksheet2.Cells["A1"].Value = "AccountNo";
                     worksheet2.Cells["B1"].Value = "AccountName";
@@ -2204,7 +2246,6 @@ namespace Accounting_System.Controllers
                         worksheet.Cells[row, 29].Value = item.CVNo;
                         worksheet.Cells[row, 30].Value = item.SupplierId;
                         worksheet.Cells[row, 31].Value = item.Id;
-                        worksheet.Cells[row, 32].Value = item.SeriesNumber;
 
                         row++;
                     }
@@ -2251,7 +2292,7 @@ namespace Accounting_System.Controllers
         #region -- import xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Import(IFormFile file)
+        public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
             {
@@ -2262,7 +2303,8 @@ namespace Accounting_System.Controllers
             {
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
-
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -2288,14 +2330,15 @@ namespace Accounting_System.Controllers
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
-                        var cvId = 0;
-                        var checkVoucherHeadersList = new List<CheckVoucherHeader>();
+                        var checkVoucherHeadersList = await _dbContext
+                            .CheckVoucherHeaders
+                            .ToListAsync(cancellationToken);
+                        
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var checkVoucherHeader = new CheckVoucherHeader
                             {
-                                CVNo = worksheet.Cells[row, 29].Text,
-                                SeriesNumber = int.TryParse(worksheet.Cells[row, 32].Text, out int seriesNumber) ? seriesNumber : 0,
+                                CVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken),
                                 Date = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly date) ? date : default,
                                 RRNo = worksheet.Cells[row, 2].Text.Split(',').Select(rrNo => rrNo.Trim()).ToArray(),
                                 SINo = worksheet.Cells[row, 3].Text.Split(',').Select(siNo => siNo.Trim()).ToArray(),
@@ -2329,12 +2372,7 @@ namespace Accounting_System.Controllers
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 31].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
 
-                            checkVoucherHeadersList = _dbContext
-                            .CheckVoucherHeaders
-                            .Where(cv => cv.OriginalDocumentId == checkVoucherHeader.OriginalDocumentId || cv.Id == checkVoucherHeader.OriginalDocumentId)
-                            .ToList();
-
-                            if (checkVoucherHeadersList.Any())
+                            if (checkVoucherHeadersList.Any(cv => cv.OriginalDocumentId == checkVoucherHeader.OriginalDocumentId))
                             {
                                 continue;
                             }
@@ -2342,23 +2380,25 @@ namespace Accounting_System.Controllers
                             checkVoucherHeader.SupplierId = await _dbContext.Suppliers
                                 .Where(supp => supp.OriginalSupplierId == checkVoucherHeader.OriginalSupplierId)
                                 .Select(supp => (int?)supp.Id)
-                                .FirstOrDefaultAsync() ?? throw new InvalidOperationException("Please upload the Excel file for the supplier master file first.");
-
+                                .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the supplier master file first.");
+                            
                             if (checkVoucherHeader.CvType != "Invoicing")
                             {
                                 checkVoucherHeader.BankId = await _dbContext.BankAccounts
                                 .Where(bank => bank.OriginalBankId == checkVoucherHeader.OriginalBankId)
                                 .Select(bank => (int?)bank.Id)
-                                .FirstOrDefaultAsync() ?? throw new InvalidOperationException("Please upload the Excel file for the bank account master file first.");
+                                .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the bank account master file first.");
                             }
-
-                            await _dbContext.CheckVoucherHeaders.AddAsync(checkVoucherHeader);
-                            await _dbContext.SaveChangesAsync();
-
-                            cvId = checkVoucherHeader.Id;
+                            
+                            await _dbContext.CheckVoucherHeaders.AddAsync(checkVoucherHeader, cancellationToken);
+                            await _dbContext.SaveChangesAsync(cancellationToken);
                         }
 
                         var cvdRowCount = worksheet2.Dimension.Rows;
+                        var checkVoucherDetailsList = await _dbContext
+                            .CheckVoucherDetails
+                            .ToListAsync(cancellationToken);
+                        
                         for (int cvdRow = 2; cvdRow <= cvdRowCount; cvdRow++)
                         {
                             var checkVoucherDetails = new CheckVoucherDetail
@@ -2366,42 +2406,42 @@ namespace Accounting_System.Controllers
                                 AccountNo = worksheet2.Cells[cvdRow, 1].Text,
                                 AccountName = worksheet2.Cells[cvdRow, 2].Text,
                                 Debit = decimal.TryParse(worksheet2.Cells[cvdRow, 4].Text, out decimal debit) ? debit : 0,
-                                Credit = decimal.TryParse(worksheet2.Cells[cvdRow, 5].Text, out decimal credit) ? credit : 0,
-                                CVHeaderId = cvId,
+                                Credit = decimal.TryParse(worksheet2.Cells[cvdRow, 5].Text, out decimal credit) ? credit : 0
                             };
 
-                            checkVoucherDetails.TransactionNo = await _dbContext.CheckVoucherHeaders
-                                .Where(cvh => cvh.OriginalSeriesNumber == worksheet2.Cells[cvdRow, 3].Text)
-                                .Select(cvh => cvh.CVNo)
-                                .FirstOrDefaultAsync();
+                            var cvHeader = await _dbContext.CheckVoucherHeaders
+                                .Where(cvh => cvh.OriginalDocumentId.ToString() == worksheet2.Cells[cvdRow, 6].Text)
+                                .FirstOrDefaultAsync(cancellationToken);
+                            
+                            checkVoucherDetails.CVHeaderId = cvHeader.Id;
+                            checkVoucherDetails.TransactionNo = cvHeader.CVNo;
 
-                            var checkVoucherDetailsList = _dbContext
-                            .CheckVoucherDetails
-                            .Where(cv => cv.CVHeaderId == int.Parse(worksheet2.Cells[cvdRow, 7].Text) || cv.Id == int.Parse(worksheet2.Cells[cvdRow, 7].Text))
-                            .ToList();
-
-                            if (checkVoucherDetailsList.Any())
+                            if (checkVoucherDetailsList.Any(cv => cv.CVHeaderId == int.Parse(worksheet2.Cells[cvdRow, 7].Text)))
                             {
                                 continue;
                             }
 
-                            await _dbContext.CheckVoucherDetails.AddAsync(checkVoucherDetails);
-                            await _dbContext.SaveChangesAsync();
+                            await _dbContext.CheckVoucherDetails.AddAsync(checkVoucherDetails, cancellationToken);
                         }
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                     }
                 }
                 catch (OperationCanceledException oce)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = oce.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.CheckVoucher });
                 }
                 catch (InvalidOperationException ioe)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["warning"] = ioe.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.CheckVoucher });
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.CheckVoucher });
                 }

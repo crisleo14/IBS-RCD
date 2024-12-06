@@ -413,7 +413,6 @@ namespace Accounting_System.Repository
                 #region -- Inventory Entry --
 
                 var generateJVNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken);
-                var getLastSeriesNumber = await _journalVoucherRepo.GetLastSeriesNumberJV(cancellationToken);
 
                 Inventory inventory = new()
                 {
@@ -453,7 +452,6 @@ namespace Accounting_System.Repository
                     {
                         Date = DateOnly.FromDateTime(DateTime.Now),
                         JVNo = generateJVNo,
-                        SeriesNumber = getLastSeriesNumber,
                         References = "",
                         Particulars = $"Change price of {existingPO.PONo} from {existingPO.Price} to {existingPO.FinalPrice }",
                         CRNo = "",

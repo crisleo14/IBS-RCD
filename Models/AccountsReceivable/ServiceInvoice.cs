@@ -9,8 +9,6 @@ namespace Accounting_System.Models.AccountsReceivable
         [Column(TypeName = "varchar(12)")]
         public string? SVNo { get; set; }
 
-        public long SeriesNumber { get; set; }
-
         [Display(Name = "Customer")]
         [Required(ErrorMessage = "The Customer is required.")]
         public int? CustomerId { get; set; }

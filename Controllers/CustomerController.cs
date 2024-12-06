@@ -230,7 +230,7 @@ namespace Accounting_System.Controllers
         #region -- import xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Import(IFormFile file)
+        public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
             {
@@ -243,6 +243,8 @@ namespace Accounting_System.Controllers
             {
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -260,7 +262,10 @@ namespace Accounting_System.Controllers
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
-
+                        var customerList = await _dbContext
+                            .Customers
+                            .ToListAsync(cancellationToken);
+                        
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var customer = new Customer
@@ -277,31 +282,29 @@ namespace Accounting_System.Controllers
                                 CreatedBy = worksheet.Cells[row, 9].Text,
                                 CreatedDate = DateTime.TryParse(worksheet.Cells[row, 10].Text, out DateTime createdDate) ? createdDate : default,
                                 OriginalCustomerId = int.TryParse(worksheet.Cells[row, 11].Text, out int customerId) ? customerId : 0,
-                                OriginalCustomerNumber = int.TryParse(worksheet.Cells[row, 12].Text, out int customerNumber) ? customerNumber : 0,
+                                OriginalCustomerNumber = worksheet.Cells[row, 12].Text,
                             };
-
-                            var customerList = _dbContext
-                            .Customers
-                            .Where(c => c.OriginalCustomerId == customer.OriginalCustomerId || c.Id == customer.OriginalCustomerId)
-                            .ToList();
-
-                            if (customerList.Any())
+                            
+                            if (customerList.Any(c => c.OriginalCustomerId == customer.OriginalCustomerId))
                             {
                                 continue;
                             }
 
-                            await _dbContext.Customers.AddAsync(customer);
-                            await _dbContext.SaveChangesAsync();
+                            await _dbContext.Customers.AddAsync(customer, cancellationToken);
                         }
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                     }
                 }
                 catch (OperationCanceledException oce)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = oce.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.Customer });
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.Customer });
                 }

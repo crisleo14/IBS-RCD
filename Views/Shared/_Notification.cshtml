@@ -52,3 +52,63 @@
     </script>
 
 }
+
+@if (TempData["warningForImportExport"] != null)
+{
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script>
+        var warningMessage = '@TempData["warningForImportExport"]';
+        var warnings = warningMessage.split('.'); // Split by period for categories
+
+        // Filter out empty warnings and split them into category and items
+        warnings = warnings
+            .filter(function(warning) {
+                return warning.trim().length > 0; // Keep non-empty warnings
+            })
+            .map(function(warning) {
+                var parts = warning.split(','); // Split category and items
+                return { category: parts[0].trim(), items: parts.slice(1).map(item => item.trim()) };
+            });
+
+        // Start building the table
+        var formattedMessage = '<table style="width: 100%; border-collapse: collapse; text-align: center;">';
+
+        // Add header row
+        formattedMessage += '<thead><tr>';
+        warnings.forEach(function(warning) {
+            formattedMessage += `<th style="border: 1px solid #ccc; padding: 8px; text-align: center;">${warning.category}</th>`;
+        });
+        formattedMessage += '</tr></thead>';
+
+        // Create table body
+        formattedMessage += '<tbody>';
+        var maxRows = Math.max(...warnings.map(w => w.items.length));
+
+        // Loop through rows (maxRows)
+        for (var i = 0; i < maxRows; i++) {
+            formattedMessage += '<tr>';
+            warnings.forEach(function(warning) {
+                var item = warning.items[i] || ''; // Get the item for this row, or empty if none
+                if (item) {
+                    formattedMessage += `<td style="border: 1px solid #ccc; padding: 8px; text-align: center;">${item}</td>`;
+                } else {
+                    formattedMessage += '<td style="display: none;"></td>'; // Hide column if no record
+                }
+            });
+            formattedMessage += '</tr>';
+        }
+        formattedMessage += '</tbody></table>';
+
+        // Display the table in SweetAlert modal
+        Swal.fire({
+            title: 'Warning',
+            html: formattedMessage,
+            icon: 'warning',
+            width: 'auto', // Allow the modal to expand based on content width
+            heightAuto: true, // Allow the modal to adjust based on content height
+            showCloseButton: true
+        });
+    </script>
+}
+

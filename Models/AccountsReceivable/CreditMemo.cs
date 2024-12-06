@@ -9,8 +9,6 @@ namespace Accounting_System.Models.AccountsReceivable
         [Display(Name = "CM No")]
         public string? CMNo { get; set; }
 
-        public long SeriesNumber { get; set; }
-
         [Column(TypeName = "date")]
         [Display(Name = "Transaction Date")]
         public DateOnly TransactionDate { get; set; }

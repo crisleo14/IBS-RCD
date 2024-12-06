@@ -216,8 +216,9 @@ namespace Accounting_System.Controllers
                 #endregion
 
                 #region --Validating the series--
-
-                var getLastNumber = await _debitMemoRepo.GetLastSeriesNumber(cancellationToken);
+                
+                var generateDmNo = await _debitMemoRepo.GenerateDMNo(cancellationToken);
+                var getLastNumber = long.Parse(generateDmNo.Substring(2));
 
                 if (getLastNumber > 9999999999)
                 {
@@ -236,9 +237,6 @@ namespace Accounting_System.Controllers
 
                 #endregion --Validating the series--
 
-                var generateDmNo = await _debitMemoRepo.GenerateDMNo(cancellationToken);
-
-                model.SeriesNumber = getLastNumber;
                 model.DMNo = generateDmNo;
                 model.CreatedBy = _userManager.GetUserName(this.User);
 
@@ -958,24 +956,6 @@ namespace Accounting_System.Controllers
                         .Include(sv => sv.Customer)
                         .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
 
-            if (model.SalesInvoiceId != null)
-            {
-                if (model.AdjustedPrice < existingSalesInvoice.UnitPrice)
-                {
-                    ModelState.AddModelError("AdjustedPrice", "Cannot input less than the existing SI unit price!");
-                }
-                if (model.Quantity < existingSalesInvoice.Quantity)
-                {
-                    ModelState.AddModelError("Quantity", "Cannot input less than the existing SI quantity!");
-                }
-            }
-            else
-            {
-                if (model.Amount < existingSv.Amount)
-                {
-                    ModelState.AddModelError("Amount", "Cannot input less than the existing SV amount!");
-                }
-            }
             if (ModelState.IsValid)
             {
                 var existingDM = await _dbContext
@@ -1093,7 +1073,6 @@ namespace Accounting_System.Controllers
             worksheet.Cells["Q1"].Value = "OriginalDMNo";
             worksheet.Cells["R1"].Value = "OriginalServiceInvoiceId";
             worksheet.Cells["S1"].Value = "OriginalDocumentId";
-            worksheet.Cells["T1"].Value = "OriginalSeriesNumber";
 
             int row = 2;
 
@@ -1118,7 +1097,6 @@ namespace Accounting_System.Controllers
                 worksheet.Cells[row, 17].Value = item.DMNo;
                 worksheet.Cells[row, 18].Value = item.ServiceInvoiceId;
                 worksheet.Cells[row, 19].Value = item.Id;
-                worksheet.Cells[row, 20].Value = item.SeriesNumber;
 
                 row++;
             }
@@ -1135,7 +1113,7 @@ namespace Accounting_System.Controllers
         #region -- import xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Import(IFormFile file)
+        public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
             {
@@ -1146,6 +1124,7 @@ namespace Accounting_System.Controllers
             {
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
                 try
                 {
@@ -1165,15 +1144,15 @@ namespace Accounting_System.Controllers
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
-
+                        var debitMemoList = await _dbContext
+                            .DebitMemos
+                            .ToListAsync(cancellationToken);
+                        
                         for (int row = 2; row <= rowCount; row++) // Assuming the first row is the header
                         {
                             var debitMemo = new DebitMemo
                             {
                                 DMNo = worksheet.Cells[row, 17].Text,
-                                SeriesNumber = int.TryParse(worksheet.Cells[row, 20].Text, out int seriesNumber)
-                                    ? seriesNumber
-                                    : 0,
                                 TransactionDate =
                                     DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly transactionDate)
                                         ? transactionDate
@@ -1231,21 +1210,14 @@ namespace Accounting_System.Controllers
                             debitMemo.SalesInvoiceId = await _dbContext.SalesInvoices
                                 .Where(c => c.OriginalDocumentId == debitMemo.OriginalSalesInvoiceId)
                                 .Select(c => (int?)c.Id)
-                                .FirstOrDefaultAsync();
+                                .FirstOrDefaultAsync(cancellationToken);
 
                             debitMemo.ServiceInvoiceId = await _dbContext.ServiceInvoices
                                 .Where(c => c.OriginalDocumentId == debitMemo.OriginalServiceInvoiceId)
                                 .Select(c => (int?)c.Id)
-                                .FirstOrDefaultAsync();
+                                .FirstOrDefaultAsync(cancellationToken);
 
-                            var debitMemoList = _dbContext
-                                .DebitMemos
-                                .Where(dm =>
-                                    dm.OriginalDocumentId == debitMemo.OriginalDocumentId ||
-                                    dm.Id == debitMemo.OriginalDocumentId)
-                                .ToList();
-
-                            if (debitMemoList.Any())
+                            if (debitMemoList.Any(dm => dm.OriginalDocumentId == debitMemo.OriginalDocumentId))
                             {
                                 continue;
                             }
@@ -1256,24 +1228,27 @@ namespace Accounting_System.Controllers
                                     "Please upload the Excel file for the sales invoice or service invoice first.");
                             }
 
-                            await _dbContext.DebitMemos.AddAsync(debitMemo);
-                            await _dbContext.SaveChangesAsync();
+                            await _dbContext.DebitMemos.AddAsync(debitMemo, cancellationToken);
                         }
-
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                     }
                 }
                 catch (OperationCanceledException oce)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = oce.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.DebitMemo });
                 }
                 catch (InvalidOperationException ioe)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["warning"] = ioe.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.DebitMemo });
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.DebitMemo });
                 }

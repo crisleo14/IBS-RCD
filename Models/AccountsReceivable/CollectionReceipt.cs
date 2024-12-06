@@ -61,8 +61,6 @@ namespace Accounting_System.Models.AccountsReceivable
         [Column(TypeName = "date")]
         public DateOnly TransactionDate { get; set; }
 
-        public long SeriesNumber { get; set; }
-
         [Display(Name = "Reference No")]
         [Required]
         [Column(TypeName = "varchar(20)")]

@@ -1,4 +1,5 @@
-﻿using Accounting_System.Data;
+﻿using System.Globalization;
+using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.MasterFile;
@@ -191,7 +192,6 @@ namespace Accounting_System.Controllers
             worksheet.Cells["D1"].Value = "CreatedBy";
             worksheet.Cells["E1"].Value = "CreatedDate";
             worksheet.Cells["F1"].Value = "OriginalProductId";
-            worksheet.Cells["G1"].Value = "OriginalProductCode";
 
             int row = 2;
 
@@ -203,7 +203,6 @@ namespace Accounting_System.Controllers
                 worksheet.Cells[row, 4].Value = item.CreatedBy;
                 worksheet.Cells[row, 5].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
                 worksheet.Cells[row, 6].Value = item.Id;
-                worksheet.Cells[row, 7].Value = item.Code;
 
                 row++;
             }
@@ -220,7 +219,7 @@ namespace Accounting_System.Controllers
         #region -- import xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Import(IFormFile file)
+        public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
             {
@@ -231,7 +230,8 @@ namespace Accounting_System.Controllers
             {
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
-
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -249,42 +249,42 @@ namespace Accounting_System.Controllers
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
-
+                        var productList = await _dbContext
+                            .Products
+                            .ToListAsync(cancellationToken);
+                        
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var product = new Product
                             {
                                 Code = worksheet.Cells[row, 1].Text,
-                                Name = worksheet.Cells[row, 2].Text,
+                                Name = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(worksheet.Cells[row, 2].Text.ToLower()),
                                 Unit = worksheet.Cells[row, 3].Text,
                                 CreatedBy = worksheet.Cells[row, 4].Text,
                                 CreatedDate = DateTime.TryParse(worksheet.Cells[row, 5].Text, out DateTime createdDate) ? createdDate : default,
                                 OriginalProductId = int.TryParse(worksheet.Cells[row, 6].Text, out int originalProductId) ? originalProductId : 0,
                             };
 
-                            var productList = _dbContext
-                            .Products
-                            .Where(p => p.OriginalProductId == product.OriginalProductId || p.Id == product.OriginalProductId)
-                            .ToList();
-
-                            if (productList.Any())
+                            if (productList.Any(p => p.OriginalProductId == product.OriginalProductId))
                             {
                                 continue;
                             }
 
-                            await _dbContext.Products.AddAsync(product);
-                            await _dbContext.SaveChangesAsync();
+                            await _dbContext.Products.AddAsync(product, cancellationToken);
                         }
-
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                     }
                 }
                 catch (OperationCanceledException oce)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = oce.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.Product });
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.Product });
                 }

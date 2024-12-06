@@ -29,31 +29,15 @@ namespace Accounting_System.Repository
 
             if (checkVoucher != null)
             {
-                var generatedCV = checkVoucher.SeriesNumber + 1;
-                return $"CV{generatedCV.ToString("D10")}";
+                string lastSeries = checkVoucher.CVNo ?? throw new InvalidOperationException("CVNo is null pls Contact MIS Enterprise");
+                string numericPart = lastSeries.Substring(2);
+                int incrementedNumber = int.Parse(numericPart) + 1;
+
+                return lastSeries.Substring(0, 2) + incrementedNumber.ToString("D10");
             }
             else
             {
                 return $"CV{1.ToString("D10")}";
-            }
-        }
-
-        public async Task<long> GetLastSeriesNumberCV(CancellationToken cancellationToken = default)
-        {
-            var lastNumber = await _dbContext
-                .CheckVoucherHeaders
-                .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (lastNumber != null)
-            {
-                // Increment the last serial by one and return it
-                return lastNumber.SeriesNumber + 1;
-            }
-            else
-            {
-                // If there are no existing records, you can start with a default value like 1
-                return 1L;
             }
         }
 

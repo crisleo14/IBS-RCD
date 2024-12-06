@@ -215,7 +215,7 @@ else if (Model.Source == "Service Invoice")
                                         <td class="w-50"><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
                                         @if (netOfVatAmount != 0)
                                         {
-                                            <td class="text-end">@Html.DisplayFor(model => netOfVatAmount)</td>
+                                            <td class="text-end">@Math.Abs(netOfVatAmount).ToString("N2")</td>
                                         }
                                         else
                                         {
@@ -250,7 +250,7 @@ else if (Model.Source == "Service Invoice")
 
                                         @if (vatAmount != 0)
                                         {
-                                            <td class="text-end">@Html.DisplayFor(model => vatAmount)</td>
+                                            <td class="text-end">@Math.Abs(vatAmount).ToString("N2")</td>
                                         }
                                         else
                                         {

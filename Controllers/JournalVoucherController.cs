@@ -167,8 +167,9 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 #region --Validating series
-
-                var getLastNumber = await _journalVoucherRepo.GetLastSeriesNumberJV(cancellationToken);
+                
+                var generateJvNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken);
+                var getLastNumber = long.Parse(generateJvNo.Substring(2));
 
                 if (getLastNumber > 9999999999)
                 {
@@ -190,11 +191,8 @@ namespace Accounting_System.Controllers
 
                 #region --Saving the default entries
 
-                var generateJVNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken);
-
                 //JV Header Entry
-                model.Header.SeriesNumber = getLastNumber;
-                model.Header.JVNo = generateJVNo;
+                model.Header.JVNo = generateJvNo;
                 model.Header.CreatedBy = _userManager.GetUserName(this.User);
 
                 await _dbContext.AddAsync(model.Header, cancellationToken);
@@ -223,7 +221,7 @@ namespace Accounting_System.Controllers
                         {
                             AccountNo = currentAccountNumber,
                             AccountName = accountTitle.Name,
-                            TransactionNo = generateJVNo,
+                            TransactionNo = generateJvNo,
                             Debit = currentDebit,
                             Credit = currentCredit,
                             JVHeaderId = model.Header.Id
@@ -769,7 +767,6 @@ namespace Accounting_System.Controllers
                 worksheet.Cells["I1"].Value = "OriginalCVId";
                 worksheet.Cells["J1"].Value = "OriginalJVNo";
                 worksheet.Cells["K1"].Value = "OriginalDocumentId";
-                worksheet.Cells["L1"].Value = "OriginalSeriesNumber";
 
                 worksheet2.Cells["A1"].Value = "AccountNo";
                 worksheet2.Cells["B1"].Value = "AccountName";
@@ -777,7 +774,7 @@ namespace Accounting_System.Controllers
                 worksheet2.Cells["D1"].Value = "Debit";
                 worksheet2.Cells["E1"].Value = "Credit";
                 worksheet2.Cells["E1"].Value = "JVHeaderId";
-                worksheet2.Cells["F1"].Value = "OriginaldocumentId";
+                worksheet2.Cells["F1"].Value = "OriginalDocumentId";
 
                 int row = 2;
 
@@ -794,7 +791,6 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 9].Value = item.CVId;
                     worksheet.Cells[row, 10].Value = item.JVNo;
                     worksheet.Cells[row, 11].Value = item.Id;
-                    worksheet.Cells[row, 12].Value = item.SeriesNumber;
 
                     row++;
                 }
@@ -835,7 +831,7 @@ namespace Accounting_System.Controllers
         #region -- import xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Import(IFormFile file)
+        public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
             {
@@ -846,7 +842,8 @@ namespace Accounting_System.Controllers
             {
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
-
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -872,15 +869,15 @@ namespace Accounting_System.Controllers
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
-
-                        var jvId = 0;
-                        var journalVoucherHeaderList = new List<JournalVoucherHeader>();
+                        var journalVoucherHeaderList = await _dbContext
+                            .JournalVoucherHeaders
+                            .ToListAsync(cancellationToken);
+                        
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var journalVoucherHeader = new JournalVoucherHeader
                             {
                                 JVNo = worksheet.Cells[row, 10].Text,
-                                SeriesNumber = int.TryParse(worksheet.Cells[row, 12].Text, out int seriesNumber) ? seriesNumber : 0,
                                 Date = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly date) ? date : default,
                                 References = worksheet.Cells[row, 2].Text,
                                 Particulars = worksheet.Cells[row, 3].Text,
@@ -894,12 +891,7 @@ namespace Accounting_System.Controllers
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 11].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
 
-                            journalVoucherHeaderList = _dbContext
-                                .JournalVoucherHeaders
-                                .Where(jv => jv.OriginalDocumentId == journalVoucherHeader.OriginalDocumentId || jv.Id == journalVoucherHeader.OriginalDocumentId)
-                                .ToList();
-
-                            if (journalVoucherHeaderList.Any())
+                            if (journalVoucherHeaderList.Any(jv => jv.OriginalDocumentId == journalVoucherHeader.OriginalDocumentId))
                             {
                                 continue;
                             }
@@ -907,17 +899,19 @@ namespace Accounting_System.Controllers
                             journalVoucherHeader.CVId = await _dbContext.CheckVoucherHeaders
                                 .Where(c => c.OriginalDocumentId == journalVoucherHeader.OriginalCVId)
                                 .Select(c => (int?)c.Id)
-                                .FirstOrDefaultAsync() ?? throw new InvalidOperationException("Please upload the Excel file for the check voucher first.");
+                                .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the check voucher first.");
 
-                            await _dbContext.JournalVoucherHeaders.AddAsync(journalVoucherHeader);
-                            await _dbContext.SaveChangesAsync();
-
-                            jvId = journalVoucherHeader.Id;
+                            await _dbContext.JournalVoucherHeaders.AddAsync(journalVoucherHeader, cancellationToken);
                         }
+                        await _dbContext.SaveChangesAsync(cancellationToken);
 
                         if(journalVoucherHeaderList.Count <= 0)
                         {
                             var jvdRowCount = worksheet2.Dimension.Rows;
+                            var journalVoucherDetailsList = await _dbContext
+                                .JournalVoucherDetails
+                                .ToListAsync(cancellationToken);
+                            
                             for (int jvdRow = 2; jvdRow <= jvdRowCount; jvdRow++)
                             {
                                 var journalVoucherDetails = new JournalVoucherDetail
@@ -926,42 +920,42 @@ namespace Accounting_System.Controllers
                                     AccountName = worksheet2.Cells[jvdRow, 2].Text,
                                     Debit = decimal.TryParse(worksheet2.Cells[jvdRow, 4].Text, out decimal debit) ? debit : 0,
                                     Credit = decimal.TryParse(worksheet2.Cells[jvdRow, 5].Text, out decimal credit) ? credit : 0,
-                                    JVHeaderId = jvId,
                                 };
 
-                                var journalVoucherDetailsList = _dbContext
-                                    .JournalVoucherDetails
-                                    .Where(jv => jv.JVHeaderId == int.Parse(worksheet2.Cells[jvdRow, 6].Text) || jv.Id == int.Parse(worksheet2.Cells[jvdRow, 6].Text))
-                                    .ToList();
-
-                                if (journalVoucherDetailsList.Any())
+                                if (journalVoucherDetailsList.Any(jv => jv.JVHeaderId == int.Parse(worksheet2.Cells[jvdRow, 6].Text)))
                                 {
                                     continue;
                                 }
 
-                                journalVoucherDetails.TransactionNo = await _dbContext.JournalVoucherHeaders
+                                var jvHeader = await _dbContext.JournalVoucherHeaders
                                     .Where(jvh => jvh.OriginalSeriesNumber == worksheet2.Cells[jvdRow, 3].Text)
-                                    .Select(jvh => jvh.JVNo)
-                                    .FirstOrDefaultAsync();
+                                    .FirstOrDefaultAsync(cancellationToken);
 
-                                await _dbContext.JournalVoucherDetails.AddAsync(journalVoucherDetails);
-                                await _dbContext.SaveChangesAsync();
+                                journalVoucherDetails.JVHeaderId = jvHeader.Id;
+                                journalVoucherDetails.TransactionNo = jvHeader.JVNo;
+                                    
+                                await _dbContext.JournalVoucherDetails.AddAsync(journalVoucherDetails, cancellationToken);
                             }
+                            await _dbContext.SaveChangesAsync(cancellationToken);
+                            await transaction.CommitAsync(cancellationToken);
                         }
                     }
                 }
                 catch (OperationCanceledException oce)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = oce.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.JournalVoucher });
                 }
                 catch (InvalidOperationException ioe)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["warning"] = ioe.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.JournalVoucher });
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.JournalVoucher });
                 }

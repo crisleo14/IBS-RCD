@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241127101618_ChangeDataTypeOfOriginalCustomerNumberInCustomerMasterFile")]
+    partial class ChangeDataTypeOfOriginalCustomerNumberInCustomerMasterFile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1208,7 +1211,7 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("OtherRefNo")
                         .IsRequired()
-                        .HasColumnType("varchar(500)")
+                        .HasColumnType("varchar(20)")
                         .HasColumnName("other_ref_no");
 
                     b.Property<int?>("POId")
@@ -1238,7 +1241,7 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Remarks")
                         .IsRequired()
-                        .HasColumnType("varchar(500)")
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("remarks");
 
                     b.Property<string>("SINo")

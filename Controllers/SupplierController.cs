@@ -1,4 +1,5 @@
-﻿using Accounting_System.Data;
+﻿using System.Diagnostics.CodeAnalysis;
+using Accounting_System.Data;
 using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.MasterFile;
 using Accounting_System.Models.Reports;
@@ -464,7 +465,8 @@ namespace Accounting_System.Controllers
         #region -- import xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Import(IFormFile file)
+        [SuppressMessage("ReSharper.DPA", "DPA0000: DPA issues")]
+        public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
             {
@@ -475,7 +477,8 @@ namespace Accounting_System.Controllers
             {
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
-
+                await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+                
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -493,7 +496,10 @@ namespace Accounting_System.Controllers
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
-
+                        var supplierList = await _context
+                            .Suppliers
+                            .ToListAsync(cancellationToken);
+                        
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var supplier = new Supplier
@@ -520,30 +526,27 @@ namespace Accounting_System.Controllers
                                 WithholdingTaxtitle = worksheet.Cells[row, 19].Text,
                                 OriginalSupplierId = int.TryParse(worksheet.Cells[row, 20].Text, out int originalSupplierId) ? originalSupplierId : 0,
                             };
-
-                            var supplierList = _context
-                            .Suppliers
-                            .Where(supp => supp.OriginalSupplierId == supplier.OriginalSupplierId || supp.Id == supplier.OriginalSupplierId)
-                            .ToList();
-
-                            if (supplierList.Any())
+                            
+                            if (supplierList.Any(supp => supp.OriginalSupplierId == supplier.OriginalSupplierId))
                             {
                                 continue;
                             }
 
-                            await _context.Suppliers.AddAsync(supplier);
-                            await _context.SaveChangesAsync();
+                            await _context.Suppliers.AddAsync(supplier, cancellationToken);
                         }
-
+                        await _context.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                     }
                 }
                 catch (OperationCanceledException oce)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = oce.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.Supplier });
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.Supplier });
                 }

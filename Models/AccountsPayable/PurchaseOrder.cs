@@ -11,8 +11,6 @@ namespace Accounting_System.Models.AccountsPayable
         [Column(TypeName = "varchar(12)")]
         public string? PONo { get; set; }
 
-        public long SeriesNumber { get; set; }
-
         [Required]
         [Column(TypeName = "date")]
         [Display(Name = "Transaction Date")]

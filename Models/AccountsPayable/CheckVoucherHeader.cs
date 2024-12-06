@@ -7,10 +7,10 @@ namespace Accounting_System.Models.AccountsPayable
 {
     public class CheckVoucherHeader : BaseEntity
     {
+        public object RRSeries;
+
         [Display(Name = "CV No")]
         public string? CVNo { get; set; }
-
-        public long SeriesNumber { get; set; }
 
         [Display(Name = "Transaction Date")]
         [Column(TypeName = "date")]

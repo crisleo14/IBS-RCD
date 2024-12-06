@@ -286,7 +286,7 @@ namespace Accounting_System.Controllers
         #region -- import xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Import(IFormFile file)
+        public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
             {
@@ -297,7 +297,8 @@ namespace Accounting_System.Controllers
             {
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
-
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -315,7 +316,10 @@ namespace Accounting_System.Controllers
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
-
+                        var servicesList = await _dbContext
+                            .ServiceInvoices
+                            .ToListAsync(cancellationToken);
+                        
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var services = new Services
@@ -332,29 +336,26 @@ namespace Accounting_System.Controllers
                                 OriginalServiceId = int.TryParse(worksheet.Cells[row, 9].Text, out int originalServiceId) ? originalServiceId : 0,
                             };
 
-                            var servicesList = _dbContext
-                            .ServiceInvoices
-                            .Where(s => s.OriginalServicesId == services.OriginalServiceId || s.Id == services.OriginalServiceId)
-                            .ToList();
-
-                            if (servicesList.Any())
+                            if (servicesList.Any(s => s.OriginalServicesId == services.OriginalServiceId))
                             {
                                 continue;
                             }
 
-                            await _dbContext.Services.AddAsync(services);
-                            await _dbContext.SaveChangesAsync();
+                            await _dbContext.Services.AddAsync(services, cancellationToken);
                         }
-
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                     }
                 }
                 catch (OperationCanceledException oce)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = oce.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.Service });
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.Service });
                 }

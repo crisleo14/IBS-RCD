@@ -153,7 +153,8 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
-                var getLastNumber = await _purchaseOrderRepo.GetLastSeriesNumber(cancellationToken);
+                var generatedPo = await _purchaseOrderRepo.GeneratePONo(cancellationToken);
+                var getLastNumber = long.Parse(generatedPo.Substring(2));
 
                 if (getLastNumber > 9999999999)
                 {
@@ -170,10 +171,7 @@ namespace Accounting_System.Controllers
                     TempData["success"] = "Purchase Order created successfully";
                 }
 
-                var generatedPO = await _purchaseOrderRepo.GeneratePONo(cancellationToken);
-
-                model.SeriesNumber = getLastNumber;
-                model.PONo = generatedPO;
+                model.PONo = generatedPo;
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 model.Amount = model.Quantity * model.Price;
                 model.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model?.SupplierId, cancellationToken);
@@ -612,7 +610,6 @@ namespace Accounting_System.Controllers
             worksheet.Cells["P1"].Value = "OriginalJVNo";
             worksheet.Cells["Q1"].Value = "OriginalSupplierId";
             worksheet.Cells["R1"].Value = "OriginalDocumentId";
-            worksheet.Cells["S1"].Value = "OriginalSeriesNumber";
 
             int row = 2;
 
@@ -636,7 +633,6 @@ namespace Accounting_System.Controllers
                 worksheet.Cells[row, 16].Value = item.PONo;
                 worksheet.Cells[row, 17].Value = item.SupplierId;
                 worksheet.Cells[row, 18].Value = item.Id;
-                worksheet.Cells[row, 19].Value = item.SeriesNumber;
 
                 row++;
             }
@@ -653,7 +649,7 @@ namespace Accounting_System.Controllers
         #region -- import xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Import(IFormFile file)
+        public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
             {
@@ -664,7 +660,8 @@ namespace Accounting_System.Controllers
             {
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
-
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -682,22 +679,24 @@ namespace Accounting_System.Controllers
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
-
+                        var purchaseOrderList = await _dbContext
+                            .PurchaseOrders
+                            .ToListAsync(cancellationToken);
+                        
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var purchaseOrder = new PurchaseOrder
                             {
                                 PONo = worksheet.Cells[row, 16].Text,
-                                SeriesNumber = int.TryParse(worksheet.Cells[row, 19].Text, out int seriesNumber) ? seriesNumber : 0,
                                 Date = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
                                 Terms = worksheet.Cells[row, 2].Text,
                                 Quantity = decimal.TryParse(worksheet.Cells[row, 3].Text, out decimal quantity) ? quantity : 0,
                                 Price = decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal price) ? price : 0,
                                 Amount = decimal.TryParse(worksheet.Cells[row, 5].Text, out decimal amount) ? amount : 0,
                                 FinalPrice = decimal.TryParse(worksheet.Cells[row, 6].Text, out decimal finalPrice) ? finalPrice : 0,
-                                QuantityReceived = decimal.TryParse(worksheet.Cells[row, 6].Text, out decimal quantityReceived) ? quantityReceived : 0,
-                                IsReceived = bool.TryParse(worksheet.Cells[row, 8].Text, out bool isReceived) ? isReceived : default,
-                                ReceivedDate = DateTime.TryParse(worksheet.Cells[row, 9].Text, out DateTime receivedDate) ? receivedDate : default,
+                                // QuantityReceived = decimal.TryParse(worksheet.Cells[row, 7].Text, out decimal quantityReceived) ? quantityReceived : 0,
+                                // IsReceived = bool.TryParse(worksheet.Cells[row, 8].Text, out bool isReceived) ? isReceived : default,
+                                // ReceivedDate = DateTime.TryParse(worksheet.Cells[row, 9].Text, out DateTime receivedDate) ? receivedDate : default,
                                 Remarks = worksheet.Cells[row, 10].Text,
                                 CreatedBy = worksheet.Cells[row, 11].Text,
                                 CreatedDate = DateTime.TryParse(worksheet.Cells[row, 12].Text, out DateTime createdDate) ? createdDate : default,
@@ -709,19 +708,14 @@ namespace Accounting_System.Controllers
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 18].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
 
-                            var purchaseOrderList = _dbContext
-                            .PurchaseOrders
-                            .Where(po => po.OriginalDocumentId == purchaseOrder.OriginalDocumentId || po.Id == purchaseOrder.OriginalDocumentId)
-                            .ToList();
-
-                            if (purchaseOrderList.Any())
+                            if (purchaseOrderList.Any(po => po.OriginalDocumentId == purchaseOrder.OriginalDocumentId))
                             {
                                 continue;
                             }
 
                             var getProduct = await _dbContext.Products
                                 .Where(p => p.OriginalProductId == purchaseOrder.OriginalProductId)
-                                .FirstOrDefaultAsync();
+                                .FirstOrDefaultAsync(cancellationToken);
 
                             if (getProduct != null)
                             {
@@ -736,7 +730,7 @@ namespace Accounting_System.Controllers
 
                             var getSupplier = await _dbContext.Suppliers
                                 .Where(c => c.OriginalSupplierId == purchaseOrder.OriginalSupplierId)
-                                .FirstOrDefaultAsync();
+                                .FirstOrDefaultAsync(cancellationToken);
 
                             if (getSupplier != null)
                             {
@@ -749,23 +743,27 @@ namespace Accounting_System.Controllers
                                 throw new InvalidOperationException("Please upload the Excel file for the supplier master file first.");
                             }
 
-                            await _dbContext.PurchaseOrders.AddAsync(purchaseOrder);
-                            await _dbContext.SaveChangesAsync();
+                            await _dbContext.PurchaseOrders.AddAsync(purchaseOrder, cancellationToken);
                         }
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                     }
                 }
                 catch (OperationCanceledException oce)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = oce.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
                 }
                 catch (InvalidOperationException ioe)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["warning"] = ioe.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
                 }

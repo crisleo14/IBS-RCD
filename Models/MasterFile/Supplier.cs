@@ -13,32 +13,32 @@ namespace Accounting_System.Models.MasterFile
         [Display(Name = "Supplier No")]
         public int Number { get; set; }
 
-        [Column(TypeName = "varchar(50)")]
+        [Column(TypeName = "varchar(100)")]
         public string Name { get; set; }
 
-        [Column(TypeName = "varchar(200)")]
+        [Column(TypeName = "varchar(500)")]
         public string Address { get; set; }
 
-        [Column(TypeName = "varchar(20)")]
+        [Column(TypeName = "varchar(50)")]
         [Display(Name = "Tin No")]
         public string TinNo { get; set; }
 
-        [Column(TypeName = "varchar(5)")]
+        [Column(TypeName = "varchar(10)")]
         public string Terms { get; set; }
 
-        [Column(TypeName = "varchar(20)")]
+        [Column(TypeName = "varchar(50)")]
         [Display(Name = "VAT Type")]
         public string VatType { get; set; }
 
-        [Column(TypeName = "varchar(20)")]
+        [Column(TypeName = "varchar(50)")]
         [Display(Name = "TAX Type")]
         public string TaxType { get; set; }
 
-        [Column(TypeName = "varchar(200)")]
+        [Column(TypeName = "varchar(500)")]
         public string? ProofOfRegistrationFilePath { get; set; }
 
         [Display(Name = "Reason")]
-        [Column(TypeName = "varchar(100)")]
+        [Column(TypeName = "varchar(200)")]
         public string? ReasonOfExemption { get; set; }
 
         [Column(TypeName = "varchar(20)")]
@@ -48,7 +48,7 @@ namespace Accounting_System.Models.MasterFile
         [Column(TypeName = "date")]
         public DateTime? ValidityDate { get; set; }
 
-        [Column(TypeName = "varchar(200)")]
+        [Column(TypeName = "varchar(500)")]
         public string? ProofOfExemptionFilePath { get; set; }
 
         [Display(Name = "Created By")]

@@ -160,7 +160,8 @@ namespace Accounting_System.Controllers
 
                 #region --Validating Series
 
-                var getLastNumber = await _receivingReportRepo.GetLastSeriesNumber(cancellationToken);
+                var generatedRr = await _receivingReportRepo.GenerateRRNo(cancellationToken);
+                var getLastNumber = long.Parse(generatedRr.Substring(2));
 
                 if (getLastNumber > 9999999999)
                 {
@@ -179,9 +180,7 @@ namespace Accounting_System.Controllers
 
                 #endregion --Validating Series
 
-                var generatedRR = await _receivingReportRepo.GenerateRRNo(cancellationToken);
-                model.SeriesNumber = getLastNumber;
-                model.RRNo = generatedRR;
+                model.RRNo = generatedRr;
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 model.GainOrLoss = model.QuantityReceived - model.QuantityDelivered;
                 model.PONo = await _receivingReportRepo.GetPONoAsync(model?.POId, cancellationToken);
@@ -748,7 +747,6 @@ namespace Accounting_System.Controllers
             worksheet.Cells["T1"].Value = "OriginalPOId";
             worksheet.Cells["U1"].Value = "OriginalRRNo";
             worksheet.Cells["V1"].Value = "OriginalDocumentId";
-            worksheet.Cells["W1"].Value = "OriginalSeriesNumber";
 
             int row = 2;
 
@@ -776,7 +774,6 @@ namespace Accounting_System.Controllers
                 worksheet.Cells[row, 20].Value = item.POId;
                 worksheet.Cells[row, 21].Value = item.RRNo;
                 worksheet.Cells[row, 22].Value = item.Id;
-                worksheet.Cells[row, 23].Value = item.SeriesNumber;
 
                 row++;
             }
@@ -793,7 +790,7 @@ namespace Accounting_System.Controllers
         #region -- import xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Import(IFormFile file)
+        public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
             {
@@ -804,6 +801,7 @@ namespace Accounting_System.Controllers
             {
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
                 try
                 {
@@ -822,13 +820,14 @@ namespace Accounting_System.Controllers
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
-
+                        var receivingReportList = await _dbContext
+                            .ReceivingReports
+                            .ToListAsync(cancellationToken);
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var receivingReport = new ReceivingReport
                             {
                                 RRNo = worksheet.Cells[row, 21].Text,
-                                SeriesNumber = int.TryParse(worksheet.Cells[row, 23].Text, out int seriesNumber) ? seriesNumber : 0,
                                 Date = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly date) ? date : default,
                                 DueDate = DateOnly.TryParse(worksheet.Cells[row, 2].Text, out DateOnly dueDate) ? dueDate : default,
                                 SupplierInvoiceNumber = worksheet.Cells[row, 3].Text != "" ? worksheet.Cells[row, 3].Text : null,
@@ -840,10 +839,10 @@ namespace Accounting_System.Controllers
                                 Amount = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amount) ? amount : 0,
                                 OtherRef = worksheet.Cells[row, 10].Text != "" ? worksheet.Cells[row, 13].Text : null,
                                 Remarks = worksheet.Cells[row, 11].Text,
-                                AmountPaid = decimal.TryParse(worksheet.Cells[row, 12].Text, out decimal amountPaid) ? amountPaid : 0,
-                                IsPaid = bool.TryParse(worksheet.Cells[row, 13].Text, out bool IsPaid) ? IsPaid : default,
-                                PaidDate = DateTime.TryParse(worksheet.Cells[row, 14].Text, out DateTime paidDate) ? paidDate : default,
-                                CanceledQuantity = decimal.TryParse(worksheet.Cells[row, 15].Text, out decimal netAmountOfEWT) ? netAmountOfEWT : 0,
+                                // AmountPaid = decimal.TryParse(worksheet.Cells[row, 12].Text, out decimal amountPaid) ? amountPaid : 0,
+                                // IsPaid = bool.TryParse(worksheet.Cells[row, 13].Text, out bool IsPaid) ? IsPaid : default,
+                                // PaidDate = DateTime.TryParse(worksheet.Cells[row, 14].Text, out DateTime paidDate) ? paidDate : DateTime.MinValue,
+                                // CanceledQuantity = decimal.TryParse(worksheet.Cells[row, 15].Text, out decimal netAmountOfEWT) ? netAmountOfEWT : 0,
                                 CreatedBy = worksheet.Cells[row, 16].Text,
                                 CreatedDate = DateTime.TryParse(worksheet.Cells[row, 17].Text, out DateTime createdDate) ? createdDate : default,
                                 CancellationRemarks = worksheet.Cells[row, 18].Text != "" ? worksheet.Cells[row, 18].Text : null,
@@ -853,47 +852,41 @@ namespace Accounting_System.Controllers
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 22].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
 
-                            var receivingReportList = _dbContext
-                            .ReceivingReports
-                            .Where(rr => rr.OriginalDocumentId == receivingReport.OriginalDocumentId || rr.Id == receivingReport.OriginalDocumentId)
-                            .ToList();
-
-                            if (receivingReportList.Any())
+                            //Checking for duplicate record
+                            if (receivingReportList.Any(rr => rr.OriginalDocumentId == receivingReport.OriginalDocumentId))
                             {
                                 continue;
                             }
 
-                            var getPO = await _dbContext.PurchaseOrders
-                                .Where(c => c.OriginalDocumentId == receivingReport.OriginalPOId)
-                                .FirstOrDefaultAsync();
+                            var getPo = await _dbContext
+                                .PurchaseOrders
+                                .Where(po => po.OriginalDocumentId == receivingReport.OriginalPOId)
+                                .FirstOrDefaultAsync(cancellationToken);
+                            
+                            receivingReport.POId = getPo.Id;
+                            receivingReport.PONo = getPo.PONo;
 
-                            if (getPO != null)
-                            {
-                                receivingReport.POId = getPO.Id;
-                                receivingReport.PONo = getPO.PONo;
-                            }
-                            else
-                            {
-                                throw new InvalidOperationException("Please upload the Excel file for the purchase order first.");
-                            }
-
-                            await _dbContext.ReceivingReports.AddAsync(receivingReport);
-                            await _dbContext.SaveChangesAsync();
+                            await _dbContext.ReceivingReports.AddAsync(receivingReport, cancellationToken);
                         }
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                     }
                 }
                 catch (OperationCanceledException oce)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = oce.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.ReceivingReport });
                 }
                 catch (InvalidOperationException ioe)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["warning"] = ioe.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.ReceivingReport });
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.ReceivingReport });
                 }

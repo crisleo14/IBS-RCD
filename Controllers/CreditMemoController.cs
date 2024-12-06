@@ -215,8 +215,9 @@ namespace Accounting_System.Controllers
                 #endregion
 
                 #region --Validating the series--
-
-                var getLastNumber = await _creditMemoRepo.GetLastSeriesNumber(cancellationToken);
+                
+                var generatedCm = await _creditMemoRepo.GenerateCMNo(cancellationToken);
+                var getLastNumber = long.Parse(generatedCm.Substring(2));
 
                 if (getLastNumber > 9999999999)
                 {
@@ -235,10 +236,7 @@ namespace Accounting_System.Controllers
 
                 #endregion --Validating the series--
 
-                var generatedCM = await _creditMemoRepo.GenerateCMNo(cancellationToken);
-
-                model.SeriesNumber = getLastNumber;
-                model.CMNo = generatedCM;
+                model.CMNo = generatedCm;
                 model.CreatedBy = _userManager.GetUserName(this.User);
 
                 if (model.Source == "Sales Invoice")
@@ -337,25 +335,6 @@ namespace Accounting_System.Controllers
             var existingSv = await _dbContext.ServiceInvoices
                         .Include(sv => sv.Customer)
                         .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
-
-            if (model.SalesInvoiceId != null)
-            {
-                if (model.AdjustedPrice > existingSalesInvoice.UnitPrice)
-                {
-                    ModelState.AddModelError("AdjustedPrice", "Cannot input more than the existing SI unit price!");
-                }
-                if (model.Quantity > existingSalesInvoice.Quantity)
-                {
-                    ModelState.AddModelError("Quantity", "Cannot input more than the existing SI quantity!");
-                }
-            }
-            else
-            {
-                if (model.Amount > existingSv.Amount)
-                {
-                    ModelState.AddModelError("Amount", "Cannot input more than the existing SV amount!");
-                }
-            }
 
             if (ModelState.IsValid)
             {
@@ -737,38 +716,40 @@ namespace Accounting_System.Controllers
 
                             viewModelDMCM.Period = DateOnly.FromDateTime(model.CreatedDate) >= model.Period ? DateOnly.FromDateTime(model.CreatedDate) : model.Period.AddMonths(1).AddDays(-1);
 
+                            var amount = -model.Amount ?? 0;
+                            var netAmount = (amount + existingSv.Discount) / 1.12m;
                             if (existingSv.Customer.CustomerType == "Vatable")
                             {
-                                viewModelDMCM.Total = -model.Amount ?? 0;
-                                viewModelDMCM.NetAmount = (model.Amount ?? 0 - existingSv.Discount) / 1.12m;
-                                viewModelDMCM.VatAmount = (model.Amount ?? 0 - existingSv.Discount) - viewModelDMCM.NetAmount;
-                                viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (services.Percent / 100m);
+                                viewModelDMCM.Total = amount;
+                                viewModelDMCM.NetAmount = netAmount;
+                                viewModelDMCM.VatAmount = (amount + existingSv.Discount) + netAmount;
+                                viewModelDMCM.WithholdingTaxAmount = netAmount * (services.Percent / 100m);
                                 if (existingSv.Customer.WithHoldingVat)
                                 {
-                                    viewModelDMCM.WithholdingVatAmount = viewModelDMCM.NetAmount * 0.05m;
+                                    viewModelDMCM.WithholdingVatAmount = netAmount * 0.05m;
                                 }
                             }
                             else
                             {
-                                viewModelDMCM.NetAmount = model.Amount ?? 0 - existingSv.Discount;
-                                viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (services.Percent / 100m);
+                                viewModelDMCM.NetAmount = amount + existingSv.Discount;
+                                viewModelDMCM.WithholdingTaxAmount = netAmount * (services.Percent / 100m);
                                 if (existingSv.Customer.WithHoldingVat)
                                 {
-                                    viewModelDMCM.WithholdingVatAmount = viewModelDMCM.NetAmount * 0.05m;
+                                    viewModelDMCM.WithholdingVatAmount = netAmount * 0.05m;
                                 }
                             }
 
                             if (existingSv.Customer.CustomerType == "Vatable")
                             {
-                                var total = Math.Round(model.Amount ?? 0 / 1.12m, 2);
+                                var total = Math.Round(amount / 1.12m, 2);
 
-                                var roundedNetAmount = Math.Round(viewModelDMCM.NetAmount, 2);
+                                var roundedNetAmount = Math.Round(netAmount, 2);
 
                                 if (roundedNetAmount > total)
                                 {
-                                    var shortAmount = viewModelDMCM.NetAmount - total;
+                                    var shortAmount = netAmount + total;
 
-                                    viewModelDMCM.Amount += shortAmount;
+                                    viewModelDMCM.Amount += Math.Abs(shortAmount);
                                 }
                             }
 
@@ -1111,7 +1092,6 @@ namespace Accounting_System.Controllers
             worksheet.Cells["Q1"].Value = "OriginalCMNo";
             worksheet.Cells["R1"].Value = "OriginalServiceInvoiceId";
             worksheet.Cells["S1"].Value = "OriginalDocumentId";
-            worksheet.Cells["T1"].Value = "OriginalSeriesNumber";
 
             int row = 2;
 
@@ -1136,7 +1116,6 @@ namespace Accounting_System.Controllers
                 worksheet.Cells[row, 17].Value = item.CMNo;
                 worksheet.Cells[row, 18].Value = item.ServiceInvoiceId;
                 worksheet.Cells[row, 19].Value = item.Id;
-                worksheet.Cells[row, 20].Value = item.SeriesNumber;
 
                 row++;
             }
@@ -1153,7 +1132,7 @@ namespace Accounting_System.Controllers
         #region -- import xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Import(IFormFile file)
+        public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
             {
@@ -1164,7 +1143,8 @@ namespace Accounting_System.Controllers
             {
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
-
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -1182,13 +1162,15 @@ namespace Accounting_System.Controllers
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
-
+                        var creditMemoList = await _dbContext
+                            .CreditMemos
+                            .ToListAsync(cancellationToken);
+                        
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var creditMemo = new CreditMemo
                             {
                                 CMNo = worksheet.Cells[row, 17].Text,
-                                SeriesNumber = int.TryParse(worksheet.Cells[row, 20].Text, out int seriesNumber) ? seriesNumber : 0,
                                 TransactionDate = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly transactionDate) ? transactionDate : default,
                                 CreditAmount = decimal.TryParse(worksheet.Cells[row, 2].Text, out decimal debitAmount) ? debitAmount : 0,
                                 Description = worksheet.Cells[row, 3].Text,
@@ -1213,19 +1195,14 @@ namespace Accounting_System.Controllers
                             creditMemo.SalesInvoiceId = await _dbContext.SalesInvoices
                             .Where(c => c.OriginalDocumentId == creditMemo.OriginalSalesInvoiceId)
                             .Select(c => (int?)c.Id)
-                            .FirstOrDefaultAsync();
+                            .FirstOrDefaultAsync(cancellationToken);
 
                             creditMemo.ServiceInvoiceId = await _dbContext.ServiceInvoices
                                 .Where(c => c.OriginalDocumentId == creditMemo.OriginalServiceInvoiceId)
                                 .Select(c => (int?)c.Id)
-                                .FirstOrDefaultAsync();
-                            
-                            var creditMemoList = _dbContext
-                                .CreditMemos
-                                .Where(cm => cm.OriginalDocumentId == creditMemo.OriginalDocumentId || cm.Id == creditMemo.OriginalDocumentId)
-                                .ToList();
+                                .FirstOrDefaultAsync(cancellationToken);
 
-                            if (creditMemoList.Any())
+                            if (creditMemoList.Any(cm => cm.OriginalDocumentId == creditMemo.OriginalDocumentId))
                             {
                                 continue;
                             }
@@ -1235,24 +1212,27 @@ namespace Accounting_System.Controllers
                                 throw new InvalidOperationException("Please upload the Excel file for the sales invoice or service invoice first.");
                             }
 
-                            await _dbContext.CreditMemos.AddAsync(creditMemo);
-                            await _dbContext.SaveChangesAsync();
+                            await _dbContext.CreditMemos.AddAsync(creditMemo, cancellationToken);
                         }
-
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                     }
                 }
                 catch (OperationCanceledException oce)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = oce.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.CreditMemo });
                 }
                 catch (InvalidOperationException ioe)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["warning"] = ioe.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.CreditMemo });
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.CreditMemo });
                 }

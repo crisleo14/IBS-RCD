@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using System.Linq.Dynamic.Core;
+using Newtonsoft.Json;
 
 namespace Accounting_System.Controllers
 {
@@ -181,7 +182,8 @@ namespace Accounting_System.Controllers
             {
                 #region -- Validating Series --
 
-                var getLastNumber = await _salesInvoiceRepo.GetLastSeriesNumber(cancellationToken);
+                var generateSiNo = await _salesInvoiceRepo.GenerateSINo(cancellationToken);
+                var getLastNumber = long.Parse(generateSiNo.Substring(2));
 
                 if (getLastNumber > 9999999999)
                 {
@@ -202,13 +204,11 @@ namespace Accounting_System.Controllers
 
                 #region -- Saving Default Entries --
 
-                var generateCRNo = await _salesInvoiceRepo.GenerateSINo(cancellationToken);
                 var existingCustomers = await _dbContext.Customers
                                                .FirstOrDefaultAsync(si => si.Id == sales.CustomerId, cancellationToken);
 
-                sales.SeriesNumber = getLastNumber;
                 sales.CreatedBy = _userManager.GetUserName(this.User);
-                sales.SINo = generateCRNo;
+                sales.SINo = generateSiNo;
                 sales.Amount = sales.Quantity * sales.UnitPrice;
                 sales.DueDate = _salesInvoiceRepo.ComputeDueDateAsync(existingCustomers.Terms, sales.TransactionDate, cancellationToken);
                 if (sales.Amount >= sales.Discount)
@@ -313,7 +313,7 @@ namespace Accounting_System.Controllers
                .ToListAsync(cancellationToken);
 
                 var receivingReports = await _dbContext.ReceivingReports
-                    .Where(rr => rr.POId == salesInvoice.POId && rr.ReceivedDate != null)
+                    .Where(rr => rr.POId == salesInvoice.POId && rr.ReceivedDate != null && rr.PostedBy != null)
                     .Select(rr => new
                     {
                         rr.Id,
@@ -354,28 +354,7 @@ namespace Accounting_System.Controllers
                 }
 
                 #endregion -- Checking existing record --
-
-                #region -- Validating Series --
-
-                var getLastNumber = await _salesInvoiceRepo.GetLastSeriesNumber(cancellationToken);
-
-                if (getLastNumber > 9999999999)
-                {
-                    TempData["error"] = "You reach the maximum Series Number";
-                    return View(model);
-                }
-                var totalRemainingSeries = 9999999999 - getLastNumber;
-                if (getLastNumber >= 9999999899)
-                {
-                    TempData["warning"] = $"Sales Invoice created successfully, Warning {totalRemainingSeries} series number remaining";
-                }
-                else
-                {
-                    TempData["success"] = "Sales Invoice created successfully";
-                }
-
-                #endregion -- Validating Series --
-
+                
                 if (ModelState.IsValid)
                 {
                     #region -- Saving Default Enries --
@@ -423,7 +402,7 @@ namespace Accounting_System.Controllers
 
                 // Save the changes to the database
                 await _dbContext.SaveChangesAsync(cancellationToken);
-
+                TempData["success"] = "Sales Invoice updated successfully";
                 return RedirectToAction(nameof(Index)); // Redirect to a success page or the index page
             }
             catch (Exception ex)
@@ -814,7 +793,7 @@ namespace Accounting_System.Controllers
         public IActionResult GetRRs(int purchaseOrderId)
         {
             var rrs = _dbContext.ReceivingReports
-                              .Where(rr => rr.POId == purchaseOrderId && rr.ReceivedDate != null)
+                              .Where(rr => rr.POId == purchaseOrderId && rr.ReceivedDate != null && rr.IsPosted)
                               .Select(rr => new
                               {
                                   rr.Id,
@@ -873,7 +852,6 @@ namespace Accounting_System.Controllers
             worksheet.Cells["T1"].Value = "OriginalProductId";
             worksheet.Cells["U1"].Value = "OriginalSINo";
             worksheet.Cells["V1"].Value = "OriginalDocumentId";
-            worksheet.Cells["W1"].Value = "OriginalSeriesNumber";
 
             int row = 2;
 
@@ -901,7 +879,6 @@ namespace Accounting_System.Controllers
                 worksheet.Cells[row, 20].Value = item.ProductId;
                 worksheet.Cells[row, 21].Value = item.SINo;
                 worksheet.Cells[row, 22].Value = item.Id;
-                worksheet.Cells[row, 23].Value = item.SeriesNumber;
 
                 row++;
             }
@@ -918,7 +895,7 @@ namespace Accounting_System.Controllers
         #region -- import xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Import(IFormFile file)
+        public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
             {
@@ -929,7 +906,8 @@ namespace Accounting_System.Controllers
             {
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
-
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -948,15 +926,18 @@ namespace Accounting_System.Controllers
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
-
+                        var invoiceList = await _dbContext
+                            .SalesInvoices
+                            .ToListAsync(cancellationToken);
+                        var customerMessage = new List<string>();
+                        var productMessage = new List<string>();
+                        var receivingReportMessage = new List<string>();
+                        var purchaseOrderMessage = new List<string>();
                         for (int row = 2; row <= rowCount; row++) // Assuming the first row is the header
                         {
                             var invoice = new SalesInvoice
                             {
                                 SINo = worksheet.Cells[row, 21].Text,
-                                SeriesNumber = int.TryParse(worksheet.Cells[row, 23].Text, out int seriesNumber)
-                                    ? seriesNumber
-                                    : 0,
                                 OtherRefNo = worksheet.Cells[row, 1].Text,
                                 Quantity = decimal.TryParse(worksheet.Cells[row, 2].Text, out decimal quantity)
                                     ? quantity
@@ -975,16 +956,16 @@ namespace Accounting_System.Controllers
                                 Discount = decimal.TryParse(worksheet.Cells[row, 8].Text, out decimal discount)
                                     ? discount
                                     : 0,
-                                AmountPaid = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amountPaid)
-                                    ? amountPaid
-                                    : 0,
-                                Balance = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal balance)
-                                    ? balance
-                                    : 0,
-                                IsPaid = bool.TryParse(worksheet.Cells[row, 11].Text, out bool isPaid) ? isPaid : false,
-                                IsTaxAndVatPaid = bool.TryParse(worksheet.Cells[row, 12].Text, out bool isTaxAndVatPaid)
-                                    ? isTaxAndVatPaid
-                                    : false,
+                                // AmountPaid = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amountPaid)
+                                //     ? amountPaid
+                                //     : 0,
+                                // Balance = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal balance)
+                                //     ? balance
+                                //     : 0,
+                                // IsPaid = bool.TryParse(worksheet.Cells[row, 11].Text, out bool isPaid) ? isPaid : false,
+                                // IsTaxAndVatPaid = bool.TryParse(worksheet.Cells[row, 12].Text, out bool isTaxAndVatPaid)
+                                //     ? isTaxAndVatPaid
+                                //     : false,
                                 DueDate = DateOnly.TryParse(worksheet.Cells[row, 13].Text, out DateOnly dueDate)
                                     ? dueDate
                                     : default,
@@ -1012,15 +993,8 @@ namespace Accounting_System.Controllers
                                         ? originalDocumentId
                                         : 0,
                             };
-
-                            var invoiceList = _dbContext
-                                .SalesInvoices
-                                .Where(si =>
-                                    si.OriginalDocumentId == invoice.OriginalDocumentId ||
-                                    si.Id == invoice.OriginalDocumentId)
-                                .ToList();
-
-                            if (invoiceList.Any())
+                            
+                            if (invoiceList.Any(si => si.OriginalDocumentId == invoice.OriginalDocumentId))
                             {
                                 continue;
                             }
@@ -1028,49 +1002,45 @@ namespace Accounting_System.Controllers
                             invoice.CustomerId = await _dbContext.Customers
                                                      .Where(c => c.OriginalCustomerId == invoice.OriginalCustomerId)
                                                      .Select(c => (int?)c.Id)
-                                                     .FirstOrDefaultAsync() ??
-                                                 throw new InvalidOperationException(
-                                                     "Please upload the Excel file for the customer master file first.");
+                                                     .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
 
                             invoice.ProductId = await _dbContext.Products
                                                     .Where(c => c.OriginalProductId == invoice.OriginalProductId)
                                                     .Select(c => (int?)c.Id)
-                                                    .FirstOrDefaultAsync() ??
-                                                throw new InvalidOperationException(
-                                                    "Please upload the Excel file for the product master file first.");
+                                                    .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the product master file first.");
 
                             invoice.ReceivingReportId = await _dbContext.ReceivingReports
-                                                            .Where(c => c.OriginalDocumentId ==
-                                                                        invoice.OriginalReceivingReportId)
+                                                            .Where(c => c.OriginalDocumentId == invoice.OriginalReceivingReportId)
                                                             .Select(c => (int?)c.Id)
-                                                            .FirstOrDefaultAsync() ??
-                                                        throw new InvalidOperationException(
-                                                            "Please upload the Excel file for the receiving report first.");
+                                                            .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the receiving report first.");
 
                             invoice.POId = await _dbContext.PurchaseOrders
                                                .Where(c => c.OriginalDocumentId == invoice.OriginalPOId)
                                                .Select(c => (int?)c.Id)
-                                               .FirstOrDefaultAsync() ??
-                                           throw new InvalidOperationException(
-                                               "Please upload the Excel file for the purchase order first.");
+                                               .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the purchase order first.");
 
-                            await _dbContext.SalesInvoices.AddAsync(invoice);
-                            await _dbContext.SaveChangesAsync();
+                            await _dbContext.SalesInvoices.AddAsync(invoice, cancellationToken);
                         }
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                     }
                 }
                 catch (OperationCanceledException oce)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = oce.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.SalesInvoice });
                 }
                 catch (InvalidOperationException ioe)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["warning"] = ioe.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.SalesInvoice });
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.SalesInvoice });
                 }

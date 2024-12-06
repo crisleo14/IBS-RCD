@@ -13,25 +13,6 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public async Task<long> GetLastSeriesNumber(CancellationToken cancellationToken = default)
-        {
-            var lastInvoice = await _dbContext
-                .ReceivingReports
-                .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (lastInvoice != null)
-            {
-                // Increment the last serial by one and return it
-                return lastInvoice.SeriesNumber + 1;
-            }
-            else
-            {
-                // If there are no existing records, you can start with a default value like 1
-                return 1;
-            }
-        }
-
         public async Task<string> GenerateRRNo(CancellationToken cancellationToken = default)
         {
             var receivingReport = await _dbContext
@@ -41,8 +22,11 @@ namespace Accounting_System.Repository
 
             if (receivingReport != null)
             {
-                var generatedRR = receivingReport.SeriesNumber + 1;
-                return $"RR{generatedRR.ToString("D10")}";
+                string lastSeries = receivingReport.RRNo ?? throw new InvalidOperationException("RRNo is null pls Contact MIS Enterprise");
+                string numericPart = lastSeries.Substring(2);
+                int incrementedNumber = int.Parse(numericPart) + 1;
+
+                return lastSeries.Substring(0,2) + incrementedNumber.ToString("D10");
             }
             else
             {

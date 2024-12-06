@@ -173,8 +173,9 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 #region --Validating the series
-
-                var getLastNumber = await _receiptRepo.GetLastSeriesNumberCR(cancellationToken);
+                
+                var generateCrNo = await _receiptRepo.GenerateCRNo(cancellationToken);
+                var getLastNumber = long.Parse(generateCrNo.Substring(2));
 
                 if (getLastNumber > 9999999999)
                 {
@@ -203,11 +204,9 @@ namespace Accounting_System.Controllers
                 }
                 var existingSalesInvoice = await _dbContext.SalesInvoices
                                                .FirstOrDefaultAsync(si => si.Id == model.SalesInvoiceId, cancellationToken);
-                var generateCRNo = await _receiptRepo.GenerateCRNo(cancellationToken);
-
-                model.SeriesNumber = getLastNumber;
+                
                 model.SINo = existingSalesInvoice.SINo;
-                model.CRNo = generateCRNo;
+                model.CRNo = generateCrNo;
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 model.Total = computeTotalInModelIfZero;
 
@@ -378,8 +377,9 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 #region --Validating the series
-
-                var getLastNumber = await _receiptRepo.GetLastSeriesNumberCR(cancellationToken);
+                
+                var generateCrNo = await _receiptRepo.GenerateCRNo(cancellationToken);
+                var getLastNumber = long.Parse(generateCrNo.Substring(2));
 
                 if (getLastNumber > 9999999999)
                 {
@@ -425,11 +425,8 @@ namespace Accounting_System.Controllers
                         model.MultipleTransactionDate[i] = salesInvoice.TransactionDate;
                     }
                 }
-
-                var generateCRNo = await _receiptRepo.GenerateCRNo(cancellationToken);
-
-                model.SeriesNumber = getLastNumber;
-                model.CRNo = generateCRNo;
+                
+                model.CRNo = generateCrNo;
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 model.Total = computeTotalInModelIfZero;
 
@@ -600,8 +597,9 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 #region --Validating the series
-
-                var getLastNumber = await _receiptRepo.GetLastSeriesNumberCR(cancellationToken);
+                
+                var generateCrNo = await _receiptRepo.GenerateCRNo(cancellationToken);
+                var getLastNumber = long.Parse(generateCrNo.Substring(2));
 
                 if (getLastNumber > 9999999999)
                 {
@@ -630,11 +628,9 @@ namespace Accounting_System.Controllers
                 }
                 var existingServiceInvoice = await _dbContext.ServiceInvoices
                                                .FirstOrDefaultAsync(si => si.Id == model.ServiceInvoiceId, cancellationToken);
-                var generateCRNo = await _receiptRepo.GenerateCRNo(cancellationToken);
-
-                model.SeriesNumber = getLastNumber;
+                
                 model.SVNo = existingServiceInvoice.SVNo;
-                model.CRNo = generateCRNo;
+                model.CRNo = generateCrNo;
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 model.Total = computeTotalInModelIfZero;
 
@@ -966,7 +962,7 @@ namespace Accounting_System.Controllers
                .ToListAsync(cancellationToken);
 
             existingModel.SalesInvoices = await _dbContext.SalesInvoices
-                .Where(si => !si.IsPaid && si.CustomerId == existingModel.CustomerId)
+                .Where(si => !si.IsPaid && si.CustomerId == existingModel.CustomerId && si.IsPosted)
                 .OrderBy(si => si.Id)
                 .Select(s => new SelectListItem
                 {
@@ -976,7 +972,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             existingModel.ServiceInvoices = await _dbContext.ServiceInvoices
-                .Where(si => !si.IsPaid && si.CustomerId == existingModel.CustomerId)
+                .Where(si => !si.IsPaid && si.CustomerId == existingModel.CustomerId && si.IsPosted)
                 .OrderBy(si => si.Id)
                 .Select(s => new SelectListItem
                 {
@@ -1015,27 +1011,6 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
-                #region --Validating the series
-
-                var getLastNumber = await _receiptRepo.GetLastSeriesNumberCR(cancellationToken);
-
-                if (getLastNumber > 9999999999)
-                {
-                    TempData["error"] = "You reach the maximum Series Number";
-                    return View(model);
-                }
-                var totalRemainingSeries = 9999999999 - getLastNumber;
-                if (getLastNumber >= 9999999899)
-                {
-                    TempData["warning"] = $"Collection Receipt created successfully, Warning {totalRemainingSeries} series number remaining";
-                }
-                else
-                {
-                    TempData["success"] = "Collection Receipt created successfully";
-                }
-
-                #endregion --Validating the series
-
                 #region --Saving default value
 
                 var computeTotalInModelIfZero = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + model.EWT + model.WVAT;
@@ -1207,6 +1182,7 @@ namespace Accounting_System.Controllers
 
                 #endregion --Audit Trail Recording
 
+                TempData["success"] = "Collection Receipt updated successfully";
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction(nameof(CollectionIndex));
             }
@@ -2007,7 +1983,6 @@ namespace Accounting_System.Controllers
                 worksheet.Cells["AD1"].Value = "OriginalCRNo";
                 worksheet.Cells["AE1"].Value = "OriginalServiceInvoiceId";
                 worksheet.Cells["AF1"].Value = "OriginalDocumentId";
-                worksheet.Cells["AG1"].Value = "OriginalSeriesNumber";
 
                 worksheet2.Cells["A1"].Value = "AccountNo";
                 worksheet2.Cells["B1"].Value = "Source";
@@ -2057,7 +2032,6 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 30].Value = item.CRNo;
                     worksheet.Cells[row, 31].Value = item.ServiceInvoiceId;
                     worksheet.Cells[row, 32].Value = item.Id;
-                    worksheet.Cells[row, 33].Value = item.SeriesNumber;
 
                     row++;
                 }
@@ -2098,7 +2072,7 @@ namespace Accounting_System.Controllers
         #region -- import xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Import(IFormFile file)
+        public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
             {
@@ -2109,7 +2083,8 @@ namespace Accounting_System.Controllers
             {
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
-
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -2130,13 +2105,15 @@ namespace Accounting_System.Controllers
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
-
+                        var collectionReceiptList = await _dbContext
+                            .CollectionReceipts
+                            .ToListAsync(cancellationToken);
+                        
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var collectionReceipt = new CollectionReceipt
                             {
                                 CRNo = worksheet.Cells[row, 30].Text,
-                                SeriesNumber = int.TryParse(worksheet.Cells[row, 33].Text, out int seriesNumber) ? seriesNumber : 0,
                                 TransactionDate = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly transactionDate) ? transactionDate : default,
                                 ReferenceNo = worksheet.Cells[row, 2].Text,
                                 Remarks = worksheet.Cells[row, 3].Text,
@@ -2170,13 +2147,8 @@ namespace Accounting_System.Controllers
                                 OriginalServiceInvoiceId = int.TryParse(worksheet.Cells[row, 31].Text, out int originalServiceInvoiceId) ? originalServiceInvoiceId : 0,
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 32].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
-                            var collectionReceiptList = _dbContext.CollectionReceipts.
-                                Where(cr =>
-                                    cr.OriginalDocumentId == collectionReceipt.OriginalDocumentId ||
-                                    cr.Id == collectionReceipt.OriginalDocumentId)
-                                .ToList();
                             
-                            if (collectionReceiptList.Any())
+                            if (collectionReceiptList.Any(cr => cr.OriginalDocumentId == collectionReceipt.OriginalDocumentId))
                             {
                                 continue;
                             }
@@ -2184,12 +2156,12 @@ namespace Accounting_System.Controllers
                             collectionReceipt.CustomerId = await _dbContext.Customers
                                 .Where(c => c.OriginalCustomerId == collectionReceipt.OriginalCustomerId)
                                 .Select(c => (int?)c.Id)
-                                .FirstOrDefaultAsync() ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
+                                .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
 
                             var getSi = await _dbContext.SalesInvoices
                                         .Where(si => si.OriginalDocumentId == collectionReceipt.OriginalSalesInvoiceId)
                                         .Select(si => new { si.Id, si.SINo })
-                                        .FirstOrDefaultAsync();
+                                        .FirstOrDefaultAsync(cancellationToken);
 
                             collectionReceipt.SalesInvoiceId = getSi?.Id;
                             collectionReceipt.SINo = getSi?.SINo;
@@ -2197,7 +2169,7 @@ namespace Accounting_System.Controllers
                             var getSv = await _dbContext.ServiceInvoices
                                 .Where(sv => sv.OriginalDocumentId == collectionReceipt.OriginalServiceInvoiceId)
                                 .Select(sv => new { sv.Id, sv.SVNo })
-                                .FirstOrDefaultAsync();
+                                .FirstOrDefaultAsync(cancellationToken);
 
                             collectionReceipt.ServiceInvoiceId = getSv?.Id;
                             collectionReceipt.SVNo = getSv?.SVNo;
@@ -2223,9 +2195,9 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            await _dbContext.CollectionReceipts.AddAsync(collectionReceipt);
-                            await _dbContext.SaveChangesAsync();
+                            await _dbContext.CollectionReceipts.AddAsync(collectionReceipt, cancellationToken);
                         }
+                        await _dbContext.SaveChangesAsync(cancellationToken);
 
                         var offsetRowCount = worksheet2.Dimension.Rows;
                         for (int offsetRow = 2; offsetRow <= offsetRowCount; offsetRow++)
@@ -2244,26 +2216,40 @@ namespace Accounting_System.Controllers
                             offsetting.Source = await _dbContext.CollectionReceipts
                                 .Where(cr => cr.OriginalSeriesNumber == worksheet2.Cells[offsetRow, 2].Text)
                                 .Select(cr => cr.CRNo)
-                                .FirstOrDefaultAsync();
+                                .FirstOrDefaultAsync(cancellationToken);
 
-                            await _dbContext.Offsettings.AddAsync(offsetting);
-                            await _dbContext.SaveChangesAsync();
+                            await _dbContext.Offsettings.AddAsync(offsetting, cancellationToken);
                         }
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        
+                        // var offsettingList = _dbContext.Offsettings.
+                        //     Where(offset =>
+                        //         offset.Reference == collectionReceipt.OriginalDocumentId)
+                        //     .ToList();
+                        //     
+                        // if (offsettingList.Any())
+                        // {
+                        //     continue;
+                        // }
 
                     }
                 }
                 catch (OperationCanceledException oce)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = oce.Message;
                     return RedirectToAction(nameof(CollectionIndex), new { view = DynamicView.CollectionReceipt });
                 }
                 catch (InvalidOperationException ioe)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["warning"] = ioe.Message;
                     return RedirectToAction(nameof(CollectionIndex), new { view = DynamicView.CollectionReceipt });
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(CollectionIndex), new { view = DynamicView.CollectionReceipt });
                 }

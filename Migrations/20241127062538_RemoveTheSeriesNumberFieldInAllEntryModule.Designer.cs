@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241127062538_RemoveTheSeriesNumberFieldInAllEntryModule")]
+    partial class RemoveTheSeriesNumberFieldInAllEntryModule
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1208,7 +1211,7 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("OtherRefNo")
                         .IsRequired()
-                        .HasColumnType("varchar(500)")
+                        .HasColumnType("varchar(20)")
                         .HasColumnName("other_ref_no");
 
                     b.Property<int?>("POId")
@@ -1238,7 +1241,7 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Remarks")
                         .IsRequired()
-                        .HasColumnType("varchar(500)")
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("remarks");
 
                     b.Property<string>("SINo")
@@ -1583,9 +1586,8 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("original_customer_id");
 
-                    b.Property<string>("OriginalCustomerNumber")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("OriginalCustomerNumber")
+                        .HasColumnType("integer")
                         .HasColumnName("original_customer_number");
 
                     b.Property<string>("Terms")
@@ -1922,7 +1924,7 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasColumnType("varchar(500)")
+                        .HasColumnType("varchar(200)")
                         .HasColumnName("address");
 
                     b.Property<string>("Branch")
@@ -1949,7 +1951,7 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("varchar(50)")
                         .HasColumnName("name");
 
                     b.Property<int>("Number")
@@ -1961,30 +1963,30 @@ namespace Accounting_System.Migrations
                         .HasColumnName("original_supplier_id");
 
                     b.Property<string>("ProofOfExemptionFilePath")
-                        .HasColumnType("varchar(500)")
+                        .HasColumnType("varchar(200)")
                         .HasColumnName("proof_of_exemption_file_path");
 
                     b.Property<string>("ProofOfRegistrationFilePath")
-                        .HasColumnType("varchar(500)")
+                        .HasColumnType("varchar(200)")
                         .HasColumnName("proof_of_registration_file_path");
 
                     b.Property<string>("ReasonOfExemption")
-                        .HasColumnType("varchar(200)")
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("reason_of_exemption");
 
                     b.Property<string>("TaxType")
                         .IsRequired()
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("varchar(20)")
                         .HasColumnName("tax_type");
 
                     b.Property<string>("Terms")
                         .IsRequired()
-                        .HasColumnType("varchar(10)")
+                        .HasColumnType("varchar(5)")
                         .HasColumnName("terms");
 
                     b.Property<string>("TinNo")
                         .IsRequired()
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("varchar(20)")
                         .HasColumnName("tin_no");
 
                     b.Property<string>("TradeName")
@@ -2001,7 +2003,7 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("VatType")
                         .IsRequired()
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("varchar(20)")
                         .HasColumnName("vat_type");
 
                     b.Property<int?>("WithholdingTaxPercent")

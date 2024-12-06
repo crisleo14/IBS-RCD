@@ -14,25 +14,6 @@ namespace Accounting_System.Repository
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<long> GetLastSeriesNumberCR(CancellationToken cancellationToken = default)
-        {
-            var lastInvoice = await _dbContext
-                .CollectionReceipts
-                .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (lastInvoice != null)
-            {
-                // Increment the last serial by one and return it
-                return lastInvoice.SeriesNumber + 1;
-            }
-            else
-            {
-                // If there are no existing records, you can start with a default value like 1
-                return 1;
-            }
-        }
-
         public async Task<string> GenerateCRNo(CancellationToken cancellationToken = default)
         {
             var collectionReceipt = await _dbContext
@@ -42,8 +23,11 @@ namespace Accounting_System.Repository
 
             if (collectionReceipt != null)
             {
-                var generatedCR = collectionReceipt.SeriesNumber + 1;
-                return $"CR{generatedCR.ToString("D10")}";
+                string lastSeries = collectionReceipt.CRNo ?? throw new InvalidOperationException("CRNo is null pls Contact MIS Enterprise");
+                string numericPart = lastSeries.Substring(2);
+                int incrementedNumber = int.Parse(numericPart) + 1;
+
+                return lastSeries.Substring(0,2) + incrementedNumber.ToString("D10");
             }
             else
             {

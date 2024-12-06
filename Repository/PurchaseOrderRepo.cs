@@ -22,25 +22,6 @@ namespace Accounting_System.Repository
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<long> GetLastSeriesNumber(CancellationToken cancellationToken = default)
-        {
-            var lastInvoice = await _dbContext
-                .PurchaseOrders
-                .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (lastInvoice != null)
-            {
-                // Increment the last serial by one and return it
-                return lastInvoice.SeriesNumber + 1;
-            }
-            else
-            {
-                // If there are no existing records, you can start with a default value like 1
-                return 1L;
-            }
-        }
-
         public async Task<string> GeneratePONo(CancellationToken cancellationToken = default)
         {
             var purchaseOrder = await _dbContext
@@ -50,8 +31,11 @@ namespace Accounting_System.Repository
 
             if (purchaseOrder != null)
             {
-                var generatedCR = purchaseOrder.SeriesNumber + 1;
-                return $"PO{generatedCR.ToString("D10")}";
+                string lastSeries = purchaseOrder.PONo ?? throw new InvalidOperationException("PONo is null pls Contact MIS Enterprise");
+                string numericPart = lastSeries.Substring(2);
+                int incrementedNumber = int.Parse(numericPart) + 1;
+
+                return lastSeries.Substring(0,2) + incrementedNumber.ToString("D10");
             }
             else
             {

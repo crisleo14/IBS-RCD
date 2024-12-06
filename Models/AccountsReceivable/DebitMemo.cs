@@ -25,7 +25,6 @@ namespace Accounting_System.Models.AccountsReceivable
         public List<SelectListItem>? ServiceInvoices { get; set; }
 
         public string? DMNo { get; set; }
-        public long SeriesNumber { get; set; }
 
         [Column(TypeName = "date")]
         [Display(Name = "Transaction Date")]

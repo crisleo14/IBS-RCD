@@ -23,25 +23,6 @@ namespace Accounting_System.Repository
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<long> GetLastSeriesNumber(CancellationToken cancellationToken = default)
-        {
-            var lastInvoice = await _dbContext
-                .ServiceInvoices
-                .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (lastInvoice != null)
-            {
-                // Increment the last serial by one and return it
-                return lastInvoice.SeriesNumber + 1;
-            }
-            else
-            {
-                // If there are no existing records, you can start with a default value like 1
-                return 1;
-            }
-        }
-
         public async Task<string> GenerateSvNo(CancellationToken cancellationToken = default)
         {
             var serviceInvoice = await _dbContext
@@ -51,8 +32,11 @@ namespace Accounting_System.Repository
 
             if (serviceInvoice != null)
             {
-                var generatedInvoice = serviceInvoice.SeriesNumber + 1;
-                return $"SV{generatedInvoice.ToString("D10")}";
+                string lastSeries = serviceInvoice.SVNo;
+                string numericPart = lastSeries.Substring(2);
+                int incrementedNumber = int.Parse(numericPart) + 1;
+
+                return lastSeries.Substring(0,2) + incrementedNumber.ToString("D10");
             }
             else
             {

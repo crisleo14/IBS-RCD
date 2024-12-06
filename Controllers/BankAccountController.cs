@@ -221,7 +221,7 @@ namespace Accounting_System.Controllers
         #region -- import xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Import(IFormFile file)
+        public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
             {
@@ -232,7 +232,7 @@ namespace Accounting_System.Controllers
             {
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
-
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -250,7 +250,10 @@ namespace Accounting_System.Controllers
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
-
+                        var bankAccountList = await _dbContext
+                            .BankAccounts
+                            .ToListAsync(cancellationToken);
+                        
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var bankAccount = new BankAccount
@@ -266,12 +269,7 @@ namespace Accounting_System.Controllers
                             };
                             bankAccount.AccountNoCOA = "1010101" + bankAccount.SeriesNumber.ToString("D2");
 
-                            var bankAccountList = _dbContext
-                            .BankAccounts
-                            .Where(ba => ba.OriginalBankId == bankAccount.OriginalBankId || ba.Id == bankAccount.OriginalBankId)
-                            .ToList();
-
-                            if (bankAccountList.Any())
+                            if (bankAccountList.Any(ba => ba.OriginalBankId == bankAccount.OriginalBankId))
                             {
                                 continue;
                             }
@@ -279,23 +277,25 @@ namespace Accounting_System.Controllers
                             #region -- COA Entry --
 
                             var coa = _bankAccountRepo.COAEntry(bankAccount, User);
-                            await _dbContext.AddAsync(coa);
+                            await _dbContext.AddAsync(coa, cancellationToken);
 
                             #endregion -- COA Entry --
 
-                            await _dbContext.BankAccounts.AddAsync(bankAccount);
-                            await _dbContext.SaveChangesAsync();
+                            await _dbContext.BankAccounts.AddAsync(bankAccount, cancellationToken);
                         }
-
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                     }
                 }
                 catch (OperationCanceledException oce)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = oce.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
                 }

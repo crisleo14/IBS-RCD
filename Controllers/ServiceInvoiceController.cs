@@ -154,7 +154,8 @@ namespace Accounting_System.Controllers
             {
                 #region --Validating the series
 
-                var getLastNumber = await _serviceInvoiceRepo.GetLastSeriesNumber(cancellationToken);
+                var generateSvNo = await _serviceInvoiceRepo.GenerateSvNo(cancellationToken);
+                var getLastNumber = long.Parse(generateSvNo.Substring(2));
 
                 if (getLastNumber > 9999999999)
                 {
@@ -187,9 +188,7 @@ namespace Accounting_System.Controllers
 
                 #region --Saving the default properties
 
-                model.SeriesNumber = getLastNumber;
-
-                model.SVNo = await _serviceInvoiceRepo.GenerateSvNo(cancellationToken);
+                model.SVNo = generateSvNo;
 
                 model.CreatedBy = _userManager.GetUserName(this.User);
 
@@ -640,27 +639,6 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
-                #region --Validating the series
-
-                var getLastNumber = await _serviceInvoiceRepo.GetLastSeriesNumber(cancellationToken);
-
-                if (getLastNumber > 9999999999)
-                {
-                    TempData["error"] = "You reach the maximum Series Number";
-                    return View(model);
-                }
-                var totalRemainingSeries = 9999999999 - getLastNumber;
-                if (getLastNumber >= 9999999899)
-                {
-                    TempData["warning"] = $"Service invoice created successfully, Warning {totalRemainingSeries} series number remaining";
-                }
-                else
-                {
-                    TempData["success"] = "Service invoice created successfully";
-                }
-
-                #endregion --Validating the series
-
                 #region --Retrieval of Services
 
                 var services = await _serviceInvoiceRepo.GetServicesAsync(model.ServicesId, cancellationToken);
@@ -698,6 +676,7 @@ namespace Accounting_System.Controllers
 
                 #endregion --Audit Trail Recording
 
+                TempData["success"] = "Service Invoice updated successfully";
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 return RedirectToAction(nameof(Index));
             }
@@ -749,7 +728,6 @@ namespace Accounting_System.Controllers
             worksheet.Cells["Q1"].Value = "OriginalSVNo";
             worksheet.Cells["R1"].Value = "OriginalServicesId";
             worksheet.Cells["S1"].Value = "OriginalDocumentId";
-            worksheet.Cells["T1"].Value = "OriginalSeriesNumber";
 
             int row = 2;
 
@@ -774,7 +752,6 @@ namespace Accounting_System.Controllers
                 worksheet.Cells[row, 17].Value = item.SVNo;
                 worksheet.Cells[row, 18].Value = item.ServicesId;
                 worksheet.Cells[row, 19].Value = item.Id;
-                worksheet.Cells[row, 20].Value = item.SeriesNumber;
 
                 row++;
             }
@@ -791,7 +768,7 @@ namespace Accounting_System.Controllers
         #region -- import xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Import(IFormFile file)
+        public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
             {
@@ -802,7 +779,8 @@ namespace Accounting_System.Controllers
             {
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
-
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -820,13 +798,15 @@ namespace Accounting_System.Controllers
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
-
+                        var serviceInvoiceList = await _dbContext
+                            .ServiceInvoices
+                            .ToListAsync(cancellationToken);
+                        
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var serviceInvoice = new ServiceInvoice
                             {
                                 SVNo = worksheet.Cells[row, 17].Text,
-                                SeriesNumber = int.TryParse(worksheet.Cells[row, 20].Text, out int seriesNumber) ? seriesNumber : 0,
                                 DueDate = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
                                 Period = DateOnly.TryParse(worksheet.Cells[row, 2].Text, out DateOnly period) ? period : default,
                                 Amount = decimal.TryParse(worksheet.Cells[row, 3].Text, out decimal amount) ? amount : 0,
@@ -835,10 +815,10 @@ namespace Accounting_System.Controllers
                                 CurrentAndPreviousAmount = decimal.TryParse(worksheet.Cells[row, 6].Text, out decimal currentAndPreviousAmount) ? currentAndPreviousAmount : 0,
                                 UnearnedAmount = decimal.TryParse(worksheet.Cells[row, 7].Text, out decimal unearnedAmount) ? unearnedAmount : 0,
                                 Status = worksheet.Cells[row, 8].Text,
-                                AmountPaid = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amountPaid) ? amountPaid : 0,
-                                Balance = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal balance) ? balance : 0,
+                                // AmountPaid = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amountPaid) ? amountPaid : 0,
+                                // Balance = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal balance) ? balance : 0,
                                 Instructions = worksheet.Cells[row, 11].Text,
-                                IsPaid = bool.TryParse(worksheet.Cells[row, 12].Text, out bool isPaid) ? isPaid : false,
+                                // IsPaid = bool.TryParse(worksheet.Cells[row, 12].Text, out bool isPaid) ? isPaid : false,
                                 CreatedBy = worksheet.Cells[row, 13].Text,
                                 CreatedDate = DateTime.TryParse(worksheet.Cells[row, 14].Text, out DateTime createdDate) ? createdDate : default,
                                 CancellationRemarks = worksheet.Cells[row, 15].Text,
@@ -848,12 +828,7 @@ namespace Accounting_System.Controllers
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 19].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
 
-                            var serviceInvoiceList = _dbContext
-                                .ServiceInvoices
-                                .Where(sv => sv.OriginalDocumentId == serviceInvoice.OriginalDocumentId || sv.Id == serviceInvoice.OriginalDocumentId)
-                                .ToList();
-
-                            if (serviceInvoiceList.Any())
+                            if (serviceInvoiceList.Any(sv => sv.OriginalDocumentId == serviceInvoice.OriginalDocumentId))
                             {
                                 continue;
                             }
@@ -861,30 +836,34 @@ namespace Accounting_System.Controllers
                             serviceInvoice.CustomerId = await _dbContext.Customers
                                 .Where(sv => sv.OriginalCustomerId == serviceInvoice.OriginalCustomerId)
                                 .Select(sv => (int?)sv.Id)
-                                .FirstOrDefaultAsync() ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
+                                .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
 
                             serviceInvoice.ServicesId = await _dbContext.Services
                                 .Where(sv => sv.OriginalServiceId == serviceInvoice.OriginalServicesId)
                                 .Select(sv => (int?)sv.Id)
-                                .FirstOrDefaultAsync() ?? throw new InvalidOperationException("Please upload the Excel file for the service master file first.");
+                                .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the service master file first.");
 
-                            await _dbContext.ServiceInvoices.AddAsync(serviceInvoice);
-                            await _dbContext.SaveChangesAsync();
+                            await _dbContext.ServiceInvoices.AddAsync(serviceInvoice, cancellationToken);
                         }
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                     }
                 }
                 catch (OperationCanceledException oce)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = oce.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
                 }
                 catch (InvalidOperationException ioe)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["warning"] = ioe.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
                 }

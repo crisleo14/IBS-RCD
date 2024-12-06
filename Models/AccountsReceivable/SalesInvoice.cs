@@ -12,8 +12,6 @@ namespace Accounting_System.Models.AccountsReceivable
         [Column(TypeName = "varchar(12)")]
         public string? SINo { get; set; }
 
-        public long SeriesNumber { get; set; }
-
         #region-- Customer properties
 
         [Required]
@@ -42,7 +40,7 @@ namespace Accounting_System.Models.AccountsReceivable
 
         #endregion
 
-        [Column(TypeName = "varchar(20)")]
+        [Column(TypeName = "varchar(500)")]
         [Display(Name = "Other Ref No")]
         public string OtherRefNo { get; set; }
 
@@ -62,7 +60,7 @@ namespace Accounting_System.Models.AccountsReceivable
         public decimal Amount { get; set; }
 
         [Required]
-        [Column(TypeName = "varchar(100)")]
+        [Column(TypeName = "varchar(500)")]
         public string Remarks { get; set; }
 
         [Column(TypeName = "varchar(20)")]

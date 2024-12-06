@@ -28,25 +28,6 @@ namespace Accounting_System.Repository
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<long> GetLastSeriesNumber(CancellationToken cancellationToken = default)
-        {
-            var lastInvoice = await _dbContext
-                .DebitMemos
-                .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (lastInvoice != null)
-            {
-                // Increment the last serial by one and return it
-                return lastInvoice.SeriesNumber + 1;
-            }
-            else
-            {
-                // If there are no existing records, you can start with a default value like 1
-                return 1;
-            }
-        }
-
         public async Task<string> GenerateDMNo(CancellationToken cancellationToken = default)
         {
             var debitMemo = await _dbContext
@@ -56,8 +37,11 @@ namespace Accounting_System.Repository
 
             if (debitMemo != null)
             {
-                var generatedCR = debitMemo.SeriesNumber + 1;
-                return $"DM{generatedCR.ToString("D10")}";
+                string lastSeries = debitMemo.DMNo ?? throw new InvalidOperationException("DMNo is null pls Contact MIS Enterprise");
+                string numericPart = lastSeries.Substring(2);
+                int incrementedNumber = int.Parse(numericPart) + 1;
+
+                return lastSeries.Substring(0,2) + incrementedNumber.ToString("D10");
             }
             else
             {

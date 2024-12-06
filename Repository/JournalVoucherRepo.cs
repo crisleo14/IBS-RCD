@@ -30,31 +30,15 @@ namespace Accounting_System.Repository
 
             if (journalVoucher != null)
             {
-                var generatedJV = journalVoucher.SeriesNumber + 1;
-                return $"JV{generatedJV.ToString("D10")}";
+                string lastSeries = journalVoucher.JVNo ?? throw new InvalidOperationException("JVNo is null pls Contact MIS Enterprise");
+                string numericPart = lastSeries.Substring(2);
+                int incrementedNumber = int.Parse(numericPart) + 1;
+
+                return lastSeries.Substring(0,2) + incrementedNumber.ToString("D10");
             }
             else
             {
                 return $"JV{1.ToString("D10")}";
-            }
-        }
-
-        public async Task<long> GetLastSeriesNumberJV(CancellationToken cancellationToken = default)
-        {
-            var lastNumber = await _dbContext
-                .JournalVoucherHeaders
-                .OrderByDescending(j => j.Id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (lastNumber != null)
-            {
-                // Increment the last serial by one and return it
-                return lastNumber.SeriesNumber + 1;
-            }
-            else
-            {
-                // If there are no existing records, you can start with a default value like 1
-                return 1L;
             }
         }
     }

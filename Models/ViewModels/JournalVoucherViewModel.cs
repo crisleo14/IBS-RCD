@@ -11,8 +11,6 @@ namespace Accounting_System.Models.ViewModels
         public string? JVNo { get; set; }
         public int JVId { get; set; }
 
-        public long SeriesNumber { get; set; }
-
         [Display(Name = "Transaction Date")]
         public DateOnly TransactionDate { get; set; }
 

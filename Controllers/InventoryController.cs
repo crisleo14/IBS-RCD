@@ -49,7 +49,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             viewModel.PO = await _dbContext.PurchaseOrders
-                .OrderBy(p => p.SeriesNumber)
+                .OrderBy(p => p.PONo)
                 .Select(p => new SelectListItem
                 {
                     Value = p.Id.ToString(),
@@ -105,7 +105,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             viewModel.PO = await _dbContext.PurchaseOrders
-                .OrderBy(p => p.SeriesNumber)
+                .OrderBy(p => p.PONo)
                 .Select(p => new SelectListItem
                 {
                     Value = p.Id.ToString(),
@@ -131,7 +131,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             viewModel.PO = await _dbContext.PurchaseOrders
-                .OrderBy(p => p.SeriesNumber)
+                .OrderBy(p => p.PONo)
                 .Select(p => new SelectListItem
                 {
                     Value = p.Id.ToString(),
@@ -243,7 +243,7 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
             viewModel.PO = await _dbContext.PurchaseOrders
-                .OrderBy(p => p.SeriesNumber)
+                .OrderBy(p => p.PONo)
                 .Select(p => new SelectListItem
                 {
                     Value = p.Id.ToString(),
@@ -296,7 +296,7 @@ namespace Accounting_System.Controllers
                         .ToListAsync(cancellationToken);
 
                     viewModel.PO = await _dbContext.PurchaseOrders
-                        .OrderBy(p => p.SeriesNumber)
+                        .OrderBy(p => p.PONo)
                         .Select(p => new SelectListItem
                         {
                             Value = p.Id.ToString(),
@@ -362,7 +362,6 @@ namespace Accounting_System.Controllers
 
                     var header = new JournalVoucherHeader
                     {
-                        SeriesNumber = await _journalVoucherRepo.GetLastSeriesNumberJV(cancellationToken),
                         JVNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken),
                         JVReason = "Actual Inventory",
                         Particulars = inventory.Particular,

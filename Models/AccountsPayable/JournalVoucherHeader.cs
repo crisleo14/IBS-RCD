@@ -10,8 +10,6 @@ namespace Accounting_System.Models
         [Display(Name = "JV No")]
         public string? JVNo { get; set; }
 
-        public long SeriesNumber { get; set; }
-
         [Display(Name = "Transaction Date")]
         [Column(TypeName = "date")]
         public DateOnly Date { get; set; }

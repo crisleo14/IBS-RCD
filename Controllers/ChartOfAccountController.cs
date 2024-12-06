@@ -260,7 +260,7 @@ namespace Accounting_System.Controllers
         #region -- import xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Import(IFormFile file)
+        public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
             {
@@ -271,6 +271,7 @@ namespace Accounting_System.Controllers
             {
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
                 try
                 {
@@ -289,7 +290,10 @@ namespace Accounting_System.Controllers
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
-
+                        var chartOfAccountList = await _dbContext
+                            .ChartOfAccounts
+                            .ToListAsync(cancellationToken);
+                        
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var coa = new ChartOfAccount
@@ -306,28 +310,26 @@ namespace Accounting_System.Controllers
                                 OriginalChartOfAccountId = int.TryParse(worksheet.Cells[row, 10].Text, out int originalChartOfAccountId) ? originalChartOfAccountId : 0,
                             };
 
-                            var chartOfAccountList = _dbContext
-                            .ChartOfAccounts
-                            .Where(c => c.OriginalChartOfAccountId == coa.OriginalChartOfAccountId || c.Id == coa.OriginalChartOfAccountId)
-                            .ToList();
-
-                            if (chartOfAccountList.Any())
+                            if (chartOfAccountList.Any(c => c.OriginalChartOfAccountId == coa.OriginalChartOfAccountId))
                             {
                                 continue;
                             }
 
-                            await _dbContext.ChartOfAccounts.AddAsync(coa);
-                            await _dbContext.SaveChangesAsync();
+                            await _dbContext.ChartOfAccounts.AddAsync(coa, cancellationToken);
                         }
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                     }
                 }
                 catch (OperationCanceledException oce)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = oce.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.ChartOfAccount });
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Index), new { view = DynamicView.ChartOfAccount });
                 }

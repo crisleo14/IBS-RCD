@@ -56,7 +56,6 @@ namespace Accounting_System.Repository
 
                                     var header = new JournalVoucherHeader
                                     {
-                                        SeriesNumber = await _journalVoucherRepo.GetLastSeriesNumberJV(),
                                         JVNo = await _journalVoucherRepo.GenerateJVNo(),
                                         CVId = cv.Id,
                                         JVReason = "Depreciation",
@@ -103,7 +102,6 @@ namespace Accounting_System.Repository
 
                                     var header = new JournalVoucherHeader
                                     {
-                                        SeriesNumber = await _journalVoucherRepo.GetLastSeriesNumberJV(),
                                         JVNo = await _journalVoucherRepo.GenerateJVNo(),
                                         CVId = cv.Id,
                                         JVReason = "Prepaid",
