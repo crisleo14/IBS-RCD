@@ -60,9 +60,11 @@ namespace Accounting_System.Controllers
                         .Where(sv =>
                             sv.SVNo.ToLower().Contains(searchValue) ||
                             sv.Customer.Name.ToLower().Contains(searchValue) ||
+                            sv.Customer.Terms.ToLower().Contains(searchValue) ||
                             sv.Service.Name.ToLower().Contains(searchValue) ||
+                            sv.Service.Number.ToString().Contains(searchValue) ||
                             sv.Period.ToString("MMM yyyy").ToLower().Contains(searchValue) ||
-                            sv.Amount.ToString().ToLower().Contains(searchValue) ||
+                            sv.Amount.ToString().Contains(searchValue) ||
                             sv.Instructions?.ToLower().Contains(searchValue) == true ||
                             sv.CreatedBy.ToLower().Contains(searchValue)
                             )

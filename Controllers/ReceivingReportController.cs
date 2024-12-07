@@ -61,11 +61,13 @@ namespace Accounting_System.Controllers
                     var searchValue = parameters.Search.Value.ToLower();
                     receivingReports = receivingReports
                         .Where(rr =>
-                            rr.RRNo.ToLower().Contains(searchValue) ||
+                            rr.RRNo?.ToLower().Contains(searchValue) == true ||
                             rr.Date.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
-                            rr.PONo.ToLower().Contains(searchValue) ||
-                            rr.QuantityDelivered.ToString().ToLower().Contains(searchValue) ||
-                            rr.QuantityReceived.ToString().ToLower().Contains(searchValue) ||
+                            rr.PONo?.ToLower().Contains(searchValue) == true ||
+                            rr.QuantityDelivered.ToString().Contains(searchValue) ||
+                            rr.QuantityReceived.ToString().Contains(searchValue) ||
+                            rr.Amount.ToString().Contains(searchValue) ||
+                            rr.Remarks.ToString().ToLower().Contains(searchValue) ||
                             rr.CreatedBy.ToLower().Contains(searchValue)
                             )
                         .ToList();

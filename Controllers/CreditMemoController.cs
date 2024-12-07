@@ -61,10 +61,12 @@ namespace Accounting_System.Controllers
                         .Where(cm =>
                             cm.CMNo.ToLower().Contains(searchValue) ||
                             cm.TransactionDate.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
-                            (cm.SalesInvoice?.SINo?.Contains(searchValue) == true) ||
-                            (cm.ServiceInvoice?.SVNo?.Contains(searchValue) == true) ||
+                            cm.SalesInvoice?.SINo?.ToLower().Contains(searchValue) == true ||
+                            cm.ServiceInvoice?.SVNo?.ToLower().Contains(searchValue) == true ||
                             cm.Source.ToLower().Contains(searchValue) ||
-                            cm.CreditAmount.ToString().ToLower().Contains(searchValue) ||
+                            cm.CreditAmount.ToString().Contains(searchValue) ||
+                            cm.Remarks?.ToLower().Contains(searchValue) == true ||
+                            cm.Description.ToLower().Contains(searchValue) ||
                             cm.CreatedBy.ToLower().Contains(searchValue)
                             )
                         .ToList();

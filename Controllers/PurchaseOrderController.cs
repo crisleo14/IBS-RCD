@@ -63,7 +63,9 @@ namespace Accounting_System.Controllers
                             po.Date.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
                             po.Supplier.Name.ToLower().Contains(searchValue) ||
                             po.Product.Name.ToLower().Contains(searchValue) ||
-                            po.Amount.ToString().ToLower().Contains(searchValue) ||
+                            po.Amount.ToString().Contains(searchValue) ||
+                            po.Quantity.ToString().Contains(searchValue) ||
+                            po.Remarks.ToLower().Contains(searchValue) ||
                             po.CreatedBy.ToLower().Contains(searchValue)
                             )
                         .ToList();

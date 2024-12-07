@@ -63,10 +63,11 @@ namespace Accounting_System.Controllers
                         .Where(jv =>
                             jv.JVNo.ToLower().Contains(searchValue) ||
                             jv.Date.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
-                            jv.CheckVoucherHeader.CVNo.ToLower().Contains(searchValue) ||
-                            jv.CRNo.ToLower().Contains(searchValue) ||
+                            jv.References?.ToLower().Contains(searchValue) == true ||
+                            jv.Particulars.ToLower().Contains(searchValue) ||
+                            jv.CRNo?.ToLower().Contains(searchValue) == true ||
                             jv.JVReason.ToLower().Contains(searchValue) ||
-                            jv.CheckVoucherHeader.CVNo.ToLower().Contains(searchValue) ||
+                            jv.CheckVoucherHeader?.CVNo?.ToLower().Contains(searchValue) == true ||
                             jv.CreatedBy.ToLower().Contains(searchValue)
                             )
                         .ToList();

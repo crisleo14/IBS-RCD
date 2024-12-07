@@ -64,12 +64,15 @@ namespace Accounting_System.Controllers
                     var searchValue = parameters.Search.Value.ToLower();
                     checkVouchers = checkVouchers
                         .Where(cv =>
-                            cv.CVNo.ToLower().Contains(searchValue) ||
+                            cv.CVNo.ToLower().Contains(searchValue)||
                             cv.Date.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
-                            cv.Supplier.Name.ToLower().Contains(searchValue) ||
+                            cv.Supplier?.Name.ToLower().Contains(searchValue) == true ||
+                            cv.Total.ToString().Contains(searchValue) ||
+                            cv.Amount?.ToString()?.Contains(searchValue) == true ||
+                            cv.AmountPaid.ToString().Contains(searchValue) ||
                             cv.Category.ToLower().Contains(searchValue) ||
                             cv.Category.ToLower().Contains(searchValue) ||
-                            cv.CvType.ToLower().Contains(searchValue) ||
+                            cv.CvType?.ToLower().Contains(searchValue) == true ||
                             cv.CreatedBy.ToLower().Contains(searchValue)
                             )
                         .ToList();

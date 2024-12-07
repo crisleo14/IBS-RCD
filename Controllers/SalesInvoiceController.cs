@@ -70,7 +70,7 @@ namespace Accounting_System.Controllers
                             s.Customer.Terms.ToLower().Contains(searchValue) ||
                             s.Product.Code.ToLower().Contains(searchValue) ||
                             s.Product.Name.ToLower().Contains(searchValue) ||
-                            s.OtherRefNo.ToLower().Contains(searchValue) ||
+                            s.Status.ToLower().Contains(searchValue) ||
                             s.TransactionDate.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
                             s.Quantity.ToString().Contains(searchValue) ||
                             s.UnitPrice.ToString().Contains(searchValue) ||
