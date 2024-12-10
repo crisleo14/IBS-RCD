@@ -62,16 +62,16 @@ namespace Accounting_System.Controllers
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number + " " + s.Name,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber + " " + s.AccountName,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
             model.WithholdingTaxList = await _context.ChartOfAccounts
-                .Where(coa => coa.Number == "2010302" || coa.Number == "2010303")
+                .Where(coa => coa.AccountNumber == "2010302" || coa.AccountNumber == "2010303")
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number + " " + s.Name,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber + " " + s.AccountName,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -90,16 +90,16 @@ namespace Accounting_System.Controllers
                     supplier.DefaultExpenses = await _context.ChartOfAccounts
                         .Select(s => new SelectListItem
                         {
-                            Value = s.Number + " " + s.Name,
-                            Text = s.Number + " " + s.Name
+                            Value = s.AccountNumber + " " + s.AccountName,
+                            Text = s.AccountNumber + " " + s.AccountName
                         })
                         .ToListAsync(cancellationToken);
                     supplier.WithholdingTaxList = await _context.ChartOfAccounts
-                        .Where(coa => coa.Number == "2010302" || coa.Number == "2010303")
+                        .Where(coa => coa.AccountNumber == "2010302" || coa.AccountNumber == "2010303")
                         .Select(s => new SelectListItem
                         {
-                            Value = s.Number + " " + s.Name,
-                            Text = s.Number + " " + s.Name
+                            Value = s.AccountNumber + " " + s.AccountName,
+                            Text = s.AccountNumber + " " + s.AccountName
                         })
                         .ToListAsync(cancellationToken);
                     return View(supplier);
@@ -111,16 +111,16 @@ namespace Accounting_System.Controllers
                     supplier.DefaultExpenses = await _context.ChartOfAccounts
                         .Select(s => new SelectListItem
                         {
-                            Value = s.Number + " " + s.Name,
-                            Text = s.Number + " " + s.Name
+                            Value = s.AccountNumber + " " + s.AccountName,
+                            Text = s.AccountNumber + " " + s.AccountName
                         })
                         .ToListAsync(cancellationToken);
                     supplier.WithholdingTaxList = await _context.ChartOfAccounts
-                        .Where(coa => coa.Number == "2010302" || coa.Number == "2010303")
+                        .Where(coa => coa.AccountNumber == "2010302" || coa.AccountNumber == "2010303")
                         .Select(s => new SelectListItem
                         {
-                            Value = s.Number + " " + s.Name,
-                            Text = s.Number + " " + s.Name
+                            Value = s.AccountNumber + " " + s.AccountName,
+                            Text = s.AccountNumber + " " + s.AccountName
                         })
                         .ToListAsync(cancellationToken);
                     return View(supplier);
@@ -178,16 +178,16 @@ namespace Accounting_System.Controllers
                     supplier.DefaultExpenses = await _context.ChartOfAccounts
                         .Select(s => new SelectListItem
                         {
-                            Value = s.Number + " " + s.Name,
-                            Text = s.Number + " " + s.Name
+                            Value = s.AccountNumber + " " + s.AccountName,
+                            Text = s.AccountNumber + " " + s.AccountName
                         })
                         .ToListAsync(cancellationToken);
                     supplier.WithholdingTaxList = await _context.ChartOfAccounts
-                        .Where(coa => coa.Number == "2010302" || coa.Number == "2010303")
+                        .Where(coa => coa.AccountNumber == "2010302" || coa.AccountNumber == "2010303")
                         .Select(s => new SelectListItem
                         {
-                            Value = s.Number + " " + s.Name,
-                            Text = s.Number + " " + s.Name
+                            Value = s.AccountNumber + " " + s.AccountName,
+                            Text = s.AccountNumber + " " + s.AccountName
                         })
                         .ToListAsync(cancellationToken);
                     return View(supplier);
@@ -229,16 +229,16 @@ namespace Accounting_System.Controllers
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number + " " + s.Name,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber + " " + s.AccountName,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
             supplier.WithholdingTaxList = await _context.ChartOfAccounts
-                .Where(coa => coa.Number == "2010302" || coa.Number == "2010303")
+                .Where(coa => coa.AccountNumber == "2010302" || coa.AccountNumber == "2010303")
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number + " " + s.Name,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber + " " + s.AccountName,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
             return View(supplier);
@@ -326,16 +326,16 @@ namespace Accounting_System.Controllers
                         supplier.DefaultExpenses = await _context.ChartOfAccounts
                             .Select(s => new SelectListItem
                             {
-                                Value = s.Number + " " + s.Name,
-                                Text = s.Number + " " + s.Name
+                                Value = s.AccountNumber + " " + s.AccountName,
+                                Text = s.AccountNumber + " " + s.AccountName
                             })
                             .ToListAsync(cancellationToken);
                         supplier.WithholdingTaxList = await _context.ChartOfAccounts
-                            .Where(coa => coa.Number == "2010302" || coa.Number == "2010303")
+                            .Where(coa => coa.AccountNumber == "2010302" || coa.AccountNumber == "2010303")
                             .Select(s => new SelectListItem
                             {
-                                Value = s.Number + " " + s.Name,
-                                Text = s.Number + " " + s.Name
+                                Value = s.AccountNumber + " " + s.AccountName,
+                                Text = s.AccountNumber + " " + s.AccountName
                             })
                             .ToListAsync(cancellationToken);
                         TempData["error"] = "There's something wrong in your file. Contact MIS.";

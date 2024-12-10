@@ -33,16 +33,16 @@
             <thead class="table-secondary">
                 <tr>
                     <th>
-                        @Html.DisplayNameFor(model => model.Number)
+                        @Html.DisplayNameFor(model => model.AccountNumber)
                     </th>
                     <th>
-                        @Html.DisplayNameFor(model => model.Name)
+                        @Html.DisplayNameFor(model => model.AccountName)
                     </th>
                     <th>
-                        @Html.DisplayNameFor(model => model.Type)
+                        @Html.DisplayNameFor(model => model.AccountType)
                     </th>
                     <th>
-                        @Html.DisplayNameFor(model => model.Category)
+                        @Html.DisplayNameFor(model => model.NormalBalance)
                     </th>
                     <th>
                         @Html.DisplayNameFor(model => model.Level)
@@ -57,22 +57,22 @@
                 {
                     <tr>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Number)
+                            @Html.DisplayFor(modelItem => item.AccountNumber)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Name)
+                            @Html.DisplayFor(modelItem => item.AccountName)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Type)
+                            @Html.DisplayFor(modelItem => item.AccountType)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Category)
+                            @Html.DisplayFor(modelItem => item.NormalBalance)
                         </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.Level)
                         </td>
                         <td>
-                            <input type="checkbox" class="selectCheckbox text-center" value="@item.Id">
+                            <input type="checkbox" class="selectCheckbox text-center" value="@item.AccountId">
                         </td>
                     </tr>
                 }

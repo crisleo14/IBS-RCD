@@ -76,9 +76,7 @@ namespace Accounting_System.Migrations
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    bank = table.Column<string>(type: "text", nullable: false),
-                    branch = table.Column<string>(type: "text", nullable: false),
-                    account_no = table.Column<string>(type: "text", nullable: false),
+                    bank_code = table.Column<string>(type: "text", nullable: false),
                     account_name = table.Column<string>(type: "text", nullable: false),
                     created_by = table.Column<string>(type: "varchar(50)", nullable: true),
                     created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -104,8 +102,8 @@ namespace Accounting_System.Migrations
                     check_no = table.Column<string>(type: "text", nullable: true),
                     coa = table.Column<string>(type: "text", nullable: false),
                     particulars = table.Column<string>(type: "text", nullable: false),
-                    debit = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    credit = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    debit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    credit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     created_by = table.Column<string>(type: "varchar(50)", nullable: true),
                     created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -118,38 +116,24 @@ namespace Accounting_System.Migrations
                 name: "chart_of_accounts",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "integer", nullable: false)
+                    account_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     is_main = table.Column<bool>(type: "boolean", nullable: false),
-                    number = table.Column<string>(type: "text", nullable: true),
-                    name = table.Column<string>(type: "text", nullable: false),
-                    type = table.Column<string>(type: "text", nullable: true),
-                    category = table.Column<string>(type: "text", nullable: true),
+                    account_number = table.Column<string>(type: "varchar(15)", nullable: true),
+                    account_name = table.Column<string>(type: "varchar(100)", nullable: false),
+                    account_type = table.Column<string>(type: "varchar(25)", nullable: true),
+                    normal_balance = table.Column<string>(type: "varchar(20)", nullable: true),
                     level = table.Column<int>(type: "integer", nullable: true),
-                    parent = table.Column<string>(type: "text", nullable: true),
+                    parent = table.Column<string>(type: "varchar(15)", nullable: true),
                     created_by = table.Column<string>(type: "varchar(50)", nullable: true),
-                    created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    edited_by = table.Column<string>(type: "varchar(50)", nullable: true),
+                    edited_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    original_chart_of_account_id = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_chart_of_accounts", x => x.id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "check_voucher_details",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    account_no = table.Column<string>(type: "text", nullable: false),
-                    account_name = table.Column<string>(type: "text", nullable: false),
-                    transaction_no = table.Column<string>(type: "text", nullable: false),
-                    debit = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    credit = table.Column<decimal>(type: "numeric(18,2)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_check_voucher_details", x => x.id);
+                    table.PrimaryKey("pk_chart_of_accounts", x => x.account_id);
                 });
 
             migrationBuilder.CreateTable(
@@ -170,7 +154,7 @@ namespace Accounting_System.Migrations
                     created_by = table.Column<string>(type: "varchar(50)", nullable: true),
                     created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     original_customer_id = table.Column<int>(type: "integer", nullable: false),
-                    original_customer_number = table.Column<int>(type: "integer", nullable: false)
+                    original_customer_number = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -186,14 +170,14 @@ namespace Accounting_System.Migrations
                     date = table.Column<DateOnly>(type: "date", nullable: false),
                     cv_no = table.Column<string>(type: "text", nullable: false),
                     payee = table.Column<string>(type: "text", nullable: false),
-                    amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     particulars = table.Column<string>(type: "text", nullable: false),
                     bank = table.Column<string>(type: "text", nullable: false),
                     check_no = table.Column<string>(type: "text", nullable: false),
                     check_date = table.Column<string>(type: "text", nullable: false),
                     chart_of_account = table.Column<string>(type: "text", nullable: false),
-                    debit = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    credit = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    debit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    credit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     created_by = table.Column<string>(type: "varchar(50)", nullable: true),
                     created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -213,8 +197,8 @@ namespace Accounting_System.Migrations
                     account_no = table.Column<string>(type: "text", nullable: false),
                     account_title = table.Column<string>(type: "text", nullable: false),
                     description = table.Column<string>(type: "text", nullable: false),
-                    debit = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    credit = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    debit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    credit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     created_by = table.Column<string>(type: "varchar(50)", nullable: true),
                     created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     is_posted = table.Column<bool>(type: "boolean", nullable: false)
@@ -234,31 +218,14 @@ namespace Accounting_System.Migrations
                     reference = table.Column<string>(type: "text", nullable: false),
                     description = table.Column<string>(type: "text", nullable: false),
                     account_title = table.Column<string>(type: "text", nullable: false),
-                    debit = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    credit = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    debit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    credit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     created_by = table.Column<string>(type: "varchar(50)", nullable: true),
                     created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_journal_books", x => x.id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "journal_voucher_details",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    account_no = table.Column<string>(type: "text", nullable: false),
-                    account_name = table.Column<string>(type: "text", nullable: false),
-                    transaction_no = table.Column<string>(type: "text", nullable: false),
-                    debit = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    credit = table.Column<decimal>(type: "numeric(18,2)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_journal_voucher_details", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -272,7 +239,7 @@ namespace Accounting_System.Migrations
                     source = table.Column<string>(type: "text", nullable: false),
                     reference = table.Column<string>(type: "text", nullable: true),
                     is_removed = table.Column<bool>(type: "boolean", nullable: false),
-                    amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     created_by = table.Column<string>(type: "varchar(50)", nullable: true),
                     created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -311,11 +278,11 @@ namespace Accounting_System.Migrations
                     supplier_address = table.Column<string>(type: "text", nullable: false),
                     document_no = table.Column<string>(type: "text", nullable: false),
                     description = table.Column<string>(type: "text", nullable: false),
-                    discount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    vat_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    wht_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    net_purchases = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    discount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    vat_amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    wht_amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    net_purchases = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     created_by = table.Column<string>(type: "varchar(50)", nullable: true),
                     created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     po_no = table.Column<string>(type: "varchar(12)", nullable: false),
@@ -338,13 +305,13 @@ namespace Accounting_System.Migrations
                     tin_no = table.Column<string>(type: "text", nullable: false),
                     address = table.Column<string>(type: "text", nullable: false),
                     description = table.Column<string>(type: "text", nullable: false),
-                    amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    vat_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    vatable_sales = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    vat_exempt_sales = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    zero_rated = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    discount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    net_sales = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    vat_amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    vatable_sales = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    vat_exempt_sales = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    zero_rated = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    discount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    net_sales = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     created_by = table.Column<string>(type: "varchar(50)", nullable: true),
                     created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     due_date = table.Column<DateOnly>(type: "date", nullable: false),
@@ -384,17 +351,17 @@ namespace Accounting_System.Migrations
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     number = table.Column<int>(type: "integer", nullable: false),
-                    name = table.Column<string>(type: "varchar(50)", nullable: false),
-                    address = table.Column<string>(type: "varchar(200)", nullable: false),
-                    tin_no = table.Column<string>(type: "varchar(20)", nullable: false),
-                    terms = table.Column<string>(type: "varchar(5)", nullable: false),
-                    vat_type = table.Column<string>(type: "varchar(20)", nullable: false),
-                    tax_type = table.Column<string>(type: "varchar(20)", nullable: false),
-                    proof_of_registration_file_path = table.Column<string>(type: "varchar(200)", nullable: true),
-                    reason_of_exemption = table.Column<string>(type: "varchar(100)", nullable: true),
+                    name = table.Column<string>(type: "varchar(100)", nullable: false),
+                    address = table.Column<string>(type: "varchar(500)", nullable: false),
+                    tin_no = table.Column<string>(type: "varchar(50)", nullable: false),
+                    terms = table.Column<string>(type: "varchar(10)", nullable: false),
+                    vat_type = table.Column<string>(type: "varchar(50)", nullable: false),
+                    tax_type = table.Column<string>(type: "varchar(50)", nullable: false),
+                    proof_of_registration_file_path = table.Column<string>(type: "varchar(500)", nullable: true),
+                    reason_of_exemption = table.Column<string>(type: "varchar(200)", nullable: true),
                     validity = table.Column<string>(type: "varchar(20)", nullable: true),
                     validity_date = table.Column<DateTime>(type: "date", nullable: true),
-                    proof_of_exemption_file_path = table.Column<string>(type: "varchar(200)", nullable: true),
+                    proof_of_exemption_file_path = table.Column<string>(type: "varchar(500)", nullable: true),
                     created_by = table.Column<string>(type: "varchar(50)", nullable: true),
                     created_date = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     category = table.Column<string>(type: "text", nullable: false),
@@ -523,24 +490,19 @@ namespace Accounting_System.Migrations
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     sv_no = table.Column<string>(type: "varchar(12)", nullable: true),
-                    series_number = table.Column<long>(type: "bigint", nullable: false),
                     customer_id = table.Column<int>(type: "integer", nullable: false),
                     services_id = table.Column<int>(type: "integer", nullable: false),
                     service_no = table.Column<int>(type: "integer", nullable: false),
                     due_date = table.Column<DateOnly>(type: "date", nullable: false),
                     period = table.Column<DateOnly>(type: "date", nullable: false),
-                    amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    vat_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    net_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    total = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    discount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    withholding_tax_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    withholding_vat_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    current_and_previous_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    unearned_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    total = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    discount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    current_and_previous_amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    unearned_amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     status = table.Column<string>(type: "varchar(20)", nullable: false),
-                    amount_paid = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    balance = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    amount_paid = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    balance = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     instructions = table.Column<string>(type: "varchar(200)", nullable: true),
                     is_paid = table.Column<bool>(type: "boolean", nullable: false),
                     original_customer_id = table.Column<int>(type: "integer", nullable: true),
@@ -585,14 +547,13 @@ namespace Accounting_System.Migrations
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     cv_no = table.Column<string>(type: "text", nullable: true),
-                    series_number = table.Column<long>(type: "bigint", nullable: false),
                     date = table.Column<DateOnly>(type: "date", nullable: false),
                     rr_no = table.Column<string[]>(type: "varchar[]", nullable: true),
                     si_no = table.Column<string[]>(type: "varchar[]", nullable: true),
                     po_no = table.Column<string[]>(type: "varchar[]", nullable: true),
                     supplier_id = table.Column<int>(type: "integer", nullable: true),
-                    total = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    amount = table.Column<decimal[]>(type: "numeric[]", nullable: true),
+                    total = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    amount = table.Column<decimal[]>(type: "numeric(18,4)[]", nullable: true),
                     particulars = table.Column<string>(type: "text", nullable: true),
                     bank_id = table.Column<int>(type: "integer", nullable: true),
                     check_no = table.Column<string>(type: "text", nullable: true),
@@ -604,13 +565,13 @@ namespace Accounting_System.Migrations
                     number_of_months = table.Column<int>(type: "integer", nullable: false),
                     number_of_months_created = table.Column<int>(type: "integer", nullable: false),
                     last_created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    amount_per_month = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    amount_per_month = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     is_complete = table.Column<bool>(type: "boolean", nullable: false),
                     accrued_type = table.Column<string>(type: "text", nullable: true),
                     reference = table.Column<string>(type: "text", nullable: true),
                     cv_type = table.Column<string>(type: "varchar(10)", nullable: true),
-                    check_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    amount_paid = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    check_amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    amount_paid = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     is_paid = table.Column<bool>(type: "boolean", nullable: false),
                     original_supplier_id = table.Column<int>(type: "integer", nullable: true),
                     original_bank_id = table.Column<int>(type: "integer", nullable: true),
@@ -654,18 +615,17 @@ namespace Accounting_System.Migrations
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     po_no = table.Column<string>(type: "varchar(12)", nullable: true),
-                    series_number = table.Column<long>(type: "bigint", nullable: false),
                     date = table.Column<DateOnly>(type: "date", nullable: false),
                     supplier_id = table.Column<int>(type: "integer", nullable: false),
                     supplier_no = table.Column<int>(type: "integer", nullable: false),
                     product_id = table.Column<int>(type: "integer", nullable: false),
                     product_no = table.Column<string>(type: "text", nullable: true),
                     terms = table.Column<string>(type: "varchar(10)", nullable: false),
-                    quantity = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    price = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    final_price = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
-                    quantity_received = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    quantity = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    price = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    final_price = table.Column<decimal>(type: "numeric(18,4)", nullable: true),
+                    quantity_received = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     is_received = table.Column<bool>(type: "boolean", nullable: false),
                     received_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     remarks = table.Column<string>(type: "varchar(200)", nullable: false),
@@ -706,13 +666,36 @@ namespace Accounting_System.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "check_voucher_details",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    account_no = table.Column<string>(type: "text", nullable: false),
+                    account_name = table.Column<string>(type: "text", nullable: false),
+                    transaction_no = table.Column<string>(type: "text", nullable: false),
+                    debit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    credit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    cv_header_id = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_check_voucher_details", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_check_voucher_details_check_voucher_headers_cv_header_id",
+                        column: x => x.cv_header_id,
+                        principalTable: "check_voucher_headers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "journal_voucher_headers",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     jv_no = table.Column<string>(type: "text", nullable: true),
-                    series_number = table.Column<long>(type: "bigint", nullable: false),
                     date = table.Column<DateOnly>(type: "date", nullable: false),
                     references = table.Column<string>(type: "text", nullable: true),
                     cv_id = table.Column<int>(type: "integer", nullable: true),
@@ -757,12 +740,12 @@ namespace Accounting_System.Migrations
                     product_id = table.Column<int>(type: "integer", nullable: true),
                     particular = table.Column<string>(type: "varchar(200)", nullable: false),
                     reference = table.Column<string>(type: "varchar(12)", nullable: true),
-                    quantity = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    cost = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    total = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    inventory_balance = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    average_cost = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    total_balance = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    quantity = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    cost = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    total = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    inventory_balance = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    average_cost = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    total_balance = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     unit = table.Column<string>(type: "varchar(2)", nullable: false),
                     is_validated = table.Column<bool>(type: "boolean", nullable: false),
                     validated_by = table.Column<string>(type: "varchar(20)", nullable: true),
@@ -793,7 +776,6 @@ namespace Accounting_System.Migrations
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     rr_no = table.Column<string>(type: "varchar(12)", nullable: true),
-                    series_number = table.Column<long>(type: "bigint", nullable: false),
                     date = table.Column<DateOnly>(type: "date", nullable: false),
                     due_date = table.Column<DateOnly>(type: "date", nullable: false),
                     po_id = table.Column<int>(type: "integer", nullable: false),
@@ -801,20 +783,16 @@ namespace Accounting_System.Migrations
                     supplier_invoice_number = table.Column<string>(type: "varchar(100)", nullable: true),
                     supplier_invoice_date = table.Column<string>(type: "text", nullable: true),
                     truck_or_vessels = table.Column<string>(type: "varchar(100)", nullable: false),
-                    quantity_delivered = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    quantity_received = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    gain_or_loss = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    net_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    vat_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    ewt_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    quantity_delivered = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    quantity_received = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    gain_or_loss = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     other_ref = table.Column<string>(type: "varchar(100)", nullable: true),
                     remarks = table.Column<string>(type: "text", nullable: false),
-                    amount_paid = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    amount_paid = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     is_paid = table.Column<bool>(type: "boolean", nullable: false),
                     paid_date = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    canceled_quantity = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    net_amount_of_ewt = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    canceled_quantity = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     received_date = table.Column<DateOnly>(type: "date", nullable: true),
                     original_po_id = table.Column<int>(type: "integer", nullable: true),
                     created_by = table.Column<string>(type: "varchar(50)", nullable: true),
@@ -851,26 +829,18 @@ namespace Accounting_System.Migrations
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     si_no = table.Column<string>(type: "varchar(12)", nullable: true),
-                    series_number = table.Column<long>(type: "bigint", nullable: false),
                     customer_id = table.Column<int>(type: "integer", nullable: false),
                     product_id = table.Column<int>(type: "integer", nullable: false),
-                    other_ref_no = table.Column<string>(type: "varchar(20)", nullable: false),
-                    quantity = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    unit_price = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    remarks = table.Column<string>(type: "varchar(100)", nullable: false),
-                    vatable_sales = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    vat_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    other_ref_no = table.Column<string>(type: "varchar(500)", nullable: false),
+                    quantity = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    unit_price = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    remarks = table.Column<string>(type: "varchar(500)", nullable: false),
                     status = table.Column<string>(type: "varchar(20)", nullable: false),
                     transaction_date = table.Column<DateOnly>(type: "date", nullable: false),
-                    discount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    net_discount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    vat_exempt = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    zero_rated = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    with_holding_vat_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    with_holding_tax_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    amount_paid = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    balance = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    discount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    amount_paid = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    balance = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     is_paid = table.Column<bool>(type: "boolean", nullable: false),
                     is_tax_and_vat_paid = table.Column<bool>(type: "boolean", nullable: false),
                     due_date = table.Column<DateOnly>(type: "date", nullable: false),
@@ -920,6 +890,30 @@ namespace Accounting_System.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "journal_voucher_details",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    account_no = table.Column<string>(type: "text", nullable: false),
+                    account_name = table.Column<string>(type: "text", nullable: false),
+                    transaction_no = table.Column<string>(type: "text", nullable: false),
+                    debit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    credit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    jv_header_id = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_journal_voucher_details", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_journal_voucher_details_journal_voucher_headers_jv_header_id",
+                        column: x => x.jv_header_id,
+                        principalTable: "journal_voucher_headers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "collection_receipts",
                 columns: table => new
                 {
@@ -934,27 +928,26 @@ namespace Accounting_System.Migrations
                     sv_no = table.Column<string>(type: "varchar(12)", nullable: true),
                     customer_id = table.Column<int>(type: "integer", nullable: false),
                     transaction_date = table.Column<DateOnly>(type: "date", nullable: false),
-                    series_number = table.Column<long>(type: "bigint", nullable: false),
                     reference_no = table.Column<string>(type: "varchar(20)", nullable: false),
                     remarks = table.Column<string>(type: "varchar(100)", nullable: true),
-                    cash_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    cash_amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     check_date = table.Column<string>(type: "text", nullable: true),
                     check_no = table.Column<string>(type: "varchar(20)", nullable: true),
                     check_bank = table.Column<string>(type: "varchar(20)", nullable: true),
                     check_branch = table.Column<string>(type: "varchar(20)", nullable: true),
-                    check_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    check_amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     manager_check_date = table.Column<DateOnly>(type: "date", nullable: true),
                     manager_check_no = table.Column<string>(type: "varchar(20)", nullable: true),
                     manager_check_bank = table.Column<string>(type: "varchar(20)", nullable: true),
                     manager_check_branch = table.Column<string>(type: "varchar(20)", nullable: true),
-                    manager_check_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    ewt = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    wvat = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    total = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    manager_check_amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    ewt = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    wvat = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    total = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     is_certificate_upload = table.Column<bool>(type: "boolean", nullable: false),
                     f2306file_path = table.Column<string>(type: "varchar(200)", nullable: true),
                     f2307file_path = table.Column<string>(type: "varchar(200)", nullable: true),
-                    si_multiple_amount = table.Column<decimal[]>(type: "numeric[]", nullable: true),
+                    si_multiple_amount = table.Column<decimal[]>(type: "numeric(18,4)[]", nullable: true),
                     multiple_transaction_date = table.Column<DateOnly[]>(type: "date[]", nullable: true),
                     original_sales_invoice_id = table.Column<int>(type: "integer", nullable: true),
                     original_service_invoice_id = table.Column<int>(type: "integer", nullable: true),
@@ -1005,25 +998,19 @@ namespace Accounting_System.Migrations
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     cm_no = table.Column<string>(type: "text", nullable: true),
-                    series_number = table.Column<long>(type: "bigint", nullable: false),
                     transaction_date = table.Column<DateOnly>(type: "date", nullable: false),
                     sales_invoice_id = table.Column<int>(type: "integer", nullable: true),
                     service_invoice_id = table.Column<int>(type: "integer", nullable: true),
                     description = table.Column<string>(type: "text", nullable: false),
-                    adjusted_price = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
-                    quantity = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
-                    credit_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    vatable_sales = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    vat_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    total_sales = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    with_holding_vat_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    with_holding_tax_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    adjusted_price = table.Column<decimal>(type: "numeric(18,4)", nullable: true),
+                    quantity = table.Column<decimal>(type: "numeric(18,4)", nullable: true),
+                    credit_amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     source = table.Column<string>(type: "text", nullable: false),
                     remarks = table.Column<string>(type: "text", nullable: true),
                     period = table.Column<DateOnly>(type: "date", nullable: false),
-                    amount = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
-                    current_and_previous_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    unearned_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    amount = table.Column<decimal>(type: "numeric(18,4)", nullable: true),
+                    current_and_previous_amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    unearned_amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     services_id = table.Column<int>(type: "integer", nullable: true),
                     original_sales_invoice_id = table.Column<int>(type: "integer", nullable: true),
                     original_service_invoice_id = table.Column<int>(type: "integer", nullable: true),
@@ -1069,23 +1056,17 @@ namespace Accounting_System.Migrations
                     sales_invoice_id = table.Column<int>(type: "integer", nullable: true),
                     service_invoice_id = table.Column<int>(type: "integer", nullable: true),
                     dm_no = table.Column<string>(type: "text", nullable: true),
-                    series_number = table.Column<long>(type: "bigint", nullable: false),
                     transaction_date = table.Column<DateOnly>(type: "date", nullable: false),
-                    debit_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    debit_amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     description = table.Column<string>(type: "text", nullable: false),
-                    vatable_sales = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    vat_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    total_sales = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    adjusted_price = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
-                    quantity = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
-                    with_holding_vat_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    with_holding_tax_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    adjusted_price = table.Column<decimal>(type: "numeric(18,4)", nullable: true),
+                    quantity = table.Column<decimal>(type: "numeric(18,4)", nullable: true),
                     source = table.Column<string>(type: "text", nullable: false),
                     remarks = table.Column<string>(type: "text", nullable: false),
                     period = table.Column<DateOnly>(type: "date", nullable: false),
-                    amount = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
-                    current_and_previous_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    unearned_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    amount = table.Column<decimal>(type: "numeric(18,4)", nullable: true),
+                    current_and_previous_amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    unearned_amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     services_id = table.Column<int>(type: "integer", nullable: true),
                     original_sales_invoice_id = table.Column<int>(type: "integer", nullable: true),
                     original_service_invoice_id = table.Column<int>(type: "integer", nullable: true),
@@ -1160,6 +1141,11 @@ namespace Accounting_System.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "ix_check_voucher_details_cv_header_id",
+                table: "check_voucher_details",
+                column: "cv_header_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_check_voucher_headers_bank_id",
                 table: "check_voucher_headers",
                 column: "bank_id");
@@ -1213,6 +1199,11 @@ namespace Accounting_System.Migrations
                 name: "ix_inventories_product_id",
                 table: "inventories",
                 column: "product_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_journal_voucher_details_jv_header_id",
+                table: "journal_voucher_details",
+                column: "jv_header_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_journal_voucher_headers_cv_id",
@@ -1315,9 +1306,6 @@ namespace Accounting_System.Migrations
                 name: "journal_voucher_details");
 
             migrationBuilder.DropTable(
-                name: "journal_voucher_headers");
-
-            migrationBuilder.DropTable(
                 name: "offsettings");
 
             migrationBuilder.DropTable(
@@ -1342,7 +1330,7 @@ namespace Accounting_System.Migrations
                 name: "service_invoices");
 
             migrationBuilder.DropTable(
-                name: "check_voucher_headers");
+                name: "journal_voucher_headers");
 
             migrationBuilder.DropTable(
                 name: "purchase_orders");
@@ -1354,10 +1342,13 @@ namespace Accounting_System.Migrations
                 name: "services");
 
             migrationBuilder.DropTable(
-                name: "bank_accounts");
+                name: "check_voucher_headers");
 
             migrationBuilder.DropTable(
                 name: "products");
+
+            migrationBuilder.DropTable(
+                name: "bank_accounts");
 
             migrationBuilder.DropTable(
                 name: "suppliers");

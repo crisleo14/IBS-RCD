@@ -1439,16 +1439,25 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.ChartOfAccount", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("AccountId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("account_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AccountId"));
 
-                    b.Property<string>("Category")
-                        .HasColumnType("text")
-                        .HasColumnName("category");
+                    b.Property<string>("AccountName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("account_name");
+
+                    b.Property<string>("AccountNumber")
+                        .HasColumnType("varchar(15)")
+                        .HasColumnName("account_number");
+
+                    b.Property<string>("AccountType")
+                        .HasColumnType("varchar(25)")
+                        .HasColumnName("account_type");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("varchar(50)")
@@ -1458,6 +1467,14 @@ namespace Accounting_System.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_date");
 
+                    b.Property<string>("EditedBy")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("edited_by");
+
+                    b.Property<DateTime>("EditedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("edited_date");
+
                     b.Property<bool>("IsMain")
                         .HasColumnType("boolean")
                         .HasColumnName("is_main");
@@ -1466,28 +1483,19 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("level");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("name");
-
-                    b.Property<string>("Number")
-                        .HasColumnType("text")
-                        .HasColumnName("number");
+                    b.Property<string>("NormalBalance")
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("normal_balance");
 
                     b.Property<int?>("OriginalChartOfAccountId")
                         .HasColumnType("integer")
                         .HasColumnName("original_chart_of_account_id");
 
                     b.Property<string>("Parent")
-                        .HasColumnType("text")
+                        .HasColumnType("varchar(15)")
                         .HasColumnName("parent");
 
-                    b.Property<string>("Type")
-                        .HasColumnType("text")
-                        .HasColumnName("type");
-
-                    b.HasKey("Id")
+                    b.HasKey("AccountId")
                         .HasName("pk_chart_of_accounts");
 
                     b.ToTable("chart_of_accounts", (string)null);

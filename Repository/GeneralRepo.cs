@@ -114,11 +114,11 @@ namespace Accounting_System.Repository
         public async Task<List<SelectListItem>> GetCOAListAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext.ChartOfAccounts
-                .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.AccountNumber.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
         }

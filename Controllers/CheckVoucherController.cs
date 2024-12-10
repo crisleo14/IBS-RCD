@@ -217,15 +217,15 @@ namespace Accounting_System.Controllers
                 .FirstOrDefaultAsync();
             var defaultExpense = await _dbContext.ChartOfAccounts
                 .Where(coa => (coa.Level == 4 || coa.Level == 5))
-                .OrderBy(coa => coa.Id)
+                .OrderBy(coa => coa.AccountId)
                 .ToListAsync();
             if (defaultExpense != null && defaultExpense.Count > 0)
             {
                 var defaultExpenseList = defaultExpense.Select(coa => new
                 {
-                    AccountNumber = coa.Number,
-                    AccountTitle = coa.Name,
-                    IsSelected = coa.Number == supplier?.Split(' ')[0]
+                    AccountNumber = coa.AccountNumber,
+                    AccountTitle = coa.AccountName,
+                    IsSelected = coa.AccountNumber == supplier?.Split(' ')[0]
                 }).ToList();
                 return Json(defaultExpenseList);
             }
@@ -517,11 +517,11 @@ namespace Accounting_System.Controllers
             var coa = await _dbContext.ChartOfAccounts
                 .Where(coa =>
                     !new[] { "2010102", "2010101", "1010101" }.Any(
-                        excludedNumber => coa.Number.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
+                        excludedNumber => coa.AccountNumber.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -890,11 +890,11 @@ namespace Accounting_System.Controllers
             model.COA = await _dbContext.ChartOfAccounts
                 .Where(coa =>
                     !new[] { "2010102", "2010101", "1010101" }.Any(
-                        excludedNumber => coa.Number.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
+                        excludedNumber => coa.AccountNumber.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -962,11 +962,11 @@ namespace Accounting_System.Controllers
                             viewModel.COA = await _dbContext.ChartOfAccounts
                                 .Where(coa =>
                                     !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber =>
-                                        coa.Number.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
+                                        coa.AccountNumber.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
                                 .Select(s => new SelectListItem
                                 {
-                                    Value = s.Number,
-                                    Text = s.Number + " " + s.Name
+                                    Value = s.AccountNumber,
+                                    Text = s.AccountNumber + " " + s.AccountName
                                 })
                                 .ToListAsync(cancellationToken);
 
@@ -1122,11 +1122,11 @@ namespace Accounting_System.Controllers
                     viewModel.COA = await _dbContext.ChartOfAccounts
                         .Where(coa =>
                             !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber =>
-                                coa.Number.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
+                                coa.AccountNumber.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
                         .Select(s => new SelectListItem
                         {
-                            Value = s.Number,
-                            Text = s.Number + " " + s.Name
+                            Value = s.AccountNumber,
+                            Text = s.AccountNumber + " " + s.AccountName
                         })
                         .ToListAsync(cancellationToken);
 
@@ -1173,11 +1173,11 @@ namespace Accounting_System.Controllers
             viewModel.COA = await _dbContext.ChartOfAccounts
                 .Where(coa =>
                     !new[] { "2010102", "2010101", "1010101" }.Any(
-                        excludedNumber => coa.Number.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
+                        excludedNumber => coa.AccountNumber.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -1229,8 +1229,8 @@ namespace Accounting_System.Controllers
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -1412,8 +1412,8 @@ namespace Accounting_System.Controllers
                         .Where(coa => coa.Level == 4 || coa.Level == 5)
                         .Select(s => new SelectListItem
                         {
-                            Value = s.Number,
-                            Text = s.Number + " " + s.Name
+                            Value = s.AccountNumber,
+                            Text = s.AccountNumber + " " + s.AccountName
                         })
                         .ToListAsync(cancellationToken);
 
@@ -1435,8 +1435,8 @@ namespace Accounting_System.Controllers
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -1462,8 +1462,8 @@ namespace Accounting_System.Controllers
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -1627,8 +1627,8 @@ namespace Accounting_System.Controllers
                         .Where(coa => coa.Level == 4 || coa.Level == 5)
                         .Select(s => new SelectListItem
                         {
-                            Value = s.Number,
-                            Text = s.Number + " " + s.Name
+                            Value = s.AccountNumber,
+                            Text = s.AccountNumber + " " + s.AccountName
                         })
                         .ToListAsync(cancellationToken);
 
@@ -1658,8 +1658,8 @@ namespace Accounting_System.Controllers
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -1731,8 +1731,8 @@ namespace Accounting_System.Controllers
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -1761,8 +1761,8 @@ namespace Accounting_System.Controllers
                     .Where(coa => coa.Level == 4 || coa.Level == 5)
                     .Select(s => new SelectListItem
                     {
-                        Value = s.Number,
-                        Text = s.Name
+                        Value = s.AccountNumber,
+                        Text = s.AccountName
                     })
                     .ToListAsync(cancellationToken),
                 Debit = debit,
@@ -1858,9 +1858,9 @@ namespace Accounting_System.Controllers
                             var details = existingDetailsModel.First(o => o.Id == detailsId);
 
                             var acctNo = await _dbContext.ChartOfAccounts
-                                .FirstOrDefaultAsync(x => x.Name == viewModel.AccountTitle[i]);
+                                .FirstOrDefaultAsync(x => x.AccountName == viewModel.AccountTitle[i]);
 
-                            details.AccountNo = acctNo.Number ??
+                            details.AccountNo = acctNo.AccountNumber ??
                                                 throw new ArgumentNullException("Account title not found!");
                             details.AccountName = viewModel.AccountTitle[i];
                             details.Debit = viewModel.Debit[i];
@@ -2026,8 +2026,8 @@ namespace Accounting_System.Controllers
                     .Where(coa => coa.Level == 4 || coa.Level == 5)
                     .Select(s => new SelectListItem
                     {
-                        Value = s.Number,
-                        Text = s.Number + " " + s.Name
+                        Value = s.AccountNumber,
+                        Text = s.AccountNumber + " " + s.AccountName
                     })
                     .ToListAsync(cancellationToken)
             };

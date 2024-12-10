@@ -127,11 +127,11 @@ namespace Accounting_System.Controllers
 
             viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
-                .OrderBy(coa => coa.Id)
+                .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -162,11 +162,11 @@ namespace Accounting_System.Controllers
 
             model.ChartOfAccounts = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
-                .OrderBy(coa => coa.Id)
+                .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -331,11 +331,11 @@ namespace Accounting_System.Controllers
 
             viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
-                .OrderBy(coa => coa.Id)
+                .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -366,11 +366,11 @@ namespace Accounting_System.Controllers
 
             model.ChartOfAccounts = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
-                .OrderBy(coa => coa.Id)
+                .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -551,11 +551,11 @@ namespace Accounting_System.Controllers
 
             viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
-                .OrderBy(coa => coa.Id)
+                .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -586,11 +586,11 @@ namespace Accounting_System.Controllers
 
             model.ChartOfAccounts = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
-                .OrderBy(coa => coa.Id)
+                .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -983,11 +983,11 @@ namespace Accounting_System.Controllers
 
             existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
-                .OrderBy(coa => coa.Id)
+                .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -1228,11 +1228,11 @@ namespace Accounting_System.Controllers
 
             existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
-                .OrderBy(coa => coa.Id)
+                .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 

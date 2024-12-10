@@ -44,13 +44,13 @@
 
             <div class="form-group mb-3">
                 <label for="Number">Account Number</label>
-                <input asp-for="Number" class="form-control" readonly />
+                <input asp-for="AccountNumber" class="form-control" readonly />
             </div>
 
             <div class="form-floating my-3">
-                <input asp-for="Name" id="floatingInput" class="form-control" placeholder="Account Name" />
+                <input asp-for="AccountName" id="floatingInput" class="form-control" placeholder="Account Name" />
                 <label for="floatingInput" class="control-label">Account Name<span class="required">*</span></label>
-                <span asp-validation-for="Name" class="text-danger"></span>
+                <span asp-validation-for="AccountName" class="text-danger"></span>
             </div>
             <div class="row pt-2">
                 <div class="col-6 col-md-3">

@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241007074143_RemoveComputedAmountInSalesInvoiceTable")]
-    partial class RemoveComputedAmountInSalesInvoiceTable
+    [Migration("20241210034228_Initial-PostCleanup")]
+    partial class InitialPostCleanup
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -39,15 +39,15 @@ namespace Accounting_System.Migrations
                         .HasColumnName("accrued_type");
 
                     b.Property<decimal[]>("Amount")
-                        .HasColumnType("numeric[]")
+                        .HasColumnType("numeric(18,4)[]")
                         .HasColumnName("amount");
 
                     b.Property<decimal>("AmountPaid")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount_paid");
 
                     b.Property<decimal>("AmountPerMonth")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount_per_month");
 
                     b.Property<int?>("BankId")
@@ -76,7 +76,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("category");
 
                     b.Property<decimal>("CheckAmount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("check_amount");
 
                     b.Property<DateOnly?>("CheckDate")
@@ -191,10 +191,6 @@ namespace Accounting_System.Migrations
                         .HasColumnType("varchar[]")
                         .HasColumnName("si_no");
 
-                    b.Property<long>("SeriesNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("series_number");
-
                     b.Property<DateOnly?>("StartDate")
                         .HasColumnType("date")
                         .HasColumnName("start_date");
@@ -204,7 +200,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("supplier_id");
 
                     b.Property<decimal>("Total")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("total");
 
                     b.Property<string>("VoidedBy")
@@ -247,11 +243,11 @@ namespace Accounting_System.Migrations
                         .HasColumnName("account_no");
 
                     b.Property<decimal>("Credit")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("credit");
 
                     b.Property<decimal>("Debit")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("debit");
 
                     b.Property<int>("JVHeaderId")
@@ -282,7 +278,7 @@ namespace Accounting_System.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount");
 
                     b.Property<string>("CanceledBy")
@@ -310,7 +306,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("date");
 
                     b.Property<decimal?>("FinalPrice")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("final_price");
 
                     b.Property<bool>("IsCanceled")
@@ -366,7 +362,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("posted_date");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("price");
 
                     b.Property<int?>("ProductId")
@@ -379,11 +375,11 @@ namespace Accounting_System.Migrations
                         .HasColumnName("product_no");
 
                     b.Property<decimal>("Quantity")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("quantity");
 
                     b.Property<decimal>("QuantityReceived")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("quantity_received");
 
                     b.Property<DateTime>("ReceivedDate")
@@ -394,10 +390,6 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(200)")
                         .HasColumnName("remarks");
-
-                    b.Property<long>("SeriesNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("series_number");
 
                     b.Property<int?>("SupplierId")
                         .IsRequired()
@@ -443,11 +435,11 @@ namespace Accounting_System.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount");
 
                     b.Property<decimal>("AmountPaid")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount_paid");
 
                     b.Property<string>("CanceledBy")
@@ -459,7 +451,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("canceled_date");
 
                     b.Property<decimal>("CanceledQuantity")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("canceled_quantity");
 
                     b.Property<string>("CancellationRemarks")
@@ -482,12 +474,8 @@ namespace Accounting_System.Migrations
                         .HasColumnType("date")
                         .HasColumnName("due_date");
 
-                    b.Property<decimal>("EwtAmount")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("ewt_amount");
-
                     b.Property<decimal>("GainOrLoss")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("gain_or_loss");
 
                     b.Property<bool>("IsCanceled")
@@ -509,14 +497,6 @@ namespace Accounting_System.Migrations
                     b.Property<bool>("IsVoided")
                         .HasColumnType("boolean")
                         .HasColumnName("is_voided");
-
-                    b.Property<decimal>("NetAmount")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("net_amount");
-
-                    b.Property<decimal>("NetAmountOfEWT")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("net_amount_of_ewt");
 
                     b.Property<int>("OriginalDocumentId")
                         .HasColumnType("integer")
@@ -556,11 +536,11 @@ namespace Accounting_System.Migrations
                         .HasColumnName("posted_date");
 
                     b.Property<decimal>("QuantityDelivered")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("quantity_delivered");
 
                     b.Property<decimal>("QuantityReceived")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("quantity_received");
 
                     b.Property<string>("RRNo")
@@ -576,10 +556,6 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text")
                         .HasColumnName("remarks");
 
-                    b.Property<long>("SeriesNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("series_number");
-
                     b.Property<string>("SupplierInvoiceDate")
                         .HasColumnType("text")
                         .HasColumnName("supplier_invoice_date");
@@ -592,10 +568,6 @@ namespace Accounting_System.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(100)")
                         .HasColumnName("truck_or_vessels");
-
-                    b.Property<decimal>("VatAmount")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("vat_amount");
 
                     b.Property<string>("VoidedBy")
                         .HasColumnType("varchar(50)")
@@ -640,11 +612,11 @@ namespace Accounting_System.Migrations
                         .HasColumnName("cancellation_remarks");
 
                     b.Property<decimal>("CashAmount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("cash_amount");
 
                     b.Property<decimal>("CheckAmount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("check_amount");
 
                     b.Property<string>("CheckBank")
@@ -677,7 +649,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("customer_id");
 
                     b.Property<decimal>("EWT")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("ewt");
 
                     b.Property<string>("F2306FilePath")
@@ -709,7 +681,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("is_voided");
 
                     b.Property<decimal>("ManagerCheckAmount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("manager_check_amount");
 
                     b.Property<string>("ManagerCheckBank")
@@ -778,7 +750,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("remarks");
 
                     b.Property<decimal[]>("SIMultipleAmount")
-                        .HasColumnType("numeric[]")
+                        .HasColumnType("numeric(18,4)[]")
                         .HasColumnName("si_multiple_amount");
 
                     b.Property<string>("SINo")
@@ -793,16 +765,12 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("sales_invoice_id");
 
-                    b.Property<long>("SeriesNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("series_number");
-
                     b.Property<int?>("ServiceInvoiceId")
                         .HasColumnType("integer")
                         .HasColumnName("service_invoice_id");
 
                     b.Property<decimal>("Total")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("total");
 
                     b.Property<DateOnly>("TransactionDate")
@@ -818,7 +786,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("voided_date");
 
                     b.Property<decimal>("WVAT")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("wvat");
 
                     b.HasKey("Id")
@@ -846,11 +814,11 @@ namespace Accounting_System.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal?>("AdjustedPrice")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("adjusted_price");
 
                     b.Property<decimal?>("Amount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount");
 
                     b.Property<string>("CMNo")
@@ -878,11 +846,11 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("CreditAmount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("credit_amount");
 
                     b.Property<decimal>("CurrentAndPreviousAmount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("current_and_previous_amount");
 
                     b.Property<string>("Description")
@@ -935,7 +903,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("posted_date");
 
                     b.Property<decimal?>("Quantity")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("quantity");
 
                     b.Property<string>("Remarks")
@@ -945,10 +913,6 @@ namespace Accounting_System.Migrations
                     b.Property<int?>("SalesInvoiceId")
                         .HasColumnType("integer")
                         .HasColumnName("sales_invoice_id");
-
-                    b.Property<long>("SeriesNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("series_number");
 
                     b.Property<int?>("ServiceInvoiceId")
                         .HasColumnType("integer")
@@ -963,25 +927,13 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text")
                         .HasColumnName("source");
 
-                    b.Property<decimal>("TotalSales")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("total_sales");
-
                     b.Property<DateOnly>("TransactionDate")
                         .HasColumnType("date")
                         .HasColumnName("transaction_date");
 
                     b.Property<decimal>("UnearnedAmount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("unearned_amount");
-
-                    b.Property<decimal>("VatAmount")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("vat_amount");
-
-                    b.Property<decimal>("VatableSales")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("vatable_sales");
 
                     b.Property<string>("VoidedBy")
                         .HasColumnType("varchar(50)")
@@ -990,14 +942,6 @@ namespace Accounting_System.Migrations
                     b.Property<DateTime?>("VoidedDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("voided_date");
-
-                    b.Property<decimal>("WithHoldingTaxAmount")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("with_holding_tax_amount");
-
-                    b.Property<decimal>("WithHoldingVatAmount")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("with_holding_vat_amount");
 
                     b.HasKey("Id")
                         .HasName("pk_credit_memos");
@@ -1021,11 +965,11 @@ namespace Accounting_System.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal?>("AdjustedPrice")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("adjusted_price");
 
                     b.Property<decimal?>("Amount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount");
 
                     b.Property<string>("CanceledBy")
@@ -1049,7 +993,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("CurrentAndPreviousAmount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("current_and_previous_amount");
 
                     b.Property<string>("DMNo")
@@ -1057,7 +1001,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("dm_no");
 
                     b.Property<decimal>("DebitAmount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("debit_amount");
 
                     b.Property<string>("Description")
@@ -1110,7 +1054,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("posted_date");
 
                     b.Property<decimal?>("Quantity")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("quantity");
 
                     b.Property<string>("Remarks")
@@ -1121,10 +1065,6 @@ namespace Accounting_System.Migrations
                     b.Property<int?>("SalesInvoiceId")
                         .HasColumnType("integer")
                         .HasColumnName("sales_invoice_id");
-
-                    b.Property<long>("SeriesNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("series_number");
 
                     b.Property<int?>("ServiceInvoiceId")
                         .HasColumnType("integer")
@@ -1139,25 +1079,13 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text")
                         .HasColumnName("source");
 
-                    b.Property<decimal>("TotalSales")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("total_sales");
-
                     b.Property<DateOnly>("TransactionDate")
                         .HasColumnType("date")
                         .HasColumnName("transaction_date");
 
                     b.Property<decimal>("UnearnedAmount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("unearned_amount");
-
-                    b.Property<decimal>("VatAmount")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("vat_amount");
-
-                    b.Property<decimal>("VatableSales")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("vatable_sales");
 
                     b.Property<string>("VoidedBy")
                         .HasColumnType("varchar(50)")
@@ -1166,14 +1094,6 @@ namespace Accounting_System.Migrations
                     b.Property<DateTime?>("VoidedDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("voided_date");
-
-                    b.Property<decimal>("WithHoldingTaxAmount")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("with_holding_tax_amount");
-
-                    b.Property<decimal>("WithHoldingVatAmount")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("with_holding_vat_amount");
 
                     b.HasKey("Id")
                         .HasName("pk_debit_memos");
@@ -1197,15 +1117,15 @@ namespace Accounting_System.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount");
 
                     b.Property<decimal>("AmountPaid")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount_paid");
 
                     b.Property<decimal>("Balance")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("balance");
 
                     b.Property<string>("CanceledBy")
@@ -1234,7 +1154,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("customer_id");
 
                     b.Property<decimal>("Discount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("discount");
 
                     b.Property<DateOnly>("DueDate")
@@ -1291,7 +1211,7 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("OtherRefNo")
                         .IsRequired()
-                        .HasColumnType("varchar(20)")
+                        .HasColumnType("varchar(500)")
                         .HasColumnName("other_ref_no");
 
                     b.Property<int?>("POId")
@@ -1312,7 +1232,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("product_id");
 
                     b.Property<decimal>("Quantity")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("quantity");
 
                     b.Property<int>("ReceivingReportId")
@@ -1321,16 +1241,12 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Remarks")
                         .IsRequired()
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("varchar(500)")
                         .HasColumnName("remarks");
 
                     b.Property<string>("SINo")
                         .HasColumnType("varchar(12)")
                         .HasColumnName("si_no");
-
-                    b.Property<long>("SeriesNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("series_number");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -1342,7 +1258,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("transaction_date");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("unit_price");
 
                     b.Property<string>("VoidedBy")
@@ -1378,15 +1294,15 @@ namespace Accounting_System.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount");
 
                     b.Property<decimal>("AmountPaid")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount_paid");
 
                     b.Property<decimal>("Balance")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("balance");
 
                     b.Property<string>("CanceledBy")
@@ -1410,7 +1326,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("CurrentAndPreviousAmount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("current_and_previous_amount");
 
                     b.Property<int?>("CustomerId")
@@ -1419,7 +1335,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("customer_id");
 
                     b.Property<decimal>("Discount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("discount");
 
                     b.Property<DateOnly>("DueDate")
@@ -1449,10 +1365,6 @@ namespace Accounting_System.Migrations
                     b.Property<bool>("IsVoided")
                         .HasColumnType("boolean")
                         .HasColumnName("is_voided");
-
-                    b.Property<decimal>("NetAmount")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("net_amount");
 
                     b.Property<int?>("OriginalCustomerId")
                         .HasColumnType("integer")
@@ -1486,10 +1398,6 @@ namespace Accounting_System.Migrations
                         .HasColumnType("varchar(12)")
                         .HasColumnName("sv_no");
 
-                    b.Property<long>("SeriesNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("series_number");
-
                     b.Property<int>("ServiceNo")
                         .HasColumnType("integer")
                         .HasColumnName("service_no");
@@ -1505,16 +1413,12 @@ namespace Accounting_System.Migrations
                         .HasColumnName("status");
 
                     b.Property<decimal>("Total")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("total");
 
                     b.Property<decimal>("UnearnedAmount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("unearned_amount");
-
-                    b.Property<decimal>("VatAmount")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("vat_amount");
 
                     b.Property<string>("VoidedBy")
                         .HasColumnType("varchar(50)")
@@ -1523,14 +1427,6 @@ namespace Accounting_System.Migrations
                     b.Property<DateTime?>("VoidedDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("voided_date");
-
-                    b.Property<decimal>("WithholdingTaxAmount")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("withholding_tax_amount");
-
-                    b.Property<decimal>("WithholdingVatAmount")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("withholding_vat_amount");
 
                     b.HasKey("Id")
                         .HasName("pk_service_invoices");
@@ -1546,16 +1442,25 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.ChartOfAccount", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("AccountId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("account_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AccountId"));
 
-                    b.Property<string>("Category")
-                        .HasColumnType("text")
-                        .HasColumnName("category");
+                    b.Property<string>("AccountName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("account_name");
+
+                    b.Property<string>("AccountNumber")
+                        .HasColumnType("varchar(15)")
+                        .HasColumnName("account_number");
+
+                    b.Property<string>("AccountType")
+                        .HasColumnType("varchar(25)")
+                        .HasColumnName("account_type");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("varchar(50)")
@@ -1565,6 +1470,14 @@ namespace Accounting_System.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_date");
 
+                    b.Property<string>("EditedBy")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("edited_by");
+
+                    b.Property<DateTime>("EditedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("edited_date");
+
                     b.Property<bool>("IsMain")
                         .HasColumnType("boolean")
                         .HasColumnName("is_main");
@@ -1573,24 +1486,19 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("level");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("name");
+                    b.Property<string>("NormalBalance")
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("normal_balance");
 
-                    b.Property<string>("Number")
-                        .HasColumnType("text")
-                        .HasColumnName("number");
+                    b.Property<int?>("OriginalChartOfAccountId")
+                        .HasColumnType("integer")
+                        .HasColumnName("original_chart_of_account_id");
 
                     b.Property<string>("Parent")
-                        .HasColumnType("text")
+                        .HasColumnType("varchar(15)")
                         .HasColumnName("parent");
 
-                    b.Property<string>("Type")
-                        .HasColumnType("text")
-                        .HasColumnName("type");
-
-                    b.HasKey("Id")
+                    b.HasKey("AccountId")
                         .HasName("pk_chart_of_accounts");
 
                     b.ToTable("chart_of_accounts", (string)null);
@@ -1620,11 +1528,11 @@ namespace Accounting_System.Migrations
                         .HasColumnName("cv_header_id");
 
                     b.Property<decimal>("Credit")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("credit");
 
                     b.Property<decimal>("Debit")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("debit");
 
                     b.Property<string>("TransactionNo")
@@ -1686,8 +1594,9 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("original_customer_id");
 
-                    b.Property<int>("OriginalCustomerNumber")
-                        .HasColumnType("integer")
+                    b.Property<string>("OriginalCustomerNumber")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("original_customer_number");
 
                     b.Property<string>("Terms")
@@ -1724,11 +1633,11 @@ namespace Accounting_System.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("AverageCost")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("average_cost");
 
                     b.Property<decimal>("Cost")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("cost");
 
                     b.Property<DateOnly>("Date")
@@ -1736,7 +1645,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("date");
 
                     b.Property<decimal>("InventoryBalance")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("inventory_balance");
 
                     b.Property<bool>("IsValidated")
@@ -1765,7 +1674,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("product_id");
 
                     b.Property<decimal>("Quantity")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("quantity");
 
                     b.Property<string>("Reference")
@@ -1773,11 +1682,11 @@ namespace Accounting_System.Migrations
                         .HasColumnName("reference");
 
                     b.Property<decimal>("Total")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("total");
 
                     b.Property<decimal>("TotalBalance")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("total_balance");
 
                     b.Property<string>("Unit")
@@ -1900,10 +1809,6 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text")
                         .HasColumnName("references");
 
-                    b.Property<long>("SeriesNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("series_number");
-
                     b.Property<string>("VoidedBy")
                         .HasColumnType("varchar(50)")
                         .HasColumnName("voided_by");
@@ -1935,24 +1840,14 @@ namespace Accounting_System.Migrations
                         .HasColumnType("text")
                         .HasColumnName("account_name");
 
-                    b.Property<string>("AccountNo")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("account_no");
-
                     b.Property<string>("AccountNoCOA")
                         .HasColumnType("text")
                         .HasColumnName("account_no_coa");
 
-                    b.Property<string>("Bank")
+                    b.Property<string>("BankCode")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("bank");
-
-                    b.Property<string>("Branch")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("branch");
+                        .HasColumnName("bank_code");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("varchar(50)")
@@ -2028,7 +1923,7 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasColumnType("varchar(200)")
+                        .HasColumnType("varchar(500)")
                         .HasColumnName("address");
 
                     b.Property<string>("Branch")
@@ -2055,7 +1950,7 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("name");
 
                     b.Property<int>("Number")
@@ -2067,30 +1962,30 @@ namespace Accounting_System.Migrations
                         .HasColumnName("original_supplier_id");
 
                     b.Property<string>("ProofOfExemptionFilePath")
-                        .HasColumnType("varchar(200)")
+                        .HasColumnType("varchar(500)")
                         .HasColumnName("proof_of_exemption_file_path");
 
                     b.Property<string>("ProofOfRegistrationFilePath")
-                        .HasColumnType("varchar(200)")
+                        .HasColumnType("varchar(500)")
                         .HasColumnName("proof_of_registration_file_path");
 
                     b.Property<string>("ReasonOfExemption")
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("varchar(200)")
                         .HasColumnName("reason_of_exemption");
 
                     b.Property<string>("TaxType")
                         .IsRequired()
-                        .HasColumnType("varchar(20)")
+                        .HasColumnType("varchar(50)")
                         .HasColumnName("tax_type");
 
                     b.Property<string>("Terms")
                         .IsRequired()
-                        .HasColumnType("varchar(5)")
+                        .HasColumnType("varchar(10)")
                         .HasColumnName("terms");
 
                     b.Property<string>("TinNo")
                         .IsRequired()
-                        .HasColumnType("varchar(20)")
+                        .HasColumnType("varchar(50)")
                         .HasColumnName("tin_no");
 
                     b.Property<string>("TradeName")
@@ -2107,7 +2002,7 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("VatType")
                         .IsRequired()
-                        .HasColumnType("varchar(20)")
+                        .HasColumnType("varchar(50)")
                         .HasColumnName("vat_type");
 
                     b.Property<int?>("WithholdingTaxPercent")
@@ -2144,7 +2039,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("account_title");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount");
 
                     b.Property<string>("CreatedBy")
@@ -2242,7 +2137,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("Credit")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("credit");
 
                     b.Property<string>("CustomerName")
@@ -2255,7 +2150,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("date");
 
                     b.Property<decimal>("Debit")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("debit");
 
                     b.Property<string>("Particulars")
@@ -2284,7 +2179,7 @@ namespace Accounting_System.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount");
 
                     b.Property<string>("Bank")
@@ -2321,7 +2216,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("Credit")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("credit");
 
                     b.Property<DateOnly>("Date")
@@ -2329,7 +2224,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("date");
 
                     b.Property<decimal>("Debit")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("debit");
 
                     b.Property<string>("Particulars")
@@ -2376,7 +2271,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("Credit")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("credit");
 
                     b.Property<DateOnly>("Date")
@@ -2384,7 +2279,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("date");
 
                     b.Property<decimal>("Debit")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("debit");
 
                     b.Property<string>("Description")
@@ -2430,7 +2325,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("Credit")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("credit");
 
                     b.Property<DateOnly>("Date")
@@ -2438,7 +2333,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("date");
 
                     b.Property<decimal>("Debit")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("debit");
 
                     b.Property<string>("Description")
@@ -2467,7 +2362,7 @@ namespace Accounting_System.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount");
 
                     b.Property<string>("CreatedBy")
@@ -2488,7 +2383,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("description");
 
                     b.Property<decimal>("Discount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("discount");
 
                     b.Property<string>("DocumentNo")
@@ -2501,7 +2396,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("due_date");
 
                     b.Property<decimal>("NetPurchases")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("net_purchases");
 
                     b.Property<string>("PONo")
@@ -2525,11 +2420,11 @@ namespace Accounting_System.Migrations
                         .HasColumnName("supplier_tin");
 
                     b.Property<decimal>("VatAmount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("vat_amount");
 
                     b.Property<decimal>("WhtAmount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("wht_amount");
 
                     b.HasKey("Id")
@@ -2553,7 +2448,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("address");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount");
 
                     b.Property<string>("CreatedBy")
@@ -2570,7 +2465,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("description");
 
                     b.Property<decimal>("Discount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("discount");
 
                     b.Property<int?>("DocumentId")
@@ -2582,7 +2477,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("due_date");
 
                     b.Property<decimal>("NetSales")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("net_sales");
 
                     b.Property<string>("SerialNo")
@@ -2605,19 +2500,19 @@ namespace Accounting_System.Migrations
                         .HasColumnName("transaction_date");
 
                     b.Property<decimal>("VatAmount")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("vat_amount");
 
                     b.Property<decimal>("VatExemptSales")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("vat_exempt_sales");
 
                     b.Property<decimal>("VatableSales")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("vatable_sales");
 
                     b.Property<decimal>("ZeroRated")
-                        .HasColumnType("numeric(18,2)")
+                        .HasColumnType("numeric(18,4)")
                         .HasColumnName("zero_rated");
 
                     b.HasKey("Id")

@@ -73,10 +73,10 @@ namespace Accounting_System.Repository
             var coa = new ChartOfAccount
             {
                 IsMain = false,
-                Number = model.AccountNoCOA,
-                Name = "Cash in Bank" + " - " + model.AccountName,
-                Type = "Asset",
-                Category = "Debit",
+                AccountNumber = model.AccountNoCOA,
+                AccountName = "Cash in Bank" + " - " + model.AccountName,
+                AccountType = "Asset",
+                NormalBalance = "Debit",
                 Parent = "1010101",
                 CreatedBy = _userManager.GetUserName(user),
                 CreatedDate = DateTime.Now,

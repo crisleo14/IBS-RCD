@@ -123,11 +123,11 @@ namespace Accounting_System.Controllers
 
             viewModel.Header.COA = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
-                .OrderBy(coa => coa.Id)
+                .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
             viewModel.Header.CheckVoucherHeaders = await _dbContext.CheckVoucherHeaders
@@ -148,11 +148,11 @@ namespace Accounting_System.Controllers
         {
             model.Header.COA = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
-                .OrderBy(coa => coa.Id)
+                .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -211,7 +211,7 @@ namespace Accounting_System.Controllers
                 {
                     var currentAccountNumber = accountNumber[i];
                     var accountTitle = await _dbContext.ChartOfAccounts
-                        .FirstOrDefaultAsync(coa => coa.Number == currentAccountNumber, cancellationToken);
+                        .FirstOrDefaultAsync(coa => coa.AccountNumber == currentAccountNumber, cancellationToken);
                     var currentDebit = debit[i];
                     var currentCredit = credit[i];
                     totalDebit += debit[i];
@@ -221,7 +221,7 @@ namespace Accounting_System.Controllers
                         new JournalVoucherDetail
                         {
                             AccountNo = currentAccountNumber,
-                            AccountName = accountTitle.Name,
+                            AccountName = accountTitle.AccountName,
                             TransactionNo = generateJvNo,
                             Debit = currentDebit,
                             Credit = currentCredit,
@@ -569,11 +569,11 @@ namespace Accounting_System.Controllers
             var rrIds = await _dbContext.ReceivingReports.Where(model => exisitngJV.CheckVoucherHeader.RRNo.Contains(model.RRNo)).Select(model => model.Id).ToArrayAsync(cancellationToken);
 
             var coa = await _dbContext.ChartOfAccounts
-                        .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.Number.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
+                        .Where(coa => !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber => coa.AccountNumber.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
                         .Select(s => new SelectListItem
                         {
-                            Value = s.Number,
-                            Text = s.Number + " " + s.Name
+                            Value = s.AccountNumber,
+                            Text = s.AccountNumber + " " + s.AccountName
                         })
                         .ToListAsync(cancellationToken);
 
@@ -601,11 +601,11 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken),
                 COA = await _dbContext.ChartOfAccounts
                 .Where(coa => coa.Level == 4 || coa.Level == 5)
-                .OrderBy(coa => coa.Id)
+                .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken)
             };
@@ -662,9 +662,9 @@ namespace Accounting_System.Controllers
                             var details = model.Details.First(o => o.Id == detailsId);
 
                             var acctNo = await _dbContext.ChartOfAccounts
-                                .FirstOrDefaultAsync(x => x.Name == viewModel.AccountTitle[i]);
+                                .FirstOrDefaultAsync(x => x.AccountName == viewModel.AccountTitle[i]);
 
-                            details.AccountNo = acctNo?.Number ?? "";
+                            details.AccountNo = acctNo?.AccountNumber ?? "";
                             details.AccountName = viewModel.AccountTitle[i];
                             details.Debit = viewModel.Debit[i];
                             details.Credit = viewModel.Credit[i];

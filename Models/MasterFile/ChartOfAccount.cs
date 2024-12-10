@@ -8,20 +8,27 @@ namespace Accounting_System.Models
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+        public int AccountId { get; set; }
 
         public bool IsMain { get; set; }
 
         [Display(Name = "Account Number")]
-        public string? Number { get; set; }
+        [Column(TypeName = "varchar(15)")]
+        public string? AccountNumber { get; set; }
 
         [Display(Name = "Account Name")]
-        public string Name { get; set; }
+        [Column(TypeName = "varchar(100)")]
+        public string AccountName { get; set; }
 
-        public string? Type { get; set; }
-        public string? Category { get; set; }
+        [Column(TypeName = "varchar(25)")]
+        public string? AccountType { get; set; }
+
+        [Column(TypeName = "varchar(20)")]
+        public string? NormalBalance { get; set; }
+
         public int? Level { get; set; }
 
+        [Column(TypeName = "varchar(15)")]
         public string? Parent { get; set; }
 
         [NotMapped]
@@ -33,6 +40,13 @@ namespace Accounting_System.Models
 
         [Display(Name = "Created Date")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        [Display(Name = "Edited By")]
+        [Column(TypeName = "varchar(50)")]
+        public string? EditedBy { get; set; }
+
+        [Display(Name = "Edited Date")]
+        public DateTime EditedDate { get; set; }
 
         public int? OriginalChartOfAccountId { get; set; }
     }

@@ -46,7 +46,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetAllChartOfAccountIds(CancellationToken cancellationToken)
         {
             var coaIds = await _dbContext.ChartOfAccounts
-                                     .Select(coa => coa.Id) // Assuming Id is the primary key
+                                     .Select(coa => coa.AccountId) // Assuming Id is the primary key
                                      .ToListAsync(cancellationToken);
             return Json(coaIds);
         }
@@ -57,12 +57,12 @@ namespace Accounting_System.Controllers
             var viewModel = new ChartOfAccount();
 
             viewModel.Main = await _dbContext.ChartOfAccounts
-                .OrderBy(coa => coa.Id)
+                .OrderBy(coa => coa.AccountId)
                 .Where(coa => coa.IsMain)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                .ToListAsync(cancellationToken);
 
@@ -81,16 +81,16 @@ namespace Accounting_System.Controllers
                 {
                     var existingCoa = await _dbContext
                         .ChartOfAccounts
-                        .OrderBy(coa => coa.Id)
-                        .FirstOrDefaultAsync(coa => coa.Number == thirdLevel, cancellationToken);
+                        .OrderBy(coa => coa.AccountId)
+                        .FirstOrDefaultAsync(coa => coa.AccountNumber == thirdLevel, cancellationToken);
 
                     if (existingCoa == null)
                     {
                         return NotFound();
                     }
 
-                    chartOfAccount.Type = existingCoa.Type;
-                    chartOfAccount.Category = existingCoa.Category;
+                    chartOfAccount.AccountType = existingCoa.AccountType;
+                    chartOfAccount.NormalBalance = existingCoa.NormalBalance;
                     chartOfAccount.Level = existingCoa.Level + 1;
                     chartOfAccount.Parent = thirdLevel;
                 }
@@ -98,16 +98,16 @@ namespace Accounting_System.Controllers
                 {
                     var existingCoa = await _dbContext
                         .ChartOfAccounts
-                        .OrderBy(coa => coa.Id)
-                        .FirstOrDefaultAsync(coa => coa.Number == fourthLevel, cancellationToken);
+                        .OrderBy(coa => coa.AccountId)
+                        .FirstOrDefaultAsync(coa => coa.AccountNumber == fourthLevel, cancellationToken);
 
                     if (existingCoa == null)
                     {
                         return NotFound();
                     }
 
-                    chartOfAccount.Type = existingCoa.Type;
-                    chartOfAccount.Category = existingCoa.Category;
+                    chartOfAccount.AccountType = existingCoa.AccountType;
+                    chartOfAccount.NormalBalance = existingCoa.NormalBalance;
                     chartOfAccount.Level = existingCoa.Level + 1;
                     chartOfAccount.Parent = fourthLevel;
                 }
@@ -138,7 +138,7 @@ namespace Accounting_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("IsMain,Number,Name,Type,Category,Level,Id,CreatedBy,CreatedDate")] ChartOfAccount chartOfAccount, CancellationToken cancellationToken)
         {
-            if (id != chartOfAccount.Id)
+            if (id != chartOfAccount.AccountId)
             {
                 return NotFound();
             }
@@ -152,7 +152,7 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Updated chart of account {chartOfAccount.Number} {chartOfAccount.Name}", "Chart of Account", ipAddress);
+                    AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Updated chart of account {chartOfAccount.AccountNumber} {chartOfAccount.AccountName}", "Chart of Account", ipAddress);
                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
 
                     #endregion --Audit Trail Recording
@@ -163,7 +163,7 @@ namespace Accounting_System.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ChartOfAccountExists(chartOfAccount.Id))
+                    if (!ChartOfAccountExists(chartOfAccount.AccountId))
                     {
                         return NotFound();
                     }
@@ -179,7 +179,7 @@ namespace Accounting_System.Controllers
 
         private bool ChartOfAccountExists(int id)
         {
-            return (_dbContext.ChartOfAccounts?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_dbContext.ChartOfAccounts?.Any(e => e.AccountId == id)).GetValueOrDefault();
         }
 
         [HttpGet]
@@ -210,8 +210,8 @@ namespace Accounting_System.Controllers
 
             // Retrieve the selected invoices from the database
             var selectedList = await _dbContext.ChartOfAccounts
-                .Where(coa => recordIds.Contains(coa.Id))
-                .OrderBy(coa => coa.Id)
+                .Where(coa => recordIds.Contains(coa.AccountId))
+                .OrderBy(coa => coa.AccountId)
                 .ToListAsync();
 
             // Create the Excel package
@@ -235,15 +235,15 @@ namespace Accounting_System.Controllers
             foreach (var item in selectedList)
             {
                 worksheet.Cells[row, 1].Value = item.IsMain;
-                worksheet.Cells[row, 2].Value = item.Number;
-                worksheet.Cells[row, 3].Value = item.Name;
-                worksheet.Cells[row, 4].Value = item.Type;
-                worksheet.Cells[row, 5].Value = item.Category;
+                worksheet.Cells[row, 2].Value = item.AccountNumber;
+                worksheet.Cells[row, 3].Value = item.AccountName;
+                worksheet.Cells[row, 4].Value = item.AccountType;
+                worksheet.Cells[row, 5].Value = item.NormalBalance;
                 worksheet.Cells[row, 6].Value = item.Parent;
                 worksheet.Cells[row, 7].Value = item.CreatedBy;
                 worksheet.Cells[row, 8].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
                 worksheet.Cells[row, 9].Value = item.Level;
-                worksheet.Cells[row, 10].Value = item.Id;
+                worksheet.Cells[row, 10].Value = item.AccountId;
 
                 row++;
             }
@@ -299,10 +299,10 @@ namespace Accounting_System.Controllers
                             var coa = new ChartOfAccount
                             {
                                 IsMain = bool.TryParse(worksheet.Cells[row, 1].Text, out bool isMain) ? isMain : false,
-                                Number = worksheet.Cells[row, 2].Text,
-                                Name = worksheet.Cells[row, 3].Text,
-                                Type = worksheet.Cells[row, 4].Text,
-                                Category = worksheet.Cells[row, 5].Text,
+                                AccountNumber = worksheet.Cells[row, 2].Text,
+                                AccountName = worksheet.Cells[row, 3].Text,
+                                AccountType = worksheet.Cells[row, 4].Text,
+                                NormalBalance = worksheet.Cells[row, 5].Text,
                                 Parent = worksheet.Cells[row, 6].Text,
                                 CreatedBy = worksheet.Cells[row, 7].Text,
                                 CreatedDate = DateTime.TryParse(worksheet.Cells[row, 8].Text, out DateTime createdDate) ? createdDate : default,

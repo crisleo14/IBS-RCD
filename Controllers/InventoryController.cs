@@ -235,11 +235,11 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             viewModel.COA = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 && (coa.Name.StartsWith("AR-Non Trade Receivable") || coa.Name.StartsWith("Cost of Goods Sold") || coa.Number.StartsWith("6010103")))
+                .Where(coa => coa.Level == 4 && (coa.AccountName.StartsWith("AR-Non Trade Receivable") || coa.AccountName.StartsWith("Cost of Goods Sold") || coa.AccountNumber.StartsWith("6010103")))
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
             viewModel.PO = await _dbContext.PurchaseOrders
@@ -305,11 +305,11 @@ namespace Accounting_System.Controllers
                         .ToListAsync(cancellationToken);
 
                     viewModel.COA = await _dbContext.ChartOfAccounts
-                        .Where(coa => coa.Level == 4 && (coa.Name.StartsWith("AR-Non Trade Receivable") || coa.Name.StartsWith("Cost of Goods Sold") || coa.Number.StartsWith("6010103")))
+                        .Where(coa => coa.Level == 4 && (coa.AccountName.StartsWith("AR-Non Trade Receivable") || coa.AccountName.StartsWith("Cost of Goods Sold") || coa.AccountNumber.StartsWith("6010103")))
                         .Select(s => new SelectListItem
                         {
-                            Value = s.Number,
-                            Text = s.Number + " " + s.Name
+                            Value = s.AccountNumber,
+                            Text = s.AccountNumber + " " + s.AccountName
                         })
                         .ToListAsync(cancellationToken);
 
@@ -328,11 +328,11 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             viewModel.COA = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 && (coa.Name.StartsWith("AR-Non Trade Receivable") || coa.Name.StartsWith("Cost of Goods Sold") || coa.Number.StartsWith("6010103")))
+                .Where(coa => coa.Level == 4 && (coa.AccountName.StartsWith("AR-Non Trade Receivable") || coa.AccountName.StartsWith("Cost of Goods Sold") || coa.AccountNumber.StartsWith("6010103")))
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Number,
-                    Text = s.Number + " " + s.Name
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
 

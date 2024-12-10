@@ -21,13 +21,13 @@ namespace Accounting_System.Repository
             var coa = await _dbContext
                 .ChartOfAccounts
                 .Where(coa => coa.Parent == accountNo)
-                .OrderBy(coa => coa.Id)
+                .OrderBy(coa => coa.AccountId)
                 .ToListAsync(cancellationToken);
 
             var list = coa.Select(s => new SelectListItem
             {
-                Value = s.Number,
-                Text = s.Number + " " + s.Name
+                Value = s.AccountNumber,
+                Text = s.AccountNumber + " " + s.AccountName
             }).ToList();
 
             return list;
@@ -37,12 +37,12 @@ namespace Accounting_System.Repository
         {
             var lastAccount = await _dbContext
                 .ChartOfAccounts
-                .OrderBy(coa => coa.Id)
+                .OrderBy(coa => coa.AccountId)
                 .LastOrDefaultAsync(coa => coa.Parent == parent, cancellationToken);
 
             if (lastAccount != null)
             {
-                var accountNo = Int32.Parse(lastAccount.Number);
+                var accountNo = Int32.Parse(lastAccount.AccountNumber);
 
                 var generatedNo = accountNo + 1;
 
@@ -57,9 +57,9 @@ namespace Accounting_System.Repository
         public IEnumerable<ChartOfAccountSummary> GetSummaryReportView(CancellationToken cancellationToken = default)
         {
             var query = from c in _dbContext.ChartOfAccounts
-                        join gl in _dbContext.GeneralLedgerBooks on c.Number equals gl.AccountNo into glGroup
+                        join gl in _dbContext.GeneralLedgerBooks on c.AccountNumber equals gl.AccountNo into glGroup
                         from gl in glGroup.DefaultIfEmpty()
-                        group new { c, gl } by new { Level = c.Level, AccountNumber = c.Number, AccountName = c.Name, AccountType = c.Type, Parent = c.Parent } into g
+                        group new { c, gl } by new { Level = c.Level, AccountNumber = c.AccountNumber, AccountName = c.AccountName, AccountType = c.AccountType, Parent = c.Parent } into g
                         select new ChartOfAccountSummary
                         {
                             Level = g.Key.Level,
