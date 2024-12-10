@@ -168,7 +168,7 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 #region --Validating series
-                
+
                 var generateJvNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken);
                 var getLastNumber = long.Parse(generateJvNo.Substring(2));
 
@@ -188,7 +188,7 @@ namespace Accounting_System.Controllers
                     TempData["success"] = "Check Voucher created successfully";
                 }
 
-                #endregion --Validating series         
+                #endregion --Validating series
 
                 #region --Saving the default entries
 
@@ -844,7 +844,7 @@ namespace Accounting_System.Controllers
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-                
+
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -873,7 +873,7 @@ namespace Accounting_System.Controllers
                         var journalVoucherHeaderList = await _dbContext
                             .JournalVoucherHeaders
                             .ToListAsync(cancellationToken);
-                        
+
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var journalVoucherHeader = new JournalVoucherHeader
@@ -912,7 +912,7 @@ namespace Accounting_System.Controllers
                             var journalVoucherDetailsList = await _dbContext
                                 .JournalVoucherDetails
                                 .ToListAsync(cancellationToken);
-                            
+
                             for (int jvdRow = 2; jvdRow <= jvdRowCount; jvdRow++)
                             {
                                 var journalVoucherDetails = new JournalVoucherDetail
@@ -934,7 +934,7 @@ namespace Accounting_System.Controllers
 
                                 journalVoucherDetails.JVHeaderId = jvHeader.Id;
                                 journalVoucherDetails.TransactionNo = jvHeader.JVNo;
-                                    
+
                                 await _dbContext.JournalVoucherDetails.AddAsync(journalVoucherDetails, cancellationToken);
                             }
                             await _dbContext.SaveChangesAsync(cancellationToken);

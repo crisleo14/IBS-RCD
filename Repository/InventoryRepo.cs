@@ -116,14 +116,44 @@ namespace Accounting_System.Repository
                 {
                     transaction.Cost = averageCost;
                     transaction.Total = transaction.Quantity * averageCost;
-                    transaction.TotalBalance = totalBalance - transaction.Total;
-                    transaction.InventoryBalance = inventoryBalance - transaction.Quantity;
+                    transaction.TotalBalance = totalBalance != 0 ? totalBalance - transaction.Total : transaction.Total;
+                    transaction.InventoryBalance = inventoryBalance != 0 ? inventoryBalance - transaction.Quantity : transaction.Quantity;
                     transaction.AverageCost = transaction.TotalBalance / transaction.InventoryBalance;
                     costOfGoodsSold = transaction.AverageCost * transaction.Quantity;
 
                     averageCost = transaction.AverageCost;
                     totalBalance = transaction.TotalBalance;
                     inventoryBalance = transaction.InventoryBalance;
+                    
+                    var journalEntries = await _dbContext.GeneralLedgerBooks
+                        .Where(j => j.Reference == transaction.Reference &&
+                                    (j.AccountNo.StartsWith("50101") || j.AccountNo.StartsWith("10104")))
+                        .ToListAsync(cancellationToken);
+                    
+                    if (journalEntries.Count != 0)
+                    {
+                        foreach (var journal in journalEntries)
+                        {
+                            if (journal.Debit != 0)
+                            {
+                                if (journal.Debit != costOfGoodsSold)
+                                {
+                                    journal.Debit = costOfGoodsSold;
+                                    journal.Credit = 0;
+                                }
+                            }
+                            else
+                            {
+                                if (journal.Credit != costOfGoodsSold)
+                                {
+                                    journal.Credit = costOfGoodsSold;
+                                    journal.Debit = 0;
+                                }
+                            }
+                        }
+                    }
+                    
+                    _dbContext.GeneralLedgerBooks.UpdateRange(journalEntries);
                 }
                 else if (transaction.Particular == "Purchases")
                 {
@@ -135,36 +165,6 @@ namespace Accounting_System.Repository
                     totalBalance = transaction.TotalBalance;
                     inventoryBalance = transaction.InventoryBalance;
                 }
-
-                var journalEntries = await _dbContext.GeneralLedgerBooks
-                        .Where(j => j.Reference == transaction.Reference &&
-                                    (j.AccountNo.StartsWith("50101") || j.AccountNo.StartsWith("10104")))
-                        .ToListAsync(cancellationToken);
-
-                if (journalEntries.Count != 0)
-                {
-                    foreach (var journal in journalEntries)
-                    {
-                        if (journal.Debit != 0)
-                        {
-                            if (journal.Debit != costOfGoodsSold)
-                            {
-                                journal.Debit = costOfGoodsSold;
-                                journal.Credit = 0;
-                            }
-                        }
-                        else
-                        {
-                            if (journal.Credit != costOfGoodsSold)
-                            {
-                                journal.Credit = costOfGoodsSold;
-                                journal.Debit = 0;
-                            }
-                        }
-                    }
-                }
-
-                _dbContext.GeneralLedgerBooks.UpdateRange(journalEntries);
             }
 
             _dbContext.Inventories.UpdateRange(sortedInventory);
@@ -176,7 +176,7 @@ namespace Accounting_System.Repository
         public async Task AddSalesToInventoryAsync(SalesInvoice salesInvoice, ClaimsPrincipal user, CancellationToken cancellationToken = default)
         {
             var sortedInventory = await _dbContext.Inventories
-            .Where(i => i.ProductId == salesInvoice.Product.Id && i.POId == salesInvoice.POId)
+            .Where(i => i.ProductId == salesInvoice.Product.Id)
             .OrderBy(i => i.Date)
             .ThenBy(i => i.Id)
             .ToListAsync(cancellationToken);
@@ -231,14 +231,45 @@ namespace Accounting_System.Repository
                     {
                         transaction.Cost = averageCost;
                         transaction.Total = transaction.Quantity * averageCost;
-                        transaction.TotalBalance = totalBalance - transaction.Total;
-                        transaction.InventoryBalance = inventoryBalance - transaction.Quantity;
+                        transaction.TotalBalance = totalBalance != 0 ? totalBalance - transaction.Total : transaction.Total;
+                        transaction.InventoryBalance = inventoryBalance != 0 ? inventoryBalance - transaction.Quantity : transaction.Quantity;
                         transaction.AverageCost = transaction.TotalBalance == 0 && transaction.InventoryBalance == 0 ? previousInventory.AverageCost : transaction.TotalBalance / transaction.InventoryBalance;
                         costOfGoodsSold = transaction.AverageCost * transaction.Quantity;
 
                         averageCost = transaction.AverageCost;
                         totalBalance = transaction.TotalBalance;
                         inventoryBalance = transaction.InventoryBalance;
+                        
+                        var journalEntries = await _dbContext.GeneralLedgerBooks
+                            .Where(j => j.Reference == transaction.Reference &&
+                                        (j.AccountNo.StartsWith("50101") || j.AccountNo.StartsWith("10104")))
+                            .ToListAsync(cancellationToken);
+
+                        if (journalEntries.Count != 0)
+                        {
+                            foreach (var journal in journalEntries)
+                            {
+                                if (journal.Debit != 0)
+                                {
+                                    if (journal.Debit != costOfGoodsSold)
+                                    {
+                                        journal.Debit = costOfGoodsSold;
+                                        journal.Credit = 0;
+                                    }
+                                }
+                                else
+                                {
+                                    if (journal.Credit != costOfGoodsSold)
+                                    {
+                                        journal.Credit = costOfGoodsSold;
+                                        journal.Debit = 0;
+                                    }
+                                }
+                            }
+                        }
+
+                        _dbContext.GeneralLedgerBooks.UpdateRange(journalEntries);
+                        
                     }
                     else if (transaction.Particular == "Purchases")
                     {
@@ -250,36 +281,6 @@ namespace Accounting_System.Repository
                         totalBalance = transaction.TotalBalance;
                         inventoryBalance = transaction.InventoryBalance;
                     }
-
-                    var journalEntries = await _dbContext.GeneralLedgerBooks
-                            .Where(j => j.Reference == transaction.Reference &&
-                                        (j.AccountNo.StartsWith("50101") || j.AccountNo.StartsWith("10104")))
-                            .ToListAsync(cancellationToken);
-
-                    if (journalEntries.Count != 0)
-                    {
-                        foreach (var journal in journalEntries)
-                        {
-                            if (journal.Debit != 0)
-                            {
-                                if (journal.Debit != costOfGoodsSold)
-                                {
-                                    journal.Debit = costOfGoodsSold;
-                                    journal.Credit = 0;
-                                }
-                            }
-                            else
-                            {
-                                if (journal.Credit != costOfGoodsSold)
-                                {
-                                    journal.Credit = costOfGoodsSold;
-                                    journal.Debit = 0;
-                                }
-                            }
-                        }
-                    }
-
-                    _dbContext.GeneralLedgerBooks.UpdateRange(journalEntries);
                 }
 
                 var ledgers = new List<GeneralLedgerBook>

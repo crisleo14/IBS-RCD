@@ -41,13 +41,8 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task<bool> IsBankAccountNoExist(string accountNo, CancellationToken cancellationToken = default)
-        {
-            return await _dbContext.BankAccounts
-                .AnyAsync(b => b.AccountNo == accountNo);
-        }
-
-        public async Task<bool> IsBankAccountNameExist(string accountName, CancellationToken cancellationToken = default)
+        public async Task<bool> IsBankAccountNameExist(string accountName,
+            CancellationToken cancellationToken = default)
         {
             return await _dbContext.BankAccounts
                 .AnyAsync(b => b.AccountName.ToUpper() == accountName.ToUpper());
@@ -72,13 +67,14 @@ namespace Accounting_System.Repository
             }
         }
 
-        public ChartOfAccount COAEntry(BankAccount model, ClaimsPrincipal user, CancellationToken cancellationToken = default)
+        public ChartOfAccount COAEntry(BankAccount model, ClaimsPrincipal user,
+            CancellationToken cancellationToken = default)
         {
             var coa = new ChartOfAccount
             {
                 IsMain = false,
                 Number = model.AccountNoCOA,
-                Name = "Cash in Bank" + " - " + model.AccountNo + " " + model.AccountName,
+                Name = "Cash in Bank" + " - " + model.AccountName,
                 Type = "Asset",
                 Category = "Debit",
                 Parent = "1010101",

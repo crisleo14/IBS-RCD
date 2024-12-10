@@ -20,7 +20,8 @@ namespace Accounting_System.Controllers
 
         private readonly BankAccountRepo _bankAccountRepo;
 
-        public BankAccountController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, BankAccountRepo bankAccountRepo)
+        public BankAccountController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager,
+            BankAccountRepo bankAccountRepo)
         {
             _dbContext = dbContext;
             this._userManager = userManager;
@@ -43,8 +44,8 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetAllBankAccountIds(CancellationToken cancellationToken)
         {
             var bankAccountIds = await _dbContext.BankAccounts
-                                     .Select(ba => ba.Id) // Assuming Id is the primary key
-                                     .ToListAsync(cancellationToken);
+                .Select(ba => ba.Id) // Assuming Id is the primary key
+                .ToListAsync(cancellationToken);
             return Json(bankAccountIds);
         }
 
@@ -59,12 +60,6 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _bankAccountRepo.IsBankAccountNoExist(model.AccountNo, cancellationToken))
-                {
-                    ModelState.AddModelError("AccountNo", "Bank account no already exist!");
-                    return View(model);
-                }
-
                 if (await _bankAccountRepo.IsBankAccountNameExist(model.AccountName, cancellationToken))
                 {
                     ModelState.AddModelError("AccountName", "Bank account name already exist!");
@@ -72,9 +67,9 @@ namespace Accounting_System.Controllers
                 }
 
                 var checkLastAccountNo = await _dbContext
-                .BankAccounts
-                .OrderBy(bank => bank.Id)
-                .LastOrDefaultAsync(cancellationToken);
+                    .BankAccounts
+                    .OrderBy(bank => bank.Id)
+                    .LastOrDefaultAsync(cancellationToken);
 
                 #region -- Generate AccountNo --
 
@@ -97,7 +92,8 @@ namespace Accounting_System.Controllers
                 if (model.OriginalBankId == 0)
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Created new bank {model.AccountName}", "Bank Account", ipAddress);
+                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Created new bank {model.AccountName}",
+                        "Bank Account", ipAddress);
                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                 }
 
@@ -130,12 +126,11 @@ namespace Accounting_System.Controllers
             {
                 return NotFound();
             }
+
             if (ModelState.IsValid)
             {
-                existingModel.AccountNo = model.AccountNo;
                 existingModel.AccountName = model.AccountName;
-                existingModel.Bank = model.Bank;
-                existingModel.Branch = model.Branch;
+                existingModel.BankCode = model.BankCode;
 
                 TempData["success"] = "Bank edited successfully.";
 
@@ -144,12 +139,12 @@ namespace Accounting_System.Controllers
                 if (model.OriginalBankId == 0)
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Updated bank {model.AccountName}", "Bank Account", ipAddress);
+                    AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User),
+                        $"Updated bank {model.AccountName}", "Bank Account", ipAddress);
                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                 }
 
                 #endregion --Audit Trail Recording
-
             }
             else
             {
@@ -162,6 +157,7 @@ namespace Accounting_System.Controllers
         }
 
         //Download as .xlsx file.(Export)
+
         #region -- export xlsx record --
 
         [HttpPost]
@@ -198,12 +194,10 @@ namespace Accounting_System.Controllers
 
             foreach (var item in selectedList)
             {
-                worksheet.Cells[row, 1].Value = item.Branch;
                 worksheet.Cells[row, 2].Value = item.CreatedBy;
                 worksheet.Cells[row, 3].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
                 worksheet.Cells[row, 4].Value = item.AccountName;
-                worksheet.Cells[row, 5].Value = item.AccountNo;
-                worksheet.Cells[row, 6].Value = item.Bank;
+                worksheet.Cells[row, 6].Value = item.BankCode;
                 worksheet.Cells[row, 7].Value = item.Id;
 
                 row++;
@@ -212,12 +206,14 @@ namespace Accounting_System.Controllers
             // Convert the Excel package to a byte array
             var excelBytes = await package.GetAsByteArrayAsync();
 
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "BankAccountList.xlsx");
+            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "BankAccountList.xlsx");
         }
 
         #endregion -- export xlsx record --
 
         //Upload as .xlsx file.(Import)
+
         #region -- import xlsx record --
 
         [HttpPost]
@@ -243,6 +239,7 @@ namespace Accounting_System.Controllers
                             TempData["error"] = "The Excel file contains no worksheets.";
                             return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
                         }
+
                         if (worksheet.ToString() != nameof(DynamicView.BankAccount))
                         {
                             TempData["error"] = "The Excel file is not related to bank account master file.";
@@ -253,19 +250,21 @@ namespace Accounting_System.Controllers
                         var bankAccountList = await _dbContext
                             .BankAccounts
                             .ToListAsync(cancellationToken);
-                        
-                        for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+
+                        for (int row = 2; row <= rowCount; row++) // Assuming the first row is the header
                         {
                             var bankAccount = new BankAccount
                             {
                                 SeriesNumber = await _bankAccountRepo.GetLastSeriesNumber(),
-                                Branch = worksheet.Cells[row, 1].Text,
                                 CreatedBy = worksheet.Cells[row, 2].Text,
-                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 3].Text, out DateTime createdDate) ? createdDate : default,
+                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 3].Text, out DateTime createdDate)
+                                    ? createdDate
+                                    : default,
                                 AccountName = worksheet.Cells[row, 4].Text,
-                                AccountNo = worksheet.Cells[row, 5].Text,
-                                Bank = worksheet.Cells[row, 6].Text,
-                                OriginalBankId = int.TryParse(worksheet.Cells[row, 7].Text, out int originalBankId) ? originalBankId : 0,
+                                BankCode = worksheet.Cells[row, 6].Text,
+                                OriginalBankId = int.TryParse(worksheet.Cells[row, 7].Text, out int originalBankId)
+                                    ? originalBankId
+                                    : 0,
                             };
                             bankAccount.AccountNoCOA = "1010101" + bankAccount.SeriesNumber.ToString("D2");
 
@@ -283,6 +282,7 @@ namespace Accounting_System.Controllers
 
                             await _dbContext.BankAccounts.AddAsync(bankAccount, cancellationToken);
                         }
+
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         await transaction.CommitAsync(cancellationToken);
                     }
@@ -300,6 +300,7 @@ namespace Accounting_System.Controllers
                     return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
                 }
             }
+
             TempData["success"] = "Uploading Success!";
             return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
         }

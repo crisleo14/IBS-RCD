@@ -9,11 +9,8 @@ namespace Accounting_System.Models.MasterFile
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        public string Bank { get; set; }
-        public string Branch { get; set; }
-
-        [Display(Name = "Account No")]
-        public string AccountNo { get; set; }
+        [Display(Name = "Bank Code")]
+        public string BankCode { get; set; }
 
         [Display(Name = "Acoount Name")]
         public string AccountName { get; set; }
