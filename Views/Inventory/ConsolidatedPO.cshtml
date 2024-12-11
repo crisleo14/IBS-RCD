@@ -31,10 +31,10 @@
         </thead>
         <tbody>
             @{
-                var distinctInventoryReport = Model.Select(ir => new { ir.POId, ir.ProductId }).Distinct().ToList();
+                var distinctInventoryReport = Model.Select(ir => new { ir.ProductId }).Distinct().ToList();
                 foreach (var poId in distinctInventoryReport)
                 {
-                    var inventoryWithSamePOId = Model.Where(ir => ir.POId == poId.POId && ir.ProductId == poId.ProductId).ToList();
+                    var inventoryWithSamePOId = Model.Where(ir => ir.ProductId == poId.ProductId).ToList();
 
                     foreach (var inventory in inventoryWithSamePOId)
                     {
@@ -46,7 +46,7 @@
                             <tr>
                                 @if (inventory == inventoryWithSamePOId.First())
                                 {
-                                    <td rowspan="@inventoryWithSamePOId.Count"> @Html.DisplayFor(model => inventory.PurchaseOrder.PONo) </td>
+                                    <td rowspan="@inventoryWithSamePOId.Count"> @Html.DisplayFor(model => inventory.Product.Name) </td>
                                 }
                                 <td>@inventory.Date.ToString("MM/dd/yyyy")</td>
                                 <td>@Html.DisplayFor(model => inventory.Particular)</td>
@@ -77,7 +77,7 @@
                             <tr>
                                 @if (inventory == inventoryWithSamePOId.First())
                                 {
-                                    <td rowspan="@inventoryWithSamePOId.Count"> @Html.DisplayFor(model => inventory.PurchaseOrder.PONo) </td>
+                                    <td rowspan="@inventoryWithSamePOId.Count"> @Html.DisplayFor(model => inventory.Product.Name) </td>
                                 }
                                 <td>@inventory.Date.ToString("MM/dd/yyyy")</td>
                                 <td>@Html.DisplayFor(model => inventory.Particular)</td>

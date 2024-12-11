@@ -91,25 +91,8 @@ namespace Accounting_System.Models.AccountsReceivable
         [Column(TypeName = "date")]
         public DateOnly DueDate { get; set; }
 
-        [ForeignKey("POId")]
-        public PurchaseOrder? PurchaseOrder { get; set; }
-
-        [Display(Name = "PO No.")]
-        public int? POId { get; set; }
-
-        [NotMapped]
-        public List<SelectListItem>? PO { get; set; }
-
-        [NotMapped]
-        public List<SelectListItem>? RR { get; set; }
-
-        public int ReceivingReportId { get; set; }
-
         //Ibs records
         public int? OriginalCustomerId { get; set; }
         public int? OriginalProductId { get; set; }
-        public int? OriginalPOId { get; set; }
-
-        public int? OriginalReceivingReportId { get; set; }
     }
 }

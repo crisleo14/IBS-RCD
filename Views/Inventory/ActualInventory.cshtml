@@ -29,13 +29,6 @@
                     </select>
                     <span asp-validation-for="ProductId" class="text-danger"></span>
                 </div>
-                <div class="form-group mb-3">
-                    <label asp-for="POId" class="control-label">Suppliers PO No.<span class="required">*</span></label>
-                    <select asp-for="POId" class="form-control js-select2" asp-items="@Model.PO">
-                        <option></option>
-                    </select>
-                    <span asp-validation-for="POId" class="text-danger"></span>
-                </div>
                 <input asp-for="AverageCost" class="averageCost" type="hidden" />
                 <input asp-for="TotalBalance" type="hidden" />
                 <div class="form-group mb-3">
@@ -149,9 +142,8 @@
     </script>
     <script>
         $(document).ready(function () {
-            $('#POId').change(function () {
+            $('#ProductId').change(function () {
                 var productId = $('#ProductId').val();
-                var poId = $(this).val();
                 var date = $("#Date").val();
 
                 var product = $("#ProductId option:selected").text().replace(/^\S+\s/, '');
@@ -167,7 +159,7 @@
                 $.ajax({
                     url: "/Inventory/GetProducts",
                     method: "GET",
-                    data: { id: productId, poId: poId, dateTo: date },
+                    data: { id: productId, dateTo: date },
                     success: function (data) {
                         if (data.inventoryBalance !== 0.00) {
                             $("#PerBook").val(data.inventoryBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));

@@ -13,11 +13,6 @@ namespace Accounting_System.Models.ViewModels
 
         public List<SelectListItem>? ProductList { get; set; }
 
-        [Required(ErrorMessage = "The product field is required")]
-        public int POId { get; set; }
-
-        public List<SelectListItem>? PO { get; set; }
-
         [Display(Name = "Per Book")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal PerBook { get; set; }

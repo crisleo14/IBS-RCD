@@ -48,15 +48,6 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
 
-            viewModel.PO = await _dbContext.PurchaseOrders
-                .OrderBy(p => p.PONo)
-                .Select(p => new SelectListItem
-                {
-                    Value = p.Id.ToString(),
-                    Text = p.PONo
-                })
-                .ToListAsync(cancellationToken);
-
             return View(viewModel);
         }
 
@@ -67,7 +58,7 @@ namespace Accounting_System.Controllers
             {
                 try
                 {
-                    var hasBeginningInventory = await _inventoryRepo.HasAlreadyBeginningInventory(viewModel.ProductId, viewModel.POId, cancellationToken);
+                    var hasBeginningInventory = await _inventoryRepo.HasAlreadyBeginningInventory(viewModel.ProductId, cancellationToken);
 
                     if (hasBeginningInventory)
                     {
@@ -104,15 +95,6 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
 
-            viewModel.PO = await _dbContext.PurchaseOrders
-                .OrderBy(p => p.PONo)
-                .Select(p => new SelectListItem
-                {
-                    Value = p.Id.ToString(),
-                    Text = p.PONo
-                })
-                .ToListAsync(cancellationToken);
-
             TempData["error"] = "The information you submitted is not valid!";
             return View(viewModel);
         }
@@ -130,15 +112,6 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
 
-            viewModel.PO = await _dbContext.PurchaseOrders
-                .OrderBy(p => p.PONo)
-                .Select(p => new SelectListItem
-                {
-                    Value = p.Id.ToString(),
-                    Text = p.PONo
-                })
-                .ToListAsync(cancellationToken);
-
             return View(viewModel);
         }
 
@@ -153,19 +126,19 @@ namespace Accounting_System.Controllers
                 var endingBalance = await _dbContext.Inventories
                     .OrderBy(e => e.Date)
                     .ThenBy(e => e.Id)
-                    .LastOrDefaultAsync(e => (viewModel.POId == null || e.POId == viewModel.POId) && e.Date.Month == previousMonth, cancellationToken);
+                    .LastOrDefaultAsync(e => e.Date.Month == previousMonth, cancellationToken);
 
                 List<Inventory> inventories = new List<Inventory>();
                 if (endingBalance != null)
                 {
                     inventories = await _dbContext.Inventories
-                       .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId && (viewModel.POId == null || i.POId == viewModel.POId) || i.Id == endingBalance.Id)
+                       .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId || i.Id == endingBalance.Id)
                        .ToListAsync(cancellationToken);
                 }
                 else
                 {
                     inventories = await _dbContext.Inventories
-                       .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId && (viewModel.POId == null || i.POId == viewModel.POId))
+                       .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId)
                        .ToListAsync(cancellationToken);
                 }
 
@@ -174,7 +147,6 @@ namespace Accounting_System.Controllers
 
                 ViewData["Product"] = product.Name;
                 ViewBag.ProductId = viewModel.ProductId;
-                ViewBag.POId = viewModel.POId;
 
                 return View(inventories);
             }
@@ -187,32 +159,17 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 var dateFrom = viewModel.DateTo.AddDays(-viewModel.DateTo.Day + 1);
-                List<Inventory> inventories = new List<Inventory>();
-                if (viewModel.POId == null)
-                {
-                    inventories = await _dbContext.Inventories
-                        .Include(i => i.PurchaseOrder)
+                var inventories = await _dbContext.Inventories
                         .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId)
                         .OrderBy(i => i.Date)
                         .ThenBy(i => i.Id)
                         .ToListAsync(cancellationToken);
-                }
-                else
-                {
-                    inventories = await _dbContext.Inventories
-                        .Include(i => i.PurchaseOrder)
-                        .Where(i => i.Date >= dateFrom && i.Date <= viewModel.DateTo && i.ProductId == viewModel.ProductId && i.POId == viewModel.POId)
-                        .OrderBy(i => i.Date)
-                        .ThenBy(i => i.Id)
-                        .ToListAsync(cancellationToken);
-                }
 
                 var product = await _dbContext.Products
                     .FindAsync(viewModel.ProductId, cancellationToken);
 
                 ViewData["Product"] = product.Name;
                 ViewBag.ProductId = viewModel.ProductId;
-                ViewBag.POId = viewModel.POId;
 
                 return View(inventories);
             }
@@ -242,26 +199,18 @@ namespace Accounting_System.Controllers
                     Text = s.AccountNumber + " " + s.AccountName
                 })
                 .ToListAsync(cancellationToken);
-            viewModel.PO = await _dbContext.PurchaseOrders
-                .OrderBy(p => p.PONo)
-                .Select(p => new SelectListItem
-                {
-                    Value = p.Id.ToString(),
-                    Text = p.PONo
-                })
-                .ToListAsync(cancellationToken);
 
             return View(viewModel);
         }
 
-        public async Task<IActionResult> GetProducts(int poId, int id, DateOnly dateTo, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetProducts(int id, DateOnly dateTo, CancellationToken cancellationToken)
         {
             if (id != 0)
             {
                 var dateFrom = dateTo.AddDays(-dateTo.Day + 1);
 
                 var getPerBook = await _dbContext.Inventories
-                    .Where(i => i.Date >= dateFrom && i.Date <= dateTo && i.ProductId == id && i.POId == poId)
+                    .Where(i => i.Date >= dateFrom && i.Date <= dateTo && i.ProductId == id)
                     .OrderByDescending(model => model.Id)
                     .FirstOrDefaultAsync(cancellationToken);
 
@@ -292,15 +241,6 @@ namespace Accounting_System.Controllers
                         {
                             Value = p.Id.ToString(),
                             Text = $"{p.Code} {p.Name}"
-                        })
-                        .ToListAsync(cancellationToken);
-
-                    viewModel.PO = await _dbContext.PurchaseOrders
-                        .OrderBy(p => p.PONo)
-                        .Select(p => new SelectListItem
-                        {
-                            Value = p.Id.ToString(),
-                            Text = p.PONo
                         })
                         .ToListAsync(cancellationToken);
 
@@ -360,64 +300,68 @@ namespace Accounting_System.Controllers
                 {
                     #region -- Journal Voucher entry --
 
-                    var header = new JournalVoucherHeader
-                    {
-                        JVNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken),
-                        JVReason = "Actual Inventory",
-                        Particulars = inventory.Particular,
-                        Date = inventory.Date,
-                        CreatedBy = _userManager.GetUserName(this.User),
-                        CreatedDate = DateTime.Now,
-                        IsPosted = true,
-                        PostedBy = _userManager.GetUserName(this.User),
-                        PostedDate = DateTime.Now
-                    };
-
-                    var details = new List<JournalVoucherDetail>();
-
-                    foreach (var entry in ledgerEntries)
-                    {
-                        entry.IsPosted = true;
-                        entry.Reference = header.JVNo;
-
-                        details.Add(new JournalVoucherDetail
+                        var header = new JournalVoucherHeader
                         {
-                            AccountNo = entry.AccountNo,
-                            AccountName = entry.AccountTitle,
-                            TransactionNo = header.JVNo,
-                            Debit = entry.Debit,
-                            Credit = entry.Credit
-                        });
-                    }
+                            JVNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken),
+                            JVReason = "Actual Inventory",
+                            Particulars = inventory.Particular,
+                            Date = inventory.Date,
+                            CreatedBy = _userManager.GetUserName(this.User),
+                            CreatedDate = DateTime.Now,
+                            IsPosted = true,
+                            PostedBy = _userManager.GetUserName(this.User),
+                            PostedDate = DateTime.Now
+                        };
 
-                    inventory.IsValidated = true;
-                    inventory.ValidatedBy = _userManager.GetUserName(this.User);
-                    inventory.ValidatedDate = DateTime.Now;
+                        await _dbContext.JournalVoucherHeaders.AddAsync(header, cancellationToken);
+                        await _dbContext.SaveChangesAsync(cancellationToken);
 
-                    await _dbContext.JournalVoucherHeaders.AddAsync(header, cancellationToken);
-                    await _dbContext.JournalVoucherDetails.AddRangeAsync(details, cancellationToken);
+                        var details = new List<JournalVoucherDetail>();
+
+                        foreach (var entry in ledgerEntries)
+                        {
+                            entry.IsPosted = true;
+                            entry.Reference = header.JVNo;
+
+                            details.Add(new JournalVoucherDetail
+                            {
+                                AccountNo = entry.AccountNo,
+                                AccountName = entry.AccountTitle,
+                                TransactionNo = header.JVNo,
+                                Debit = entry.Debit,
+                                Credit = entry.Credit,
+                                JVHeaderId = header.Id
+                            });
+                        }
+
+                        inventory.IsValidated = true;
+                        inventory.ValidatedBy = _userManager.GetUserName(this.User);
+                        inventory.ValidatedDate = DateTime.Now;
+
+                        await _dbContext.JournalVoucherDetails.AddRangeAsync(details, cancellationToken);
 
                     #endregion -- Journal Voucher entry --
 
                     #region -- Journal Book Entry --
 
-                    var journalBook = new List<JournalBook>();
+                        var journalBook = new List<JournalBook>();
 
-                    foreach (var entry in ledgerEntries)
-                    {
-                        journalBook.Add(new JournalBook
+                        foreach (var entry in ledgerEntries)
                         {
-                            Date = entry.Date,
-                            Reference = header.JVNo,
-                            Description = "Actual Inventory",
-                            AccountTitle = entry.AccountNo + " " + entry.AccountTitle,
-                            Debit = Math.Abs(entry.Debit),
-                            Credit = Math.Abs(entry.Credit),
-                            CreatedBy = _userManager.GetUserName(this.User),
-                            CreatedDate = DateTime.Now
-                        });
-                    }
-                    await _dbContext.AddRangeAsync(journalBook, cancellationToken);
+                            journalBook.Add(new JournalBook
+                            {
+                                Date = entry.Date,
+                                Reference = header.JVNo,
+                                Description = "Actual Inventory",
+                                AccountTitle = entry.AccountNo + " " + entry.AccountTitle,
+                                Debit = Math.Abs(entry.Debit),
+                                Credit = Math.Abs(entry.Credit),
+                                CreatedBy = _userManager.GetUserName(this.User),
+                                CreatedDate = DateTime.Now
+                            });
+                        }
+
+                        await _dbContext.AddRangeAsync(journalBook, cancellationToken);
 
                     #endregion -- Journal Book Entry --
 

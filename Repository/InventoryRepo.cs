@@ -40,10 +40,10 @@ namespace Accounting_System.Repository
         //    await _dbContext.SaveChangesAsync(cancellationToken);
         //}
 
-        public async Task<bool> HasAlreadyBeginningInventory(int productId, int poId, CancellationToken cancellationToken = default)
+        public async Task<bool> HasAlreadyBeginningInventory(int productId, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Inventories
-                .AnyAsync(i => i.ProductId == productId && i.POId == poId, cancellationToken);
+                .AnyAsync(i => i.ProductId == productId, cancellationToken);
         }
 
         public async Task AddBeginningInventory(BeginningInventoryViewModel viewModel, ClaimsPrincipal user, CancellationToken cancellationToken = default)
@@ -52,7 +52,6 @@ namespace Accounting_System.Repository
             {
                 Date = viewModel.Date,
                 ProductId = viewModel.ProductId,
-                POId = viewModel.POId,
                 Quantity = viewModel.Quantity,
                 Cost = viewModel.Cost,
                 Particular = "Beginning Balance",
@@ -72,7 +71,7 @@ namespace Accounting_System.Repository
         public async Task AddPurchaseToInventoryAsync(ReceivingReport receivingReport, ClaimsPrincipal user, CancellationToken cancellationToken = default)
         {
             var sortedInventory = await _dbContext.Inventories
-            .Where(i => i.ProductId == receivingReport.PurchaseOrder.Product.Id && i.POId == receivingReport.POId)
+            .Where(i => i.ProductId == receivingReport.PurchaseOrder.Product.Id)
             .OrderBy(i => i.Date)
             .ThenBy(i => i.Id)
             .ToListAsync(cancellationToken);
@@ -94,7 +93,6 @@ namespace Accounting_System.Repository
             {
                 Date = receivingReport.Date,
                 ProductId = receivingReport.PurchaseOrder.ProductId,
-                POId = receivingReport.POId,
                 Particular = "Purchases",
                 Reference = receivingReport.RRNo,
                 Quantity = receivingReport.QuantityReceived,
@@ -213,7 +211,6 @@ namespace Accounting_System.Repository
                     Reference = salesInvoice.SINo,
                     Quantity = salesInvoice.Quantity,
                     Cost = previousInventory.AverageCost,
-                    POId = salesInvoice.POId,
                     IsValidated = true,
                     ValidatedBy = _userManager.GetUserName(user),
                     ValidatedDate = DateTime.Now,
@@ -351,8 +348,7 @@ namespace Accounting_System.Repository
                 Total = Math.Abs(total),
                 InventoryBalance = inventoryBalance,
                 AverageCost = totalBalance / inventoryBalance,
-                TotalBalance = totalBalance,
-                POId = viewModel.POId,
+                TotalBalance = totalBalance
             };
             await _dbContext.Inventories.AddAsync(inventory, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
@@ -394,20 +390,20 @@ namespace Accounting_System.Repository
 
 
             var previousInventory = await _dbContext.Inventories
-                .Where(i => i.ProductId == existingPO.ProductId && i.POId == purchaseChangePriceViewModel.POId)
+                .Where(i => i.ProductId == existingPO.ProductId)
                 .OrderByDescending(i => i.Date)
                 .ThenByDescending(i => i.Id)
                 .Include(i => i.Product)
                 .FirstOrDefaultAsync(cancellationToken);
 
             var previousInventoryList = await _dbContext.Inventories
-                .Where(i => i.ProductId == existingPO.ProductId && i.POId == purchaseChangePriceViewModel.POId)
+                .Where(i => i.ProductId == existingPO.ProductId)
                 .OrderByDescending(i => i.Date)
                 .ThenByDescending(i => i.Id)
                 .ToListAsync();
 
             var findRR = await _dbContext.ReceivingReports
-                .Where(rr => rr.POId == previousInventory.POId)
+                .Where(rr => rr.PurchaseOrder.ProductId == previousInventory.ProductId)
                 .ToListAsync(cancellationToken);
             if (previousInventory != null && previousInventoryList.Any())
             {
@@ -419,7 +415,6 @@ namespace Accounting_System.Repository
                 {
                     Date = DateOnly.FromDateTime(DateTime.Now),
                     ProductId = existingPO.ProductId,
-                    POId = purchaseChangePriceViewModel.POId,
                     Particular = "Change Price",
                     Reference = generateJVNo,
                     Quantity = 0,
@@ -838,7 +833,7 @@ namespace Accounting_System.Repository
         public async Task VoidInventory(Inventory model, CancellationToken cancellationToken = default)
         {
             var sortedInventory = await _dbContext.Inventories
-            .Where(i => i.ProductId == model.ProductId && i.POId == model.POId && i.Date >= model.Date)
+            .Where(i => i.ProductId == model.ProductId && i.Date >= model.Date)
             .OrderBy(i => i.Date)
             .ThenBy(i => i.Id)
             .ToListAsync(cancellationToken);

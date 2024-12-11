@@ -94,13 +94,7 @@ namespace Accounting_System.Models
         [Column(TypeName = "timestamp with time zone")]
         public DateTime? ValidatedDate { get; set; }
 
-        public int? POId { get; set; }
-
-        [ForeignKey("POId")]
-        public PurchaseOrder? PurchaseOrder { get; set; }
-
         //Ibs records
         public int? OriginalProductId { get; set; }
-        public int? OriginalPOId { get; set; }
     }
 }

@@ -101,11 +101,6 @@ namespace Accounting_System.Data
                 .WithMany()
                 .HasForeignKey(si => si.CustomerId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-                si.HasOne(si => si.PurchaseOrder)
-                .WithMany()
-                .HasForeignKey(si => si.POId)
-                .OnDelete(DeleteBehavior.Restrict);
             });
 
             #endregion -- Sales Invoice --
