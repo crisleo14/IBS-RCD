@@ -407,7 +407,7 @@ namespace Accounting_System.Controllers
                                     Date = postedDate,
                                     Reference = model.SVNo,
                                     Description = model.Service.Name,
-                                    AccountNo = "1010204",
+                                    AccountNo = "101020500",
                                     AccountTitle = "AR-Non Trade Receivable",
                                     Debit = Math.Round(model.Total - (withHoldingTaxAmount + withHoldingVatAmount), 2),
                                     Credit = 0,
@@ -423,8 +423,8 @@ namespace Accounting_System.Controllers
                                     Date = postedDate,
                                     Reference = model.SVNo,
                                     Description = model.Service.Name,
-                                    AccountNo = "1010202",
-                                    AccountTitle = "Deferred Creditable Withholding Tax",
+                                    AccountNo = "101060500",
+                                    AccountTitle = "Deferred Withholding Tax",
                                     Debit = withHoldingTaxAmount,
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
@@ -440,8 +440,8 @@ namespace Accounting_System.Controllers
                                     Date = postedDate,
                                     Reference = model.SVNo,
                                     Description = model.Service.Name,
-                                    AccountNo = "1010203",
-                                    AccountTitle = "Deferred Creditable Withholding Vat",
+                                    AccountNo = "101060700",
+                                    AccountTitle = "Deferred Withholding Vat - Input",
                                     Debit = withHoldingVatAmount,
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
@@ -473,8 +473,8 @@ namespace Accounting_System.Controllers
                                     Date = postedDate,
                                     Reference = model.SVNo,
                                     Description = model.Service.Name,
-                                    AccountNo = "2010301",
-                                    AccountTitle = "Vat Output",
+                                    AccountNo = "201030100",
+                                    AccountTitle = "Vat - Output",
                                     Debit = 0,
                                     Credit = Math.Round((vatAmount), 2),
                                     CreatedBy = model.CreatedBy,
@@ -782,7 +782,7 @@ namespace Accounting_System.Controllers
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-                
+
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -803,7 +803,7 @@ namespace Accounting_System.Controllers
                         var serviceInvoiceList = await _dbContext
                             .ServiceInvoices
                             .ToListAsync(cancellationToken);
-                        
+
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var serviceInvoice = new ServiceInvoice

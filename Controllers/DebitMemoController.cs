@@ -218,7 +218,7 @@ namespace Accounting_System.Controllers
                 #endregion
 
                 #region --Validating the series--
-                
+
                 var generateDmNo = await _debitMemoRepo.GenerateDMNo(cancellationToken);
                 var getLastNumber = long.Parse(generateDmNo.Substring(2));
 
@@ -455,7 +455,7 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.DMNo,
                                     Description = model.SalesInvoice.Product.Name,
-                                    AccountNo = "1010201",
+                                    AccountNo = "101020100",
                                     AccountTitle = "AR-Trade Receivable",
                                     Debit = model.DebitAmount - (withHoldingTaxAmount + withHoldingVatAmount),
                                     Credit = 0,
@@ -472,8 +472,8 @@ namespace Accounting_System.Controllers
                                         Date = model.TransactionDate,
                                         Reference = model.DMNo,
                                         Description = model.SalesInvoice.Product.Name,
-                                        AccountNo = "1010202",
-                                        AccountTitle = "Deferred Creditable Withholding Tax",
+                                        AccountNo = "101060500",
+                                        AccountTitle = "Deferred Withholding Tax",
                                         Debit = withHoldingTaxAmount,
                                         Credit = 0,
                                         CreatedBy = model.CreatedBy,
@@ -489,8 +489,8 @@ namespace Accounting_System.Controllers
                                         Date = model.TransactionDate,
                                         Reference = model.DMNo,
                                         Description = model.SalesInvoice.Product.Name,
-                                        AccountNo = "1010203",
-                                        AccountTitle = "Deferred Creditable Withholding Vat",
+                                        AccountNo = "101060700",
+                                        AccountTitle = "Deferred Withholding Vat - Input",
                                         Debit = withHoldingVatAmount,
                                         Credit = 0,
                                         CreatedBy = model.CreatedBy,
@@ -506,7 +506,7 @@ namespace Accounting_System.Controllers
                                         Date = model.TransactionDate,
                                         Reference = model.DMNo,
                                         Description = model.SalesInvoice.Product.Name,
-                                        AccountNo = "4010101",
+                                        AccountNo = "401010100",
                                         AccountTitle = "Sales - Biodiesel",
                                         Debit = 0,
                                         CreatedBy = model.CreatedBy,
@@ -523,7 +523,7 @@ namespace Accounting_System.Controllers
                                         Date = model.TransactionDate,
                                         Reference = model.DMNo,
                                         Description = model.SalesInvoice.Product.Name,
-                                        AccountNo = "4010102",
+                                        AccountNo = "401010200",
                                         AccountTitle = "Sales - Econogas",
                                         Debit = 0,
                                         CreatedBy = model.CreatedBy,
@@ -540,7 +540,7 @@ namespace Accounting_System.Controllers
                                         Date = model.TransactionDate,
                                         Reference = model.DMNo,
                                         Description = model.SalesInvoice.Product.Name,
-                                        AccountNo = "4010103",
+                                        AccountNo = "401010300",
                                         AccountTitle = "Sales - Envirogas",
                                         Debit = 0,
                                         CreatedBy = model.CreatedBy,
@@ -558,8 +558,8 @@ namespace Accounting_System.Controllers
                                         Date = model.TransactionDate,
                                         Reference = model.DMNo,
                                         Description = model.SalesInvoice.Product.Name,
-                                        AccountNo = "2010301",
-                                        AccountTitle = "Vat Output",
+                                        AccountNo = "201030100",
+                                        AccountTitle = "Vat - Output",
                                         Debit = 0,
                                         Credit = vatAmount,
                                         CreatedBy = model.CreatedBy,
@@ -701,7 +701,7 @@ namespace Accounting_System.Controllers
                                         Date = viewModelDMCM.Period,
                                         Reference = model.DMNo,
                                         Description = model.ServiceInvoice.Service.Name,
-                                        AccountNo = "1010204",
+                                        AccountNo = "101020500",
                                         AccountTitle = "AR-Non Trade Receivable",
                                         Debit = viewModelDMCM.Total - (viewModelDMCM.WithholdingTaxAmount + viewModelDMCM.WithholdingVatAmount),
                                         Credit = 0,
@@ -717,8 +717,8 @@ namespace Accounting_System.Controllers
                                         Date = viewModelDMCM.Period,
                                         Reference = model.DMNo,
                                         Description = model.ServiceInvoice.Service.Name,
-                                        AccountNo = "1010202",
-                                        AccountTitle = "Deferred Creditable Withholding Tax",
+                                        AccountNo = "101060500",
+                                        AccountTitle = "Deferred Withholding Tax",
                                         Debit = viewModelDMCM.WithholdingTaxAmount,
                                         Credit = 0,
                                         CreatedBy = model.CreatedBy,
@@ -734,8 +734,8 @@ namespace Accounting_System.Controllers
                                         Date = viewModelDMCM.Period,
                                         Reference = model.DMNo,
                                         Description = model.ServiceInvoice.Service.Name,
-                                        AccountNo = "1010203",
-                                        AccountTitle = "Deferred Creditable Withholding Vat",
+                                        AccountNo = "101060700",
+                                        AccountTitle = "Deferred Withholding Vat - Input",
                                         Debit = viewModelDMCM.WithholdingVatAmount,
                                         Credit = 0,
                                         CreatedBy = model.CreatedBy,
@@ -768,8 +768,8 @@ namespace Accounting_System.Controllers
                                         Date = viewModelDMCM.Period,
                                         Reference = model.DMNo,
                                         Description = model.ServiceInvoice.Service.Name,
-                                        AccountNo = "2010304",
-                                        AccountTitle = "Deferred Vat Output",
+                                        AccountNo = "201030400",
+                                        AccountTitle = "Deferred Vat - Output",
                                         Debit = 0,
                                         Credit = viewModelDMCM.VatAmount,
                                         CreatedBy = model.CreatedBy,
@@ -1149,7 +1149,7 @@ namespace Accounting_System.Controllers
                         var debitMemoList = await _dbContext
                             .DebitMemos
                             .ToListAsync(cancellationToken);
-                        
+
                         for (int row = 2; row <= rowCount; row++) // Assuming the first row is the header
                         {
                             var debitMemo = new DebitMemo

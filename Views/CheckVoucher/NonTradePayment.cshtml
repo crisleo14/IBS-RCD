@@ -96,7 +96,7 @@
                         <tbody id="accountingEntriesBody">
                             <tr>
                                 <td>
-                                    <input type="hidden" name="AccountNumber" value="2010102" />
+                                    <input type="hidden" name="AccountNumber" value="202010200" />
                                     <input name='AccountTitle' value='AP-Non Trade Payable' class="w-100" style='border:none' readonly />
                                 </td>
                                 <td><input asp-for="Debit" value='' placeholder="0.00" class="w-100 money" style='border:none' required /></td>
@@ -227,10 +227,8 @@
                         data: { bankId: bankId },
                         success: function (data) {
                             if (data) {
-                                var accountNoInput = $(".cib-acct-no");
                                 var accountTitleInput = $("input[value='Cash in Bank']");
-                                accountNoInput.val(`${data.accountNoCOA}`)
-                                accountTitleInput.val(`Cash in Bank - ${data.accountNo} ${data.accountName}`);
+                                accountTitleInput.val(`Cash in Bank - ${data.accountName}`);
                             }
                         },
                         error: function (xhr, status, error) {

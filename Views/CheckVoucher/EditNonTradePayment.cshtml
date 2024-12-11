@@ -233,10 +233,8 @@
                         data: { bankId: bankId },
                         success: function (data) {
                             if (data) {
-                                var accountNoInput = $(".cib-acct-no");
-                                var accountTitleInput = $("input[value*='Cash in Bank']");
-                                accountNoInput.val(`${data.accountNoCOA}`)
-                                accountTitleInput.val(`Cash in Bank - ${data.accountNo} ${data.accountName}`);
+                                var accountTitleInput = $("input[value='Cash in Bank']");
+                                accountTitleInput.val(`Cash in Bank - ${data.accountName}`);
                             }
                         },
                         error: function (xhr, status, error) {

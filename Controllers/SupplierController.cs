@@ -67,7 +67,7 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
             model.WithholdingTaxList = await _context.ChartOfAccounts
-                .Where(coa => coa.AccountNumber == "2010302" || coa.AccountNumber == "2010303")
+                .Where(coa => coa.AccountNumber == "201030210" || coa.AccountNumber == "201030220")
                 .Select(s => new SelectListItem
                 {
                     Value = s.AccountNumber + " " + s.AccountName,
@@ -95,7 +95,7 @@ namespace Accounting_System.Controllers
                         })
                         .ToListAsync(cancellationToken);
                     supplier.WithholdingTaxList = await _context.ChartOfAccounts
-                        .Where(coa => coa.AccountNumber == "2010302" || coa.AccountNumber == "2010303")
+                        .Where(coa => coa.AccountNumber == "201030210" || coa.AccountNumber == "201030220")
                         .Select(s => new SelectListItem
                         {
                             Value = s.AccountNumber + " " + s.AccountName,
@@ -116,7 +116,7 @@ namespace Accounting_System.Controllers
                         })
                         .ToListAsync(cancellationToken);
                     supplier.WithholdingTaxList = await _context.ChartOfAccounts
-                        .Where(coa => coa.AccountNumber == "2010302" || coa.AccountNumber == "2010303")
+                        .Where(coa => coa.AccountNumber == "201030210" || coa.AccountNumber == "201030220")
                         .Select(s => new SelectListItem
                         {
                             Value = s.AccountNumber + " " + s.AccountName,
@@ -183,7 +183,7 @@ namespace Accounting_System.Controllers
                         })
                         .ToListAsync(cancellationToken);
                     supplier.WithholdingTaxList = await _context.ChartOfAccounts
-                        .Where(coa => coa.AccountNumber == "2010302" || coa.AccountNumber == "2010303")
+                        .Where(coa => coa.AccountNumber == "201030210" || coa.AccountNumber == "201030220")
                         .Select(s => new SelectListItem
                         {
                             Value = s.AccountNumber + " " + s.AccountName,
@@ -234,7 +234,7 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
             supplier.WithholdingTaxList = await _context.ChartOfAccounts
-                .Where(coa => coa.AccountNumber == "2010302" || coa.AccountNumber == "2010303")
+                .Where(coa => coa.AccountNumber == "201030210" || coa.AccountNumber == "201030220")
                 .Select(s => new SelectListItem
                 {
                     Value = s.AccountNumber + " " + s.AccountName,
@@ -280,7 +280,7 @@ namespace Accounting_System.Controllers
                     supplier.Number = existingModel.Number;
                     supplier.CreatedBy = _userManager.GetUserName(this.User).ToString();
 
-                    #region -- Upload file -- 
+                    #region -- Upload file --
 
                     if (document != null && document.Length > 0)
                     {
@@ -331,7 +331,7 @@ namespace Accounting_System.Controllers
                             })
                             .ToListAsync(cancellationToken);
                         supplier.WithholdingTaxList = await _context.ChartOfAccounts
-                            .Where(coa => coa.AccountNumber == "2010302" || coa.AccountNumber == "2010303")
+                            .Where(coa => coa.AccountNumber == "201030210" || coa.AccountNumber == "201030220")
                             .Select(s => new SelectListItem
                             {
                                 Value = s.AccountNumber + " " + s.AccountName,
@@ -342,7 +342,7 @@ namespace Accounting_System.Controllers
                         return View(supplier);
                     }
 
-                    #endregion -- Upload file -- 
+                    #endregion -- Upload file --
 
                     #region --Audit Trail Recording
 
@@ -478,7 +478,7 @@ namespace Accounting_System.Controllers
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
                 await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
-                
+
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -499,7 +499,7 @@ namespace Accounting_System.Controllers
                         var supplierList = await _context
                             .Suppliers
                             .ToListAsync(cancellationToken);
-                        
+
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var supplier = new Supplier
@@ -526,7 +526,7 @@ namespace Accounting_System.Controllers
                                 WithholdingTaxtitle = worksheet.Cells[row, 19].Text,
                                 OriginalSupplierId = int.TryParse(worksheet.Cells[row, 20].Text, out int originalSupplierId) ? originalSupplierId : 0,
                             };
-                            
+
                             if (supplierList.Any(supp => supp.OriginalSupplierId == supplier.OriginalSupplierId))
                             {
                                 continue;

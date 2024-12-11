@@ -863,8 +863,7 @@
                     method: "GET",
                     data: { bankId: bankId },
                     success: function (data) {
-                        $(".accountTitle").val("Cash in Bank" + " - " + data.accountNo + " " + data.accountName);
-                        $(".accountNo").val(data.accountNoCOA);
+                        $(".accountTitle").val("Cash in Bank" + " - " + data.accountName);
                     },
                     error: function () {
                         console.error('Error fetching bank account:', error)
@@ -902,7 +901,7 @@
                     if (accountTitles[i] === 'AP-Trade Payable') {
                             debitClass = 'apTradePayable';
                     }
-                    if (accountTitles[i] === 'Expanded Witholding Tax 1%') {
+                    if (accountTitles[i] === 'Expanded Withholding Tax 1%') {
 
                         if (credits[i] != 0) {
                             creditClass = 'totalEWT';

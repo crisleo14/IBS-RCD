@@ -77,7 +77,7 @@ namespace Accounting_System.Repository
                 AccountName = "Cash in Bank" + " - " + model.AccountName,
                 AccountType = "Asset",
                 NormalBalance = "Debit",
-                Parent = "1010101",
+                Parent = "101010000",
                 CreatedBy = _userManager.GetUserName(user),
                 CreatedDate = DateTime.Now,
                 Level = 5

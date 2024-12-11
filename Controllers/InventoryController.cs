@@ -235,7 +235,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             viewModel.COA = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 && (coa.AccountName.StartsWith("AR-Non Trade Receivable") || coa.AccountName.StartsWith("Cost of Goods Sold") || coa.AccountNumber.StartsWith("6010103")))
+                .Where(coa => coa.Level == 4 && (coa.AccountName.StartsWith("AR-Non Trade Receivable") || coa.AccountName.StartsWith("COGS") || coa.AccountNumber.StartsWith("6010103")))
                 .Select(s => new SelectListItem
                 {
                     Value = s.AccountNumber,
@@ -305,7 +305,7 @@ namespace Accounting_System.Controllers
                         .ToListAsync(cancellationToken);
 
                     viewModel.COA = await _dbContext.ChartOfAccounts
-                        .Where(coa => coa.Level == 4 && (coa.AccountName.StartsWith("AR-Non Trade Receivable") || coa.AccountName.StartsWith("Cost of Goods Sold") || coa.AccountNumber.StartsWith("6010103")))
+                        .Where(coa => coa.Level == 4 && (coa.AccountName.StartsWith("AR-Non Trade Receivable") || coa.AccountName.StartsWith("COGS") || coa.AccountNumber.StartsWith("6010103")))
                         .Select(s => new SelectListItem
                         {
                             Value = s.AccountNumber,
@@ -328,7 +328,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             viewModel.COA = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 && (coa.AccountName.StartsWith("AR-Non Trade Receivable") || coa.AccountName.StartsWith("Cost of Goods Sold") || coa.AccountNumber.StartsWith("6010103")))
+                .Where(coa => coa.Level == 4 && (coa.AccountName.StartsWith("AR-Non Trade Receivable") || coa.AccountName.StartsWith("COGS") || coa.AccountNumber.StartsWith("6010103")))
                 .Select(s => new SelectListItem
                 {
                     Value = s.AccountNumber,

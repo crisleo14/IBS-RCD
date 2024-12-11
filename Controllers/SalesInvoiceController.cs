@@ -354,7 +354,7 @@ namespace Accounting_System.Controllers
                 }
 
                 #endregion -- Checking existing record --
-                
+
                 if (ModelState.IsValid)
                 {
                     #region -- Saving Default Enries --
@@ -534,7 +534,7 @@ namespace Accounting_System.Controllers
                                 Date = model.TransactionDate,
                                 Reference = model.SINo,
                                 Description = model.Product.Name,
-                                AccountNo = "1010201",
+                                AccountNo = "101020100",
                                 AccountTitle = "AR-Trade Receivable",
                                 Debit = netDiscount - (withHoldingTaxAmount + withHoldingVatAmount),
                                 Credit = 0,
@@ -551,8 +551,8 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.SINo,
                                     Description = model.Product.Name,
-                                    AccountNo = "1010202",
-                                    AccountTitle = "Deferred Creditable Withholding Tax",
+                                    AccountNo = "101060500",
+                                    AccountTitle = "Deferred Withholding Tax",
                                     Debit = withHoldingTaxAmount,
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
@@ -568,8 +568,8 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.SINo,
                                     Description = model.Product.Name,
-                                    AccountNo = "1010203",
-                                    AccountTitle = "Deferred Creditable Withholding Vat",
+                                    AccountNo = "101060700",
+                                    AccountTitle = "Deferred Withholding Vat - Input",
                                     Debit = withHoldingVatAmount,
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
@@ -585,7 +585,7 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.SINo,
                                     Description = model.Product.Name,
-                                    AccountNo = "4010101",
+                                    AccountNo = "401010100",
                                     AccountTitle = "Sales - Biodiesel",
                                     Debit = 0,
                                     Credit = netOfVatAmount,
@@ -602,7 +602,7 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.SINo,
                                     Description = model.Product.Name,
-                                    AccountNo = "4010102",
+                                    AccountNo = "401010200",
                                     AccountTitle = "Sales - Econogas",
                                     Debit = 0,
                                     Credit = netOfVatAmount,
@@ -619,7 +619,7 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.SINo,
                                     Description = model.Product.Name,
-                                    AccountNo = "4010103",
+                                    AccountNo = "401010300",
                                     AccountTitle = "Sales - Envirogas",
                                     Debit = 0,
                                     Credit = netOfVatAmount,
@@ -637,8 +637,8 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.SINo,
                                     Description = model.Product.Name,
-                                    AccountNo = "2010301",
-                                    AccountTitle = "Vat Output",
+                                    AccountNo = "201030100",
+                                    AccountTitle = "Vat - Output",
                                     Debit = 0,
                                     Credit = vatAmount,
                                     CreatedBy = model.CreatedBy,
@@ -907,7 +907,7 @@ namespace Accounting_System.Controllers
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-                
+
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -993,7 +993,7 @@ namespace Accounting_System.Controllers
                                         ? originalDocumentId
                                         : 0,
                             };
-                            
+
                             if (invoiceList.Any(si => si.OriginalDocumentId == invoice.OriginalDocumentId))
                             {
                                 continue;

@@ -69,7 +69,7 @@ namespace Accounting_System.Repository
 
                                     details.Add(new JournalVoucherDetail
                                     {
-                                        AccountNo = "5020107",
+                                        AccountNo = "551010900",
                                         AccountName = "Depreciation Expense",
                                         TransactionNo = header.JVNo,
                                         Debit = cv.AmountPerMonth,
@@ -78,7 +78,7 @@ namespace Accounting_System.Repository
 
                                     details.Add(new JournalVoucherDetail
                                     {
-                                        AccountNo = accountEntry.AccountName.Contains("Building") ? "1020104" : "1020105",
+                                        AccountNo = accountEntry.AccountName.Contains("Building") ? "102020100" : "102020200",
                                         AccountName = accountEntry.AccountName.Contains("Building") ? "Accummulated Depreciation - Building and improvements" : "Accummulated Depreciation - Equipment",
                                         TransactionNo = header.JVNo,
                                         Debit = 0,
@@ -124,7 +124,7 @@ namespace Accounting_System.Repository
 
                                     details.Add(new JournalVoucherDetail
                                     {
-                                        AccountNo = "1010501",
+                                        AccountNo = "101050100",
                                         AccountName = "Prepaid Expenses - Rental",
                                         TransactionNo = header.JVNo,
                                         Debit = 0,

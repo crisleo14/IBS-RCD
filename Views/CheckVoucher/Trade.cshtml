@@ -222,15 +222,15 @@
                         </thead>
                         <tbody id="accountingEntriesBody">
                             <tr>
-                                <input type="hidden" name="AccountNumber" value="2010101" />
+                                <input type="hidden" name="AccountNumber" value="202010100" />
                                 <td><input type='text' name="AccountTitle" value='AP-Trade Payable' class="w-100" style='border:none' readonly /></td>
                                 <td><input type='text' name="Debit" value='0.00' class="w-100 apTradePayable" style='border:none' readonly /></td>
                                 <td><input type='text' name="Credit" value='0.00' class="w-100" style='border:none' readonly /></td>
                                 <td></td>
                             </tr>
                             <tr class="EWTCredit">
-                                <input type="hidden" name="AccountNumber" value="2010302" />
-                                <td><input type='text' name="AccountTitle" value='Expanded Witholding Tax 1%' class="w-100" style='border:none' readonly /></td>
+                                <input type="hidden" name="AccountNumber" value="201030210" />
+                                <td><input type='text' name="AccountTitle" value='Expanded Withholding Tax 1%' class="w-100" style='border:none' readonly /></td>
                                 <td><input type='text' name="Debit" value='0.00' class="w-100" style='border:none' readonly /></td>
                                 <td><input type='text' name="Credit" value='0.00' class="w-100 totalEWT" style='border:none' readonly /></td>
                                 <td></td>
@@ -889,8 +889,7 @@
                         method: "GET",
                         data: { bankId: bankId },
                         success: function (data) {
-                            $(".accountTitle").val("Cash in Bank" + " - " + data.accountNo + " " + data.accountName);
-                            $(".accountNo").val(data.accountNoCOA);
+                            $(".accountTitle").val("Cash in Bank" + " - " + data.accountName);
                         },
                         error: function (error) {
                             console.error('Error fetching bank account:', error)
@@ -935,7 +934,7 @@
                 if (accountTitles[i] === 'AP-Trade Payable') {
                     debitClass = 'totalNetOfEWT';
                 }
-                if (accountTitles[i] === 'Expanded Witholding Tax 1%') {
+                if (accountTitles[i] === 'Expanded Withholding Tax 1%') {
 
                     if (credits[i] != 0) {
                         creditClass = 'totalEWT';

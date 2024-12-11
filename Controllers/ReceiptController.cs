@@ -173,7 +173,7 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 #region --Validating the series
-                
+
                 var generateCrNo = await _receiptRepo.GenerateCRNo(cancellationToken);
                 var getLastNumber = long.Parse(generateCrNo.Substring(2));
 
@@ -204,7 +204,7 @@ namespace Accounting_System.Controllers
                 }
                 var existingSalesInvoice = await _dbContext.SalesInvoices
                                                .FirstOrDefaultAsync(si => si.Id == model.SalesInvoiceId, cancellationToken);
-                
+
                 model.SINo = existingSalesInvoice.SINo;
                 model.CRNo = generateCrNo;
                 model.CreatedBy = _userManager.GetUserName(this.User);
@@ -377,7 +377,7 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 #region --Validating the series
-                
+
                 var generateCrNo = await _receiptRepo.GenerateCRNo(cancellationToken);
                 var getLastNumber = long.Parse(generateCrNo.Substring(2));
 
@@ -425,7 +425,7 @@ namespace Accounting_System.Controllers
                         model.MultipleTransactionDate[i] = salesInvoice.TransactionDate;
                     }
                 }
-                
+
                 model.CRNo = generateCrNo;
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 model.Total = computeTotalInModelIfZero;
@@ -597,7 +597,7 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 #region --Validating the series
-                
+
                 var generateCrNo = await _receiptRepo.GenerateCRNo(cancellationToken);
                 var getLastNumber = long.Parse(generateCrNo.Substring(2));
 
@@ -628,7 +628,7 @@ namespace Accounting_System.Controllers
                 }
                 var existingServiceInvoice = await _dbContext.ServiceInvoices
                                                .FirstOrDefaultAsync(si => si.Id == model.ServiceInvoiceId, cancellationToken);
-                
+
                 model.SVNo = existingServiceInvoice.SVNo;
                 model.CRNo = generateCrNo;
                 model.CreatedBy = _userManager.GetUserName(this.User);
@@ -1501,7 +1501,7 @@ namespace Accounting_System.Controllers
                                         Date = model.TransactionDate,
                                         Reference = model.CRNo,
                                         Description = "Collection for Receivable",
-                                        AccountNo = "1010101",
+                                        AccountNo = "101010100",
                                         AccountTitle = "Cash in Bank",
                                         Debit = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount,
                                         Credit = 0,
@@ -1519,7 +1519,7 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.CRNo,
                                     Description = "Collection for Receivable",
-                                    AccountNo = "1010604",
+                                    AccountNo = "101060400",
                                     AccountTitle = "Creditable Withholding Tax",
                                     Debit = model.EWT,
                                     Credit = 0,
@@ -1537,8 +1537,8 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.CRNo,
                                     Description = "Collection for Receivable",
-                                    AccountNo = "1010605",
-                                    AccountTitle = "Creditable Withholding Vat",
+                                    AccountNo = "101060600",
+                                    AccountTitle = "Creditable Withholding Vat - Input",
                                     Debit = model.WVAT,
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
@@ -1578,7 +1578,7 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.CRNo,
                                     Description = "Collection for Receivable",
-                                    AccountNo = "1010201",
+                                    AccountNo = "101020100",
                                     AccountTitle = "AR-Trade Receivable",
                                     Debit = 0,
                                     Credit = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + offsetAmount,
@@ -1596,8 +1596,8 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.CRNo,
                                     Description = "Collection for Receivable",
-                                    AccountNo = "1010202",
-                                    AccountTitle = "Deferred Creditable Withholding Tax",
+                                    AccountNo = "101060500",
+                                    AccountTitle = "Deferred Withholding Tax",
                                     Debit = 0,
                                     Credit = model.EWT,
                                     CreatedBy = model.CreatedBy,
@@ -1614,8 +1614,8 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.CRNo,
                                     Description = "Collection for Receivable",
-                                    AccountNo = "1010203",
-                                    AccountTitle = "Deferred Creditable Withholding Vat",
+                                    AccountNo = "101060700",
+                                    AccountTitle = "Deferred Withholding Vat - Input",
                                     Debit = 0,
                                     Credit = model.WVAT,
                                     CreatedBy = model.CreatedBy,
@@ -2084,7 +2084,7 @@ namespace Accounting_System.Controllers
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-                
+
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -2108,7 +2108,7 @@ namespace Accounting_System.Controllers
                         var collectionReceiptList = await _dbContext
                             .CollectionReceipts
                             .ToListAsync(cancellationToken);
-                        
+
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var collectionReceipt = new CollectionReceipt
@@ -2147,12 +2147,12 @@ namespace Accounting_System.Controllers
                                 OriginalServiceInvoiceId = int.TryParse(worksheet.Cells[row, 31].Text, out int originalServiceInvoiceId) ? originalServiceInvoiceId : 0,
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 32].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
-                            
+
                             if (collectionReceiptList.Any(cr => cr.OriginalDocumentId == collectionReceipt.OriginalDocumentId))
                             {
                                 continue;
                             }
-                            
+
                             collectionReceipt.CustomerId = await _dbContext.Customers
                                 .Where(c => c.OriginalCustomerId == collectionReceipt.OriginalCustomerId)
                                 .Select(c => (int?)c.Id)
@@ -2222,12 +2222,12 @@ namespace Accounting_System.Controllers
                         }
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         await transaction.CommitAsync(cancellationToken);
-                        
+
                         // var offsettingList = _dbContext.Offsettings.
                         //     Where(offset =>
                         //         offset.Reference == collectionReceipt.OriginalDocumentId)
                         //     .ToList();
-                        //     
+                        //
                         // if (offsettingList.Any())
                         // {
                         //     continue;

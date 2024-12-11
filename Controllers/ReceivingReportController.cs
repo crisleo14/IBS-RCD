@@ -411,7 +411,7 @@ namespace Accounting_System.Controllers
                                 Date = model.Date,
                                 Reference = model.RRNo,
                                 Description = "Receipt of Goods",
-                                AccountNo = "1010401",
+                                AccountNo = "101040100",
                                 AccountTitle = "Inventory - Biodiesel",
                                 Debit = netOfVatAmount,
                                 Credit = 0,
@@ -426,7 +426,7 @@ namespace Accounting_System.Controllers
                                 Date = model.Date,
                                 Reference = model.RRNo,
                                 Description = "Receipt of Goods",
-                                AccountNo = "1010402",
+                                AccountNo = "101040200",
                                 AccountTitle = "Inventory - Econogas",
                                 Debit = netOfVatAmount,
                                 Credit = 0,
@@ -441,7 +441,7 @@ namespace Accounting_System.Controllers
                                 Date = model.Date,
                                 Reference = model.RRNo,
                                 Description = "Receipt of Goods",
-                                AccountNo = "1010403",
+                                AccountNo = "101040300",
                                 AccountTitle = "Inventory - Envirogas",
                                 Debit = netOfVatAmount,
                                 Credit = 0,
@@ -457,8 +457,8 @@ namespace Accounting_System.Controllers
                                 Date = model.Date,
                                 Reference = model.RRNo,
                                 Description = "Receipt of Goods",
-                                AccountNo = "1010602",
-                                AccountTitle = "Vat Input",
+                                AccountNo = "101060200",
+                                AccountTitle = "Vat - Input",
                                 Debit = vatAmount,
                                 Credit = 0,
                                 CreatedBy = model.CreatedBy,
@@ -473,7 +473,7 @@ namespace Accounting_System.Controllers
                                 Date = model.Date,
                                 Reference = model.RRNo,
                                 Description = "Receipt of Goods",
-                                AccountNo = "2010302",
+                                AccountNo = "201030210",
                                 AccountTitle = "Expanded Withholding Tax 1%",
                                 Debit = 0,
                                 Credit = ewtAmount,
@@ -487,7 +487,7 @@ namespace Accounting_System.Controllers
                             Date = model.Date,
                             Reference = model.RRNo,
                             Description = "Receipt of Goods",
-                            AccountNo = "2010101",
+                            AccountNo = "202010100",
                             AccountTitle = "AP-Trade Payable",
                             Debit = 0,
                             Credit = netOfEwtAmount,
@@ -864,7 +864,7 @@ namespace Accounting_System.Controllers
                                 .PurchaseOrders
                                 .Where(po => po.OriginalDocumentId == receivingReport.OriginalPOId)
                                 .FirstOrDefaultAsync(cancellationToken);
-                            
+
                             receivingReport.POId = getPo.Id;
                             receivingReport.PONo = getPo.PONo;
 

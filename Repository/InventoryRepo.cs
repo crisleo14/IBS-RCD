@@ -124,12 +124,12 @@ namespace Accounting_System.Repository
                     averageCost = transaction.AverageCost;
                     totalBalance = transaction.TotalBalance;
                     inventoryBalance = transaction.InventoryBalance;
-                    
+
                     var journalEntries = await _dbContext.GeneralLedgerBooks
                         .Where(j => j.Reference == transaction.Reference &&
                                     (j.AccountNo.StartsWith("50101") || j.AccountNo.StartsWith("10104")))
                         .ToListAsync(cancellationToken);
-                    
+
                     if (journalEntries.Count != 0)
                     {
                         foreach (var journal in journalEntries)
@@ -152,7 +152,7 @@ namespace Accounting_System.Repository
                             }
                         }
                     }
-                    
+
                     _dbContext.GeneralLedgerBooks.UpdateRange(journalEntries);
                 }
                 else if (transaction.Particular == "Purchases")
@@ -239,7 +239,7 @@ namespace Accounting_System.Repository
                         averageCost = transaction.AverageCost;
                         totalBalance = transaction.TotalBalance;
                         inventoryBalance = transaction.InventoryBalance;
-                        
+
                         var journalEntries = await _dbContext.GeneralLedgerBooks
                             .Where(j => j.Reference == transaction.Reference &&
                                         (j.AccountNo.StartsWith("50101") || j.AccountNo.StartsWith("10104")))
@@ -269,7 +269,7 @@ namespace Accounting_System.Repository
                         }
 
                         _dbContext.GeneralLedgerBooks.UpdateRange(journalEntries);
-                        
+
                     }
                     else if (transaction.Particular == "Purchases")
                     {
@@ -290,8 +290,8 @@ namespace Accounting_System.Repository
                         Date = salesInvoice.TransactionDate,
                         Reference = salesInvoice.SINo,
                         Description = salesInvoice.Product.Name,
-                        AccountNo = salesInvoice.Product.Code == "PET001" ? "5010101" : salesInvoice.Product.Code == "PET002" ? "5010102" : "5010103",
-                        AccountTitle = salesInvoice.Product.Code == "PET001" ? "Cost of Goods Sold - Biodiesel" : salesInvoice.Product.Code == "PET002" ? "Cost of Goods Sold - Econogas" : "Cost of Goods Sold - Envirogas",
+                        AccountNo = salesInvoice.Product.Code == "PET001" ? "501010100" : salesInvoice.Product.Code == "PET002" ? "501010200" : "501010300",
+                        AccountTitle = salesInvoice.Product.Code == "PET001" ? "COGS - Biodiesel" : salesInvoice.Product.Code == "PET002" ? "COGS - Econogas" : "COGS - Envirogas",
                         Debit = inventory.Total,
                         Credit = 0,
                         CreatedBy = salesInvoice.CreatedBy,
@@ -302,7 +302,7 @@ namespace Accounting_System.Repository
                         Date = salesInvoice.TransactionDate,
                         Reference = salesInvoice.SINo,
                         Description = salesInvoice.Product.Name,
-                        AccountNo = salesInvoice.Product.Code == "PET001" ? "1010401" : salesInvoice.Product.Code == "PET002" ? "1010402" : "1010403",
+                        AccountNo = salesInvoice.Product.Code == "PET001" ? "101040100" : salesInvoice.Product.Code == "PET002" ? "101040200" : "101040300",
                         AccountTitle = salesInvoice.Product.Code == "PET001" ? "Inventory - Biodiesel" : salesInvoice.Product.Code == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
                         Debit = 0,
                         Credit = inventory.Total,
@@ -474,7 +474,7 @@ namespace Accounting_System.Repository
                     {
                         new JournalVoucherDetail
                         {
-                            AccountNo = previousInventory.Product.Code == "PET001" ? "1010401" : previousInventory.Product.Code == "PET002" ? "1010402" : "1010403",
+                            AccountNo = previousInventory.Product.Code == "PET001" ? "101040100" : previousInventory.Product.Code == "PET002" ? "101040200" : "101040300",
                             AccountName = previousInventory.Product.Code == "PET001" ? "Inventory - Biodiesel" : previousInventory.Product.Code == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
                             TransactionNo = generateJVNo,
                             Debit = Math.Abs(productAmount),
@@ -482,23 +482,23 @@ namespace Accounting_System.Repository
                         },
                         new JournalVoucherDetail
                         {
-                            AccountNo = "1010602",
-                            AccountName = "Vat Input",
+                            AccountNo = "101060200",
+                            AccountName = "Vat - Input",
                             TransactionNo = generateJVNo,
                             Debit = Math.Abs(vatInput),
                             Credit = 0
                         },
                         new JournalVoucherDetail
                         {
-                            AccountNo = "2010302",
-                            AccountName = "Expanded Witholding Tax 1%",
+                            AccountNo = "201030210",
+                            AccountName = "Expanded Withholding Tax 1%",
                             TransactionNo = generateJVNo,
                             Debit = 0,
                             Credit = Math.Abs(wht)
                         },
                         new JournalVoucherDetail
                         {
-                            AccountNo = "2010101",
+                            AccountNo = "202010100",
                             AccountName = "AP-Trade Payable",
                             TransactionNo = generateJVNo,
                             Debit = 0,
@@ -518,7 +518,7 @@ namespace Accounting_System.Repository
                     {
                         new JournalVoucherDetail
                         {
-                            AccountNo = previousInventory.Product.Code == "PET001" ? "1010401" : previousInventory.Product.Code == "PET002" ? "1010402" : "1010403",
+                            AccountNo = previousInventory.Product.Code == "PET001" ? "101040100" : previousInventory.Product.Code == "PET002" ? "101040200" : "101040300",
                             AccountName = previousInventory.Product.Code == "PET001" ? "Inventory - Biodiesel" : previousInventory.Product.Code == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
                             TransactionNo = generateJVNo,
                             Debit = 0,
@@ -526,23 +526,23 @@ namespace Accounting_System.Repository
                         },
                         new JournalVoucherDetail
                         {
-                            AccountNo = "1010602",
-                            AccountName = "Vat Input",
+                            AccountNo = "101060200",
+                            AccountName = "Vat - Input",
                             TransactionNo = generateJVNo,
                             Debit = 0,
                             Credit = Math.Abs(vatInput)
                         },
                         new JournalVoucherDetail
                         {
-                            AccountNo = "2010302",
-                            AccountName = "Expanded Witholding Tax 1%",
+                            AccountNo = "201030210",
+                            AccountName = "Expanded Withholding Tax 1%",
                             TransactionNo = generateJVNo,
                             Debit = Math.Abs(wht),
                             Credit = 0
                         },
                         new JournalVoucherDetail
                         {
-                            AccountNo = "2010101",
+                            AccountNo = "202010100",
                             AccountName = "AP-Trade Payable",
                             TransactionNo = generateJVNo,
                             Debit = Math.Abs(apTradePayable),
@@ -574,7 +574,7 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountTitle = previousInventory.Product.Code == "PET001" ? "1010401 Inventory - Biodiesel" : previousInventory.Product.Code == "PET002" ? "1010402 Inventory - Econogas" : "1010403 Inventory - Envirogas",
+                            AccountTitle = previousInventory.Product.Code == "PET001" ? "101040100 Inventory - Biodiesel" : previousInventory.Product.Code == "PET002" ? "101040200 Inventory - Econogas" : "101040300 Inventory - Envirogas",
                             Debit = Math.Abs(productAmount),
                             Credit = 0,
                             CreatedBy = _userManager.GetUserName(user),
@@ -585,7 +585,7 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountTitle = "1010602 Vat Input",
+                            AccountTitle = "101060200 Vat - Input",
                             Debit = Math.Abs(vatInput),
                             Credit = 0,
                             CreatedBy = _userManager.GetUserName(user),
@@ -596,7 +596,7 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountTitle = "2010302 Expanded Witholding Tax 1%",
+                            AccountTitle = "201030210 Expanded Withholding Tax 1%",
                             Debit = 0,
                             Credit = Math.Abs(wht),
                             CreatedBy = _userManager.GetUserName(user),
@@ -607,7 +607,7 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountTitle = "2010101 AP-Trade Payable",
+                            AccountTitle = "202010100 AP-Trade Payable",
                             Debit = 0,
                             Credit = Math.Abs(apTradePayable),
                             CreatedBy = _userManager.GetUserName(user),
@@ -629,7 +629,7 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountTitle = previousInventory.Product.Code == "PET001" ? "1010401 Inventory - Biodiesel" : previousInventory.Product.Code == "PET002" ? "1010402 Inventory - Econogas" : "1010403 Inventory - Envirogas",
+                            AccountTitle = previousInventory.Product.Code == "PET001" ? "101040100 Inventory - Biodiesel" : previousInventory.Product.Code == "PET002" ? "101040200 Inventory - Econogas" : "101040300 Inventory - Envirogas",
                             Debit = 0,
                             Credit = Math.Abs(productAmount),
                             CreatedBy = _userManager.GetUserName(user),
@@ -640,7 +640,7 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountTitle = "1010602 Vat Input",
+                            AccountTitle = "101060200 Vat - Input",
                             Debit = 0,
                             Credit = Math.Abs(vatInput),
                             CreatedBy = _userManager.GetUserName(user),
@@ -651,7 +651,7 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountTitle = "2010302 Expanded Witholding Tax 1%",
+                            AccountTitle = "201030210 Expanded Withholding Tax 1%",
                             Debit = Math.Abs(wht),
                             Credit = 0,
                             CreatedBy = _userManager.GetUserName(user),
@@ -662,7 +662,7 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountTitle = "2010101 AP-Trade Payable",
+                            AccountTitle = "202010100 AP-Trade Payable",
                             Debit = Math.Abs(apTradePayable),
                             Credit = 0,
                             CreatedBy = _userManager.GetUserName(user),
@@ -715,7 +715,7 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountNo = previousInventory.Product.Code == "PET001" ? "1010401" : previousInventory.Product.Code == "PET002" ? "1010402" : "1010403",
+                            AccountNo = previousInventory.Product.Code == "PET001" ? "101040100" : previousInventory.Product.Code == "PET002" ? "101040200" : "101040300",
                             AccountTitle = previousInventory.Product.Code == "PET001" ? "Inventory - Biodiesel" : previousInventory.Product.Code == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
                             Debit = Math.Abs(productAmount),
                             Credit = 0,
@@ -727,8 +727,8 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountNo = "1010602",
-                            AccountTitle = "Vat Input",
+                            AccountNo = "101060200",
+                            AccountTitle = "Vat - Input",
                             Debit = Math.Abs(vatInput),
                             Credit = 0,
                             CreatedBy = _userManager.GetUserName(user),
@@ -739,8 +739,8 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountNo = "2010302",
-                            AccountTitle = "Expanded Witholding Tax 1%",
+                            AccountNo = "201030210",
+                            AccountTitle = "Expanded Withholding Tax 1%",
                             Debit = 0,
                             Credit = Math.Abs(wht),
                             CreatedBy = _userManager.GetUserName(user),
@@ -751,7 +751,7 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountNo = "2010101",
+                            AccountNo = "202010100",
                             AccountTitle = "AP-Trade Payable",
                             Debit = 0,
                             Credit = Math.Abs(apTradePayable),
@@ -774,7 +774,7 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountNo = previousInventory.Product.Code == "PET001" ? "1010401" : previousInventory.Product.Code == "PET002" ? "1010402" : "1010403",
+                            AccountNo = previousInventory.Product.Code == "PET001" ? "101040100" : previousInventory.Product.Code == "PET002" ? "101040200" : "101040300",
                             AccountTitle = previousInventory.Product.Code == "PET001" ? "Inventory - Biodiesel" : previousInventory.Product.Code == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
                             Debit = 0,
                             Credit = Math.Abs(productAmount),
@@ -786,8 +786,8 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountNo = "1010602",
-                            AccountTitle = "Vat Input",
+                            AccountNo = "101060200",
+                            AccountTitle = "Vat - Input",
                             Debit = 0,
                             Credit = Math.Abs(vatInput),
                             CreatedBy = _userManager.GetUserName(user),
@@ -798,8 +798,8 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountNo = "2010302",
-                            AccountTitle = "Expanded Witholding Tax 1%",
+                            AccountNo = "201030210",
+                            AccountTitle = "Expanded Withholding Tax 1%",
                             Debit = Math.Abs(wht),
                             Credit = 0,
                             CreatedBy = _userManager.GetUserName(user),
@@ -810,7 +810,7 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountNo = "2010101",
+                            AccountNo = "202010100",
                             AccountTitle = "AP-Trade Payable",
                             Debit = Math.Abs(apTradePayable),
                             Credit = 0,

@@ -74,7 +74,7 @@ namespace Accounting_System.Controllers
                 #region -- Generate AccountNo --
 
                 model.SeriesNumber = await _bankAccountRepo.GetLastSeriesNumber(cancellationToken);
-                model.AccountNoCOA = "1010101" + model.SeriesNumber.ToString("D2");
+                model.AccountNoCOA = "101010100" + model.SeriesNumber.ToString("D2");
 
                 #endregion -- Generate AccountNo --
 
@@ -266,7 +266,7 @@ namespace Accounting_System.Controllers
                                     ? originalBankId
                                     : 0,
                             };
-                            bankAccount.AccountNoCOA = "1010101" + bankAccount.SeriesNumber.ToString("D2");
+                            bankAccount.AccountNoCOA = "101010100" + bankAccount.SeriesNumber.ToString("D2");
 
                             if (bankAccountList.Any(ba => ba.OriginalBankId == bankAccount.OriginalBankId))
                             {
