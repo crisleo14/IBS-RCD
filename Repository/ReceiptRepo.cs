@@ -18,7 +18,7 @@ namespace Accounting_System.Repository
         {
             var collectionReceipt = await _dbContext
                 .CollectionReceipts
-                .OrderByDescending(s => s.Id)
+                .OrderByDescending(s => s.CRNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (collectionReceipt != null)

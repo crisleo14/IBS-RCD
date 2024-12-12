@@ -26,7 +26,8 @@ namespace Accounting_System.Repository
         {
             var purchaseOrder = await _dbContext
                 .PurchaseOrders
-                .OrderByDescending(s => s.Id)
+                .Where(po => !po.PONo.StartsWith("POBEG"))
+                .OrderByDescending(s => s.PONo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (purchaseOrder != null)

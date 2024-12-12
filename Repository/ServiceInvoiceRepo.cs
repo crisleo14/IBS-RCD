@@ -27,7 +27,7 @@ namespace Accounting_System.Repository
         {
             var serviceInvoice = await _dbContext
                 .ServiceInvoices
-                .OrderByDescending(s => s.Id)
+                .OrderByDescending(s => s.SVNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (serviceInvoice != null)

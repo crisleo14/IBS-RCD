@@ -17,7 +17,8 @@ namespace Accounting_System.Repository
         {
             var receivingReport = await _dbContext
                 .ReceivingReports
-                .OrderByDescending(s => s.Id)
+                .Where(rr => !rr.RRNo.StartsWith("RRBEG"))
+                .OrderByDescending(s => s.RRNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (receivingReport != null)

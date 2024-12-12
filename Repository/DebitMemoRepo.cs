@@ -32,7 +32,7 @@ namespace Accounting_System.Repository
         {
             var debitMemo = await _dbContext
                 .DebitMemos
-                .OrderByDescending(s => s.Id)
+                .OrderByDescending(s => s.DMNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (debitMemo != null)

@@ -24,7 +24,7 @@ namespace Accounting_System.Repository
         {
             var checkVoucher = await _dbContext
                 .CheckVoucherHeaders
-                .OrderByDescending(s => s.Id)
+                .OrderByDescending(s => s.CVNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (checkVoucher != null)

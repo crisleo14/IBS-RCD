@@ -169,50 +169,35 @@ namespace Accounting_System.Controllers
             {
                 #region -- checking for unposted DM or CM --
 
-                if (model.SalesInvoiceId != null)
-                {
-                    var existingSIDMs = await _dbContext.DebitMemos
-                                  .Where(si => si.SalesInvoiceId == model.SalesInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
-                                  .OrderBy(s => s.Id)
+                    var existingSiDms = await _dbContext.DebitMemos
+                                  .Where(dm => !dm.IsPosted && !dm.IsCanceled && !dm.IsVoided)
+                                  .OrderBy(cm => cm.Id)
                                   .ToListAsync(cancellationToken);
-                    if (existingSIDMs.Count > 0)
+                    if (existingSiDms.Count > 0)
                     {
-                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSIDMs.First().DMNo}");
+                        var dmNo = new List<string>();
+                        foreach (var item in existingSiDms)
+                        {
+                            dmNo.Add(item.DMNo);
+                        }
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {string.Join(" , ", dmNo)}");
                         return View(model);
                     }
 
-                    var existingSICMs = await _dbContext.CreditMemos
-                                      .Where(si => si.SalesInvoiceId == model.SalesInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
-                                      .OrderBy(s => s.Id)
+                    var existingSiCms = await _dbContext.CreditMemos
+                                      .Where(cm => !cm.IsPosted && !cm.IsCanceled && !cm.IsVoided)
+                                      .OrderBy(cm => cm.Id)
                                       .ToListAsync(cancellationToken);
-                    if (existingSICMs.Count > 0)
+                    if (existingSiCms.Count > 0)
                     {
-                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSICMs.First().CMNo}");
+                        var cmNo = new List<string>();
+                        foreach (var item in existingSiCms)
+                        {
+                            cmNo.Add(item.CMNo);
+                        }
+                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {string.Join(" , ", cmNo)}");
                         return View(model);
                     }
-                }
-                else
-                {
-                    var existingSOADMs = await _dbContext.DebitMemos
-                                  .Where(si => si.ServiceInvoiceId == model.ServiceInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
-                                  .OrderBy(s => s.Id)
-                                  .ToListAsync(cancellationToken);
-                    if (existingSOADMs.Count > 0)
-                    {
-                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSOADMs.First().DMNo}");
-                        return View(model);
-                    }
-
-                    var existingSOACMs = await _dbContext.CreditMemos
-                                      .Where(si => si.ServiceInvoiceId == model.ServiceInvoiceId && !si.IsPosted && !si.IsCanceled && !si.IsVoided)
-                                      .OrderBy(s => s.Id)
-                                      .ToListAsync(cancellationToken);
-                    if (existingSOACMs.Count > 0)
-                    {
-                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {existingSOACMs.First().CMNo}");
-                        return View(model);
-                    }
-                }
 
                 #endregion
 

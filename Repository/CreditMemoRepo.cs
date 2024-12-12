@@ -13,12 +13,12 @@ namespace Accounting_System.Repository
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
-        
+
         public async Task<string> GenerateCMNo(CancellationToken cancellationToken = default)
         {
             var creditMemo = await _dbContext
                 .CreditMemos
-                .OrderByDescending(s => s.Id)
+                .OrderByDescending(s => s.CMNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (creditMemo != null)

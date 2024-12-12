@@ -25,7 +25,7 @@ namespace Accounting_System.Repository
         {
             var journalVoucher = await _dbContext
                 .JournalVoucherHeaders
-                .OrderByDescending(j => j.Id)
+                .OrderByDescending(j => j.JVNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (journalVoucher != null)
