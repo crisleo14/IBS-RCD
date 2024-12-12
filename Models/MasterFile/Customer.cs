@@ -22,6 +22,7 @@ namespace Accounting_System.Models
 
         [Required]
         [Display(Name = "TIN No")]
+        [RegularExpression(@"\d{3}-\d{3}-\d{3}-\d{5}", ErrorMessage = "Invalid TIN number format.")]
         public string TinNo { get; set; }
 
         [Required]

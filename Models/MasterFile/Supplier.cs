@@ -21,6 +21,7 @@ namespace Accounting_System.Models.MasterFile
 
         [Column(TypeName = "varchar(50)")]
         [Display(Name = "Tin No")]
+        [RegularExpression(@"\d{3}-\d{3}-\d{3}-\d{5}", ErrorMessage = "Invalid TIN number format.")]
         public string TinNo { get; set; }
 
         [Column(TypeName = "varchar(10)")]
