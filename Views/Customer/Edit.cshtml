@@ -27,8 +27,13 @@
                 <span asp-validation-for="Address" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label asp-for="ZipCode" class="control-label"></label>
+                <input asp-for="ZipCode" class="form-control" maxlength="4" />
+                <span asp-validation-for="ZipCode" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <label asp-for="TinNo" class="control-label"></label>
-                <input asp-for="TinNo" class="form-control formattedTinNumberInput" />
+                <input asp-for="TinNo" class="form-control formattedTinNumberInput" maxlength="17"/>
                 <span asp-validation-for="TinNo" class="text-danger"></span>
             </div>
             <div class="form-group">

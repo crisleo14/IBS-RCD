@@ -54,5 +54,10 @@ namespace Accounting_System.Models
 
         public int OriginalCustomerId { get; set; }
         public string? OriginalCustomerNumber { get; set; }
+
+        [Required]
+        [Display(Name = "Zip Code")]
+        [Column(TypeName = "varchar(10)")]
+        public string? ZipCode { get; set; }
     }
 }

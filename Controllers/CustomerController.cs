@@ -135,6 +135,7 @@ namespace Accounting_System.Controllers
                     existingModel.CustomerType = customer.CustomerType;
                     existingModel.WithHoldingTax = customer.WithHoldingTax;
                     existingModel.WithHoldingVat = customer.WithHoldingVat;
+                    existingModel.ZipCode = customer.ZipCode;
 
                     #region --Audit Trail Recording
 
@@ -244,7 +245,7 @@ namespace Accounting_System.Controllers
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-                
+
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -265,7 +266,7 @@ namespace Accounting_System.Controllers
                         var customerList = await _dbContext
                             .Customers
                             .ToListAsync(cancellationToken);
-                        
+
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var customer = new Customer
@@ -284,7 +285,7 @@ namespace Accounting_System.Controllers
                                 OriginalCustomerId = int.TryParse(worksheet.Cells[row, 11].Text, out int customerId) ? customerId : 0,
                                 OriginalCustomerNumber = worksheet.Cells[row, 12].Text,
                             };
-                            
+
                             if (customerList.Any(c => c.OriginalCustomerId == customer.OriginalCustomerId))
                             {
                                 continue;

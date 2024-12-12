@@ -79,5 +79,10 @@ namespace Accounting_System.Models.MasterFile
         public List<SelectListItem>? WithholdingTaxList { get; set; }
 
         public int? OriginalSupplierId { get; set; }
+
+        [Required]
+        [Display(Name = "Zip Code")]
+        [Column(TypeName = "varchar(10)")]
+        public string? ZipCode { get; set; }
     }
 }

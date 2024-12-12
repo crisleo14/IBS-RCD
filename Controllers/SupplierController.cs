@@ -271,6 +271,7 @@ namespace Accounting_System.Controllers
                     existingModel.Category = supplier.Category;
                     existingModel.TradeName = supplier.TradeName;
                     existingModel.Branch = supplier.Branch;
+                    existingModel.ZipCode = supplier.ZipCode;
                     existingModel.DefaultExpenseNumber = supplier.DefaultExpenseNumber;
                     if (existingModel.WithholdingTaxtitle != null && existingModel.WithholdingTaxPercent != 0)
                     {
