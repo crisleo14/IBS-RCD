@@ -58,6 +58,6 @@ namespace Accounting_System.Models
         [Required]
         [Display(Name = "Zip Code")]
         [Column(TypeName = "varchar(10)")]
-        public string? ZipCode { get; set; }
+        public string ZipCode { get; set; } = String.Empty;
     }
 }

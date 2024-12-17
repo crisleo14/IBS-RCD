@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Accounting_System.Models.MasterFile
 {
@@ -83,6 +83,6 @@ namespace Accounting_System.Models.MasterFile
         [Required]
         [Display(Name = "Zip Code")]
         [Column(TypeName = "varchar(10)")]
-        public string? ZipCode { get; set; }
+        public string ZipCode { get; set; } = String.Empty;
     }
 }
