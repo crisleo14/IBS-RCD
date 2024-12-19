@@ -747,6 +747,7 @@ namespace Accounting_System.Controllers
             // Retrieve the selected invoices from the database
             var selectedList = await _dbContext.JournalVoucherHeaders
                 .Where(jv => recordIds.Contains(jv.Id))
+                .Include(jvh => jvh.CheckVoucherHeader)
                 .OrderBy(jv => jv.JVNo)
                 .ToListAsync();
 
@@ -754,8 +755,61 @@ namespace Accounting_System.Controllers
             using (var package = new ExcelPackage())
             {
                 // Add a new worksheet to the Excel package
+                #region -- Check Voucher Header Table Header --
+
+                    var worksheet3 = package.Workbook.Worksheets.Add("CheckVoucherHeader");
+
+                    worksheet3.Cells["A1"].Value = "TransactionDate";
+                    worksheet3.Cells["B1"].Value = "ReceivingReportNo";
+                    worksheet3.Cells["C1"].Value = "SalesInvoiceNo";
+                    worksheet3.Cells["D1"].Value = "PurchaseOrderNo";
+                    worksheet3.Cells["E1"].Value = "Particulars";
+                    worksheet3.Cells["F1"].Value = "CheckNo";
+                    worksheet3.Cells["G1"].Value = "Category";
+                    worksheet3.Cells["H1"].Value = "Payee";
+                    worksheet3.Cells["I1"].Value = "CheckDate";
+                    worksheet3.Cells["J1"].Value = "StartDate";
+                    worksheet3.Cells["K1"].Value = "EndDate";
+                    worksheet3.Cells["L1"].Value = "NumberOfMonths";
+                    worksheet3.Cells["M1"].Value = "NumberOfMonthsCreated";
+                    worksheet3.Cells["N1"].Value = "LastCreatedDate";
+                    worksheet3.Cells["O1"].Value = "AmountPerMonth";
+                    worksheet3.Cells["P1"].Value = "IsComplete";
+                    worksheet3.Cells["Q1"].Value = "AccruedType";
+                    worksheet3.Cells["R1"].Value = "Reference";
+                    worksheet3.Cells["S1"].Value = "CreatedBy";
+                    worksheet3.Cells["T1"].Value = "CreatedDate";
+                    worksheet3.Cells["U1"].Value = "Total";
+                    worksheet3.Cells["V1"].Value = "Amount";
+                    worksheet3.Cells["W1"].Value = "CheckAmount";
+                    worksheet3.Cells["X1"].Value = "CVType";
+                    worksheet3.Cells["Y1"].Value = "AmountPaid";
+                    worksheet3.Cells["Z1"].Value = "IsPaid";
+                    worksheet3.Cells["AA1"].Value = "CancellationRemarks";
+                    worksheet3.Cells["AB1"].Value = "OriginalBankId";
+                    worksheet3.Cells["AC1"].Value = "OriginalCVNo";
+                    worksheet3.Cells["AD1"].Value = "OriginalSupplierId";
+                    worksheet3.Cells["AE1"].Value = "OriginalDocumentId";
+
+                #endregion -- Check Voucher Header Table Header --
+
+                #region -- Check Voucher Details Table Header--
+
+                    var worksheet4 = package.Workbook.Worksheets.Add("CheckVoucherDetails");
+
+                    worksheet4.Cells["A1"].Value = "AccountNo";
+                    worksheet4.Cells["B1"].Value = "AccountName";
+                    worksheet4.Cells["C1"].Value = "TransactionNo";
+                    worksheet4.Cells["D1"].Value = "Debit";
+                    worksheet4.Cells["E1"].Value = "Credit";
+                    worksheet4.Cells["F1"].Value = "CVHeaderId";
+                    worksheet4.Cells["G1"].Value = "OriginalDocumentId";
+
+                #endregion -- Check Voucher Details Table Header --
+
+                #region -- Journal Voucher Header Table Header --
+
                 var worksheet = package.Workbook.Worksheets.Add("JournalVoucherHeader");
-                var worksheet2 = package.Workbook.Worksheets.Add("JournalVoucherDetails");
 
                 worksheet.Cells["A1"].Value = "TransactionDate";
                 worksheet.Cells["B1"].Value = "Reference";
@@ -769,13 +823,23 @@ namespace Accounting_System.Controllers
                 worksheet.Cells["J1"].Value = "OriginalJVNo";
                 worksheet.Cells["K1"].Value = "OriginalDocumentId";
 
+                #endregion -- Journal Voucher Header Table Header --
+
+                #region -- Journal Voucher Details Table Header --
+
+                var worksheet2 = package.Workbook.Worksheets.Add("JournalVoucherDetails");
+
                 worksheet2.Cells["A1"].Value = "AccountNo";
                 worksheet2.Cells["B1"].Value = "AccountName";
                 worksheet2.Cells["C1"].Value = "TransactionNo";
                 worksheet2.Cells["D1"].Value = "Debit";
                 worksheet2.Cells["E1"].Value = "Credit";
-                worksheet2.Cells["E1"].Value = "JVHeaderId";
-                worksheet2.Cells["F1"].Value = "OriginalDocumentId";
+                worksheet2.Cells["F1"].Value = "JVHeaderId";
+                worksheet2.Cells["G1"].Value = "OriginalDocumentId";
+
+                #endregion -- Journal Voucher Details Table Header --
+
+                #region -- Journal Voucher Header Export --
 
                 int row = 2;
 
@@ -796,6 +860,78 @@ namespace Accounting_System.Controllers
                     row++;
                 }
 
+                #endregion -- Journal Voucher Header Export --
+
+                #region -- Check Voucher Header Export --
+
+                int cvhRow = 2;
+
+                foreach (var item in selectedList)
+                {
+                    if (item.CheckVoucherHeader == null)
+                    {
+                        continue;
+                    }
+                    worksheet3.Cells[cvhRow, 1].Value = item.CheckVoucherHeader.Date.ToString("yyyy-MM-dd");
+                    if (item.CheckVoucherHeader.RRNo != null && !item.CheckVoucherHeader.RRNo.Contains(null))
+                    {
+                        worksheet3.Cells[cvhRow, 2].Value =
+                            string.Join(", ", item.CheckVoucherHeader.RRNo.Select(rrNo => rrNo.ToString()));
+                    }
+
+                    if (item.CheckVoucherHeader.SINo != null && !item.CheckVoucherHeader.SINo.Contains(null))
+                    {
+                        worksheet3.Cells[cvhRow, 3].Value =
+                            string.Join(", ", item.CheckVoucherHeader.SINo.Select(siNo => siNo.ToString()));
+                    }
+
+                    if (item.CheckVoucherHeader.PONo != null && !item.CheckVoucherHeader.PONo.Contains(null))
+                    {
+                        worksheet3.Cells[cvhRow, 4].Value =
+                            string.Join(", ", item.CheckVoucherHeader.PONo.Select(poNo => poNo.ToString()));
+                    }
+
+                    worksheet3.Cells[cvhRow, 5].Value = item.CheckVoucherHeader.Particulars;
+                    worksheet3.Cells[cvhRow, 6].Value = item.CheckVoucherHeader.CheckNo;
+                    worksheet3.Cells[cvhRow, 7].Value = item.CheckVoucherHeader.Category;
+                    worksheet3.Cells[cvhRow, 8].Value = item.CheckVoucherHeader.Payee;
+                    worksheet3.Cells[cvhRow, 9].Value = item.CheckVoucherHeader.CheckDate?.ToString("yyyy-MM-dd");
+                    worksheet3.Cells[cvhRow, 10].Value = item.CheckVoucherHeader.StartDate?.ToString("yyyy-MM-dd");
+                    worksheet3.Cells[cvhRow, 11].Value = item.CheckVoucherHeader.EndDate?.ToString("yyyy-MM-dd");
+                    worksheet3.Cells[cvhRow, 12].Value = item.CheckVoucherHeader.NumberOfMonths;
+                    worksheet3.Cells[cvhRow, 13].Value = item.CheckVoucherHeader.NumberOfMonthsCreated;
+                    worksheet3.Cells[cvhRow, 14].Value =
+                        item.CheckVoucherHeader.LastCreatedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet3.Cells[cvhRow, 15].Value = item.CheckVoucherHeader.AmountPerMonth;
+                    worksheet3.Cells[cvhRow, 16].Value = item.CheckVoucherHeader.IsComplete;
+                    worksheet3.Cells[cvhRow, 17].Value = item.CheckVoucherHeader.AccruedType;
+                    worksheet3.Cells[cvhRow, 18].Value = item.CheckVoucherHeader.Reference;
+                    worksheet3.Cells[cvhRow, 19].Value = item.CheckVoucherHeader.CreatedBy;
+                    worksheet3.Cells[cvhRow, 20].Value =
+                        item.CheckVoucherHeader.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet3.Cells[cvhRow, 21].Value = item.CheckVoucherHeader.Total;
+                    if (item.CheckVoucherHeader.Amount != null)
+                    {
+                        worksheet3.Cells[cvhRow, 22].Value =
+                            string.Join(" ", item.CheckVoucherHeader.Amount.Select(amount => amount.ToString("N2")));
+                    }
+
+                    worksheet3.Cells[cvhRow, 23].Value = item.CheckVoucherHeader.CheckAmount;
+                    worksheet3.Cells[cvhRow, 24].Value = item.CheckVoucherHeader.CvType;
+                    worksheet3.Cells[cvhRow, 25].Value = item.CheckVoucherHeader.AmountPaid;
+                    worksheet3.Cells[cvhRow, 26].Value = item.CheckVoucherHeader.IsPaid;
+                    worksheet3.Cells[cvhRow, 27].Value = item.CheckVoucherHeader.CancellationRemarks;
+                    worksheet3.Cells[cvhRow, 28].Value = item.CheckVoucherHeader.BankId;
+                    worksheet3.Cells[cvhRow, 29].Value = item.CheckVoucherHeader.CVNo;
+                    worksheet3.Cells[cvhRow, 30].Value = item.CheckVoucherHeader.SupplierId;
+                    worksheet3.Cells[cvhRow, 31].Value = item.CheckVoucherHeader.Id;
+
+                    cvhRow++;
+                }
+                #endregion -- Check Voucher Header Export --
+
+                #region -- Journal Voucher Details Export --
+
                 var jvNos = selectedList.Select(item => item.JVNo).ToList();
 
                 var getJVDetails = await _dbContext.JournalVoucherDetails
@@ -803,21 +939,48 @@ namespace Accounting_System.Controllers
                     .OrderBy(jvd => jvd.Id)
                     .ToListAsync();
 
-                int cvdRow = 2;
+                int jvdRow = 2;
 
                 foreach (var item in getJVDetails)
                 {
-                    worksheet2.Cells[cvdRow, 1].Value = item.AccountNo;
-                    worksheet2.Cells[cvdRow, 2].Value = item.AccountName;
-                    worksheet2.Cells[cvdRow, 3].Value = item.TransactionNo;
-                    worksheet2.Cells[cvdRow, 4].Value = item.Debit;
-                    worksheet2.Cells[cvdRow, 5].Value = item.Credit;
-                    worksheet2.Cells[cvdRow, 5].Value = item.JVHeaderId;
-                    worksheet2.Cells[cvdRow, 6].Value = item.Id;
+                    worksheet2.Cells[jvdRow, 1].Value = item.AccountNo;
+                    worksheet2.Cells[jvdRow, 2].Value = item.AccountName;
+                    worksheet2.Cells[jvdRow, 3].Value = item.TransactionNo;
+                    worksheet2.Cells[jvdRow, 4].Value = item.Debit;
+                    worksheet2.Cells[jvdRow, 5].Value = item.Credit;
+                    worksheet2.Cells[jvdRow, 6].Value = item.JVHeaderId;
+                    worksheet2.Cells[jvdRow, 7].Value = item.Id;
+
+                    jvdRow++;
+                }
+
+                #endregion -- Journal Voucher Details Export --
+
+                #region -- Check Voucher Details Export --
+
+                List<CheckVoucherDetail> getCVDetails = new List<CheckVoucherDetail>();
+
+                getCVDetails = await _dbContext.CheckVoucherDetails
+                    .Where(cvd => selectedList.Select(jvh => jvh.CheckVoucherHeader.CVNo).Contains(cvd.TransactionNo))
+                    .OrderBy(cvd => cvd.Id)
+                    .ToListAsync();
+
+                int cvdRow = 2;
+
+                foreach (var item in getCVDetails)
+                {
+                    worksheet4.Cells[cvdRow, 1].Value = item.AccountNo;
+                    worksheet4.Cells[cvdRow, 2].Value = item.AccountName;
+                    worksheet4.Cells[cvdRow, 3].Value = item.TransactionNo;
+                    worksheet4.Cells[cvdRow, 4].Value = item.Debit;
+                    worksheet4.Cells[cvdRow, 5].Value = item.Credit;
+                    worksheet4.Cells[cvdRow, 6].Value = item.CVHeaderId;
+                    worksheet4.Cells[cvdRow, 7].Value = item.Id;
 
                     cvdRow++;
                 }
 
+                #endregion -- Check Voucher Details Export --
 
                 // Convert the Excel package to a byte array
                 var excelBytes = await package.GetAsByteArrayAsync();

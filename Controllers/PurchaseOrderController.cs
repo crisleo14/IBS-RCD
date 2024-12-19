@@ -609,7 +609,7 @@ namespace Accounting_System.Controllers
             worksheet.Cells["M1"].Value = "IsClosed";
             worksheet.Cells["N1"].Value = "CancellationRemarks";
             worksheet.Cells["O1"].Value = "OriginalProductId";
-            worksheet.Cells["P1"].Value = "OriginalJVNo";
+            worksheet.Cells["P1"].Value = "OriginalPONo";
             worksheet.Cells["Q1"].Value = "OriginalSupplierId";
             worksheet.Cells["R1"].Value = "OriginalDocumentId";
 
@@ -663,7 +663,7 @@ namespace Accounting_System.Controllers
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-                
+
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -684,7 +684,7 @@ namespace Accounting_System.Controllers
                         var purchaseOrderList = await _dbContext
                             .PurchaseOrders
                             .ToListAsync(cancellationToken);
-                        
+
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var purchaseOrder = new PurchaseOrder
