@@ -890,10 +890,7 @@ namespace Accounting_System.Controllers
                         var invoiceList = await _dbContext
                             .SalesInvoices
                             .ToListAsync(cancellationToken);
-                        var customerMessage = new List<string>();
-                        var productMessage = new List<string>();
-                        var receivingReportMessage = new List<string>();
-                        var purchaseOrderMessage = new List<string>();
+
                         for (int row = 2; row <= rowCount; row++) // Assuming the first row is the header
                         {
                             var invoice = new SalesInvoice

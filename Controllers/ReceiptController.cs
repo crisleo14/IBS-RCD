@@ -1980,7 +1980,7 @@ namespace Accounting_System.Controllers
 
                 #region -- Service Invoice Table Header --
 
-                    var worksheet4 = package.Workbook.Worksheets.Add("ServiceInvoices");
+                    var worksheet4 = package.Workbook.Worksheets.Add("ServiceInvoice");
 
                     worksheet4.Cells["A1"].Value = "DueDate";
                     worksheet4.Cells["B1"].Value = "Period";
@@ -2274,6 +2274,10 @@ namespace Accounting_System.Controllers
 
                         var worksheet2 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "Offsetting");
 
+                        var worksheet3 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "SalesInvoice");
+
+                        var worksheet4 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "ServiceInvoice");
+
                         if (worksheet == null)
                         {
                             TempData["error"] = "The Excel file contains no worksheets.";
@@ -2284,6 +2288,155 @@ namespace Accounting_System.Controllers
                             TempData["error"] = "The Excel file is not related to collection receipt.";
                             return RedirectToAction(nameof(Index), new { view = DynamicView.CollectionReceipt });
                         }
+
+                        #region -- Sales Invoice Import --
+
+                        var siRowCount = worksheet3?.Dimension?.Rows ?? 0;
+                        var invoiceList = await _dbContext
+                            .SalesInvoices
+                            .ToListAsync(cancellationToken);
+
+                        for (int row = 2; row <= siRowCount; row++) // Assuming the first row is the header
+                        {
+                            if (worksheet3 == null || siRowCount == 0)
+                            {
+                                continue;
+                            }
+                            var invoice = new SalesInvoice
+                            {
+                                SINo = worksheet3.Cells[row, 21].Text,
+                                OtherRefNo = worksheet3.Cells[row, 1].Text,
+                                Quantity = decimal.TryParse(worksheet3.Cells[row, 2].Text, out decimal quantity)
+                                    ? quantity
+                                    : 0,
+                                UnitPrice = decimal.TryParse(worksheet3.Cells[row, 3].Text, out decimal unitPrice)
+                                    ? unitPrice
+                                    : 0,
+                                Amount =
+                                    decimal.TryParse(worksheet3.Cells[row, 4].Text, out decimal amount) ? amount : 0,
+                                Remarks = worksheet3.Cells[row, 5].Text,
+                                Status = worksheet3.Cells[row, 6].Text,
+                                TransactionDate =
+                                    DateOnly.TryParse(worksheet3.Cells[row, 7].Text, out DateOnly transactionDate)
+                                        ? transactionDate
+                                        : default,
+                                Discount = decimal.TryParse(worksheet3.Cells[row, 8].Text, out decimal discount)
+                                    ? discount
+                                    : 0,
+                                // AmountPaid = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amountPaid)
+                                //     ? amountPaid
+                                //     : 0,
+                                // Balance = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal balance)
+                                //     ? balance
+                                //     : 0,
+                                // IsPaid = bool.TryParse(worksheet.Cells[row, 11].Text, out bool isPaid) ? isPaid : false,
+                                // IsTaxAndVatPaid = bool.TryParse(worksheet.Cells[row, 12].Text, out bool isTaxAndVatPaid)
+                                //     ? isTaxAndVatPaid
+                                //     : false,
+                                DueDate = DateOnly.TryParse(worksheet3.Cells[row, 13].Text, out DateOnly dueDate)
+                                    ? dueDate
+                                    : default,
+                                CreatedBy = worksheet3.Cells[row, 14].Text,
+                                CreatedDate = DateTime.TryParse(worksheet3.Cells[row, 15].Text, out DateTime createdDate)
+                                    ? createdDate
+                                    : default,
+                                CancellationRemarks = worksheet3.Cells[row, 16].Text != ""
+                                    ? worksheet3.Cells[row, 16].Text
+                                    : null,
+                                OriginalCustomerId = int.TryParse(worksheet3.Cells[row, 18].Text, out int customerId)
+                                    ? customerId
+                                    : 0,
+                                OriginalProductId = int.TryParse(worksheet3.Cells[row, 20].Text, out int productId)
+                                    ? productId
+                                    : 0,
+                                OriginalSeriesNumber = worksheet3.Cells[row, 21].Text,
+                                OriginalDocumentId =
+                                    int.TryParse(worksheet3.Cells[row, 22].Text, out int originalDocumentId)
+                                        ? originalDocumentId
+                                        : 0,
+                            };
+
+                            if (invoiceList.Any(si => si.OriginalDocumentId == invoice.OriginalDocumentId))
+                            {
+                                continue;
+                            }
+
+                            invoice.CustomerId = await _dbContext.Customers
+                                                     .Where(c => c.OriginalCustomerId == invoice.OriginalCustomerId)
+                                                     .Select(c => (int?)c.Id)
+                                                     .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
+
+                            invoice.ProductId = await _dbContext.Products
+                                                    .Where(c => c.OriginalProductId == invoice.OriginalProductId)
+                                                    .Select(c => (int?)c.Id)
+                                                    .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the product master file first.");
+
+                            await _dbContext.SalesInvoices.AddAsync(invoice, cancellationToken);
+                        }
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+
+                        #endregion -- Sales Invoice Import --
+
+                        #region -- Service Invoice Import --
+
+                        var svRowCount = worksheet4?.Dimension?.Rows ?? 0;
+                        var serviceInvoiceList = await _dbContext
+                            .ServiceInvoices
+                            .ToListAsync(cancellationToken);
+
+                        for (int row = 2; row <= svRowCount; row++)  // Assuming the first row is the header
+                        {
+                            if (worksheet4 == null || svRowCount == 0)
+                            {
+                                continue;
+                            }
+                            var serviceInvoice = new ServiceInvoice
+                            {
+                                SVNo = worksheet4.Cells[row, 17].Text,
+                                DueDate = DateOnly.TryParse(worksheet4.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
+                                Period = DateOnly.TryParse(worksheet4.Cells[row, 2].Text, out DateOnly period) ? period : default,
+                                Amount = decimal.TryParse(worksheet4.Cells[row, 3].Text, out decimal amount) ? amount : 0,
+                                Total = decimal.TryParse(worksheet4.Cells[row, 4].Text, out decimal total) ? total : 0,
+                                Discount = decimal.TryParse(worksheet4.Cells[row, 5].Text, out decimal discount) ? discount : 0,
+                                CurrentAndPreviousAmount = decimal.TryParse(worksheet4.Cells[row, 6].Text, out decimal currentAndPreviousAmount) ? currentAndPreviousAmount : 0,
+                                UnearnedAmount = decimal.TryParse(worksheet4.Cells[row, 7].Text, out decimal unearnedAmount) ? unearnedAmount : 0,
+                                Status = worksheet4.Cells[row, 8].Text,
+                                // AmountPaid = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amountPaid) ? amountPaid : 0,
+                                // Balance = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal balance) ? balance : 0,
+                                Instructions = worksheet4.Cells[row, 11].Text,
+                                // IsPaid = bool.TryParse(worksheet.Cells[row, 12].Text, out bool isPaid) ? isPaid : false,
+                                CreatedBy = worksheet4.Cells[row, 13].Text,
+                                CreatedDate = DateTime.TryParse(worksheet4.Cells[row, 14].Text, out DateTime createdDate) ? createdDate : default,
+                                CancellationRemarks = worksheet4.Cells[row, 15].Text,
+                                OriginalCustomerId = int.TryParse(worksheet4.Cells[row, 16].Text, out int originalCustomerId) ? originalCustomerId : 0,
+                                OriginalSeriesNumber = worksheet4.Cells[row, 17].Text,
+                                OriginalServicesId = int.TryParse(worksheet4.Cells[row, 18].Text, out int originalServicesId) ? originalServicesId : 0,
+                                OriginalDocumentId = int.TryParse(worksheet4.Cells[row, 19].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                            };
+
+                            if (serviceInvoiceList.Any(sv => sv.OriginalDocumentId == serviceInvoice.OriginalDocumentId))
+                            {
+                                continue;
+                            }
+
+                            serviceInvoice.CustomerId = await _dbContext.Customers
+                                .Where(sv => sv.OriginalCustomerId == serviceInvoice.OriginalCustomerId)
+                                .Select(sv => (int?)sv.Id)
+                                .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
+
+                            serviceInvoice.ServicesId = await _dbContext.Services
+                                .Where(sv => sv.OriginalServiceId == serviceInvoice.OriginalServicesId)
+                                .Select(sv => (int?)sv.Id)
+                                .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the service master file first.");
+
+                            await _dbContext.ServiceInvoices.AddAsync(serviceInvoice, cancellationToken);
+                        }
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+
+                        #endregion -- Service Invoice Import --
+
+                        #region -- Collection Receipt Import --
 
                         var rowCount = worksheet.Dimension.Rows;
                         var collectionReceiptList = await _dbContext
@@ -2380,6 +2533,10 @@ namespace Accounting_System.Controllers
                         }
                         await _dbContext.SaveChangesAsync(cancellationToken);
 
+                        #endregion -- Collection Receipt Import --
+
+                        #region -- Offsetting Import --
+
                         var offsetRowCount = worksheet2.Dimension.Rows;
                         for (int offsetRow = 2; offsetRow <= offsetRowCount; offsetRow++)
                         {
@@ -2413,6 +2570,8 @@ namespace Accounting_System.Controllers
                         // {
                         //     continue;
                         // }
+
+                        #endregion -- Offsetting Import --
 
                     }
                 }

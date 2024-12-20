@@ -709,7 +709,7 @@ namespace Accounting_System.Controllers
             // Create the Excel package
             using var package = new ExcelPackage();
             // Add a new worksheet to the Excel package
-            var worksheet = package.Workbook.Worksheets.Add("ServiceInvoices");
+            var worksheet = package.Workbook.Worksheets.Add("ServiceInvoice");
 
             worksheet.Cells["A1"].Value = "DueDate";
             worksheet.Cells["B1"].Value = "Period";

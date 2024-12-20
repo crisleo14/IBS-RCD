@@ -883,7 +883,10 @@ namespace Accounting_System.Controllers
                 {
                     using (var package = new ExcelPackage(stream))
                     {
-                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                        var worksheet = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "ReceivingReport");
+
+                        var worksheet2 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "PurchaseOrder");
+
                         if (worksheet == null)
                         {
                             TempData["error"] = "The Excel file contains no worksheets.";
@@ -894,6 +897,86 @@ namespace Accounting_System.Controllers
                             TempData["error"] = "The Excel file is not related to receiving report.";
                             return RedirectToAction(nameof(Index), new { view = DynamicView.ReceivingReport });
                         }
+
+                        #region -- Purchase Order Import --
+
+                        var poRowCount = worksheet2?.Dimension?.Rows ?? 0;
+                        var purchaseOrderList = await _dbContext
+                            .PurchaseOrders
+                            .ToListAsync(cancellationToken);
+
+                        for (int row = 2; row <= poRowCount; row++)  // Assuming the first row is the header
+                        {
+                            if (worksheet2 == null || poRowCount == 0)
+                            {
+                                continue;
+                            }
+                            var purchaseOrder = new PurchaseOrder
+                            {
+                                PONo = worksheet2.Cells[row, 16].Text,
+                                Date = DateOnly.TryParse(worksheet2.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
+                                Terms = worksheet2.Cells[row, 2].Text,
+                                Quantity = decimal.TryParse(worksheet2.Cells[row, 3].Text, out decimal quantity) ? quantity : 0,
+                                Price = decimal.TryParse(worksheet2.Cells[row, 4].Text, out decimal price) ? price : 0,
+                                Amount = decimal.TryParse(worksheet2.Cells[row, 5].Text, out decimal amount) ? amount : 0,
+                                FinalPrice = decimal.TryParse(worksheet2.Cells[row, 6].Text, out decimal finalPrice) ? finalPrice : 0,
+                                // QuantityReceived = decimal.TryParse(worksheet.Cells[row, 7].Text, out decimal quantityReceived) ? quantityReceived : 0,
+                                // IsReceived = bool.TryParse(worksheet.Cells[row, 8].Text, out bool isReceived) ? isReceived : default,
+                                // ReceivedDate = DateTime.TryParse(worksheet.Cells[row, 9].Text, out DateTime receivedDate) ? receivedDate : default,
+                                Remarks = worksheet2.Cells[row, 10].Text,
+                                CreatedBy = worksheet2.Cells[row, 11].Text,
+                                CreatedDate = DateTime.TryParse(worksheet2.Cells[row, 12].Text, out DateTime createdDate) ? createdDate : default,
+                                IsClosed = bool.TryParse(worksheet2.Cells[row, 13].Text, out bool isClosed) ? isClosed : default,
+                                CancellationRemarks = worksheet2.Cells[row, 14].Text != "" ? worksheet2.Cells[row, 14].Text : null,
+                                OriginalProductId = int.TryParse(worksheet2.Cells[row, 15].Text, out int originalProductId) ? originalProductId : 0,
+                                OriginalSeriesNumber = worksheet2.Cells[row, 16].Text,
+                                OriginalSupplierId = int.TryParse(worksheet2.Cells[row, 17].Text, out int originalSupplierId) ? originalSupplierId : 0,
+                                OriginalDocumentId = int.TryParse(worksheet2.Cells[row, 18].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                            };
+
+                            if (purchaseOrderList.Any(po => po.OriginalDocumentId == purchaseOrder.OriginalDocumentId))
+                            {
+                                continue;
+                            }
+
+                            var getProduct = await _dbContext.Products
+                                .Where(p => p.OriginalProductId == purchaseOrder.OriginalProductId)
+                                .FirstOrDefaultAsync(cancellationToken);
+
+                            if (getProduct != null)
+                            {
+                                purchaseOrder.ProductId = getProduct.Id;
+
+                                purchaseOrder.ProductNo = getProduct.Code;
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException("Please upload the Excel file for the product master file first.");
+                            }
+
+                            var getSupplier = await _dbContext.Suppliers
+                                .Where(c => c.OriginalSupplierId == purchaseOrder.OriginalSupplierId)
+                                .FirstOrDefaultAsync(cancellationToken);
+
+                            if (getSupplier != null)
+                            {
+                                purchaseOrder.SupplierId = getSupplier.Id;
+
+                                purchaseOrder.SupplierNo = getSupplier.Number;
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException("Please upload the Excel file for the supplier master file first.");
+                            }
+
+                            await _dbContext.PurchaseOrders.AddAsync(purchaseOrder, cancellationToken);
+                        }
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+
+                        #endregion -- Purchase Order Import --
+
+                        #region -- Receiving Report Import --
 
                         var rowCount = worksheet.Dimension.Rows;
                         var receivingReportList = await _dbContext
@@ -944,8 +1027,11 @@ namespace Accounting_System.Controllers
 
                             await _dbContext.ReceivingReports.AddAsync(receivingReport, cancellationToken);
                         }
+
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         await transaction.CommitAsync(cancellationToken);
+
+                        #endregion -- Receiving Report Import --
                     }
                 }
                 catch (OperationCanceledException oce)

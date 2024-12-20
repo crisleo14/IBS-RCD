@@ -24,17 +24,20 @@ namespace Accounting_System.Controllers
 
         private readonly JournalVoucherRepo _journalVoucherRepo;
 
+        private readonly CheckVoucherRepo _checkVoucherRepo;
+
         private readonly IWebHostEnvironment _webHostEnvironment;
 
         private readonly GeneralRepo _generalRepo;
 
-        public JournalVoucherController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, IWebHostEnvironment webHostEnvironment, JournalVoucherRepo journalVoucherRepo, GeneralRepo generalRepo)
+        public JournalVoucherController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, IWebHostEnvironment webHostEnvironment, JournalVoucherRepo journalVoucherRepo, GeneralRepo generalRepo, CheckVoucherRepo checkVoucherRepo)
         {
             _dbContext = dbContext;
             _userManager = userManager;
             _webHostEnvironment = webHostEnvironment;
             _journalVoucherRepo = journalVoucherRepo;
             _generalRepo = generalRepo;
+            _checkVoucherRepo = checkVoucherRepo;
         }
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
@@ -755,6 +758,60 @@ namespace Accounting_System.Controllers
             using (var package = new ExcelPackage())
             {
                 // Add a new worksheet to the Excel package
+                #region -- Purchase Order Table Header --
+
+                var worksheet5 = package.Workbook.Worksheets.Add("PurchaseOrder");
+
+                worksheet5.Cells["A1"].Value = "Date";
+                worksheet5.Cells["B1"].Value = "Terms";
+                worksheet5.Cells["C1"].Value = "Quantity";
+                worksheet5.Cells["D1"].Value = "Price";
+                worksheet5.Cells["E1"].Value = "Amount";
+                worksheet5.Cells["F1"].Value = "FinalPrice";
+                worksheet5.Cells["G1"].Value = "QuantityReceived";
+                worksheet5.Cells["H1"].Value = "IsReceived";
+                worksheet5.Cells["I1"].Value = "ReceivedDate";
+                worksheet5.Cells["J1"].Value = "Remarks";
+                worksheet5.Cells["K1"].Value = "CreatedBy";
+                worksheet5.Cells["L1"].Value = "CreatedDate";
+                worksheet5.Cells["M1"].Value = "IsClosed";
+                worksheet5.Cells["N1"].Value = "CancellationRemarks";
+                worksheet5.Cells["O1"].Value = "OriginalProductId";
+                worksheet5.Cells["P1"].Value = "OriginalPONo";
+                worksheet5.Cells["Q1"].Value = "OriginalSupplierId";
+                worksheet5.Cells["R1"].Value = "OriginalDocumentId";
+
+                #endregion -- Purchase Order Table Header --
+
+                #region -- Receiving Report Table Header --
+
+                var worksheet6 = package.Workbook.Worksheets.Add("ReceivingReport");
+
+                worksheet6.Cells["A1"].Value = "Date";
+                worksheet6.Cells["B1"].Value = "DueDate";
+                worksheet6.Cells["C1"].Value = "SupplierInvoiceNumber";
+                worksheet6.Cells["D1"].Value = "SupplierInvoiceDate";
+                worksheet6.Cells["E1"].Value = "TruckOrVessels";
+                worksheet6.Cells["F1"].Value = "QuantityDelivered";
+                worksheet6.Cells["G1"].Value = "QuantityReceived";
+                worksheet6.Cells["H1"].Value = "GainOrLoss";
+                worksheet6.Cells["I1"].Value = "Amount";
+                worksheet6.Cells["J1"].Value = "OtherRef";
+                worksheet6.Cells["K1"].Value = "Remarks";
+                worksheet6.Cells["L1"].Value = "AmountPaid";
+                worksheet6.Cells["M1"].Value = "IsPaid";
+                worksheet6.Cells["N1"].Value = "PaidDate";
+                worksheet6.Cells["O1"].Value = "CanceledQuantity";
+                worksheet6.Cells["P1"].Value = "CreatedBy";
+                worksheet6.Cells["Q1"].Value = "CreatedDate";
+                worksheet6.Cells["R1"].Value = "CancellationRemarks";
+                worksheet6.Cells["S1"].Value = "ReceivedDate";
+                worksheet6.Cells["T1"].Value = "OriginalPOId";
+                worksheet6.Cells["U1"].Value = "OriginalRRNo";
+                worksheet6.Cells["V1"].Value = "OriginalDocumentId";
+
+                #endregion -- Receiving Report Table Header --
+
                 #region -- Check Voucher Header Table Header --
 
                     var worksheet3 = package.Workbook.Worksheets.Add("CheckVoucherHeader");
@@ -982,6 +1039,85 @@ namespace Accounting_System.Controllers
 
                 #endregion -- Check Voucher Details Export --
 
+                #region -- Receving Report Export --
+
+                List<ReceivingReport> getReceivingReport = new List<ReceivingReport>();
+
+                getReceivingReport = _dbContext.ReceivingReports
+                    .AsEnumerable()
+                    .Where(rr => selectedList?.Select(item => item?.CheckVoucherHeader?.RRNo).Any(rrs => rrs?.Contains(rr.RRNo) == true) == true)
+                    .OrderBy(rr => rr.RRNo)
+                    .ToList();
+
+                int rrRow = 2;
+
+                foreach (var item in getReceivingReport)
+                {
+                    worksheet6.Cells[rrRow, 1].Value = item.Date.ToString("yyyy-MM-dd");
+                    worksheet6.Cells[rrRow, 2].Value = item.DueDate.ToString("yyyy-MM-dd");
+                    worksheet6.Cells[rrRow, 3].Value = item.SupplierInvoiceNumber;
+                    worksheet6.Cells[rrRow, 4].Value = item.SupplierInvoiceDate;
+                    worksheet6.Cells[rrRow, 5].Value = item.TruckOrVessels;
+                    worksheet6.Cells[rrRow, 6].Value = item.QuantityDelivered;
+                    worksheet6.Cells[rrRow, 7].Value = item.QuantityReceived;
+                    worksheet6.Cells[rrRow, 8].Value = item.GainOrLoss;
+                    worksheet6.Cells[rrRow, 9].Value = item.Amount;
+                    worksheet6.Cells[rrRow, 10].Value = item.OtherRef;
+                    worksheet6.Cells[rrRow, 11].Value = item.Remarks;
+                    worksheet6.Cells[rrRow, 12].Value = item.AmountPaid;
+                    worksheet6.Cells[rrRow, 13].Value = item.IsPaid;
+                    worksheet6.Cells[rrRow, 14].Value = item.PaidDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet6.Cells[rrRow, 15].Value = item.CanceledQuantity;
+                    worksheet6.Cells[rrRow, 16].Value = item.CreatedBy;
+                    worksheet6.Cells[rrRow, 17].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet6.Cells[rrRow, 18].Value = item.CancellationRemarks;
+                    worksheet6.Cells[rrRow, 19].Value = item.ReceivedDate?.ToString("yyyy-MM-dd");
+                    worksheet6.Cells[rrRow, 20].Value = item.POId;
+                    worksheet6.Cells[rrRow, 21].Value = item.RRNo;
+                    worksheet6.Cells[rrRow, 22].Value = item.Id;
+
+                    rrRow++;
+                }
+
+                #endregion -- Receving Report Export --
+
+                #region -- Purchase Order Export --
+
+                List<PurchaseOrder> getPurchaseOrder = new List<PurchaseOrder>();
+
+                getPurchaseOrder = await _dbContext.PurchaseOrders
+                    .Where(po => getReceivingReport.Select(item => item.POId).Contains(po.Id))
+                    .OrderBy(po => po.PONo)
+                    .ToListAsync();
+
+                int poRow = 2;
+
+                foreach (var item in getPurchaseOrder)
+                {
+                    worksheet5.Cells[poRow, 1].Value = item.Date.ToString("yyyy-MM-dd");
+                    worksheet5.Cells[poRow, 2].Value = item.Terms;
+                    worksheet5.Cells[poRow, 3].Value = item.Quantity;
+                    worksheet5.Cells[poRow, 4].Value = item.Price;
+                    worksheet5.Cells[poRow, 5].Value = item.Amount;
+                    worksheet5.Cells[poRow, 6].Value = item.FinalPrice;
+                    worksheet5.Cells[poRow, 7].Value = item.QuantityReceived;
+                    worksheet5.Cells[poRow, 8].Value = item.IsReceived;
+                    worksheet5.Cells[poRow, 9].Value = item.ReceivedDate != default ? item.ReceivedDate.ToString("yyyy-MM-dd HH:mm:ss.ffffff zzz") : default;
+                    worksheet5.Cells[poRow, 10].Value = item.Remarks;
+                    worksheet5.Cells[poRow, 11].Value = item.CreatedBy;
+                    worksheet5.Cells[poRow, 12].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet5.Cells[poRow, 13].Value = item.IsClosed;
+                    worksheet5.Cells[poRow, 14].Value = item.CancellationRemarks;
+                    worksheet5.Cells[poRow, 15].Value = item.ProductId;
+                    worksheet5.Cells[poRow, 16].Value = item.PONo;
+                    worksheet5.Cells[poRow, 17].Value = item.SupplierId;
+                    worksheet5.Cells[poRow, 18].Value = item.Id;
+
+                    poRow++;
+                }
+
+                #endregion -- Purchase Order Export --
+
                 // Convert the Excel package to a byte array
                 var excelBytes = await package.GetAsByteArrayAsync();
 
@@ -1016,6 +1152,14 @@ namespace Accounting_System.Controllers
 
                         var worksheet2 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "JournalVoucherDetails");
 
+                        var worksheet3 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "PurchaseOrder");
+
+                        var worksheet4 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "ReceivingReport");
+
+                        var worksheet5 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "CheckVoucherHeader");
+
+                        var worksheet6 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "CheckVoucherDetails");
+
                         if (worksheet == null)
                         {
                             TempData["error"] = "The Excel file contains no worksheets of journal voucher header.";
@@ -1031,6 +1175,304 @@ namespace Accounting_System.Controllers
                             TempData["error"] = "The Excel file is not related to journal voucher.";
                             return RedirectToAction(nameof(Index), new { view = DynamicView.JournalVoucher });
                         }
+
+                        #region -- Purchase Order Import --
+
+                        var poRowCount = worksheet3?.Dimension?.Rows ?? 0;
+                        var purchaseOrderList = await _dbContext
+                            .PurchaseOrders
+                            .ToListAsync(cancellationToken);
+
+                        for (int row = 2; row <= poRowCount; row++)  // Assuming the first row is the header
+                        {
+                            if (worksheet3 == null || poRowCount == 0)
+                            {
+                                continue;
+                            }
+                            var purchaseOrder = new PurchaseOrder
+                            {
+                                PONo = worksheet3.Cells[row, 16].Text,
+                                Date = DateOnly.TryParse(worksheet3.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
+                                Terms = worksheet3.Cells[row, 2].Text,
+                                Quantity = decimal.TryParse(worksheet3.Cells[row, 3].Text, out decimal quantity) ? quantity : 0,
+                                Price = decimal.TryParse(worksheet3.Cells[row, 4].Text, out decimal price) ? price : 0,
+                                Amount = decimal.TryParse(worksheet3.Cells[row, 5].Text, out decimal amount) ? amount : 0,
+                                FinalPrice = decimal.TryParse(worksheet3.Cells[row, 6].Text, out decimal finalPrice) ? finalPrice : 0,
+                                // QuantityReceived = decimal.TryParse(worksheet.Cells[row, 7].Text, out decimal quantityReceived) ? quantityReceived : 0,
+                                // IsReceived = bool.TryParse(worksheet.Cells[row, 8].Text, out bool isReceived) ? isReceived : default,
+                                // ReceivedDate = DateTime.TryParse(worksheet.Cells[row, 9].Text, out DateTime receivedDate) ? receivedDate : default,
+                                Remarks = worksheet3.Cells[row, 10].Text,
+                                CreatedBy = worksheet3.Cells[row, 11].Text,
+                                CreatedDate = DateTime.TryParse(worksheet3.Cells[row, 12].Text, out DateTime createdDate) ? createdDate : default,
+                                IsClosed = bool.TryParse(worksheet3.Cells[row, 13].Text, out bool isClosed) ? isClosed : default,
+                                CancellationRemarks = worksheet3.Cells[row, 14].Text != "" ? worksheet3.Cells[row, 14].Text : null,
+                                OriginalProductId = int.TryParse(worksheet3.Cells[row, 15].Text, out int originalProductId) ? originalProductId : 0,
+                                OriginalSeriesNumber = worksheet3.Cells[row, 16].Text,
+                                OriginalSupplierId = int.TryParse(worksheet3.Cells[row, 17].Text, out int originalSupplierId) ? originalSupplierId : 0,
+                                OriginalDocumentId = int.TryParse(worksheet3.Cells[row, 18].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                            };
+
+                            if (purchaseOrderList.Any(po => po.OriginalDocumentId == purchaseOrder.OriginalDocumentId))
+                            {
+                                continue;
+                            }
+
+                            var getProduct = await _dbContext.Products
+                                .Where(p => p.OriginalProductId == purchaseOrder.OriginalProductId)
+                                .FirstOrDefaultAsync(cancellationToken);
+
+                            if (getProduct != null)
+                            {
+                                purchaseOrder.ProductId = getProduct.Id;
+
+                                purchaseOrder.ProductNo = getProduct.Code;
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException("Please upload the Excel file for the product master file first.");
+                            }
+
+                            var getSupplier = await _dbContext.Suppliers
+                                .Where(c => c.OriginalSupplierId == purchaseOrder.OriginalSupplierId)
+                                .FirstOrDefaultAsync(cancellationToken);
+
+                            if (getSupplier != null)
+                            {
+                                purchaseOrder.SupplierId = getSupplier.Id;
+
+                                purchaseOrder.SupplierNo = getSupplier.Number;
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException("Please upload the Excel file for the supplier master file first.");
+                            }
+
+                            await _dbContext.PurchaseOrders.AddAsync(purchaseOrder, cancellationToken);
+                        }
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+
+                        #endregion -- Purchase Order Import --
+
+                        #region -- Receiving Report Import --
+
+                        var rrRowCount = worksheet4?.Dimension?.Rows ?? 0;
+                        var receivingReportList = await _dbContext
+                            .ReceivingReports
+                            .ToListAsync(cancellationToken);
+                        for (int row = 2; row <= rrRowCount; row++)  // Assuming the first row is the header
+                        {
+                            if (worksheet4 == null || rrRowCount == 0)
+                            {
+                                continue;
+                            }
+                            var receivingReport = new ReceivingReport
+                            {
+                                RRNo = worksheet4.Cells[row, 21].Text,
+                                Date = DateOnly.TryParse(worksheet4.Cells[row, 1].Text, out DateOnly date) ? date : default,
+                                DueDate = DateOnly.TryParse(worksheet4.Cells[row, 2].Text, out DateOnly dueDate) ? dueDate : default,
+                                SupplierInvoiceNumber = worksheet4.Cells[row, 3].Text != "" ? worksheet4.Cells[row, 3].Text : null,
+                                SupplierInvoiceDate = worksheet4.Cells[row, 4].Text,
+                                TruckOrVessels = worksheet4.Cells[row, 5].Text,
+                                QuantityDelivered = decimal.TryParse(worksheet4.Cells[row, 6].Text, out decimal quantityDelivered) ? quantityDelivered : 0,
+                                QuantityReceived = decimal.TryParse(worksheet4.Cells[row, 7].Text, out decimal quantityReceived) ? quantityReceived : 0,
+                                GainOrLoss = decimal.TryParse(worksheet4.Cells[row, 8].Text, out decimal gainOrLoss) ? gainOrLoss : 0,
+                                Amount = decimal.TryParse(worksheet4.Cells[row, 9].Text, out decimal amount) ? amount : 0,
+                                OtherRef = worksheet4.Cells[row, 10].Text != "" ? worksheet4.Cells[row, 13].Text : null,
+                                Remarks = worksheet4.Cells[row, 11].Text,
+                                // AmountPaid = decimal.TryParse(worksheet.Cells[row, 12].Text, out decimal amountPaid) ? amountPaid : 0,
+                                // IsPaid = bool.TryParse(worksheet.Cells[row, 13].Text, out bool IsPaid) ? IsPaid : default,
+                                // PaidDate = DateTime.TryParse(worksheet.Cells[row, 14].Text, out DateTime paidDate) ? paidDate : DateTime.MinValue,
+                                // CanceledQuantity = decimal.TryParse(worksheet.Cells[row, 15].Text, out decimal netAmountOfEWT) ? netAmountOfEWT : 0,
+                                CreatedBy = worksheet4.Cells[row, 16].Text,
+                                CreatedDate = DateTime.TryParse(worksheet4.Cells[row, 17].Text, out DateTime createdDate) ? createdDate : default,
+                                CancellationRemarks = worksheet4.Cells[row, 18].Text != "" ? worksheet4.Cells[row, 18].Text : null,
+                                ReceivedDate = DateOnly.TryParse(worksheet4.Cells[row, 19].Text, out DateOnly receivedDate) ? receivedDate : default,
+                                OriginalPOId = int.TryParse(worksheet4.Cells[row, 20].Text, out int OriginalPOId) ? OriginalPOId : 0,
+                                OriginalSeriesNumber = worksheet4.Cells[row, 21].Text,
+                                OriginalDocumentId = int.TryParse(worksheet4.Cells[row, 22].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                            };
+
+                            //Checking for duplicate record
+                            if (receivingReportList.Any(rr => rr.OriginalDocumentId == receivingReport.OriginalDocumentId))
+                            {
+                                continue;
+                            }
+
+                            var getPo = await _dbContext
+                                .PurchaseOrders
+                                .Where(po => po.OriginalDocumentId == receivingReport.OriginalPOId)
+                                .FirstOrDefaultAsync(cancellationToken);
+
+                            receivingReport.POId = getPo.Id;
+                            receivingReport.PONo = getPo.PONo;
+
+                            await _dbContext.ReceivingReports.AddAsync(receivingReport, cancellationToken);
+                        }
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+
+                        #endregion -- Receiving Report Import --
+
+                        #region -- Check Voucher Header Import --
+
+                        var cvhRowCount = worksheet5?.Dimension?.Rows ?? 0;
+                        var checkVoucherHeadersList = await _dbContext
+                            .CheckVoucherHeaders
+                            .ToListAsync(cancellationToken);
+
+                        for (int row = 2; row <= cvhRowCount; row++) // Assuming the first row is the header
+                        {
+                            if (worksheet5 == null || cvhRowCount == 0)
+                            {
+                                continue;
+                            }
+                            var checkVoucherHeader = new CheckVoucherHeader
+                            {
+                                CVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken),
+                                Date = DateOnly.TryParse(worksheet5.Cells[row, 1].Text, out DateOnly date)
+                                    ? date
+                                    : default,
+                                RRNo = worksheet5.Cells[row, 2].Text.Split(',').Select(rrNo => rrNo.Trim()).ToArray(),
+                                SINo = worksheet5.Cells[row, 3].Text.Split(',').Select(siNo => siNo.Trim()).ToArray(),
+                                PONo = worksheet5.Cells[row, 4].Text.Split(',').Select(poNo => poNo.Trim()).ToArray(),
+                                Particulars = worksheet5.Cells[row, 5].Text,
+                                CheckNo = worksheet5.Cells[row, 6].Text,
+                                Category = worksheet5.Cells[row, 7].Text,
+                                Payee = worksheet5.Cells[row, 8].Text,
+                                CheckDate = DateOnly.TryParse(worksheet5.Cells[row, 9].Text, out DateOnly checkDate)
+                                    ? checkDate
+                                    : default,
+                                StartDate = DateOnly.TryParse(worksheet5.Cells[row, 10].Text, out DateOnly startDate)
+                                    ? startDate
+                                    : default,
+                                EndDate = DateOnly.TryParse(worksheet5.Cells[row, 11].Text, out DateOnly endDate)
+                                    ? endDate
+                                    : default,
+                                NumberOfMonths = int.TryParse(worksheet5.Cells[row, 12].Text, out int numberOfMonths)
+                                    ? numberOfMonths
+                                    : 0,
+                                NumberOfMonthsCreated =
+                                    int.TryParse(worksheet5.Cells[row, 13].Text, out int numberOfMonthsCreated)
+                                        ? numberOfMonthsCreated
+                                        : 0,
+                                LastCreatedDate =
+                                    DateTime.TryParse(worksheet5.Cells[row, 14].Text, out DateTime lastCreatedDate)
+                                        ? lastCreatedDate
+                                        : default,
+                                AmountPerMonth =
+                                    decimal.TryParse(worksheet5.Cells[row, 15].Text, out decimal amountPerMonth)
+                                        ? amountPerMonth
+                                        : 0,
+                                IsComplete = bool.TryParse(worksheet5.Cells[row, 16].Text, out bool isComplete)
+                                    ? isComplete
+                                    : false,
+                                AccruedType = worksheet5.Cells[row, 17].Text,
+                                Reference = worksheet5.Cells[row, 18].Text,
+                                CreatedBy = worksheet5.Cells[row, 19].Text,
+                                CreatedDate = DateTime.TryParse(worksheet5.Cells[row, 20].Text, out DateTime createdDate)
+                                    ? createdDate
+                                    : default,
+                                Total = decimal.TryParse(worksheet5.Cells[row, 21].Text, out decimal total) ? total : 0,
+                                Amount = worksheet5.Cells[row, 22].Text.Split(' ').Select(arrayAmount =>
+                                    decimal.TryParse(arrayAmount.Trim(), out decimal amount) ? amount : 0).ToArray(),
+                                CheckAmount = decimal.TryParse(worksheet5.Cells[row, 23].Text, out decimal checkAmount)
+                                    ? checkAmount
+                                    : 0,
+                                CvType = worksheet5.Cells[row, 24].Text,
+                                AmountPaid = decimal.TryParse(worksheet5.Cells[row, 25].Text, out decimal amountPaid)
+                                    ? amountPaid
+                                    : 0,
+                                IsPaid = bool.TryParse(worksheet5.Cells[row, 26].Text, out bool isPaid) ? isPaid : false,
+                                CancellationRemarks = worksheet5.Cells[row, 27].Text,
+                                OriginalBankId = int.TryParse(worksheet5.Cells[row, 28].Text, out int originalBankId)
+                                    ? originalBankId
+                                    : 0,
+                                OriginalSeriesNumber = worksheet5.Cells[row, 29].Text,
+                                OriginalSupplierId =
+                                    int.TryParse(worksheet5.Cells[row, 30].Text, out int originalSupplierId)
+                                        ? originalSupplierId
+                                        : 0,
+                                OriginalDocumentId =
+                                    int.TryParse(worksheet5.Cells[row, 31].Text, out int originalDocumentId)
+                                        ? originalDocumentId
+                                        : 0,
+                            };
+
+                            if (checkVoucherHeadersList.Any(cv =>
+                                    cv.OriginalDocumentId == checkVoucherHeader.OriginalDocumentId))
+                            {
+                                continue;
+                            }
+
+                            checkVoucherHeader.SupplierId = await _dbContext.Suppliers
+                                                                .Where(supp =>
+                                                                    supp.OriginalSupplierId ==
+                                                                    checkVoucherHeader.OriginalSupplierId)
+                                                                .Select(supp => (int?)supp.Id)
+                                                                .FirstOrDefaultAsync(cancellationToken) ??
+                                                            throw new InvalidOperationException(
+                                                                "Please upload the Excel file for the supplier master file first.");
+
+                            if (checkVoucherHeader.CvType != "Invoicing")
+                            {
+                                checkVoucherHeader.BankId = await _dbContext.BankAccounts
+                                                                .Where(bank =>
+                                                                    bank.OriginalBankId ==
+                                                                    checkVoucherHeader.OriginalBankId)
+                                                                .Select(bank => (int?)bank.Id)
+                                                                .FirstOrDefaultAsync(cancellationToken) ??
+                                                            throw new InvalidOperationException(
+                                                                "Please upload the Excel file for the bank account master file first.");
+                            }
+
+                            await _dbContext.CheckVoucherHeaders.AddAsync(checkVoucherHeader, cancellationToken);
+                            await _dbContext.SaveChangesAsync(cancellationToken);
+                        }
+
+                        #endregion -- Check Voucher Header Import --
+
+                        #region -- Check Voucher Details Import --
+
+                        var cvdRowCount = worksheet6?.Dimension?.Rows ?? 0;
+                        var checkVoucherDetailsList = await _dbContext
+                            .CheckVoucherDetails
+                            .ToListAsync(cancellationToken);
+
+                        for (int cvdRow = 2; cvdRow <= cvdRowCount; cvdRow++)
+                        {
+                            var checkVoucherDetails = new CheckVoucherDetail
+                            {
+                                AccountNo = worksheet6.Cells[cvdRow, 1].Text,
+                                AccountName = worksheet6.Cells[cvdRow, 2].Text,
+                                Debit = decimal.TryParse(worksheet6.Cells[cvdRow, 4].Text, out decimal debit)
+                                    ? debit
+                                    : 0,
+                                Credit = decimal.TryParse(worksheet6.Cells[cvdRow, 5].Text, out decimal credit)
+                                    ? credit
+                                    : 0
+                            };
+
+                            var cvHeader = await _dbContext.CheckVoucherHeaders
+                                .Where(cvh => cvh.OriginalDocumentId.ToString() == worksheet6.Cells[cvdRow, 6].Text)
+                                .FirstOrDefaultAsync(cancellationToken);
+
+                            checkVoucherDetails.CVHeaderId = cvHeader.Id;
+                            checkVoucherDetails.TransactionNo = cvHeader.CVNo;
+
+                            if (checkVoucherDetailsList.Any(cv =>
+                                    cv.CVHeaderId == int.Parse(worksheet6.Cells[cvdRow, 7].Text)))
+                            {
+                                continue;
+                            }
+
+                            await _dbContext.CheckVoucherDetails.AddAsync(checkVoucherDetails, cancellationToken);
+                        }
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+
+                        #endregion -- Check Voucher Details Import --
+
+                        #region -- Journal Voucher Header Import --
 
                         var rowCount = worksheet.Dimension.Rows;
                         var journalVoucherHeaderList = await _dbContext
@@ -1069,6 +1511,10 @@ namespace Accounting_System.Controllers
                         }
                         await _dbContext.SaveChangesAsync(cancellationToken);
 
+                        #endregion -- Journal Voucher Header Import --
+
+                        #region -- Journal Voucher Details Import --
+
                         if(journalVoucherHeaderList.Count <= 0)
                         {
                             var jvdRowCount = worksheet2.Dimension.Rows;
@@ -1103,6 +1549,9 @@ namespace Accounting_System.Controllers
                             await _dbContext.SaveChangesAsync(cancellationToken);
                             await transaction.CommitAsync(cancellationToken);
                         }
+
+                        #endregion -- Journal Voucher Details Import --
+
                     }
                 }
                 catch (OperationCanceledException oce)
