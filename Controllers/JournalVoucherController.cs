@@ -26,11 +26,15 @@ namespace Accounting_System.Controllers
 
         private readonly CheckVoucherRepo _checkVoucherRepo;
 
+        private readonly ReceivingReportRepo _receivingReportRepo;
+
+        private readonly PurchaseOrderRepo _purchaseOrderRepo;
+
         private readonly IWebHostEnvironment _webHostEnvironment;
 
         private readonly GeneralRepo _generalRepo;
 
-        public JournalVoucherController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, IWebHostEnvironment webHostEnvironment, JournalVoucherRepo journalVoucherRepo, GeneralRepo generalRepo, CheckVoucherRepo checkVoucherRepo)
+        public JournalVoucherController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, IWebHostEnvironment webHostEnvironment, JournalVoucherRepo journalVoucherRepo, GeneralRepo generalRepo, CheckVoucherRepo checkVoucherRepo, ReceivingReportRepo receivingReportRepo, PurchaseOrderRepo purchaseOrderRepo)
         {
             _dbContext = dbContext;
             _userManager = userManager;
@@ -38,6 +42,8 @@ namespace Accounting_System.Controllers
             _journalVoucherRepo = journalVoucherRepo;
             _generalRepo = generalRepo;
             _checkVoucherRepo = checkVoucherRepo;
+            _receivingReportRepo = receivingReportRepo;
+            _purchaseOrderRepo = purchaseOrderRepo;
         }
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
@@ -919,7 +925,7 @@ namespace Accounting_System.Controllers
 
                 #endregion -- Journal Voucher Header Export --
 
-                #region -- Check Voucher Header Export --
+                #region -- Check Voucher Header Export (Trade and Invoicing) --
 
                 int cvhRow = 2;
 
@@ -985,7 +991,54 @@ namespace Accounting_System.Controllers
 
                     cvhRow++;
                 }
-                #endregion -- Check Voucher Header Export --
+                #endregion -- Check Voucher Header Export (Trade and Invoicing) --
+
+                #region -- Check Voucher Header Export (Payment) --
+
+                var cvNos = selectedList.Select(item => item.CheckVoucherHeader.CVNo).ToList();
+
+                    var checkVoucherPayment = await _dbContext.CheckVoucherHeaders
+                        .Where(cvh => cvh.Reference != null && cvNos.Contains(cvh.Reference))
+                        .ToListAsync();
+
+                    foreach (var item in checkVoucherPayment)
+                    {
+                        worksheet3.Cells[row, 1].Value = item.Date.ToString("yyyy-MM-dd");
+                        worksheet3.Cells[row, 2].Value = item.RRNo;
+                        worksheet3.Cells[row, 3].Value = item.SINo;
+                        worksheet3.Cells[row, 4].Value = item.PONo;
+                        worksheet3.Cells[row, 5].Value = item.Particulars;
+                        worksheet3.Cells[row, 6].Value = item.CheckNo;
+                        worksheet3.Cells[row, 7].Value = item.Category;
+                        worksheet3.Cells[row, 8].Value = item.Payee;
+                        worksheet3.Cells[row, 9].Value = item.CheckDate?.ToString("yyyy-MM-dd");
+                        worksheet3.Cells[row, 10].Value = item.StartDate?.ToString("yyyy-MM-dd");
+                        worksheet3.Cells[row, 11].Value = item.EndDate?.ToString("yyyy-MM-dd");
+                        worksheet3.Cells[row, 12].Value = item.NumberOfMonths;
+                        worksheet3.Cells[row, 13].Value = item.NumberOfMonthsCreated;
+                        worksheet3.Cells[row, 14].Value = item.LastCreatedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                        worksheet3.Cells[row, 15].Value = item.AmountPerMonth;
+                        worksheet3.Cells[row, 16].Value = item.IsComplete;
+                        worksheet3.Cells[row, 17].Value = item.AccruedType;
+                        worksheet3.Cells[row, 18].Value = item.Reference;
+                        worksheet3.Cells[row, 19].Value = item.CreatedBy;
+                        worksheet3.Cells[row, 20].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                        worksheet3.Cells[row, 21].Value = item.Total;
+                        worksheet3.Cells[row, 22].Value = item.Amount != null ? string.Join(" ", item.Amount.Select(amount => amount.ToString("N2"))) : 0.00;
+                        worksheet3.Cells[row, 23].Value = item.CheckAmount;
+                        worksheet3.Cells[row, 24].Value = item.CvType;
+                        worksheet3.Cells[row, 25].Value = item.AmountPaid;
+                        worksheet3.Cells[row, 26].Value = item.IsPaid;
+                        worksheet3.Cells[row, 27].Value = item.CancellationRemarks;
+                        worksheet3.Cells[row, 28].Value = item.BankId;
+                        worksheet3.Cells[row, 29].Value = item.CVNo;
+                        worksheet3.Cells[row, 30].Value = item.SupplierId;
+                        worksheet3.Cells[row, 31].Value = item.Id;
+
+                        row++;
+                    }
+
+                #endregion -- Check Voucher Header Export (Payment) --
 
                 #region -- Journal Voucher Details Export --
 
@@ -1013,7 +1066,7 @@ namespace Accounting_System.Controllers
 
                 #endregion -- Journal Voucher Details Export --
 
-                #region -- Check Voucher Details Export --
+                #region -- Check Voucher Details Export (Trade and Invoicing) --
 
                 List<CheckVoucherDetail> getCVDetails = new List<CheckVoucherDetail>();
 
@@ -1037,7 +1090,31 @@ namespace Accounting_System.Controllers
                     cvdRow++;
                 }
 
-                #endregion -- Check Voucher Details Export --
+                #endregion -- Check Voucher Details Export (Trade and Invoicing) --
+
+                #region -- Check Voucher Details Export (Payment) --
+
+                List<CheckVoucherDetail> getCvPaymentDetails = new List<CheckVoucherDetail>();
+
+                getCvPaymentDetails = await _dbContext.CheckVoucherDetails
+                    .Where(cvd => checkVoucherPayment.Select(cvh => cvh.CVNo).Contains(cvd.TransactionNo))
+                    .OrderBy(cvd => cvd.Id)
+                    .ToListAsync();
+
+                foreach (var item in getCvPaymentDetails)
+                {
+                    worksheet3.Cells[cvdRow, 1].Value = item.AccountNo;
+                    worksheet3.Cells[cvdRow, 2].Value = item.AccountName;
+                    worksheet3.Cells[cvdRow, 3].Value = item.TransactionNo;
+                    worksheet3.Cells[cvdRow, 4].Value = item.Debit;
+                    worksheet3.Cells[cvdRow, 5].Value = item.Credit;
+                    worksheet3.Cells[cvdRow, 6].Value = item.CVHeaderId;
+                    worksheet3.Cells[cvdRow, 7].Value = item.Id;
+
+                    cvdRow++;
+                }
+
+                #endregion -- Check Voucher Details Export (Payment) --
 
                 #region -- Receving Report Export --
 
@@ -1179,6 +1256,7 @@ namespace Accounting_System.Controllers
                         #region -- Purchase Order Import --
 
                         var poRowCount = worksheet3?.Dimension?.Rows ?? 0;
+                        var poDictionary = new Dictionary<string, bool>();
                         var purchaseOrderList = await _dbContext
                             .PurchaseOrders
                             .ToListAsync(cancellationToken);
@@ -1212,8 +1290,101 @@ namespace Accounting_System.Controllers
                                 OriginalDocumentId = int.TryParse(worksheet3.Cells[row, 18].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
 
+                            if (!poDictionary.TryAdd(purchaseOrder.OriginalSeriesNumber, true))
+                            {
+                                continue;
+                            }
+
                             if (purchaseOrderList.Any(po => po.OriginalDocumentId == purchaseOrder.OriginalDocumentId))
                             {
+                                var poChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                                var existingPO = await _dbContext.PurchaseOrders.FirstOrDefaultAsync(si => si.OriginalDocumentId == purchaseOrder.OriginalDocumentId, cancellationToken);
+
+                                if (existingPO.PONo != worksheet3.Cells[row, 16].Text)
+                                {
+                                    poChanges["PONo"] = (existingPO.PONo, worksheet3.Cells[row, 16].Text)!;
+                                }
+
+                                if (existingPO.Date.ToString("yyyy-MM-dd") != worksheet3.Cells[row, 1].Text)
+                                {
+                                    poChanges["Date"] = (existingPO.Date.ToString("yyyy-MM-dd"), worksheet3.Cells[row, 1].Text)!;
+                                }
+
+                                if (existingPO.Terms != worksheet3.Cells[row, 2].Text)
+                                {
+                                    poChanges["Terms"] = (existingPO.Terms, worksheet3.Cells[row, 2].Text)!;
+                                }
+
+                                if (existingPO.Quantity.ToString("F2") != decimal.Parse(worksheet3.Cells[row, 3].Text).ToString("F2"))
+                                {
+                                    poChanges["Quantity"] = (existingPO.Quantity.ToString("F2"), decimal.Parse(worksheet3.Cells[row, 3].Text).ToString("F2"))!;
+                                }
+
+                                if (existingPO.Price.ToString("F2") != decimal.Parse(worksheet3.Cells[row, 4].Text).ToString("F2"))
+                                {
+                                    poChanges["Price"] = (existingPO.Price.ToString("F2"), decimal.Parse(worksheet3.Cells[row, 4].Text).ToString("F2"))!;
+                                }
+
+                                if (existingPO.Amount.ToString("F2") != decimal.Parse(worksheet3.Cells[row, 5].Text).ToString("F2"))
+                                {
+                                    poChanges["Amount"] = (existingPO.Amount.ToString("F2"), decimal.Parse(worksheet3.Cells[row, 5].Text).ToString("F2"))!;
+                                }
+
+                                if (existingPO.FinalPrice?.ToString("F2") != decimal.Parse(worksheet3.Cells[row, 6].Text).ToString("F2"))
+                                {
+                                    poChanges["FinalPrice"] = (existingPO.FinalPrice?.ToString("F2"), decimal.Parse(worksheet3.Cells[row, 6].Text).ToString("F2"))!;
+                                }
+
+                                if (existingPO.Remarks != worksheet3.Cells[row, 10].Text)
+                                {
+                                    poChanges["Remarks"] = (existingPO.Remarks, worksheet3.Cells[row, 10].Text)!;
+                                }
+
+                                if (existingPO.CreatedBy != worksheet3.Cells[row, 11].Text)
+                                {
+                                    poChanges["CreatedBy"] = (existingPO.CreatedBy, worksheet3.Cells[row, 11].Text)!;
+                                }
+
+                                if (existingPO.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff") != worksheet3.Cells[row, 12].Text)
+                                {
+                                    poChanges["CreatedDate"] = (existingPO.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff"), worksheet3.Cells[row, 12].Text)!;
+                                }
+
+                                if (existingPO.IsClosed.ToString().ToUpper() != worksheet3.Cells[row, 13].Text)
+                                {
+                                    poChanges["IsClosed"] = (existingPO.IsClosed.ToString().ToUpper(), worksheet3.Cells[row, 13].Text)!;
+                                }
+
+                                if ((string.IsNullOrWhiteSpace(existingPO.CancellationRemarks) ? "" : existingPO.CancellationRemarks) != worksheet3.Cells[row, 14].Text)
+                                {
+                                    poChanges["CancellationRemarks"] = (existingPO.CancellationRemarks, worksheet3.Cells[row, 14].Text)!;
+                                }
+
+                                if (existingPO.OriginalProductId.ToString() != (worksheet3.Cells[row, 15].Text == "" ? 0.ToString() : worksheet3.Cells[row, 15].Text))
+                                {
+                                    poChanges["OriginalProductId"] = (existingPO.OriginalProductId.ToString(), worksheet3.Cells[row, 15].Text == "" ? 0.ToString() : worksheet3.Cells[row, 15].Text)!;
+                                }
+
+                                if (existingPO.OriginalSeriesNumber != worksheet3.Cells[row, 16].Text)
+                                {
+                                    poChanges["OriginalSeriesNumber"] = (existingPO.OriginalSeriesNumber, worksheet3.Cells[row, 16].Text)!;
+                                }
+
+                                if (existingPO.OriginalSupplierId.ToString() != (worksheet3.Cells[row, 17].Text == "" ? 0.ToString() : worksheet3.Cells[row, 17].Text))
+                                {
+                                    poChanges["SupplierId"] = (existingPO.SupplierId.ToString(), worksheet3.Cells[row, 17].Text == "" ? 0.ToString() : worksheet3.Cells[row, 17].Text)!;
+                                }
+
+                                if (existingPO.OriginalDocumentId.ToString() != (worksheet3.Cells[row, 18].Text == "" ? 0.ToString() : worksheet3.Cells[row, 18].Text))
+                                {
+                                    poChanges["OriginalDocumentId"] = (existingPO.OriginalDocumentId.ToString(), worksheet3.Cells[row, 18].Text == "" ? 0.ToString() : worksheet3.Cells[row, 18].Text)!;
+                                }
+
+                                if (poChanges.Any())
+                                {
+                                    await _purchaseOrderRepo.LogChangesAsync(existingPO.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User));
+                                }
+
                                 continue;
                             }
 
@@ -1256,6 +1427,7 @@ namespace Accounting_System.Controllers
                         #region -- Receiving Report Import --
 
                         var rrRowCount = worksheet4?.Dimension?.Rows ?? 0;
+                        var rrDictionary = new Dictionary<string, bool>();
                         var receivingReportList = await _dbContext
                             .ReceivingReports
                             .ToListAsync(cancellationToken);
@@ -1277,7 +1449,7 @@ namespace Accounting_System.Controllers
                                 QuantityReceived = decimal.TryParse(worksheet4.Cells[row, 7].Text, out decimal quantityReceived) ? quantityReceived : 0,
                                 GainOrLoss = decimal.TryParse(worksheet4.Cells[row, 8].Text, out decimal gainOrLoss) ? gainOrLoss : 0,
                                 Amount = decimal.TryParse(worksheet4.Cells[row, 9].Text, out decimal amount) ? amount : 0,
-                                OtherRef = worksheet4.Cells[row, 10].Text != "" ? worksheet4.Cells[row, 13].Text : null,
+                                OtherRef = worksheet4.Cells[row, 10].Text != "" ? worksheet4.Cells[row, 10].Text : null,
                                 Remarks = worksheet4.Cells[row, 11].Text,
                                 // AmountPaid = decimal.TryParse(worksheet.Cells[row, 12].Text, out decimal amountPaid) ? amountPaid : 0,
                                 // IsPaid = bool.TryParse(worksheet.Cells[row, 13].Text, out bool IsPaid) ? IsPaid : default,
@@ -1292,9 +1464,117 @@ namespace Accounting_System.Controllers
                                 OriginalDocumentId = int.TryParse(worksheet4.Cells[row, 22].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
 
+                            if (!rrDictionary.TryAdd(receivingReport.OriginalSeriesNumber, true))
+                            {
+                                continue;
+                            }
+
                             //Checking for duplicate record
                             if (receivingReportList.Any(rr => rr.OriginalDocumentId == receivingReport.OriginalDocumentId))
                             {
+                                var rrChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                                var existingRR = await _dbContext.ReceivingReports.FirstOrDefaultAsync(rr => rr.OriginalDocumentId == receivingReport.OriginalDocumentId, cancellationToken);
+
+                                if (existingRR.RRNo != worksheet4.Cells[row, 21].Text)
+                                {
+                                    rrChanges["RRNo"] = (existingRR.RRNo, worksheet4.Cells[row, 21].Text)!;
+                                }
+
+                                if (existingRR.Date.ToString("yyyy-MM-dd") != worksheet4.Cells[row, 1].Text)
+                                {
+                                    rrChanges["Date"] = (existingRR.Date.ToString("yyyy-MM-dd"), worksheet4.Cells[row, 1].Text)!;
+                                }
+
+                                if (existingRR.DueDate.ToString("yyyy-MM-dd") != worksheet4.Cells[row, 2].Text)
+                                {
+                                    rrChanges["DueDate"] = (existingRR.DueDate.ToString("yyyy-MM-dd"), worksheet4.Cells[row, 2].Text)!;
+                                }
+
+                                if (existingRR.SupplierInvoiceNumber != (worksheet4.Cells[row, 3].Text == "" ? null : worksheet4.Cells[row, 3].Text))
+                                {
+                                    rrChanges["SupplierInvoiceNumber"] = (existingRR.SupplierInvoiceNumber, worksheet4.Cells[row, 3].Text == "" ? null : worksheet4.Cells[row, 3].Text)!;
+                                }
+
+                                if (existingRR.SupplierInvoiceDate != worksheet4.Cells[row, 4].Text)
+                                {
+                                    rrChanges["SupplierInvoiceDate"] = (existingRR.SupplierInvoiceDate, worksheet4.Cells[row, 4].Text)!;
+                                }
+
+                                if (existingRR.TruckOrVessels != worksheet4.Cells[row, 5].Text)
+                                {
+                                    rrChanges["TruckOrVessels"] = (existingRR.TruckOrVessels, worksheet4.Cells[row, 5].Text)!;
+                                }
+
+                                if (existingRR.QuantityDelivered.ToString("F2") != decimal.Parse(worksheet4.Cells[row, 6].Text).ToString("F2"))
+                                {
+                                    rrChanges["QuantityDelivered"] = (existingRR.QuantityDelivered.ToString("F2"), decimal.Parse(worksheet4.Cells[row, 6].Text).ToString("F2"))!;
+                                }
+
+                                if (existingRR.QuantityReceived.ToString("F2") != decimal.Parse(worksheet4.Cells[row, 7].Text).ToString("F2"))
+                                {
+                                    rrChanges["QuantityReceived"] = (existingRR.QuantityReceived.ToString("F2"), decimal.Parse(worksheet4.Cells[row, 7].Text).ToString("F2"))!;
+                                }
+
+                                if (existingRR.GainOrLoss.ToString("F2") != decimal.Parse(worksheet4.Cells[row, 8].Text).ToString("F2"))
+                                {
+                                    rrChanges["GainOrLoss"] = (existingRR.GainOrLoss.ToString("F2"), decimal.Parse(worksheet4.Cells[row, 8].Text).ToString("F2"))!;
+                                }
+
+                                if (existingRR.Amount.ToString("F2") != decimal.Parse(worksheet4.Cells[row, 9].Text).ToString("F2"))
+                                {
+                                    rrChanges["Amount"] = (existingRR.Amount.ToString("F2"), decimal.Parse(worksheet4.Cells[row, 9].Text).ToString("F2"))!;
+                                }
+
+                                if (existingRR.OtherRef != (worksheet4.Cells[row, 10].Text == "" ? null : worksheet4.Cells[row, 10].Text))
+                                {
+                                    rrChanges["OtherRef"] = (existingRR.OtherRef, worksheet4.Cells[row, 10].Text == "" ? null : worksheet4.Cells[row, 10].Text)!;
+                                }
+
+                                if (existingRR.Remarks != worksheet4.Cells[row, 11].Text)
+                                {
+                                    rrChanges["Remarks"] = (existingRR.Remarks, worksheet4.Cells[row, 11].Text)!;
+                                }
+
+                                if (existingRR.CreatedBy != worksheet4.Cells[row, 16].Text)
+                                {
+                                    rrChanges["CreatedBy"] = (existingRR.CreatedBy, worksheet4.Cells[row, 16].Text)!;
+                                }
+
+                                if (existingRR.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff") != worksheet4.Cells[row, 17].Text)
+                                {
+                                    rrChanges["CreatedDate"] = (existingRR.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff"), worksheet4.Cells[row, 17].Text)!;
+                                }
+
+                                if ((string.IsNullOrWhiteSpace(existingRR.CancellationRemarks) ? "" : existingRR.CancellationRemarks) != worksheet4.Cells[row, 18].Text)
+                                {
+                                    rrChanges["CancellationRemarks"] = (existingRR.CancellationRemarks, worksheet4.Cells[row, 18].Text)!;
+                                }
+
+                                if (existingRR.ReceivedDate?.ToString("yyyy-MM-dd") != (worksheet4.Cells[row, 19].Text == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet4.Cells[row, 19].Text))
+                                {
+                                    rrChanges["ReceivedDate"] = (existingRR.ReceivedDate?.ToString("yyyy-MM-dd"), worksheet4.Cells[row, 19].Text == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet4.Cells[row, 19].Text)!;
+                                }
+
+                                if (existingRR.OriginalPOId.ToString() != (worksheet4.Cells[row, 20].Text == "" ? 0.ToString() : worksheet4.Cells[row, 20].Text))
+                                {
+                                    rrChanges["OriginalPOId"] = (existingRR.OriginalPOId.ToString(), worksheet4.Cells[row, 20].Text == "" ? 0.ToString() : worksheet4.Cells[row, 20].Text)!;
+                                }
+
+                                if (existingRR.OriginalSeriesNumber != worksheet4.Cells[row, 21].Text)
+                                {
+                                    rrChanges["OriginalSeriesNumber"] = (existingRR.OriginalSeriesNumber, worksheet4.Cells[row, 21].Text)!;
+                                }
+
+                                if (existingRR.OriginalDocumentId.ToString() != (worksheet4.Cells[row, 22].Text == "" ? 0.ToString() : worksheet4.Cells[row, 22].Text))
+                                {
+                                    rrChanges["OriginalDocumentId"] = (existingRR.OriginalDocumentId.ToString(), worksheet4.Cells[row, 22].Text == "" ? 0.ToString() : worksheet4.Cells[row, 22].Text)!;
+                                }
+
+                                if (rrChanges.Any())
+                                {
+                                    await _receivingReportRepo.LogChangesAsync(existingRR.OriginalDocumentId, rrChanges, _userManager.GetUserName(this.User));
+                                }
+
                                 continue;
                             }
 
@@ -1316,6 +1596,7 @@ namespace Accounting_System.Controllers
                         #region -- Check Voucher Header Import --
 
                         var cvhRowCount = worksheet5?.Dimension?.Rows ?? 0;
+                        var cvDictionary = new Dictionary<string, bool>();
                         var checkVoucherHeadersList = await _dbContext
                             .CheckVoucherHeaders
                             .ToListAsync(cancellationToken);
@@ -1398,9 +1679,193 @@ namespace Accounting_System.Controllers
                                         : 0,
                             };
 
-                            if (checkVoucherHeadersList.Any(cv =>
-                                    cv.OriginalDocumentId == checkVoucherHeader.OriginalDocumentId))
+                            var cvhList = checkVoucherHeadersList.Any(cv => cv.OriginalDocumentId == checkVoucherHeader.OriginalDocumentId);
+                            var existingCV = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(si => si.OriginalDocumentId == checkVoucherHeader.OriginalDocumentId, cancellationToken);
+                            cvDictionary.TryAdd((existingCV != null ? existingCV.CVNo : checkVoucherHeader.CVNo) ?? checkVoucherHeader.CVNo, cvhList);
+
+                            if (cvhList)
                             {
+                                var cvChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+
+                                if (existingCV.Date.ToString("yyyy-MM-dd") != worksheet5.Cells[row, 1].Text)
+                                {
+                                    cvChanges["Date"] = (existingCV.Date.ToString("yyyy-MM-dd"), worksheet5.Cells[row, 1].Text)!;
+                                }
+
+                                var rrNo = existingCV.RRNo != null
+                                    ? string.Join(", ", existingCV.RRNo.Select(si => si.ToString()))
+                                    : null;
+                                if (rrNo != null && rrNo != worksheet5.Cells[row, 2].Text)
+                                {
+                                    cvChanges["RRNo"] = (string.Join(", ", existingCV.RRNo.Select(si => si.ToString())), worksheet5.Cells[row, 2].Text)!;
+                                }
+
+                                var siNo = existingCV.SINo != null
+                                    ? string.Join(", ", existingCV.SINo.Select(si => si.ToString()))
+                                    : null;
+                                if (siNo != null && siNo != worksheet5.Cells[row, 3].Text)
+                                {
+                                    cvChanges["SINo"] = (string.Join(", ", existingCV.SINo.Select(si => si.ToString())), worksheet5.Cells[row, 3].Text)!;
+                                }
+
+                                var poNo = existingCV.PONo != null
+                                    ? string.Join(", ", existingCV.PONo.Select(si => si.ToString()))
+                                    : null;
+                                if (poNo != null && poNo != worksheet5.Cells[row, 4].Text)
+                                {
+                                    cvChanges["PONo"] = (string.Join(", ", existingCV.PONo.Select(si => si.ToString())), worksheet5.Cells[row, 4].Text)!;
+                                }
+
+                                if (existingCV.Particulars != worksheet5.Cells[row, 5].Text)
+                                {
+                                    cvChanges["Particulars"] = (existingCV.Particulars, worksheet5.Cells[row, 5].Text)!;
+                                }
+
+                                if (existingCV.CheckNo != worksheet5.Cells[row, 6].Text)
+                                {
+                                    cvChanges["CheckNo"] = (existingCV.CheckNo, worksheet5.Cells[row, 6].Text)!;
+                                }
+
+                                if (existingCV.Category != worksheet5.Cells[row, 7].Text)
+                                {
+                                    cvChanges["Category"] = (existingCV.Category, worksheet5.Cells[row, 7].Text)!;
+                                }
+
+                                if (existingCV.Payee != worksheet5.Cells[row, 8].Text)
+                                {
+                                    cvChanges["Payee"] = (existingCV.Payee, worksheet5.Cells[row, 8].Text)!;
+                                }
+
+                                if (existingCV.CheckDate?.ToString("yyyy-MM-dd") != (worksheet5.Cells[row, 9].Text == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet5.Cells[row, 9].Text))
+                                {
+                                    cvChanges["CheckDate"] = (existingCV.CheckDate?.ToString("yyyy-MM-dd"), worksheet5.Cells[row, 9].Text == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet5.Cells[row, 9].Text)!;
+                                }
+
+                                if (existingCV.StartDate?.ToString("yyyy-MM-dd") != (worksheet5.Cells[row, 10].Text == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet5.Cells[row, 10].Text))
+                                {
+                                    cvChanges["StartDate"] = (existingCV.StartDate?.ToString("yyyy-MM-dd"), worksheet5.Cells[row, 10].Text == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet5.Cells[row, 10].Text)!;
+                                }
+
+                                if (existingCV.EndDate?.ToString("yyyy-MM-dd") != (worksheet5.Cells[row, 11].Text == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet5.Cells[row, 11].Text))
+                                {
+                                    cvChanges["EndDate"] = (existingCV.EndDate?.ToString("yyyy-MM-dd"), worksheet5.Cells[row, 11].Text == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet5.Cells[row, 11].Text)!;
+                                }
+
+                                if (existingCV.NumberOfMonths.ToString() != worksheet5.Cells[row, 12].Text)
+                                {
+                                    cvChanges["NumberOfMonths"] = (existingCV.NumberOfMonths.ToString(), worksheet5.Cells[row, 12].Text);
+                                }
+
+                                if (existingCV.NumberOfMonthsCreated.ToString() != worksheet5.Cells[row, 13].Text)
+                                {
+                                    cvChanges["NumberOfMonthsCreated"] = (existingCV.NumberOfMonthsCreated.ToString(), worksheet5.Cells[row, 13].Text);
+                                }
+
+                                if (existingCV.LastCreatedDate?.ToString("yyyy-MM-dd") != (worksheet5.Cells[row, 14].Text == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet5.Cells[row, 14].Text))
+                                {
+                                    cvChanges["LastCreatedDate"] = (existingCV.LastCreatedDate?.ToString("yyyy-MM-dd"), worksheet5.Cells[row, 14].Text == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet5.Cells[row, 14].Text)!;
+                                }
+
+                                if (existingCV.AmountPerMonth.ToString("F2") != decimal.Parse(worksheet5.Cells[row, 15].Text).ToString("F2"))
+                                {
+                                    cvChanges["AmountPerMonth"] = (existingCV.AmountPerMonth.ToString("F2"), decimal.Parse(worksheet5.Cells[row, 15].Text).ToString("F2"));
+                                }
+
+                                if (existingCV.IsComplete.ToString().ToUpper() != worksheet5.Cells[row, 16].Text)
+                                {
+                                    cvChanges["IsComplete"] = (existingCV.IsComplete.ToString().ToUpper(), worksheet5.Cells[row, 16].Text)!;
+                                }
+
+                                if (existingCV.AccruedType != worksheet5.Cells[row, 17].Text)
+                                {
+                                    cvChanges["AccruedType"] = (existingCV.AccruedType, worksheet5.Cells[row, 17].Text)!;
+                                }
+
+                                if (existingCV.CvType == "Payment")
+                                {
+                                    var getCvInvoicing = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cvh => existingCV.Reference == cvh.CVNo, cancellationToken);
+                                    if (getCvInvoicing != null && getCvInvoicing.OriginalSeriesNumber != worksheet5.Cells[row, 18].Text)
+                                    {
+                                        cvChanges["Reference"] = (getCvInvoicing.OriginalSeriesNumber, worksheet5.Cells[row, 18].Text)!;
+                                    }
+                                }
+
+                                if (existingCV.CreatedBy != worksheet5.Cells[row, 19].Text)
+                                {
+                                    cvChanges["CreatedBy"] = (existingCV.CreatedBy, worksheet5.Cells[row, 19].Text)!;
+                                }
+
+                                if (existingCV.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff") != worksheet5.Cells[row, 20].Text)
+                                {
+                                    cvChanges["CreatedDate"] = (existingCV.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff"), worksheet5.Cells[row, 20].Text)!;
+                                }
+
+                                if (existingCV.Total.ToString("F2") != decimal.Parse(worksheet5.Cells[row, 21].Text).ToString("F2"))
+                                {
+                                    cvChanges["Total"] = (existingCV.Total.ToString("F2"), decimal.Parse(worksheet5.Cells[row, 21].Text).ToString("F2"));
+                                }
+
+                                if (existingCV.Category == "Trade")
+                                {
+                                    var amount = existingCV.Amount != null
+                                        ? string.Join(" ", existingCV.Amount.Select(si => si.ToString("N4")))
+                                        : null;
+                                    if (amount != null && amount != worksheet5.Cells[row, 22].Text)
+                                    {
+                                        cvChanges["Amount"] = (string.Join(" ", existingCV.Amount.Select(si => si.ToString("F4"))), worksheet5.Cells[row, 22].Text)!;
+                                    }
+                                }
+
+                                if (existingCV.CheckAmount.ToString("F2") != decimal.Parse(worksheet5.Cells[row, 23].Text).ToString("F2"))
+                                {
+                                    cvChanges["CheckAmount"] = (existingCV.CheckAmount.ToString("F2"), decimal.Parse(worksheet5.Cells[row, 23].Text).ToString("F2"));
+                                }
+
+                                if (existingCV.CvType != worksheet5.Cells[row, 24].Text)
+                                {
+                                    cvChanges["CvType"] = (existingCV.CvType, worksheet5.Cells[row, 24].Text)!;
+                                }
+
+                                if (existingCV.AmountPaid.ToString("F2") != decimal.Parse(worksheet5.Cells[row, 25].Text).ToString("F2"))
+                                {
+                                    cvChanges["AmountPaid"] = (existingCV.AmountPaid.ToString("F2"), decimal.Parse(worksheet5.Cells[row, 25].Text).ToString("F2"));
+                                }
+
+                                if (existingCV.IsPaid.ToString().ToUpper() != worksheet5.Cells[row, 26].Text)
+                                {
+                                    cvChanges["IsPaid"] = (existingCV.IsPaid.ToString().ToUpper(), worksheet5.Cells[row, 26].Text)!;
+                                }
+
+                                if ((string.IsNullOrWhiteSpace(existingCV.CancellationRemarks) ? "" : existingCV.CancellationRemarks) != worksheet5.Cells[row, 27].Text)
+                                {
+                                    cvChanges["CancellationRemarks"] = (existingCV.CancellationRemarks, worksheet5.Cells[row, 27].Text)!;
+                                }
+
+                                if (existingCV.OriginalBankId.ToString() != (worksheet5.Cells[row, 28].Text != "" ? worksheet5.Cells[row, 28].Text : 0.ToString()))
+                                {
+                                    cvChanges["OriginalBankId"] = (existingCV.OriginalBankId.ToString(), worksheet5.Cells[row, 28].Text != "" ? worksheet5.Cells[row, 28].Text : 0.ToString())!;
+                                }
+
+                                if (existingCV.OriginalSeriesNumber != worksheet5.Cells[row, 29].Text)
+                                {
+                                    cvChanges["OriginalSeriesNumber"] = (existingCV.OriginalSeriesNumber, worksheet5.Cells[row, 29].Text)!;
+                                }
+
+                                if (existingCV.OriginalSupplierId.ToString() != worksheet5.Cells[row, 30].Text)
+                                {
+                                    cvChanges["OriginalSupplierId"] = (existingCV.OriginalSupplierId.ToString(), worksheet5.Cells[row, 30].Text)!;
+                                }
+
+                                if (existingCV.OriginalDocumentId.ToString() != worksheet5.Cells[row, 31].Text)
+                                {
+                                    cvChanges["OriginalDocumentId"] = (existingCV.OriginalDocumentId.ToString(), worksheet5.Cells[row, 31].Text)!;
+                                }
+
+                                if (cvChanges.Any())
+                                {
+                                    await _checkVoucherRepo.LogChangesAsync(existingCV.OriginalDocumentId, cvChanges, _userManager.GetUserName(this.User));
+                                }
+
                                 continue;
                             }
 
@@ -1434,9 +1899,6 @@ namespace Accounting_System.Controllers
                         #region -- Check Voucher Details Import --
 
                         var cvdRowCount = worksheet6?.Dimension?.Rows ?? 0;
-                        var checkVoucherDetailsList = await _dbContext
-                            .CheckVoucherDetails
-                            .ToListAsync(cancellationToken);
 
                         for (int cvdRow = 2; cvdRow <= cvdRowCount; cvdRow++)
                         {
@@ -1449,7 +1911,8 @@ namespace Accounting_System.Controllers
                                     : 0,
                                 Credit = decimal.TryParse(worksheet6.Cells[cvdRow, 5].Text, out decimal credit)
                                     ? credit
-                                    : 0
+                                    : 0,
+                                OriginalDocumentId = int.Parse(worksheet6.Cells[cvdRow, 7].Text)
                             };
 
                             var cvHeader = await _dbContext.CheckVoucherHeaders
@@ -1459,13 +1922,57 @@ namespace Accounting_System.Controllers
                             checkVoucherDetails.CVHeaderId = cvHeader.Id;
                             checkVoucherDetails.TransactionNo = cvHeader.CVNo;
 
-                            if (checkVoucherDetailsList.Any(cv =>
-                                    cv.CVHeaderId == int.Parse(worksheet6.Cells[cvdRow, 7].Text)))
+                            if (cvDictionary.TryGetValue(checkVoucherDetails.TransactionNo, out var value) && !value)
                             {
-                                continue;
+                                await _dbContext.CheckVoucherDetails.AddAsync(checkVoucherDetails, cancellationToken);
                             }
 
-                            await _dbContext.CheckVoucherDetails.AddAsync(checkVoucherDetails, cancellationToken);
+                            if (cvDictionary.TryGetValue(checkVoucherDetails.TransactionNo, out var boolean) && boolean)
+                            {
+                                var cvdChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                                var existingCVD = await _dbContext.CheckVoucherDetails
+                                    .Include(cvd => cvd.Header)
+                                    .FirstOrDefaultAsync(cvd => cvd.OriginalDocumentId == checkVoucherDetails.OriginalDocumentId, cancellationToken);
+
+                                if (existingCVD != null)
+                                {
+                                    if (existingCVD.AccountNo != worksheet6.Cells[cvdRow, 1].Text)
+                                    {
+                                        cvdChanges["AccountNo"] = (existingCVD.AccountNo, worksheet6.Cells[cvdRow, 1].Text)!;
+                                    }
+
+                                    if (existingCVD.AccountName != worksheet6.Cells[cvdRow, 2].Text)
+                                    {
+                                        cvdChanges["AccountName"] = (existingCVD.AccountName, worksheet6.Cells[cvdRow, 2].Text)!;
+                                    }
+
+                                    if (existingCVD.Header.OriginalSeriesNumber != worksheet6.Cells[cvdRow, 3].Text)
+                                    {
+                                        cvdChanges["TransactionNo"] = (existingCVD.Header.OriginalSeriesNumber, worksheet6.Cells[cvdRow, 3].Text)!;
+                                    }
+
+                                    if (existingCVD.Debit.ToString("F2") != decimal.Parse(worksheet6.Cells[cvdRow, 4].Text).ToString("F2"))
+                                    {
+                                        cvdChanges["Debit"] = (existingCVD.Debit.ToString("F2"), decimal.Parse(worksheet6.Cells[cvdRow, 4].Text).ToString("F2"));
+                                    }
+
+                                    if (existingCVD.Credit.ToString("F2") != decimal.Parse(worksheet6.Cells[cvdRow, 5].Text).ToString("F2"))
+                                    {
+                                        cvdChanges["Credit"] = (existingCVD.Credit.ToString("F2"), decimal.Parse(worksheet6.Cells[cvdRow, 5].Text).ToString("F2"));
+                                    }
+
+                                    if (existingCVD.Header.OriginalDocumentId.ToString("F0") != decimal.Parse(worksheet6.Cells[cvdRow, 6].Text).ToString("F0"))
+                                    {
+                                        cvdChanges["CVHeaderId"] = (existingCVD.Header.OriginalDocumentId.ToString("F0"), decimal.Parse(worksheet6.Cells[cvdRow, 6].Text).ToString("F0"));
+                                    }
+
+                                    if (cvdChanges.Any())
+                                    {
+                                        await _checkVoucherRepo.LogChangesForCVDAsync(existingCVD.OriginalDocumentId, cvdChanges, _userManager.GetUserName(this.User));
+                                    }
+                                }
+                                continue;
+                            }
                         }
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -1475,6 +1982,7 @@ namespace Accounting_System.Controllers
                         #region -- Journal Voucher Header Import --
 
                         var rowCount = worksheet.Dimension.Rows;
+                        var jvDictionary = new Dictionary<string, bool>();
                         var journalVoucherHeaderList = await _dbContext
                             .JournalVoucherHeaders
                             .ToListAsync(cancellationToken);
@@ -1497,8 +2005,79 @@ namespace Accounting_System.Controllers
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 11].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
 
-                            if (journalVoucherHeaderList.Any(jv => jv.OriginalDocumentId == journalVoucherHeader.OriginalDocumentId))
+                            var jvhList = journalVoucherHeaderList.Any(cv => cv.OriginalDocumentId == journalVoucherHeader.OriginalDocumentId);
+                            var existingJV = await _dbContext.JournalVoucherHeaders.FirstOrDefaultAsync(si => si.OriginalDocumentId == journalVoucherHeader.OriginalDocumentId, cancellationToken);
+                            jvDictionary.TryAdd((existingJV != null ? existingJV.JVNo : journalVoucherHeader.JVNo) ?? journalVoucherHeader.JVNo, jvhList);
+
+                            if (jvhList)
                             {
+                                var jvChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+
+                                if (existingJV.JVNo != worksheet.Cells[row, 10].Text)
+                                {
+                                    jvChanges["JVNo"] = (existingJV.JVNo, worksheet.Cells[row, 10].Text)!;
+                                }
+
+                                if (existingJV.Date.ToString("yyyy-MM-dd") != worksheet.Cells[row, 1].Text)
+                                {
+                                    jvChanges["Date"] = (existingJV.Date.ToString("yyyy-MM-dd"), worksheet.Cells[row, 1].Text)!;
+                                }
+
+                                if (existingJV.References != worksheet.Cells[row, 2].Text)
+                                {
+                                    jvChanges["References"] = (existingJV.References, worksheet.Cells[row, 2].Text)!;
+                                }
+
+                                if (existingJV.Particulars != worksheet.Cells[row, 3].Text)
+                                {
+                                    jvChanges["Particulars"] = (existingJV.Particulars, worksheet.Cells[row, 3].Text)!;
+                                }
+
+                                if (existingJV.CRNo != worksheet.Cells[row, 4].Text)
+                                {
+                                    jvChanges["CRNo"] = (existingJV.CRNo, worksheet.Cells[row, 4].Text)!;
+                                }
+
+                                if (existingJV.JVReason != worksheet.Cells[row, 5].Text)
+                                {
+                                    jvChanges["JVReason"] = (existingJV.JVReason, worksheet.Cells[row, 5].Text)!;
+                                }
+
+                                if (existingJV.CreatedBy != worksheet.Cells[row, 6].Text)
+                                {
+                                    jvChanges["CreatedBy"] = (existingJV.CreatedBy, worksheet.Cells[row, 6].Text)!;
+                                }
+
+                                if (existingJV.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff") != worksheet.Cells[row, 7].Text)
+                                {
+                                    jvChanges["CreatedDate"] = (existingJV.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff"), worksheet.Cells[row, 7].Text)!;
+                                }
+
+                                if ((string.IsNullOrWhiteSpace(existingJV.CancellationRemarks) ? "" : existingJV.CancellationRemarks) != worksheet.Cells[row, 8].Text)
+                                {
+                                    jvChanges["CancellationRemarks"] = (existingJV.CancellationRemarks, worksheet.Cells[row, 8].Text)!;
+                                }
+
+                                if (existingJV.OriginalCVId.ToString() != worksheet.Cells[row, 9].Text)
+                                {
+                                    jvChanges["OriginalCVId"] = (existingJV.OriginalCVId.ToString(), worksheet.Cells[row, 9].Text)!;
+                                }
+
+                                if (existingJV.OriginalSeriesNumber != worksheet.Cells[row, 10].Text)
+                                {
+                                    jvChanges["OriginalSeriesNumber"] = (existingJV.OriginalSeriesNumber, worksheet.Cells[row, 10].Text)!;
+                                }
+
+                                if (existingJV.OriginalDocumentId.ToString() != worksheet.Cells[row, 11].Text)
+                                {
+                                    jvChanges["OriginalDocumentId"] = (existingJV.OriginalDocumentId.ToString(), worksheet.Cells[row, 11].Text)!;
+                                }
+
+                                if (jvChanges.Any())
+                                {
+                                    await _journalVoucherRepo.LogChangesAsync(existingJV.OriginalDocumentId, jvChanges, _userManager.GetUserName(this.User));
+                                }
+
                                 continue;
                             }
 
@@ -1515,7 +2094,7 @@ namespace Accounting_System.Controllers
 
                         #region -- Journal Voucher Details Import --
 
-                        if(journalVoucherHeaderList.Count <= 0)
+                        if(journalVoucherHeaderList.Count >= 0)
                         {
                             var jvdRowCount = worksheet2.Dimension.Rows;
                             var journalVoucherDetailsList = await _dbContext
@@ -1530,21 +2109,72 @@ namespace Accounting_System.Controllers
                                     AccountName = worksheet2.Cells[jvdRow, 2].Text,
                                     Debit = decimal.TryParse(worksheet2.Cells[jvdRow, 4].Text, out decimal debit) ? debit : 0,
                                     Credit = decimal.TryParse(worksheet2.Cells[jvdRow, 5].Text, out decimal credit) ? credit : 0,
+                                    OriginalDocumentId = int.TryParse(worksheet2.Cells[jvdRow, 7].Text, out int originalDocumentId) ? originalDocumentId : 0
                                 };
-
-                                if (journalVoucherDetailsList.Any(jv => jv.JVHeaderId == int.Parse(worksheet2.Cells[jvdRow, 6].Text)))
-                                {
-                                    continue;
-                                }
 
                                 var jvHeader = await _dbContext.JournalVoucherHeaders
                                     .Where(jvh => jvh.OriginalSeriesNumber == worksheet2.Cells[jvdRow, 3].Text)
                                     .FirstOrDefaultAsync(cancellationToken);
 
-                                journalVoucherDetails.JVHeaderId = jvHeader.Id;
-                                journalVoucherDetails.TransactionNo = jvHeader.JVNo;
+                                if (jvHeader != null)
+                                {
+                                    journalVoucherDetails.JVHeaderId = jvHeader.Id;
+                                    journalVoucherDetails.TransactionNo = jvHeader.JVNo;
+                                }
 
-                                await _dbContext.JournalVoucherDetails.AddAsync(journalVoucherDetails, cancellationToken);
+                                if (jvDictionary.TryGetValue(journalVoucherDetails.TransactionNo, out var value) && !value)
+                                {
+                                    await _dbContext.JournalVoucherDetails.AddAsync(journalVoucherDetails, cancellationToken);
+                                }
+
+                                if (jvDictionary.TryGetValue(journalVoucherDetails.TransactionNo, out var boolean) && boolean)
+                                {
+                                    var jvdChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                                    var existingJVD = await _dbContext.CheckVoucherDetails
+                                        .Include(cvd => cvd.Header)
+                                        .FirstOrDefaultAsync(cvd => cvd.OriginalDocumentId == journalVoucherDetails.OriginalDocumentId, cancellationToken);
+
+                                    if (existingJVD != null)
+                                    {
+                                        if (existingJVD.AccountNo != worksheet2.Cells[jvdRow, 1].Text)
+                                        {
+                                            jvdChanges["AccountNo"] = (existingJVD.AccountNo,
+                                                worksheet2.Cells[jvdRow, 1].Text)!;
+                                        }
+
+                                        if (existingJVD.AccountName != worksheet2.Cells[jvdRow, 2].Text)
+                                        {
+                                            jvdChanges["AccountName"] = (existingJVD.AccountName, worksheet2.Cells[jvdRow, 2].Text)!;
+                                        }
+
+                                        if (existingJVD.Header.OriginalSeriesNumber != worksheet2.Cells[jvdRow, 3].Text)
+                                        {
+                                            jvdChanges["TransactionNo"] = (existingJVD.Header.OriginalSeriesNumber, worksheet2.Cells[jvdRow, 3].Text)!;
+                                        }
+
+                                        if (existingJVD.Debit.ToString("F2") != decimal.Parse(worksheet2.Cells[jvdRow, 4].Text).ToString("F2"))
+                                        {
+                                            jvdChanges["Debit"] = (existingJVD.Debit.ToString("F2"), decimal.Parse(worksheet2.Cells[jvdRow, 4].Text).ToString("F2"));
+                                        }
+
+                                        if (existingJVD.Credit.ToString("F2") != decimal.Parse(worksheet2.Cells[jvdRow, 5].Text).ToString("F2"))
+                                        {
+                                            jvdChanges["Credit"] = (existingJVD.Credit.ToString("F2"), decimal.Parse(worksheet2.Cells[jvdRow, 5].Text).ToString("F2"));
+                                        }
+
+                                        if (existingJVD.Header.OriginalDocumentId.ToString("F0") != decimal.Parse(worksheet2.Cells[jvdRow, 6].Text).ToString("F0"))
+                                        {
+                                            jvdChanges["JVHeaderId"] = (existingJVD.Header.OriginalDocumentId.ToString("F0"), decimal.Parse(worksheet2.Cells[jvdRow, 6].Text).ToString("F0"));
+                                        }
+
+                                        if (jvdChanges.Any())
+                                        {
+                                            await _checkVoucherRepo.LogChangesForCVDAsync(existingJVD.OriginalDocumentId, jvdChanges, _userManager.GetUserName(this.User));
+                                        }
+                                    }
+
+                                    continue;
+                                }
                             }
                             await _dbContext.SaveChangesAsync(cancellationToken);
                             await transaction.CommitAsync(cancellationToken);

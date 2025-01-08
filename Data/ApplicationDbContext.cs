@@ -50,6 +50,8 @@ namespace Accounting_System.Data
         public DbSet<SalesBook> SalesBooks { get; set; }
         public DbSet<BankAccount> BankAccounts { get; set; }
 
+        public DbSet<ImportExportLog> ImportExportLogs { get; set; }
+
         #region--Fluent API Implementation
 
         protected override void OnModelCreating(ModelBuilder builder)

@@ -1,5 +1,7 @@
 ﻿using Accounting_System.Data;
+using Accounting_System.Models;
 using Accounting_System.Models.AccountsReceivable;
+using Accounting_System.Utility;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Repository
@@ -138,6 +140,26 @@ namespace Accounting_System.Repository
             else
             {
                 throw new ArgumentException("No record found.");
+            }
+        }
+
+        public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy)
+        {
+            foreach (var change in changes)
+            {
+                var logReport = new ImportExportLog()
+                {
+                    Id = Guid.NewGuid(),
+                    TableName = nameof(DynamicView.SalesInvoice),
+                    DocumentRecordId = id,
+                    ColumnName = change.Key,
+                    Module = "Sales Invoice",
+                    OriginalValue = change.Value.OriginalValue,
+                    AdjustedValue = change.Value.NewValue,
+                    TimeStamp = DateTime.UtcNow.AddHours(8),
+                    UploadedBy = modifiedBy
+                };
+                await _dbContext.AddAsync(logReport);
             }
         }
     }

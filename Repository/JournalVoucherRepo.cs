@@ -41,5 +41,25 @@ namespace Accounting_System.Repository
                 return $"JV{1.ToString("D10")}";
             }
         }
+
+        public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy)
+        {
+            foreach (var change in changes)
+            {
+                var logReport = new ImportExportLog()
+                {
+                    Id = Guid.NewGuid(),
+                    TableName = "JournalVoucherHeaders",
+                    DocumentRecordId = id,
+                    ColumnName = change.Key,
+                    Module = "Journal Voucher Header",
+                    OriginalValue = change.Value.OriginalValue,
+                    AdjustedValue = change.Value.NewValue,
+                    TimeStamp = DateTime.UtcNow.AddHours(8),
+                    UploadedBy = modifiedBy
+                };
+                await _dbContext.AddAsync(logReport);
+            }
+        }
     }
 }

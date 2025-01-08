@@ -31,5 +31,7 @@ namespace Accounting_System.Models
 
         [ForeignKey("CVHeaderId")]
         public CheckVoucherHeader Header { get; set; }
+
+        public int? OriginalDocumentId { get; set; }
     }
 }

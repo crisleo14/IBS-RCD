@@ -24,15 +24,18 @@ namespace Accounting_System.Controllers
 
         private readonly ReceivingReportRepo _receivingReportRepo;
 
+        private readonly PurchaseOrderRepo _purchaseOrderRepo;
+
         private readonly GeneralRepo _generalRepo;
 
         private readonly InventoryRepo _inventoryRepo;
 
-        public ReceivingReportController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, ReceivingReportRepo receivingReportRepo, GeneralRepo generalRepo, InventoryRepo inventoryRepo)
+        public ReceivingReportController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, ReceivingReportRepo receivingReportRepo, GeneralRepo generalRepo, InventoryRepo inventoryRepo, PurchaseOrderRepo purchaseOrderRepo)
         {
             _dbContext = dbContext;
             _userManager = userManager;
             _receivingReportRepo = receivingReportRepo;
+            _purchaseOrderRepo = purchaseOrderRepo;
             _generalRepo = generalRepo;
             _inventoryRepo = inventoryRepo;
         }
@@ -901,9 +904,11 @@ namespace Accounting_System.Controllers
                         #region -- Purchase Order Import --
 
                         var poRowCount = worksheet2?.Dimension?.Rows ?? 0;
+                        var poDictionary = new Dictionary<string, bool>();
                         var purchaseOrderList = await _dbContext
                             .PurchaseOrders
                             .ToListAsync(cancellationToken);
+
 
                         for (int row = 2; row <= poRowCount; row++)  // Assuming the first row is the header
                         {
@@ -934,8 +939,101 @@ namespace Accounting_System.Controllers
                                 OriginalDocumentId = int.TryParse(worksheet2.Cells[row, 18].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
 
+                            if (!poDictionary.TryAdd(purchaseOrder.OriginalSeriesNumber, true))
+                            {
+                                continue;
+                            }
+
                             if (purchaseOrderList.Any(po => po.OriginalDocumentId == purchaseOrder.OriginalDocumentId))
                             {
+                                var poChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                                var existingPO = await _dbContext.PurchaseOrders.FirstOrDefaultAsync(si => si.OriginalDocumentId == purchaseOrder.OriginalDocumentId, cancellationToken);
+
+                                if (existingPO.PONo != worksheet2.Cells[row, 16].Text)
+                                {
+                                    poChanges["PONo"] = (existingPO.PONo, worksheet2.Cells[row, 16].Text)!;
+                                }
+
+                                if (existingPO.Date.ToString("yyyy-MM-dd") != worksheet2.Cells[row, 1].Text)
+                                {
+                                    poChanges["Date"] = (existingPO.Date.ToString("yyyy-MM-dd"), worksheet2.Cells[row, 1].Text)!;
+                                }
+
+                                if (existingPO.Terms != worksheet2.Cells[row, 2].Text)
+                                {
+                                    poChanges["Terms"] = (existingPO.Terms, worksheet2.Cells[row, 2].Text)!;
+                                }
+
+                                if (existingPO.Quantity.ToString("F2") != decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2"))
+                                {
+                                    poChanges["Quantity"] = (existingPO.Quantity.ToString("F2"), decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2"))!;
+                                }
+
+                                if (existingPO.Price.ToString("F2") != decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2"))
+                                {
+                                    poChanges["Price"] = (existingPO.Price.ToString("F2"), decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2"))!;
+                                }
+
+                                if (existingPO.Amount.ToString("F2") != decimal.Parse(worksheet2.Cells[row, 5].Text).ToString("F2"))
+                                {
+                                    poChanges["Amount"] = (existingPO.Amount.ToString("F2"), decimal.Parse(worksheet2.Cells[row, 5].Text).ToString("F2"))!;
+                                }
+
+                                if (existingPO.FinalPrice?.ToString("F2") != decimal.Parse(worksheet2.Cells[row, 6].Text).ToString("F2"))
+                                {
+                                    poChanges["FinalPrice"] = (existingPO.FinalPrice?.ToString("F2"), decimal.Parse(worksheet2.Cells[row, 6].Text).ToString("F2"))!;
+                                }
+
+                                if (existingPO.Remarks != worksheet2.Cells[row, 10].Text)
+                                {
+                                    poChanges["Remarks"] = (existingPO.Remarks, worksheet2.Cells[row, 10].Text)!;
+                                }
+
+                                if (existingPO.CreatedBy != worksheet2.Cells[row, 11].Text)
+                                {
+                                    poChanges["CreatedBy"] = (existingPO.CreatedBy, worksheet2.Cells[row, 11].Text)!;
+                                }
+
+                                if (existingPO.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff") != worksheet2.Cells[row, 12].Text)
+                                {
+                                    poChanges["CreatedDate"] = (existingPO.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff"), worksheet2.Cells[row, 12].Text)!;
+                                }
+
+                                if (existingPO.IsClosed.ToString().ToUpper() != worksheet2.Cells[row, 13].Text)
+                                {
+                                    poChanges["IsClosed"] = (existingPO.IsClosed.ToString().ToUpper(), worksheet2.Cells[row, 13].Text)!;
+                                }
+
+                                if ((string.IsNullOrWhiteSpace(existingPO.CancellationRemarks) ? "" : existingPO.CancellationRemarks) != worksheet2.Cells[row, 14].Text)
+                                {
+                                    poChanges["CancellationRemarks"] = (existingPO.CancellationRemarks, worksheet2.Cells[row, 14].Text)!;
+                                }
+
+                                if (existingPO.OriginalProductId.ToString() != (worksheet2.Cells[row, 15].Text == "" ? 0.ToString() : worksheet2.Cells[row, 15].Text))
+                                {
+                                    poChanges["OriginalProductId"] = (existingPO.OriginalProductId.ToString(), worksheet2.Cells[row, 15].Text == "" ? 0.ToString() : worksheet2.Cells[row, 15].Text)!;
+                                }
+
+                                if (existingPO.OriginalSeriesNumber != worksheet2.Cells[row, 16].Text)
+                                {
+                                    poChanges["OriginalSeriesNumber"] = (existingPO.OriginalSeriesNumber, worksheet2.Cells[row, 16].Text)!;
+                                }
+
+                                if (existingPO.OriginalSupplierId.ToString() != (worksheet2.Cells[row, 17].Text == "" ? 0.ToString() : worksheet2.Cells[row, 17].Text))
+                                {
+                                    poChanges["SupplierId"] = (existingPO.SupplierId.ToString(), worksheet2.Cells[row, 17].Text == "" ? 0.ToString() : worksheet2.Cells[row, 17].Text)!;
+                                }
+
+                                if (existingPO.OriginalDocumentId.ToString() != (worksheet2.Cells[row, 18].Text == "" ? 0.ToString() : worksheet2.Cells[row, 18].Text))
+                                {
+                                    poChanges["OriginalDocumentId"] = (existingPO.OriginalDocumentId.ToString(), worksheet2.Cells[row, 18].Text == "" ? 0.ToString() : worksheet.Cells[row, 18].Text)!;
+                                }
+
+                                if (poChanges.Any())
+                                {
+                                    await _purchaseOrderRepo.LogChangesAsync(existingPO.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User));
+                                }
+
                                 continue;
                             }
 
@@ -979,6 +1077,7 @@ namespace Accounting_System.Controllers
                         #region -- Receiving Report Import --
 
                         var rowCount = worksheet.Dimension.Rows;
+                        var rrDictionary = new Dictionary<string, bool>();
                         var receivingReportList = await _dbContext
                             .ReceivingReports
                             .ToListAsync(cancellationToken);
@@ -996,7 +1095,7 @@ namespace Accounting_System.Controllers
                                 QuantityReceived = decimal.TryParse(worksheet.Cells[row, 7].Text, out decimal quantityReceived) ? quantityReceived : 0,
                                 GainOrLoss = decimal.TryParse(worksheet.Cells[row, 8].Text, out decimal gainOrLoss) ? gainOrLoss : 0,
                                 Amount = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amount) ? amount : 0,
-                                OtherRef = worksheet.Cells[row, 10].Text != "" ? worksheet.Cells[row, 13].Text : null,
+                                OtherRef = worksheet.Cells[row, 10].Text != "" ? worksheet.Cells[row, 10].Text : null,
                                 Remarks = worksheet.Cells[row, 11].Text,
                                 // AmountPaid = decimal.TryParse(worksheet.Cells[row, 12].Text, out decimal amountPaid) ? amountPaid : 0,
                                 // IsPaid = bool.TryParse(worksheet.Cells[row, 13].Text, out bool IsPaid) ? IsPaid : default,
@@ -1011,9 +1110,117 @@ namespace Accounting_System.Controllers
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 22].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
 
+                            if (!rrDictionary.TryAdd(receivingReport.OriginalSeriesNumber, true))
+                            {
+                                continue;
+                            }
+
                             //Checking for duplicate record
                             if (receivingReportList.Any(rr => rr.OriginalDocumentId == receivingReport.OriginalDocumentId))
                             {
+                                var rrChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                                var existingRR = await _dbContext.ReceivingReports.FirstOrDefaultAsync(rr => rr.OriginalDocumentId == receivingReport.OriginalDocumentId, cancellationToken);
+
+                                if (existingRR.RRNo != worksheet.Cells[row, 21].Text)
+                                {
+                                    rrChanges["RRNo"] = (existingRR.RRNo, worksheet.Cells[row, 21].Text)!;
+                                }
+
+                                if (existingRR.Date.ToString("yyyy-MM-dd") != worksheet.Cells[row, 1].Text)
+                                {
+                                    rrChanges["Date"] = (existingRR.Date.ToString("yyyy-MM-dd"), worksheet.Cells[row, 1].Text)!;
+                                }
+
+                                if (existingRR.DueDate.ToString("yyyy-MM-dd") != worksheet.Cells[row, 2].Text)
+                                {
+                                    rrChanges["DueDate"] = (existingRR.DueDate.ToString("yyyy-MM-dd"), worksheet.Cells[row, 2].Text)!;
+                                }
+
+                                if (existingRR.SupplierInvoiceNumber != (worksheet.Cells[row, 3].Text == "" ? null : worksheet.Cells[row, 3].Text))
+                                {
+                                    rrChanges["SupplierInvoiceNumber"] = (existingRR.SupplierInvoiceNumber, worksheet.Cells[row, 3].Text == "" ? null : worksheet.Cells[row, 3].Text)!;
+                                }
+
+                                if (existingRR.SupplierInvoiceDate != worksheet.Cells[row, 4].Text)
+                                {
+                                    rrChanges["SupplierInvoiceDate"] = (existingRR.SupplierInvoiceDate, worksheet.Cells[row, 4].Text)!;
+                                }
+
+                                if (existingRR.TruckOrVessels != worksheet.Cells[row, 5].Text)
+                                {
+                                    rrChanges["TruckOrVessels"] = (existingRR.TruckOrVessels, worksheet.Cells[row, 5].Text)!;
+                                }
+
+                                if (existingRR.QuantityDelivered.ToString("F2") != decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2"))
+                                {
+                                    rrChanges["QuantityDelivered"] = (existingRR.QuantityDelivered.ToString("F2"), decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2"))!;
+                                }
+
+                                if (existingRR.QuantityReceived.ToString("F2") != decimal.Parse(worksheet.Cells[row, 7].Text).ToString("F2"))
+                                {
+                                    rrChanges["QuantityReceived"] = (existingRR.QuantityReceived.ToString("F2"), decimal.Parse(worksheet.Cells[row, 7].Text).ToString("F2"))!;
+                                }
+
+                                if (existingRR.GainOrLoss.ToString("F2") != decimal.Parse(worksheet.Cells[row, 8].Text).ToString("F2"))
+                                {
+                                    rrChanges["GainOrLoss"] = (existingRR.GainOrLoss.ToString("F2"), decimal.Parse(worksheet.Cells[row, 8].Text).ToString("F2"))!;
+                                }
+
+                                if (existingRR.Amount.ToString("F2") != decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2"))
+                                {
+                                    rrChanges["Amount"] = (existingRR.Amount.ToString("F2"), decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2"))!;
+                                }
+
+                                if (existingRR.OtherRef != (worksheet.Cells[row, 10].Text == "" ? null : worksheet.Cells[row, 10].Text))
+                                {
+                                    rrChanges["OtherRef"] = (existingRR.OtherRef, worksheet.Cells[row, 10].Text == "" ? null : worksheet.Cells[row, 10].Text)!;
+                                }
+
+                                if (existingRR.Remarks != worksheet.Cells[row, 11].Text)
+                                {
+                                    rrChanges["Remarks"] = (existingRR.Remarks, worksheet.Cells[row, 11].Text)!;
+                                }
+
+                                if (existingRR.CreatedBy != worksheet.Cells[row, 16].Text)
+                                {
+                                    rrChanges["CreatedBy"] = (existingRR.CreatedBy, worksheet.Cells[row, 16].Text)!;
+                                }
+
+                                if (existingRR.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff") != worksheet.Cells[row, 17].Text)
+                                {
+                                    rrChanges["CreatedDate"] = (existingRR.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff"), worksheet.Cells[row, 17].Text)!;
+                                }
+
+                                if ((string.IsNullOrWhiteSpace(existingRR.CancellationRemarks) ? "" : existingRR.CancellationRemarks) != worksheet.Cells[row, 18].Text)
+                                {
+                                    rrChanges["CancellationRemarks"] = (existingRR.CancellationRemarks, worksheet.Cells[row, 18].Text)!;
+                                }
+
+                                if (existingRR.ReceivedDate?.ToString("yyyy-MM-dd") != (worksheet.Cells[row, 19].Text == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet.Cells[row, 19].Text))
+                                {
+                                    rrChanges["ReceivedDate"] = (existingRR.ReceivedDate?.ToString("yyyy-MM-dd"), worksheet.Cells[row, 19].Text)!;
+                                }
+
+                                if (existingRR.OriginalPOId.ToString() != (worksheet.Cells[row, 20].Text == "" ? 0.ToString() : worksheet.Cells[row, 20].Text))
+                                {
+                                    rrChanges["OriginalPOId"] = (existingRR.OriginalPOId.ToString(), worksheet.Cells[row, 20].Text == "" ? 0.ToString() : worksheet.Cells[row, 20].Text)!;
+                                }
+
+                                if (existingRR.OriginalSeriesNumber != worksheet.Cells[row, 21].Text)
+                                {
+                                    rrChanges["OriginalSeriesNumber"] = (existingRR.OriginalSeriesNumber, worksheet.Cells[row, 21].Text)!;
+                                }
+
+                                if (existingRR.OriginalDocumentId.ToString() != (worksheet.Cells[row, 22].Text == "" ? 0.ToString() : worksheet.Cells[row, 22].Text))
+                                {
+                                    rrChanges["OriginalDocumentId"] = (existingRR.OriginalDocumentId.ToString(), worksheet.Cells[row, 22].Text == "" ? 0.ToString() : worksheet.Cells[row, 22].Text)!;
+                                }
+
+                                if (rrChanges.Any())
+                                {
+                                    await _receivingReportRepo.LogChangesAsync(existingRR.OriginalDocumentId, rrChanges, _userManager.GetUserName(this.User));
+                                }
+
                                 continue;
                             }
 

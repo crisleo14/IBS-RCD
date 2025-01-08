@@ -887,6 +887,7 @@ namespace Accounting_System.Controllers
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
+                        var siDictionary = new Dictionary<string, bool>();
                         var invoiceList = await _dbContext
                             .SalesInvoices
                             .ToListAsync(cancellationToken);
@@ -947,8 +948,106 @@ namespace Accounting_System.Controllers
                                         : 0,
                             };
 
+                            if (!siDictionary.TryAdd(invoice.OriginalSeriesNumber, true))
+                            {
+                                continue;
+                            }
+
                             if (invoiceList.Any(si => si.OriginalDocumentId == invoice.OriginalDocumentId))
                             {
+                                var siChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                                var existingSI = await _dbContext.SalesInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == invoice.OriginalDocumentId, cancellationToken);
+
+                                if (existingSI.SINo != worksheet.Cells[row, 21].Text)
+                                {
+                                    siChanges["SiNo"] = (existingSI.SINo, worksheet.Cells[row, 21].Text)!;
+                                }
+
+                                if (existingSI.OriginalCustomerId.ToString() != worksheet.Cells[row, 18].Text)
+                                {
+                                    siChanges["OriginalCustomerId"] = (existingSI.OriginalCustomerId.ToString(), worksheet.Cells[row, 18].Text)!;
+                                }
+
+                                if (existingSI.OriginalProductId.ToString() != worksheet.Cells[row, 20].Text)
+                                {
+                                    siChanges["OriginalProductId"] = (existingSI.OriginalProductId.ToString(), worksheet.Cells[row, 20].Text)!;
+                                }
+
+                                if (existingSI.OtherRefNo != worksheet.Cells[row, 1].Text)
+                                {
+                                    siChanges["OtherRefNo"] = (existingSI.OtherRefNo, worksheet.Cells[row, 1].Text)!;
+                                }
+
+                                if (existingSI.Quantity.ToString("F2") != decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2"))
+                                {
+                                    siChanges["Quantity"] = (existingSI.Quantity.ToString("F2"), decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2"));
+                                }
+
+                                if (existingSI.UnitPrice.ToString("F2") != decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2"))
+                                {
+                                    siChanges["UnitPrice"] = (existingSI.UnitPrice.ToString("F2"), decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2"));
+                                }
+
+                                if (existingSI.Amount.ToString("F2") != decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2"))
+                                {
+                                    siChanges["Amount"] = (existingSI.Amount.ToString("F2"), decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2"));
+                                }
+
+                                if (existingSI.Remarks != worksheet.Cells[row, 5].Text)
+                                {
+                                    siChanges["Remarks"] = (existingSI.Remarks, worksheet.Cells[row, 5].Text)!;
+                                }
+
+                                if (existingSI.Status != worksheet.Cells[row, 6].Text)
+                                {
+                                    siChanges["Status"] = (existingSI.Status, worksheet.Cells[row, 6].Text)!;
+                                }
+
+                                if (existingSI.TransactionDate.ToString("yyyy-MM-dd") != worksheet.Cells[row, 7].Text)
+                                {
+                                    siChanges["TransactionDate"] = (existingSI.TransactionDate.ToString("yyyy-MM-dd"), worksheet.Cells[row, 7].Text)!;
+                                }
+
+                                if (existingSI.Discount.ToString("F2") != decimal.Parse(worksheet.Cells[row, 8].Text).ToString("F2"))
+                                {
+                                    siChanges["Discount"] = (existingSI.Discount.ToString("F2"), decimal.Parse(worksheet.Cells[row, 8].Text).ToString("F2"));
+                                }
+
+                                if (existingSI.DueDate.ToString("yyyy-MM-dd") != worksheet.Cells[row, 13].Text)
+                                {
+                                    siChanges["DueDate"] = (existingSI.DueDate.ToString("yyyy-MM-dd"), worksheet.Cells[row, 13].Text)!;
+                                }
+
+                                if (existingSI.CreatedBy != worksheet.Cells[row, 14].Text)
+                                {
+                                    siChanges["CreatedBy"] = (existingSI.CreatedBy, worksheet.Cells[row, 14].Text)!;
+                                }
+
+                                if (existingSI.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff") != worksheet.Cells[row, 15].Text)
+                                {
+                                    siChanges["CreatedDate"] = (existingSI.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff"), worksheet.Cells[row, 15].Text)!;
+                                }
+
+                                if ((string.IsNullOrWhiteSpace(existingSI.CancellationRemarks) ? "" : existingSI.CancellationRemarks) != worksheet.Cells[row, 16].Text)
+                                {
+                                    siChanges["CancellationRemarks"] = (existingSI.CancellationRemarks, worksheet.Cells[row, 16].Text)!;
+                                }
+
+                                if (existingSI.OriginalSeriesNumber != worksheet.Cells[row, 21].Text)
+                                {
+                                    siChanges["OriginalSeriesNumber"] = (existingSI.OriginalSeriesNumber, worksheet.Cells[row, 21].Text)!;
+                                }
+
+                                if (existingSI.OriginalDocumentId.ToString() != worksheet.Cells[row, 22].Text)
+                                {
+                                    siChanges["OriginalDocumentId"] = (existingSI.OriginalDocumentId.ToString(), worksheet.Cells[row, 22].Text)!;
+                                }
+
+                                if (siChanges.Any())
+                                {
+                                    await _salesInvoiceRepo.LogChangesAsync(existingSI.OriginalDocumentId, siChanges, _userManager.GetUserName(this.User));
+                                }
+
                                 continue;
                             }
 

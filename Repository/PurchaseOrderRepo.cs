@@ -1,5 +1,7 @@
 ﻿using Accounting_System.Data;
+using Accounting_System.Models;
 using Accounting_System.Models.AccountsPayable;
+using Accounting_System.Utility;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Repository
@@ -89,6 +91,26 @@ namespace Accounting_System.Repository
             else
             {
                 throw new ArgumentException("Invalid id value. The id must be greater than 0.");
+            }
+        }
+
+        public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy)
+        {
+            foreach (var change in changes)
+            {
+                var logReport = new ImportExportLog()
+                {
+                    Id = Guid.NewGuid(),
+                    TableName = nameof(DynamicView.PurchaseOrder),
+                    DocumentRecordId = id,
+                    ColumnName = change.Key,
+                    Module = "Purchase Order",
+                    OriginalValue = change.Value.OriginalValue,
+                    AdjustedValue = change.Value.NewValue,
+                    TimeStamp = DateTime.UtcNow.AddHours(8),
+                    UploadedBy = modifiedBy
+                };
+                await _dbContext.AddAsync(logReport);
             }
         }
     }

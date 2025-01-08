@@ -26,5 +26,7 @@ namespace Accounting_System.Models.AccountsPayable
 
         [ForeignKey("JVHeaderId")]
         public JournalVoucherHeader Header { get; set; }
+
+        public int? OriginalDocumentId { get; set; }
     }
 }

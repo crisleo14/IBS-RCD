@@ -793,13 +793,14 @@ namespace Accounting_System.Controllers
                             TempData["error"] = "The Excel file contains no worksheets.";
                             return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
                         }
-                        if (worksheet.ToString() != "ServiceInvoices")
+                        if (worksheet.ToString() != "ServiceInvoice")
                         {
                             TempData["error"] = "The Excel file is not related to service invoice.";
                             return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
                         }
 
                         var rowCount = worksheet.Dimension.Rows;
+                        var svDictionary = new Dictionary<string, bool>();
                         var serviceInvoiceList = await _dbContext
                             .ServiceInvoices
                             .ToListAsync(cancellationToken);
@@ -830,8 +831,106 @@ namespace Accounting_System.Controllers
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 19].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
 
+                            if (!svDictionary.TryAdd(serviceInvoice.OriginalSeriesNumber, true))
+                            {
+                                continue;
+                            }
+
                             if (serviceInvoiceList.Any(sv => sv.OriginalDocumentId == serviceInvoice.OriginalDocumentId))
                             {
+                                var svChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                                var existingSV = await _dbContext.ServiceInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == serviceInvoice.OriginalDocumentId, cancellationToken);
+
+                                if (existingSV.SVNo != worksheet.Cells[row, 17].Text)
+                                {
+                                    svChanges["SvNo"] = (existingSV.SVNo, worksheet.Cells[row, 17].Text)!;
+                                }
+
+                                if (existingSV.DueDate.ToString("yyyy-MM-dd") != worksheet.Cells[row, 1].Text)
+                                {
+                                    svChanges["DueDate"] = (existingSV.DueDate.ToString("yyyy-MM-dd"), worksheet.Cells[row, 1].Text)!;
+                                }
+
+                                if (existingSV.Period.ToString("yyyy-MM-dd") != worksheet.Cells[row, 2].Text)
+                                {
+                                    svChanges["Period"] = (existingSV.Period.ToString("yyyy-MM-dd"), worksheet.Cells[row, 2].Text)!;
+                                }
+
+                                if (existingSV.Amount.ToString("F2") != decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2"))
+                                {
+                                    svChanges["Amount"] = (existingSV.Amount.ToString("F2"), decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2"));
+                                }
+
+                                if (existingSV.Total.ToString("F2") != decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2"))
+                                {
+                                    svChanges["Total"] = (existingSV.Total.ToString("F2"), decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2"));
+                                }
+
+                                if (existingSV.Discount.ToString("F2") != decimal.Parse(worksheet.Cells[row, 5].Text).ToString("F2"))
+                                {
+                                    svChanges["Discount"] = (existingSV.Discount.ToString("F2"), decimal.Parse(worksheet.Cells[row, 5].Text).ToString("F2"));
+                                }
+
+                                if (existingSV.CurrentAndPreviousAmount.ToString("F2") != decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2"))
+                                {
+                                    svChanges["CurrentAndPreviousAmount"] = (existingSV.CurrentAndPreviousAmount.ToString("F2"), decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2"));
+                                }
+
+                                if (existingSV.UnearnedAmount.ToString("F2") != decimal.Parse(worksheet.Cells[row, 7].Text).ToString("F2"))
+                                {
+                                    svChanges["UnearnedAmount"] = (existingSV.UnearnedAmount.ToString("F2"), decimal.Parse(worksheet.Cells[row, 7].Text).ToString("F2"));
+                                }
+
+                                if (existingSV.Status != worksheet.Cells[row, 8].Text)
+                                {
+                                    svChanges["Status"] = (existingSV.Status, worksheet.Cells[row, 8].Text)!;
+                                }
+
+                                if (existingSV.Instructions != worksheet.Cells[row, 11].Text)
+                                {
+                                    svChanges["Instructions"] = (existingSV.Instructions, worksheet.Cells[row, 11].Text)!;
+                                }
+
+                                if (existingSV.CreatedBy != worksheet.Cells[row, 13].Text)
+                                {
+                                    svChanges["CreatedBy"] = (existingSV.CreatedBy, worksheet.Cells[row, 13].Text)!;
+                                }
+
+                                if (existingSV.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff") != worksheet.Cells[row, 14].Text)
+                                {
+                                    svChanges["CreatedDate"] = (existingSV.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff"), worksheet.Cells[row, 14].Text)!;
+                                }
+
+                                if ((string.IsNullOrWhiteSpace(existingSV.CancellationRemarks) ? "" : existingSV.CancellationRemarks) != worksheet.Cells[row, 15].Text)
+                                {
+                                    svChanges["CancellationRemarks"] = (existingSV.CancellationRemarks, worksheet.Cells[row, 15].Text)!;
+                                }
+
+                                if (existingSV.OriginalCustomerId.ToString() != worksheet.Cells[row, 16].Text)
+                                {
+                                    svChanges["OriginalCustomerId"] = (existingSV.OriginalCustomerId.ToString(), worksheet.Cells[row, 16].Text)!;
+                                }
+
+                                if (existingSV.OriginalSeriesNumber != worksheet.Cells[row, 17].Text)
+                                {
+                                    svChanges["OriginalSeriesNumber"] = (existingSV.OriginalSeriesNumber, worksheet.Cells[row, 17].Text)!;
+                                }
+
+                                if (existingSV.OriginalServicesId.ToString() != worksheet.Cells[row, 18].Text)
+                                {
+                                    svChanges["OriginalServicesId"] = (existingSV.OriginalServicesId.ToString(), worksheet.Cells[row, 18].Text)!;
+                                }
+
+                                if (existingSV.OriginalDocumentId.ToString() != worksheet.Cells[row, 19].Text)
+                                {
+                                    svChanges["OriginalDocumentId"] = (existingSV.OriginalDocumentId.ToString(), worksheet.Cells[row, 19].Text)!;
+                                }
+
+                                if (svChanges.Any())
+                                {
+                                    await _serviceInvoiceRepo.LogChangesAsync(existingSV.OriginalDocumentId, svChanges, _userManager.GetUserName(this.User));
+                                }
+
                                 continue;
                             }
 

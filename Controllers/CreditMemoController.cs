@@ -25,14 +25,20 @@ namespace Accounting_System.Controllers
 
         private readonly CreditMemoRepo _creditMemoRepo;
 
+        private readonly SalesInvoiceRepo _salesInvoiceRepo;
+
+        private readonly ServiceInvoiceRepo _serviceInvoiceRepo;
+
         private readonly GeneralRepo _generalRepo;
 
-        public CreditMemoController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, CreditMemoRepo creditMemoRepo, GeneralRepo generalRepo)
+        public CreditMemoController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, CreditMemoRepo creditMemoRepo, GeneralRepo generalRepo, SalesInvoiceRepo salesInvoiceRepo, ServiceInvoiceRepo serviceInvoiceRepo)
         {
             _dbContext = dbContext;
             _userManager = userManager;
             _creditMemoRepo = creditMemoRepo;
             _generalRepo = generalRepo;
+            _salesInvoiceRepo = salesInvoiceRepo;
+            _serviceInvoiceRepo = serviceInvoiceRepo;
         }
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
@@ -1295,6 +1301,7 @@ namespace Accounting_System.Controllers
                         #region -- Sales Invoice Import --
 
                         var siRowCount = worksheet2?.Dimension?.Rows ?? 0;
+                        var siDictionary = new Dictionary<string, bool>();
                         var invoiceList = await _dbContext
                             .SalesInvoices
                             .ToListAsync(cancellationToken);
@@ -1359,8 +1366,106 @@ namespace Accounting_System.Controllers
                                         : 0,
                             };
 
+                            if (!siDictionary.TryAdd(invoice.OriginalSeriesNumber, true))
+                            {
+                                continue;
+                            }
+
                             if (invoiceList.Any(si => si.OriginalDocumentId == invoice.OriginalDocumentId))
                             {
+                                var siChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                                var existingSI = await _dbContext.SalesInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == invoice.OriginalDocumentId, cancellationToken);
+
+                                if (existingSI.SINo != worksheet2.Cells[row, 21].Text)
+                                {
+                                    siChanges["SiNo"] = (existingSI.SINo, worksheet2.Cells[row, 21].Text)!;
+                                }
+
+                                if (existingSI.OriginalCustomerId.ToString() != worksheet2.Cells[row, 18].Text)
+                                {
+                                    siChanges["OriginalCustomerId"] = (existingSI.OriginalCustomerId.ToString(), worksheet2.Cells[row, 18].Text)!;
+                                }
+
+                                if (existingSI.OriginalProductId.ToString() != worksheet2.Cells[row, 20].Text)
+                                {
+                                    siChanges["OriginalProductId"] = (existingSI.OriginalProductId.ToString(), worksheet2.Cells[row, 20].Text)!;
+                                }
+
+                                if (existingSI.OtherRefNo != worksheet2.Cells[row, 1].Text)
+                                {
+                                    siChanges["OtherRefNo"] = (existingSI.OtherRefNo, worksheet2.Cells[row, 1].Text)!;
+                                }
+
+                                if (existingSI.Quantity.ToString("F2") != decimal.Parse(worksheet2.Cells[row, 2].Text).ToString("F2"))
+                                {
+                                    siChanges["Quantity"] = (existingSI.Quantity.ToString("F2"), decimal.Parse(worksheet2.Cells[row, 2].Text).ToString("F2"));
+                                }
+
+                                if (existingSI.UnitPrice.ToString("F2") != decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2"))
+                                {
+                                    siChanges["UnitPrice"] = (existingSI.UnitPrice.ToString("F2"), decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2"));
+                                }
+
+                                if (existingSI.Amount.ToString("F2") != decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2"))
+                                {
+                                    siChanges["Amount"] = (existingSI.Amount.ToString("F2"), decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2"));
+                                }
+
+                                if (existingSI.Remarks != worksheet2.Cells[row, 5].Text)
+                                {
+                                    siChanges["Remarks"] = (existingSI.Remarks, worksheet2.Cells[row, 5].Text)!;
+                                }
+
+                                if (existingSI.Status != worksheet2.Cells[row, 6].Text)
+                                {
+                                    siChanges["Status"] = (existingSI.Status, worksheet2.Cells[row, 6].Text)!;
+                                }
+
+                                if (existingSI.TransactionDate.ToString("yyyy-MM-dd") != worksheet2.Cells[row, 7].Text)
+                                {
+                                    siChanges["TransactionDate"] = (existingSI.TransactionDate.ToString("yyyy-MM-dd"), worksheet2.Cells[row, 7].Text)!;
+                                }
+
+                                if (existingSI.Discount.ToString("F2") != decimal.Parse(worksheet2.Cells[row, 8].Text).ToString("F2"))
+                                {
+                                    siChanges["Discount"] = (existingSI.Discount.ToString("F2"), decimal.Parse(worksheet2.Cells[row, 8].Text).ToString("F2"));
+                                }
+
+                                if (existingSI.DueDate.ToString("yyyy-MM-dd") != worksheet2.Cells[row, 13].Text)
+                                {
+                                    siChanges["DueDate"] = (existingSI.DueDate.ToString("yyyy-MM-dd"), worksheet2.Cells[row, 13].Text)!;
+                                }
+
+                                if (existingSI.CreatedBy != worksheet2.Cells[row, 14].Text)
+                                {
+                                    siChanges["CreatedBy"] = (existingSI.CreatedBy, worksheet2.Cells[row, 14].Text)!;
+                                }
+
+                                if (existingSI.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff") != worksheet2.Cells[row, 15].Text)
+                                {
+                                    siChanges["CreatedDate"] = (existingSI.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff"), worksheet2.Cells[row, 15].Text)!;
+                                }
+
+                                if ((string.IsNullOrWhiteSpace(existingSI.CancellationRemarks) ? "" : existingSI.CancellationRemarks) != worksheet2.Cells[row, 16].Text)
+                                {
+                                    siChanges["CancellationRemarks"] = (existingSI.CancellationRemarks, worksheet2.Cells[row, 16].Text)!;
+                                }
+
+                                if (existingSI.OriginalSeriesNumber != worksheet2.Cells[row, 21].Text)
+                                {
+                                    siChanges["OriginalSeriesNumber"] = (existingSI.OriginalSeriesNumber, worksheet2.Cells[row, 21].Text)!;
+                                }
+
+                                if (existingSI.OriginalDocumentId.ToString() != worksheet2.Cells[row, 22].Text)
+                                {
+                                    siChanges["OriginalDocumentId"] = (existingSI.OriginalDocumentId.ToString(), worksheet2.Cells[row, 22].Text)!;
+                                }
+
+                                if (siChanges.Any())
+                                {
+                                    await _salesInvoiceRepo.LogChangesAsync(existingSI.OriginalDocumentId, siChanges, _userManager.GetUserName(this.User));
+                                }
+
                                 continue;
                             }
 
@@ -1384,6 +1489,7 @@ namespace Accounting_System.Controllers
                         #region -- Service Invoice Import --
 
                         var svRowCount = worksheet3?.Dimension?.Rows ?? 0;
+                        var svDictionary = new Dictionary<string, bool>();
                         var serviceInvoiceList = await _dbContext
                             .ServiceInvoices
                             .ToListAsync(cancellationToken);
@@ -1418,8 +1524,106 @@ namespace Accounting_System.Controllers
                                 OriginalDocumentId = int.TryParse(worksheet3.Cells[row, 19].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
 
+                            if (!svDictionary.TryAdd(serviceInvoice.OriginalSeriesNumber, true))
+                            {
+                                continue;
+                            }
+
                             if (serviceInvoiceList.Any(sv => sv.OriginalDocumentId == serviceInvoice.OriginalDocumentId))
                             {
+                                var svChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                                var existingSV = await _dbContext.ServiceInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == serviceInvoice.OriginalDocumentId, cancellationToken);
+
+                                if (existingSV.SVNo != worksheet3.Cells[row, 17].Text)
+                                {
+                                    svChanges["SvNo"] = (existingSV.SVNo, worksheet3.Cells[row, 17].Text)!;
+                                }
+
+                                if (existingSV.DueDate.ToString("yyyy-MM-dd") != worksheet3.Cells[row, 1].Text)
+                                {
+                                    svChanges["DueDate"] = (existingSV.DueDate.ToString("yyyy-MM-dd"), worksheet3.Cells[row, 1].Text)!;
+                                }
+
+                                if (existingSV.Period.ToString("yyyy-MM-dd") != worksheet3.Cells[row, 2].Text)
+                                {
+                                    svChanges["Period"] = (existingSV.Period.ToString("yyyy-MM-dd"), worksheet3.Cells[row, 2].Text)!;
+                                }
+
+                                if (existingSV.Amount.ToString("F2") != decimal.Parse(worksheet3.Cells[row, 3].Text).ToString("F2"))
+                                {
+                                    svChanges["Amount"] = (existingSV.Amount.ToString("F2"), decimal.Parse(worksheet3.Cells[row, 3].Text).ToString("F2"));
+                                }
+
+                                if (existingSV.Total.ToString("F2") != decimal.Parse(worksheet3.Cells[row, 4].Text).ToString("F2"))
+                                {
+                                    svChanges["Total"] = (existingSV.Total.ToString("F2"), decimal.Parse(worksheet3.Cells[row, 4].Text).ToString("F2"));
+                                }
+
+                                if (existingSV.Discount.ToString("F2") != decimal.Parse(worksheet3.Cells[row, 5].Text).ToString("F2"))
+                                {
+                                    svChanges["Discount"] = (existingSV.Discount.ToString("F2"), decimal.Parse(worksheet3.Cells[row, 5].Text).ToString("F2"));
+                                }
+
+                                if (existingSV.CurrentAndPreviousAmount.ToString("F2") != decimal.Parse(worksheet3.Cells[row, 6].Text).ToString("F2"))
+                                {
+                                    svChanges["CurrentAndPreviousAmount"] = (existingSV.CurrentAndPreviousAmount.ToString("F2"), decimal.Parse(worksheet3.Cells[row, 6].Text).ToString("F2"));
+                                }
+
+                                if (existingSV.UnearnedAmount.ToString("F2") != decimal.Parse(worksheet3.Cells[row, 7].Text).ToString("F2"))
+                                {
+                                    svChanges["UnearnedAmount"] = (existingSV.UnearnedAmount.ToString("F2"), decimal.Parse(worksheet3.Cells[row, 7].Text).ToString("F2"));
+                                }
+
+                                if (existingSV.Status != worksheet3.Cells[row, 8].Text)
+                                {
+                                    svChanges["Status"] = (existingSV.Status, worksheet3.Cells[row, 8].Text)!;
+                                }
+
+                                if (existingSV.Instructions != worksheet3.Cells[row, 11].Text)
+                                {
+                                    svChanges["Instructions"] = (existingSV.Instructions, worksheet3.Cells[row, 11].Text)!;
+                                }
+
+                                if (existingSV.CreatedBy != worksheet3.Cells[row, 13].Text)
+                                {
+                                    svChanges["CreatedBy"] = (existingSV.CreatedBy, worksheet3.Cells[row, 13].Text)!;
+                                }
+
+                                if (existingSV.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff") != worksheet3.Cells[row, 14].Text)
+                                {
+                                    svChanges["CreatedDate"] = (existingSV.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff"), worksheet3.Cells[row, 14].Text)!;
+                                }
+
+                                if ((string.IsNullOrWhiteSpace(existingSV.CancellationRemarks) ? "" : existingSV.CancellationRemarks) != worksheet3.Cells[row, 15].Text)
+                                {
+                                    svChanges["CancellationRemarks"] = (existingSV.CancellationRemarks, worksheet3.Cells[row, 15].Text)!;
+                                }
+
+                                if (existingSV.OriginalCustomerId.ToString() != worksheet3.Cells[row, 16].Text)
+                                {
+                                    svChanges["OriginalCustomerId"] = (existingSV.OriginalCustomerId.ToString(), worksheet3.Cells[row, 16].Text)!;
+                                }
+
+                                if (existingSV.OriginalSeriesNumber != worksheet3.Cells[row, 17].Text)
+                                {
+                                    svChanges["OriginalSeriesNumber"] = (existingSV.OriginalSeriesNumber, worksheet3.Cells[row, 17].Text)!;
+                                }
+
+                                if (existingSV.OriginalServicesId.ToString() != worksheet3.Cells[row, 18].Text)
+                                {
+                                    svChanges["OriginalServicesId"] = (existingSV.OriginalServicesId.ToString(), worksheet3.Cells[row, 18].Text)!;
+                                }
+
+                                if (existingSV.OriginalDocumentId.ToString() != worksheet3.Cells[row, 19].Text)
+                                {
+                                    svChanges["OriginalDocumentId"] = (existingSV.OriginalDocumentId.ToString(), worksheet3.Cells[row, 19].Text)!;
+                                }
+
+                                if (svChanges.Any())
+                                {
+                                    await _serviceInvoiceRepo.LogChangesAsync(existingSV.OriginalDocumentId, svChanges, _userManager.GetUserName(this.User));
+                                }
+
                                 continue;
                             }
 
@@ -1442,6 +1646,7 @@ namespace Accounting_System.Controllers
                         #region -- Credit Memo Import --
 
                         var rowCount = worksheet.Dimension.Rows;
+                        var cmDictionary = new Dictionary<string, bool>();
                         var creditMemoList = await _dbContext
                             .CreditMemos
                             .ToListAsync(cancellationToken);
@@ -1472,20 +1677,133 @@ namespace Accounting_System.Controllers
                                 OriginalDocumentId = int.TryParse(worksheet.Cells[row, 19].Text, out int originalDocumentId) ? originalDocumentId : 0,
                             };
 
+                            if (!cmDictionary.TryAdd(creditMemo.OriginalSeriesNumber, true))
+                            {
+                                continue;
+                            }
+
+                            if (creditMemoList.Any(cm => cm.OriginalDocumentId == creditMemo.OriginalDocumentId))
+                            {
+                                var cmChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                                var existingCM = await _dbContext.CreditMemos.FirstOrDefaultAsync(si => si.OriginalDocumentId == creditMemo.OriginalDocumentId, cancellationToken);
+
+                                if (existingCM.CMNo != worksheet.Cells[row, 17].Text)
+                                {
+                                    cmChanges["DMNo"] = (existingCM.CMNo, worksheet.Cells[row, 17].Text)!;
+                                }
+
+                                if (existingCM.TransactionDate.ToString("yyyy-MM-dd") != worksheet.Cells[row, 1].Text)
+                                {
+                                    cmChanges["TransactionDate"] = (existingCM.TransactionDate.ToString("yyyy-MM-dd"), worksheet.Cells[row, 1].Text)!;
+                                }
+
+                                if (existingCM.CreditAmount.ToString("F2") != decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2"))
+                                {
+                                    cmChanges["DebitAmount"] = (existingCM.CreditAmount.ToString("F2"), decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2"))!;
+                                }
+
+                                if (existingCM.Description != worksheet.Cells[row, 3].Text)
+                                {
+                                    cmChanges["Description"] = (existingCM.Description, worksheet.Cells[row, 3].Text)!;
+                                }
+
+                                if ((existingCM.AdjustedPrice != null ? existingCM.AdjustedPrice?.ToString("F2") : 0.ToString("F2")) != decimal.Parse(worksheet.Cells[row, 4].Text != "" ? worksheet.Cells[row, 4].Text : 0.ToString("F2")).ToString("F2"))
+                                {
+                                    cmChanges["AdjustedPrice"] = (existingCM.AdjustedPrice?.ToString("F2"), decimal.Parse(worksheet.Cells[row, 4].Text != "" ? worksheet.Cells[row, 4].Text : 0.ToString("F2")).ToString("F2"))!;
+                                }
+
+                                if ((existingCM.Quantity != null ? existingCM.Quantity?.ToString("F0") : 0.ToString("F0")) != decimal.Parse(worksheet.Cells[row, 5].Text != "" ? worksheet.Cells[row, 5].Text : 0.ToString("F0")).ToString("F0"))
+                                {
+                                    cmChanges["Quantity"] = (existingCM.Quantity?.ToString("F0"), decimal.Parse(worksheet.Cells[row, 5].Text != "" ? worksheet.Cells[row, 5].Text : 0.ToString("F0")).ToString("F0"))!;
+                                }
+
+                                if (existingCM.Source != worksheet.Cells[row, 6].Text)
+                                {
+                                    cmChanges["Source"] = (existingCM.Source, worksheet.Cells[row, 6].Text)!;
+                                }
+
+                                if (existingCM.Remarks != worksheet.Cells[row, 7].Text)
+                                {
+                                    cmChanges["Remarks"] = (existingCM.Remarks, worksheet.Cells[row, 7].Text)!;
+                                }
+
+                                if (existingCM.Period.ToString("yyyy-MM-dd") != DateOnly.Parse(worksheet.Cells[row, 8].Text).ToString("yyyy-MM-dd"))
+                                {
+                                    cmChanges["Period"] = (existingCM.Period.ToString("yyyy-MM-dd"), worksheet.Cells[row, 8].Text)!;
+                                }
+
+                                if ((existingCM.Amount != null ? existingCM.Amount?.ToString("F2") : 0.ToString("F2")) != decimal.Parse(worksheet.Cells[row, 9].Text != "" ? worksheet.Cells[row, 9].Text : 0.ToString("F2")).ToString("F2"))
+                                {
+                                    cmChanges["Amount"] = (existingCM.Amount?.ToString("F2"), decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2"))!;
+                                }
+
+                                if (existingCM.CurrentAndPreviousAmount.ToString("F2") != decimal.Parse(worksheet.Cells[row, 10].Text).ToString("F2"))
+                                {
+                                    cmChanges["CurrentAndPreviousAmount"] = (existingCM.CurrentAndPreviousAmount.ToString("F2"), decimal.Parse(worksheet.Cells[row, 10].Text).ToString("F2"))!;
+                                }
+
+                                if (existingCM.UnearnedAmount.ToString("F2") != decimal.Parse(worksheet.Cells[row, 11].Text).ToString("F2"))
+                                {
+                                    cmChanges["UnearnedAmount"] = (existingCM.UnearnedAmount.ToString("F2"), decimal.Parse(worksheet.Cells[row, 11].Text).ToString("F2"))!;
+                                }
+
+                                if (existingCM.ServicesId.ToString() != (worksheet.Cells[row, 12].Text == "" ? 0.ToString() : worksheet.Cells[row, 12].Text))
+                                {
+                                    cmChanges["ServicesId"] = (existingCM.ServicesId.ToString(), worksheet.Cells[row, 12].Text == "" ? 0.ToString() : worksheet.Cells[row, 12].Text)!;
+                                }
+
+                                if (existingCM.CreatedBy != worksheet.Cells[row, 13].Text)
+                                {
+                                    cmChanges["CreatedBy"] = (existingCM.CreatedBy, worksheet.Cells[row, 13].Text)!;
+                                }
+
+                                if (existingCM.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff") != worksheet.Cells[row, 14].Text)
+                                {
+                                    cmChanges["CreatedDate"] = (existingCM.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff"), worksheet.Cells[row, 14].Text)!;
+                                }
+
+                                if ((string.IsNullOrWhiteSpace(existingCM.CancellationRemarks) ? "" : existingCM.CancellationRemarks) != worksheet.Cells[row, 15].Text)
+                                {
+                                    cmChanges["CancellationRemarks"] = (existingCM.CancellationRemarks, worksheet.Cells[row, 15].Text)!;
+                                }
+
+                                if (existingCM.OriginalSalesInvoiceId.ToString() != (worksheet.Cells[row, 16].Text == "" ? 0.ToString() : worksheet.Cells[row, 16].Text))
+                                {
+                                    cmChanges["OriginalSalesInvoiceId"] = (existingCM.OriginalSalesInvoiceId.ToString(), worksheet.Cells[row, 16].Text == "" ? 0.ToString() : worksheet.Cells[row, 16].Text)!;
+                                }
+
+                                if (existingCM.OriginalSeriesNumber != worksheet.Cells[row, 17].Text)
+                                {
+                                    cmChanges["OriginalSeriesNumber"] = (existingCM.OriginalSeriesNumber, worksheet.Cells[row, 17].Text)!;
+                                }
+
+                                if (existingCM.OriginalServiceInvoiceId.ToString() != (worksheet.Cells[row, 18].Text == "" ? 0.ToString() : worksheet.Cells[row, 18].Text))
+                                {
+                                    cmChanges["OriginalServiceInvoiceId"] = (existingCM.OriginalServiceInvoiceId.ToString(), worksheet.Cells[row, 18].Text == "" ? 0.ToString() : worksheet.Cells[row, 18].Text)!;
+                                }
+
+                                if (existingCM.OriginalDocumentId.ToString() != (worksheet.Cells[row, 19].Text == "" ? 0.ToString() : worksheet.Cells[row, 19].Text))
+                                {
+                                    cmChanges["OriginalDocumentId"] = (existingCM.OriginalDocumentId.ToString(), worksheet.Cells[row, 19].Text == "" ? 0.ToString() : worksheet.Cells[row, 19].Text)!;
+                                }
+
+                                if (cmChanges.Any())
+                                {
+                                    await _creditMemoRepo.LogChangesAsync(existingCM.OriginalDocumentId, cmChanges, _userManager.GetUserName(this.User));
+                                }
+
+                                continue;
+                            }
+
                             creditMemo.SalesInvoiceId = await _dbContext.SalesInvoices
-                            .Where(c => c.OriginalDocumentId == creditMemo.OriginalSalesInvoiceId)
-                            .Select(c => (int?)c.Id)
-                            .FirstOrDefaultAsync(cancellationToken);
+                                .Where(c => c.OriginalDocumentId == creditMemo.OriginalSalesInvoiceId)
+                                .Select(c => (int?)c.Id)
+                                .FirstOrDefaultAsync(cancellationToken);
 
                             creditMemo.ServiceInvoiceId = await _dbContext.ServiceInvoices
                                 .Where(c => c.OriginalDocumentId == creditMemo.OriginalServiceInvoiceId)
                                 .Select(c => (int?)c.Id)
                                 .FirstOrDefaultAsync(cancellationToken);
-
-                            if (creditMemoList.Any(cm => cm.OriginalDocumentId == creditMemo.OriginalDocumentId))
-                            {
-                                continue;
-                            }
 
                             if (creditMemo.SalesInvoiceId == null && creditMemo.ServiceInvoiceId == null)
                             {
