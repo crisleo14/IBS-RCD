@@ -721,84 +721,84 @@ namespace Accounting_System.Controllers
                                 var poChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
                                 var existingPO = await _dbContext.PurchaseOrders.FirstOrDefaultAsync(si => si.OriginalDocumentId == purchaseOrder.OriginalDocumentId, cancellationToken);
 
-                                if (existingPO.PONo != worksheet.Cells[row, 16].Text)
+                                if (existingPO.PONo.TrimStart().TrimEnd() != worksheet.Cells[row, 16].Text.TrimStart().TrimEnd())
                                 {
-                                    poChanges["PONo"] = (existingPO.PONo, worksheet.Cells[row, 16].Text)!;
+                                    poChanges["PONo"] = (existingPO.PONo.TrimStart().TrimEnd(), worksheet.Cells[row, 16].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingPO.Date.ToString("yyyy-MM-dd") != worksheet.Cells[row, 1].Text)
+                                if (existingPO.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())
                                 {
-                                    poChanges["Date"] = (existingPO.Date.ToString("yyyy-MM-dd"), worksheet.Cells[row, 1].Text)!;
+                                    poChanges["Date"] = (existingPO.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingPO.Terms != worksheet.Cells[row, 2].Text)
+                                if (existingPO.Terms.TrimStart().TrimEnd() != worksheet.Cells[row, 2].Text.TrimStart().TrimEnd())
                                 {
-                                    poChanges["Terms"] = (existingPO.Terms, worksheet.Cells[row, 2].Text)!;
+                                    poChanges["Terms"] = (existingPO.Terms.TrimStart().TrimEnd(), worksheet.Cells[row, 2].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingPO.Quantity.ToString("F2") != decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2"))
+                                if (existingPO.Quantity.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
                                 {
-                                    poChanges["Quantity"] = (existingPO.Quantity.ToString("F2"), decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2"))!;
+                                    poChanges["Quantity"] = (existingPO.Quantity.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingPO.Price.ToString("F2") != decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2"))
+                                if (existingPO.Price.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
                                 {
-                                    poChanges["Price"] = (existingPO.Price.ToString("F2"), decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2"))!;
+                                    poChanges["Price"] = (existingPO.Price.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingPO.Amount.ToString("F2") != decimal.Parse(worksheet.Cells[row, 5].Text).ToString("F2"))
+                                if (existingPO.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd())
                                 {
-                                    poChanges["Amount"] = (existingPO.Amount.ToString("F2"), decimal.Parse(worksheet.Cells[row, 5].Text).ToString("F2"))!;
+                                    poChanges["Amount"] = (existingPO.Amount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingPO.FinalPrice?.ToString("F2") != decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2"))
+                                if (existingPO.FinalPrice?.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd())
                                 {
-                                    poChanges["FinalPrice"] = (existingPO.FinalPrice?.ToString("F2"), decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2"))!;
+                                    poChanges["FinalPrice"] = (existingPO.FinalPrice?.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingPO.Remarks != worksheet.Cells[row, 10].Text)
+                                if (existingPO.Remarks.TrimStart().TrimEnd() != worksheet.Cells[row, 10].Text.TrimStart().TrimEnd())
                                 {
-                                    poChanges["Remarks"] = (existingPO.Remarks, worksheet.Cells[row, 10].Text)!;
+                                    poChanges["Remarks"] = (existingPO.Remarks.TrimStart().TrimEnd(), worksheet.Cells[row, 10].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingPO.CreatedBy != worksheet.Cells[row, 11].Text)
+                                if (existingPO.CreatedBy.TrimStart().TrimEnd() != worksheet.Cells[row, 11].Text.TrimStart().TrimEnd())
                                 {
-                                    poChanges["CreatedBy"] = (existingPO.CreatedBy, worksheet.Cells[row, 11].Text)!;
+                                    poChanges["CreatedBy"] = (existingPO.CreatedBy.TrimStart().TrimEnd(), worksheet.Cells[row, 11].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingPO.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff") != worksheet.Cells[row, 12].Text)
+                                if (existingPO.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet.Cells[row, 12].Text.TrimStart().TrimEnd())
                                 {
-                                    poChanges["CreatedDate"] = (existingPO.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff"), worksheet.Cells[row, 12].Text)!;
+                                    poChanges["CreatedDate"] = (existingPO.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd(), worksheet.Cells[row, 12].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingPO.IsClosed.ToString().ToUpper() != worksheet.Cells[row, 13].Text)
+                                if (existingPO.IsClosed.ToString().ToUpper().TrimStart().TrimEnd() != worksheet.Cells[row, 13].Text.TrimStart().TrimEnd())
                                 {
-                                    poChanges["IsClosed"] = (existingPO.IsClosed.ToString().ToUpper(), worksheet.Cells[row, 13].Text)!;
+                                    poChanges["IsClosed"] = (existingPO.IsClosed.ToString().ToUpper().TrimStart().TrimEnd(), worksheet.Cells[row, 13].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if ((string.IsNullOrWhiteSpace(existingPO.CancellationRemarks) ? "" : existingPO.CancellationRemarks) != worksheet.Cells[row, 14].Text)
+                                if ((string.IsNullOrWhiteSpace(existingPO.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingPO.CancellationRemarks.TrimStart().TrimEnd()) != worksheet.Cells[row, 14].Text.TrimStart().TrimEnd())
                                 {
-                                    poChanges["CancellationRemarks"] = (existingPO.CancellationRemarks, worksheet.Cells[row, 14].Text)!;
+                                    poChanges["CancellationRemarks"] = (existingPO.CancellationRemarks?.TrimStart().TrimEnd(), worksheet.Cells[row, 14].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingPO.OriginalProductId.ToString() != (worksheet.Cells[row, 15].Text == "" ? 0.ToString() : worksheet.Cells[row, 15].Text))
+                                if (existingPO.OriginalProductId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 15].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 15].Text.TrimStart().TrimEnd()))
                                 {
-                                    poChanges["OriginalProductId"] = (existingPO.OriginalProductId.ToString(), worksheet.Cells[row, 15].Text == "" ? 0.ToString() : worksheet.Cells[row, 15].Text)!;
+                                    poChanges["OriginalProductId"] = (existingPO.OriginalProductId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 15].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 15].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingPO.OriginalSeriesNumber != worksheet.Cells[row, 16].Text)
+                                if (existingPO.OriginalSeriesNumber.TrimStart().TrimEnd() != worksheet.Cells[row, 16].Text.TrimStart().TrimEnd())
                                 {
-                                    poChanges["OriginalSeriesNumber"] = (existingPO.OriginalSeriesNumber, worksheet.Cells[row, 16].Text)!;
+                                    poChanges["OriginalSeriesNumber"] = (existingPO.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet.Cells[row, 16].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingPO.OriginalSupplierId.ToString() != (worksheet.Cells[row, 17].Text == "" ? 0.ToString() : worksheet.Cells[row, 17].Text))
+                                if (existingPO.OriginalSupplierId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 17].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 17].Text.TrimStart().TrimEnd()))
                                 {
-                                    poChanges["SupplierId"] = (existingPO.SupplierId.ToString(), worksheet.Cells[row, 17].Text == "" ? 0.ToString() : worksheet.Cells[row, 17].Text)!;
+                                    poChanges["SupplierId"] = (existingPO.SupplierId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 17].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingPO.OriginalDocumentId.ToString() != (worksheet.Cells[row, 18].Text == "" ? 0.ToString() : worksheet.Cells[row, 18].Text))
+                                if (existingPO.OriginalDocumentId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd()))
                                 {
-                                    poChanges["OriginalDocumentId"] = (existingPO.OriginalDocumentId.ToString(), worksheet.Cells[row, 18].Text == "" ? 0.ToString() : worksheet.Cells[row, 18].Text)!;
+                                    poChanges["OriginalDocumentId"] = (existingPO.OriginalDocumentId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd())!;
                                 }
 
                                 if (poChanges.Any())
@@ -843,6 +843,13 @@ namespace Accounting_System.Controllers
                         }
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         await transaction.CommitAsync(cancellationToken);
+
+                        var checkChangesOfRecord = await _dbContext.ImportExportLogs
+                            .Where(iel => iel.Action == string.Empty).ToListAsync(cancellationToken);
+                        if (checkChangesOfRecord.Any())
+                        {
+                            TempData["importChanges"] = "";
+                        }
                     }
                 }
                 catch (OperationCanceledException oce)

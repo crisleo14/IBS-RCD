@@ -70,14 +70,16 @@ namespace Accounting_System.Repository
                 var logReport = new ImportExportLog()
                 {
                     Id = Guid.NewGuid(),
-                    TableName = "CheckVoucherHeaders",
+                    TableName = "CheckVoucherHeader",
                     DocumentRecordId = id,
                     ColumnName = change.Key,
                     Module = "Check Voucher Header",
                     OriginalValue = change.Value.OriginalValue,
                     AdjustedValue = change.Value.NewValue,
                     TimeStamp = DateTime.UtcNow.AddHours(8),
-                    UploadedBy = modifiedBy
+                    UploadedBy = modifiedBy,
+                    Action = string.Empty,
+                    Executed = false
                 };
                 await _dbContext.AddAsync(logReport);
             }
@@ -97,7 +99,9 @@ namespace Accounting_System.Repository
                     OriginalValue = change.Value.OriginalValue,
                     AdjustedValue = change.Value.NewValue,
                     TimeStamp = DateTime.UtcNow.AddHours(8),
-                    UploadedBy = modifiedBy
+                    UploadedBy = modifiedBy,
+                    Action = string.Empty,
+                    Executed = false
                 };
                 await _dbContext.AddAsync(logReport);
             }

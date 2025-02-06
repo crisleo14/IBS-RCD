@@ -49,14 +49,38 @@ namespace Accounting_System.Repository
                 var logReport = new ImportExportLog()
                 {
                     Id = Guid.NewGuid(),
-                    TableName = "JournalVoucherHeaders",
+                    TableName = "JournalVoucherHeader",
                     DocumentRecordId = id,
                     ColumnName = change.Key,
                     Module = "Journal Voucher Header",
                     OriginalValue = change.Value.OriginalValue,
                     AdjustedValue = change.Value.NewValue,
                     TimeStamp = DateTime.UtcNow.AddHours(8),
-                    UploadedBy = modifiedBy
+                    UploadedBy = modifiedBy,
+                    Action = string.Empty,
+                    Executed = false
+                };
+                await _dbContext.AddAsync(logReport);
+            }
+        }
+
+        public async Task LogChangesForJVDAsync(int? id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy)
+        {
+            foreach (var change in changes)
+            {
+                var logReport = new ImportExportLog()
+                {
+                    Id = Guid.NewGuid(),
+                    TableName = "JournalVoucherDetails",
+                    DocumentRecordId = id.Value,
+                    ColumnName = change.Key,
+                    Module = "Journal Voucher Details",
+                    OriginalValue = change.Value.OriginalValue,
+                    AdjustedValue = change.Value.NewValue,
+                    TimeStamp = DateTime.UtcNow.AddHours(8),
+                    UploadedBy = modifiedBy,
+                    Action = string.Empty,
+                    Executed = false
                 };
                 await _dbContext.AddAsync(logReport);
             }

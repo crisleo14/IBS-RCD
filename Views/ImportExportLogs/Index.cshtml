@@ -1,0 +1,126 @@
+@model IEnumerable<ImportExportLog>
+@using Accounting_System.Models.AccountsReceivable
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+@{
+    ViewData["Title"] = "Import Export Logs";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">IMPORT EXPORT LOGS</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4 table-responsive">
+        <div class="row pb-3">
+            <div class="col-6">
+            </div>
+            <div class="col-6 text-end">
+            </div>
+        </div>
+
+        <table class="table table-bordered table-hover" id="dataTable">
+            <thead class="table-secondary">
+            <tr class="text-nowrap">
+                <th>
+                    code
+                </th>
+                <th>
+                    Original Document Id
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.TableName)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.ColumnName)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.OriginalValue)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.AdjustedValue)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.TimeStamp)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.UploadedBy)
+                </th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                <tr class="align-text-bottom">
+                    <td class="document-id">
+                        @Html.DisplayFor(model => item.Id)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => item.DocumentRecordId)
+                    </td>
+                    <td class="table-name">
+                        @Html.DisplayFor(model => item.TableName)
+                    </td>
+                    <td class="column-name">
+                        @Html.DisplayFor(model => item.ColumnName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => item.OriginalValue)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => item.AdjustedValue)
+                    </td>
+                    <td>
+                        @item.TimeStamp.ToString("MM/dd/yyyy hh:mm:ss.ffffff")
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => item.UploadedBy)
+                    </td>
+                    <td>
+                        <a class="btn btn-primary form-control buttons action">Action</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        document.querySelectorAll('.action').forEach(function (element) {
+            element.addEventListener('click', function () {
+                const tr = this.closest('tr'); // Get the closest <tr>
+                const recordId = tr.querySelector('.document-id').textContent.trim(); // Retrieve the DocumentRecordId
+                const tableName = tr.querySelector('.table-name').textContent.trim();
+                const columnName = tr.querySelector('.column-name').textContent.trim();
+
+                Swal.fire({
+                    title: 'Choose an action',
+                    text: "Are you sure to Modify or Keep the changes?",
+                    icon: 'question',
+                    showCancelButton: true,
+                    showDenyButton: true,
+                    confirmButtonText: 'Modify',
+                    denyButtonText: 'Keep',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const url = `@Url.Action("ImportAction", "ImportExportLogs")?id=${recordId}&procedure=Modify&tableName=${tableName}&columnName=${columnName}`;
+                        window.location.href = url;
+                    } else if (result.isDenied) {
+                        const url = `@Url.Action("ImportAction", "ImportExportLogs")?id=${recordId}&procedure=Keep&tableName=${tableName}&columnName=${columnName}`;
+                        window.location.href = url;
+                    }
+                    // No action needed if "Cancel" is clicked.
+                });
+            });
+        });
+    </script>
+}

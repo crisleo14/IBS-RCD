@@ -111,4 +111,28 @@
         });
     </script>
 }
+@if (TempData["importChanges"] != null)
+{
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/lib/query/dist/jquery.min.js"></script>
+    <script>
+        Swal.fire({
+            title: 'Changes detected during import.',
+            text: "Click 'Yes' to view the record with changes",
+            icon: 'warning',
+            showCancelButton: true,
+            allowEscapeKey: false,
+            allowOutsideClick: false,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Replace with the actual URL that you want to redirect to
+                window.open('/ImportExportLogs/Index', '_blank');
+            }
+        })
+    </script>
+
+}
 

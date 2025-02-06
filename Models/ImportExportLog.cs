@@ -22,5 +22,9 @@ namespace Accounting_System.Models
         public DateTime TimeStamp { get; set; }
 
         public string? UploadedBy { get; set; }
+
+        public string Action { get; set; }
+
+        public bool Executed { get; set; }
     }
 }

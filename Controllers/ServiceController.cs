@@ -298,7 +298,7 @@ namespace Accounting_System.Controllers
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-                
+
                 try
                 {
                     using (var package = new ExcelPackage(stream))
@@ -317,9 +317,9 @@ namespace Accounting_System.Controllers
 
                         var rowCount = worksheet.Dimension.Rows;
                         var servicesList = await _dbContext
-                            .ServiceInvoices
+                            .Services
                             .ToListAsync(cancellationToken);
-                        
+
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var services = new Services
@@ -336,7 +336,7 @@ namespace Accounting_System.Controllers
                                 OriginalServiceId = int.TryParse(worksheet.Cells[row, 9].Text, out int originalServiceId) ? originalServiceId : 0,
                             };
 
-                            if (servicesList.Any(s => s.OriginalServicesId == services.OriginalServiceId))
+                            if (servicesList.Any(s => s.OriginalServiceId == services.OriginalServiceId))
                             {
                                 continue;
                             }

@@ -1161,7 +1161,7 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 5].Value = item.Quantity;
                     worksheet.Cells[row, 6].Value = item.Source;
                     worksheet.Cells[row, 7].Value = item.Remarks;
-                    worksheet.Cells[row, 8].Value = item.Period;
+                    worksheet.Cells[row, 8].Value = item.Period.ToString("yyyy-MM-dd");
                     worksheet.Cells[row, 9].Value = item.Amount;
                     worksheet.Cells[row, 10].Value = item.CurrentAndPreviousAmount;
                     worksheet.Cells[row, 11].Value = item.UnearnedAmount;
@@ -1376,89 +1376,89 @@ namespace Accounting_System.Controllers
                                 var siChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
                                 var existingSI = await _dbContext.SalesInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == invoice.OriginalDocumentId, cancellationToken);
 
-                                if (existingSI.SINo != worksheet2.Cells[row, 21].Text)
+                                if (existingSI.SINo.TrimStart().TrimEnd() != worksheet2.Cells[row, 21].Text.TrimStart().TrimEnd())
                                 {
-                                    siChanges["SiNo"] = (existingSI.SINo, worksheet2.Cells[row, 21].Text)!;
+                                    siChanges["SiNo"] = (existingSI.SINo.TrimStart().TrimEnd(), worksheet2.Cells[row, 21].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSI.OriginalCustomerId.ToString() != worksheet2.Cells[row, 18].Text)
+                                if (existingSI.OriginalCustomerId.ToString().TrimStart().TrimEnd() != worksheet2.Cells[row, 18].Text.TrimStart().TrimEnd())
                                 {
-                                    siChanges["OriginalCustomerId"] = (existingSI.OriginalCustomerId.ToString(), worksheet2.Cells[row, 18].Text)!;
+                                    siChanges["OriginalCustomerId"] = (existingSI.OriginalCustomerId.ToString().TrimStart().TrimEnd(), worksheet2.Cells[row, 18].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSI.OriginalProductId.ToString() != worksheet2.Cells[row, 20].Text)
+                                if (existingSI.OriginalProductId.ToString().TrimStart().TrimEnd() != worksheet2.Cells[row, 20].Text.TrimStart().TrimEnd())
                                 {
-                                    siChanges["OriginalProductId"] = (existingSI.OriginalProductId.ToString(), worksheet2.Cells[row, 20].Text)!;
+                                    siChanges["OriginalProductId"] = (existingSI.OriginalProductId.ToString().TrimStart().TrimEnd(), worksheet2.Cells[row, 20].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSI.OtherRefNo != worksheet2.Cells[row, 1].Text)
+                                if (existingSI.OtherRefNo.TrimStart().TrimEnd() != worksheet2.Cells[row, 1].Text.TrimStart().TrimEnd())
                                 {
-                                    siChanges["OtherRefNo"] = (existingSI.OtherRefNo, worksheet2.Cells[row, 1].Text)!;
+                                    siChanges["OtherRefNo"] = (existingSI.OtherRefNo.TrimStart().TrimEnd(), worksheet2.Cells[row, 1].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSI.Quantity.ToString("F2") != decimal.Parse(worksheet2.Cells[row, 2].Text).ToString("F2"))
+                                if (existingSI.Quantity.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd())
                                 {
-                                    siChanges["Quantity"] = (existingSI.Quantity.ToString("F2"), decimal.Parse(worksheet2.Cells[row, 2].Text).ToString("F2"));
+                                    siChanges["Quantity"] = (existingSI.Quantity.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd());
                                 }
 
-                                if (existingSI.UnitPrice.ToString("F2") != decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2"))
+                                if (existingSI.UnitPrice.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
                                 {
-                                    siChanges["UnitPrice"] = (existingSI.UnitPrice.ToString("F2"), decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2"));
+                                    siChanges["UnitPrice"] = (existingSI.UnitPrice.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd());
                                 }
 
-                                if (existingSI.Amount.ToString("F2") != decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2"))
+                                if (existingSI.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
                                 {
-                                    siChanges["Amount"] = (existingSI.Amount.ToString("F2"), decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2"));
+                                    siChanges["Amount"] = (existingSI.Amount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd());
                                 }
 
-                                if (existingSI.Remarks != worksheet2.Cells[row, 5].Text)
+                                if (existingSI.Remarks.TrimStart().TrimEnd() != worksheet2.Cells[row, 5].Text.TrimStart().TrimEnd())
                                 {
-                                    siChanges["Remarks"] = (existingSI.Remarks, worksheet2.Cells[row, 5].Text)!;
+                                    siChanges["Remarks"] = (existingSI.Remarks.TrimStart().TrimEnd(), worksheet2.Cells[row, 5].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSI.Status != worksheet2.Cells[row, 6].Text)
+                                if (existingSI.Status.TrimStart().TrimEnd() != worksheet2.Cells[row, 6].Text.TrimStart().TrimEnd())
                                 {
-                                    siChanges["Status"] = (existingSI.Status, worksheet2.Cells[row, 6].Text)!;
+                                    siChanges["Status"] = (existingSI.Status.TrimStart().TrimEnd(), worksheet2.Cells[row, 6].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSI.TransactionDate.ToString("yyyy-MM-dd") != worksheet2.Cells[row, 7].Text)
+                                if (existingSI.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet2.Cells[row, 7].Text.TrimStart().TrimEnd())
                                 {
-                                    siChanges["TransactionDate"] = (existingSI.TransactionDate.ToString("yyyy-MM-dd"), worksheet2.Cells[row, 7].Text)!;
+                                    siChanges["TransactionDate"] = (existingSI.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet2.Cells[row, 7].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSI.Discount.ToString("F2") != decimal.Parse(worksheet2.Cells[row, 8].Text).ToString("F2"))
+                                if (existingSI.Discount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd())
                                 {
-                                    siChanges["Discount"] = (existingSI.Discount.ToString("F2"), decimal.Parse(worksheet2.Cells[row, 8].Text).ToString("F2"));
+                                    siChanges["Discount"] = (existingSI.Discount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd());
                                 }
 
-                                if (existingSI.DueDate.ToString("yyyy-MM-dd") != worksheet2.Cells[row, 13].Text)
+                                if (existingSI.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet2.Cells[row, 13].Text.TrimStart().TrimEnd())
                                 {
-                                    siChanges["DueDate"] = (existingSI.DueDate.ToString("yyyy-MM-dd"), worksheet2.Cells[row, 13].Text)!;
+                                    siChanges["DueDate"] = (existingSI.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet2.Cells[row, 13].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSI.CreatedBy != worksheet2.Cells[row, 14].Text)
+                                if (existingSI.CreatedBy.TrimStart().TrimEnd() != worksheet2.Cells[row, 14].Text.TrimStart().TrimEnd())
                                 {
-                                    siChanges["CreatedBy"] = (existingSI.CreatedBy, worksheet2.Cells[row, 14].Text)!;
+                                    siChanges["CreatedBy"] = (existingSI.CreatedBy.TrimStart().TrimEnd(), worksheet2.Cells[row, 14].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSI.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff") != worksheet2.Cells[row, 15].Text)
+                                if (existingSI.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet2.Cells[row, 15].Text.TrimStart().TrimEnd())
                                 {
-                                    siChanges["CreatedDate"] = (existingSI.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff"), worksheet2.Cells[row, 15].Text)!;
+                                    siChanges["CreatedDate"] = (existingSI.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd(), worksheet2.Cells[row, 15].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if ((string.IsNullOrWhiteSpace(existingSI.CancellationRemarks) ? "" : existingSI.CancellationRemarks) != worksheet2.Cells[row, 16].Text)
+                                if ((string.IsNullOrWhiteSpace(existingSI.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingSI.CancellationRemarks.TrimStart().TrimEnd()) != worksheet2.Cells[row, 16].Text.TrimStart().TrimEnd())
                                 {
-                                    siChanges["CancellationRemarks"] = (existingSI.CancellationRemarks, worksheet2.Cells[row, 16].Text)!;
+                                    siChanges["CancellationRemarks"] = (existingSI.CancellationRemarks?.TrimStart().TrimEnd(), worksheet2.Cells[row, 16].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSI.OriginalSeriesNumber != worksheet2.Cells[row, 21].Text)
+                                if (existingSI.OriginalSeriesNumber.TrimStart().TrimEnd() != worksheet2.Cells[row, 21].Text.TrimStart().TrimEnd())
                                 {
-                                    siChanges["OriginalSeriesNumber"] = (existingSI.OriginalSeriesNumber, worksheet2.Cells[row, 21].Text)!;
+                                    siChanges["OriginalSeriesNumber"] = (existingSI.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet2.Cells[row, 21].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSI.OriginalDocumentId.ToString() != worksheet2.Cells[row, 22].Text)
+                                if (existingSI.OriginalDocumentId.ToString().TrimStart().TrimEnd() != worksheet2.Cells[row, 22].Text.TrimStart().TrimEnd())
                                 {
-                                    siChanges["OriginalDocumentId"] = (existingSI.OriginalDocumentId.ToString(), worksheet2.Cells[row, 22].Text)!;
+                                    siChanges["OriginalDocumentId"] = (existingSI.OriginalDocumentId.ToString().TrimStart().TrimEnd(), worksheet2.Cells[row, 22].Text.TrimStart().TrimEnd())!;
                                 }
 
                                 if (siChanges.Any())
@@ -1534,89 +1534,89 @@ namespace Accounting_System.Controllers
                                 var svChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
                                 var existingSV = await _dbContext.ServiceInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == serviceInvoice.OriginalDocumentId, cancellationToken);
 
-                                if (existingSV.SVNo != worksheet3.Cells[row, 17].Text)
+                                if (existingSV.SVNo.TrimStart().TrimEnd() != worksheet3.Cells[row, 17].Text.TrimStart().TrimEnd())
                                 {
-                                    svChanges["SvNo"] = (existingSV.SVNo, worksheet3.Cells[row, 17].Text)!;
+                                    svChanges["SvNo"] = (existingSV.SVNo.TrimStart().TrimEnd(), worksheet3.Cells[row, 17].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSV.DueDate.ToString("yyyy-MM-dd") != worksheet3.Cells[row, 1].Text)
+                                if (existingSV.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet3.Cells[row, 1].Text.TrimStart().TrimEnd())
                                 {
-                                    svChanges["DueDate"] = (existingSV.DueDate.ToString("yyyy-MM-dd"), worksheet3.Cells[row, 1].Text)!;
+                                    svChanges["DueDate"] = (existingSV.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet3.Cells[row, 1].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSV.Period.ToString("yyyy-MM-dd") != worksheet3.Cells[row, 2].Text)
+                                if (existingSV.Period.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet3.Cells[row, 2].Text.TrimStart().TrimEnd())
                                 {
-                                    svChanges["Period"] = (existingSV.Period.ToString("yyyy-MM-dd"), worksheet3.Cells[row, 2].Text)!;
+                                    svChanges["Period"] = (existingSV.Period.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet3.Cells[row, 2].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSV.Amount.ToString("F2") != decimal.Parse(worksheet3.Cells[row, 3].Text).ToString("F2"))
+                                if (existingSV.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
                                 {
-                                    svChanges["Amount"] = (existingSV.Amount.ToString("F2"), decimal.Parse(worksheet3.Cells[row, 3].Text).ToString("F2"));
+                                    svChanges["Amount"] = (existingSV.Amount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd());
                                 }
 
-                                if (existingSV.Total.ToString("F2") != decimal.Parse(worksheet3.Cells[row, 4].Text).ToString("F2"))
+                                if (existingSV.Total.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
                                 {
-                                    svChanges["Total"] = (existingSV.Total.ToString("F2"), decimal.Parse(worksheet3.Cells[row, 4].Text).ToString("F2"));
+                                    svChanges["Total"] = (existingSV.Total.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd());
                                 }
 
-                                if (existingSV.Discount.ToString("F2") != decimal.Parse(worksheet3.Cells[row, 5].Text).ToString("F2"))
+                                if (existingSV.Discount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd())
                                 {
-                                    svChanges["Discount"] = (existingSV.Discount.ToString("F2"), decimal.Parse(worksheet3.Cells[row, 5].Text).ToString("F2"));
+                                    svChanges["Discount"] = (existingSV.Discount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd());
                                 }
 
-                                if (existingSV.CurrentAndPreviousAmount.ToString("F2") != decimal.Parse(worksheet3.Cells[row, 6].Text).ToString("F2"))
+                                if (existingSV.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd())
                                 {
-                                    svChanges["CurrentAndPreviousAmount"] = (existingSV.CurrentAndPreviousAmount.ToString("F2"), decimal.Parse(worksheet3.Cells[row, 6].Text).ToString("F2"));
+                                    svChanges["CurrentAndPreviousAmount"] = (existingSV.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd());
                                 }
 
-                                if (existingSV.UnearnedAmount.ToString("F2") != decimal.Parse(worksheet3.Cells[row, 7].Text).ToString("F2"))
+                                if (existingSV.UnearnedAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 7].Text).ToString("F2").TrimStart().TrimEnd())
                                 {
-                                    svChanges["UnearnedAmount"] = (existingSV.UnearnedAmount.ToString("F2"), decimal.Parse(worksheet3.Cells[row, 7].Text).ToString("F2"));
+                                    svChanges["UnearnedAmount"] = (existingSV.UnearnedAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 7].Text).ToString("F2").TrimStart().TrimEnd());
                                 }
 
-                                if (existingSV.Status != worksheet3.Cells[row, 8].Text)
+                                if (existingSV.Status.TrimStart().TrimEnd() != worksheet3.Cells[row, 8].Text.TrimStart().TrimEnd())
                                 {
-                                    svChanges["Status"] = (existingSV.Status, worksheet3.Cells[row, 8].Text)!;
+                                    svChanges["Status"] = (existingSV.Status.TrimStart().TrimEnd(), worksheet3.Cells[row, 8].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSV.Instructions != worksheet3.Cells[row, 11].Text)
+                                if (existingSV.Instructions.TrimStart().TrimEnd() != worksheet3.Cells[row, 11].Text.TrimStart().TrimEnd())
                                 {
-                                    svChanges["Instructions"] = (existingSV.Instructions, worksheet3.Cells[row, 11].Text)!;
+                                    svChanges["Instructions"] = (existingSV.Instructions.TrimStart().TrimEnd(), worksheet3.Cells[row, 11].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSV.CreatedBy != worksheet3.Cells[row, 13].Text)
+                                if (existingSV.CreatedBy.TrimStart().TrimEnd() != worksheet3.Cells[row, 13].Text.TrimStart().TrimEnd())
                                 {
-                                    svChanges["CreatedBy"] = (existingSV.CreatedBy, worksheet3.Cells[row, 13].Text)!;
+                                    svChanges["CreatedBy"] = (existingSV.CreatedBy.TrimStart().TrimEnd(), worksheet3.Cells[row, 13].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSV.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff") != worksheet3.Cells[row, 14].Text)
+                                if (existingSV.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet3.Cells[row, 14].Text.TrimStart().TrimEnd())
                                 {
-                                    svChanges["CreatedDate"] = (existingSV.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff"), worksheet3.Cells[row, 14].Text)!;
+                                    svChanges["CreatedDate"] = (existingSV.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd(), worksheet3.Cells[row, 14].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if ((string.IsNullOrWhiteSpace(existingSV.CancellationRemarks) ? "" : existingSV.CancellationRemarks) != worksheet3.Cells[row, 15].Text)
+                                if ((string.IsNullOrWhiteSpace(existingSV.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingSV.CancellationRemarks.TrimStart().TrimEnd()) != worksheet3.Cells[row, 15].Text.TrimStart().TrimEnd())
                                 {
-                                    svChanges["CancellationRemarks"] = (existingSV.CancellationRemarks, worksheet3.Cells[row, 15].Text)!;
+                                    svChanges["CancellationRemarks"] = (existingSV.CancellationRemarks?.TrimStart().TrimEnd(), worksheet3.Cells[row, 15].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSV.OriginalCustomerId.ToString() != worksheet3.Cells[row, 16].Text)
+                                if (existingSV.OriginalCustomerId.ToString().TrimStart().TrimEnd() != worksheet3.Cells[row, 16].Text.TrimStart().TrimEnd())
                                 {
-                                    svChanges["OriginalCustomerId"] = (existingSV.OriginalCustomerId.ToString(), worksheet3.Cells[row, 16].Text)!;
+                                    svChanges["OriginalCustomerId"] = (existingSV.OriginalCustomerId.ToString().TrimStart().TrimEnd(), worksheet3.Cells[row, 16].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSV.OriginalSeriesNumber != worksheet3.Cells[row, 17].Text)
+                                if (existingSV.OriginalSeriesNumber.TrimStart().TrimEnd() != worksheet3.Cells[row, 17].Text.TrimStart().TrimEnd())
                                 {
-                                    svChanges["OriginalSeriesNumber"] = (existingSV.OriginalSeriesNumber, worksheet3.Cells[row, 17].Text)!;
+                                    svChanges["OriginalSeriesNumber"] = (existingSV.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet3.Cells[row, 17].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSV.OriginalServicesId.ToString() != worksheet3.Cells[row, 18].Text)
+                                if (existingSV.OriginalServicesId.ToString().TrimStart().TrimEnd() != worksheet3.Cells[row, 18].Text.TrimStart().TrimEnd())
                                 {
-                                    svChanges["OriginalServicesId"] = (existingSV.OriginalServicesId.ToString(), worksheet3.Cells[row, 18].Text)!;
+                                    svChanges["OriginalServicesId"] = (existingSV.OriginalServicesId.ToString().TrimStart().TrimEnd(), worksheet3.Cells[row, 18].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingSV.OriginalDocumentId.ToString() != worksheet3.Cells[row, 19].Text)
+                                if (existingSV.OriginalDocumentId.ToString().TrimStart().TrimEnd() != worksheet3.Cells[row, 19].Text.TrimStart().TrimEnd())
                                 {
-                                    svChanges["OriginalDocumentId"] = (existingSV.OriginalDocumentId.ToString(), worksheet3.Cells[row, 19].Text)!;
+                                    svChanges["OriginalDocumentId"] = (existingSV.OriginalDocumentId.ToString().TrimStart().TrimEnd(), worksheet3.Cells[row, 19].Text.TrimStart().TrimEnd())!;
                                 }
 
                                 if (svChanges.Any())
@@ -1687,104 +1687,104 @@ namespace Accounting_System.Controllers
                                 var cmChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
                                 var existingCM = await _dbContext.CreditMemos.FirstOrDefaultAsync(si => si.OriginalDocumentId == creditMemo.OriginalDocumentId, cancellationToken);
 
-                                if (existingCM.CMNo != worksheet.Cells[row, 17].Text)
+                                if (existingCM.CMNo.TrimStart().TrimEnd() != worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())
                                 {
-                                    cmChanges["DMNo"] = (existingCM.CMNo, worksheet.Cells[row, 17].Text)!;
+                                    cmChanges["CMNo"] = (existingCM.CMNo.TrimStart().TrimEnd(), worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingCM.TransactionDate.ToString("yyyy-MM-dd") != worksheet.Cells[row, 1].Text)
+                                if (existingCM.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())
                                 {
-                                    cmChanges["TransactionDate"] = (existingCM.TransactionDate.ToString("yyyy-MM-dd"), worksheet.Cells[row, 1].Text)!;
+                                    cmChanges["TransactionDate"] = (existingCM.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingCM.CreditAmount.ToString("F2") != decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2"))
+                                if (existingCM.CreditAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd())
                                 {
-                                    cmChanges["DebitAmount"] = (existingCM.CreditAmount.ToString("F2"), decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2"))!;
+                                    cmChanges["CreditAmount"] = (existingCM.CreditAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingCM.Description != worksheet.Cells[row, 3].Text)
+                                if (existingCM.Description.TrimStart().TrimEnd() != worksheet.Cells[row, 3].Text.TrimStart().TrimEnd())
                                 {
-                                    cmChanges["Description"] = (existingCM.Description, worksheet.Cells[row, 3].Text)!;
+                                    cmChanges["Description"] = (existingCM.Description.TrimStart().TrimEnd(), worksheet.Cells[row, 3].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if ((existingCM.AdjustedPrice != null ? existingCM.AdjustedPrice?.ToString("F2") : 0.ToString("F2")) != decimal.Parse(worksheet.Cells[row, 4].Text != "" ? worksheet.Cells[row, 4].Text : 0.ToString("F2")).ToString("F2"))
+                                if ((existingCM.AdjustedPrice != null ? existingCM.AdjustedPrice?.ToString("F2").TrimStart().TrimEnd() : 0.ToString("F2")) != decimal.Parse(worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() : 0.ToString("F2")).ToString("F2").TrimStart().TrimEnd())
                                 {
-                                    cmChanges["AdjustedPrice"] = (existingCM.AdjustedPrice?.ToString("F2"), decimal.Parse(worksheet.Cells[row, 4].Text != "" ? worksheet.Cells[row, 4].Text : 0.ToString("F2")).ToString("F2"))!;
+                                    cmChanges["AdjustedPrice"] = (existingCM.AdjustedPrice?.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() : 0.ToString("F2")).ToString("F2").TrimStart().TrimEnd())!;
                                 }
 
-                                if ((existingCM.Quantity != null ? existingCM.Quantity?.ToString("F0") : 0.ToString("F0")) != decimal.Parse(worksheet.Cells[row, 5].Text != "" ? worksheet.Cells[row, 5].Text : 0.ToString("F0")).ToString("F0"))
+                                if ((existingCM.Quantity != null ? existingCM.Quantity?.ToString("F0").TrimStart().TrimEnd() : 0.ToString("F0")) != decimal.Parse(worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() : 0.ToString("F0")).ToString("F0").TrimStart().TrimEnd())
                                 {
-                                    cmChanges["Quantity"] = (existingCM.Quantity?.ToString("F0"), decimal.Parse(worksheet.Cells[row, 5].Text != "" ? worksheet.Cells[row, 5].Text : 0.ToString("F0")).ToString("F0"))!;
+                                    cmChanges["Quantity"] = (existingCM.Quantity?.ToString("F0").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() : 0.ToString("F0")).ToString("F0").TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingCM.Source != worksheet.Cells[row, 6].Text)
+                                if (existingCM.Source.TrimStart().TrimEnd() != worksheet.Cells[row, 6].Text.TrimStart().TrimEnd())
                                 {
-                                    cmChanges["Source"] = (existingCM.Source, worksheet.Cells[row, 6].Text)!;
+                                    cmChanges["Source"] = (existingCM.Source.TrimStart().TrimEnd(), worksheet.Cells[row, 6].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingCM.Remarks != worksheet.Cells[row, 7].Text)
+                                if (existingCM.Remarks.TrimStart().TrimEnd() != worksheet.Cells[row, 7].Text.TrimStart().TrimEnd())
                                 {
-                                    cmChanges["Remarks"] = (existingCM.Remarks, worksheet.Cells[row, 7].Text)!;
+                                    cmChanges["Remarks"] = (existingCM.Remarks.TrimStart().TrimEnd(), worksheet.Cells[row, 7].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingCM.Period.ToString("yyyy-MM-dd") != DateOnly.Parse(worksheet.Cells[row, 8].Text).ToString("yyyy-MM-dd"))
+                                if (existingCM.Period.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != DateOnly.Parse(worksheet.Cells[row, 8].Text).ToString("yyyy-MM-dd").TrimStart().TrimEnd())
                                 {
-                                    cmChanges["Period"] = (existingCM.Period.ToString("yyyy-MM-dd"), worksheet.Cells[row, 8].Text)!;
+                                    cmChanges["Period"] = (existingCM.Period.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet.Cells[row, 8].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if ((existingCM.Amount != null ? existingCM.Amount?.ToString("F2") : 0.ToString("F2")) != decimal.Parse(worksheet.Cells[row, 9].Text != "" ? worksheet.Cells[row, 9].Text : 0.ToString("F2")).ToString("F2"))
+                                if ((existingCM.Amount != null ? existingCM.Amount?.ToString("F2").TrimStart().TrimEnd() : 0.ToString("F2")) != decimal.Parse(worksheet.Cells[row, 9].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 9].Text.TrimStart().TrimEnd() : 0.ToString("F2")).ToString("F2").TrimStart().TrimEnd())
                                 {
-                                    cmChanges["Amount"] = (existingCM.Amount?.ToString("F2"), decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2"))!;
+                                    cmChanges["Amount"] = (existingCM.Amount?.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2").TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingCM.CurrentAndPreviousAmount.ToString("F2") != decimal.Parse(worksheet.Cells[row, 10].Text).ToString("F2"))
+                                if (existingCM.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 10].Text).ToString("F2").TrimStart().TrimEnd())
                                 {
-                                    cmChanges["CurrentAndPreviousAmount"] = (existingCM.CurrentAndPreviousAmount.ToString("F2"), decimal.Parse(worksheet.Cells[row, 10].Text).ToString("F2"))!;
+                                    cmChanges["CurrentAndPreviousAmount"] = (existingCM.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 10].Text).ToString("F2").TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingCM.UnearnedAmount.ToString("F2") != decimal.Parse(worksheet.Cells[row, 11].Text).ToString("F2"))
+                                if (existingCM.UnearnedAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 11].Text).ToString("F2").TrimStart().TrimEnd())
                                 {
-                                    cmChanges["UnearnedAmount"] = (existingCM.UnearnedAmount.ToString("F2"), decimal.Parse(worksheet.Cells[row, 11].Text).ToString("F2"))!;
+                                    cmChanges["UnearnedAmount"] = (existingCM.UnearnedAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 11].Text).ToString("F2").TrimStart().TrimEnd())!;
                                 }
 
                                 if (existingCM.ServicesId.ToString() != (worksheet.Cells[row, 12].Text == "" ? 0.ToString() : worksheet.Cells[row, 12].Text))
                                 {
-                                    cmChanges["ServicesId"] = (existingCM.ServicesId.ToString(), worksheet.Cells[row, 12].Text == "" ? 0.ToString() : worksheet.Cells[row, 12].Text)!;
+                                    cmChanges["ServicesId"] = (existingCM.ServicesId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 12].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 12].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingCM.CreatedBy != worksheet.Cells[row, 13].Text)
+                                if (existingCM.CreatedBy.TrimStart().TrimEnd() != worksheet.Cells[row, 13].Text.TrimStart().TrimEnd())
                                 {
-                                    cmChanges["CreatedBy"] = (existingCM.CreatedBy, worksheet.Cells[row, 13].Text)!;
+                                    cmChanges["CreatedBy"] = (existingCM.CreatedBy.TrimStart().TrimEnd(), worksheet.Cells[row, 13].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingCM.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff") != worksheet.Cells[row, 14].Text)
+                                if (existingCM.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet.Cells[row, 14].Text.TrimStart().TrimEnd())
                                 {
-                                    cmChanges["CreatedDate"] = (existingCM.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff"), worksheet.Cells[row, 14].Text)!;
+                                    cmChanges["CreatedDate"] = (existingCM.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd(), worksheet.Cells[row, 14].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if ((string.IsNullOrWhiteSpace(existingCM.CancellationRemarks) ? "" : existingCM.CancellationRemarks) != worksheet.Cells[row, 15].Text)
+                                if ((string.IsNullOrWhiteSpace(existingCM.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingCM.CancellationRemarks.TrimStart().TrimEnd()) != worksheet.Cells[row, 15].Text.TrimStart().TrimEnd())
                                 {
-                                    cmChanges["CancellationRemarks"] = (existingCM.CancellationRemarks, worksheet.Cells[row, 15].Text)!;
+                                    cmChanges["CancellationRemarks"] = (existingCM.CancellationRemarks?.TrimStart().TrimEnd(), worksheet.Cells[row, 15].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingCM.OriginalSalesInvoiceId.ToString() != (worksheet.Cells[row, 16].Text == "" ? 0.ToString() : worksheet.Cells[row, 16].Text))
+                                if (existingCM.OriginalSalesInvoiceId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 16].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 16].Text.TrimStart().TrimEnd()))
                                 {
-                                    cmChanges["OriginalSalesInvoiceId"] = (existingCM.OriginalSalesInvoiceId.ToString(), worksheet.Cells[row, 16].Text == "" ? 0.ToString() : worksheet.Cells[row, 16].Text)!;
+                                    cmChanges["OriginalSalesInvoiceId"] = (existingCM.OriginalSalesInvoiceId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 16].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 16].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingCM.OriginalSeriesNumber != worksheet.Cells[row, 17].Text)
+                                if (existingCM.OriginalSeriesNumber.TrimStart().TrimEnd() != worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())
                                 {
-                                    cmChanges["OriginalSeriesNumber"] = (existingCM.OriginalSeriesNumber, worksheet.Cells[row, 17].Text)!;
+                                    cmChanges["OriginalSeriesNumber"] = (existingCM.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingCM.OriginalServiceInvoiceId.ToString() != (worksheet.Cells[row, 18].Text == "" ? 0.ToString() : worksheet.Cells[row, 18].Text))
+                                if (existingCM.OriginalServiceInvoiceId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd()))
                                 {
-                                    cmChanges["OriginalServiceInvoiceId"] = (existingCM.OriginalServiceInvoiceId.ToString(), worksheet.Cells[row, 18].Text == "" ? 0.ToString() : worksheet.Cells[row, 18].Text)!;
+                                    cmChanges["OriginalServiceInvoiceId"] = (existingCM.OriginalServiceInvoiceId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingCM.OriginalDocumentId.ToString() != (worksheet.Cells[row, 19].Text == "" ? 0.ToString() : worksheet.Cells[row, 19].Text))
+                                if (existingCM.OriginalDocumentId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 19].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 19].Text.TrimStart().TrimEnd()))
                                 {
-                                    cmChanges["OriginalDocumentId"] = (existingCM.OriginalDocumentId.ToString(), worksheet.Cells[row, 19].Text == "" ? 0.ToString() : worksheet.Cells[row, 19].Text)!;
+                                    cmChanges["OriginalDocumentId"] = (existingCM.OriginalDocumentId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 19].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 19].Text.TrimStart().TrimEnd())!;
                                 }
 
                                 if (cmChanges.Any())
@@ -1815,6 +1815,12 @@ namespace Accounting_System.Controllers
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         await transaction.CommitAsync(cancellationToken);
 
+                        var checkChangesOfRecord = await _dbContext.ImportExportLogs
+                            .Where(iel => iel.Action == string.Empty).ToListAsync(cancellationToken);
+                        if (checkChangesOfRecord.Any())
+                        {
+                            TempData["importChanges"] = "";
+                        }
                         #endregion -- Credit Memo Import --
                     }
                 }
