@@ -187,48 +187,48 @@ Extracted By:                       @UserManager.GetUserName(User).ToUpper()
                 case 0: // Transaction Date
                     resultPre.textContent += padToLength('Date', 20) +
                         padToLength('Date', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength(endChar.toString(), 7) +
-                        padToLength((endChar - startChar + 1).toString(), 12) +
+                        padToLength("1", 9) +
+                        padToLength("10", 7) +
+                        padToLength("10", 12) +
                         content + '\n';
                     break;
                 case 1: // Serial No
                     resultPre.textContent += padToLength('Reference', 20) +
                         padToLength('Reference', 20) +
-                        padToLength(startChar.toString(), 9) +
-                        padToLength('24', 7) +
-                        padToLength('13', 12) +
+                        padToLength("12", 9) +
+                        padToLength('23', 7) +
+                        padToLength('12', 12) +
                         content + '\n';
                     break;
                 case 2: // Sold To
                     resultPre.textContent += padToLength('Description', 20) +
                         padToLength('Description', 20) +
-                        padToLength('26', 9) +
-                        padToLength('75', 7) +
-                        padToLength('50', 12) +
+                        padToLength('25', 9) +
+                        padToLength('224', 7) +
+                        padToLength('200', 12) +
                         content + '\n';
                     break;
                 case 3: // Tin#
                     resultPre.textContent += padToLength('AccountTitle', 20) +
                         padToLength('Account Title', 20) +
-                        padToLength('77', 9) +
-                        padToLength('126', 7) +
+                        padToLength('226', 9) +
+                        padToLength('275', 7) +
                         padToLength('50', 12) +
                         content + '\n';
                     break;
                 case 4: // Amount
                     resultPre.textContent += padToLength('Debit', 20) +
                         padToLength('Debit', 20) +
-                        padToLength('128', 9) +
-                        padToLength('145', 7) +
+                        padToLength('277', 9) +
+                        padToLength('294', 7) +
                         padToLength('18', 12) +
                         content + '\n';
                     break;
                 case 5: // Vat Amount
                     resultPre.textContent += padToLength('Credit', 20) +
                         padToLength('Credit', 20) +
-                        padToLength('147', 9) +
-                        padToLength('164', 7) +
+                        padToLength('296', 9) +
+                        padToLength('313', 7) +
                         padToLength('18', 12) +
                         content + '\n';
                     break;

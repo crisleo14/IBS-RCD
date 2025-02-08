@@ -441,6 +441,16 @@ namespace Accounting_System.Controllers
             }
         }
         //Generate as .txt file
+        #region -- Function truncate --
+
+        private static string Truncate(string value, int maxLength)
+        {
+            if (string.IsNullOrEmpty(value)) return string.Empty;
+            return value.Length > maxLength ? value.Substring(0, maxLength) : value;
+        }
+
+        #endregion
+
         #region -- Generate Audit Trail .Txt File --
 
         public async Task<IActionResult> GenerateAuditTrailTxtFile(ViewModelBook model, CancellationToken cancellationToken)
@@ -485,11 +495,11 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy.ToUpper()}");
                     fileContent.AppendLine();
                     fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
-                    fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"25"}\t{"25"}\t{firstRecord.Date}");
-                    fileContent.AppendLine($"{"Username"}\t{"Username"}\t{"27"}\t{"46"}\t{"20"}\t{firstRecord.Username}");
-                    fileContent.AppendLine($"{"MachineName"}\t{"Machine Name"}\t{"48"}\t{"77"}\t{"30"}\t{firstRecord.MachineName}");
-                    fileContent.AppendLine($"{"Activity"}\t{"Activity"}\t{"79"}\t{"278"}\t{"200"}\t{firstRecord.Activity}");
-                    fileContent.AppendLine($"{"DocumentType"}\t{"Document Type"}\t{"280"}\t{"299"}\t{"20"}\t{firstRecord.DocumentType}");
+                    fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"25"}\t{"25"}\t{Truncate(firstRecord.Date.ToString("MM/dd/yyyy hh:mm:ss tt"), 25)}");
+                    fileContent.AppendLine($"{"Username"}\t{"Username"}\t{"27"}\t{"46"}\t{"20"}\t{Truncate(firstRecord.Username, 20)}");
+                    fileContent.AppendLine($"{"MachineName"}\t{"Machine Name"}\t{"48"}\t{"77"}\t{"30"}\t{Truncate(firstRecord.MachineName, 30)}");
+                    fileContent.AppendLine($"{"Activity"}\t{"Activity"}\t{"79"}\t{"278"}\t{"200"}\t{Truncate(firstRecord.Activity, 200)}");
+                    fileContent.AppendLine($"{"DocumentType"}\t{"Document Type"}\t{"280"}\t{"299"}\t{"20"}\t{Truncate(firstRecord.DocumentType, 20)}");
                     fileContent.AppendLine();
                     fileContent.AppendLine("AUDIT TRAIL REPORT");
                     fileContent.AppendLine();
@@ -498,7 +508,12 @@ namespace Accounting_System.Controllers
                     // Generate the records
                     foreach (var record in auditTrail)
                     {
-                        fileContent.AppendLine($"{record.Date.ToString("MM/dd/yyyy hh:mm:ss tt"),-25}\t{record.Username,-20}\t{record.MachineName,-30}\t{record.Activity,-200}\t{record.DocumentType,-20}");
+                        fileContent.AppendLine($"{Truncate(record.Date.ToString("MM/dd/yyyy hh:mm:ss tt"), 25),-25}\t" +
+                                               $"{Truncate(record.Username, 20),-20}\t" +
+                                               $"{Truncate(record.MachineName, 30),-30}\t" +
+                                               $"{Truncate(record.Activity, 200),-200}\t" +
+                                               $"{Truncate(record.DocumentType, 20),-20}"
+                                               );
                     }
 
                     fileContent.AppendLine();
@@ -571,16 +586,16 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy.ToUpper()}");
                     fileContent.AppendLine();
                     fileContent.AppendLine($"{"Field Name"}\t{"Description",-18}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
-                    fileContent.AppendLine($"{"Date",-8}\t{"Date",-18}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
-                    fileContent.AppendLine($"{"CVNo",-8}\t{"CV No",-18}\t{"12"}\t{"23"}\t{"12"}\t{firstRecord.CVNo}");
-                    fileContent.AppendLine($"{"Payee",-8}\t{"Payee",-18}\t{"25"}\t{"124"}\t{"100"}\t{firstRecord.Payee}");
-                    fileContent.AppendLine($"{"Particulars"}\t{"Particulars",-18}\t{"126"}\t{"325"}\t{"200"}\t{firstRecord.Particulars}");
-                    fileContent.AppendLine($"{"Bank",-8}\t{"Bank",-18}\t{"327"}\t{"336"}\t{"10"}\t{firstRecord.Bank}");
-                    fileContent.AppendLine($"{"CheckNo",-8}\t{"Check No",-18}\t{"338"}\t{"357"}\t{"20"}\t{firstRecord.CheckNo}");
-                    fileContent.AppendLine($"{"CheckDate"}\t{"Check Date",-18}\t{"359"}\t{"368"}\t{"10"}\t{firstRecord.CheckDate}");
-                    fileContent.AppendLine($"{"ChartOfAccount"}\t{"Chart Of Account"}\t{"370"}\t{"469"}\t{"100"}\t{firstRecord.ChartOfAccount}");
-                    fileContent.AppendLine($"{"Debit",-8}\t{"Debit",-18}\t{"471"}\t{"488"}\t{"18"}\t{firstRecord.Debit}");
-                    fileContent.AppendLine($"{"Credit",-8}\t{"Credit",-18}\t{"490"}\t{"507"}\t{"18"}\t{firstRecord.Credit}");
+                    fileContent.AppendLine($"{"Date",-8}\t{"Date",-18}\t{"1"}\t{"10"}\t{"10"}\t{Truncate(firstRecord.Date.ToString("MM/dd/yyyy"), 10)}");
+                    fileContent.AppendLine($"{"CVNo",-8}\t{"CV No",-18}\t{"12"}\t{"23"}\t{"12"}\t{Truncate(firstRecord.CVNo, 12)}");
+                    fileContent.AppendLine($"{"Payee",-8}\t{"Payee",-18}\t{"25"}\t{"124"}\t{"100"}\t{Truncate(firstRecord.Payee, 100)}");
+                    fileContent.AppendLine($"{"Particulars"}\t{"Particulars",-18}\t{"126"}\t{"325"}\t{"200"}\t{Truncate(firstRecord.Particulars, 200)}");
+                    fileContent.AppendLine($"{"Bank",-8}\t{"Bank",-18}\t{"327"}\t{"336"}\t{"10"}\t{Truncate(firstRecord.Bank, 10)}");
+                    fileContent.AppendLine($"{"CheckNo",-8}\t{"Check No",-18}\t{"338"}\t{"357"}\t{"20"}\t{Truncate(firstRecord.CheckNo, 20)}");
+                    fileContent.AppendLine($"{"CheckDate"}\t{"Check Date",-18}\t{"359"}\t{"368"}\t{"10"}\t{Truncate(firstRecord.CheckDate, 10)}");
+                    fileContent.AppendLine($"{"ChartOfAccount"}\t{"Chart Of Account"}\t{"370"}\t{"469"}\t{"100"}\t{Truncate(firstRecord.ChartOfAccount, 100)}");
+                    fileContent.AppendLine($"{"Debit",-8}\t{"Debit",-18}\t{"471"}\t{"488"}\t{"18"}\t{Truncate(firstRecord.Debit.ToString(), 18)}");
+                    fileContent.AppendLine($"{"Credit",-8}\t{"Credit",-18}\t{"490"}\t{"507"}\t{"18"}\t{Truncate(firstRecord.Credit.ToString(), 18)}");
                     fileContent.AppendLine();
                     fileContent.AppendLine("DISBURSEMENT BOOK");
                     fileContent.AppendLine();
@@ -589,7 +604,17 @@ namespace Accounting_System.Controllers
                     // Generate the records
                     foreach (var record in disbursementBooks)
                     {
-                        fileContent.AppendLine($"{record.Date.ToString("MM/dd/yyyy"),-10}\t{record.CVNo,-12}\t{record.Payee,-100}\t{record.Particulars,-200}\t{record.Bank,-10}\t{record.CheckNo,-20}\t{record.CheckDate,-10}\t{record.ChartOfAccount,-100}\t{record.Debit,18}\t{record.Credit,18}");
+                        fileContent.AppendLine($"{Truncate(record.Date.ToString("MM/dd/yyyy"), 10),-10}\t" +
+                                               $"{Truncate(record.CVNo, 12),-12}\t" +
+                                               $"{Truncate(record.Payee, 100),-100}\t" +
+                                               $"{Truncate(record.Particulars, 200),-200}\t" +
+                                               $"{Truncate(record.Bank, 10),-10}\t" +
+                                               $"{Truncate(record.CheckNo, 20),-20}\t" +
+                                               $"{Truncate(record.CheckDate, 10),-10}\t" +
+                                               $"{Truncate(record.ChartOfAccount, 100),-100}\t" +
+                                               $"{Truncate(record.Debit.ToString(), 18),18}\t" +
+                                               $"{Truncate(record.Credit.ToString(), 18),18}"
+                                               );
                     }
                     fileContent.AppendLine(new string('-', 547));
                     fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-100}\t{"",-200}\t{"",-10}\t{"",-20}\t{"",-10}\t{"TOTAL:",-100}\t{totalDebit,18}\t{totalCredit,18}");
@@ -664,27 +689,36 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy.ToUpper()}");
                     fileContent.AppendLine();
                     fileContent.AppendLine($"{"Field Name"}\t{"Description",-18}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
-                    fileContent.AppendLine($"{"Date",-8}\t{"Date",-18}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
-                    fileContent.AppendLine($"{"RefNo",-8}\t{"Ref No.",-18}\t{"12"}\t{"23"}\t{"12"}\t{firstRecord.RefNo}");
-                    fileContent.AppendLine($"{"CustomerName"}\t{"Customer Name",-18}\t{"25"}\t{"40"}\t{"16"}\t{firstRecord.CustomerName}");
-                    fileContent.AppendLine($"{"Bank",-8}\t{"Bank",-18}\t{"42"}\t{"141"}\t{"100"}\t{firstRecord.Bank}");
-                    fileContent.AppendLine($"{"CheckNo",-8}\t{"Check No.",-18}\t{"143"}\t{"162"}\t{"20"}\t{firstRecord.CheckNo}");
-                    fileContent.AppendLine($"{"COA",-8}\t{"Chart Of Account",-18}\t{"164"}\t{"263"}\t{"100"}\t{firstRecord.COA}");
-                    fileContent.AppendLine($"{"Particulars"}\t{"Particulars",-18}\t{"265"}\t{"464"}\t{"200"}\t{firstRecord.Particulars}");
-                    fileContent.AppendLine($"{"Debit",-8}\t{"Debit",-18}\t{"466"}\t{"483"}\t{"18"}\t{firstRecord.Debit}");
-                    fileContent.AppendLine($"{"Credit",-8}\t{"Credit",-18}\t{"485"}\t{"502"}\t{"18"}\t{firstRecord.Credit}");
+                    fileContent.AppendLine($"{"Date",-8}\t{"Date",-18}\t{"1"}\t{"10"}\t{"10"}\t{Truncate(firstRecord.Date.ToString("MM/dd/yyyy"), 10)}");
+                    fileContent.AppendLine($"{"RefNo",-8}\t{"Ref No.",-18}\t{"12"}\t{"23"}\t{"12"}\t{Truncate(firstRecord.RefNo, 12)}");
+                    fileContent.AppendLine($"{"CustomerName"}\t{"Customer Name",-18}\t{"25"}\t{"124"}\t{"100"}\t{Truncate(firstRecord.CustomerName,100)}");
+                    fileContent.AppendLine($"{"Bank",-8}\t{"Bank",-18}\t{"126"}\t{"225"}\t{"100"}\t{Truncate(firstRecord.Bank, 100)}");
+                    fileContent.AppendLine($"{"CheckNo",-8}\t{"Check No.",-18}\t{"227"}\t{"246"}\t{"20"}\t{Truncate(firstRecord.CheckNo, 20)}");
+                    fileContent.AppendLine($"{"COA",-8}\t{"Chart Of Account",-18}\t{"248"}\t{"347"}\t{"100"}\t{Truncate(firstRecord.COA, 100)}");
+                    fileContent.AppendLine($"{"Particulars"}\t{"Particulars",-18}\t{"349"}\t{"548"}\t{"200"}\t{Truncate(firstRecord.Particulars, 200)}");
+                    fileContent.AppendLine($"{"Debit",-8}\t{"Debit",-18}\t{"550"}\t{"567"}\t{"18"}\t{Truncate(firstRecord.Debit.ToString(), 18)}");
+                    fileContent.AppendLine($"{"Credit",-8}\t{"Credit",-18}\t{"569"}\t{"586"}\t{"18"}\t{Truncate(firstRecord.Credit.ToString(), 18)}");
                     fileContent.AppendLine();
                     fileContent.AppendLine("CASH RECEIPT BOOK");
                     fileContent.AppendLine();
-                    fileContent.AppendLine($"{"Date",-10}\t{"Ref No.",-12}\t{"Customer Name",-16}\t{"Bank",-100}\t{"Check No.",-20}\t{"Chart Of Account",-100}\t{"Particulars",-200}\t{"Debit",18}\t{"Credit",18}");
+                    fileContent.AppendLine($"{"Date",-10}\t{"Ref No.",-12}\t{"Customer Name",-100}\t{"Bank",-100}\t{"Check No.",-20}\t{"Chart Of Account",-100}\t{"Particulars",-200}\t{"Debit",18}\t{"Credit",18}");
 
                     // Generate the records
                     foreach (var record in cashReceiptBooks)
                     {
-                        fileContent.AppendLine($"{record.Date.ToString("MM/dd/yyyy"),-10}\t{record.RefNo,-12}\t{record.CustomerName,-16}\t{record.Bank,-100}\t{record.CheckNo,-20}\t{record.COA,-100}\t{record.Particulars,-200}\t{record.Debit,18}\t{record.Credit,18}");
+                        fileContent.AppendLine($"{Truncate(record.Date.ToString("MM/dd/yyyy"), 10),-10}\t" +
+                                               $"{Truncate(record.RefNo, 12),-12}\t" +
+                                               $"{Truncate(record.CustomerName, 100),-100}\t" +
+                                               $"{Truncate(record.Bank, 100),-100}\t" +
+                                               $"{Truncate(record.CheckNo, 20),-20}\t" +
+                                               $"{Truncate(record.COA, 100),-100}\t" +
+                                               $"{Truncate(record.Particulars, 200),-200}\t" +
+                                               $"{Truncate(record.Debit.ToString(), 18),18}\t" +
+                                               $"{Truncate(record.Credit.ToString(), 18),18}"
+                                               );
                     }
-                    fileContent.AppendLine(new string('-', 539));
-                    fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-16}\t{"",-100}\t{"",-20}\t{"",-100}\t{"TOTAL:",200}\t{totalDebit,18}\t{totalCredit,18}");
+                    fileContent.AppendLine(new string('-', 623));
+                    fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-100}\t{"",-100}\t{"",-20}\t{"",-100}\t{"TOTAL:",200}\t{totalDebit,18}\t{totalCredit,18}");
 
                     fileContent.AppendLine();
                     fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
@@ -756,24 +790,29 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy.ToUpper()}");
                     fileContent.AppendLine();
                     fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
-                    fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
-                    fileContent.AppendLine($"{"Reference"}\t{"Reference"}\t{"12"}\t{"23"}\t{"12"}\t{firstRecord.Reference}");
-                    fileContent.AppendLine($"{"Description"}\t{"Description"}\t{"25"}\t{"74"}\t{"50"}\t{firstRecord.Description}");
-                    fileContent.AppendLine($"{"AccountTitle"}\t{"Account Title"}\t{"76"}\t{"125"}\t{"50"}\t{firstRecord.AccountNo + " " + firstRecord.AccountTitle}");
-                    fileContent.AppendLine($"{"Debit",-8}\t{"Debit",-8}\t{"127"}\t{"144"}\t{"18"}\t{firstRecord.Debit}");
-                    fileContent.AppendLine($"{"Credit",-8}\t{"Credit",-8}\t{"146"}\t{"163"}\t{"18"}\t{firstRecord.Credit}");
+                    fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"10"}\t{"10"}\t{Truncate(firstRecord.Date.ToString("MM/dd/yyyy"), 10)}");
+                    fileContent.AppendLine($"{"Reference"}\t{"Reference"}\t{"12"}\t{"23"}\t{"12"}\t{Truncate(firstRecord.Reference, 12)}");
+                    fileContent.AppendLine($"{"Description"}\t{"Description"}\t{"25"}\t{"224"}\t{"200"}\t{Truncate(firstRecord.Description, 200)}");
+                    fileContent.AppendLine($"{"AccountTitle"}\t{"Account Title"}\t{"226"}\t{"275"}\t{"50"}\t{Truncate(firstRecord.AccountNo + " " + firstRecord.AccountTitle, 50)}");
+                    fileContent.AppendLine($"{"Debit",-8}\t{"Debit",-8}\t{"277"}\t{"294"}\t{"18"}\t{Truncate(firstRecord.Debit.ToString(), 18)}");
+                    fileContent.AppendLine($"{"Credit",-8}\t{"Credit",-8}\t{"296"}\t{"313"}\t{"18"}\t{Truncate(firstRecord.Credit.ToString(), 18)}");
                     fileContent.AppendLine();
                     fileContent.AppendLine("GENERAL LEDGER BOOK");
                     fileContent.AppendLine();
-                    fileContent.AppendLine($"{"Date",-10}\t{"Reference",-12}\t{"Description",-50}\t{"Account Title",-50}\t{"Debit",18}\t{"Credit",18}");
+                    fileContent.AppendLine($"{"Date",-10}\t{"Reference",-12}\t{"Description",-200}\t{"Account Title",-50}\t{"Debit",18}\t{"Credit",18}");
 
                     // Generate the records
                     foreach (var record in generalBooks)
                     {
-                        fileContent.AppendLine($"{record.Date.ToString("MM/dd/yyyy"),-10}\t{record.Reference,-12}\t{record.Description,-50}\t{record.AccountNo + " " + record.AccountTitle,-50}\t{record.Debit,18}\t{record.Credit,18}");
+                        fileContent.AppendLine($"{record.Date.ToString("MM/dd/yyyy"),-10}\t" +
+                                               $"{Truncate(record.Reference, 12),-12}\t" +
+                                               $"{Truncate(record.Description, 200),-200}\t" +
+                                               $"{Truncate(record.AccountNo + " " + record.AccountTitle, 50),-50}\t" +
+                                               $"{Truncate(record.Debit.ToString(), 18),18}\t" +
+                                               $"{Truncate(record.Credit.ToString(), 18),18}");
                     }
-                    fileContent.AppendLine(new string('-', 187));
-                    fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-50}\t{"TOTAL:",50}\t{totalDebit,18}\t{totalCredit,18}");
+                    fileContent.AppendLine(new string('-', 340));
+                    fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-200}\t{"TOTAL:",50}\t{totalDebit,18}\t{totalCredit,18}");
 
                     fileContent.AppendLine();
                     fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
@@ -845,13 +884,13 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy.ToUpper()}");
                     fileContent.AppendLine();
                     fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
-                    fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
-                    fileContent.AppendLine($"{"ProductCode",-8}\t{"Product Code",-8}\t{"12"}\t{"31"}\t{"20"}\t{firstRecord.Product.Code}");
-                    fileContent.AppendLine($"{"ProductName",-8}\t{"Product Name",-8}\t{"33"}\t{"82"}\t{"50"}\t{firstRecord.Product.Name}");
-                    fileContent.AppendLine($"{"Unit",-8}\t{"Unit",-8}\t{"84"}\t{"85"}\t{"2"}\t{firstRecord.Product.Unit}");
-                    fileContent.AppendLine($"{"Quantity",-8}\t{"Quantity",-8}\t{"87"}\t{"104"}\t{"18"}\t{firstRecord.Quantity}");
-                    fileContent.AppendLine($"{"Price",-8}\t{"Price Per Unit",-8}\t{"106"}\t{"123"}\t{"18"}\t{firstRecord.Cost}");
-                    fileContent.AppendLine($"{"Amount",-8}\t{"Amount",-8}\t{"125"}\t{"142"}\t{"18"}\t{firstRecord.Total}");
+                    fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"10"}\t{"10"}\t{Truncate(firstRecord.Date.ToString("MM/dd/yyyy"), 10)}");
+                    fileContent.AppendLine($"{"ProductCode",-8}\t{"Product Code",-8}\t{"12"}\t{"31"}\t{"20"}\t{Truncate(firstRecord.Product.Code, 20)}");
+                    fileContent.AppendLine($"{"ProductName",-8}\t{"Product Name",-8}\t{"33"}\t{"82"}\t{"50"}\t{Truncate(firstRecord.Product.Name, 50)}");
+                    fileContent.AppendLine($"{"Unit",-8}\t{"Unit",-8}\t{"84"}\t{"85"}\t{"2"}\t{Truncate(firstRecord.Product.Unit, 2)}");
+                    fileContent.AppendLine($"{"Quantity",-8}\t{"Quantity",-8}\t{"87"}\t{"104"}\t{"18"}\t{Truncate(firstRecord.Quantity.ToString(), 18)}");
+                    fileContent.AppendLine($"{"Price",-8}\t{"Price Per Unit",-8}\t{"106"}\t{"123"}\t{"18"}\t{Truncate(firstRecord.Cost.ToString(), 18)}");
+                    fileContent.AppendLine($"{"Amount",-8}\t{"Amount",-8}\t{"125"}\t{"142"}\t{"18"}\t{Truncate(firstRecord.Total.ToString(), 18)}");
                     fileContent.AppendLine();
                     fileContent.AppendLine("INVENTORY BOOK");
                     fileContent.AppendLine();
@@ -870,7 +909,14 @@ namespace Accounting_System.Controllers
                         {
                             totalPriceUnitAmount = getLastRecordCost;
                         }
-                        fileContent.AppendLine($"{record.Date.ToString("MM/dd/yyyy"),-10}\t{record.Product.Code,-20}\t{record.Product.Code,-50}\t{record.Unit,-2}\t{record.Quantity,18}\t{record.Cost,18}\t{record.Total,18}");
+                        fileContent.AppendLine($"{Truncate(record.Date.ToString("MM/dd/yyyy"), 10),-10}\t" +
+                                               $"{Truncate(record.Product.Code, 20),-20}\t" +
+                                               $"{Truncate(record.Product.Code, 50),-50}\t" +
+                                               $"{Truncate(record.Unit, 2),-2}\t" +
+                                               $"{Truncate(record.Quantity.ToString(), 18),18}\t" +
+                                               $"{Truncate(record.Cost.ToString(), 18),18}\t" +
+                                               $"{Truncate(record.Total.ToString(), 18),18}"
+                                               );
                     }
                     fileContent.AppendLine(new string('-', 171));
                     fileContent.AppendLine($"{"",-10}\t{"",-20}\t{"",-50}\t{"TOTAL:",2}\t{totalQuantity,18}\t{totalPriceUnitAmount.ToString("N2"),18}\t{totalAmount,18}");
@@ -945,24 +991,30 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy.ToUpper()}");
                     fileContent.AppendLine();
                     fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
-                    fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
-                    fileContent.AppendLine($"{"Reference",-8}\t{"Reference",-8}\t{"12"}\t{"23"}\t{"12"}\t{firstRecord.Reference}");
-                    fileContent.AppendLine($"{"Description",-8}\t{"Description",-8}\t{"25"}\t{"74"}\t{"50"}\t{firstRecord.Description}");
-                    fileContent.AppendLine($"{"AccountTitle",-8}\t{"Account Title",-8}\t{"76"}\t{"125"}\t{"50"}\t{firstRecord.AccountTitle}");
-                    fileContent.AppendLine($"{"Debit",-8}\t{"Debit",-8}\t{"127"}\t{"144"}\t{"18"}\t{firstRecord.Debit}");
-                    fileContent.AppendLine($"{"Credit",-8}\t{"Credit",-8}\t{"146"}\t{"163"}\t{"18"}\t{firstRecord.Credit}");
+                    fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"10"}\t{"10"}\t{Truncate(firstRecord.Date.ToString("MM/dd/yyyy"), 10)}");
+                    fileContent.AppendLine($"{"Reference",-8}\t{"Reference",-8}\t{"12"}\t{"23"}\t{"12"}\t{Truncate(firstRecord.Reference, 12)}");
+                    fileContent.AppendLine($"{"Description",-8}\t{"Description",-8}\t{"25"}\t{"224"}\t{"200"}\t{Truncate(firstRecord.Description, 200)}");
+                    fileContent.AppendLine($"{"AccountTitle",-8}\t{"Account Title",-8}\t{"226"}\t{"275"}\t{"50"}\t{Truncate(firstRecord.AccountTitle, 50)}");
+                    fileContent.AppendLine($"{"Debit",-8}\t{"Debit",-8}\t{"277"}\t{"294"}\t{"18"}\t{Truncate(firstRecord.Debit.ToString(), 18)}");
+                    fileContent.AppendLine($"{"Credit",-8}\t{"Credit",-8}\t{"296"}\t{"313"}\t{"18"}\t{Truncate(firstRecord.Credit.ToString(), 18)}");
                     fileContent.AppendLine();
                     fileContent.AppendLine("JOURNAL BOOK");
                     fileContent.AppendLine();
-                    fileContent.AppendLine($"{"Date",-10}\t{"Reference",-12}\t{"Description",-50}\t{"Account Title",-50}\t{"Debit",18}\t{"Credit",18}");
+                    fileContent.AppendLine($"{"Date",-10}\t{"Reference",-12}\t{"Description",-200}\t{"Account Title",-50}\t{"Debit",18}\t{"Credit",18}");
 
                     // Generate the records
                     foreach (var record in journalBooks)
                     {
-                        fileContent.AppendLine($"{record.Date.ToString("MM/dd/yyyy"),-10}\t{record.Reference,-12}\t{record.Description,-50}\t{record.AccountTitle,-50}\t{record.Debit,18}\t{record.Credit,18}");
+                        fileContent.AppendLine($"{Truncate(record.Date.ToString("MM/dd/yyyy"), 10),-10}\t" +
+                                               $"{Truncate(record.Reference, 12),-12}\t" +
+                                               $"{Truncate(record.Description, 200),-200}\t" +
+                                               $"{Truncate(record.AccountTitle, 50),-50}\t" +
+                                               $"{Truncate(record.Debit.ToString(), 18),18}\t" +
+                                               $"{Truncate(record.Credit.ToString(), 18),18}"
+                                               );
                     }
-                    fileContent.AppendLine(new string('-', 187));
-                    fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-50}\t{"TOTAL:",50}\t{totalDebit,18}\t{totalCredit,18}");
+                    fileContent.AppendLine(new string('-', 340));
+                    fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-200}\t{"TOTAL:",50}\t{totalDebit,18}\t{totalCredit,18}");
 
                     fileContent.AppendLine();
                     fileContent.AppendLine($"Software Name: Accounting Administration System (AAS)");
@@ -1052,18 +1104,18 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy.ToUpper()}");
                     fileContent.AppendLine();
                     fileContent.AppendLine($"{"Field Name",-18}\t{"Description",-18}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
-                    fileContent.AppendLine($"{"Date",-18}\t{"Date",-18}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.Date}");
-                    fileContent.AppendLine($"{"SupplierName",-18}\t{"Supplier Name",-18}\t{"12"}\t{"61"}\t{"50"}\t{firstRecord.SupplierName}");
-                    fileContent.AppendLine($"{"SupplierTin",-18}\t{"Supplier TIN",-18}\t{"63"}\t{"82"}\t{"20"}\t{firstRecord.SupplierTin}");
-                    fileContent.AppendLine($"{"SupplierAddress",-18}\t{"Supplier Address",-18}\t{"84"}\t{"283"}\t{"200"}\t{firstRecord.SupplierAddress}");
-                    fileContent.AppendLine($"{"PONo",-18}\t{"PO No.",-18}\t{"285"}\t{"296"}\t{"12"}\t{firstRecord.PONo}");
-                    fileContent.AppendLine($"{"DocumentNo",-18}\t{"Document No",-18}\t{"298"}\t{"309"}\t{"12"}\t{firstRecord.DocumentNo}");
-                    fileContent.AppendLine($"{"Description",-18}\t{"Description",-18}\t{"311"}\t{"360"}\t{"50"}\t{firstRecord.Description}");
-                    fileContent.AppendLine($"{"Amount",-18}\t{"Amount",-18}\t{"362"}\t{"379"}\t{"18"}\t{firstRecord.Amount}");
-                    fileContent.AppendLine($"{"VatAmount",-18}\t{"Vat Amount",-18}\t{"381"}\t{"398"}\t{"18"}\t{firstRecord.VatAmount}");
+                    fileContent.AppendLine($"{"Date",-18}\t{"Date",-18}\t{"1"}\t{"10"}\t{"10"}\t{Truncate(firstRecord.Date.ToString("MM/dd/yyyy"), 10)}");
+                    fileContent.AppendLine($"{"SupplierName",-18}\t{"Supplier Name",-18}\t{"12"}\t{"61"}\t{"50"}\t{Truncate(firstRecord.SupplierName, 50)}");
+                    fileContent.AppendLine($"{"SupplierTin",-18}\t{"Supplier TIN",-18}\t{"63"}\t{"82"}\t{"20"}\t{Truncate(firstRecord.SupplierTin, 20)}");
+                    fileContent.AppendLine($"{"SupplierAddress",-18}\t{"Supplier Address",-18}\t{"84"}\t{"283"}\t{"200"}\t{Truncate(firstRecord.SupplierAddress, 200)}");
+                    fileContent.AppendLine($"{"PONo",-18}\t{"PO No.",-18}\t{"285"}\t{"296"}\t{"12"}\t{Truncate(firstRecord.PONo, 12)}");
+                    fileContent.AppendLine($"{"DocumentNo",-18}\t{"Document No",-18}\t{"298"}\t{"309"}\t{"12"}\t{Truncate(firstRecord.DocumentNo, 12)}");
+                    fileContent.AppendLine($"{"Description",-18}\t{"Description",-18}\t{"311"}\t{"360"}\t{"50"}\t{Truncate(firstRecord.Description, 50)}");
+                    fileContent.AppendLine($"{"Amount",-18}\t{"Amount",-18}\t{"362"}\t{"379"}\t{"18"}\t{Truncate(firstRecord.Amount.ToString(), 18)}");
+                    fileContent.AppendLine($"{"VatAmount",-18}\t{"Vat Amount",-18}\t{"381"}\t{"398"}\t{"18"}\t{Truncate(firstRecord.VatAmount.ToString(), 18)}");
                     fileContent.AppendLine($"{"DefAmount",-18}\t{"Def VAT Amount",-18}\t{"400"}\t{"417"}\t{"18"}\t{0.00}");
-                    fileContent.AppendLine($"{"WhtAmount",-18}\t{"WHT Amount",-18}\t{"419"}\t{"436"}\t{"18"}\t{firstRecord.WhtAmount}");
-                    fileContent.AppendLine($"{"NetPurchases",-18}\t{"Net Purchases",-18}\t{"438"}\t{"455"}\t{"18"}\t{firstRecord.NetPurchases}");
+                    fileContent.AppendLine($"{"WhtAmount",-18}\t{"WHT Amount",-18}\t{"419"}\t{"436"}\t{"18"}\t{Truncate(firstRecord.WhtAmount.ToString(), 18)}");
+                    fileContent.AppendLine($"{"NetPurchases",-18}\t{"Net Purchases",-18}\t{"438"}\t{"455"}\t{"18"}\t{Truncate(firstRecord.NetPurchases.ToString(), 18)}");
                     fileContent.AppendLine();
                     fileContent.AppendLine("PURCHASE BOOK");
                     fileContent.AppendLine();
@@ -1072,7 +1124,19 @@ namespace Accounting_System.Controllers
                     // Generate the records
                     foreach (var record in purchaseOrders)
                     {
-                        fileContent.AppendLine($"{record.Date.ToString("MM/dd/yyyy"),-10}\t{record.SupplierName,-50}\t{record.SupplierTin,-20}\t{record.SupplierAddress,-200}\t{record.PONo,-12}\t{record.DocumentNo,-12}\t{record.Description,-50}\t{record.Amount,18}\t{record.VatAmount,18}\t{0.00m,18}\t{record.WhtAmount,18}\t{record.NetPurchases,18}");
+                        fileContent.AppendLine($"{Truncate(record.Date.ToString("MM/dd/yyyy"), 10),-10}\t" +
+                                               $"{Truncate(record.SupplierName, 50),-50}\t" +
+                                               $"{Truncate(record.SupplierTin, 20),-20}\t" +
+                                               $"{Truncate(record.SupplierAddress, 200),-200}\t" +
+                                               $"{Truncate(record.PONo, 12),-12}\t" +
+                                               $"{Truncate(record.DocumentNo, 12),-12}\t" +
+                                               $"{Truncate(record.Description, 50),-50}\t" +
+                                               $"{Truncate(record.Amount.ToString(), 18),18}\t" +
+                                               $"{Truncate(record.VatAmount.ToString(), 18),18}\t" +
+                                               $"{0.00m,18}\t" +
+                                               $"{Truncate(record.WhtAmount.ToString(), 18),18}\t" +
+                                               $"{Truncate(record.NetPurchases.ToString(), 18),18}"
+                                               );
                     }
                     fileContent.AppendLine(new string('-', 507));
                     fileContent.AppendLine($"{"",-10}\t{"",-50}\t{"",-20}\t{"",-200}\t{"",-12}\t{"",-12}\t{"TOTAL:",50}\t{totalAmount,18}\t{totalVatAmount,18}\t{0.00m,18}\t{totalWhtAmount,18}\t{totalNetPurchases,18}");
@@ -1158,19 +1222,19 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine($"{"Extracted By: ",-35}{extractedBy.ToUpper()}");
                     fileContent.AppendLine();
                     fileContent.AppendLine($"{"Field Name",-18}\t{"Description",-18}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
-                    fileContent.AppendLine($"{"TransactionDate",-18}\t{"Tran. Date",-18}\t{"1"}\t{"10"}\t{"10"}\t{firstRecord.TransactionDate}");
-                    fileContent.AppendLine($"{"SerialNo",-18}\t{"Serial Number",-18}\t{"12"}\t{"23"}\t{"12"}\t{firstRecord.SerialNo}");
-                    fileContent.AppendLine($"{"Date",-18}\t{"Customer Name",-18}\t{"25"}\t{"124"}\t{"100"}\t{firstRecord.SoldTo}");
-                    fileContent.AppendLine($"{"TinNo",-18}\t{"Tin#",-18}\t{"126"}\t{"145"}\t{"20"}\t{firstRecord.TinNo}");
-                    fileContent.AppendLine($"{"Address",-18}\t{"Address",-18}\t{"147"}\t{"346"}\t{"200"}\t{firstRecord.Address}");
-                    fileContent.AppendLine($"{"Description",-18}\t{"Description",-18}\t{"348"}\t{"397"}\t{"50"}\t{firstRecord.Description}");
-                    fileContent.AppendLine($"{"Amount",-18}\t{"Amount",-18}\t{"399"}\t{"416"}\t{"18"}\t{firstRecord.Amount}");
-                    fileContent.AppendLine($"{"VatAmount",-18}\t{"Vat Amount",-18}\t{"418"}\t{"435"}\t{"18"}\t{firstRecord.VatAmount}");
-                    fileContent.AppendLine($"{"VatableSales",-18}\t{"Vatable Sales",-18}\t{"437"}\t{"454"}\t{"18"}\t{firstRecord.VatableSales}");
-                    fileContent.AppendLine($"{"VatExemptSales",-18}\t{"Vat-Exempt Sales",-18}\t{"456"}\t{"473"}\t{"18"}\t{firstRecord.VatExemptSales}");
-                    fileContent.AppendLine($"{"ZeroRated",-18}\t{"Zero-Rated Sales",-18}\t{"475"}\t{"492"}\t{"18"}\t{firstRecord.ZeroRated}");
-                    fileContent.AppendLine($"{"Discount",-18}\t{"Discount",-18}\t{"494"}\t{"511"}\t{"18"}\t{firstRecord.Discount}");
-                    fileContent.AppendLine($"{"NetSales",-18}\t{"Net Sales",-18}\t{"513"}\t{"530"}\t{"18"}\t{firstRecord.NetSales}");
+                    fileContent.AppendLine($"{"TransactionDate",-18}\t{"Tran. Date",-18}\t{"1"}\t{"10"}\t{"10"}\t{Truncate(firstRecord.TransactionDate.ToString("MM/dd/yyyy"), 10)}");
+                    fileContent.AppendLine($"{"SerialNo",-18}\t{"Serial Number",-18}\t{"12"}\t{"23"}\t{"12"}\t{Truncate(firstRecord.SerialNo, 12)}");
+                    fileContent.AppendLine($"{"CustomerName",-18}\t{"Customer Name",-18}\t{"25"}\t{"124"}\t{"100"}\t{Truncate(firstRecord.SoldTo, 100)}");
+                    fileContent.AppendLine($"{"TinNo",-18}\t{"Tin#",-18}\t{"126"}\t{"145"}\t{"20"}\t{Truncate(firstRecord.TinNo, 20)}");
+                    fileContent.AppendLine($"{"Address",-18}\t{"Address",-18}\t{"147"}\t{"346"}\t{"200"}\t{Truncate(firstRecord.Address, 200)}");
+                    fileContent.AppendLine($"{"Description",-18}\t{"Description",-18}\t{"348"}\t{"397"}\t{"50"}\t{Truncate(firstRecord.Description, 50)}");
+                    fileContent.AppendLine($"{"Amount",-18}\t{"Amount",-18}\t{"399"}\t{"416"}\t{"18"}\t{Truncate(firstRecord.Amount.ToString(), 18)}");
+                    fileContent.AppendLine($"{"VatAmount",-18}\t{"Vat Amount",-18}\t{"418"}\t{"435"}\t{"18"}\t{Truncate(firstRecord.VatAmount.ToString(), 18)}");
+                    fileContent.AppendLine($"{"VatableSales",-18}\t{"Vatable Sales",-18}\t{"437"}\t{"454"}\t{"18"}\t{Truncate(firstRecord.VatableSales.ToString(), 18)}");
+                    fileContent.AppendLine($"{"VatExemptSales",-18}\t{"Vat-Exempt Sales",-18}\t{"456"}\t{"473"}\t{"18"}\t{Truncate(firstRecord.VatExemptSales.ToString(), 18)}");
+                    fileContent.AppendLine($"{"ZeroRated",-18}\t{"Zero-Rated Sales",-18}\t{"475"}\t{"492"}\t{"18"}\t{Truncate(firstRecord.ZeroRated.ToString(), 18)}");
+                    fileContent.AppendLine($"{"Discount",-18}\t{"Discount",-18}\t{"494"}\t{"511"}\t{"18"}\t{Truncate(firstRecord.Discount.ToString(), 18)}");
+                    fileContent.AppendLine($"{"NetSales",-18}\t{"Net Sales",-18}\t{"513"}\t{"530"}\t{"18"}\t{Truncate(firstRecord.NetSales.ToString(), 18)}");
                     fileContent.AppendLine();
                     fileContent.AppendLine("SALES BOOK");
                     fileContent.AppendLine();
@@ -1179,7 +1243,20 @@ namespace Accounting_System.Controllers
                     // Generate the records
                     foreach (var record in salesBook)
                     {
-                        fileContent.AppendLine($"{record.TransactionDate.ToString("MM/dd/yyyy"),-10}\t{record.SerialNo,-12}\t{record.SoldTo,-100}\t{record.TinNo,-20}\t{record.Address,-200}\t{record.Description,-50}\t{record.Amount,18}\t{record.VatAmount,18}\t{record.VatableSales,18}\t{record.VatExemptSales,18}\t{record.ZeroRated,18}\t{record.Discount,18}\t{record.NetSales,18}");
+                        fileContent.AppendLine($"{Truncate(record.TransactionDate.ToString("MM/dd/yyyy"), 10),-10}\t" +
+                                               $"{Truncate(record.SerialNo, 12),-12}\t" +
+                                               $"{Truncate(record.SoldTo, 100),-100}\t" +
+                                               $"{Truncate(record.TinNo, 20),-20}\t" +
+                                               $"{Truncate(record.Address, 200),-200}\t" +
+                                               $"{Truncate(record.Description, 50),-50}\t" +
+                                               $"{Truncate(record.Amount.ToString(), 18),18}\t" +
+                                               $"{Truncate(record.VatAmount.ToString(), 18),18}\t" +
+                                               $"{Truncate(record.VatableSales.ToString(), 18),18}\t" +
+                                               $"{Truncate(record.VatExemptSales.ToString(), 18),18}\t" +
+                                               $"{Truncate(record.ZeroRated.ToString(), 18),18}\t" +
+                                               $"{Truncate(record.Discount.ToString(), 18),18}\t" +
+                                               $"{Truncate(record.NetSales.ToString(), 18),18}"
+                                               );
                     }
                     fileContent.AppendLine(new string('-', 587));
                     fileContent.AppendLine($"{"",-10}\t{"",-12}\t{"",-100}\t{"",-20}\t{"",-200}\t{"TOTAL:",50}\t{totalAmount,18}\t{totalVatAmount,18}\t{totalVatableSales,18}\t{totalVatExemptSales,18}\t{totalZeroRatedSales,18}\t{totalDiscount,18}\t{totalNetSales,18}");
@@ -1208,7 +1285,7 @@ namespace Accounting_System.Controllers
         #endregion -- Generate Sales Book .Txt File --
 
         //Generate as .csv file.
-        #region -- Generate DisbursmentBook .Csv File -- 
+        #region -- Generate DisbursmentBook .Csv File --
 
         public async Task<IActionResult> GenerateDisbursementBookCsvFile(ViewModelBook model, CancellationToken cancellationToken)
         {
@@ -1321,9 +1398,9 @@ namespace Accounting_System.Controllers
             return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "DisbursementBook.xlsx");
         }
 
-        #endregion -- Generate DisbursmentBook .Csv File -- 
+        #endregion -- Generate DisbursmentBook .Csv File --
 
-        #region -- Generate CashReceiptBook .Csv File -- 
+        #region -- Generate CashReceiptBook .Csv File --
 
         public async Task<IActionResult> GenerateCashReceiptBookCsvFile(ViewModelBook model, CancellationToken cancellationToken)
         {
@@ -1434,9 +1511,9 @@ namespace Accounting_System.Controllers
             return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "CashReceiptBook.xlsx");
         }
 
-        #endregion -- Generate CashReceiptBook .Csv File -- 
+        #endregion -- Generate CashReceiptBook .Csv File --
 
-        #region -- Generate GeneralLedgerBook .Csv File -- 
+        #region -- Generate GeneralLedgerBook .Csv File --
 
         public async Task<IActionResult> GenerateGeneralLedgerBookCsvFile(ViewModelBook model, CancellationToken cancellationToken)
         {
@@ -1541,9 +1618,9 @@ namespace Accounting_System.Controllers
             return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "GeneralLedgerBook.xlsx");
         }
 
-        #endregion -- Generate GeneralLedgerBook .Csv File -- 
+        #endregion -- Generate GeneralLedgerBook .Csv File --
 
-        #region -- Generate InventoryBook .Csv File -- 
+        #region -- Generate InventoryBook .Csv File --
 
         public async Task<IActionResult> GenerateInventoryBookCsvFile(ViewModelBook model, CancellationToken cancellationToken)
         {
@@ -1663,9 +1740,9 @@ namespace Accounting_System.Controllers
             return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "InventoryBook.xlsx");
         }
 
-        #endregion -- Generate InventoryBook .Csv File -- 
+        #endregion -- Generate InventoryBook .Csv File --
 
-        #region -- Generate JournalBook .Csv File -- 
+        #region -- Generate JournalBook .Csv File --
 
         public async Task<IActionResult> GenerateJournalBookCsvFile(ViewModelBook model, CancellationToken cancellationToken)
         {
@@ -1770,9 +1847,9 @@ namespace Accounting_System.Controllers
             return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "JournalBook.xlsx");
         }
 
-        #endregion -- Generate JournalBook .Csv File -- 
+        #endregion -- Generate JournalBook .Csv File --
 
-        #region -- Generate PurchaseBook .Csv File -- 
+        #region -- Generate PurchaseBook .Csv File --
 
         public async Task<IActionResult> GeneratePurchaseBookCsvFile(ViewModelBook model, string? selectedFiltering, string? poListFrom, string? poListTo, CancellationToken cancellationToken)
         {
@@ -1914,9 +1991,9 @@ namespace Accounting_System.Controllers
             return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "PurchaseBook.xlsx");
         }
 
-        #endregion -- Generate PurchaseBook .Csv File -- 
+        #endregion -- Generate PurchaseBook .Csv File --
 
-        #region -- Generate SalesBook .Csv File -- 
+        #region -- Generate SalesBook .Csv File --
 
         public async Task<IActionResult> GenerateSalesBookCsvFile(ViewModelBook model, string? selectedDocument, string? soaList, string? siList, CancellationToken cancellationToken)
         {
@@ -2059,6 +2136,6 @@ namespace Accounting_System.Controllers
             return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "SalesBook.xlsx");
         }
 
-        #endregion -- Generate SalesBook .Csv File -- 
+        #endregion -- Generate SalesBook .Csv File --
     }
 }
