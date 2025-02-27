@@ -1,7 +1,10 @@
-﻿using Accounting_System.Data;
+﻿using System.Security.Claims;
+using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Models.AccountsPayable;
+using Accounting_System.Models.Reports;
 using Accounting_System.Utility;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Repository
@@ -10,9 +13,18 @@ namespace Accounting_System.Repository
     {
         private readonly ApplicationDbContext _dbContext;
 
-        public ReceivingReportRepo(ApplicationDbContext dbContext)
+        private readonly GeneralRepo _generalRepo;
+
+        private readonly InventoryRepo _inventoryRepo;
+
+        private readonly UserManager<IdentityUser> _userManager;
+
+        public ReceivingReportRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo, InventoryRepo inventoryRepo, UserManager<IdentityUser> userManager)
         {
             _dbContext = dbContext;
+            _generalRepo = generalRepo;
+            _inventoryRepo = inventoryRepo;
+            _userManager = userManager;
         }
 
         public async Task<string> GenerateRRNo(CancellationToken cancellationToken = default)
@@ -267,6 +279,144 @@ namespace Accounting_System.Repository
                 };
                 await _dbContext.AddAsync(logReport);
             }
+        }
+
+        public async Task PostAsync(ReceivingReport model, ClaimsPrincipal user, CancellationToken cancellationToken = default)
+        {
+            #region --General Ledger Recording
+
+            var ledgers = new List<GeneralLedgerBook>();
+
+            decimal netOfVatAmount = 0;
+            decimal vatAmount = 0;
+            decimal ewtAmount = 0;
+            decimal netOfEwtAmount = 0;
+
+            if (model.PurchaseOrder.Supplier.VatType == CS.VatType_Vatable)
+            {
+                netOfVatAmount = _generalRepo.ComputeNetOfVat(model.Amount);
+                vatAmount = _generalRepo.ComputeVatAmount(netOfVatAmount);
+            }
+            else
+            {
+                netOfVatAmount = model.Amount;
+            }
+
+            if (model.PurchaseOrder.Supplier.TaxType == CS.TaxType_WithTax)
+            {
+                ewtAmount = _generalRepo.ComputeEwtAmount(netOfVatAmount, 0.01m);
+                netOfEwtAmount = _generalRepo.ComputeNetOfEwt(model.Amount, ewtAmount);
+            }
+            else
+            {
+                netOfEwtAmount = model.Amount;
+            }
+
+            var (inventoryAcctNo, inventoryAcctTitle) = _generalRepo.GetInventoryAccountTitle(model.PurchaseOrder.Product.Code);
+            var accountTitlesDto = await _generalRepo.GetListOfAccountTitleDto(cancellationToken);
+            var vatInputTitle = accountTitlesDto.Find(c => c.AccountNumber == "101060200") ?? throw new ArgumentException("Account title '101060200' not found.");
+            var ewtTitle = accountTitlesDto.Find(c => c.AccountNumber == "201030200") ?? throw new ArgumentException("Account title '201030200' not found.");
+            var apTradeTitle = accountTitlesDto.Find(c => c.AccountNumber == "202010100") ?? throw new ArgumentException("Account title '202010100' not found.");
+            var inventoryTitle = accountTitlesDto.Find(c => c.AccountNumber == inventoryAcctNo) ?? throw new ArgumentException($"Account title '{inventoryAcctNo}' not found.");
+
+            ledgers.Add(new GeneralLedgerBook
+            {
+                Date = model.Date,
+                Reference = model.RRNo,
+                Description = "Receipt of Goods",
+                AccountNo = inventoryTitle.AccountNumber,
+                AccountTitle = inventoryTitle.AccountName,
+                Debit = netOfVatAmount,
+                Credit = 0,
+                CreatedBy = model.CreatedBy,
+                CreatedDate = model.CreatedDate,
+            });
+
+            if (vatAmount > 0)
+            {
+                ledgers.Add(new GeneralLedgerBook
+                {
+                    Date = model.Date,
+                    Reference = model.RRNo,
+                    Description = "Receipt of Goods",
+                    AccountNo = vatInputTitle.AccountNumber,
+                    AccountTitle = vatInputTitle.AccountName,
+                    Debit = vatAmount,
+                    Credit = 0,
+                    CreatedBy = model.CreatedBy,
+                    CreatedDate = model.CreatedDate,
+                });
+            }
+
+            ledgers.Add(new GeneralLedgerBook
+            {
+                Date = model.Date,
+                Reference = model.RRNo,
+                Description = "Receipt of Goods",
+                AccountNo = apTradeTitle.AccountNumber,
+                AccountTitle = apTradeTitle.AccountName,
+                Debit = 0,
+                Credit = netOfEwtAmount,
+                CreatedBy = model.CreatedBy,
+                CreatedDate = model.CreatedDate,
+            });
+
+            if (ewtAmount > 0)
+            {
+                ledgers.Add(new GeneralLedgerBook
+                {
+                    Date = model.Date,
+                    Reference = model.RRNo,
+                    Description = "Receipt of Goods",
+                    AccountNo = ewtTitle.AccountNumber,
+                    AccountTitle = ewtTitle.AccountName,
+                    Debit = 0,
+                    Credit = ewtAmount,
+                    CreatedBy = model.CreatedBy,
+                    CreatedDate = model.CreatedDate,
+                });
+            }
+
+            if (!_generalRepo.IsJournalEntriesBalanced(ledgers))
+            {
+                throw new ArgumentException("Debit and Credit is not equal, check your entries.");
+            }
+
+            await _dbContext.AddRangeAsync(ledgers, cancellationToken);
+
+            #endregion --General Ledger Recording
+
+            #region--Inventory Recording
+
+            await _inventoryRepo.AddPurchaseToInventoryAsync(model, user, cancellationToken);
+
+            #endregion
+
+            await UpdatePOAsync(model.PurchaseOrder.Id, model.QuantityReceived, cancellationToken);
+
+            #region --Purchase Book Recording
+
+            PurchaseJournalBook purchaseBook = new()
+            {
+                Date = model.Date,
+                SupplierName = model.PurchaseOrder.Supplier.Name,
+                SupplierTin = model.PurchaseOrder.Supplier.TinNo,
+                SupplierAddress = model.PurchaseOrder.Supplier.Address,
+                DocumentNo = model.RRNo,
+                Description = model.PurchaseOrder.Product.Name,
+                Amount = model.Amount,
+                VatAmount = vatAmount,
+                WhtAmount = ewtAmount,
+                NetPurchases = netOfVatAmount,
+                CreatedBy = model.CreatedBy,
+                PONo = model.PurchaseOrder.PONo,
+                DueDate = model.DueDate,
+            };
+
+            await _dbContext.AddAsync(purchaseBook, cancellationToken);
+            #endregion --Purchase Book Recording
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }

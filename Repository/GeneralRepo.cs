@@ -49,7 +49,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public bool IsDebitCreditBalanced(IEnumerable<GeneralLedgerBook> ledgers)
+        public bool IsJournalEntriesBalanced(IEnumerable<GeneralLedgerBook> ledgers)
         {
             try
             {
@@ -187,6 +187,17 @@ namespace Accounting_System.Repository
                     AccountName = coa.AccountName
                 })
                 .ToListAsync(cancellationToken);
+        }
+
+        public (string AccountNo, string AccountTitle) GetInventoryAccountTitle(string productCode)
+        {
+            return productCode switch
+            {
+                "PET001" => ("101040100", "Inventory - Biodiesel"),
+                "PET002" => ("101040200", "Inventory - Econogas"),
+                "PET003" => ("101040300", "Inventory - Envirogas"),
+                _ => throw new ArgumentException($"Invalid product code: {productCode}"),
+            };
         }
     }
 }

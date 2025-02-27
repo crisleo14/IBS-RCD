@@ -310,7 +310,7 @@ namespace Accounting_System.Repository
 
                 _dbContext.Inventories.UpdateRange(sortedInventory);
 
-                if (_generalRepo.IsDebitCreditBalanced(ledgers))
+                if (_generalRepo.IsJournalEntriesBalanced(ledgers))
                 {
                     await _dbContext.Inventories.AddAsync(inventory, cancellationToken);
                     await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);

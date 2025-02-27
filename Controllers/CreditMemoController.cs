@@ -683,7 +683,7 @@ namespace Accounting_System.Controllers
                                 );
                             }
 
-                            if (!_generalRepo.IsDebitCreditBalanced(ledgers))
+                            if (!_generalRepo.IsJournalEntriesBalanced(ledgers))
                             {
                                 throw new ArgumentException("Debit and Credit is not equal, check your entries.");
                             }
@@ -907,7 +907,7 @@ namespace Accounting_System.Controllers
                                 );
                             }
 
-                            if (!_generalRepo.IsDebitCreditBalanced(ledgers))
+                            if (!_generalRepo.IsJournalEntriesBalanced(ledgers))
                             {
                                 throw new ArgumentException("Debit and Credit is not equal, check your entries.");
                             }

@@ -1496,7 +1496,7 @@ namespace Accounting_System.Controllers
                             offsetAmount = offset.Sum(o => o.Amount);
                         }
 
-                        await _generalRepo.PostAsync(model, offset, cancellationToken);
+                        await _receiptRepo.PostAsync(model, offset, cancellationToken);
 
                         if (model.SalesInvoiceId != null)
                         {
