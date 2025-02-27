@@ -293,23 +293,11 @@ namespace Accounting_System.Controllers
                         model.PostedBy = _userManager.GetUserName(this.User);
                         model.PostedDate = DateTime.Now;
 
-                        #region --Retrieval of Services
-
-                        var services = await _serviceInvoiceRepo.GetServicesAsync(model.ServicesId, cancellationToken);
-
-                        #endregion --Retrieval of Services
-
-                        #region --Retrieval of Customer
-
-                        var customer = await _serviceInvoiceRepo.FindCustomerAsync(model.CustomerId, cancellationToken);
-
-                        #endregion --Retrieval of Customer
-
-                        #region --SV Computation--
+                        #region --SV Date Computation--
 
                         var postedDate = DateOnly.FromDateTime(model.CreatedDate) >= model.Period ? DateOnly.FromDateTime(model.CreatedDate) : model.Period.AddMonths(1).AddDays(-1);
 
-                        #endregion --SV Computation--
+                        #endregion --SV Date Computation--
 
                         #region --Sales Book Recording
 
@@ -400,6 +388,11 @@ namespace Accounting_System.Controllers
                         #region --General Ledger Book Recording
 
                         var ledgers = new List<GeneralLedgerBook>();
+                        var accountTitlesDto = await _generalRepo.GetListOfAccountTitleDto(cancellationToken);
+                        var arNonTradeTitle = accountTitlesDto.Find(c => c.AccountNumber == "101020500") ?? throw new ArgumentException("Account title '101020500' not found.");
+                        var arTradeCwt = accountTitlesDto.Find(c => c.AccountNumber == "101020200") ?? throw new ArgumentException("Account title '101020200' not found.");
+                        var arTradeCwv = accountTitlesDto.Find(c => c.AccountNumber == "101020300") ?? throw new ArgumentException("Account title '101020300' not found.");
+                        var vatOutputTitle = accountTitlesDto.Find(c => c.AccountNumber == "201030100") ?? throw new ArgumentException("Account title '201030100' not found.");
 
                         ledgers.Add(
                                 new GeneralLedgerBook
@@ -407,8 +400,8 @@ namespace Accounting_System.Controllers
                                     Date = postedDate,
                                     Reference = model.SVNo,
                                     Description = model.Service.Name,
-                                    AccountNo = "101020500",
-                                    AccountTitle = "AR-Non Trade Receivable",
+                                    AccountNo = arNonTradeTitle.AccountNumber,
+                                    AccountTitle = arNonTradeTitle.AccountName,
                                     Debit = Math.Round(model.Total - (withHoldingTaxAmount + withHoldingVatAmount), 2),
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
@@ -423,8 +416,8 @@ namespace Accounting_System.Controllers
                                     Date = postedDate,
                                     Reference = model.SVNo,
                                     Description = model.Service.Name,
-                                    AccountNo = "101060500",
-                                    AccountTitle = "Deferred Withholding Tax",
+                                    AccountNo = arTradeCwt.AccountNumber,
+                                    AccountTitle = arTradeCwt.AccountName,
                                     Debit = withHoldingTaxAmount,
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
@@ -440,8 +433,8 @@ namespace Accounting_System.Controllers
                                     Date = postedDate,
                                     Reference = model.SVNo,
                                     Description = model.Service.Name,
-                                    AccountNo = "101060700",
-                                    AccountTitle = "Deferred Withholding Vat - Input",
+                                    AccountNo = arTradeCwv.AccountNumber,
+                                    AccountTitle = arTradeCwv.AccountName,
                                     Debit = withHoldingVatAmount,
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
@@ -473,8 +466,8 @@ namespace Accounting_System.Controllers
                                     Date = postedDate,
                                     Reference = model.SVNo,
                                     Description = model.Service.Name,
-                                    AccountNo = "201030100",
-                                    AccountTitle = "Vat - Output",
+                                    AccountNo = vatOutputTitle.AccountNumber,
+                                    AccountTitle = vatOutputTitle.AccountName,
                                     Debit = 0,
                                     Credit = Math.Round((vatAmount), 2),
                                     CreatedBy = model.CreatedBy,
