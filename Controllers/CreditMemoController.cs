@@ -493,7 +493,7 @@ namespace Accounting_System.Controllers
                                 sales.VatableSales = (_generalRepo.ComputeNetOfVat(Math.Abs(sales.Amount))) * -1;
                                 sales.VatAmount = (_generalRepo.ComputeVatAmount(Math.Abs(sales.VatableSales))) * -1;
                                 //sales.Discount = model.Discount;
-                                sales.NetSales = (_generalRepo.ComputeNetOfVat(Math.Abs(sales.Amount))) * -1;
+                                sales.NetSales = sales.VatableSales;
                                 sales.CreatedBy = model.CreatedBy;
                                 sales.CreatedDate = model.CreatedDate;
                                 sales.DueDate = existingSI.DueDate;
@@ -510,7 +510,7 @@ namespace Accounting_System.Controllers
                                 sales.Amount = model.CreditAmount;
                                 sales.VatExemptSales = model.CreditAmount;
                                 //sales.Discount = model.Discount;
-                                sales.NetSales = (_generalRepo.ComputeNetOfVat(Math.Abs(sales.Amount))) * -1;
+                                sales.NetSales = sales.Amount;
                                 sales.CreatedBy = model.CreatedBy;
                                 sales.CreatedDate = model.CreatedDate;
                                 sales.DueDate = existingSI.DueDate;
@@ -527,7 +527,7 @@ namespace Accounting_System.Controllers
                                 sales.Amount = model.CreditAmount;
                                 sales.ZeroRated = model.CreditAmount;
                                 //sales.Discount = model.Discount;
-                                sales.NetSales = (_generalRepo.ComputeNetOfVat(Math.Abs(sales.Amount))) * -1;
+                                sales.NetSales = sales.Amount;
                                 sales.CreatedBy = model.CreatedBy;
                                 sales.CreatedDate = model.CreatedDate;
                                 sales.DueDate = existingSI.DueDate;
@@ -587,8 +587,8 @@ namespace Accounting_System.Controllers
                                         Date = model.TransactionDate,
                                         Reference = model.CMNo,
                                         Description = model.SalesInvoice.Product.Name,
-                                        AccountNo = "101060500",
-                                        AccountTitle = "Deferred Withholding Tax",
+                                        AccountNo = "101020200",
+                                        AccountTitle = "AR-Trade Receivable - Creditable Withholding Tax",
                                         Debit = 0,
                                         Credit = Math.Abs(withHoldingTaxAmount),
                                         CreatedBy = model.CreatedBy,
@@ -604,8 +604,8 @@ namespace Accounting_System.Controllers
                                         Date = model.TransactionDate,
                                         Reference = model.CMNo,
                                         Description = model.SalesInvoice.Product.Name,
-                                        AccountNo = "101060700",
-                                        AccountTitle = "Deferred Withholding Vat - Input",
+                                        AccountNo = "101020300",
+                                        AccountTitle = "AR-Trade Receivable - Creditable Withholding Vat",
                                         Debit = 0,
                                         Credit = Math.Abs(withHoldingVatAmount),
                                         CreatedBy = model.CreatedBy,
@@ -697,52 +697,45 @@ namespace Accounting_System.Controllers
                         {
                             var existingSv = await _dbContext.ServiceInvoices
                                                     .Include(sv => sv.Customer)
+                                                    .Include(sv => sv.Service)
                                                     .FirstOrDefaultAsync(si => si.Id == model.ServiceInvoiceId, cancellationToken);
-
-                            #region --Retrieval of Services
-
-                            var services = await _creditMemoRepo.GetServicesAsync(model?.ServicesId, cancellationToken);
-
-                            #endregion --Retrieval of Services
 
                             #region --SV Computation--
 
                             viewModelDMCM.Period = DateOnly.FromDateTime(model.CreatedDate) >= model.Period ? DateOnly.FromDateTime(model.CreatedDate) : model.Period.AddMonths(1).AddDays(-1);
 
-                            var amount = -model.Amount ?? 0;
-                            var netAmount = (amount + existingSv.Discount) / 1.12m;
                             if (existingSv.Customer.CustomerType == "Vatable")
                             {
-                                viewModelDMCM.Total = amount;
-                                viewModelDMCM.NetAmount = netAmount;
-                                viewModelDMCM.VatAmount = (amount + existingSv.Discount) + netAmount;
-                                viewModelDMCM.WithholdingTaxAmount = netAmount * (services.Percent / 100m);
+                                viewModelDMCM.Total = -model.Amount ?? 0;
+                                viewModelDMCM.NetAmount = (model.Amount ?? 0 - existingSv.Discount) / 1.12m;
+                                viewModelDMCM.VatAmount = (model.Amount ?? 0 - existingSv.Discount) - viewModelDMCM.NetAmount;
+                                viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (existingSv.Service.Percent / 100m);
                                 if (existingSv.Customer.WithHoldingVat)
                                 {
-                                    viewModelDMCM.WithholdingVatAmount = netAmount * 0.05m;
+                                    viewModelDMCM.WithholdingVatAmount = viewModelDMCM.NetAmount * 0.05m;
                                 }
                             }
                             else
                             {
-                                viewModelDMCM.NetAmount = amount + existingSv.Discount;
-                                viewModelDMCM.WithholdingTaxAmount = netAmount * (services.Percent / 100m);
+                                viewModelDMCM.NetAmount = model.Amount ?? 0 - existingSv.Discount;
+                                viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (existingSv.Service.Percent / 100m);
                                 if (existingSv.Customer.WithHoldingVat)
                                 {
-                                    viewModelDMCM.WithholdingVatAmount = netAmount * 0.05m;
+                                    viewModelDMCM.WithholdingVatAmount = viewModelDMCM.NetAmount * 0.05m;
                                 }
                             }
 
                             if (existingSv.Customer.CustomerType == "Vatable")
                             {
-                                var total = Math.Round(amount / 1.12m, 2);
+                                var total = Math.Round(model.Amount ?? 0 / 1.12m, 2);
 
-                                var roundedNetAmount = Math.Round(netAmount, 2);
+                                var roundedNetAmount = Math.Round(viewModelDMCM.NetAmount, 2);
 
                                 if (roundedNetAmount > total)
                                 {
-                                    var shortAmount = netAmount + total;
+                                    var shortAmount = viewModelDMCM.NetAmount - total;
 
-                                    viewModelDMCM.Amount += Math.Abs(shortAmount);
+                                    viewModelDMCM.Amount += shortAmount;
                                 }
                             }
 
@@ -761,8 +754,8 @@ namespace Accounting_System.Controllers
                                 sales.Address = model.ServiceInvoice.Customer.Address;
                                 sales.Description = model.ServiceInvoice.Service.Name;
                                 sales.Amount = viewModelDMCM.Total;
-                                sales.VatAmount = viewModelDMCM.VatAmount;
-                                sales.VatableSales = viewModelDMCM.Total / 1.12m;
+                                sales.VatableSales = (_generalRepo.ComputeNetOfVat(Math.Abs(sales.Amount))) * -1;
+                                sales.VatAmount = (_generalRepo.ComputeVatAmount(Math.Abs(sales.VatableSales))) * -1;
                                 //sales.Discount = model.Discount;
                                 sales.NetSales = viewModelDMCM.NetAmount;
                                 sales.CreatedBy = model.CreatedBy;
@@ -856,8 +849,8 @@ namespace Accounting_System.Controllers
                                         Date = viewModelDMCM.Period,
                                         Reference = model.CMNo,
                                         Description = model.ServiceInvoice.Service.Name,
-                                        AccountNo = "101060500",
-                                        AccountTitle = "Deferred Withholding Tax",
+                                        AccountNo = "101020200",
+                                        AccountTitle = "AR-Trade Receivable - Creditable Withholding Tax",
                                         Debit = 0,
                                         Credit = Math.Abs(withHoldingTaxAmount),
                                         CreatedBy = model.CreatedBy,
@@ -873,8 +866,8 @@ namespace Accounting_System.Controllers
                                         Date = viewModelDMCM.Period,
                                         Reference = model.CMNo,
                                         Description = model.ServiceInvoice.Service.Name,
-                                        AccountNo = "101060700",
-                                        AccountTitle = "Deferred Withholding Vat - Input",
+                                        AccountNo = "101020300",
+                                        AccountTitle = "AR-Trade Receivable - Creditable Withholding Vat",
                                         Debit = 0,
                                         Credit = Math.Abs(withHoldingVatAmount),
                                         CreatedBy = model.CreatedBy,
@@ -890,7 +883,7 @@ namespace Accounting_System.Controllers
                                 Description = model.ServiceInvoice.Service.Name,
                                 AccountNo = model.ServiceInvoice.Service.CurrentAndPreviousNo,
                                 AccountTitle = model.ServiceInvoice.Service.CurrentAndPreviousTitle,
-                                Debit = Math.Round(Math.Abs(viewModelDMCM.Total / 1.12m), 2),
+                                Debit = viewModelDMCM.NetAmount,
                                 Credit = 0,
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
@@ -904,8 +897,8 @@ namespace Accounting_System.Controllers
                                         Date = model.TransactionDate,
                                         Reference = model.CMNo,
                                         Description = model.ServiceInvoice.Service.Name,
-                                        AccountNo = "201030400",
-                                        AccountTitle = "Deferred Vat - Output",
+                                        AccountNo = "201030100",
+                                        AccountTitle = "Vat Output",
                                         Debit = Math.Abs(vatAmount),
                                         Credit = 0,
                                         CreatedBy = model.CreatedBy,
