@@ -3,6 +3,9 @@ using Accounting_System.Models.Reports;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using Accounting_System.Models;
+using Accounting_System.Models.AccountsReceivable;
+using Accounting_System.Models.DTOs;
 
 namespace Accounting_System.Repository
 {
@@ -171,6 +174,19 @@ namespace Accounting_System.Repository
             }
 
             return grossAmount - ewtAmount;
+        }
+
+        public async Task<List<AccountTitleDto>> GetListOfAccountTitleDto(CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Select(coa => new AccountTitleDto
+                {
+                    AccountId = coa.AccountId,
+                    AccountNumber = coa.AccountNumber,
+                    AccountName = coa.AccountName
+                })
+                .ToListAsync(cancellationToken);
         }
     }
 }

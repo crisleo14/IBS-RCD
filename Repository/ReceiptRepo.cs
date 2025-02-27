@@ -1,6 +1,7 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Models.AccountsReceivable;
+using Accounting_System.Models.Reports;
 using Accounting_System.Utility;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,9 +11,12 @@ namespace Accounting_System.Repository
     {
         private readonly ApplicationDbContext _dbContext;
 
-        public ReceiptRepo(ApplicationDbContext dbContext)
+        private readonly GeneralRepo _generalRepo;
+
+        public ReceiptRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _generalRepo = generalRepo;
         }
 
         public async Task<string> GenerateCRNo(CancellationToken cancellationToken = default)
@@ -306,6 +310,300 @@ namespace Accounting_System.Repository
                 };
                 await _dbContext.AddAsync(logReport);
             }
+        }
+
+        public async Task PostAsync(CollectionReceipt collectionReceipt, List<Offsetting> offsettings, CancellationToken cancellationToken = default)
+        {
+            var ledgers = new List<GeneralLedgerBook>();
+            var accountTitlesDto = await _generalRepo.GetListOfAccountTitleDto(cancellationToken);
+            var cashInBankTitle = accountTitlesDto.Find(c => c.AccountNumber == "101010100") ?? throw new ArgumentException("Account title '101010100' not found.");
+            var arTradeTitle = accountTitlesDto.Find(c => c.AccountNumber == "101020100") ?? throw new ArgumentException("Account title '101020100' not found.");
+            var arTradeCwt = accountTitlesDto.Find(c => c.AccountNumber == "101020200") ?? throw new ArgumentException("Account title '101020200' not found.");
+            var arTradeCwv = accountTitlesDto.Find(c => c.AccountNumber == "101020300") ?? throw new ArgumentException("Account title '101020300' not found.");
+            var cwt = accountTitlesDto.Find(c => c.AccountNumber == "101060400") ?? throw new ArgumentException("Account title '101060400' not found.");
+            var cwv = accountTitlesDto.Find(c => c.AccountNumber == "101060600") ?? throw new ArgumentException("Account title '101060600' not found.");
+            var offsetAmount = 0m;
+
+            if (collectionReceipt.CashAmount > 0 || collectionReceipt.CheckAmount > 0 || collectionReceipt.ManagerCheckAmount > 0)
+            {
+                ledgers.Add(
+                    new GeneralLedgerBook
+                    {
+                        Date = collectionReceipt.TransactionDate,
+                        Reference = collectionReceipt.CRNo,
+                        Description = "Collection for Receivable",
+                        AccountNo = cashInBankTitle.AccountNumber,
+                        AccountTitle = cashInBankTitle.AccountName,
+                        Debit = collectionReceipt.CashAmount + collectionReceipt.CheckAmount + collectionReceipt.ManagerCheckAmount,
+                        Credit = 0,
+                        CreatedBy = collectionReceipt.CreatedBy,
+                        CreatedDate = collectionReceipt.CreatedDate
+                    }
+                );
+            }
+
+            if (collectionReceipt.EWT > 0)
+            {
+                ledgers.Add(
+                    new GeneralLedgerBook
+                    {
+                        Date = collectionReceipt.TransactionDate,
+                        Reference = collectionReceipt.CRNo,
+                        Description = "Collection for Receivable",
+                        AccountNo = cwt.AccountNumber,
+                        AccountTitle = cwt.AccountName,
+                        Debit = collectionReceipt.EWT,
+                        Credit = 0,
+                        CreatedBy = collectionReceipt.CreatedBy,
+                        CreatedDate = collectionReceipt.CreatedDate
+                    }
+                );
+            }
+
+            if (collectionReceipt.WVAT > 0)
+            {
+                ledgers.Add(
+                    new GeneralLedgerBook
+                    {
+                        Date = collectionReceipt.TransactionDate,
+                        Reference = collectionReceipt.CRNo,
+                        Description = "Collection for Receivable",
+                        AccountNo = cwv.AccountNumber,
+                        AccountTitle = cwv.AccountName,
+                        Debit = collectionReceipt.WVAT,
+                        Credit = 0,
+                        CreatedBy = collectionReceipt.CreatedBy,
+                        CreatedDate = collectionReceipt.CreatedDate
+                    }
+                );
+            }
+
+            foreach (var item in offsettings)
+            {
+                var account = accountTitlesDto.Find(c => c.AccountNumber == item.AccountNo) ??
+                              throw new ArgumentException($"Account title '{item.AccountNo}' not found.");
+
+                ledgers.Add(
+                    new GeneralLedgerBook
+                    {
+                        Date = collectionReceipt.TransactionDate,
+                        Reference = collectionReceipt.CRNo,
+                        Description = "Collection for Receivable",
+                        AccountNo = account.AccountNumber,
+                        AccountTitle = account.AccountName,
+                        Debit = item.Amount,
+                        Credit = 0,
+                        CreatedBy = collectionReceipt.CreatedBy,
+                        CreatedDate = collectionReceipt.CreatedDate
+                    }
+                );
+
+                offsetAmount += item.Amount;
+            }
+
+            if (collectionReceipt.CashAmount > 0 || collectionReceipt.CheckAmount > 0 || collectionReceipt.ManagerCheckAmount > 0 || offsetAmount > 0)
+            {
+                ledgers.Add(
+                    new GeneralLedgerBook
+                    {
+                        Date = collectionReceipt.TransactionDate,
+                        Reference = collectionReceipt.CRNo,
+                        Description = "Collection for Receivable",
+                        AccountNo = arTradeTitle.AccountNumber,
+                        AccountTitle = arTradeTitle.AccountName,
+                        Debit = 0,
+                        Credit = collectionReceipt.CashAmount + collectionReceipt.CheckAmount + collectionReceipt.ManagerCheckAmount + offsetAmount,
+                        CreatedBy = collectionReceipt.CreatedBy,
+                        CreatedDate = collectionReceipt.CreatedDate,
+                    }
+                );
+            }
+
+            if (collectionReceipt.EWT > 0)
+            {
+                ledgers.Add(
+                    new GeneralLedgerBook
+                    {
+                        Date = collectionReceipt.TransactionDate,
+                        Reference = collectionReceipt.CRNo,
+                        Description = "Collection for Receivable",
+                        AccountNo = arTradeCwt.AccountNumber,
+                        AccountTitle = arTradeCwt.AccountName,
+                        Debit = 0,
+                        Credit = collectionReceipt.EWT,
+                        CreatedBy = collectionReceipt.CreatedBy,
+                        CreatedDate = collectionReceipt.CreatedDate
+                    }
+                );
+            }
+
+            if (collectionReceipt.WVAT > 0)
+            {
+                ledgers.Add(
+                    new GeneralLedgerBook
+                    {
+                        Date = collectionReceipt.TransactionDate,
+                        Reference = collectionReceipt.CRNo,
+                        Description = "Collection for Receivable",
+                        AccountNo = arTradeCwv.AccountNumber,
+                        AccountTitle = arTradeCwv.AccountName,
+                        Debit = 0,
+                        Credit = collectionReceipt.WVAT,
+                        CreatedBy = collectionReceipt.CreatedBy,
+                        CreatedDate = collectionReceipt.CreatedDate
+                    }
+                );
+            }
+
+            await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
+
+            #region Cash Receipt Book Recording
+
+            var crb = new List<CashReceiptBook>();
+
+            crb.Add(
+                new CashReceiptBook
+                {
+                    Date = collectionReceipt.TransactionDate,
+                    RefNo = collectionReceipt.CRNo,
+                    CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.Customer.Name : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer.Name : collectionReceipt.ServiceInvoice.Customer.Name,
+                    Bank = collectionReceipt.CheckBank ?? (collectionReceipt.ManagerCheckBank ?? "--"),
+                    CheckNo = collectionReceipt.CheckNo ?? (collectionReceipt.ManagerCheckNo ?? "--"),
+                    COA = $"{cashInBankTitle.AccountNumber} {cashInBankTitle.AccountName}",
+                    Particulars = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.SINo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice.SVNo,
+                    Debit = collectionReceipt.CashAmount + collectionReceipt.CheckAmount + collectionReceipt.ManagerCheckAmount,
+                    Credit = 0,
+                    CreatedBy = collectionReceipt.CreatedBy,
+                    CreatedDate = collectionReceipt.CreatedDate
+                }
+
+            );
+
+            if (collectionReceipt.EWT > 0)
+            {
+                crb.Add(
+                    new CashReceiptBook
+                    {
+                        Date = collectionReceipt.TransactionDate,
+                        RefNo = collectionReceipt.CRNo,
+                        CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.Customer.Name : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer.Name : collectionReceipt.ServiceInvoice.Customer.Name,
+                        Bank = collectionReceipt.CheckBank ?? (collectionReceipt.ManagerCheckBank ?? "--"),
+                        CheckNo = collectionReceipt.CheckNo ?? (collectionReceipt.ManagerCheckNo ?? "--"),
+                        COA = $"{cwt.AccountNumber} {cwt.AccountName}",
+                        Particulars = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.SINo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice.SVNo,
+                        Debit = collectionReceipt.EWT,
+                        Credit = 0,
+                        CreatedBy = collectionReceipt.CreatedBy,
+                        CreatedDate = collectionReceipt.CreatedDate
+                    }
+                );
+            }
+
+            if (collectionReceipt.WVAT > 0)
+            {
+                crb.Add(
+                    new CashReceiptBook
+                    {
+                        Date = collectionReceipt.TransactionDate,
+                        RefNo = collectionReceipt.CRNo,
+                        CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.Customer.Name : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer.Name : collectionReceipt.ServiceInvoice.Customer.Name,
+                        Bank = collectionReceipt.CheckBank ?? (collectionReceipt.ManagerCheckBank ?? "--"),
+                        CheckNo = collectionReceipt.CheckNo ?? (collectionReceipt.ManagerCheckNo ?? "--"),
+                        COA = $"{cwv.AccountNumber} {cwv.AccountName}",
+                        Particulars = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.SINo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice.SVNo,
+                        Debit = collectionReceipt.WVAT,
+                        Credit = 0,
+                        CreatedBy = collectionReceipt.CreatedBy,
+                        CreatedDate = collectionReceipt.CreatedDate
+                    }
+                );
+            }
+
+            foreach (var item in offsettings)
+            {
+                var account = accountTitlesDto.Find(c => c.AccountNumber == item.AccountNo) ??
+                              throw new ArgumentException($"Account title '{item.AccountNo}' not found.");
+
+                crb.Add(
+                    new CashReceiptBook
+                    {
+                        Date = collectionReceipt.TransactionDate,
+                        RefNo = collectionReceipt.CRNo,
+                        CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.Customer.Name : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer.Name : collectionReceipt.ServiceInvoice.Customer.Name,
+                        Bank = collectionReceipt.CheckBank ?? (collectionReceipt.ManagerCheckBank ?? "--"),
+                        CheckNo = collectionReceipt.CheckNo ?? (collectionReceipt.ManagerCheckNo ?? "--"),
+                        COA = $"{account.AccountNumber} {account.AccountName}",
+                        Particulars = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.SINo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice.SVNo,
+                        Debit = item.Amount,
+                        Credit = 0,
+                        CreatedBy = collectionReceipt.CreatedBy,
+                        CreatedDate = collectionReceipt.CreatedDate
+                    }
+                );
+            }
+
+            crb.Add(
+                new CashReceiptBook
+                {
+                    Date = collectionReceipt.TransactionDate,
+                    RefNo = collectionReceipt.CRNo,
+                    CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.Customer.Name : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer.Name : collectionReceipt.ServiceInvoice.Customer.Name,
+                    Bank = collectionReceipt.CheckBank ?? (collectionReceipt.ManagerCheckBank ?? "--"),
+                    CheckNo = collectionReceipt.CheckNo ?? (collectionReceipt.ManagerCheckNo ?? "--"),
+                    COA = $"{arTradeTitle.AccountNumber} {arTradeTitle.AccountName}",
+                    Particulars = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.SINo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice.SVNo,
+                    Debit = 0,
+                    Credit = collectionReceipt.CashAmount + collectionReceipt.CheckAmount + collectionReceipt.ManagerCheckAmount + offsetAmount,
+                    CreatedBy = collectionReceipt.CreatedBy,
+                    CreatedDate = collectionReceipt.CreatedDate
+                }
+            );
+
+            if (collectionReceipt.EWT > 0)
+            {
+                crb.Add(
+                    new CashReceiptBook
+                    {
+                        Date = collectionReceipt.TransactionDate,
+                        RefNo = collectionReceipt.CRNo,
+                        CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.Customer.Name : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer.Name : collectionReceipt.ServiceInvoice.Customer.Name,
+                        Bank = collectionReceipt.CheckBank ?? (collectionReceipt.ManagerCheckBank ?? "--"),
+                        CheckNo = collectionReceipt.CheckNo ?? (collectionReceipt.ManagerCheckNo ?? "--"),
+                        COA = $"{arTradeCwt.AccountNumber} {arTradeCwt.AccountName}",
+                        Particulars = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.SINo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice.SVNo,
+                        Debit = 0,
+                        Credit = collectionReceipt.EWT,
+                        CreatedBy = collectionReceipt.CreatedBy,
+                        CreatedDate = collectionReceipt.CreatedDate
+                    }
+                );
+            }
+
+            if (collectionReceipt.WVAT > 0)
+            {
+                crb.Add(
+                    new CashReceiptBook
+                    {
+                        Date = collectionReceipt.TransactionDate,
+                        RefNo = collectionReceipt.CRNo,
+                        CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.Customer.Name : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer.Name : collectionReceipt.ServiceInvoice.Customer.Name,
+                        Bank = collectionReceipt.CheckBank ?? (collectionReceipt.ManagerCheckBank ?? "--"),
+                        CheckNo = collectionReceipt.CheckNo ?? (collectionReceipt.ManagerCheckNo ?? "--"),
+                        COA = $"{arTradeCwv.AccountNumber} {arTradeCwv.AccountName}",
+                        Particulars = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.SINo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice.SVNo,
+                        Debit = 0,
+                        Credit = collectionReceipt.WVAT,
+                        CreatedBy = collectionReceipt.CreatedBy,
+                        CreatedDate = collectionReceipt.CreatedDate
+                    }
+                );
+            }
+
+            await _dbContext.AddRangeAsync(crb, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            #endregion
+
         }
     }
 }
