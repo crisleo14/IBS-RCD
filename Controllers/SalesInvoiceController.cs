@@ -421,63 +421,41 @@ namespace Accounting_System.Controllers
 
                         #region --Sales Book Recording
 
-                        var sales = new SalesBook();
+                        var salesBook = new SalesBook();
 
-                        if (model.Customer.CustomerType == "Vatable")
+                        salesBook.TransactionDate = model.TransactionDate;
+                        salesBook.SerialNo = model.SINo;
+                        salesBook.SoldTo = model.Customer.Name;
+                        salesBook.TinNo = model.Customer.TinNo;
+                        salesBook.Address = model.Customer.Address;
+                        salesBook.Description = model.Product.Name;
+                        salesBook.Amount = model.Amount - model.Discount;
+
+                        switch (model.Customer.CustomerType)
                         {
-                            sales.TransactionDate = model.TransactionDate;
-                            sales.SerialNo = model.SINo;
-                            sales.SoldTo = model.Customer.Name;
-                            sales.TinNo = model.Customer.TinNo;
-                            sales.Address = model.Customer.Address;
-                            sales.Description = model.Product.Name;
-                            sales.Amount = model.Amount;
-                            sales.Amount = model.Amount - model.Discount;
-                            sales.VatableSales = _generalRepo.ComputeNetOfVat(sales.Amount);
-                            sales.VatAmount = _generalRepo.ComputeVatAmount(sales.VatableSales);
-                            sales.Discount = model.Discount;
-                            sales.NetSales = (model.Amount - model.Discount) / 1.12m;
-                            sales.CreatedBy = model.CreatedBy;
-                            sales.CreatedDate = model.CreatedDate;
-                            sales.DueDate = model.DueDate;
-                            sales.DocumentId = model.Id;
-                        }
-                        else if (model.Customer.CustomerType == "Exempt")
-                        {
-                            sales.TransactionDate = model.TransactionDate;
-                            sales.SerialNo = model.SINo;
-                            sales.SoldTo = model.Customer.Name;
-                            sales.TinNo = model.Customer.TinNo;
-                            sales.Address = model.Customer.Address;
-                            sales.Description = model.Product.Name;
-                            sales.Amount = model.Amount;
-                            sales.VatExemptSales = model.Amount;
-                            sales.Discount = model.Discount;
-                            sales.NetSales = model.Amount - model.Discount;
-                            sales.CreatedBy = model.CreatedBy;
-                            sales.CreatedDate = model.CreatedDate;
-                            sales.DueDate = model.DueDate;
-                            sales.DocumentId = model.Id;
-                        }
-                        else
-                        {
-                            sales.TransactionDate = model.TransactionDate;
-                            sales.SerialNo = model.SINo;
-                            sales.SoldTo = model.Customer.Name;
-                            sales.TinNo = model.Customer.TinNo;
-                            sales.Address = model.Customer.Address;
-                            sales.Description = model.Product.Name;
-                            sales.Amount = model.Amount;
-                            sales.ZeroRated = model.Amount;
-                            sales.Discount = model.Discount;
-                            sales.NetSales = model.Amount - model.Discount;
-                            sales.CreatedBy = model.CreatedBy;
-                            sales.CreatedDate = model.CreatedDate;
-                            sales.DueDate = model.DueDate;
-                            sales.DocumentId = model.Id;
+                            case CS.VatType_Vatable:
+                                salesBook.VatableSales = _generalRepo.ComputeNetOfVat(salesBook.Amount);
+                                salesBook.VatAmount = _generalRepo.ComputeVatAmount(salesBook.VatableSales);
+                                salesBook.NetSales = salesBook.VatableSales - salesBook.Discount;
+                                break;
+                            case CS.VatType_Exempt:
+                                salesBook.VatExemptSales = salesBook.Amount;
+                                salesBook.NetSales = salesBook.VatExemptSales - salesBook.Discount;
+                                break;
+                            default:
+                                salesBook.ZeroRated = salesBook.Amount;
+                                salesBook.NetSales = salesBook.ZeroRated - salesBook.Discount;
+                                break;
                         }
 
-                        await _dbContext.AddAsync(sales, cancellationToken);
+                        salesBook.Discount = model.Discount;
+                        salesBook.CreatedBy = model.CreatedBy;
+                        salesBook.CreatedDate = model.CreatedDate;
+                        salesBook.DueDate = model.DueDate;
+                        salesBook.DocumentId = model.Id;
+
+                        await _dbContext.SalesBooks.AddAsync(salesBook, cancellationToken);
+                        await _dbContext.SaveChangesAsync(cancellationToken);
 
                         #endregion --Sales Book Recording
 
@@ -514,8 +492,8 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.SINo,
                                     Description = model.Product.Name,
-                                    AccountNo = "101060500",
-                                    AccountTitle = "Deferred Withholding Tax",
+                                    AccountNo = "101020200",
+                                    AccountTitle = "AR-Trade Receivable - Creditable Withholding Tax",
                                     Debit = withHoldingTaxAmount,
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
@@ -531,8 +509,8 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.SINo,
                                     Description = model.Product.Name,
-                                    AccountNo = "101060700",
-                                    AccountTitle = "Deferred Withholding Vat - Input",
+                                    AccountNo = "101020300",
+                                    AccountTitle = "AR-Trade Receivable - Creditable Withholding Vat",
                                     Debit = withHoldingVatAmount,
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
