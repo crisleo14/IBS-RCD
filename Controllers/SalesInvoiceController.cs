@@ -467,6 +467,16 @@ namespace Accounting_System.Controllers
                         decimal withHoldingTaxAmount = model.Customer.WithHoldingTax ? _generalRepo.ComputeEwtAmount(netOfVatAmount, 0.01m) : 0;
                         decimal withHoldingVatAmount = model.Customer.WithHoldingVat ? _generalRepo.ComputeEwtAmount(netOfVatAmount, 0.05m) : 0;
 
+                        var accountTitlesDto = await _generalRepo.GetListOfAccountTitleDto(cancellationToken);
+                        var arTradeReceivableTitle = accountTitlesDto.Find(c => c.AccountNumber == "101020100") ?? throw new ArgumentException("Account number: '101020100', Account title: 'AR-Trade Receivable' not found.");
+                        var arTradeCwt = accountTitlesDto.Find(c => c.AccountNumber == "101020200") ?? throw new ArgumentException("Account number: '101020200', Account title: 'AR-Trade Receivable - Creditable Withholding Tax' not found.");
+                        var arTradeCwv = accountTitlesDto.Find(c => c.AccountNumber == "101020300") ?? throw new ArgumentException("Account number: '101020300', Account title: 'AR-Trade Receivable - Creditable Withholding Vat' not found.");
+                        var biodieselTitle = accountTitlesDto.Find(c => c.AccountNumber == "401010100") ?? throw new ArgumentException("Account number: '401010100', Account title: 'Sales - Biodiesel' not found.");
+                        var econogasTitle = accountTitlesDto.Find(c => c.AccountNumber == "401010200") ?? throw new ArgumentException("Account number: '401010200', Account title: 'Sales - Econogas' not found.");
+                        var envirogasTitle = accountTitlesDto.Find(c => c.AccountNumber == "401010300") ?? throw new ArgumentException("Account number: '401010300', Account title: 'Sales - Envirogas' not found.");
+                        var vatOutputTitle = accountTitlesDto.Find(c => c.AccountNumber == "201030100") ?? throw new ArgumentException("Account number: '201030100', Account title: 'Vat - Output' not found.");
+
+
                         var ledgers = new List<GeneralLedgerBook>();
 
                         ledgers.Add(
@@ -475,8 +485,8 @@ namespace Accounting_System.Controllers
                                 Date = model.TransactionDate,
                                 Reference = model.SINo,
                                 Description = model.Product.Name,
-                                AccountNo = "101020100",
-                                AccountTitle = "AR-Trade Receivable",
+                                AccountNo = arTradeReceivableTitle.AccountNumber,
+                                AccountTitle = arTradeReceivableTitle.AccountName,
                                 Debit = netDiscount - (withHoldingTaxAmount + withHoldingVatAmount),
                                 Credit = 0,
                                 CreatedBy = model.CreatedBy,
@@ -492,8 +502,8 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.SINo,
                                     Description = model.Product.Name,
-                                    AccountNo = "101020200",
-                                    AccountTitle = "AR-Trade Receivable - Creditable Withholding Tax",
+                                    AccountNo = arTradeCwt.AccountNumber,
+                                    AccountTitle = arTradeCwt.AccountName,
                                     Debit = withHoldingTaxAmount,
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
@@ -509,8 +519,8 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.SINo,
                                     Description = model.Product.Name,
-                                    AccountNo = "101020300",
-                                    AccountTitle = "AR-Trade Receivable - Creditable Withholding Vat",
+                                    AccountNo = arTradeCwv.AccountNumber,
+                                    AccountTitle = arTradeCwv.AccountName,
                                     Debit = withHoldingVatAmount,
                                     Credit = 0,
                                     CreatedBy = model.CreatedBy,
@@ -526,8 +536,8 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.SINo,
                                     Description = model.Product.Name,
-                                    AccountNo = "401010100",
-                                    AccountTitle = "Sales - Biodiesel",
+                                    AccountNo = biodieselTitle.AccountNumber,
+                                    AccountTitle = biodieselTitle.AccountName,
                                     Debit = 0,
                                     Credit = netOfVatAmount,
                                     CreatedBy = model.CreatedBy,
@@ -543,8 +553,8 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.SINo,
                                     Description = model.Product.Name,
-                                    AccountNo = "401010200",
-                                    AccountTitle = "Sales - Econogas",
+                                    AccountNo = econogasTitle.AccountNumber,
+                                    AccountTitle = econogasTitle.AccountName,
                                     Debit = 0,
                                     Credit = netOfVatAmount,
                                     CreatedBy = model.CreatedBy,
@@ -560,8 +570,8 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.SINo,
                                     Description = model.Product.Name,
-                                    AccountNo = "401010300",
-                                    AccountTitle = "Sales - Envirogas",
+                                    AccountNo = envirogasTitle.AccountNumber,
+                                    AccountTitle = envirogasTitle.AccountName,
                                     Debit = 0,
                                     Credit = netOfVatAmount,
                                     CreatedBy = model.CreatedBy,
@@ -578,8 +588,8 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.SINo,
                                     Description = model.Product.Name,
-                                    AccountNo = "201030100",
-                                    AccountTitle = "Vat - Output",
+                                    AccountNo = vatOutputTitle.AccountNumber,
+                                    AccountTitle = vatOutputTitle.AccountName,
                                     Debit = 0,
                                     Credit = vatAmount,
                                     CreatedBy = model.CreatedBy,
