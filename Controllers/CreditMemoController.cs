@@ -466,6 +466,17 @@ namespace Accounting_System.Controllers
                         model.PostedBy = _userManager.GetUserName(this.User);
                         model.PostedDate = DateTime.Now;
 
+                        var accountTitlesDto = await _generalRepo.GetListOfAccountTitleDto(cancellationToken);
+                        var arTradeReceivableTitle = accountTitlesDto.Find(c => c.AccountNumber == "101020100") ?? throw new ArgumentException("Account number: '101020100', Account title: 'AR-Trade Receivable' not found.");
+                        var arNonTradeReceivableTitle = accountTitlesDto.Find(c => c.AccountNumber == "101020500") ?? throw new ArgumentException("Account number: '101020500', Account title: 'AR-Non Trade Receivable' not found.");
+                        var arTradeCwt = accountTitlesDto.Find(c => c.AccountNumber == "101020200") ?? throw new ArgumentException("Account number: '101020200', Account title: 'AR-Trade Receivable - Creditable Withholding Tax' not found.");
+                        var arTradeCwv = accountTitlesDto.Find(c => c.AccountNumber == "101020300") ?? throw new ArgumentException("Account number: '101020300', Account title: 'AR-Trade Receivable - Creditable Withholding Vat' not found.");
+                        var biodieselTitle = accountTitlesDto.Find(c => c.AccountNumber == "401010100") ?? throw new ArgumentException("Account number: '401010100', Account title: 'Sales - Biodiesel' not found.");
+                        var econogasTitle = accountTitlesDto.Find(c => c.AccountNumber == "401010200") ?? throw new ArgumentException("Account number: '401010200', Account title: 'Sales - Econogas' not found.");
+                        var envirogasTitle = accountTitlesDto.Find(c => c.AccountNumber == "401010300") ?? throw new ArgumentException("Account number: '401010300', Account title: 'Sales - Envirogas' not found.");
+                        var vatOutputTitle = accountTitlesDto.Find(c => c.AccountNumber == "201030100") ?? throw new ArgumentException("Account number: '201030100', Account title: 'Vat - Output' not found.");
+
+
                         if (model.SalesInvoiceId != null)
                         {
                             #region --Retrieval of SI and SOA--
@@ -570,8 +581,8 @@ namespace Accounting_System.Controllers
                                     Date = model.TransactionDate,
                                     Reference = model.CMNo,
                                     Description = model.SalesInvoice.Product.Name,
-                                    AccountNo = "101020100",
-                                    AccountTitle = "AR-Trade Receivable",
+                                    AccountNo = arTradeReceivableTitle.AccountNumber,
+                                    AccountTitle = arTradeReceivableTitle.AccountName,
                                     Debit = 0,
                                     Credit = Math.Abs(model.CreditAmount - (withHoldingTaxAmount + withHoldingVatAmount)),
                                     CreatedBy = model.CreatedBy,
@@ -587,8 +598,8 @@ namespace Accounting_System.Controllers
                                         Date = model.TransactionDate,
                                         Reference = model.CMNo,
                                         Description = model.SalesInvoice.Product.Name,
-                                        AccountNo = "101020200",
-                                        AccountTitle = "AR-Trade Receivable - Creditable Withholding Tax",
+                                        AccountNo = arTradeCwt.AccountNumber,
+                                        AccountTitle = arTradeCwt.AccountName,
                                         Debit = 0,
                                         Credit = Math.Abs(withHoldingTaxAmount),
                                         CreatedBy = model.CreatedBy,
@@ -604,8 +615,8 @@ namespace Accounting_System.Controllers
                                         Date = model.TransactionDate,
                                         Reference = model.CMNo,
                                         Description = model.SalesInvoice.Product.Name,
-                                        AccountNo = "101020300",
-                                        AccountTitle = "AR-Trade Receivable - Creditable Withholding Vat",
+                                        AccountNo = arTradeCwv.AccountNumber,
+                                        AccountTitle = arTradeCwv.AccountName,
                                         Debit = 0,
                                         Credit = Math.Abs(withHoldingVatAmount),
                                         CreatedBy = model.CreatedBy,
@@ -621,8 +632,8 @@ namespace Accounting_System.Controllers
                                         Date = model.TransactionDate,
                                         Reference = model.CMNo,
                                         Description = model.SalesInvoice.Product.Name,
-                                        AccountNo = "401010100",
-                                        AccountTitle = "Sales - Biodiesel",
+                                        AccountNo = biodieselTitle.AccountNumber,
+                                        AccountTitle = biodieselTitle.AccountName,
                                         Debit = Math.Abs(netOfVatAmount),
                                         CreatedBy = model.CreatedBy,
                                         Credit = 0,
@@ -638,8 +649,8 @@ namespace Accounting_System.Controllers
                                         Date = model.TransactionDate,
                                         Reference = model.CMNo,
                                         Description = model.SalesInvoice.Product.Name,
-                                        AccountNo = "401010200",
-                                        AccountTitle = "Sales - Econogas",
+                                        AccountNo = econogasTitle.AccountNumber,
+                                        AccountTitle = econogasTitle.AccountName,
                                         Debit = Math.Abs(netOfVatAmount),
                                         Credit = 0,
                                         CreatedBy = model.CreatedBy,
@@ -655,8 +666,8 @@ namespace Accounting_System.Controllers
                                         Date = model.TransactionDate,
                                         Reference = model.CMNo,
                                         Description = model.SalesInvoice.Product.Name,
-                                        AccountNo = "401010300",
-                                        AccountTitle = "Sales - Envirogas",
+                                        AccountNo = envirogasTitle.AccountNumber,
+                                        AccountTitle = envirogasTitle.AccountName,
                                         Debit = Math.Abs(netOfVatAmount),
                                         Credit = 0,
                                         CreatedBy = model.CreatedBy,
@@ -673,8 +684,8 @@ namespace Accounting_System.Controllers
                                         Date = model.TransactionDate,
                                         Reference = model.CMNo,
                                         Description = model.SalesInvoice.Product.Name,
-                                        AccountNo = "201030100",
-                                        AccountTitle = "Vat - Output",
+                                        AccountNo = vatOutputTitle.AccountNumber,
+                                        AccountTitle = vatOutputTitle.AccountName,
                                         Debit = Math.Abs(vatAmount),
                                         Credit = 0,
                                         CreatedBy = model.CreatedBy,
@@ -833,8 +844,8 @@ namespace Accounting_System.Controllers
                                         Date = viewModelDMCM.Period,
                                         Reference = model.CMNo,
                                         Description = model.ServiceInvoice.Service.Name,
-                                        AccountNo = "101020500",
-                                        AccountTitle = "AR-Non Trade Receivable",
+                                        AccountNo = arNonTradeReceivableTitle.AccountNumber,
+                                        AccountTitle = arNonTradeReceivableTitle.AccountName,
                                         Debit = 0,
                                         Credit = Math.Abs(model.CreditAmount - (withHoldingTaxAmount + withHoldingVatAmount)),
                                         CreatedBy = model.CreatedBy,
@@ -849,8 +860,8 @@ namespace Accounting_System.Controllers
                                         Date = viewModelDMCM.Period,
                                         Reference = model.CMNo,
                                         Description = model.ServiceInvoice.Service.Name,
-                                        AccountNo = "101020200",
-                                        AccountTitle = "AR-Trade Receivable - Creditable Withholding Tax",
+                                        AccountNo = arTradeCwt.AccountNumber,
+                                        AccountTitle = arTradeCwt.AccountName,
                                         Debit = 0,
                                         Credit = Math.Abs(withHoldingTaxAmount),
                                         CreatedBy = model.CreatedBy,
@@ -866,8 +877,8 @@ namespace Accounting_System.Controllers
                                         Date = viewModelDMCM.Period,
                                         Reference = model.CMNo,
                                         Description = model.ServiceInvoice.Service.Name,
-                                        AccountNo = "101020300",
-                                        AccountTitle = "AR-Trade Receivable - Creditable Withholding Vat",
+                                        AccountNo = arTradeCwv.AccountNumber,
+                                        AccountTitle = arTradeCwv.AccountName,
                                         Debit = 0,
                                         Credit = Math.Abs(withHoldingVatAmount),
                                         CreatedBy = model.CreatedBy,
@@ -897,8 +908,8 @@ namespace Accounting_System.Controllers
                                         Date = model.TransactionDate,
                                         Reference = model.CMNo,
                                         Description = model.ServiceInvoice.Service.Name,
-                                        AccountNo = "201030100",
-                                        AccountTitle = "Vat Output",
+                                        AccountNo = vatOutputTitle.AccountNumber,
+                                        AccountTitle = vatOutputTitle.AccountName,
                                         Debit = Math.Abs(vatAmount),
                                         Credit = 0,
                                         CreatedBy = model.CreatedBy,
