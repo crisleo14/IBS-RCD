@@ -841,7 +841,7 @@ namespace Accounting_System.Controllers
                             ledgers.Add(
                                     new GeneralLedgerBook
                                     {
-                                        Date = viewModelDMCM.Period,
+                                        Date = model.TransactionDate,
                                         Reference = model.CMNo,
                                         Description = model.ServiceInvoice.Service.Name,
                                         AccountNo = arNonTradeReceivableTitle.AccountNumber,
@@ -857,7 +857,7 @@ namespace Accounting_System.Controllers
                                 ledgers.Add(
                                     new GeneralLedgerBook
                                     {
-                                        Date = viewModelDMCM.Period,
+                                        Date = model.TransactionDate,
                                         Reference = model.CMNo,
                                         Description = model.ServiceInvoice.Service.Name,
                                         AccountNo = arTradeCwt.AccountNumber,
@@ -874,7 +874,7 @@ namespace Accounting_System.Controllers
                                 ledgers.Add(
                                     new GeneralLedgerBook
                                     {
-                                        Date = viewModelDMCM.Period,
+                                        Date = model.TransactionDate,
                                         Reference = model.CMNo,
                                         Description = model.ServiceInvoice.Service.Name,
                                         AccountNo = arTradeCwv.AccountNumber,
@@ -889,7 +889,7 @@ namespace Accounting_System.Controllers
 
                             ledgers.Add(new GeneralLedgerBook
                             {
-                                Date = viewModelDMCM.Period,
+                                Date = model.TransactionDate,
                                 Reference = model.CMNo,
                                 Description = model.ServiceInvoice.Service.Name,
                                 AccountNo = model.ServiceInvoice.Service.CurrentAndPreviousNo,
