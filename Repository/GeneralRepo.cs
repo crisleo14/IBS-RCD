@@ -199,5 +199,16 @@ namespace Accounting_System.Repository
                 _ => throw new ArgumentException($"Invalid product code: {productCode}"),
             };
         }
+
+        public (string AccountNo, string AccountTitle) GetSalesAccountTitle(string productCode)
+        {
+            return productCode switch
+            {
+                "PET001" => ("401010100", "Sales - Biodiesel"),
+                "PET002" => ("401010200", "Sales - Econogas"),
+                "PET003" => ("401010300", "Sales - Envirogas"),
+                _ => throw new ArgumentException($"Invalid product code: {productCode}"),
+            };
+        }
     }
 }

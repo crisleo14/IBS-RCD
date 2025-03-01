@@ -471,9 +471,8 @@ namespace Accounting_System.Controllers
                         var arNonTradeReceivableTitle = accountTitlesDto.Find(c => c.AccountNumber == "101020500") ?? throw new ArgumentException("Account number: '101020500', Account title: 'AR-Non Trade Receivable' not found.");
                         var arTradeCwt = accountTitlesDto.Find(c => c.AccountNumber == "101020200") ?? throw new ArgumentException("Account number: '101020200', Account title: 'AR-Trade Receivable - Creditable Withholding Tax' not found.");
                         var arTradeCwv = accountTitlesDto.Find(c => c.AccountNumber == "101020300") ?? throw new ArgumentException("Account number: '101020300', Account title: 'AR-Trade Receivable - Creditable Withholding Vat' not found.");
-                        var biodieselTitle = accountTitlesDto.Find(c => c.AccountNumber == "401010100") ?? throw new ArgumentException("Account number: '401010100', Account title: 'Sales - Biodiesel' not found.");
-                        var econogasTitle = accountTitlesDto.Find(c => c.AccountNumber == "401010200") ?? throw new ArgumentException("Account number: '401010200', Account title: 'Sales - Econogas' not found.");
-                        var envirogasTitle = accountTitlesDto.Find(c => c.AccountNumber == "401010300") ?? throw new ArgumentException("Account number: '401010300', Account title: 'Sales - Envirogas' not found.");
+                        var (salesAcctNo, salesAcctTitle) = _generalRepo.GetSalesAccountTitle(model.SalesInvoice.Product.Code);
+                        var salesTitle = accountTitlesDto.Find(c => c.AccountNumber == salesAcctNo) ?? throw new ArgumentException($"Account title '{salesAcctNo}' not found.");
                         var vatOutputTitle = accountTitlesDto.Find(c => c.AccountNumber == "201030100") ?? throw new ArgumentException("Account number: '201030100', Account title: 'Vat - Output' not found.");
 
 
@@ -624,58 +623,20 @@ namespace Accounting_System.Controllers
                                     }
                                 );
                             }
-                            if (model.SalesInvoice.Product.Name == "Biodiesel")
-                            {
-                                ledgers.Add(
-                                    new GeneralLedgerBook
-                                    {
-                                        Date = model.TransactionDate,
-                                        Reference = model.CMNo,
-                                        Description = model.SalesInvoice.Product.Name,
-                                        AccountNo = biodieselTitle.AccountNumber,
-                                        AccountTitle = biodieselTitle.AccountName,
-                                        Debit = Math.Abs(netOfVatAmount),
-                                        CreatedBy = model.CreatedBy,
-                                        Credit = 0,
-                                        CreatedDate = model.CreatedDate
-                                    }
-                                );
-                            }
-                            else if (model.SalesInvoice.Product.Name == "Econogas")
-                            {
-                                ledgers.Add(
-                                    new GeneralLedgerBook
-                                    {
-                                        Date = model.TransactionDate,
-                                        Reference = model.CMNo,
-                                        Description = model.SalesInvoice.Product.Name,
-                                        AccountNo = econogasTitle.AccountNumber,
-                                        AccountTitle = econogasTitle.AccountName,
-                                        Debit = Math.Abs(netOfVatAmount),
-                                        Credit = 0,
-                                        CreatedBy = model.CreatedBy,
-                                        CreatedDate = model.CreatedDate
-                                    }
-                                );
-                            }
-                            else if (model.SalesInvoice.Product.Name == "Envirogas")
-                            {
-                                ledgers.Add(
-                                    new GeneralLedgerBook
-                                    {
-                                        Date = model.TransactionDate,
-                                        Reference = model.CMNo,
-                                        Description = model.SalesInvoice.Product.Name,
-                                        AccountNo = envirogasTitle.AccountNumber,
-                                        AccountTitle = envirogasTitle.AccountName,
-                                        Debit = Math.Abs(netOfVatAmount),
-                                        Credit = 0,
-                                        CreatedBy = model.CreatedBy,
-                                        CreatedDate = model.CreatedDate
-                                    }
-                                );
-                            }
-
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.TransactionDate,
+                                    Reference = model.CMNo,
+                                    Description = model.SalesInvoice.Product.Name,
+                                    AccountNo = salesTitle.AccountNumber,
+                                    AccountTitle = salesTitle.AccountName,
+                                    Debit = Math.Abs(netOfVatAmount),
+                                    CreatedBy = model.CreatedBy,
+                                    Credit = 0,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
                             if (vatAmount < 0)
                             {
                                 ledgers.Add(

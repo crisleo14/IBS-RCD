@@ -391,17 +391,19 @@ namespace Accounting_System.Controllers
 
                         #region --General Ledger Book Recording(GL)--
 
+                        var accountTitlesDto = await _generalRepo.GetListOfAccountTitleDto(cancellationToken);
                         var ledgers = new List<GeneralLedgerBook>();
                         foreach (var details in modelDetails)
                         {
+                            var account = accountTitlesDto.Find(c => c.AccountNumber == details.AccountNo) ?? throw new ArgumentException($"Account number '{details.AccountNo}', Account title '{details.AccountName}' not found.");
                             ledgers.Add(
                                     new GeneralLedgerBook
                                     {
                                         Date = modelHeader.Date,
                                         Reference = modelHeader.JVNo,
                                         Description = modelHeader.Particulars,
-                                        AccountNo = details.AccountNo,
-                                        AccountTitle = details.AccountName,
+                                        AccountNo = account.AccountNumber,
+                                        AccountTitle = account.AccountName,
                                         Debit = details.Debit,
                                         Credit = details.Credit,
                                         CreatedBy = modelHeader.CreatedBy,
