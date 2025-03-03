@@ -75,46 +75,58 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                chartOfAccount.CreatedBy = _userManager.GetUserName(this.User);
-
-                if (fourthLevel == "create-new" || fourthLevel == null)
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                try
                 {
-                    var existingCoa = await _dbContext
-                        .ChartOfAccounts
-                        .OrderBy(coa => coa.AccountId)
-                        .FirstOrDefaultAsync(coa => coa.AccountNumber == thirdLevel, cancellationToken);
+                    chartOfAccount.CreatedBy = _userManager.GetUserName(this.User);
 
-                    if (existingCoa == null)
+                    if (fourthLevel == "create-new" || fourthLevel == null)
                     {
-                        return NotFound();
+                        var existingCoa = await _dbContext
+                            .ChartOfAccounts
+                            .OrderBy(coa => coa.AccountId)
+                            .FirstOrDefaultAsync(coa => coa.AccountNumber == thirdLevel, cancellationToken);
+
+                        if (existingCoa == null)
+                        {
+                            return NotFound();
+                        }
+
+                        chartOfAccount.AccountType = existingCoa.AccountType;
+                        chartOfAccount.NormalBalance = existingCoa.NormalBalance;
+                        chartOfAccount.Level = existingCoa.Level + 1;
+                        chartOfAccount.Parent = thirdLevel;
+                    }
+                    else
+                    {
+                        var existingCoa = await _dbContext
+                            .ChartOfAccounts
+                            .OrderBy(coa => coa.AccountId)
+                            .FirstOrDefaultAsync(coa => coa.AccountNumber == fourthLevel, cancellationToken);
+
+                        if (existingCoa == null)
+                        {
+                            return NotFound();
+                        }
+
+                        chartOfAccount.AccountType = existingCoa.AccountType;
+                        chartOfAccount.NormalBalance = existingCoa.NormalBalance;
+                        chartOfAccount.Level = existingCoa.Level + 1;
+                        chartOfAccount.Parent = fourthLevel;
                     }
 
-                    chartOfAccount.AccountType = existingCoa.AccountType;
-                    chartOfAccount.NormalBalance = existingCoa.NormalBalance;
-                    chartOfAccount.Level = existingCoa.Level + 1;
-                    chartOfAccount.Parent = thirdLevel;
+                    await _dbContext.AddAsync(chartOfAccount, cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    TempData["success"] = "Chart of account created successfully.";
+                    return RedirectToAction(nameof(Index));
                 }
-                else
+                catch (Exception ex)
                 {
-                    var existingCoa = await _dbContext
-                        .ChartOfAccounts
-                        .OrderBy(coa => coa.AccountId)
-                        .FirstOrDefaultAsync(coa => coa.AccountNumber == fourthLevel, cancellationToken);
-
-                    if (existingCoa == null)
-                    {
-                        return NotFound();
-                    }
-
-                    chartOfAccount.AccountType = existingCoa.AccountType;
-                    chartOfAccount.NormalBalance = existingCoa.NormalBalance;
-                    chartOfAccount.Level = existingCoa.Level + 1;
-                    chartOfAccount.Parent = fourthLevel;
+                    await transaction.RollbackAsync(cancellationToken);
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index));
                 }
-
-                await _dbContext.AddAsync(chartOfAccount, cancellationToken);
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction(nameof(Index));
             }
             return View(chartOfAccount);
         }
@@ -145,6 +157,7 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     _dbContext.Update(chartOfAccount);
@@ -152,17 +165,20 @@ namespace Accounting_System.Controllers
                     #region --Audit Trail Recording
 
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Updated chart of account {chartOfAccount.AccountNumber} {chartOfAccount.AccountName}", "Chart of Account", ipAddress);
+                    AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User),
+                        $"Updated chart of account {chartOfAccount.AccountNumber} {chartOfAccount.AccountName}",
+                        "Chart of Account", ipAddress);
                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
 
                     #endregion --Audit Trail Recording
 
-                    TempData["success"] = "Chart of account updated successfully";
-
                     await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    TempData["success"] = "Chart of account updated successfully";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     if (!ChartOfAccountExists(chartOfAccount.AccountId))
                     {
                         return NotFound();
@@ -172,6 +188,13 @@ namespace Accounting_System.Controllers
                         throw;
                     }
                 }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+
                 return RedirectToAction(nameof(Index));
             }
             return View(chartOfAccount);
@@ -198,7 +221,7 @@ namespace Accounting_System.Controllers
         #region -- export xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Export(string selectedRecord)
+        public async Task<IActionResult> Export(string selectedRecord, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(selectedRecord))
             {
@@ -206,52 +229,63 @@ namespace Accounting_System.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            try
+		    {
+                var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
 
-            // Retrieve the selected invoices from the database
-            var selectedList = await _dbContext.ChartOfAccounts
-                .Where(coa => recordIds.Contains(coa.AccountId))
-                .OrderBy(coa => coa.AccountId)
-                .ToListAsync();
+                // Retrieve the selected invoices from the database
+                var selectedList = await _dbContext.ChartOfAccounts
+                    .Where(coa => recordIds.Contains(coa.AccountId))
+                    .OrderBy(coa => coa.AccountId)
+                    .ToListAsync();
 
-            // Create the Excel package
-            using var package = new ExcelPackage();
-            // Add a new worksheet to the Excel package
-            var worksheet = package.Workbook.Worksheets.Add("ChartOfAccount");
+                // Create the Excel package
+                using var package = new ExcelPackage();
+                // Add a new worksheet to the Excel package
+                var worksheet = package.Workbook.Worksheets.Add("ChartOfAccount");
 
-            worksheet.Cells["A1"].Value = "IsMain";
-            worksheet.Cells["B1"].Value = "AccountNumber";
-            worksheet.Cells["C1"].Value = "AccountName";
-            worksheet.Cells["D1"].Value = "Type";
-            worksheet.Cells["E1"].Value = "Category";
-            worksheet.Cells["F1"].Value = "Parent";
-            worksheet.Cells["G1"].Value = "CreatedBy";
-            worksheet.Cells["H1"].Value = "CreatedDate";
-            worksheet.Cells["I1"].Value = "Level";
-            worksheet.Cells["J1"].Value = "OriginalChartOfAccount";
+                worksheet.Cells["A1"].Value = "IsMain";
+                worksheet.Cells["B1"].Value = "AccountNumber";
+                worksheet.Cells["C1"].Value = "AccountName";
+                worksheet.Cells["D1"].Value = "Type";
+                worksheet.Cells["E1"].Value = "Category";
+                worksheet.Cells["F1"].Value = "Parent";
+                worksheet.Cells["G1"].Value = "CreatedBy";
+                worksheet.Cells["H1"].Value = "CreatedDate";
+                worksheet.Cells["I1"].Value = "Level";
+                worksheet.Cells["J1"].Value = "OriginalChartOfAccount";
 
-            int row = 2;
+                int row = 2;
 
-            foreach (var item in selectedList)
+                foreach (var item in selectedList)
+                {
+                    worksheet.Cells[row, 1].Value = item.IsMain;
+                    worksheet.Cells[row, 2].Value = item.AccountNumber;
+                    worksheet.Cells[row, 3].Value = item.AccountName;
+                    worksheet.Cells[row, 4].Value = item.AccountType;
+                    worksheet.Cells[row, 5].Value = item.NormalBalance;
+                    worksheet.Cells[row, 6].Value = item.Parent;
+                    worksheet.Cells[row, 7].Value = item.CreatedBy;
+                    worksheet.Cells[row, 8].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 9].Value = item.Level;
+                    worksheet.Cells[row, 10].Value = item.AccountId;
+
+                    row++;
+                }
+
+                // Convert the Excel package to a byte array
+                var excelBytes = await package.GetAsByteArrayAsync();
+                await transaction.CommitAsync(cancellationToken);
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ChartOfAccountList.xlsx");
+		    }
+            catch (Exception ex)
             {
-                worksheet.Cells[row, 1].Value = item.IsMain;
-                worksheet.Cells[row, 2].Value = item.AccountNumber;
-                worksheet.Cells[row, 3].Value = item.AccountName;
-                worksheet.Cells[row, 4].Value = item.AccountType;
-                worksheet.Cells[row, 5].Value = item.NormalBalance;
-                worksheet.Cells[row, 6].Value = item.Parent;
-                worksheet.Cells[row, 7].Value = item.CreatedBy;
-                worksheet.Cells[row, 8].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                worksheet.Cells[row, 9].Value = item.Level;
-                worksheet.Cells[row, 10].Value = item.AccountId;
-
-                row++;
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index), new { view = DynamicView.ChartOfAccount });
             }
 
-            // Convert the Excel package to a byte array
-            var excelBytes = await package.GetAsByteArrayAsync();
-
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ChartOfAccountList.xlsx");
         }
 
         #endregion -- export xlsx record --
@@ -293,7 +327,7 @@ namespace Accounting_System.Controllers
                         var chartOfAccountList = await _dbContext
                             .ChartOfAccounts
                             .ToListAsync(cancellationToken);
-                        
+
                         for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                         {
                             var coa = new ChartOfAccount

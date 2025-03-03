@@ -59,36 +59,47 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _customerRepo.IsCustomerExist(customer.Name, cancellationToken))
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                try
                 {
-                    ModelState.AddModelError("Name", "Customer already exist!");
-                    return View(customer);
-                }
+                    if (await _customerRepo.IsCustomerExist(customer.Name, cancellationToken))
+                    {
+                        ModelState.AddModelError("Name", "Customer already exist!");
+                        return View(customer);
+                    }
 
-                if (await _customerRepo.IsTinNoExist(customer.TinNo, cancellationToken))
+                    if (await _customerRepo.IsTinNoExist(customer.TinNo, cancellationToken))
+                    {
+                        ModelState.AddModelError("TinNo", "Tin# already exist!");
+                        return View(customer);
+                    }
+
+                    customer.Number = await _customerRepo.GetLastNumber(cancellationToken);
+                    customer.CreatedBy = _userManager.GetUserName(this.User);
+
+                    #region --Audit Trail Recording
+
+                    if (customer.OriginalCustomerId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(customer.CreatedBy, $"Created new customer {customer.Name}", "Customer", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.AddAsync(customer, cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    TempData["success"] = "Customer created successfully";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
                 {
-                    ModelState.AddModelError("TinNo", "Tin# already exist!");
-                    return View(customer);
+                    await transaction.RollbackAsync(cancellationToken);
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index));
                 }
-
-                customer.Number = await _customerRepo.GetLastNumber(cancellationToken);
-                customer.CreatedBy = _userManager.GetUserName(this.User);
-                await _dbContext.AddAsync(customer, cancellationToken);
-                await _dbContext.SaveChangesAsync(cancellationToken);
-
-                #region --Audit Trail Recording
-
-                if (customer.OriginalCustomerId == 0)
-                {
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(customer.CreatedBy, $"Created new customer {customer.Name}", "Customer", ipAddress);
-                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                }
-
-                #endregion --Audit Trail Recording
-
-                TempData["success"] = "Customer created successfully";
-                return RedirectToAction(nameof(Index));
             }
             else
             {
@@ -123,6 +134,7 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     existingModel.Name = customer.Name;
@@ -148,10 +160,12 @@ namespace Accounting_System.Controllers
 
                     _dbContext.Update(existingModel);
                     await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
                     TempData["success"] = "Customer updated successfully";
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                 }
                 return RedirectToAction(nameof(Index));
@@ -164,7 +178,7 @@ namespace Accounting_System.Controllers
         #region -- export xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Export(string selectedRecord)
+        public async Task<IActionResult> Export(string selectedRecord, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(selectedRecord))
             {
@@ -172,58 +186,68 @@ namespace Accounting_System.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            try
+		    {
+                var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
 
-            // Retrieve the selected invoices from the database
-            var selectedList = await _dbContext.Customers
-                .Where(c => recordIds.Contains(c.Id))
-                .OrderBy(c => c.Id)
-                .ToListAsync();
+                // Retrieve the selected invoices from the database
+                var selectedList = await _dbContext.Customers
+                    .Where(c => recordIds.Contains(c.Id))
+                    .OrderBy(c => c.Id)
+                    .ToListAsync();
 
-            // Create the Excel package
-            using var package = new ExcelPackage();
-            // Add a new worksheet to the Excel package
-            var worksheet = package.Workbook.Worksheets.Add("Customers");
+                // Create the Excel package
+                using var package = new ExcelPackage();
+                // Add a new worksheet to the Excel package
+                var worksheet = package.Workbook.Worksheets.Add("Customers");
 
-            worksheet.Cells["A1"].Value = "CustomerName";
-            worksheet.Cells["B1"].Value = "CustomerAddress";
-            worksheet.Cells["C1"].Value = "CustomerZipCode";
-            worksheet.Cells["D1"].Value = "CustomerTinNumber";
-            worksheet.Cells["E1"].Value = "BusinessStyle";
-            worksheet.Cells["F1"].Value = "Terms";
-            worksheet.Cells["G1"].Value = "CustomerType";
-            worksheet.Cells["H1"].Value = "WithHoldingVat";
-            worksheet.Cells["I1"].Value = "WithHoldingTax";
-            worksheet.Cells["J1"].Value = "CreatedBy";
-            worksheet.Cells["K1"].Value = "CreatedDate";
-            worksheet.Cells["L1"].Value = "OriginalCustomerId";
-            worksheet.Cells["M1"].Value = "OriginalCustomerNumber";
+                worksheet.Cells["A1"].Value = "CustomerName";
+                worksheet.Cells["B1"].Value = "CustomerAddress";
+                worksheet.Cells["C1"].Value = "CustomerZipCode";
+                worksheet.Cells["D1"].Value = "CustomerTinNumber";
+                worksheet.Cells["E1"].Value = "BusinessStyle";
+                worksheet.Cells["F1"].Value = "Terms";
+                worksheet.Cells["G1"].Value = "CustomerType";
+                worksheet.Cells["H1"].Value = "WithHoldingVat";
+                worksheet.Cells["I1"].Value = "WithHoldingTax";
+                worksheet.Cells["J1"].Value = "CreatedBy";
+                worksheet.Cells["K1"].Value = "CreatedDate";
+                worksheet.Cells["L1"].Value = "OriginalCustomerId";
+                worksheet.Cells["M1"].Value = "OriginalCustomerNumber";
 
-            int row = 2;
+                int row = 2;
 
-            foreach (var item in selectedList)
+                foreach (var item in selectedList)
+                {
+                    worksheet.Cells[row, 1].Value = item.Name;
+                    worksheet.Cells[row, 2].Value = item.Address;
+                    worksheet.Cells[row, 3].Value = item.ZipCode;
+                    worksheet.Cells[row, 4].Value = item.TinNo;
+                    worksheet.Cells[row, 5].Value = item.BusinessStyle;
+                    worksheet.Cells[row, 6].Value = item.Terms;
+                    worksheet.Cells[row, 7].Value = item.CustomerType;
+                    worksheet.Cells[row, 8].Value = item.WithHoldingVat;
+                    worksheet.Cells[row, 9].Value = item.WithHoldingTax;
+                    worksheet.Cells[row, 10].Value = item.CreatedBy;
+                    worksheet.Cells[row, 11].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 12].Value = item.Id;
+                    worksheet.Cells[row, 13].Value = item.Number;
+
+                    row++;
+                }
+
+                // Convert the Excel package to a byte array
+                var excelBytes = await package.GetAsByteArrayAsync();
+                await transaction.CommitAsync(cancellationToken);
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "CustomerList.xlsx");
+		    }
+            catch (Exception ex)
             {
-                worksheet.Cells[row, 1].Value = item.Name;
-                worksheet.Cells[row, 2].Value = item.Address;
-                worksheet.Cells[row, 3].Value = item.ZipCode;
-                worksheet.Cells[row, 4].Value = item.TinNo;
-                worksheet.Cells[row, 5].Value = item.BusinessStyle;
-                worksheet.Cells[row, 6].Value = item.Terms;
-                worksheet.Cells[row, 7].Value = item.CustomerType;
-                worksheet.Cells[row, 8].Value = item.WithHoldingVat;
-                worksheet.Cells[row, 9].Value = item.WithHoldingTax;
-                worksheet.Cells[row, 10].Value = item.CreatedBy;
-                worksheet.Cells[row, 11].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                worksheet.Cells[row, 12].Value = item.Id;
-                worksheet.Cells[row, 13].Value = item.Number;
-
-                row++;
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
             }
-
-            // Convert the Excel package to a byte array
-            var excelBytes = await package.GetAsByteArrayAsync();
-
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "CustomerList.xlsx");
         }
 
         #endregion -- export xlsx record --

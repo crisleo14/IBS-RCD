@@ -56,6 +56,7 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     var hasBeginningInventory = await _inventoryRepo.HasAlreadyBeginningInventory(viewModel.ProductId, cancellationToken);
@@ -76,11 +77,13 @@ namespace Accounting_System.Controllers
                     }
 
                     await _inventoryRepo.AddBeginningInventory(viewModel, User, cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
                     TempData["success"] = "Beginning balance created successfully";
                     return RedirectToAction(nameof(BeginningInventory));
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.ToString();
                     return View();
                 }
@@ -227,14 +230,17 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     await _inventoryRepo.AddActualInventory(viewModel, User, cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
                     TempData["success"] = "Actual inventory created successfully";
                     return RedirectToAction(nameof(ActualInventory));
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     viewModel.ProductList = await _dbContext.Products
                         .OrderBy(p => p.Code)
                         .Select(p => new SelectListItem
@@ -282,6 +288,7 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> ValidateInventory(int? id, CancellationToken cancellationToken)
         {
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
             try
             {
                 if (id == null || id == 0)
@@ -366,6 +373,7 @@ namespace Accounting_System.Controllers
                     #endregion -- Journal Book Entry --
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
 
                     return Ok();
                 }
@@ -376,6 +384,7 @@ namespace Accounting_System.Controllers
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync(cancellationToken);
                 _logger.LogError(ex, "Error");
                 return BadRequest();
             }

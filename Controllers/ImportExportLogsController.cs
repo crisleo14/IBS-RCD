@@ -997,10 +997,21 @@ namespace Accounting_System.Controllers
                 #endregion -- Accounts Payable --
             }
 
-            if (importRecord != null)
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            try
             {
-                importRecord.Action = procedure;
-                await _dbContext.SaveChangesAsync(cancellationToken);
+                if (importRecord != null)
+                {
+                    importRecord.Action = procedure;
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
             }
 
             return RedirectToAction(nameof(Index));

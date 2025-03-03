@@ -162,116 +162,121 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
 
-            var existingSalesInvoice = await _dbContext
-                        .SalesInvoices
-                        .Include(c => c.Customer)
-                        .Include(s => s.Product)
-                        .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId, cancellationToken);
-
             var existingSv = await _dbContext.ServiceInvoices
                         .Include(sv => sv.Customer)
                         .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
 
             if (ModelState.IsValid)
             {
-                #region -- checking for unposted DM or CM --
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                try
+                {
+                    #region -- checking for unposted DM or CM --
 
-                    var existingSiDms = await _dbContext.DebitMemos
-                                  .Where(dm => !dm.IsPosted && !dm.IsCanceled && !dm.IsVoided)
-                                  .OrderBy(dm => dm.Id)
-                                  .ToListAsync(cancellationToken);
-                    if (existingSiDms.Count > 0)
-                    {
-                        var dmNo = new List<string>();
-                        foreach (var item in existingSiDms)
-                        {
-                            dmNo.Add(item.DMNo);
-                        }
-                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM. {string.Join(" , ", dmNo)}");
-                        return View(model);
-                    }
-
-                    var existingSiCms = await _dbContext.CreditMemos
-                                      .Where(cm => !cm.IsPosted && !cm.IsCanceled && !cm.IsVoided)
-                                      .OrderBy(cm => cm.Id)
+                        var existingSiDms = await _dbContext.DebitMemos
+                                      .Where(dm => !dm.IsPosted && !dm.IsCanceled && !dm.IsVoided)
+                                      .OrderBy(dm => dm.Id)
                                       .ToListAsync(cancellationToken);
-
-                    if (existingSiCms.Count > 0)
-                    {
-                        var cmNo = new List<string>();
-                        foreach (var item in existingSiCms)
+                        if (existingSiDms.Count > 0)
                         {
-                            cmNo.Add(item.CMNo);
+                            var dmNo = new List<string>();
+                            foreach (var item in existingSiDms)
+                            {
+                                dmNo.Add(item.DMNo);
+                            }
+                            ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM. {string.Join(" , ", dmNo)}");
+                            return View(model);
                         }
-                        ModelState.AddModelError("", $"Can’t proceed to create you have unposted CM. {string.Join(" , ", cmNo)}");
+
+                        var existingSiCms = await _dbContext.CreditMemos
+                                          .Where(cm => !cm.IsPosted && !cm.IsCanceled && !cm.IsVoided)
+                                          .OrderBy(cm => cm.Id)
+                                          .ToListAsync(cancellationToken);
+
+                        if (existingSiCms.Count > 0)
+                        {
+                            var cmNo = new List<string>();
+                            foreach (var item in existingSiCms)
+                            {
+                                cmNo.Add(item.CMNo);
+                            }
+                            ModelState.AddModelError("", $"Can’t proceed to create you have unposted CM. {string.Join(" , ", cmNo)}");
+                            return View(model);
+                        }
+
+                    #endregion
+
+                    #region --Validating the series--
+
+                    var generateDmNo = await _debitMemoRepo.GenerateDMNo(cancellationToken);
+                    var getLastNumber = long.Parse(generateDmNo.Substring(2));
+
+                    if (getLastNumber > 9999999999)
+                    {
+                        TempData["error"] = "You reach the maximum Series Number";
                         return View(model);
                     }
+                    var totalRemainingSeries = 9999999999 - getLastNumber;
+                    if (getLastNumber >= 9999999899)
+                    {
+                        TempData["warning"] = $"Debit Memo created successfully, Warning {totalRemainingSeries} series number remaining";
+                    }
+                    else
+                    {
+                        TempData["success"] = "Debit Memo created successfully";
+                    }
 
-                #endregion
+                    #endregion --Validating the series--
 
-                #region --Validating the series--
+                    model.DMNo = generateDmNo;
+                    model.CreatedBy = _userManager.GetUserName(this.User);
 
-                var generateDmNo = await _debitMemoRepo.GenerateDMNo(cancellationToken);
-                var getLastNumber = long.Parse(generateDmNo.Substring(2));
+                    if (model.Source == "Sales Invoice")
+                    {
+                        model.ServiceInvoiceId = null;
 
-                if (getLastNumber > 9999999999)
-                {
-                    TempData["error"] = "You reach the maximum Series Number";
-                    return View(model);
+                        model.DebitAmount = (decimal)(model.Quantity * model.AdjustedPrice);
+                    }
+                    else if (model.Source == "Service Invoice")
+                    {
+                        model.SalesInvoiceId = null;
+
+                        #region --Retrieval of Services
+
+                        model.ServicesId = existingSv?.ServicesId;
+
+                        var services = await _dbContext
+                        .Services
+                        .FirstOrDefaultAsync(s => s.Id == model.ServicesId, cancellationToken);
+
+                        #endregion --Retrieval of Services
+
+                        model.DebitAmount = model.Amount ?? 0;
+                    }
+
+                    #region --Audit Trail Recording
+
+                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new debit memo# {model.DMNo}", "Debit Memo", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.AddAsync(model, cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+
+                    return RedirectToAction(nameof(Index));
                 }
-                var totalRemainingSeries = 9999999999 - getLastNumber;
-                if (getLastNumber >= 9999999899)
+                catch (Exception ex)
                 {
-                    TempData["warning"] = $"Debit Memo created successfully, Warning {totalRemainingSeries} series number remaining";
+                 await transaction.RollbackAsync(cancellationToken);
+                 TempData["error"] = ex.Message;
+                 return RedirectToAction(nameof(Index));
                 }
-                else
-                {
-                    TempData["success"] = "Debit Memo created successfully";
-                }
-
-                #endregion --Validating the series--
-
-                model.DMNo = generateDmNo;
-                model.CreatedBy = _userManager.GetUserName(this.User);
-
-                if (model.Source == "Sales Invoice")
-                {
-                    model.ServiceInvoiceId = null;
-
-                    model.DebitAmount = (decimal)(model.Quantity * model.AdjustedPrice);
-                }
-                else if (model.Source == "Service Invoice")
-                {
-                    model.SalesInvoiceId = null;
-
-                    #region --Retrieval of Services
-
-                    model.ServicesId = existingSv?.ServicesId;
-
-                    var services = await _dbContext
-                    .Services
-                    .FirstOrDefaultAsync(s => s.Id == model.ServicesId, cancellationToken);
-
-                    #endregion --Retrieval of Services
-
-                    model.DebitAmount = model.Amount ?? 0;
-                }
-
-                #region --Audit Trail Recording
-
-                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                {
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new debit memo# {model.DMNo}", "Debit Memo", ipAddress);
-                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                }
-
-                #endregion --Audit Trail Recording
-
-                await _dbContext.AddAsync(model, cancellationToken);
-                await _dbContext.SaveChangesAsync(cancellationToken);
-
-                return RedirectToAction(nameof(Index));
             }
             else
             {
@@ -335,6 +340,7 @@ namespace Accounting_System.Controllers
 
             if (model != null)
             {
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     if (!model.IsPosted)
@@ -745,12 +751,14 @@ namespace Accounting_System.Controllers
                         #endregion --Audit Trail Recording
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                         TempData["success"] = "Debit Memo has been Posted.";
                     }
                     return RedirectToAction(nameof(Print), new { id = id });
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Print), new { id = id });
                 }
@@ -765,35 +773,46 @@ namespace Accounting_System.Controllers
 
             if (model != null)
             {
-                if (!model.IsVoided)
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                try
                 {
-                    if (model.IsPosted)
+                    if (!model.IsVoided)
                     {
-                        model.IsPosted = false;
+                        if (model.IsPosted)
+                        {
+                            model.IsPosted = false;
+                        }
+
+                        model.IsVoided = true;
+                        model.VoidedBy = _userManager.GetUserName(this.User);
+                        model.VoidedDate = DateTime.Now;
+
+                        await _generalRepo.RemoveRecords<SalesBook>(crb => crb.SerialNo == model.DMNo, cancellationToken);
+                        await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.DMNo, cancellationToken);
+
+                        #region --Audit Trail Recording
+
+                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided debit memo# {model.DMNo}", "Debit Memo", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Debit Memo has been Voided.";
                     }
-
-                    model.IsVoided = true;
-                    model.VoidedBy = _userManager.GetUserName(this.User);
-                    model.VoidedDate = DateTime.Now;
-
-                    await _generalRepo.RemoveRecords<SalesBook>(crb => crb.SerialNo == model.DMNo, cancellationToken);
-                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.DMNo, cancellationToken);
-
-                    #region --Audit Trail Recording
-
-                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                    {
-                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided debit memo# {model.DMNo}", "Debit Memo", ipAddress);
-                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                    }
-
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Debit Memo has been Voided.";
+                    return RedirectToAction(nameof(Index));
                 }
-                return RedirectToAction(nameof(Index));
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index));
+                }
             }
 
             return NotFound();
@@ -802,30 +821,41 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Cancel(int id, string cancellationRemarks, CancellationToken cancellationToken)
         {
             var model = await _dbContext.DebitMemos.FindAsync(id, cancellationToken);
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            if (model != null)
+            try
             {
-                if (!model.IsCanceled)
+                if (model != null)
                 {
-                    model.IsCanceled = true;
-                    model.CanceledBy = _userManager.GetUserName(this.User);
-                    model.CanceledDate = DateTime.Now;
-                    model.CancellationRemarks = cancellationRemarks;
-
-                    #region --Audit Trail Recording
-
-                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    if (!model.IsCanceled)
                     {
-                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled debit memo# {model.DMNo}", "Debit Memo", ipAddress);
-                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        model.IsCanceled = true;
+                        model.CanceledBy = _userManager.GetUserName(this.User);
+                        model.CanceledDate = DateTime.Now;
+                        model.CancellationRemarks = cancellationRemarks;
+
+                        #region --Audit Trail Recording
+
+                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled debit memo# {model.DMNo}", "Debit Memo", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Debit Memo has been Cancelled.";
                     }
-
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Debit Memo has been Cancelled.";
+                    return RedirectToAction(nameof(Index));
                 }
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
 
@@ -893,83 +923,88 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(DebitMemo model, CancellationToken cancellationToken)
         {
-            var existingSalesInvoice = await _dbContext
-                        .SalesInvoices
-                        .Include(c => c.Customer)
-                        .Include(s => s.Product)
-                        .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId, cancellationToken);
-
             var existingSv = await _dbContext.ServiceInvoices
                         .Include(sv => sv.Customer)
                         .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
 
             if (ModelState.IsValid)
             {
-                var existingDM = await _dbContext
-                        .DebitMemos
-                        .FirstOrDefaultAsync(dm => dm.Id == model.Id, cancellationToken);
-
-                model.CreatedBy = _userManager.GetUserName(this.User);
-
-                if (model.Source == "Sales Invoice")
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                try
                 {
-                    model.ServiceInvoiceId = null;
+                    var existingDM = await _dbContext
+                            .DebitMemos
+                            .FirstOrDefaultAsync(dm => dm.Id == model.Id, cancellationToken);
 
-                    #region -- Saving Default Enries --
+                    model.CreatedBy = _userManager.GetUserName(this.User);
 
-                    existingDM.TransactionDate = model.TransactionDate;
-                    existingDM.SalesInvoiceId = model.SalesInvoiceId;
-                    existingDM.Quantity = model.Quantity;
-                    existingDM.AdjustedPrice = model.AdjustedPrice;
-                    existingDM.Description = model.Description;
-                    existingDM.Remarks = model.Remarks;
+                    if (model.Source == "Sales Invoice")
+                    {
+                        model.ServiceInvoiceId = null;
 
-                    #endregion -- Saving Default Enries --
+                        #region -- Saving Default Enries --
 
-                    existingDM.DebitAmount = (decimal)(model.Quantity * model.AdjustedPrice);
+                        existingDM.TransactionDate = model.TransactionDate;
+                        existingDM.SalesInvoiceId = model.SalesInvoiceId;
+                        existingDM.Quantity = model.Quantity;
+                        existingDM.AdjustedPrice = model.AdjustedPrice;
+                        existingDM.Description = model.Description;
+                        existingDM.Remarks = model.Remarks;
+
+                        #endregion -- Saving Default Enries --
+
+                        existingDM.DebitAmount = (decimal)(model.Quantity * model.AdjustedPrice);
+                    }
+                    else if (model.Source == "Service Invoice")
+                    {
+                        model.SalesInvoiceId = null;
+
+                        #region --Retrieval of Services
+
+                        existingDM.ServicesId = existingSv.ServicesId;
+
+                        var services = await _dbContext
+                        .Services
+                        .FirstOrDefaultAsync(s => s.Id == existingDM.ServicesId, cancellationToken);
+
+                        #endregion --Retrieval of Services
+
+                        #region -- Saving Default Enries --
+
+                        existingDM.TransactionDate = model.TransactionDate;
+                        existingDM.ServiceInvoiceId = model.ServiceInvoiceId;
+                        existingDM.Period = model.Period;
+                        existingDM.Amount = model.Amount;
+                        existingDM.Description = model.Description;
+                        existingDM.Remarks = model.Remarks;
+
+                        #endregion -- Saving Default Enries --
+
+                        existingDM.DebitAmount = model.Amount ?? 0;
+                    }
+
+                    #region --Audit Trail Recording
+
+                    // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    // {
+                    //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    //     AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit debit memo# {existingDM.DMNo}", "Debit Memo", ipAddress);
+                    //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    // }
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    TempData["success"] = "Debit Memo edited successfully";
+                    return RedirectToAction(nameof(Index));
                 }
-                else if (model.Source == "Service Invoice")
+                catch (Exception ex)
                 {
-                    model.SalesInvoiceId = null;
-
-                    #region --Retrieval of Services
-
-                    existingDM.ServicesId = existingSv.ServicesId;
-
-                    var services = await _dbContext
-                    .Services
-                    .FirstOrDefaultAsync(s => s.Id == existingDM.ServicesId, cancellationToken);
-
-                    #endregion --Retrieval of Services
-
-                    #region -- Saving Default Enries --
-
-                    existingDM.TransactionDate = model.TransactionDate;
-                    existingDM.ServiceInvoiceId = model.ServiceInvoiceId;
-                    existingDM.Period = model.Period;
-                    existingDM.Amount = model.Amount;
-                    existingDM.Description = model.Description;
-                    existingDM.Remarks = model.Remarks;
-
-                    #endregion -- Saving Default Enries --
-
-                    existingDM.DebitAmount = model.Amount ?? 0;
+                 await transaction.RollbackAsync(cancellationToken);
+                 TempData["error"] = ex.Message;
+                 return RedirectToAction(nameof(Index));
                 }
-
-                #region --Audit Trail Recording
-
-                // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                // {
-                //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                //     AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit debit memo# {existingDM.DMNo}", "Debit Memo", ipAddress);
-                //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                // }
-
-                #endregion --Audit Trail Recording
-
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                TempData["success"] = "Debit Memo edited successfully";
-                return RedirectToAction(nameof(Index));
             }
 
             ModelState.AddModelError("", "The information you submitted is not valid!");
@@ -980,7 +1015,7 @@ namespace Accounting_System.Controllers
         #region -- export xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Export(string selectedRecord)
+        public async Task<IActionResult> Export(string selectedRecord, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(selectedRecord))
             {
@@ -988,209 +1023,220 @@ namespace Accounting_System.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            try
+		    {
+                var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
 
-            // Retrieve the selected invoices from the database
-            var selectedList = await _dbContext.DebitMemos
-                .Where(dm => recordIds.Contains(dm.Id))
-                .Include(dm => dm.SalesInvoice)
-                .Include(dm => dm.ServiceInvoice)
-                .OrderBy(dm => dm.DMNo)
-                .ToListAsync();
+                // Retrieve the selected invoices from the database
+                var selectedList = await _dbContext.DebitMemos
+                    .Where(dm => recordIds.Contains(dm.Id))
+                    .Include(dm => dm.SalesInvoice)
+                    .Include(dm => dm.ServiceInvoice)
+                    .OrderBy(dm => dm.DMNo)
+                    .ToListAsync();
 
-            // Create the Excel package
-            using (var package = new ExcelPackage())
+                // Create the Excel package
+                using (var package = new ExcelPackage())
+                {
+                    // Add a new worksheet to the Excel package
+                    #region -- Sales Invoice Table Header --
+
+                    var worksheet2 = package.Workbook.Worksheets.Add("SalesInvoice");
+
+                    worksheet2.Cells["A1"].Value = "OtherRefNo";
+                    worksheet2.Cells["B1"].Value = "Quantity";
+                    worksheet2.Cells["C1"].Value = "UnitPrice";
+                    worksheet2.Cells["D1"].Value = "Amount";
+                    worksheet2.Cells["E1"].Value = "Remarks";
+                    worksheet2.Cells["F1"].Value = "Status";
+                    worksheet2.Cells["G1"].Value = "TransactionDate";
+                    worksheet2.Cells["H1"].Value = "Discount";
+                    worksheet2.Cells["I1"].Value = "AmountPaid";
+                    worksheet2.Cells["J1"].Value = "Balance";
+                    worksheet2.Cells["K1"].Value = "IsPaid";
+                    worksheet2.Cells["L1"].Value = "IsTaxAndVatPaid";
+                    worksheet2.Cells["M1"].Value = "DueDate";
+                    worksheet2.Cells["N1"].Value = "CreatedBy";
+                    worksheet2.Cells["O1"].Value = "CreatedDate";
+                    worksheet2.Cells["P1"].Value = "CancellationRemarks";
+                    worksheet2.Cells["Q1"].Value = "OriginalReceivingReportId";
+                    worksheet2.Cells["R1"].Value = "OriginalCustomerId";
+                    worksheet2.Cells["S1"].Value = "OriginalPOId";
+                    worksheet2.Cells["T1"].Value = "OriginalProductId";
+                    worksheet2.Cells["U1"].Value = "OriginalSINo";
+                    worksheet2.Cells["V1"].Value = "OriginalDocumentId";
+
+                    #endregion -- Sales Invoice Table Header --
+
+                    #region -- Service Invoice Table Header --
+
+                    var worksheet3 = package.Workbook.Worksheets.Add("ServiceInvoice");
+
+                    worksheet3.Cells["A1"].Value = "DueDate";
+                    worksheet3.Cells["B1"].Value = "Period";
+                    worksheet3.Cells["C1"].Value = "Amount";
+                    worksheet3.Cells["D1"].Value = "Total";
+                    worksheet3.Cells["E1"].Value = "Discount";
+                    worksheet3.Cells["F1"].Value = "CurrentAndPreviousMonth";
+                    worksheet3.Cells["G1"].Value = "UnearnedAmount";
+                    worksheet3.Cells["H1"].Value = "Status";
+                    worksheet3.Cells["I1"].Value = "AmountPaid";
+                    worksheet3.Cells["J1"].Value = "Balance";
+                    worksheet3.Cells["K1"].Value = "Instructions";
+                    worksheet3.Cells["L1"].Value = "IsPaid";
+                    worksheet3.Cells["M1"].Value = "CreatedBy";
+                    worksheet3.Cells["N1"].Value = "CreatedDate";
+                    worksheet3.Cells["O1"].Value = "CancellationRemarks";
+                    worksheet3.Cells["P1"].Value = "OriginalCustomerId";
+                    worksheet3.Cells["Q1"].Value = "OriginalSVNo";
+                    worksheet3.Cells["R1"].Value = "OriginalServicesId";
+                    worksheet3.Cells["S1"].Value = "OriginalDocumentId";
+
+                    #endregion -- Service Invoice Table Header --
+
+                    #region -- Debit Memo Table Header --
+
+                    var worksheet = package.Workbook.Worksheets.Add("DebitMemo");
+
+                    worksheet.Cells["A1"].Value = "TransactionDate";
+                    worksheet.Cells["B1"].Value = "DebitAmount";
+                    worksheet.Cells["C1"].Value = "Description";
+                    worksheet.Cells["D1"].Value = "AdjustedPrice";
+                    worksheet.Cells["E1"].Value = "Quantity";
+                    worksheet.Cells["F1"].Value = "Source";
+                    worksheet.Cells["G1"].Value = "Remarks";
+                    worksheet.Cells["H1"].Value = "Period";
+                    worksheet.Cells["I1"].Value = "Amount";
+                    worksheet.Cells["J1"].Value = "CurrentAndPreviousAmount";
+                    worksheet.Cells["K1"].Value = "UnearnedAmount";
+                    worksheet.Cells["L1"].Value = "ServicesId";
+                    worksheet.Cells["M1"].Value = "CreatedBy";
+                    worksheet.Cells["N1"].Value = "CreatedDate";
+                    worksheet.Cells["O1"].Value = "CancellationRemarks";
+                    worksheet.Cells["P1"].Value = "OriginalSalesInvoiceId";
+                    worksheet.Cells["Q1"].Value = "OriginalDMNo";
+                    worksheet.Cells["R1"].Value = "OriginalServiceInvoiceId";
+                    worksheet.Cells["S1"].Value = "OriginalDocumentId";
+
+                    #endregion -- Debit Memo Table Header --
+
+                    #region -- Debit Memo Export --
+
+                    int row = 2;
+
+                    foreach (var item in selectedList)
+                    {
+                        worksheet.Cells[row, 1].Value = item.TransactionDate.ToString("yyyy-MM-dd");
+                        worksheet.Cells[row, 2].Value = item.DebitAmount;
+                        worksheet.Cells[row, 3].Value = item.Description;
+                        worksheet.Cells[row, 4].Value = item.AdjustedPrice;
+                        worksheet.Cells[row, 5].Value = item.Quantity;
+                        worksheet.Cells[row, 6].Value = item.Source;
+                        worksheet.Cells[row, 7].Value = item.Remarks;
+                        worksheet.Cells[row, 8].Value = item.Period.ToString("yyyy-MM-dd");
+                        worksheet.Cells[row, 9].Value = item.Amount;
+                        worksheet.Cells[row, 10].Value = item.CurrentAndPreviousAmount;
+                        worksheet.Cells[row, 11].Value = item.UnearnedAmount;
+                        worksheet.Cells[row, 12].Value = item.ServicesId;
+                        worksheet.Cells[row, 13].Value = item.CreatedBy;
+                        worksheet.Cells[row, 14].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                        worksheet.Cells[row, 15].Value = item.CancellationRemarks;
+                        worksheet.Cells[row, 16].Value = item.SalesInvoiceId;
+                        worksheet.Cells[row, 17].Value = item.DMNo;
+                        worksheet.Cells[row, 18].Value = item.ServiceInvoiceId;
+                        worksheet.Cells[row, 19].Value = item.Id;
+
+                        row++;
+                    }
+
+                    #endregion -- Debit Memo Export --
+
+                    #region -- Sales Invoice Export --
+
+                    int siRow = 2;
+
+                    foreach (var item in selectedList)
+                    {
+                        if (item.SalesInvoice == null)
+                        {
+                            continue;
+                        }
+                        worksheet2.Cells[siRow, 1].Value = item.SalesInvoice.OtherRefNo;
+                        worksheet2.Cells[siRow, 2].Value = item.SalesInvoice.Quantity;
+                        worksheet2.Cells[siRow, 3].Value = item.SalesInvoice.UnitPrice;
+                        worksheet2.Cells[siRow, 4].Value = item.SalesInvoice.Amount;
+                        worksheet2.Cells[siRow, 5].Value = item.SalesInvoice.Remarks;
+                        worksheet2.Cells[siRow, 6].Value = item.SalesInvoice.Status;
+                        worksheet2.Cells[siRow, 7].Value = item.SalesInvoice.TransactionDate.ToString("yyyy-MM-dd");
+                        worksheet2.Cells[siRow, 8].Value = item.SalesInvoice.Discount;
+                        worksheet2.Cells[siRow, 9].Value = item.SalesInvoice.AmountPaid;
+                        worksheet2.Cells[siRow, 10].Value = item.SalesInvoice.Balance;
+                        worksheet2.Cells[siRow, 11].Value = item.SalesInvoice.IsPaid;
+                        worksheet2.Cells[siRow, 12].Value = item.SalesInvoice.IsTaxAndVatPaid;
+                        worksheet2.Cells[siRow, 13].Value = item.SalesInvoice.DueDate.ToString("yyyy-MM-dd");
+                        worksheet2.Cells[siRow, 14].Value = item.SalesInvoice.CreatedBy;
+                        worksheet2.Cells[siRow, 15].Value = item.SalesInvoice.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                        worksheet2.Cells[siRow, 16].Value = item.SalesInvoice.CancellationRemarks;
+                        worksheet2.Cells[siRow, 18].Value = item.SalesInvoice.CustomerId;
+                        worksheet2.Cells[siRow, 20].Value = item.SalesInvoice.ProductId;
+                        worksheet2.Cells[siRow, 21].Value = item.SalesInvoice.SINo;
+                        worksheet2.Cells[siRow, 22].Value = item.SalesInvoice.Id;
+
+                        siRow++;
+                    }
+
+                    #endregion -- Sales Invoice Export --
+
+                    #region -- Service Invoice Export --
+
+                    int svRow = 2;
+
+                    foreach (var item in selectedList)
+                    {
+                        if (item.ServiceInvoice == null)
+                        {
+                            continue;
+                        }
+                        worksheet3.Cells[svRow, 1].Value = item.ServiceInvoice.DueDate.ToString("yyyy-MM-dd");
+                        worksheet3.Cells[svRow, 2].Value = item.ServiceInvoice.Period.ToString("yyyy-MM-dd");
+                        worksheet3.Cells[svRow, 3].Value = item.ServiceInvoice.Amount;
+                        worksheet3.Cells[svRow, 4].Value = item.ServiceInvoice.Total;
+                        worksheet3.Cells[svRow, 5].Value = item.ServiceInvoice.Discount;
+                        worksheet3.Cells[svRow, 6].Value = item.ServiceInvoice.CurrentAndPreviousAmount;
+                        worksheet3.Cells[svRow, 7].Value = item.ServiceInvoice.UnearnedAmount;
+                        worksheet3.Cells[svRow, 8].Value = item.ServiceInvoice.Status;
+                        worksheet3.Cells[svRow, 9].Value = item.ServiceInvoice.AmountPaid;
+                        worksheet3.Cells[svRow, 10].Value = item.ServiceInvoice.Balance;
+                        worksheet3.Cells[svRow, 11].Value = item.ServiceInvoice.Instructions;
+                        worksheet3.Cells[svRow, 12].Value = item.ServiceInvoice.IsPaid;
+                        worksheet3.Cells[svRow, 13].Value = item.ServiceInvoice.CreatedBy;
+                        worksheet3.Cells[svRow, 14].Value = item.ServiceInvoice.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                        worksheet3.Cells[svRow, 15].Value = item.ServiceInvoice.CancellationRemarks;
+                        worksheet3.Cells[svRow, 16].Value = item.ServiceInvoice.CustomerId;
+                        worksheet3.Cells[svRow, 17].Value = item.ServiceInvoice.SVNo;
+                        worksheet3.Cells[svRow, 18].Value = item.ServiceInvoice.ServicesId;
+                        worksheet3.Cells[svRow, 19].Value = item.ServiceInvoice.Id;
+
+                        svRow++;
+                    }
+
+                    #endregion -- Service Invoice Export --
+
+                    // Convert the Excel package to a byte array
+                    var excelBytes = await package.GetAsByteArrayAsync();
+                    await transaction.CommitAsync(cancellationToken);
+                    return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        "DebitMemoList.xlsx");
+                }
+		    }
+            catch (Exception ex)
             {
-                // Add a new worksheet to the Excel package
-                #region -- Sales Invoice Table Header --
-
-                var worksheet2 = package.Workbook.Worksheets.Add("SalesInvoice");
-
-                worksheet2.Cells["A1"].Value = "OtherRefNo";
-                worksheet2.Cells["B1"].Value = "Quantity";
-                worksheet2.Cells["C1"].Value = "UnitPrice";
-                worksheet2.Cells["D1"].Value = "Amount";
-                worksheet2.Cells["E1"].Value = "Remarks";
-                worksheet2.Cells["F1"].Value = "Status";
-                worksheet2.Cells["G1"].Value = "TransactionDate";
-                worksheet2.Cells["H1"].Value = "Discount";
-                worksheet2.Cells["I1"].Value = "AmountPaid";
-                worksheet2.Cells["J1"].Value = "Balance";
-                worksheet2.Cells["K1"].Value = "IsPaid";
-                worksheet2.Cells["L1"].Value = "IsTaxAndVatPaid";
-                worksheet2.Cells["M1"].Value = "DueDate";
-                worksheet2.Cells["N1"].Value = "CreatedBy";
-                worksheet2.Cells["O1"].Value = "CreatedDate";
-                worksheet2.Cells["P1"].Value = "CancellationRemarks";
-                worksheet2.Cells["Q1"].Value = "OriginalReceivingReportId";
-                worksheet2.Cells["R1"].Value = "OriginalCustomerId";
-                worksheet2.Cells["S1"].Value = "OriginalPOId";
-                worksheet2.Cells["T1"].Value = "OriginalProductId";
-                worksheet2.Cells["U1"].Value = "OriginalSINo";
-                worksheet2.Cells["V1"].Value = "OriginalDocumentId";
-
-                #endregion -- Sales Invoice Table Header --
-
-                #region -- Service Invoice Table Header --
-
-                var worksheet3 = package.Workbook.Worksheets.Add("ServiceInvoice");
-
-                worksheet3.Cells["A1"].Value = "DueDate";
-                worksheet3.Cells["B1"].Value = "Period";
-                worksheet3.Cells["C1"].Value = "Amount";
-                worksheet3.Cells["D1"].Value = "Total";
-                worksheet3.Cells["E1"].Value = "Discount";
-                worksheet3.Cells["F1"].Value = "CurrentAndPreviousMonth";
-                worksheet3.Cells["G1"].Value = "UnearnedAmount";
-                worksheet3.Cells["H1"].Value = "Status";
-                worksheet3.Cells["I1"].Value = "AmountPaid";
-                worksheet3.Cells["J1"].Value = "Balance";
-                worksheet3.Cells["K1"].Value = "Instructions";
-                worksheet3.Cells["L1"].Value = "IsPaid";
-                worksheet3.Cells["M1"].Value = "CreatedBy";
-                worksheet3.Cells["N1"].Value = "CreatedDate";
-                worksheet3.Cells["O1"].Value = "CancellationRemarks";
-                worksheet3.Cells["P1"].Value = "OriginalCustomerId";
-                worksheet3.Cells["Q1"].Value = "OriginalSVNo";
-                worksheet3.Cells["R1"].Value = "OriginalServicesId";
-                worksheet3.Cells["S1"].Value = "OriginalDocumentId";
-
-                #endregion -- Service Invoice Table Header --
-
-                #region -- Debit Memo Table Header --
-
-                var worksheet = package.Workbook.Worksheets.Add("DebitMemo");
-
-                worksheet.Cells["A1"].Value = "TransactionDate";
-                worksheet.Cells["B1"].Value = "DebitAmount";
-                worksheet.Cells["C1"].Value = "Description";
-                worksheet.Cells["D1"].Value = "AdjustedPrice";
-                worksheet.Cells["E1"].Value = "Quantity";
-                worksheet.Cells["F1"].Value = "Source";
-                worksheet.Cells["G1"].Value = "Remarks";
-                worksheet.Cells["H1"].Value = "Period";
-                worksheet.Cells["I1"].Value = "Amount";
-                worksheet.Cells["J1"].Value = "CurrentAndPreviousAmount";
-                worksheet.Cells["K1"].Value = "UnearnedAmount";
-                worksheet.Cells["L1"].Value = "ServicesId";
-                worksheet.Cells["M1"].Value = "CreatedBy";
-                worksheet.Cells["N1"].Value = "CreatedDate";
-                worksheet.Cells["O1"].Value = "CancellationRemarks";
-                worksheet.Cells["P1"].Value = "OriginalSalesInvoiceId";
-                worksheet.Cells["Q1"].Value = "OriginalDMNo";
-                worksheet.Cells["R1"].Value = "OriginalServiceInvoiceId";
-                worksheet.Cells["S1"].Value = "OriginalDocumentId";
-
-                #endregion -- Debit Memo Table Header --
-
-                #region -- Debit Memo Export --
-
-                int row = 2;
-
-                foreach (var item in selectedList)
-                {
-                    worksheet.Cells[row, 1].Value = item.TransactionDate.ToString("yyyy-MM-dd");
-                    worksheet.Cells[row, 2].Value = item.DebitAmount;
-                    worksheet.Cells[row, 3].Value = item.Description;
-                    worksheet.Cells[row, 4].Value = item.AdjustedPrice;
-                    worksheet.Cells[row, 5].Value = item.Quantity;
-                    worksheet.Cells[row, 6].Value = item.Source;
-                    worksheet.Cells[row, 7].Value = item.Remarks;
-                    worksheet.Cells[row, 8].Value = item.Period.ToString("yyyy-MM-dd");
-                    worksheet.Cells[row, 9].Value = item.Amount;
-                    worksheet.Cells[row, 10].Value = item.CurrentAndPreviousAmount;
-                    worksheet.Cells[row, 11].Value = item.UnearnedAmount;
-                    worksheet.Cells[row, 12].Value = item.ServicesId;
-                    worksheet.Cells[row, 13].Value = item.CreatedBy;
-                    worksheet.Cells[row, 14].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet.Cells[row, 15].Value = item.CancellationRemarks;
-                    worksheet.Cells[row, 16].Value = item.SalesInvoiceId;
-                    worksheet.Cells[row, 17].Value = item.DMNo;
-                    worksheet.Cells[row, 18].Value = item.ServiceInvoiceId;
-                    worksheet.Cells[row, 19].Value = item.Id;
-
-                    row++;
-                }
-
-                #endregion -- Debit Memo Export --
-
-                #region -- Sales Invoice Export --
-
-                int siRow = 2;
-
-                foreach (var item in selectedList)
-                {
-                    if (item.SalesInvoice == null)
-                    {
-                        continue;
-                    }
-                    worksheet2.Cells[siRow, 1].Value = item.SalesInvoice.OtherRefNo;
-                    worksheet2.Cells[siRow, 2].Value = item.SalesInvoice.Quantity;
-                    worksheet2.Cells[siRow, 3].Value = item.SalesInvoice.UnitPrice;
-                    worksheet2.Cells[siRow, 4].Value = item.SalesInvoice.Amount;
-                    worksheet2.Cells[siRow, 5].Value = item.SalesInvoice.Remarks;
-                    worksheet2.Cells[siRow, 6].Value = item.SalesInvoice.Status;
-                    worksheet2.Cells[siRow, 7].Value = item.SalesInvoice.TransactionDate.ToString("yyyy-MM-dd");
-                    worksheet2.Cells[siRow, 8].Value = item.SalesInvoice.Discount;
-                    worksheet2.Cells[siRow, 9].Value = item.SalesInvoice.AmountPaid;
-                    worksheet2.Cells[siRow, 10].Value = item.SalesInvoice.Balance;
-                    worksheet2.Cells[siRow, 11].Value = item.SalesInvoice.IsPaid;
-                    worksheet2.Cells[siRow, 12].Value = item.SalesInvoice.IsTaxAndVatPaid;
-                    worksheet2.Cells[siRow, 13].Value = item.SalesInvoice.DueDate.ToString("yyyy-MM-dd");
-                    worksheet2.Cells[siRow, 14].Value = item.SalesInvoice.CreatedBy;
-                    worksheet2.Cells[siRow, 15].Value = item.SalesInvoice.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet2.Cells[siRow, 16].Value = item.SalesInvoice.CancellationRemarks;
-                    worksheet2.Cells[siRow, 18].Value = item.SalesInvoice.CustomerId;
-                    worksheet2.Cells[siRow, 20].Value = item.SalesInvoice.ProductId;
-                    worksheet2.Cells[siRow, 21].Value = item.SalesInvoice.SINo;
-                    worksheet2.Cells[siRow, 22].Value = item.SalesInvoice.Id;
-
-                    siRow++;
-                }
-
-                #endregion -- Sales Invoice Export --
-
-                #region -- Service Invoice Export --
-
-                int svRow = 2;
-
-                foreach (var item in selectedList)
-                {
-                    if (item.ServiceInvoice == null)
-                    {
-                        continue;
-                    }
-                    worksheet3.Cells[svRow, 1].Value = item.ServiceInvoice.DueDate.ToString("yyyy-MM-dd");
-                    worksheet3.Cells[svRow, 2].Value = item.ServiceInvoice.Period.ToString("yyyy-MM-dd");
-                    worksheet3.Cells[svRow, 3].Value = item.ServiceInvoice.Amount;
-                    worksheet3.Cells[svRow, 4].Value = item.ServiceInvoice.Total;
-                    worksheet3.Cells[svRow, 5].Value = item.ServiceInvoice.Discount;
-                    worksheet3.Cells[svRow, 6].Value = item.ServiceInvoice.CurrentAndPreviousAmount;
-                    worksheet3.Cells[svRow, 7].Value = item.ServiceInvoice.UnearnedAmount;
-                    worksheet3.Cells[svRow, 8].Value = item.ServiceInvoice.Status;
-                    worksheet3.Cells[svRow, 9].Value = item.ServiceInvoice.AmountPaid;
-                    worksheet3.Cells[svRow, 10].Value = item.ServiceInvoice.Balance;
-                    worksheet3.Cells[svRow, 11].Value = item.ServiceInvoice.Instructions;
-                    worksheet3.Cells[svRow, 12].Value = item.ServiceInvoice.IsPaid;
-                    worksheet3.Cells[svRow, 13].Value = item.ServiceInvoice.CreatedBy;
-                    worksheet3.Cells[svRow, 14].Value = item.ServiceInvoice.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet3.Cells[svRow, 15].Value = item.ServiceInvoice.CancellationRemarks;
-                    worksheet3.Cells[svRow, 16].Value = item.ServiceInvoice.CustomerId;
-                    worksheet3.Cells[svRow, 17].Value = item.ServiceInvoice.SVNo;
-                    worksheet3.Cells[svRow, 18].Value = item.ServiceInvoice.ServicesId;
-                    worksheet3.Cells[svRow, 19].Value = item.ServiceInvoice.Id;
-
-                    svRow++;
-                }
-
-                #endregion -- Service Invoice Export --
-
-                // Convert the Excel package to a byte array
-                var excelBytes = await package.GetAsByteArrayAsync();
-
-                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    "DebitMemoList.xlsx");
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
             }
+
         }
 
         #endregion -- export xlsx record --

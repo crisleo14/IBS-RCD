@@ -171,62 +171,73 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
             if (ModelState.IsValid)
             {
-                #region -- Validating Series --
-
-                var generateSiNo = await _salesInvoiceRepo.GenerateSINo(cancellationToken);
-                var getLastNumber = long.Parse(generateSiNo.Substring(2));
-
-                if (getLastNumber > 9999999999)
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                try
                 {
-                    TempData["error"] = "You reach the maximum Series Number";
-                    return View(sales);
+                    #region -- Validating Series --
+
+                    var generateSiNo = await _salesInvoiceRepo.GenerateSINo(cancellationToken);
+                    var getLastNumber = long.Parse(generateSiNo.Substring(2));
+
+                    if (getLastNumber > 9999999999)
+                    {
+                        TempData["error"] = "You reach the maximum Series Number";
+                        return View(sales);
+                    }
+                    var totalRemainingSeries = 9999999999 - getLastNumber;
+                    if (getLastNumber >= 9999999899)
+                    {
+                        TempData["warning"] = $"Sales Invoice created successfully, Warning {totalRemainingSeries} series number remaining";
+                    }
+                    else
+                    {
+                        TempData["success"] = "Sales Invoice created successfully";
+                    }
+
+                    #endregion -- Validating Series --
+
+                    #region -- Saving Default Entries --
+
+                    var existingCustomers = await _dbContext.Customers
+                                                   .FirstOrDefaultAsync(si => si.Id == sales.CustomerId, cancellationToken);
+
+                    sales.CreatedBy = _userManager.GetUserName(this.User);
+                    sales.SINo = generateSiNo;
+                    sales.Amount = sales.Quantity * sales.UnitPrice;
+                    sales.DueDate = _salesInvoiceRepo.ComputeDueDateAsync(existingCustomers.Terms, sales.TransactionDate, cancellationToken);
+                    if (sales.Amount >= sales.Discount)
+                    {
+                        await _dbContext.AddAsync(sales, cancellationToken);
+                    }
+                    else
+                    {
+                        TempData["error"] = "Please input below or exact amount based on the Sales Invoice";
+                        return View(sales);
+                    }
+
+                    #region --Audit Trail Recording
+
+                    if (sales.OriginalSeriesNumber == null && sales.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(sales.CreatedBy, $"Create new invoice# {sales.SINo}", "Sales Invoice", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    return RedirectToAction(nameof(Index));
+
+                    #endregion -- Saving Default Entries --
                 }
-                var totalRemainingSeries = 9999999999 - getLastNumber;
-                if (getLastNumber >= 9999999899)
+                catch (Exception ex)
                 {
-                    TempData["warning"] = $"Sales Invoice created successfully, Warning {totalRemainingSeries} series number remaining";
+                 await transaction.RollbackAsync(cancellationToken);
+                 TempData["error"] = ex.Message;
+                 return RedirectToAction(nameof(Index));
                 }
-                else
-                {
-                    TempData["success"] = "Sales Invoice created successfully";
-                }
-
-                #endregion -- Validating Series --
-
-                #region -- Saving Default Entries --
-
-                var existingCustomers = await _dbContext.Customers
-                                               .FirstOrDefaultAsync(si => si.Id == sales.CustomerId, cancellationToken);
-
-                sales.CreatedBy = _userManager.GetUserName(this.User);
-                sales.SINo = generateSiNo;
-                sales.Amount = sales.Quantity * sales.UnitPrice;
-                sales.DueDate = _salesInvoiceRepo.ComputeDueDateAsync(existingCustomers.Terms, sales.TransactionDate, cancellationToken);
-                if (sales.Amount >= sales.Discount)
-                {
-                    await _dbContext.AddAsync(sales, cancellationToken);
-                }
-                else
-                {
-                    TempData["error"] = "Please input below or exact amount based on the Sales Invoice";
-                    return View(sales);
-                }
-
-                #region --Audit Trail Recording
-
-                if (sales.OriginalSeriesNumber == null && sales.OriginalDocumentId == 0)
-                {
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(sales.CreatedBy, $"Create new invoice# {sales.SINo}", "Sales Invoice", ipAddress);
-                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                }
-
-                #endregion --Audit Trail Recording
-
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction(nameof(Index));
-
-                #endregion -- Saving Default Entries --
             }
             else
             {
@@ -307,6 +318,7 @@ namespace Accounting_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(SalesInvoice model, CancellationToken cancellationToken)
         {
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
             try
             {
                 #region -- Checking existing record --
@@ -365,11 +377,13 @@ namespace Accounting_System.Controllers
 
                 // Save the changes to the database
                 await _dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
                 TempData["success"] = "Sales Invoice updated successfully";
                 return RedirectToAction(nameof(Index)); // Redirect to a success page or the index page
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync(cancellationToken);
                 _logger.LogError(ex, "An error occurred.");
                 return StatusCode(500, "An error occurred. Please try again later.");
             }
@@ -411,6 +425,7 @@ namespace Accounting_System.Controllers
 
             if (model != null)
             {
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     if (!model.IsPosted)
@@ -586,12 +601,14 @@ namespace Accounting_System.Controllers
                         #endregion --Audit Trail Recording
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                         TempData["success"] = "Sales Invoice has been Posted.";
                         return RedirectToAction(nameof(PrintInvoice), new { id = invoiceId });
                     }
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Index));
                 }
@@ -610,6 +627,7 @@ namespace Accounting_System.Controllers
 
             if (model != null && existingInventory != null)
             {
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     if (!model.IsVoided)
@@ -638,12 +656,14 @@ namespace Accounting_System.Controllers
 
                         #endregion --Audit Trail Recording
 
-                        //await _dbContext.SaveChangesAsync(cancellationToken);
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                         TempData["success"] = "Sales Invoice has been Voided.";
                     }
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Index));
                 }
@@ -656,31 +676,42 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Cancel(int invoiceId, string cancellationRemarks, CancellationToken cancellationToken)
         {
             var model = await _dbContext.SalesInvoices.FindAsync(invoiceId, cancellationToken);
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            if (model != null)
+            try
             {
-                if (!model.IsCanceled)
+                if (model != null)
                 {
-                    model.IsCanceled = true;
-                    model.CanceledBy = _userManager.GetUserName(this.User);
-                    model.CanceledDate = DateTime.Now;
-                    model.Status = "Cancelled";
-                    model.CancellationRemarks = cancellationRemarks;
-
-                    #region --Audit Trail Recording
-
-                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    if (!model.IsCanceled)
                     {
-                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled invoice# {model.SINo}", "Sales Invoice", ipAddress);
-                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        model.IsCanceled = true;
+                        model.CanceledBy = _userManager.GetUserName(this.User);
+                        model.CanceledDate = DateTime.Now;
+                        model.Status = "Cancelled";
+                        model.CancellationRemarks = cancellationRemarks;
+
+                        #region --Audit Trail Recording
+
+                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled invoice# {model.SINo}", "Sales Invoice", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Sales Invoice has been Cancelled.";
                     }
-
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Sales Invoice has been Cancelled.";
+                    return RedirectToAction(nameof(Index));
                 }
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
 
@@ -721,7 +752,7 @@ namespace Accounting_System.Controllers
         #region -- export xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Export(string selectedRecord)
+        public async Task<IActionResult> Export(string selectedRecord, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(selectedRecord))
             {
@@ -729,74 +760,85 @@ namespace Accounting_System.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            try
+		    {
+                var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
 
-            // Retrieve the selected invoices from the database
-            var selectedList = await _dbContext.SalesInvoices
-                .Where(invoice => recordIds.Contains(invoice.Id))
-                .OrderBy(invoice => invoice.SINo)
-                .ToListAsync();
+                // Retrieve the selected invoices from the database
+                var selectedList = await _dbContext.SalesInvoices
+                    .Where(invoice => recordIds.Contains(invoice.Id))
+                    .OrderBy(invoice => invoice.SINo)
+                    .ToListAsync();
 
-            // Create the Excel package
-            using var package = new ExcelPackage();
-            // Add a new worksheet to the Excel package
-            var worksheet = package.Workbook.Worksheets.Add("SalesInvoice");
+                // Create the Excel package
+                using var package = new ExcelPackage();
+                // Add a new worksheet to the Excel package
+                var worksheet = package.Workbook.Worksheets.Add("SalesInvoice");
 
-            worksheet.Cells["A1"].Value = "OtherRefNo";
-            worksheet.Cells["B1"].Value = "Quantity";
-            worksheet.Cells["C1"].Value = "UnitPrice";
-            worksheet.Cells["D1"].Value = "Amount";
-            worksheet.Cells["E1"].Value = "Remarks";
-            worksheet.Cells["F1"].Value = "Status";
-            worksheet.Cells["G1"].Value = "TransactionDate";
-            worksheet.Cells["H1"].Value = "Discount";
-            worksheet.Cells["I1"].Value = "AmountPaid";
-            worksheet.Cells["J1"].Value = "Balance";
-            worksheet.Cells["K1"].Value = "IsPaid";
-            worksheet.Cells["L1"].Value = "IsTaxAndVatPaid";
-            worksheet.Cells["M1"].Value = "DueDate";
-            worksheet.Cells["N1"].Value = "CreatedBy";
-            worksheet.Cells["O1"].Value = "CreatedDate";
-            worksheet.Cells["P1"].Value = "CancellationRemarks";
-            worksheet.Cells["Q1"].Value = "OriginalReceivingReportId";
-            worksheet.Cells["R1"].Value = "OriginalCustomerId";
-            worksheet.Cells["S1"].Value = "OriginalPOId";
-            worksheet.Cells["T1"].Value = "OriginalProductId";
-            worksheet.Cells["U1"].Value = "OriginalSINo";
-            worksheet.Cells["V1"].Value = "OriginalDocumentId";
+                worksheet.Cells["A1"].Value = "OtherRefNo";
+                worksheet.Cells["B1"].Value = "Quantity";
+                worksheet.Cells["C1"].Value = "UnitPrice";
+                worksheet.Cells["D1"].Value = "Amount";
+                worksheet.Cells["E1"].Value = "Remarks";
+                worksheet.Cells["F1"].Value = "Status";
+                worksheet.Cells["G1"].Value = "TransactionDate";
+                worksheet.Cells["H1"].Value = "Discount";
+                worksheet.Cells["I1"].Value = "AmountPaid";
+                worksheet.Cells["J1"].Value = "Balance";
+                worksheet.Cells["K1"].Value = "IsPaid";
+                worksheet.Cells["L1"].Value = "IsTaxAndVatPaid";
+                worksheet.Cells["M1"].Value = "DueDate";
+                worksheet.Cells["N1"].Value = "CreatedBy";
+                worksheet.Cells["O1"].Value = "CreatedDate";
+                worksheet.Cells["P1"].Value = "CancellationRemarks";
+                worksheet.Cells["Q1"].Value = "OriginalReceivingReportId";
+                worksheet.Cells["R1"].Value = "OriginalCustomerId";
+                worksheet.Cells["S1"].Value = "OriginalPOId";
+                worksheet.Cells["T1"].Value = "OriginalProductId";
+                worksheet.Cells["U1"].Value = "OriginalSINo";
+                worksheet.Cells["V1"].Value = "OriginalDocumentId";
 
-            int row = 2;
+                int row = 2;
 
-            foreach (var item in selectedList)
+                foreach (var item in selectedList)
+                {
+                    worksheet.Cells[row, 1].Value = item.OtherRefNo;
+                    worksheet.Cells[row, 2].Value = item.Quantity;
+                    worksheet.Cells[row, 3].Value = item.UnitPrice;
+                    worksheet.Cells[row, 4].Value = item.Amount;
+                    worksheet.Cells[row, 5].Value = item.Remarks;
+                    worksheet.Cells[row, 6].Value = item.Status;
+                    worksheet.Cells[row, 7].Value = item.TransactionDate.ToString("yyyy-MM-dd");
+                    worksheet.Cells[row, 8].Value = item.Discount;
+                    worksheet.Cells[row, 9].Value = item.AmountPaid;
+                    worksheet.Cells[row, 10].Value = item.Balance;
+                    worksheet.Cells[row, 11].Value = item.IsPaid;
+                    worksheet.Cells[row, 12].Value = item.IsTaxAndVatPaid;
+                    worksheet.Cells[row, 13].Value = item.DueDate.ToString("yyyy-MM-dd");
+                    worksheet.Cells[row, 14].Value = item.CreatedBy;
+                    worksheet.Cells[row, 15].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 16].Value = item.CancellationRemarks;
+                    worksheet.Cells[row, 18].Value = item.CustomerId;
+                    worksheet.Cells[row, 20].Value = item.ProductId;
+                    worksheet.Cells[row, 21].Value = item.SINo;
+                    worksheet.Cells[row, 22].Value = item.Id;
+
+                    row++;
+                }
+
+                // Convert the Excel package to a byte array
+                var excelBytes = await package.GetAsByteArrayAsync();
+                await transaction.CommitAsync(cancellationToken);
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "SalesInvoiceList.xlsx");
+		    }
+            catch (Exception ex)
             {
-                worksheet.Cells[row, 1].Value = item.OtherRefNo;
-                worksheet.Cells[row, 2].Value = item.Quantity;
-                worksheet.Cells[row, 3].Value = item.UnitPrice;
-                worksheet.Cells[row, 4].Value = item.Amount;
-                worksheet.Cells[row, 5].Value = item.Remarks;
-                worksheet.Cells[row, 6].Value = item.Status;
-                worksheet.Cells[row, 7].Value = item.TransactionDate.ToString("yyyy-MM-dd");
-                worksheet.Cells[row, 8].Value = item.Discount;
-                worksheet.Cells[row, 9].Value = item.AmountPaid;
-                worksheet.Cells[row, 10].Value = item.Balance;
-                worksheet.Cells[row, 11].Value = item.IsPaid;
-                worksheet.Cells[row, 12].Value = item.IsTaxAndVatPaid;
-                worksheet.Cells[row, 13].Value = item.DueDate.ToString("yyyy-MM-dd");
-                worksheet.Cells[row, 14].Value = item.CreatedBy;
-                worksheet.Cells[row, 15].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                worksheet.Cells[row, 16].Value = item.CancellationRemarks;
-                worksheet.Cells[row, 18].Value = item.CustomerId;
-                worksheet.Cells[row, 20].Value = item.ProductId;
-                worksheet.Cells[row, 21].Value = item.SINo;
-                worksheet.Cells[row, 22].Value = item.Id;
-
-                row++;
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
             }
 
-            // Convert the Excel package to a byte array
-            var excelBytes = await package.GetAsByteArrayAsync();
-
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "SalesInvoiceList.xlsx");
         }
 
         #endregion -- export xlsx record --

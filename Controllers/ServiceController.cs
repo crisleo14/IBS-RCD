@@ -104,49 +104,59 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
-                if (await _serviceRepo.IsServicesExist(services.Name, cancellationToken))
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                try
                 {
-                    ModelState.AddModelError("Name", "Services already exist!");
-                    return View(services);
-                }
+                    if (await _serviceRepo.IsServicesExist(services.Name, cancellationToken))
+                    {
+                        ModelState.AddModelError("Name", "Services already exist!");
+                        return View(services);
+                    }
 
-                if (services.Percent == 0)
+                    if (services.Percent == 0)
+                    {
+                        ModelState.AddModelError("Percent", "Please input percent!");
+                        return View(services);
+                    }
+
+                    var currentAndPrevious = await _dbContext.ChartOfAccounts
+                        .FindAsync(services.CurrentAndPreviousId, cancellationToken);
+
+                    var unearned = await _dbContext.ChartOfAccounts
+                        .FindAsync(services.UnearnedId, cancellationToken);
+
+                    services.CurrentAndPreviousNo = currentAndPrevious.AccountNumber;
+                    services.CurrentAndPreviousTitle = currentAndPrevious.AccountName;
+
+                    services.UnearnedNo = unearned.AccountNumber;
+                    services.UnearnedTitle = unearned.AccountName;
+
+                    services.CreatedBy = _userManager.GetUserName(this.User).ToUpper();
+                    services.Number = await _serviceRepo.GetLastNumber(cancellationToken);
+
+                    #region --Audit Trail Recording
+
+                    if (services.OriginalServiceId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(services.CreatedBy, $"Created new service {services.Name}", "Service", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.AddAsync(services, cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    TempData["success"] = "Services created successfully";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
                 {
-                    ModelState.AddModelError("Percent", "Please input percent!");
-                    return View(services);
+                 await transaction.RollbackAsync(cancellationToken);
+                 TempData["error"] = ex.Message;
+                 return RedirectToAction(nameof(Index));
                 }
-
-                var currentAndPrevious = await _dbContext.ChartOfAccounts
-                    .FindAsync(services.CurrentAndPreviousId, cancellationToken);
-
-                var unearned = await _dbContext.ChartOfAccounts
-                    .FindAsync(services.UnearnedId, cancellationToken);
-
-                services.CurrentAndPreviousNo = currentAndPrevious.AccountNumber;
-                services.CurrentAndPreviousTitle = currentAndPrevious.AccountName;
-
-                services.UnearnedNo = unearned.AccountNumber;
-                services.UnearnedTitle = unearned.AccountName;
-
-                services.CreatedBy = _userManager.GetUserName(this.User).ToUpper();
-                services.Number = await _serviceRepo.GetLastNumber(cancellationToken);
-
-                TempData["success"] = "Services created successfully";
-
-                #region --Audit Trail Recording
-
-                if (services.OriginalServiceId == 0)
-                {
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(services.CreatedBy, $"Created new service {services.Name}", "Service", ipAddress);
-                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                }
-
-                #endregion --Audit Trail Recording
-
-                await _dbContext.AddAsync(services, cancellationToken);
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction(nameof(Index));
             }
             return View(services);
         }
@@ -182,11 +192,10 @@ namespace Accounting_System.Controllers
                     ModelState.AddModelError("Percent", "Please input percent!");
                     return View(services);
                 }
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     _dbContext.Update(services);
-
-                    TempData["success"] = "Services updated successfully";
 
                     #region --Audit Trail Recording
 
@@ -200,9 +209,12 @@ namespace Accounting_System.Controllers
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    TempData["success"] = "Services updated successfully";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     if (!ServicesExists(services.Id))
                     {
                         return NotFound();
@@ -211,6 +223,12 @@ namespace Accounting_System.Controllers
                     {
                         throw;
                     }
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index));
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -226,7 +244,7 @@ namespace Accounting_System.Controllers
         #region -- export xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Export(string selectedRecord)
+        public async Task<IActionResult> Export(string selectedRecord, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(selectedRecord))
             {
@@ -234,50 +252,60 @@ namespace Accounting_System.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            try
+		    {
+                var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
 
-            // Retrieve the selected invoices from the database
-            var selectedList = await _dbContext.Services
-                .Where(service => recordIds.Contains(service.Id))
-                .OrderBy(service => service.Id)
-                .ToListAsync();
+                // Retrieve the selected invoices from the database
+                var selectedList = await _dbContext.Services
+                    .Where(service => recordIds.Contains(service.Id))
+                    .OrderBy(service => service.Id)
+                    .ToListAsync();
 
-            // Create the Excel package
-            using var package = new ExcelPackage();
-            // Add a new worksheet to the Excel package
-            var worksheet = package.Workbook.Worksheets.Add("Services");
+                // Create the Excel package
+                using var package = new ExcelPackage();
+                // Add a new worksheet to the Excel package
+                var worksheet = package.Workbook.Worksheets.Add("Services");
 
-            worksheet.Cells["A1"].Value = "CurrentAndPreviousTitle";
-            worksheet.Cells["B1"].Value = "UneranedTitle";
-            worksheet.Cells["C1"].Value = "Name";
-            worksheet.Cells["D1"].Value = "Percent";
-            worksheet.Cells["E1"].Value = "CreatedBy";
-            worksheet.Cells["F1"].Value = "CreatedDate";
-            worksheet.Cells["G1"].Value = "CurrentAndPreviousNo";
-            worksheet.Cells["H1"].Value = "UnearnedNo";
-            worksheet.Cells["I1"].Value = "OriginalServiceId";
+                worksheet.Cells["A1"].Value = "CurrentAndPreviousTitle";
+                worksheet.Cells["B1"].Value = "UneranedTitle";
+                worksheet.Cells["C1"].Value = "Name";
+                worksheet.Cells["D1"].Value = "Percent";
+                worksheet.Cells["E1"].Value = "CreatedBy";
+                worksheet.Cells["F1"].Value = "CreatedDate";
+                worksheet.Cells["G1"].Value = "CurrentAndPreviousNo";
+                worksheet.Cells["H1"].Value = "UnearnedNo";
+                worksheet.Cells["I1"].Value = "OriginalServiceId";
 
-            int row = 2;
+                int row = 2;
 
-            foreach (var item in selectedList)
+                foreach (var item in selectedList)
+                {
+                    worksheet.Cells[row, 1].Value = item.CurrentAndPreviousTitle;
+                    worksheet.Cells[row, 2].Value = item.UnearnedTitle;
+                    worksheet.Cells[row, 3].Value = item.Name;
+                    worksheet.Cells[row, 4].Value = item.Percent;
+                    worksheet.Cells[row, 5].Value = item.CreatedBy;
+                    worksheet.Cells[row, 6].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 7].Value = item.CurrentAndPreviousNo;
+                    worksheet.Cells[row, 8].Value = item.UnearnedNo;
+                    worksheet.Cells[row, 9].Value = item.Id;
+
+                    row++;
+                }
+
+                // Convert the Excel package to a byte array
+                var excelBytes = await package.GetAsByteArrayAsync();
+                await transaction.CommitAsync(cancellationToken);
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ServiceList.xlsx");
+		    }
+            catch (Exception ex)
             {
-                worksheet.Cells[row, 1].Value = item.CurrentAndPreviousTitle;
-                worksheet.Cells[row, 2].Value = item.UnearnedTitle;
-                worksheet.Cells[row, 3].Value = item.Name;
-                worksheet.Cells[row, 4].Value = item.Percent;
-                worksheet.Cells[row, 5].Value = item.CreatedBy;
-                worksheet.Cells[row, 6].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                worksheet.Cells[row, 7].Value = item.CurrentAndPreviousNo;
-                worksheet.Cells[row, 8].Value = item.UnearnedNo;
-                worksheet.Cells[row, 9].Value = item.Id;
-
-                row++;
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
             }
-
-            // Convert the Excel package to a byte array
-            var excelBytes = await package.GetAsByteArrayAsync();
-
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ServiceList.xlsx");
         }
 
         #endregion -- export xlsx record --

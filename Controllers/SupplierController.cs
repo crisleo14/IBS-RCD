@@ -83,131 +83,142 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _supplierRepo.IsSupplierNameExist(supplier.Name, supplier.Category, cancellationToken))
+                await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+                try
                 {
-                    ModelState.AddModelError("Name", "Supplier name already exist!");
-                    supplier.DefaultExpenses = await _context.ChartOfAccounts
-                        .Select(s => new SelectListItem
-                        {
-                            Value = s.AccountNumber + " " + s.AccountName,
-                            Text = s.AccountNumber + " " + s.AccountName
-                        })
-                        .ToListAsync(cancellationToken);
-                    supplier.WithholdingTaxList = await _context.ChartOfAccounts
-                        .Where(coa => coa.AccountNumber == "201030210" || coa.AccountNumber == "201030220")
-                        .Select(s => new SelectListItem
-                        {
-                            Value = s.AccountNumber + " " + s.AccountName,
-                            Text = s.AccountNumber + " " + s.AccountName
-                        })
-                        .ToListAsync(cancellationToken);
-                    return View(supplier);
-                }
-
-                if (await _supplierRepo.IsSupplierTinExist(supplier.TinNo, supplier.Category, cancellationToken))
-                {
-                    ModelState.AddModelError("TinNo", "Supplier tin already exist!");
-                    supplier.DefaultExpenses = await _context.ChartOfAccounts
-                        .Select(s => new SelectListItem
-                        {
-                            Value = s.AccountNumber + " " + s.AccountName,
-                            Text = s.AccountNumber + " " + s.AccountName
-                        })
-                        .ToListAsync(cancellationToken);
-                    supplier.WithholdingTaxList = await _context.ChartOfAccounts
-                        .Where(coa => coa.AccountNumber == "201030210" || coa.AccountNumber == "201030220")
-                        .Select(s => new SelectListItem
-                        {
-                            Value = s.AccountNumber + " " + s.AccountName,
-                            Text = s.AccountNumber + " " + s.AccountName
-                        })
-                        .ToListAsync(cancellationToken);
-                    return View(supplier);
-                }
-
-                supplier.CreatedBy = _userManager.GetUserName(this.User).ToString();
-                supplier.Number = await _supplierRepo.GetLastNumber(cancellationToken);
-                if (supplier.WithholdingTaxtitle != null && supplier.WithholdingTaxPercent != 0)
-                {
-                    supplier.WithholdingTaxPercent = supplier.WithholdingTaxtitle.StartsWith("2010302") ? 1 : 2;
-                }
-
-                if (document != null && document.Length > 0)
-                {
-                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Proof of Exemption", supplier.Number.ToString());
-
-                    if (!Directory.Exists(uploadsFolder))
+                    if (await _supplierRepo.IsSupplierNameExist(supplier.Name, supplier.Category, cancellationToken))
                     {
-                        Directory.CreateDirectory(uploadsFolder);
+                        ModelState.AddModelError("Name", "Supplier name already exist!");
+                        supplier.DefaultExpenses = await _context.ChartOfAccounts
+                            .Select(s => new SelectListItem
+                            {
+                                Value = s.AccountNumber + " " + s.AccountName,
+                                Text = s.AccountNumber + " " + s.AccountName
+                            })
+                            .ToListAsync(cancellationToken);
+                        supplier.WithholdingTaxList = await _context.ChartOfAccounts
+                            .Where(coa => coa.AccountNumber == "201030210" || coa.AccountNumber == "201030220")
+                            .Select(s => new SelectListItem
+                            {
+                                Value = s.AccountNumber + " " + s.AccountName,
+                                Text = s.AccountNumber + " " + s.AccountName
+                            })
+                            .ToListAsync(cancellationToken);
+                        return View(supplier);
                     }
 
-                    string fileName = Path.GetFileName(document.FileName);
-                    string fileSavePath = Path.Combine(uploadsFolder, fileName);
-
-                    using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                    if (await _supplierRepo.IsSupplierTinExist(supplier.TinNo, supplier.Category, cancellationToken))
                     {
-                        await document.CopyToAsync(stream, cancellationToken);
+                        ModelState.AddModelError("TinNo", "Supplier tin already exist!");
+                        supplier.DefaultExpenses = await _context.ChartOfAccounts
+                            .Select(s => new SelectListItem
+                            {
+                                Value = s.AccountNumber + " " + s.AccountName,
+                                Text = s.AccountNumber + " " + s.AccountName
+                            })
+                            .ToListAsync(cancellationToken);
+                        supplier.WithholdingTaxList = await _context.ChartOfAccounts
+                            .Where(coa => coa.AccountNumber == "201030210" || coa.AccountNumber == "201030220")
+                            .Select(s => new SelectListItem
+                            {
+                                Value = s.AccountNumber + " " + s.AccountName,
+                                Text = s.AccountNumber + " " + s.AccountName
+                            })
+                            .ToListAsync(cancellationToken);
+                        return View(supplier);
                     }
 
-                    supplier.ProofOfExemptionFilePath = fileSavePath;
-                }
-
-                if (registration != null && registration.Length > 0)
-                {
-                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Proof of Registration", supplier.Number.ToString());
-
-                    if (!Directory.Exists(uploadsFolder))
+                    supplier.CreatedBy = _userManager.GetUserName(this.User).ToString();
+                    supplier.Number = await _supplierRepo.GetLastNumber(cancellationToken);
+                    if (supplier.WithholdingTaxtitle != null && supplier.WithholdingTaxPercent != 0)
                     {
-                        Directory.CreateDirectory(uploadsFolder);
+                        supplier.WithholdingTaxPercent = supplier.WithholdingTaxtitle.StartsWith("2010302") ? 1 : 2;
                     }
 
-                    string fileName = Path.GetFileName(registration.FileName);
-                    string fileSavePath = Path.Combine(uploadsFolder, fileName);
-
-                    using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                    if (document != null && document.Length > 0)
                     {
-                        await registration.CopyToAsync(stream, cancellationToken);
-                    }
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Proof of Exemption", supplier.Number.ToString());
 
-                    supplier.ProofOfRegistrationFilePath = fileSavePath;
-                }
-                else
-                {
-                    TempData["error"] = "There's something wrong in your file. Contact MIS.";
-                    supplier.DefaultExpenses = await _context.ChartOfAccounts
-                        .Select(s => new SelectListItem
+                        if (!Directory.Exists(uploadsFolder))
                         {
-                            Value = s.AccountNumber + " " + s.AccountName,
-                            Text = s.AccountNumber + " " + s.AccountName
-                        })
-                        .ToListAsync(cancellationToken);
-                    supplier.WithholdingTaxList = await _context.ChartOfAccounts
-                        .Where(coa => coa.AccountNumber == "201030210" || coa.AccountNumber == "201030220")
-                        .Select(s => new SelectListItem
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(document.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
                         {
-                            Value = s.AccountNumber + " " + s.AccountName,
-                            Text = s.AccountNumber + " " + s.AccountName
-                        })
-                        .ToListAsync(cancellationToken);
-                    return View(supplier);
+                            await document.CopyToAsync(stream, cancellationToken);
+                        }
+
+                        supplier.ProofOfExemptionFilePath = fileSavePath;
+                    }
+
+                    if (registration != null && registration.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Proof of Registration", supplier.Number.ToString());
+
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string fileName = Path.GetFileName(registration.FileName);
+                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                        {
+                            await registration.CopyToAsync(stream, cancellationToken);
+                        }
+
+                        supplier.ProofOfRegistrationFilePath = fileSavePath;
+                    }
+                    else
+                    {
+                        TempData["error"] = "There's something wrong in your file. Contact MIS.";
+                        supplier.DefaultExpenses = await _context.ChartOfAccounts
+                            .Select(s => new SelectListItem
+                            {
+                                Value = s.AccountNumber + " " + s.AccountName,
+                                Text = s.AccountNumber + " " + s.AccountName
+                            })
+                            .ToListAsync(cancellationToken);
+                        supplier.WithholdingTaxList = await _context.ChartOfAccounts
+                            .Where(coa => coa.AccountNumber == "201030210" || coa.AccountNumber == "201030220")
+                            .Select(s => new SelectListItem
+                            {
+                                Value = s.AccountNumber + " " + s.AccountName,
+                                Text = s.AccountNumber + " " + s.AccountName
+                            })
+                            .ToListAsync(cancellationToken);
+                        return View(supplier);
+                    }
+
+                    await _context.AddAsync(supplier, cancellationToken);
+
+                    #region --Audit Trail Recording
+
+                    if (supplier.OriginalSupplierId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(supplier.CreatedBy, $"Create new supplier {supplier.Name}", "Supplier Master File", ipAddress);
+                        await _context.AddAsync(auditTrailBook, cancellationToken);
+                    }
+
+                    #endregion --Audit Trail Recording
+
+                    await _context.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    TempData["success"] = $"Supplier {supplier.Name} has been created.";
+                    return RedirectToAction(nameof(Index));
                 }
-
-                await _context.AddAsync(supplier, cancellationToken);
-
-                #region --Audit Trail Recording
-
-                if (supplier.OriginalSupplierId == 0)
+                catch (Exception ex)
                 {
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(supplier.CreatedBy, $"Create new supplier {supplier.Name}", "Supplier Master File", ipAddress);
-                    await _context.AddAsync(auditTrailBook, cancellationToken);
+                 await transaction.RollbackAsync(cancellationToken);
+                 TempData["error"] = ex.Message;
+                 return RedirectToAction(nameof(Index));
                 }
-
-                #endregion --Audit Trail Recording
-
-                await _context.SaveChangesAsync(cancellationToken);
-                TempData["success"] = $"Supplier {supplier.Name} has been created.";
-                return RedirectToAction(nameof(Index));
             }
             return View(supplier);
         }
@@ -254,6 +265,7 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
+                await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     var existingModel = await _context.Suppliers.FindAsync(supplier.Id, cancellationToken);
@@ -356,10 +368,12 @@ namespace Accounting_System.Controllers
                     #endregion --Audit Trail Recording
 
                     await _context.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
                     TempData["success"] = $"Supplier {supplier.Name} has been edited.";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     if (!SupplierExists(supplier.Id))
                     {
                         return NotFound();
@@ -368,6 +382,12 @@ namespace Accounting_System.Controllers
                     {
                         throw;
                     }
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index));
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -384,7 +404,7 @@ namespace Accounting_System.Controllers
         #region -- export xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Export(string selectedRecord)
+        public async Task<IActionResult> Export(string selectedRecord, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(selectedRecord))
             {
@@ -392,74 +412,85 @@ namespace Accounting_System.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
+            await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+            try
+		    {
+                var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
 
-            // Retrieve the selected invoices from the database
-            var selectedList = await _context.Suppliers
-                .Where(supp => recordIds.Contains(supp.Id))
-                .OrderBy(supp => supp.Number)
-                .ToListAsync();
+                // Retrieve the selected invoices from the database
+                var selectedList = await _context.Suppliers
+                    .Where(supp => recordIds.Contains(supp.Id))
+                    .OrderBy(supp => supp.Number)
+                    .ToListAsync();
 
-            // Create the Excel package
-            using var package = new ExcelPackage();
-            // Add a new worksheet to the Excel package
-            var worksheet = package.Workbook.Worksheets.Add("Supplier");
+                // Create the Excel package
+                using var package = new ExcelPackage();
+                // Add a new worksheet to the Excel package
+                var worksheet = package.Workbook.Worksheets.Add("Supplier");
 
-            worksheet.Cells["A1"].Value = "Name";
-            worksheet.Cells["B1"].Value = "Address";
-            worksheet.Cells["C1"].Value = "ZipCode";
-            worksheet.Cells["D1"].Value = "TinNo";
-            worksheet.Cells["E1"].Value = "Terms";
-            worksheet.Cells["F1"].Value = "VatType";
-            worksheet.Cells["G1"].Value = "TaxType";
-            worksheet.Cells["H1"].Value = "ProofOfRegistrationFilePath";
-            worksheet.Cells["I1"].Value = "ReasonOfExemption";
-            worksheet.Cells["J1"].Value = "Validity";
-            worksheet.Cells["K1"].Value = "ValidityDate";
-            worksheet.Cells["L1"].Value = "ProofOfExemptionFilePath";
-            worksheet.Cells["M1"].Value = "CreatedBy";
-            worksheet.Cells["N1"].Value = "CreatedDate";
-            worksheet.Cells["O1"].Value = "Branch";
-            worksheet.Cells["P1"].Value = "Category";
-            worksheet.Cells["Q1"].Value = "TradeName";
-            worksheet.Cells["R1"].Value = "DefaultExpenseNumber";
-            worksheet.Cells["S1"].Value = "WithholdingTaxPercent";
-            worksheet.Cells["T1"].Value = "WithholdingTaxTitle";
-            worksheet.Cells["U1"].Value = "OriginalSupplierId";
+                worksheet.Cells["A1"].Value = "Name";
+                worksheet.Cells["B1"].Value = "Address";
+                worksheet.Cells["C1"].Value = "ZipCode";
+                worksheet.Cells["D1"].Value = "TinNo";
+                worksheet.Cells["E1"].Value = "Terms";
+                worksheet.Cells["F1"].Value = "VatType";
+                worksheet.Cells["G1"].Value = "TaxType";
+                worksheet.Cells["H1"].Value = "ProofOfRegistrationFilePath";
+                worksheet.Cells["I1"].Value = "ReasonOfExemption";
+                worksheet.Cells["J1"].Value = "Validity";
+                worksheet.Cells["K1"].Value = "ValidityDate";
+                worksheet.Cells["L1"].Value = "ProofOfExemptionFilePath";
+                worksheet.Cells["M1"].Value = "CreatedBy";
+                worksheet.Cells["N1"].Value = "CreatedDate";
+                worksheet.Cells["O1"].Value = "Branch";
+                worksheet.Cells["P1"].Value = "Category";
+                worksheet.Cells["Q1"].Value = "TradeName";
+                worksheet.Cells["R1"].Value = "DefaultExpenseNumber";
+                worksheet.Cells["S1"].Value = "WithholdingTaxPercent";
+                worksheet.Cells["T1"].Value = "WithholdingTaxTitle";
+                worksheet.Cells["U1"].Value = "OriginalSupplierId";
 
-            int row = 2;
+                int row = 2;
 
-            foreach (var item in selectedList)
+                foreach (var item in selectedList)
+                {
+                    worksheet.Cells[row, 1].Value = item.Name;
+                    worksheet.Cells[row, 2].Value = item.Address;
+                    worksheet.Cells[row, 3].Value = item.ZipCode;
+                    worksheet.Cells[row, 4].Value = item.TinNo;
+                    worksheet.Cells[row, 5].Value = item.Terms;
+                    worksheet.Cells[row, 6].Value = item.VatType;
+                    worksheet.Cells[row, 7].Value = item.TaxType;
+                    worksheet.Cells[row, 8].Value = item.ProofOfRegistrationFilePath;
+                    worksheet.Cells[row, 9].Value = item.ReasonOfExemption;
+                    worksheet.Cells[row, 10].Value = item.Validity;
+                    worksheet.Cells[row, 11].Value = item.ValidityDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 12].Value = item.ProofOfExemptionFilePath;
+                    worksheet.Cells[row, 13].Value = item.CreatedBy;
+                    worksheet.Cells[row, 14].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 15].Value = item.Branch;
+                    worksheet.Cells[row, 16].Value = item.Category;
+                    worksheet.Cells[row, 17].Value = item.TradeName;
+                    worksheet.Cells[row, 18].Value = item.DefaultExpenseNumber;
+                    worksheet.Cells[row, 19].Value = item.WithholdingTaxPercent;
+                    worksheet.Cells[row, 20].Value = item.WithholdingTaxtitle;
+                    worksheet.Cells[row, 21].Value = item.Id;
+
+                    row++;
+                }
+
+                // Convert the Excel package to a byte array
+                var excelBytes = await package.GetAsByteArrayAsync();
+                await transaction.CommitAsync(cancellationToken);
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "SupplierList.xlsx");
+		    }
+            catch (Exception ex)
             {
-                worksheet.Cells[row, 1].Value = item.Name;
-                worksheet.Cells[row, 2].Value = item.Address;
-                worksheet.Cells[row, 3].Value = item.ZipCode;
-                worksheet.Cells[row, 4].Value = item.TinNo;
-                worksheet.Cells[row, 5].Value = item.Terms;
-                worksheet.Cells[row, 6].Value = item.VatType;
-                worksheet.Cells[row, 7].Value = item.TaxType;
-                worksheet.Cells[row, 8].Value = item.ProofOfRegistrationFilePath;
-                worksheet.Cells[row, 9].Value = item.ReasonOfExemption;
-                worksheet.Cells[row, 10].Value = item.Validity;
-                worksheet.Cells[row, 11].Value = item.ValidityDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                worksheet.Cells[row, 12].Value = item.ProofOfExemptionFilePath;
-                worksheet.Cells[row, 13].Value = item.CreatedBy;
-                worksheet.Cells[row, 14].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                worksheet.Cells[row, 15].Value = item.Branch;
-                worksheet.Cells[row, 16].Value = item.Category;
-                worksheet.Cells[row, 17].Value = item.TradeName;
-                worksheet.Cells[row, 18].Value = item.DefaultExpenseNumber;
-                worksheet.Cells[row, 19].Value = item.WithholdingTaxPercent;
-                worksheet.Cells[row, 20].Value = item.WithholdingTaxtitle;
-                worksheet.Cells[row, 21].Value = item.Id;
-
-                row++;
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
             }
 
-            // Convert the Excel package to a byte array
-            var excelBytes = await package.GetAsByteArrayAsync();
-
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "SupplierList.xlsx");
         }
 
         #endregion -- export xlsx record --

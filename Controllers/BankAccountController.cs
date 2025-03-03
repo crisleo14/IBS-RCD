@@ -60,49 +60,60 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _bankAccountRepo.IsBankAccountNameExist(model.AccountName, cancellationToken))
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                try
                 {
-                    ModelState.AddModelError("AccountName", "Bank account name already exist!");
-                    return View(model);
+                    if (await _bankAccountRepo.IsBankAccountNameExist(model.AccountName, cancellationToken))
+                    {
+                        ModelState.AddModelError("AccountName", "Bank account name already exist!");
+                        return View(model);
+                    }
+
+                    var checkLastAccountNo = await _dbContext
+                        .BankAccounts
+                        .OrderBy(bank => bank.Id)
+                        .LastOrDefaultAsync(cancellationToken);
+
+                    #region -- Generate AccountNo --
+
+                    model.SeriesNumber = await _bankAccountRepo.GetLastSeriesNumber(cancellationToken);
+                    model.AccountNoCOA = "101010100" + model.SeriesNumber.ToString("D2");
+
+                    #endregion -- Generate AccountNo --
+
+                    model.CreatedBy = _userManager.GetUserName(this.User);
+
+                    #region -- COA Entry --
+
+                    var coa = _bankAccountRepo.COAEntry(model, User, cancellationToken);
+                    await _dbContext.AddAsync(coa, cancellationToken);
+
+                    #endregion -- COA Entry --
+
+                    #region --Audit Trail Recording
+
+                    if (model.OriginalBankId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(model.CreatedBy, $"Created new bank {model.AccountName}",
+                            "Bank Account", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.AddAsync(model, cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    TempData["success"] = "Bank created successfully.";
+                    return RedirectToAction(nameof(Index));
                 }
-
-                var checkLastAccountNo = await _dbContext
-                    .BankAccounts
-                    .OrderBy(bank => bank.Id)
-                    .LastOrDefaultAsync(cancellationToken);
-
-                #region -- Generate AccountNo --
-
-                model.SeriesNumber = await _bankAccountRepo.GetLastSeriesNumber(cancellationToken);
-                model.AccountNoCOA = "101010100" + model.SeriesNumber.ToString("D2");
-
-                #endregion -- Generate AccountNo --
-
-                model.CreatedBy = _userManager.GetUserName(this.User);
-
-                #region -- COA Entry --
-
-                var coa = _bankAccountRepo.COAEntry(model, User, cancellationToken);
-                await _dbContext.AddAsync(coa, cancellationToken);
-
-                #endregion -- COA Entry --
-
-                #region --Audit Trail Recording
-
-                if (model.OriginalBankId == 0)
+                catch (Exception ex)
                 {
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Created new bank {model.AccountName}",
-                        "Bank Account", ipAddress);
-                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                 await transaction.RollbackAsync(cancellationToken);
+                 TempData["error"] = ex.Message;
+                 return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
                 }
-
-                #endregion --Audit Trail Recording
-
-                await _dbContext.AddAsync(model, cancellationToken);
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                TempData["success"] = "Bank created successfully.";
-                return RedirectToAction(nameof(Index));
             }
             else
             {
@@ -129,31 +140,41 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
-                existingModel.AccountName = model.AccountName;
-                existingModel.BankCode = model.BankCode;
-
-                TempData["success"] = "Bank edited successfully.";
-
-                #region --Audit Trail Recording
-
-                if (model.OriginalBankId == 0)
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                try
                 {
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User),
-                        $"Updated bank {model.AccountName}", "Bank Account", ipAddress);
-                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                }
+                    existingModel.AccountName = model.AccountName;
+                    existingModel.BankCode = model.BankCode;
 
-                #endregion --Audit Trail Recording
+                    #region --Audit Trail Recording
+
+                    if (model.OriginalBankId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User),
+                            $"Updated bank {model.AccountName}", "Bank Account", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    TempData["success"] = "Bank edited successfully.";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index));
+                }
             }
             else
             {
                 ModelState.AddModelError("", "The information you submitted is not valid!");
                 return View(existingModel);
             }
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            return RedirectToAction(nameof(Index));
         }
 
         //Download as .xlsx file.(Export)
@@ -161,7 +182,7 @@ namespace Accounting_System.Controllers
         #region -- export xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Export(string selectedRecord)
+        public async Task<IActionResult> Export(string selectedRecord, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(selectedRecord))
             {
@@ -169,45 +190,55 @@ namespace Accounting_System.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            try
+		    {
+                var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
 
-            // Retrieve the selected invoices from the database
-            var selectedList = await _dbContext.BankAccounts
-                .Where(bank => recordIds.Contains(bank.Id))
-                .OrderBy(bank => bank.Id)
-                .ToListAsync();
+                // Retrieve the selected invoices from the database
+                var selectedList = await _dbContext.BankAccounts
+                    .Where(bank => recordIds.Contains(bank.Id))
+                    .OrderBy(bank => bank.Id)
+                    .ToListAsync();
 
-            // Create the Excel package
-            using var package = new ExcelPackage();
-            // Add a new worksheet to the Excel package
-            var worksheet = package.Workbook.Worksheets.Add("BankAccount");
+                // Create the Excel package
+                using var package = new ExcelPackage();
+                // Add a new worksheet to the Excel package
+                var worksheet = package.Workbook.Worksheets.Add("BankAccount");
 
-            worksheet.Cells["A1"].Value = "Branch";
-            worksheet.Cells["B1"].Value = "CreatedBy";
-            worksheet.Cells["C1"].Value = "CreatedDate";
-            worksheet.Cells["D1"].Value = "AccountName";
-            worksheet.Cells["E1"].Value = "AccountNo";
-            worksheet.Cells["F1"].Value = "Bank";
-            worksheet.Cells["G1"].Value = "OriginalBankId";
+                worksheet.Cells["A1"].Value = "Branch";
+                worksheet.Cells["B1"].Value = "CreatedBy";
+                worksheet.Cells["C1"].Value = "CreatedDate";
+                worksheet.Cells["D1"].Value = "AccountName";
+                worksheet.Cells["E1"].Value = "AccountNo";
+                worksheet.Cells["F1"].Value = "Bank";
+                worksheet.Cells["G1"].Value = "OriginalBankId";
 
-            int row = 2;
+                int row = 2;
 
-            foreach (var item in selectedList)
+                foreach (var item in selectedList)
+                {
+                    worksheet.Cells[row, 2].Value = item.CreatedBy;
+                    worksheet.Cells[row, 3].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 4].Value = item.AccountName;
+                    worksheet.Cells[row, 6].Value = item.BankCode;
+                    worksheet.Cells[row, 7].Value = item.Id;
+
+                    row++;
+                }
+
+                // Convert the Excel package to a byte array
+                var excelBytes = await package.GetAsByteArrayAsync();
+                await transaction.CommitAsync(cancellationToken);
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "BankAccountList.xlsx");
+		    }
+            catch (Exception ex)
             {
-                worksheet.Cells[row, 2].Value = item.CreatedBy;
-                worksheet.Cells[row, 3].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                worksheet.Cells[row, 4].Value = item.AccountName;
-                worksheet.Cells[row, 6].Value = item.BankCode;
-                worksheet.Cells[row, 7].Value = item.Id;
-
-                row++;
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
             }
-
-            // Convert the Excel package to a byte array
-            var excelBytes = await package.GetAsByteArrayAsync();
-
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "BankAccountList.xlsx");
         }
 
         #endregion -- export xlsx record --

@@ -367,10 +367,12 @@ namespace Accounting_System.Controllers
             var modelHeader = await _dbContext.CheckVoucherHeaders.FindAsync(cvId, cancellationToken);
             if (modelHeader != null)
             {
-                var modelDetails = await _dbContext.CheckVoucherDetails
-                    .Where(cvd => cvd.TransactionNo == modelHeader.CVNo).ToListAsync(cancellationToken);
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
+                    var modelDetails = await _dbContext.CheckVoucherDetails
+                        .Where(cvd => cvd.TransactionNo == modelHeader.CVNo).ToListAsync(cancellationToken);
+
                     if (!modelHeader.IsPosted)
                     {
                         modelHeader.IsPosted = true;
@@ -477,6 +479,7 @@ namespace Accounting_System.Controllers
                         #endregion --Audit Trail Recording
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                         TempData["success"] = "Check Voucher has been Posted.";
                     }
 
@@ -484,6 +487,7 @@ namespace Accounting_System.Controllers
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Print), new { id = cvId });
                 }
@@ -572,6 +576,7 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     #region --Check if duplicate CheckNo
@@ -755,6 +760,7 @@ namespace Accounting_System.Controllers
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken); // await the SaveChangesAsync method
+                    await transaction.CommitAsync(cancellationToken);
                     TempData["success"] = "Trade edited successfully";
                     return RedirectToAction(nameof(Index));
 
@@ -762,6 +768,7 @@ namespace Accounting_System.Controllers
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return View(viewModel);
                 }
@@ -774,83 +781,89 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
         {
             var model = await _dbContext.CheckVoucherHeaders.FindAsync(id, cancellationToken);
-
-            CheckVoucherDetail getPaymentDetails = new();
             CheckVoucherHeader getInvoicingReference = new();
-            CheckVoucherDetail getInvoicingDetails = new();
-
-            if (model.CvType == "Payment")
-            {
-                getInvoicingReference = await _dbContext.CheckVoucherHeaders
-                    .Where(cvh => cvh.CVNo == model.Reference)
-                    .FirstOrDefaultAsync(cancellationToken);
-            }
 
             if (model != null)
             {
-                if (!model.IsVoided)
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                try
                 {
-                    if (model.IsPosted)
+                    if (model.CvType == "Payment")
                     {
-                        model.IsPosted = false;
+                        getInvoicingReference = await _dbContext.CheckVoucherHeaders
+                            .Where(cvh => cvh.CVNo == model.Reference)
+                            .FirstOrDefaultAsync(cancellationToken);
                     }
 
-                    //Remove payment in normal invoicing
-                    getInvoicingReference.AmountPaid -= model.Total;
-
-                    if (getInvoicingReference.IsPaid)
+                    if (!model.IsVoided)
                     {
-                        getInvoicingReference.IsPaid = false;
-                    }
-
-                    #region -- Partial payment of RR's
-
-                    if (model.Amount != null)
-                    {
-                        var receivingReport = new ReceivingReport();
-                        for (int i = 0; i < model.RRNo.Length; i++)
+                        if (model.IsPosted)
                         {
-                            var rrValue = model.RRNo[i];
-                            receivingReport = await _dbContext.ReceivingReports
-                                .FirstOrDefaultAsync(p => p.RRNo == rrValue, cancellationToken);
+                            model.IsPosted = false;
+                        }
 
-                            receivingReport.AmountPaid -= model.Amount[i];
+                        //Remove payment in normal invoicing
+                        getInvoicingReference.AmountPaid -= model.Total;
 
-                            if (receivingReport.IsPaid)
+                        if (getInvoicingReference.IsPaid)
+                        {
+                            getInvoicingReference.IsPaid = false;
+                        }
+
+                        #region -- Partial payment of RR's
+
+                        if (model.Amount != null)
+                        {
+                            var receivingReport = new ReceivingReport();
+                            for (int i = 0; i < model.RRNo.Length; i++)
                             {
-                                receivingReport.IsPaid = false;
-                                receivingReport.PaidDate = DateTime.MinValue;
+                                var rrValue = model.RRNo[i];
+                                receivingReport = await _dbContext.ReceivingReports
+                                    .FirstOrDefaultAsync(p => p.RRNo == rrValue, cancellationToken);
+
+                                receivingReport.AmountPaid -= model.Amount[i];
+
+                                if (receivingReport.IsPaid)
+                                {
+                                    receivingReport.IsPaid = false;
+                                    receivingReport.PaidDate = DateTime.MinValue;
+                                }
                             }
                         }
+
+                        #endregion -- Partial payment of RR's
+
+                        model.IsVoided = true;
+                        model.VoidedBy = _userManager.GetUserName(this.User);
+                        model.VoidedDate = DateTime.Now;
+
+                        await _generalRepo.RemoveRecords<DisbursementBook>(db => db.CVNo == model.CVNo, cancellationToken);
+                        await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CVNo,
+                            cancellationToken);
+
+                        #region --Audit Trail Recording
+
+                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided check voucher# {model.CVNo}",
+                                "Check Voucher", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Check Voucher has been Voided.";
                     }
-
-                    #endregion -- Partial payment of RR's
-
-                    model.IsVoided = true;
-                    model.VoidedBy = _userManager.GetUserName(this.User);
-                    model.VoidedDate = DateTime.Now;
-
-                    await _generalRepo.RemoveRecords<DisbursementBook>(db => db.CVNo == model.CVNo, cancellationToken);
-                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CVNo,
-                        cancellationToken);
-
-                    #region --Audit Trail Recording
-
-                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                    {
-                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided check voucher# {model.CVNo}",
-                            "Check Voucher", ipAddress);
-                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                    }
-
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Check Voucher has been Voided.";
                 }
-
-                return RedirectToAction(nameof(Index));
+                catch (Exception ex)
+                {
+                 await transaction.RollbackAsync(cancellationToken);
+                 TempData["error"] = ex.Message;
+                 return RedirectToAction(nameof(Index));
+                }
             }
 
             return NotFound();
@@ -860,31 +873,42 @@ namespace Accounting_System.Controllers
         {
             var model = await _dbContext.CheckVoucherHeaders.FindAsync(id, cancellationToken);
 
-            if (model != null)
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            try
             {
-                if (!model.IsCanceled)
+                if (model != null)
                 {
-                    model.IsCanceled = true;
-                    model.CanceledBy = _userManager.GetUserName(this.User);
-                    model.CanceledDate = DateTime.Now;
-                    model.CancellationRemarks = cancellationRemarks;
-
-                    #region --Audit Trail Recording
-
-                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    if (!model.IsCanceled)
                     {
-                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled check voucher# {model.CVNo}",
-                            "Check Voucher", ipAddress);
-                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        model.IsCanceled = true;
+                        model.CanceledBy = _userManager.GetUserName(this.User);
+                        model.CanceledDate = DateTime.Now;
+                        model.CancellationRemarks = cancellationRemarks;
+
+                        #region --Audit Trail Recording
+
+                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled check voucher# {model.CVNo}",
+                                "Check Voucher", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Check Voucher has been Cancelled.";
                     }
 
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Check Voucher has been Cancelled.";
+                    return RedirectToAction(nameof(Index));
                 }
-
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
 
@@ -931,6 +955,7 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     #region --Validating series
@@ -1121,12 +1146,14 @@ namespace Accounting_System.Controllers
                     }
 
                     await _dbContext.SaveChangesAsync(cancellationToken); // await the SaveChangesAsync method
+                    await transaction.CommitAsync(cancellationToken);
                     return RedirectToAction(nameof(Index));
 
                     #endregion -- Uploading file --
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     viewModel.COA = await _dbContext.ChartOfAccounts
                         .Where(coa =>
                             !new[] { "2010102", "2010101", "1010101" }.Any(excludedNumber =>
@@ -1260,6 +1287,7 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     #region --Validating series
@@ -1412,10 +1440,12 @@ namespace Accounting_System.Controllers
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
                         .Where(coa => coa.Level == 4 || coa.Level == 5)
                         .Select(s => new SelectListItem
@@ -1501,6 +1531,7 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     #region --Validating series
@@ -1627,10 +1658,12 @@ namespace Accounting_System.Controllers
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
                         .Where(coa => coa.Level == 4 || coa.Level == 5)
                         .Select(s => new SelectListItem
@@ -1786,6 +1819,7 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     #region --Saving the default entries
@@ -1943,6 +1977,7 @@ namespace Accounting_System.Controllers
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken); // await the SaveChangesAsync method
+                    await transaction.CommitAsync(cancellationToken);
                     TempData["success"] = "Non-trade invoicing edited successfully";
                     return RedirectToAction(nameof(Index));
 
@@ -1950,6 +1985,7 @@ namespace Accounting_System.Controllers
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     viewModel.Suppliers = await _dbContext.Suppliers
                         .Select(sup => new SelectListItem
                         {
@@ -2051,6 +2087,7 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     #region --Check if duplicate CheckNo
@@ -2226,6 +2263,7 @@ namespace Accounting_System.Controllers
                     #endregion --Audit Trail Recording
 
                     await _dbContext.SaveChangesAsync(cancellationToken); // await the SaveChangesAsync method
+                    await transaction.CommitAsync(cancellationToken);
                     TempData["success"] = "Non-trade payment edited successfully";
                     return RedirectToAction(nameof(Index));
 
@@ -2233,6 +2271,7 @@ namespace Accounting_System.Controllers
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return View(viewModel);
                 }
@@ -2255,6 +2294,7 @@ namespace Accounting_System.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
             try
             {
                 var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
@@ -2615,13 +2655,14 @@ namespace Accounting_System.Controllers
 
                     // Convert the Excel package to a byte array
                     var excelBytes = await package.GetAsByteArrayAsync();
-
+                    await transaction.CommitAsync(cancellationToken);
                     return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         "CheckVoucherList.xlsx");
                 }
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync(cancellationToken);
                 TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }

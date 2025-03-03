@@ -178,141 +178,146 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
-                #region --Validating the series
-
-                var generateCrNo = await _receiptRepo.GenerateCRNo(cancellationToken);
-                var getLastNumber = long.Parse(generateCrNo.Substring(2));
-
-                if (getLastNumber > 9999999999)
-                {
-                    TempData["error"] = "You reach the maximum Series Number";
-                    return View(model);
-                }
-                var totalRemainingSeries = 9999999999 - getLastNumber;
-                if (getLastNumber >= 9999999899)
-                {
-                    TempData["warning"] = $"Collection Receipt created successfully, Warning {totalRemainingSeries} series number remaining";
-                }
-                else
-                {
-                    TempData["success"] = "Collection Receipt created successfully";
-                }
-
-                #endregion --Validating the series
-
-                #region --Saving default value
-
-                var computeTotalInModelIfZero = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + model.EWT + model.WVAT;
-                if (computeTotalInModelIfZero == 0)
-                {
-                    TempData["error"] = "Please input atleast one type form of payment";
-                    return View(model);
-                }
-                var existingSalesInvoice = await _dbContext.SalesInvoices
-                                               .FirstOrDefaultAsync(si => si.Id == model.SalesInvoiceId, cancellationToken);
-
-                model.SINo = existingSalesInvoice.SINo;
-                model.CRNo = generateCrNo;
-                model.CreatedBy = _userManager.GetUserName(this.User);
-                model.Total = computeTotalInModelIfZero;
-
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    if (bir2306 != null && bir2306.Length > 0)
+                    #region --Validating the series
+
+                    var generateCrNo = await _receiptRepo.GenerateCRNo(cancellationToken);
+                    var getLastNumber = long.Parse(generateCrNo.Substring(2));
+
+                    if (getLastNumber > 9999999999)
                     {
-                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
-
-                        if (!Directory.Exists(uploadsFolder))
-                        {
-                            Directory.CreateDirectory(uploadsFolder);
-                        }
-
-                        string fileName = Path.GetFileName(bir2306.FileName);
-                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
-
-                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
-                        {
-                            await bir2306.CopyToAsync(stream, cancellationToken);
-                        }
-
-                        model.F2306FilePath = fileSavePath;
-                        model.IsCertificateUpload = true;
+                        TempData["error"] = "You reach the maximum Series Number";
+                        return View(model);
+                    }
+                    var totalRemainingSeries = 9999999999 - getLastNumber;
+                    if (getLastNumber >= 9999999899)
+                    {
+                        TempData["warning"] = $"Collection Receipt created successfully, Warning {totalRemainingSeries} series number remaining";
+                    }
+                    else
+                    {
+                        TempData["success"] = "Collection Receipt created successfully";
                     }
 
-                    if (bir2307 != null && bir2307.Length > 0)
+                    #endregion --Validating the series
+
+                    #region --Saving default value
+
+                    var computeTotalInModelIfZero = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + model.EWT + model.WVAT;
+                    if (computeTotalInModelIfZero == 0)
                     {
-                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
-
-                        if (!Directory.Exists(uploadsFolder))
-                        {
-                            Directory.CreateDirectory(uploadsFolder);
-                        }
-
-                        string fileName = Path.GetFileName(bir2307.FileName);
-                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
-
-                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
-                        {
-                            await bir2307.CopyToAsync(stream, cancellationToken);
-                        }
-
-                        model.F2307FilePath = fileSavePath;
-                        model.IsCertificateUpload = true;
+                        TempData["error"] = "Please input atleast one type form of payment";
+                        return View(model);
                     }
+                    var existingSalesInvoice = await _dbContext.SalesInvoices
+                                                   .FirstOrDefaultAsync(si => si.Id == model.SalesInvoiceId, cancellationToken);
+
+                    model.SINo = existingSalesInvoice.SINo;
+                    model.CRNo = generateCrNo;
+                    model.CreatedBy = _userManager.GetUserName(this.User);
+                    model.Total = computeTotalInModelIfZero;
+
+                        if (bir2306 != null && bir2306.Length > 0)
+                        {
+                            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
+
+                            if (!Directory.Exists(uploadsFolder))
+                            {
+                                Directory.CreateDirectory(uploadsFolder);
+                            }
+
+                            string fileName = Path.GetFileName(bir2306.FileName);
+                            string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                            using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                            {
+                                await bir2306.CopyToAsync(stream, cancellationToken);
+                            }
+
+                            model.F2306FilePath = fileSavePath;
+                            model.IsCertificateUpload = true;
+                        }
+
+                        if (bir2307 != null && bir2307.Length > 0)
+                        {
+                            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
+
+                            if (!Directory.Exists(uploadsFolder))
+                            {
+                                Directory.CreateDirectory(uploadsFolder);
+                            }
+
+                            string fileName = Path.GetFileName(bir2307.FileName);
+                            string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                            using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                            {
+                                await bir2307.CopyToAsync(stream, cancellationToken);
+                            }
+
+                            model.F2307FilePath = fileSavePath;
+                            model.IsCertificateUpload = true;
+                        }
+
+                    await _dbContext.AddAsync(model, cancellationToken);
+
+                    decimal offsetAmount = 0;
+
+                    #endregion --Saving default value
+
+                    #region --Audit Trail Recording
+
+                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
+
+                    #endregion --Audit Trail Recording
+
+                    #region --Offsetting function
+
+                    var offsettings = new List<Offsetting>();
+
+                    for (int i = 0; i < accountTitle.Length; i++)
+                    {
+                        var currentAccountTitle = accountTitleText[i];
+                        var currentAccountAmount = accountAmount[i];
+                        offsetAmount += accountAmount[i];
+
+                        var splitAccountTitle = currentAccountTitle.Split(new[] { ' ' }, 2);
+
+                        offsettings.Add(
+                            new Offsetting
+                            {
+                                AccountNo = accountTitle[i],
+                                AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0],
+                                Source = model.CRNo,
+                                Reference = model.SINo,
+                                Amount = currentAccountAmount,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
+                    await _dbContext.AddRangeAsync(offsettings, cancellationToken);
+
+                    #endregion --Offsetting function
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    return RedirectToAction(nameof(CollectionIndex));
                 }
                 catch (Exception ex)
                 {
+                 await transaction.RollbackAsync(cancellationToken);
+                 TempData["error"] = ex.Message;
+                 return RedirectToAction(nameof(Index));
                 }
-
-                await _dbContext.AddAsync(model, cancellationToken);
-
-                decimal offsetAmount = 0;
-
-                #endregion --Saving default value
-
-                #region --Audit Trail Recording
-
-                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                {
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt", ipAddress);
-                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                }
-
-                #endregion --Audit Trail Recording
-
-                #region --Offsetting function
-
-                var offsettings = new List<Offsetting>();
-
-                for (int i = 0; i < accountTitle.Length; i++)
-                {
-                    var currentAccountTitle = accountTitleText[i];
-                    var currentAccountAmount = accountAmount[i];
-                    offsetAmount += accountAmount[i];
-
-                    var splitAccountTitle = currentAccountTitle.Split(new[] { ' ' }, 2);
-
-                    offsettings.Add(
-                        new Offsetting
-                        {
-                            AccountNo = accountTitle[i],
-                            AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0],
-                            Source = model.CRNo,
-                            Reference = model.SINo,
-                            Amount = currentAccountAmount,
-                            CreatedBy = model.CreatedBy,
-                            CreatedDate = model.CreatedDate
-                        }
-                    );
-                }
-
-                await _dbContext.AddRangeAsync(offsettings, cancellationToken);
-
-                #endregion --Offsetting function
-
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction(nameof(CollectionIndex));
             }
             else
             {
@@ -382,157 +387,163 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
-                #region --Validating the series
-
-                var generateCrNo = await _receiptRepo.GenerateCRNo(cancellationToken);
-                var getLastNumber = long.Parse(generateCrNo.Substring(2));
-
-                if (getLastNumber > 9999999999)
-                {
-                    TempData["error"] = "You reach the maximum Series Number";
-                    return View(model);
-                }
-                var totalRemainingSeries = 9999999999 - getLastNumber;
-                if (getLastNumber >= 9999999899)
-                {
-                    TempData["warning"] = $"Collection Receipt created successfully, Warning {totalRemainingSeries} series number remaining";
-                }
-                else
-                {
-                    TempData["success"] = "Collection Receipt created successfully";
-                }
-
-                #endregion --Validating the series
-
-                #region --Saving default value
-
-                var computeTotalInModelIfZero = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + model.EWT + model.WVAT;
-                if (computeTotalInModelIfZero == 0)
-                {
-                    TempData["error"] = "Please input atleast one type form of payment";
-                    return View(model);
-                }
-                var existingSalesInvoice = await _dbContext.SalesInvoices
-                                               .Where(si => model.MultipleSIId.Contains(si.Id))
-                                               .ToListAsync(cancellationToken);
-
-                model.MultipleSI = new string[model.MultipleSIId.Length];
-                model.MultipleTransactionDate = new DateOnly[model.MultipleSIId.Length];
-                var salesInvoice = new SalesInvoice();
-                for (int i = 0; i < model.MultipleSIId.Length; i++)
-                {
-                    var siId = model.MultipleSIId[i];
-                    salesInvoice = await _dbContext.SalesInvoices
-                                .FirstOrDefaultAsync(si => si.Id == siId, cancellationToken);
-
-                    if (salesInvoice != null)
-                    {
-                        model.MultipleSI[i] = salesInvoice.SINo;
-                        model.MultipleTransactionDate[i] = salesInvoice.TransactionDate;
-                    }
-                }
-
-                model.CRNo = generateCrNo;
-                model.CreatedBy = _userManager.GetUserName(this.User);
-                model.Total = computeTotalInModelIfZero;
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
                 try
                 {
-                    if (bir2306 != null && bir2306.Length > 0)
+                    #region --Validating the series
+
+                    var generateCrNo = await _receiptRepo.GenerateCRNo(cancellationToken);
+                    var getLastNumber = long.Parse(generateCrNo.Substring(2));
+
+                    if (getLastNumber > 9999999999)
                     {
-                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
-
-                        if (!Directory.Exists(uploadsFolder))
-                        {
-                            Directory.CreateDirectory(uploadsFolder);
-                        }
-
-                        string fileName = Path.GetFileName(bir2306.FileName);
-                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
-
-                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
-                        {
-                            await bir2306.CopyToAsync(stream, cancellationToken);
-                        }
-
-                        model.F2306FilePath = fileSavePath;
-                        model.IsCertificateUpload = true;
+                        TempData["error"] = "You reach the maximum Series Number";
+                        return View(model);
+                    }
+                    var totalRemainingSeries = 9999999999 - getLastNumber;
+                    if (getLastNumber >= 9999999899)
+                    {
+                        TempData["warning"] = $"Collection Receipt created successfully, Warning {totalRemainingSeries} series number remaining";
+                    }
+                    else
+                    {
+                        TempData["success"] = "Collection Receipt created successfully";
                     }
 
-                    if (bir2307 != null && bir2307.Length > 0)
+                    #endregion --Validating the series
+
+                    #region --Saving default value
+
+                    var computeTotalInModelIfZero = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + model.EWT + model.WVAT;
+                    if (computeTotalInModelIfZero == 0)
                     {
-                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
-
-                        if (!Directory.Exists(uploadsFolder))
-                        {
-                            Directory.CreateDirectory(uploadsFolder);
-                        }
-
-                        string fileName = Path.GetFileName(bir2307.FileName);
-                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
-
-                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
-                        {
-                            await bir2307.CopyToAsync(stream, cancellationToken);
-                        }
-
-                        model.F2307FilePath = fileSavePath;
-                        model.IsCertificateUpload = true;
+                        TempData["error"] = "Please input atleast one type form of payment";
+                        return View(model);
                     }
+                    var existingSalesInvoice = await _dbContext.SalesInvoices
+                                                   .Where(si => model.MultipleSIId.Contains(si.Id))
+                                                   .ToListAsync(cancellationToken);
+
+                    model.MultipleSI = new string[model.MultipleSIId.Length];
+                    model.MultipleTransactionDate = new DateOnly[model.MultipleSIId.Length];
+                    var salesInvoice = new SalesInvoice();
+                    for (int i = 0; i < model.MultipleSIId.Length; i++)
+                    {
+                        var siId = model.MultipleSIId[i];
+                        salesInvoice = await _dbContext.SalesInvoices
+                                    .FirstOrDefaultAsync(si => si.Id == siId, cancellationToken);
+
+                        if (salesInvoice != null)
+                        {
+                            model.MultipleSI[i] = salesInvoice.SINo;
+                            model.MultipleTransactionDate[i] = salesInvoice.TransactionDate;
+                        }
+                    }
+
+                    model.CRNo = generateCrNo;
+                    model.CreatedBy = _userManager.GetUserName(this.User);
+                    model.Total = computeTotalInModelIfZero;
+
+                        if (bir2306 != null && bir2306.Length > 0)
+                        {
+                            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
+
+                            if (!Directory.Exists(uploadsFolder))
+                            {
+                                Directory.CreateDirectory(uploadsFolder);
+                            }
+
+                            string fileName = Path.GetFileName(bir2306.FileName);
+                            string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                            using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                            {
+                                await bir2306.CopyToAsync(stream, cancellationToken);
+                            }
+
+                            model.F2306FilePath = fileSavePath;
+                            model.IsCertificateUpload = true;
+                        }
+
+                        if (bir2307 != null && bir2307.Length > 0)
+                        {
+                            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
+
+                            if (!Directory.Exists(uploadsFolder))
+                            {
+                                Directory.CreateDirectory(uploadsFolder);
+                            }
+
+                            string fileName = Path.GetFileName(bir2307.FileName);
+                            string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                            using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                            {
+                                await bir2307.CopyToAsync(stream, cancellationToken);
+                            }
+
+                            model.F2307FilePath = fileSavePath;
+                            model.IsCertificateUpload = true;
+                        }
+
+                    await _dbContext.AddAsync(model, cancellationToken);
+
+                    decimal offsetAmount = 0;
+
+                    #endregion --Saving default value
+
+                    #region --Audit Trail Recording
+
+                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
+
+                    #endregion --Audit Trail Recording
+
+                    #region --Offsetting function
+
+                    var offsettings = new List<Offsetting>();
+
+                    for (int i = 0; i < accountTitle.Length; i++)
+                    {
+                        var currentAccountTitle = accountTitleText[i];
+                        var currentAccountAmount = accountAmount[i];
+                        offsetAmount += accountAmount[i];
+
+                        var splitAccountTitle = currentAccountTitle.Split(new[] { ' ' }, 2);
+
+                        offsettings.Add(
+                            new Offsetting
+                            {
+                                AccountNo = accountTitle[i],
+                                AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0],
+                                Source = model.CRNo,
+                                Reference = model.SINo,
+                                Amount = currentAccountAmount,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
+                    await _dbContext.AddRangeAsync(offsettings, cancellationToken);
+
+                    #endregion --Offsetting function
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    return RedirectToAction(nameof(CollectionIndex));
                 }
                 catch (Exception ex)
                 {
+                 await transaction.RollbackAsync(cancellationToken);
+                 TempData["error"] = ex.Message;
+                 return RedirectToAction(nameof(Index));
                 }
-
-                await _dbContext.AddAsync(model, cancellationToken);
-
-                decimal offsetAmount = 0;
-
-                #endregion --Saving default value
-
-                #region --Audit Trail Recording
-
-                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                {
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt", ipAddress);
-                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                }
-
-                #endregion --Audit Trail Recording
-
-                #region --Offsetting function
-
-                var offsettings = new List<Offsetting>();
-
-                for (int i = 0; i < accountTitle.Length; i++)
-                {
-                    var currentAccountTitle = accountTitleText[i];
-                    var currentAccountAmount = accountAmount[i];
-                    offsetAmount += accountAmount[i];
-
-                    var splitAccountTitle = currentAccountTitle.Split(new[] { ' ' }, 2);
-
-                    offsettings.Add(
-                        new Offsetting
-                        {
-                            AccountNo = accountTitle[i],
-                            AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0],
-                            Source = model.CRNo,
-                            Reference = model.SINo,
-                            Amount = currentAccountAmount,
-                            CreatedBy = model.CreatedBy,
-                            CreatedDate = model.CreatedDate
-                        }
-                    );
-                }
-
-                await _dbContext.AddRangeAsync(offsettings, cancellationToken);
-
-                #endregion --Offsetting function
-
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction(nameof(CollectionIndex));
             }
             else
             {
@@ -602,141 +613,146 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
-                #region --Validating the series
-
-                var generateCrNo = await _receiptRepo.GenerateCRNo(cancellationToken);
-                var getLastNumber = long.Parse(generateCrNo.Substring(2));
-
-                if (getLastNumber > 9999999999)
-                {
-                    TempData["error"] = "You reach the maximum Series Number";
-                    return View(model);
-                }
-                var totalRemainingSeries = 9999999999 - getLastNumber;
-                if (getLastNumber >= 9999999899)
-                {
-                    TempData["warning"] = $"Collection Receipt created successfully, Warning {totalRemainingSeries} series number remaining";
-                }
-                else
-                {
-                    TempData["success"] = "Collection Receipt created successfully";
-                }
-
-                #endregion --Validating the series
-
-                #region --Saving default value
-
-                var computeTotalInModelIfZero = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + model.EWT + model.WVAT;
-                if (computeTotalInModelIfZero == 0)
-                {
-                    TempData["error"] = "Please input atleast one type form of payment";
-                    return View(model);
-                }
-                var existingServiceInvoice = await _dbContext.ServiceInvoices
-                                               .FirstOrDefaultAsync(si => si.Id == model.ServiceInvoiceId, cancellationToken);
-
-                model.SVNo = existingServiceInvoice.SVNo;
-                model.CRNo = generateCrNo;
-                model.CreatedBy = _userManager.GetUserName(this.User);
-                model.Total = computeTotalInModelIfZero;
-
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    if (bir2306 != null && bir2306.Length > 0)
+                    #region --Validating the series
+
+                    var generateCrNo = await _receiptRepo.GenerateCRNo(cancellationToken);
+                    var getLastNumber = long.Parse(generateCrNo.Substring(2));
+
+                    if (getLastNumber > 9999999999)
                     {
-                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
-
-                        if (!Directory.Exists(uploadsFolder))
-                        {
-                            Directory.CreateDirectory(uploadsFolder);
-                        }
-
-                        string fileName = Path.GetFileName(bir2306.FileName);
-                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
-
-                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
-                        {
-                            await bir2306.CopyToAsync(stream, cancellationToken);
-                        }
-
-                        model.F2306FilePath = fileSavePath;
-                        model.IsCertificateUpload = true;
+                        TempData["error"] = "You reach the maximum Series Number";
+                        return View(model);
+                    }
+                    var totalRemainingSeries = 9999999999 - getLastNumber;
+                    if (getLastNumber >= 9999999899)
+                    {
+                        TempData["warning"] = $"Collection Receipt created successfully, Warning {totalRemainingSeries} series number remaining";
+                    }
+                    else
+                    {
+                        TempData["success"] = "Collection Receipt created successfully";
                     }
 
-                    if (bir2307 != null && bir2307.Length > 0)
+                    #endregion --Validating the series
+
+                    #region --Saving default value
+
+                    var computeTotalInModelIfZero = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + model.EWT + model.WVAT;
+                    if (computeTotalInModelIfZero == 0)
                     {
-                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
-
-                        if (!Directory.Exists(uploadsFolder))
-                        {
-                            Directory.CreateDirectory(uploadsFolder);
-                        }
-
-                        string fileName = Path.GetFileName(bir2307.FileName);
-                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
-
-                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
-                        {
-                            await bir2307.CopyToAsync(stream, cancellationToken);
-                        }
-
-                        model.F2307FilePath = fileSavePath;
-                        model.IsCertificateUpload = true;
+                        TempData["error"] = "Please input atleast one type form of payment";
+                        return View(model);
                     }
+                    var existingServiceInvoice = await _dbContext.ServiceInvoices
+                                                   .FirstOrDefaultAsync(si => si.Id == model.ServiceInvoiceId, cancellationToken);
+
+                    model.SVNo = existingServiceInvoice.SVNo;
+                    model.CRNo = generateCrNo;
+                    model.CreatedBy = _userManager.GetUserName(this.User);
+                    model.Total = computeTotalInModelIfZero;
+
+                        if (bir2306 != null && bir2306.Length > 0)
+                        {
+                            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
+
+                            if (!Directory.Exists(uploadsFolder))
+                            {
+                                Directory.CreateDirectory(uploadsFolder);
+                            }
+
+                            string fileName = Path.GetFileName(bir2306.FileName);
+                            string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                            using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                            {
+                                await bir2306.CopyToAsync(stream, cancellationToken);
+                            }
+
+                            model.F2306FilePath = fileSavePath;
+                            model.IsCertificateUpload = true;
+                        }
+
+                        if (bir2307 != null && bir2307.Length > 0)
+                        {
+                            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
+
+                            if (!Directory.Exists(uploadsFolder))
+                            {
+                                Directory.CreateDirectory(uploadsFolder);
+                            }
+
+                            string fileName = Path.GetFileName(bir2307.FileName);
+                            string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                            using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                            {
+                                await bir2307.CopyToAsync(stream, cancellationToken);
+                            }
+
+                            model.F2307FilePath = fileSavePath;
+                            model.IsCertificateUpload = true;
+                        }
+
+                    await _dbContext.AddAsync(model, cancellationToken);
+
+                    decimal offsetAmount = 0;
+
+                    #endregion --Saving default value
+
+                    #region --Audit Trail Recording
+
+                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
+
+                    #endregion --Audit Trail Recording
+
+                    #region --Offsetting function
+
+                    var offsettings = new List<Offsetting>();
+
+                    for (int i = 0; i < accountTitle.Length; i++)
+                    {
+                        var currentAccountTitle = accountTitleText[i];
+                        var currentAccountAmount = accountAmount[i];
+                        offsetAmount += accountAmount[i];
+
+                        var splitAccountTitle = currentAccountTitle.Split(new[] { ' ' }, 2);
+
+                        offsettings.Add(
+                            new Offsetting
+                            {
+                                AccountNo = accountTitle[i],
+                                AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0],
+                                Source = model.CRNo,
+                                Reference = model.SVNo,
+                                Amount = currentAccountAmount,
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                    }
+
+                    await _dbContext.AddRangeAsync(offsettings, cancellationToken);
+
+                    #endregion --Offsetting function
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    return RedirectToAction(nameof(CollectionIndex));
                 }
                 catch (Exception ex)
                 {
+                 await transaction.RollbackAsync(cancellationToken);
+                 TempData["error"] = ex.Message;
+                 return RedirectToAction(nameof(Index));
                 }
-
-                await _dbContext.AddAsync(model, cancellationToken);
-
-                decimal offsetAmount = 0;
-
-                #endregion --Saving default value
-
-                #region --Audit Trail Recording
-
-                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                {
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new collection receipt# {model.CRNo}", "Collection Receipt", ipAddress);
-                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                }
-
-                #endregion --Audit Trail Recording
-
-                #region --Offsetting function
-
-                var offsettings = new List<Offsetting>();
-
-                for (int i = 0; i < accountTitle.Length; i++)
-                {
-                    var currentAccountTitle = accountTitleText[i];
-                    var currentAccountAmount = accountAmount[i];
-                    offsetAmount += accountAmount[i];
-
-                    var splitAccountTitle = currentAccountTitle.Split(new[] { ' ' }, 2);
-
-                    offsettings.Add(
-                        new Offsetting
-                        {
-                            AccountNo = accountTitle[i],
-                            AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0],
-                            Source = model.CRNo,
-                            Reference = model.SVNo,
-                            Amount = currentAccountAmount,
-                            CreatedBy = model.CreatedBy,
-                            CreatedDate = model.CreatedDate
-                        }
-                    );
-                }
-
-                await _dbContext.AddRangeAsync(offsettings, cancellationToken);
-
-                #endregion --Offsetting function
-
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction(nameof(CollectionIndex));
             }
             else
             {
@@ -1017,180 +1033,185 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
-                #region --Saving default value
-
-                var computeTotalInModelIfZero = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + model.EWT + model.WVAT;
-                if (computeTotalInModelIfZero == 0)
-                {
-                    TempData["error"] = "Please input atleast one type form of payment";
-                    return View(model);
-                }
-
-                existingModel.TransactionDate = model.TransactionDate;
-                existingModel.ReferenceNo = model.ReferenceNo;
-                existingModel.Remarks = model.Remarks;
-                existingModel.CheckDate = model.CheckDate;
-                existingModel.CheckNo = model.CheckNo;
-                existingModel.CheckBank = model.CheckBank;
-                existingModel.CheckBranch = model.CheckBranch;
-                existingModel.CashAmount = model.CashAmount;
-                existingModel.CheckAmount = model.CheckAmount;
-                existingModel.ManagerCheckAmount = model.ManagerCheckAmount;
-                existingModel.EWT = model.EWT;
-                existingModel.WVAT = model.WVAT;
-                existingModel.Total = computeTotalInModelIfZero;
-
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    if (bir2306 != null && bir2306.Length > 0)
+                    #region --Saving default value
+
+                    var computeTotalInModelIfZero = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + model.EWT + model.WVAT;
+                    if (computeTotalInModelIfZero == 0)
                     {
-                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
-
-                        if (!Directory.Exists(uploadsFolder))
-                        {
-                            Directory.CreateDirectory(uploadsFolder);
-                        }
-
-                        string fileName = Path.GetFileName(bir2306.FileName);
-                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
-
-                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
-                        {
-                            await bir2306.CopyToAsync(stream, cancellationToken);
-                        }
-
-                        existingModel.F2306FilePath = fileSavePath;
-                        existingModel.IsCertificateUpload = true;
+                        TempData["error"] = "Please input atleast one type form of payment";
+                        return View(model);
                     }
 
-                    if (bir2307 != null && bir2307.Length > 0)
+                    existingModel.TransactionDate = model.TransactionDate;
+                    existingModel.ReferenceNo = model.ReferenceNo;
+                    existingModel.Remarks = model.Remarks;
+                    existingModel.CheckDate = model.CheckDate;
+                    existingModel.CheckNo = model.CheckNo;
+                    existingModel.CheckBank = model.CheckBank;
+                    existingModel.CheckBranch = model.CheckBranch;
+                    existingModel.CashAmount = model.CashAmount;
+                    existingModel.CheckAmount = model.CheckAmount;
+                    existingModel.ManagerCheckAmount = model.ManagerCheckAmount;
+                    existingModel.EWT = model.EWT;
+                    existingModel.WVAT = model.WVAT;
+                    existingModel.Total = computeTotalInModelIfZero;
+
+                        if (bir2306 != null && bir2306.Length > 0)
+                        {
+                            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
+
+                            if (!Directory.Exists(uploadsFolder))
+                            {
+                                Directory.CreateDirectory(uploadsFolder);
+                            }
+
+                            string fileName = Path.GetFileName(bir2306.FileName);
+                            string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                            using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                            {
+                                await bir2306.CopyToAsync(stream, cancellationToken);
+                            }
+
+                            existingModel.F2306FilePath = fileSavePath;
+                            existingModel.IsCertificateUpload = true;
+                        }
+
+                        if (bir2307 != null && bir2307.Length > 0)
+                        {
+                            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
+
+                            if (!Directory.Exists(uploadsFolder))
+                            {
+                                Directory.CreateDirectory(uploadsFolder);
+                            }
+
+                            string fileName = Path.GetFileName(bir2307.FileName);
+                            string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                            using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                            {
+                                await bir2307.CopyToAsync(stream, cancellationToken);
+                            }
+
+                            existingModel.F2307FilePath = fileSavePath;
+                            existingModel.IsCertificateUpload = true;
+                        }
+
+                    decimal offsetAmount = 0;
+
+                    #endregion --Saving default value
+
+                    #region --Offsetting function
+
+                    var findOffsettings = await _dbContext.Offsettings
+                    .Where(offset => offset.Source == existingModel.CRNo)
+                    .ToListAsync(cancellationToken);
+
+                    var accountTitleSet = new HashSet<string>(accountTitle);
+
+                    // Remove records not in accountTitle
+                    foreach (var offsetting in findOffsettings)
                     {
-                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
-
-                        if (!Directory.Exists(uploadsFolder))
+                        if (!accountTitleSet.Contains(offsetting.AccountNo))
                         {
-                            Directory.CreateDirectory(uploadsFolder);
+                            _dbContext.Offsettings.Remove(offsetting);
                         }
-
-                        string fileName = Path.GetFileName(bir2307.FileName);
-                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
-
-                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
-                        {
-                            await bir2307.CopyToAsync(stream, cancellationToken);
-                        }
-
-                        existingModel.F2307FilePath = fileSavePath;
-                        existingModel.IsCertificateUpload = true;
                     }
+
+                    // Dictionary to keep track of AccountNo and their ids for comparison
+                    var accountTitleDict = new Dictionary<string, List<int>>();
+                    foreach (var offsetting in findOffsettings)
+                    {
+                        if (!accountTitleDict.ContainsKey(offsetting.AccountNo))
+                        {
+                            accountTitleDict[offsetting.AccountNo] = new List<int>();
+                        }
+                        accountTitleDict[offsetting.AccountNo].Add(offsetting.Id);
+                    }
+
+                    // Add or update records
+                    for (int i = 0; i < accountTitle.Length; i++)
+                    {
+                        var accountNo = accountTitle[i];
+                        var currentAccountTitle = accountTitleText[i];
+                        var currentAccountAmount = accountAmount[i];
+                        offsetAmount += accountAmount[i];
+
+                        var splitAccountTitle = currentAccountTitle.Split(new[] { ' ' }, 2);
+
+                        if (accountTitleDict.TryGetValue(accountNo, out var ids))
+                        {
+                            // Update the first matching record and remove it from the list
+                            var offsettingId = ids.First();
+                            ids.RemoveAt(0);
+                            var offsetting = findOffsettings.First(o => o.Id == offsettingId);
+
+                            offsetting.AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0];
+                            offsetting.Amount = currentAccountAmount;
+                            offsetting.CreatedBy = _userManager.GetUserName(this.User);
+                            offsetting.CreatedDate = DateTime.Now;
+
+                            if (ids.Count == 0)
+                            {
+                                accountTitleDict.Remove(accountNo);
+                            }
+                        }
+                        else
+                        {
+                            // Add new record
+                            var newOffsetting = new Offsetting
+                            {
+                                AccountNo = accountNo,
+                                AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0],
+                                Source = existingModel.CRNo,
+                                Reference = existingModel.SINo != null ? existingModel.SINo : existingModel.SVNo,
+                                Amount = currentAccountAmount,
+                                CreatedBy = _userManager.GetUserName(this.User),
+                                CreatedDate = DateTime.Now
+                            };
+                            await _dbContext.Offsettings.AddAsync(newOffsetting, cancellationToken);
+                        }
+                    }
+
+                    // Remove remaining records that were duplicates
+                    foreach (var ids in accountTitleDict.Values)
+                    {
+                        foreach (var id in ids)
+                        {
+                            var offsetting = findOffsettings.First(o => o.Id == id);
+                            _dbContext.Offsettings.Remove(offsetting);
+                        }
+                    }
+
+                    #endregion --Offsetting function
+
+                    #region --Audit Trail Recording
+
+                    // if (existingModel.OriginalSeriesNumber == null && existingModel.OriginalDocumentId == 0)
+                    // {
+                    //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    //     var modifiedBy = _userManager.GetUserName(this.User);
+                    //     AuditTrail auditTrailBook = new(modifiedBy, $"Edited collection receipt# {existingModel.CRNo}", "Collection Receipt", ipAddress);
+                    //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    // }
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    TempData["success"] = "Collection Receipt updated successfully";
+                    return RedirectToAction(nameof(CollectionIndex));
                 }
                 catch (Exception ex)
                 {
+                 await transaction.RollbackAsync(cancellationToken);
+                 TempData["error"] = ex.Message;
+                 return RedirectToAction(nameof(CollectionIndex));
                 }
-
-                decimal offsetAmount = 0;
-
-                #endregion --Saving default value
-
-                #region --Offsetting function
-
-                var findOffsettings = await _dbContext.Offsettings
-                .Where(offset => offset.Source == existingModel.CRNo)
-                .ToListAsync(cancellationToken);
-
-                var accountTitleSet = new HashSet<string>(accountTitle);
-
-                // Remove records not in accountTitle
-                foreach (var offsetting in findOffsettings)
-                {
-                    if (!accountTitleSet.Contains(offsetting.AccountNo))
-                    {
-                        _dbContext.Offsettings.Remove(offsetting);
-                    }
-                }
-
-                // Dictionary to keep track of AccountNo and their ids for comparison
-                var accountTitleDict = new Dictionary<string, List<int>>();
-                foreach (var offsetting in findOffsettings)
-                {
-                    if (!accountTitleDict.ContainsKey(offsetting.AccountNo))
-                    {
-                        accountTitleDict[offsetting.AccountNo] = new List<int>();
-                    }
-                    accountTitleDict[offsetting.AccountNo].Add(offsetting.Id);
-                }
-
-                // Add or update records
-                for (int i = 0; i < accountTitle.Length; i++)
-                {
-                    var accountNo = accountTitle[i];
-                    var currentAccountTitle = accountTitleText[i];
-                    var currentAccountAmount = accountAmount[i];
-                    offsetAmount += accountAmount[i];
-
-                    var splitAccountTitle = currentAccountTitle.Split(new[] { ' ' }, 2);
-
-                    if (accountTitleDict.TryGetValue(accountNo, out var ids))
-                    {
-                        // Update the first matching record and remove it from the list
-                        var offsettingId = ids.First();
-                        ids.RemoveAt(0);
-                        var offsetting = findOffsettings.First(o => o.Id == offsettingId);
-
-                        offsetting.AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0];
-                        offsetting.Amount = currentAccountAmount;
-                        offsetting.CreatedBy = _userManager.GetUserName(this.User);
-                        offsetting.CreatedDate = DateTime.Now;
-
-                        if (ids.Count == 0)
-                        {
-                            accountTitleDict.Remove(accountNo);
-                        }
-                    }
-                    else
-                    {
-                        // Add new record
-                        var newOffsetting = new Offsetting
-                        {
-                            AccountNo = accountNo,
-                            AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0],
-                            Source = existingModel.CRNo,
-                            Reference = existingModel.SINo != null ? existingModel.SINo : existingModel.SVNo,
-                            Amount = currentAccountAmount,
-                            CreatedBy = _userManager.GetUserName(this.User),
-                            CreatedDate = DateTime.Now
-                        };
-                        await _dbContext.Offsettings.AddAsync(newOffsetting, cancellationToken);
-                    }
-                }
-
-                // Remove remaining records that were duplicates
-                foreach (var ids in accountTitleDict.Values)
-                {
-                    foreach (var id in ids)
-                    {
-                        var offsetting = findOffsettings.First(o => o.Id == id);
-                        _dbContext.Offsettings.Remove(offsetting);
-                    }
-                }
-
-                #endregion --Offsetting function
-
-                #region --Audit Trail Recording
-
-                // if (existingModel.OriginalSeriesNumber == null && existingModel.OriginalDocumentId == 0)
-                // {
-                //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                //     var modifiedBy = _userManager.GetUserName(this.User);
-                //     AuditTrail auditTrailBook = new(modifiedBy, $"Edited collection receipt# {existingModel.CRNo}", "Collection Receipt", ipAddress);
-                //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                // }
-
-                #endregion --Audit Trail Recording
-
-                TempData["success"] = "Collection Receipt updated successfully";
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction(nameof(CollectionIndex));
             }
             else
             {
@@ -1262,203 +1283,208 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
-                #region --Saving default value
-
-                var computeTotalInModelIfZero = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + model.EWT + model.WVAT;
-                if (computeTotalInModelIfZero == 0)
-                {
-                    TempData["error"] = "Please input atleast one type form of payment";
-                    return View(model);
-                }
-                var existingSalesInvoice = await _dbContext.SalesInvoices
-                                               .Where(si => model.MultipleSIId.Contains(si.Id))
-                                               .ToListAsync(cancellationToken);
-
-                existingModel.MultipleSIId = new int[model.MultipleSIId.Length];
-                existingModel.MultipleSI = new string[model.MultipleSIId.Length];
-                existingModel.SIMultipleAmount = new decimal[model.MultipleSIId.Length];
-                existingModel.MultipleTransactionDate = new DateOnly[model.MultipleSIId.Length];
-                var salesInvoice = new SalesInvoice();
-                for (int i = 0; i < model.MultipleSIId.Length; i++)
-                {
-                    var siId = model.MultipleSIId[i];
-                    salesInvoice = await _dbContext.SalesInvoices
-                                .FirstOrDefaultAsync(si => si.Id == siId, cancellationToken);
-
-                    if (salesInvoice != null)
-                    {
-                        existingModel.MultipleSIId[i] = model.MultipleSIId[i];
-                        existingModel.MultipleSI[i] = salesInvoice.SINo;
-                        existingModel.MultipleTransactionDate[i] = salesInvoice.TransactionDate;
-                        existingModel.SIMultipleAmount[i] = model.SIMultipleAmount[i];
-                    }
-                }
-
-                existingModel.TransactionDate = model.TransactionDate;
-                existingModel.ReferenceNo = model.ReferenceNo;
-                existingModel.Remarks = model.Remarks;
-                existingModel.CheckDate = model.CheckDate;
-                existingModel.CheckNo = model.CheckNo;
-                existingModel.CheckBank = model.CheckBank;
-                existingModel.CheckBranch = model.CheckBranch;
-                existingModel.CashAmount = model.CashAmount;
-                existingModel.CheckAmount = model.CheckAmount;
-                existingModel.ManagerCheckAmount = model.ManagerCheckAmount;
-                existingModel.EWT = model.EWT;
-                existingModel.WVAT = model.WVAT;
-                existingModel.Total = computeTotalInModelIfZero;
-
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    if (bir2306 != null && bir2306.Length > 0)
+                    #region --Saving default value
+
+                    var computeTotalInModelIfZero = model.CashAmount + model.CheckAmount + model.ManagerCheckAmount + model.EWT + model.WVAT;
+                    if (computeTotalInModelIfZero == 0)
                     {
-                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
+                        TempData["error"] = "Please input atleast one type form of payment";
+                        return View(model);
+                    }
+                    var existingSalesInvoice = await _dbContext.SalesInvoices
+                                                   .Where(si => model.MultipleSIId.Contains(si.Id))
+                                                   .ToListAsync(cancellationToken);
 
-                        if (!Directory.Exists(uploadsFolder))
+                    existingModel.MultipleSIId = new int[model.MultipleSIId.Length];
+                    existingModel.MultipleSI = new string[model.MultipleSIId.Length];
+                    existingModel.SIMultipleAmount = new decimal[model.MultipleSIId.Length];
+                    existingModel.MultipleTransactionDate = new DateOnly[model.MultipleSIId.Length];
+                    var salesInvoice = new SalesInvoice();
+                    for (int i = 0; i < model.MultipleSIId.Length; i++)
+                    {
+                        var siId = model.MultipleSIId[i];
+                        salesInvoice = await _dbContext.SalesInvoices
+                                    .FirstOrDefaultAsync(si => si.Id == siId, cancellationToken);
+
+                        if (salesInvoice != null)
                         {
-                            Directory.CreateDirectory(uploadsFolder);
+                            existingModel.MultipleSIId[i] = model.MultipleSIId[i];
+                            existingModel.MultipleSI[i] = salesInvoice.SINo;
+                            existingModel.MultipleTransactionDate[i] = salesInvoice.TransactionDate;
+                            existingModel.SIMultipleAmount[i] = model.SIMultipleAmount[i];
                         }
-
-                        string fileName = Path.GetFileName(bir2306.FileName);
-                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
-
-                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
-                        {
-                            await bir2306.CopyToAsync(stream, cancellationToken);
-                        }
-
-                        existingModel.F2306FilePath = fileSavePath;
-                        existingModel.IsCertificateUpload = true;
                     }
 
-                    if (bir2307 != null && bir2307.Length > 0)
+                    existingModel.TransactionDate = model.TransactionDate;
+                    existingModel.ReferenceNo = model.ReferenceNo;
+                    existingModel.Remarks = model.Remarks;
+                    existingModel.CheckDate = model.CheckDate;
+                    existingModel.CheckNo = model.CheckNo;
+                    existingModel.CheckBank = model.CheckBank;
+                    existingModel.CheckBranch = model.CheckBranch;
+                    existingModel.CashAmount = model.CashAmount;
+                    existingModel.CheckAmount = model.CheckAmount;
+                    existingModel.ManagerCheckAmount = model.ManagerCheckAmount;
+                    existingModel.EWT = model.EWT;
+                    existingModel.WVAT = model.WVAT;
+                    existingModel.Total = computeTotalInModelIfZero;
+
+                        if (bir2306 != null && bir2306.Length > 0)
+                        {
+                            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2306");
+
+                            if (!Directory.Exists(uploadsFolder))
+                            {
+                                Directory.CreateDirectory(uploadsFolder);
+                            }
+
+                            string fileName = Path.GetFileName(bir2306.FileName);
+                            string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                            using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                            {
+                                await bir2306.CopyToAsync(stream, cancellationToken);
+                            }
+
+                            existingModel.F2306FilePath = fileSavePath;
+                            existingModel.IsCertificateUpload = true;
+                        }
+
+                        if (bir2307 != null && bir2307.Length > 0)
+                        {
+                            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
+
+                            if (!Directory.Exists(uploadsFolder))
+                            {
+                                Directory.CreateDirectory(uploadsFolder);
+                            }
+
+                            string fileName = Path.GetFileName(bir2307.FileName);
+                            string fileSavePath = Path.Combine(uploadsFolder, fileName);
+
+                            using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
+                            {
+                                await bir2307.CopyToAsync(stream, cancellationToken);
+                            }
+
+                            existingModel.F2307FilePath = fileSavePath;
+                            existingModel.IsCertificateUpload = true;
+                        }
+
+                    decimal offsetAmount = 0;
+
+                    #endregion --Saving default value
+
+                    #region --Offsetting function
+
+                    var findOffsettings = await _dbContext.Offsettings
+                    .Where(offset => offset.Source == existingModel.CRNo)
+                    .ToListAsync(cancellationToken);
+
+                    var accountTitleSet = new HashSet<string>(accountTitle);
+
+                    // Remove records not in accountTitle
+                    foreach (var offsetting in findOffsettings)
                     {
-                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "BIR 2307");
-
-                        if (!Directory.Exists(uploadsFolder))
+                        if (!accountTitleSet.Contains(offsetting.AccountNo))
                         {
-                            Directory.CreateDirectory(uploadsFolder);
+                            _dbContext.Offsettings.Remove(offsetting);
                         }
-
-                        string fileName = Path.GetFileName(bir2307.FileName);
-                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
-
-                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
-                        {
-                            await bir2307.CopyToAsync(stream, cancellationToken);
-                        }
-
-                        existingModel.F2307FilePath = fileSavePath;
-                        existingModel.IsCertificateUpload = true;
                     }
+
+                    // Dictionary to keep track of AccountNo and their ids for comparison
+                    var accountTitleDict = new Dictionary<string, List<int>>();
+                    foreach (var offsetting in findOffsettings)
+                    {
+                        if (!accountTitleDict.ContainsKey(offsetting.AccountNo))
+                        {
+                            accountTitleDict[offsetting.AccountNo] = new List<int>();
+                        }
+                        accountTitleDict[offsetting.AccountNo].Add(offsetting.Id);
+                    }
+
+                    // Add or update records
+                    for (int i = 0; i < accountTitle.Length; i++)
+                    {
+                        var accountNo = accountTitle[i];
+                        var currentAccountTitle = accountTitleText[i];
+                        var currentAccountAmount = accountAmount[i];
+                        offsetAmount += accountAmount[i];
+
+                        var splitAccountTitle = currentAccountTitle.Split(new[] { ' ' }, 2);
+
+                        if (accountTitleDict.TryGetValue(accountNo, out var ids))
+                        {
+                            // Update the first matching record and remove it from the list
+                            var offsettingId = ids.First();
+                            ids.RemoveAt(0);
+                            var offsetting = findOffsettings.First(o => o.Id == offsettingId);
+
+                            offsetting.AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0];
+                            offsetting.Amount = currentAccountAmount;
+                            offsetting.CreatedBy = _userManager.GetUserName(this.User);
+                            offsetting.CreatedDate = DateTime.Now;
+
+                            if (ids.Count == 0)
+                            {
+                                accountTitleDict.Remove(accountNo);
+                            }
+                        }
+                        else
+                        {
+                            // Add new record
+                            var newOffsetting = new Offsetting
+                            {
+                                AccountNo = accountNo,
+                                AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0],
+                                Source = existingModel.CRNo,
+                                Reference = existingModel.SINo != null ? existingModel.SINo : existingModel.SVNo,
+                                Amount = currentAccountAmount,
+                                CreatedBy = _userManager.GetUserName(this.User),
+                                CreatedDate = DateTime.Now
+                            };
+                            await _dbContext.Offsettings.AddAsync(newOffsetting, cancellationToken);
+                        }
+                    }
+
+                    // Remove remaining records that were duplicates
+                    foreach (var ids in accountTitleDict.Values)
+                    {
+                        foreach (var id in ids)
+                        {
+                            var offsetting = findOffsettings.First(o => o.Id == id);
+                            _dbContext.Offsettings.Remove(offsetting);
+                        }
+                    }
+
+                    #endregion --Offsetting function
+
+                    #region --Audit Trail Recording
+
+                    // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    // {
+                    //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    //     var modifiedBy = _userManager.GetUserName(this.User);
+                    //     AuditTrail auditTrailBook = new(modifiedBy, $"Edited collection receipt# {existingModel.CRNo}", "Collection Receipt", ipAddress);
+                    //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    // }
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    TempData["success"] = "Collection Receipt edited successfully";
+                    return RedirectToAction(nameof(CollectionIndex));
                 }
                 catch (Exception ex)
                 {
+                 await transaction.RollbackAsync(cancellationToken);
+                 TempData["error"] = ex.Message;
+                 return RedirectToAction(nameof(Index));
                 }
-
-                decimal offsetAmount = 0;
-
-                #endregion --Saving default value
-
-                #region --Offsetting function
-
-                var findOffsettings = await _dbContext.Offsettings
-                .Where(offset => offset.Source == existingModel.CRNo)
-                .ToListAsync(cancellationToken);
-
-                var accountTitleSet = new HashSet<string>(accountTitle);
-
-                // Remove records not in accountTitle
-                foreach (var offsetting in findOffsettings)
-                {
-                    if (!accountTitleSet.Contains(offsetting.AccountNo))
-                    {
-                        _dbContext.Offsettings.Remove(offsetting);
-                    }
-                }
-
-                // Dictionary to keep track of AccountNo and their ids for comparison
-                var accountTitleDict = new Dictionary<string, List<int>>();
-                foreach (var offsetting in findOffsettings)
-                {
-                    if (!accountTitleDict.ContainsKey(offsetting.AccountNo))
-                    {
-                        accountTitleDict[offsetting.AccountNo] = new List<int>();
-                    }
-                    accountTitleDict[offsetting.AccountNo].Add(offsetting.Id);
-                }
-
-                // Add or update records
-                for (int i = 0; i < accountTitle.Length; i++)
-                {
-                    var accountNo = accountTitle[i];
-                    var currentAccountTitle = accountTitleText[i];
-                    var currentAccountAmount = accountAmount[i];
-                    offsetAmount += accountAmount[i];
-
-                    var splitAccountTitle = currentAccountTitle.Split(new[] { ' ' }, 2);
-
-                    if (accountTitleDict.TryGetValue(accountNo, out var ids))
-                    {
-                        // Update the first matching record and remove it from the list
-                        var offsettingId = ids.First();
-                        ids.RemoveAt(0);
-                        var offsetting = findOffsettings.First(o => o.Id == offsettingId);
-
-                        offsetting.AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0];
-                        offsetting.Amount = currentAccountAmount;
-                        offsetting.CreatedBy = _userManager.GetUserName(this.User);
-                        offsetting.CreatedDate = DateTime.Now;
-
-                        if (ids.Count == 0)
-                        {
-                            accountTitleDict.Remove(accountNo);
-                        }
-                    }
-                    else
-                    {
-                        // Add new record
-                        var newOffsetting = new Offsetting
-                        {
-                            AccountNo = accountNo,
-                            AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0],
-                            Source = existingModel.CRNo,
-                            Reference = existingModel.SINo != null ? existingModel.SINo : existingModel.SVNo,
-                            Amount = currentAccountAmount,
-                            CreatedBy = _userManager.GetUserName(this.User),
-                            CreatedDate = DateTime.Now
-                        };
-                        await _dbContext.Offsettings.AddAsync(newOffsetting, cancellationToken);
-                    }
-                }
-
-                // Remove remaining records that were duplicates
-                foreach (var ids in accountTitleDict.Values)
-                {
-                    foreach (var id in ids)
-                    {
-                        var offsetting = findOffsettings.First(o => o.Id == id);
-                        _dbContext.Offsettings.Remove(offsetting);
-                    }
-                }
-
-                #endregion --Offsetting function
-
-                #region --Audit Trail Recording
-
-                // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                // {
-                //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                //     var modifiedBy = _userManager.GetUserName(this.User);
-                //     AuditTrail auditTrailBook = new(modifiedBy, $"Edited collection receipt# {existingModel.CRNo}", "Collection Receipt", ipAddress);
-                //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                // }
-
-                #endregion --Audit Trail Recording
-
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                TempData["success"] = "Collection Receipt edited successfully";
-                return RedirectToAction(nameof(CollectionIndex));
             }
             else
             {
@@ -1473,6 +1499,7 @@ namespace Accounting_System.Controllers
 
             if (model != null)
             {
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 var collectionPrint = model.MultipleSIId != null ? nameof(MultipleCollectionPrint) : nameof(CollectionPrint);
                 try
                 {
@@ -1523,12 +1550,14 @@ namespace Accounting_System.Controllers
                         #endregion --Audit Trail Recording
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                         TempData["success"] = "Collection Receipt has been Posted.";
                     }
                     return RedirectToAction(collectionPrint, new { id = itemId });
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(collectionPrint, new { id = itemId });
                 }
@@ -1614,30 +1643,41 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Cancel(int itemId, string cancellationRemarks, CancellationToken cancellationToken)
         {
             var model = await _dbContext.CollectionReceipts.FindAsync(itemId, cancellationToken);
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            if (model != null)
+            try
             {
-                if (!model.IsCanceled)
+                if (model != null)
                 {
-                    model.IsCanceled = true;
-                    model.CanceledBy = _userManager.GetUserName(this.User);
-                    model.CanceledDate = DateTime.Now;
-                    model.CancellationRemarks = cancellationRemarks;
-
-                    #region --Audit Trail Recording
-
-                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    if (!model.IsCanceled)
                     {
-                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled collection receipt# {model.CRNo}", "Collection Receipt", ipAddress);
-                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        model.IsCanceled = true;
+                        model.CanceledBy = _userManager.GetUserName(this.User);
+                        model.CanceledDate = DateTime.Now;
+                        model.CancellationRemarks = cancellationRemarks;
+
+                        #region --Audit Trail Recording
+
+                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled collection receipt# {model.CRNo}", "Collection Receipt", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Collection Receipt has been Cancelled.";
                     }
-
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Collection Receipt has been Cancelled.";
+                    return RedirectToAction(nameof(CollectionIndex));
                 }
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(CollectionIndex));
             }
 
@@ -1648,7 +1688,7 @@ namespace Accounting_System.Controllers
         #region -- export xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Export(string selectedRecord)
+        public async Task<IActionResult> Export(string selectedRecord, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(selectedRecord))
             {
@@ -1656,315 +1696,326 @@ namespace Accounting_System.Controllers
                 return RedirectToAction(nameof(CollectionIndex));
             }
 
-            var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            try
+		    {
+                var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
 
-            // Retrieve the selected invoices from the database
-            var selectedList = await _dbContext.CollectionReceipts
-                .Where(cr => recordIds.Contains(cr.Id))
-                .Include(cr => cr.SalesInvoice)
-                .Include(cr => cr.ServiceInvoice)
-                .OrderBy(cr => cr.CRNo)
-                .ToListAsync();
+                // Retrieve the selected invoices from the database
+                var selectedList = await _dbContext.CollectionReceipts
+                    .Where(cr => recordIds.Contains(cr.Id))
+                    .Include(cr => cr.SalesInvoice)
+                    .Include(cr => cr.ServiceInvoice)
+                    .OrderBy(cr => cr.CRNo)
+                    .ToListAsync();
 
-            using (var package = new ExcelPackage())
-            {
-                // Add a new worksheet to the Excel package
-                #region -- Sales Invoice Table Header --
-
-                    var worksheet3 = package.Workbook.Worksheets.Add("SalesInvoice");
-
-                    worksheet3.Cells["A1"].Value = "OtherRefNo";
-                    worksheet3.Cells["B1"].Value = "Quantity";
-                    worksheet3.Cells["C1"].Value = "UnitPrice";
-                    worksheet3.Cells["D1"].Value = "Amount";
-                    worksheet3.Cells["E1"].Value = "Remarks";
-                    worksheet3.Cells["F1"].Value = "Status";
-                    worksheet3.Cells["G1"].Value = "TransactionDate";
-                    worksheet3.Cells["H1"].Value = "Discount";
-                    worksheet3.Cells["I1"].Value = "AmountPaid";
-                    worksheet3.Cells["J1"].Value = "Balance";
-                    worksheet3.Cells["K1"].Value = "IsPaid";
-                    worksheet3.Cells["L1"].Value = "IsTaxAndVatPaid";
-                    worksheet3.Cells["M1"].Value = "DueDate";
-                    worksheet3.Cells["N1"].Value = "CreatedBy";
-                    worksheet3.Cells["O1"].Value = "CreatedDate";
-                    worksheet3.Cells["P1"].Value = "CancellationRemarks";
-                    worksheet3.Cells["Q1"].Value = "OriginalReceivingReportId";
-                    worksheet3.Cells["R1"].Value = "OriginalCustomerId";
-                    worksheet3.Cells["S1"].Value = "OriginalPOId";
-                    worksheet3.Cells["T1"].Value = "OriginalProductId";
-                    worksheet3.Cells["U1"].Value = "OriginalSINo";
-                    worksheet3.Cells["V1"].Value = "OriginalDocumentId";
-
-                #endregion -- Sales Invoice Table Header --
-
-                #region -- Service Invoice Table Header --
-
-                    var worksheet4 = package.Workbook.Worksheets.Add("ServiceInvoice");
-
-                    worksheet4.Cells["A1"].Value = "DueDate";
-                    worksheet4.Cells["B1"].Value = "Period";
-                    worksheet4.Cells["C1"].Value = "Amount";
-                    worksheet4.Cells["D1"].Value = "Total";
-                    worksheet4.Cells["E1"].Value = "Discount";
-                    worksheet4.Cells["F1"].Value = "CurrentAndPreviousMonth";
-                    worksheet4.Cells["G1"].Value = "UnearnedAmount";
-                    worksheet4.Cells["H1"].Value = "Status";
-                    worksheet4.Cells["I1"].Value = "AmountPaid";
-                    worksheet4.Cells["J1"].Value = "Balance";
-                    worksheet4.Cells["K1"].Value = "Instructions";
-                    worksheet4.Cells["L1"].Value = "IsPaid";
-                    worksheet4.Cells["M1"].Value = "CreatedBy";
-                    worksheet4.Cells["N1"].Value = "CreatedDate";
-                    worksheet4.Cells["O1"].Value = "CancellationRemarks";
-                    worksheet4.Cells["P1"].Value = "OriginalCustomerId";
-                    worksheet4.Cells["Q1"].Value = "OriginalSVNo";
-                    worksheet4.Cells["R1"].Value = "OriginalServicesId";
-                    worksheet4.Cells["S1"].Value = "OriginalDocumentId";
-
-                #endregion -- Service Invoice Table Header --
-
-                #region -- Collection Receipt Table Header --
-
-                var worksheet = package.Workbook.Worksheets.Add("CollectionReceipt");
-
-                worksheet.Cells["A1"].Value = "TransactionDate";
-                worksheet.Cells["B1"].Value = "ReferenceNo";
-                worksheet.Cells["C1"].Value = "Remarks";
-                worksheet.Cells["D1"].Value = "CashAmount";
-                worksheet.Cells["E1"].Value = "CheckDate";
-                worksheet.Cells["F1"].Value = "CheckNo";
-                worksheet.Cells["G1"].Value = "CheckBank";
-                worksheet.Cells["H1"].Value = "CheckBranch";
-                worksheet.Cells["I1"].Value = "CheckAmount";
-                worksheet.Cells["J1"].Value = "ManagerCheckDate";
-                worksheet.Cells["K1"].Value = "ManagerCheckNo";
-                worksheet.Cells["L1"].Value = "ManagerCheckBank";
-                worksheet.Cells["M1"].Value = "ManagerCheckBranch";
-                worksheet.Cells["N1"].Value = "ManagerCheckAmount";
-                worksheet.Cells["O1"].Value = "EWT";
-                worksheet.Cells["P1"].Value = "WVAT";
-                worksheet.Cells["Q1"].Value = "Total";
-                worksheet.Cells["R1"].Value = "IsCertificateUpload";
-                worksheet.Cells["S1"].Value = "f2306FilePath";
-                worksheet.Cells["T1"].Value = "f2307FilePath";
-                worksheet.Cells["U1"].Value = "CreatedBy";
-                worksheet.Cells["V1"].Value = "CreatedDate";
-                worksheet.Cells["W1"].Value = "CancellationRemarks";
-                worksheet.Cells["X1"].Value = "MultipleSI";
-                worksheet.Cells["Y1"].Value = "MultipleSIId";
-                worksheet.Cells["Z1"].Value = "SIMultipleAmount";
-                worksheet.Cells["AA1"].Value = "MultipleTransactionDate";
-                worksheet.Cells["AB1"].Value = "OriginalCustomerId";
-                worksheet.Cells["AC1"].Value = "OriginalSalesInvoiceId";
-                worksheet.Cells["AD1"].Value = "OriginalCRNo";
-                worksheet.Cells["AE1"].Value = "OriginalServiceInvoiceId";
-                worksheet.Cells["AF1"].Value = "OriginalDocumentId";
-
-                #endregion -- Collection Receipt Table Header --
-
-                #region -- Offsetting Table Header --
-
-                var worksheet2 = package.Workbook.Worksheets.Add("Offsetting");
-
-                worksheet2.Cells["A1"].Value = "AccountNo";
-                worksheet2.Cells["B1"].Value = "Source";
-                worksheet2.Cells["C1"].Value = "Reference";
-                worksheet2.Cells["D1"].Value = "IsRemoved";
-                worksheet2.Cells["E1"].Value = "Amount";
-                worksheet2.Cells["F1"].Value = "CreatedBy";
-                worksheet2.Cells["G1"].Value = "CreatedDate";
-                worksheet2.Cells["H1"].Value = "AccountTitle";
-
-                #endregion -- Offsetting Table Header --
-
-                #region -- Collection Receipt Export --
-                int row = 2;
-
-                foreach (var item in selectedList)
+                using (var package = new ExcelPackage())
                 {
-                    worksheet.Cells[row, 1].Value = item.TransactionDate.ToString("yyyy-MM-dd");
-                    worksheet.Cells[row, 2].Value = item.ReferenceNo;
-                    worksheet.Cells[row, 3].Value = item.Remarks;
-                    worksheet.Cells[row, 4].Value = item.CashAmount;
-                    worksheet.Cells[row, 5].Value = item.CheckDate;
-                    worksheet.Cells[row, 6].Value = item.CheckNo;
-                    worksheet.Cells[row, 7].Value = item.CheckBank;
-                    worksheet.Cells[row, 8].Value = item.CheckBranch;
-                    worksheet.Cells[row, 9].Value = item.CheckAmount;
-                    worksheet.Cells[row, 10].Value = item.ManagerCheckDate?.ToString("yyyy-MM-dd");
-                    worksheet.Cells[row, 11].Value = item.ManagerCheckNo;
-                    worksheet.Cells[row, 12].Value = item.ManagerCheckBank;
-                    worksheet.Cells[row, 13].Value = item.ManagerCheckBranch;
-                    worksheet.Cells[row, 14].Value = item.ManagerCheckAmount;
-                    worksheet.Cells[row, 15].Value = item.EWT;
-                    worksheet.Cells[row, 16].Value = item.WVAT;
-                    worksheet.Cells[row, 17].Value = item.Total;
-                    worksheet.Cells[row, 18].Value = item.IsCertificateUpload;
-                    worksheet.Cells[row, 19].Value = item.F2306FilePath;
-                    worksheet.Cells[row, 20].Value = item.F2307FilePath;
-                    worksheet.Cells[row, 21].Value = item.CreatedBy;
-                    worksheet.Cells[row, 22].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet.Cells[row, 23].Value = item.CancellationRemarks;
-                    if (item.MultipleSIId != null)
-                    {
-                        worksheet.Cells[row, 24].Value = string.Join(", ", item.MultipleSI.Select(si => si.ToString()));
-                        worksheet.Cells[row, 25].Value = string.Join(", ", item.MultipleSIId.Select(siId => siId.ToString()));
-                        worksheet.Cells[row, 26].Value = string.Join(" ", item.SIMultipleAmount.Select(multipleSI => multipleSI.ToString("N2")));
-                        worksheet.Cells[row, 27].Value = string.Join(", ", item.MultipleTransactionDate.Select(multipleTransactionDate => multipleTransactionDate.ToString("yyyy-MM-dd")));
-                    }
-                    worksheet.Cells[row, 28].Value = item.CustomerId;
-                    worksheet.Cells[row, 29].Value = item.SalesInvoiceId;
-                    worksheet.Cells[row, 30].Value = item.CRNo;
-                    worksheet.Cells[row, 31].Value = item.ServiceInvoiceId;
-                    worksheet.Cells[row, 32].Value = item.Id;
+                    // Add a new worksheet to the Excel package
+                    #region -- Sales Invoice Table Header --
 
-                    row++;
-                }
+                        var worksheet3 = package.Workbook.Worksheets.Add("SalesInvoice");
 
-                #endregion -- Collection Receipt Export --
+                        worksheet3.Cells["A1"].Value = "OtherRefNo";
+                        worksheet3.Cells["B1"].Value = "Quantity";
+                        worksheet3.Cells["C1"].Value = "UnitPrice";
+                        worksheet3.Cells["D1"].Value = "Amount";
+                        worksheet3.Cells["E1"].Value = "Remarks";
+                        worksheet3.Cells["F1"].Value = "Status";
+                        worksheet3.Cells["G1"].Value = "TransactionDate";
+                        worksheet3.Cells["H1"].Value = "Discount";
+                        worksheet3.Cells["I1"].Value = "AmountPaid";
+                        worksheet3.Cells["J1"].Value = "Balance";
+                        worksheet3.Cells["K1"].Value = "IsPaid";
+                        worksheet3.Cells["L1"].Value = "IsTaxAndVatPaid";
+                        worksheet3.Cells["M1"].Value = "DueDate";
+                        worksheet3.Cells["N1"].Value = "CreatedBy";
+                        worksheet3.Cells["O1"].Value = "CreatedDate";
+                        worksheet3.Cells["P1"].Value = "CancellationRemarks";
+                        worksheet3.Cells["Q1"].Value = "OriginalReceivingReportId";
+                        worksheet3.Cells["R1"].Value = "OriginalCustomerId";
+                        worksheet3.Cells["S1"].Value = "OriginalPOId";
+                        worksheet3.Cells["T1"].Value = "OriginalProductId";
+                        worksheet3.Cells["U1"].Value = "OriginalSINo";
+                        worksheet3.Cells["V1"].Value = "OriginalDocumentId";
 
-                #region -- Sales Invoice Export --
+                    #endregion -- Sales Invoice Table Header --
 
-                int siRow = 2;
+                    #region -- Service Invoice Table Header --
 
-                foreach (var item in selectedList)
-                {
-                    if (item.SalesInvoice == null)
-                    {
-                        continue;
-                    }
-                    worksheet3.Cells[siRow, 1].Value = item.SalesInvoice.OtherRefNo;
-                    worksheet3.Cells[siRow, 2].Value = item.SalesInvoice.Quantity;
-                    worksheet3.Cells[siRow, 3].Value = item.SalesInvoice.UnitPrice;
-                    worksheet3.Cells[siRow, 4].Value = item.SalesInvoice.Amount;
-                    worksheet3.Cells[siRow, 5].Value = item.SalesInvoice.Remarks;
-                    worksheet3.Cells[siRow, 6].Value = item.SalesInvoice.Status;
-                    worksheet3.Cells[siRow, 7].Value = item.SalesInvoice.TransactionDate.ToString("yyyy-MM-dd");
-                    worksheet3.Cells[siRow, 8].Value = item.SalesInvoice.Discount;
-                    worksheet3.Cells[siRow, 9].Value = item.SalesInvoice.AmountPaid;
-                    worksheet3.Cells[siRow, 10].Value = item.SalesInvoice.Balance;
-                    worksheet3.Cells[siRow, 11].Value = item.SalesInvoice.IsPaid;
-                    worksheet3.Cells[siRow, 12].Value = item.SalesInvoice.IsTaxAndVatPaid;
-                    worksheet3.Cells[siRow, 13].Value = item.SalesInvoice.DueDate.ToString("yyyy-MM-dd");
-                    worksheet3.Cells[siRow, 14].Value = item.SalesInvoice.CreatedBy;
-                    worksheet3.Cells[siRow, 15].Value = item.SalesInvoice.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet3.Cells[siRow, 16].Value = item.SalesInvoice.CancellationRemarks;
-                    worksheet3.Cells[siRow, 18].Value = item.SalesInvoice.CustomerId;
-                    worksheet3.Cells[siRow, 20].Value = item.SalesInvoice.ProductId;
-                    worksheet3.Cells[siRow, 21].Value = item.SalesInvoice.SINo;
-                    worksheet3.Cells[siRow, 22].Value = item.SalesInvoice.Id;
+                        var worksheet4 = package.Workbook.Worksheets.Add("ServiceInvoice");
 
-                    siRow++;
-                }
+                        worksheet4.Cells["A1"].Value = "DueDate";
+                        worksheet4.Cells["B1"].Value = "Period";
+                        worksheet4.Cells["C1"].Value = "Amount";
+                        worksheet4.Cells["D1"].Value = "Total";
+                        worksheet4.Cells["E1"].Value = "Discount";
+                        worksheet4.Cells["F1"].Value = "CurrentAndPreviousMonth";
+                        worksheet4.Cells["G1"].Value = "UnearnedAmount";
+                        worksheet4.Cells["H1"].Value = "Status";
+                        worksheet4.Cells["I1"].Value = "AmountPaid";
+                        worksheet4.Cells["J1"].Value = "Balance";
+                        worksheet4.Cells["K1"].Value = "Instructions";
+                        worksheet4.Cells["L1"].Value = "IsPaid";
+                        worksheet4.Cells["M1"].Value = "CreatedBy";
+                        worksheet4.Cells["N1"].Value = "CreatedDate";
+                        worksheet4.Cells["O1"].Value = "CancellationRemarks";
+                        worksheet4.Cells["P1"].Value = "OriginalCustomerId";
+                        worksheet4.Cells["Q1"].Value = "OriginalSVNo";
+                        worksheet4.Cells["R1"].Value = "OriginalServicesId";
+                        worksheet4.Cells["S1"].Value = "OriginalDocumentId";
 
-                #endregion -- Sales Invoice Export --
+                    #endregion -- Service Invoice Table Header --
 
-                #region -- Service Invoice Export --
+                    #region -- Collection Receipt Table Header --
 
-                    int svRow = 2;
+                    var worksheet = package.Workbook.Worksheets.Add("CollectionReceipt");
+
+                    worksheet.Cells["A1"].Value = "TransactionDate";
+                    worksheet.Cells["B1"].Value = "ReferenceNo";
+                    worksheet.Cells["C1"].Value = "Remarks";
+                    worksheet.Cells["D1"].Value = "CashAmount";
+                    worksheet.Cells["E1"].Value = "CheckDate";
+                    worksheet.Cells["F1"].Value = "CheckNo";
+                    worksheet.Cells["G1"].Value = "CheckBank";
+                    worksheet.Cells["H1"].Value = "CheckBranch";
+                    worksheet.Cells["I1"].Value = "CheckAmount";
+                    worksheet.Cells["J1"].Value = "ManagerCheckDate";
+                    worksheet.Cells["K1"].Value = "ManagerCheckNo";
+                    worksheet.Cells["L1"].Value = "ManagerCheckBank";
+                    worksheet.Cells["M1"].Value = "ManagerCheckBranch";
+                    worksheet.Cells["N1"].Value = "ManagerCheckAmount";
+                    worksheet.Cells["O1"].Value = "EWT";
+                    worksheet.Cells["P1"].Value = "WVAT";
+                    worksheet.Cells["Q1"].Value = "Total";
+                    worksheet.Cells["R1"].Value = "IsCertificateUpload";
+                    worksheet.Cells["S1"].Value = "f2306FilePath";
+                    worksheet.Cells["T1"].Value = "f2307FilePath";
+                    worksheet.Cells["U1"].Value = "CreatedBy";
+                    worksheet.Cells["V1"].Value = "CreatedDate";
+                    worksheet.Cells["W1"].Value = "CancellationRemarks";
+                    worksheet.Cells["X1"].Value = "MultipleSI";
+                    worksheet.Cells["Y1"].Value = "MultipleSIId";
+                    worksheet.Cells["Z1"].Value = "SIMultipleAmount";
+                    worksheet.Cells["AA1"].Value = "MultipleTransactionDate";
+                    worksheet.Cells["AB1"].Value = "OriginalCustomerId";
+                    worksheet.Cells["AC1"].Value = "OriginalSalesInvoiceId";
+                    worksheet.Cells["AD1"].Value = "OriginalCRNo";
+                    worksheet.Cells["AE1"].Value = "OriginalServiceInvoiceId";
+                    worksheet.Cells["AF1"].Value = "OriginalDocumentId";
+
+                    #endregion -- Collection Receipt Table Header --
+
+                    #region -- Offsetting Table Header --
+
+                    var worksheet2 = package.Workbook.Worksheets.Add("Offsetting");
+
+                    worksheet2.Cells["A1"].Value = "AccountNo";
+                    worksheet2.Cells["B1"].Value = "Source";
+                    worksheet2.Cells["C1"].Value = "Reference";
+                    worksheet2.Cells["D1"].Value = "IsRemoved";
+                    worksheet2.Cells["E1"].Value = "Amount";
+                    worksheet2.Cells["F1"].Value = "CreatedBy";
+                    worksheet2.Cells["G1"].Value = "CreatedDate";
+                    worksheet2.Cells["H1"].Value = "AccountTitle";
+
+                    #endregion -- Offsetting Table Header --
+
+                    #region -- Collection Receipt Export --
+                    int row = 2;
 
                     foreach (var item in selectedList)
                     {
-                        if (item.ServiceInvoice == null)
+                        worksheet.Cells[row, 1].Value = item.TransactionDate.ToString("yyyy-MM-dd");
+                        worksheet.Cells[row, 2].Value = item.ReferenceNo;
+                        worksheet.Cells[row, 3].Value = item.Remarks;
+                        worksheet.Cells[row, 4].Value = item.CashAmount;
+                        worksheet.Cells[row, 5].Value = item.CheckDate;
+                        worksheet.Cells[row, 6].Value = item.CheckNo;
+                        worksheet.Cells[row, 7].Value = item.CheckBank;
+                        worksheet.Cells[row, 8].Value = item.CheckBranch;
+                        worksheet.Cells[row, 9].Value = item.CheckAmount;
+                        worksheet.Cells[row, 10].Value = item.ManagerCheckDate?.ToString("yyyy-MM-dd");
+                        worksheet.Cells[row, 11].Value = item.ManagerCheckNo;
+                        worksheet.Cells[row, 12].Value = item.ManagerCheckBank;
+                        worksheet.Cells[row, 13].Value = item.ManagerCheckBranch;
+                        worksheet.Cells[row, 14].Value = item.ManagerCheckAmount;
+                        worksheet.Cells[row, 15].Value = item.EWT;
+                        worksheet.Cells[row, 16].Value = item.WVAT;
+                        worksheet.Cells[row, 17].Value = item.Total;
+                        worksheet.Cells[row, 18].Value = item.IsCertificateUpload;
+                        worksheet.Cells[row, 19].Value = item.F2306FilePath;
+                        worksheet.Cells[row, 20].Value = item.F2307FilePath;
+                        worksheet.Cells[row, 21].Value = item.CreatedBy;
+                        worksheet.Cells[row, 22].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                        worksheet.Cells[row, 23].Value = item.CancellationRemarks;
+                        if (item.MultipleSIId != null)
+                        {
+                            worksheet.Cells[row, 24].Value = string.Join(", ", item.MultipleSI.Select(si => si.ToString()));
+                            worksheet.Cells[row, 25].Value = string.Join(", ", item.MultipleSIId.Select(siId => siId.ToString()));
+                            worksheet.Cells[row, 26].Value = string.Join(" ", item.SIMultipleAmount.Select(multipleSI => multipleSI.ToString("N2")));
+                            worksheet.Cells[row, 27].Value = string.Join(", ", item.MultipleTransactionDate.Select(multipleTransactionDate => multipleTransactionDate.ToString("yyyy-MM-dd")));
+                        }
+                        worksheet.Cells[row, 28].Value = item.CustomerId;
+                        worksheet.Cells[row, 29].Value = item.SalesInvoiceId;
+                        worksheet.Cells[row, 30].Value = item.CRNo;
+                        worksheet.Cells[row, 31].Value = item.ServiceInvoiceId;
+                        worksheet.Cells[row, 32].Value = item.Id;
+
+                        row++;
+                    }
+
+                    #endregion -- Collection Receipt Export --
+
+                    #region -- Sales Invoice Export --
+
+                    int siRow = 2;
+
+                    foreach (var item in selectedList)
+                    {
+                        if (item.SalesInvoice == null)
                         {
                             continue;
                         }
-                        worksheet4.Cells[svRow, 1].Value = item.ServiceInvoice.DueDate.ToString("yyyy-MM-dd");
-                        worksheet4.Cells[svRow, 2].Value = item.ServiceInvoice.Period.ToString("yyyy-MM-dd");
-                        worksheet4.Cells[svRow, 3].Value = item.ServiceInvoice.Amount;
-                        worksheet4.Cells[svRow, 4].Value = item.ServiceInvoice.Total;
-                        worksheet4.Cells[svRow, 5].Value = item.ServiceInvoice.Discount;
-                        worksheet4.Cells[svRow, 6].Value = item.ServiceInvoice.CurrentAndPreviousAmount;
-                        worksheet4.Cells[svRow, 7].Value = item.ServiceInvoice.UnearnedAmount;
-                        worksheet4.Cells[svRow, 8].Value = item.ServiceInvoice.Status;
-                        worksheet4.Cells[svRow, 9].Value = item.ServiceInvoice.AmountPaid;
-                        worksheet4.Cells[svRow, 10].Value = item.ServiceInvoice.Balance;
-                        worksheet4.Cells[svRow, 11].Value = item.ServiceInvoice.Instructions;
-                        worksheet4.Cells[svRow, 12].Value = item.ServiceInvoice.IsPaid;
-                        worksheet4.Cells[svRow, 13].Value = item.ServiceInvoice.CreatedBy;
-                        worksheet4.Cells[svRow, 14].Value = item.ServiceInvoice.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                        worksheet4.Cells[svRow, 15].Value = item.ServiceInvoice.CancellationRemarks;
-                        worksheet4.Cells[svRow, 16].Value = item.ServiceInvoice.CustomerId;
-                        worksheet4.Cells[svRow, 17].Value = item.ServiceInvoice.SVNo;
-                        worksheet4.Cells[svRow, 18].Value = item.ServiceInvoice.ServicesId;
-                        worksheet4.Cells[svRow, 19].Value = item.ServiceInvoice.Id;
-
-                        svRow++;
-                    }
-
-                    #endregion -- Service Invoice Export --
-
-                #region -- Collection Receipt Export (Multiple SI) --
-
-                    List<SalesInvoice> getSalesInvoice = new List<SalesInvoice>();
-
-                    getSalesInvoice = _dbContext.SalesInvoices
-                        .AsEnumerable()
-                        .Where(s => selectedList?.Select(item => item?.MultipleSI).Any(si => si?.Contains(s.SINo) == true) == true)
-                        .OrderBy(si => si.SINo)
-                        .ToList();
-
-                    foreach (var item in getSalesInvoice)
-                    {
-                        worksheet3.Cells[siRow, 1].Value = item.OtherRefNo;
-                        worksheet3.Cells[siRow, 2].Value = item.Quantity;
-                        worksheet3.Cells[siRow, 3].Value = item.UnitPrice;
-                        worksheet3.Cells[siRow, 4].Value = item.Amount;
-                        worksheet3.Cells[siRow, 5].Value = item.Remarks;
-                        worksheet3.Cells[siRow, 6].Value = item.Status;
-                        worksheet3.Cells[siRow, 7].Value = item.TransactionDate.ToString("yyyy-MM-dd");
-                        worksheet3.Cells[siRow, 8].Value = item.Discount;
-                        worksheet3.Cells[siRow, 9].Value = item.AmountPaid;
-                        worksheet3.Cells[siRow, 10].Value = item.Balance;
-                        worksheet3.Cells[siRow, 11].Value = item.IsPaid;
-                        worksheet3.Cells[siRow, 12].Value = item.IsTaxAndVatPaid;
-                        worksheet3.Cells[siRow, 13].Value = item.DueDate.ToString("yyyy-MM-dd");
-                        worksheet3.Cells[siRow, 14].Value = item.CreatedBy;
-                        worksheet3.Cells[siRow, 15].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                        worksheet3.Cells[siRow, 16].Value = item.CancellationRemarks;
-                        worksheet3.Cells[siRow, 18].Value = item.CustomerId;
-                        worksheet3.Cells[siRow, 20].Value = item.ProductId;
-                        worksheet3.Cells[siRow, 21].Value = item.SINo;
-                        worksheet3.Cells[siRow, 22].Value = item.Id;
+                        worksheet3.Cells[siRow, 1].Value = item.SalesInvoice.OtherRefNo;
+                        worksheet3.Cells[siRow, 2].Value = item.SalesInvoice.Quantity;
+                        worksheet3.Cells[siRow, 3].Value = item.SalesInvoice.UnitPrice;
+                        worksheet3.Cells[siRow, 4].Value = item.SalesInvoice.Amount;
+                        worksheet3.Cells[siRow, 5].Value = item.SalesInvoice.Remarks;
+                        worksheet3.Cells[siRow, 6].Value = item.SalesInvoice.Status;
+                        worksheet3.Cells[siRow, 7].Value = item.SalesInvoice.TransactionDate.ToString("yyyy-MM-dd");
+                        worksheet3.Cells[siRow, 8].Value = item.SalesInvoice.Discount;
+                        worksheet3.Cells[siRow, 9].Value = item.SalesInvoice.AmountPaid;
+                        worksheet3.Cells[siRow, 10].Value = item.SalesInvoice.Balance;
+                        worksheet3.Cells[siRow, 11].Value = item.SalesInvoice.IsPaid;
+                        worksheet3.Cells[siRow, 12].Value = item.SalesInvoice.IsTaxAndVatPaid;
+                        worksheet3.Cells[siRow, 13].Value = item.SalesInvoice.DueDate.ToString("yyyy-MM-dd");
+                        worksheet3.Cells[siRow, 14].Value = item.SalesInvoice.CreatedBy;
+                        worksheet3.Cells[siRow, 15].Value = item.SalesInvoice.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                        worksheet3.Cells[siRow, 16].Value = item.SalesInvoice.CancellationRemarks;
+                        worksheet3.Cells[siRow, 18].Value = item.SalesInvoice.CustomerId;
+                        worksheet3.Cells[siRow, 20].Value = item.SalesInvoice.ProductId;
+                        worksheet3.Cells[siRow, 21].Value = item.SalesInvoice.SINo;
+                        worksheet3.Cells[siRow, 22].Value = item.SalesInvoice.Id;
 
                         siRow++;
                     }
 
-                #endregion -- Collection Receipt Export (Multiple SI) --
+                    #endregion -- Sales Invoice Export --
 
-                #region -- Offsetting Export --
+                    #region -- Service Invoice Export --
 
-                var crNos = selectedList.Select(item => item.CRNo).ToList();
+                        int svRow = 2;
 
-                var getOffsetting = await _dbContext.Offsettings
-                    .Where(offset => crNos.Contains(offset.Source))
-                    .OrderBy(offset => offset.Id)
-                    .ToListAsync();
+                        foreach (var item in selectedList)
+                        {
+                            if (item.ServiceInvoice == null)
+                            {
+                                continue;
+                            }
+                            worksheet4.Cells[svRow, 1].Value = item.ServiceInvoice.DueDate.ToString("yyyy-MM-dd");
+                            worksheet4.Cells[svRow, 2].Value = item.ServiceInvoice.Period.ToString("yyyy-MM-dd");
+                            worksheet4.Cells[svRow, 3].Value = item.ServiceInvoice.Amount;
+                            worksheet4.Cells[svRow, 4].Value = item.ServiceInvoice.Total;
+                            worksheet4.Cells[svRow, 5].Value = item.ServiceInvoice.Discount;
+                            worksheet4.Cells[svRow, 6].Value = item.ServiceInvoice.CurrentAndPreviousAmount;
+                            worksheet4.Cells[svRow, 7].Value = item.ServiceInvoice.UnearnedAmount;
+                            worksheet4.Cells[svRow, 8].Value = item.ServiceInvoice.Status;
+                            worksheet4.Cells[svRow, 9].Value = item.ServiceInvoice.AmountPaid;
+                            worksheet4.Cells[svRow, 10].Value = item.ServiceInvoice.Balance;
+                            worksheet4.Cells[svRow, 11].Value = item.ServiceInvoice.Instructions;
+                            worksheet4.Cells[svRow, 12].Value = item.ServiceInvoice.IsPaid;
+                            worksheet4.Cells[svRow, 13].Value = item.ServiceInvoice.CreatedBy;
+                            worksheet4.Cells[svRow, 14].Value = item.ServiceInvoice.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                            worksheet4.Cells[svRow, 15].Value = item.ServiceInvoice.CancellationRemarks;
+                            worksheet4.Cells[svRow, 16].Value = item.ServiceInvoice.CustomerId;
+                            worksheet4.Cells[svRow, 17].Value = item.ServiceInvoice.SVNo;
+                            worksheet4.Cells[svRow, 18].Value = item.ServiceInvoice.ServicesId;
+                            worksheet4.Cells[svRow, 19].Value = item.ServiceInvoice.Id;
 
-                int offsetRow = 2;
+                            svRow++;
+                        }
 
-                foreach (var item in getOffsetting)
-                {
-                    worksheet2.Cells[offsetRow, 1].Value = item.AccountNo;
-                    worksheet2.Cells[offsetRow, 2].Value = item.Source;
-                    worksheet2.Cells[offsetRow, 3].Value = item.Reference;
-                    worksheet2.Cells[offsetRow, 4].Value = item.IsRemoved;
-                    worksheet2.Cells[offsetRow, 5].Value = item.Amount;
-                    worksheet2.Cells[offsetRow, 6].Value = item.CreatedBy;
-                    worksheet2.Cells[offsetRow, 7].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet2.Cells[offsetRow, 8].Value = item.AccountTitle;
+                        #endregion -- Service Invoice Export --
 
-                    offsetRow++;
+                    #region -- Collection Receipt Export (Multiple SI) --
+
+                        List<SalesInvoice> getSalesInvoice = new List<SalesInvoice>();
+
+                        getSalesInvoice = _dbContext.SalesInvoices
+                            .AsEnumerable()
+                            .Where(s => selectedList?.Select(item => item?.MultipleSI).Any(si => si?.Contains(s.SINo) == true) == true)
+                            .OrderBy(si => si.SINo)
+                            .ToList();
+
+                        foreach (var item in getSalesInvoice)
+                        {
+                            worksheet3.Cells[siRow, 1].Value = item.OtherRefNo;
+                            worksheet3.Cells[siRow, 2].Value = item.Quantity;
+                            worksheet3.Cells[siRow, 3].Value = item.UnitPrice;
+                            worksheet3.Cells[siRow, 4].Value = item.Amount;
+                            worksheet3.Cells[siRow, 5].Value = item.Remarks;
+                            worksheet3.Cells[siRow, 6].Value = item.Status;
+                            worksheet3.Cells[siRow, 7].Value = item.TransactionDate.ToString("yyyy-MM-dd");
+                            worksheet3.Cells[siRow, 8].Value = item.Discount;
+                            worksheet3.Cells[siRow, 9].Value = item.AmountPaid;
+                            worksheet3.Cells[siRow, 10].Value = item.Balance;
+                            worksheet3.Cells[siRow, 11].Value = item.IsPaid;
+                            worksheet3.Cells[siRow, 12].Value = item.IsTaxAndVatPaid;
+                            worksheet3.Cells[siRow, 13].Value = item.DueDate.ToString("yyyy-MM-dd");
+                            worksheet3.Cells[siRow, 14].Value = item.CreatedBy;
+                            worksheet3.Cells[siRow, 15].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                            worksheet3.Cells[siRow, 16].Value = item.CancellationRemarks;
+                            worksheet3.Cells[siRow, 18].Value = item.CustomerId;
+                            worksheet3.Cells[siRow, 20].Value = item.ProductId;
+                            worksheet3.Cells[siRow, 21].Value = item.SINo;
+                            worksheet3.Cells[siRow, 22].Value = item.Id;
+
+                            siRow++;
+                        }
+
+                    #endregion -- Collection Receipt Export (Multiple SI) --
+
+                    #region -- Offsetting Export --
+
+                    var crNos = selectedList.Select(item => item.CRNo).ToList();
+
+                    var getOffsetting = await _dbContext.Offsettings
+                        .Where(offset => crNos.Contains(offset.Source))
+                        .OrderBy(offset => offset.Id)
+                        .ToListAsync();
+
+                    int offsetRow = 2;
+
+                    foreach (var item in getOffsetting)
+                    {
+                        worksheet2.Cells[offsetRow, 1].Value = item.AccountNo;
+                        worksheet2.Cells[offsetRow, 2].Value = item.Source;
+                        worksheet2.Cells[offsetRow, 3].Value = item.Reference;
+                        worksheet2.Cells[offsetRow, 4].Value = item.IsRemoved;
+                        worksheet2.Cells[offsetRow, 5].Value = item.Amount;
+                        worksheet2.Cells[offsetRow, 6].Value = item.CreatedBy;
+                        worksheet2.Cells[offsetRow, 7].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                        worksheet2.Cells[offsetRow, 8].Value = item.AccountTitle;
+
+                        offsetRow++;
+                    }
+
+                    #endregion -- Offsetting Export --
+
+                    // Convert the Excel package to a byte array
+                    var excelBytes = await package.GetAsByteArrayAsync();
+                    await transaction.CommitAsync(cancellationToken);
+                    return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "CollectionReceiptList.xlsx");
                 }
-
-                #endregion -- Offsetting Export --
-
-                // Convert the Excel package to a byte array
-                var excelBytes = await package.GetAsByteArrayAsync();
-
-                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "CollectionReceiptList.xlsx");
+		    }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
             }
+
         }
 
         #endregion -- export xlsx record --

@@ -154,94 +154,105 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
             if (ModelState.IsValid)
             {
-                #region --Validating the series
-
-                var generateSvNo = await _serviceInvoiceRepo.GenerateSvNo(cancellationToken);
-                var getLastNumber = long.Parse(generateSvNo.Substring(2));
-
-                if (getLastNumber > 9999999999)
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                try
                 {
-                    TempData["error"] = "You reach the maximum Series Number";
-                    return View(model);
-                }
-                var totalRemainingSeries = 9999999999 - getLastNumber;
-                if (getLastNumber >= 9999999899)
-                {
-                    TempData["warning"] = $"Service invoice created successfully, Warning {totalRemainingSeries} series number remaining";
-                }
-                else
-                {
-                    TempData["success"] = "Service invoice created successfully";
-                }
+                    #region --Validating the series
 
-                #endregion --Validating the series
+                    var generateSvNo = await _serviceInvoiceRepo.GenerateSvNo(cancellationToken);
+                    var getLastNumber = long.Parse(generateSvNo.Substring(2));
 
-                #region --Retrieval of Services
-
-                var services = await _serviceInvoiceRepo.GetServicesAsync(model?.ServicesId, cancellationToken);
-
-                #endregion --Retrieval of Services
-
-                #region --Retrieval of Customer
-
-                var customer = await _serviceInvoiceRepo.FindCustomerAsync(model?.CustomerId, cancellationToken);
-
-                #endregion --Retrieval of Customer
-
-                #region --Saving the default properties
-
-                model.SVNo = generateSvNo;
-
-                model.CreatedBy = _userManager.GetUserName(this.User);
-
-                model.ServiceNo = services.Number;
-
-                model.Total = model.Amount;
-
-                if (DateOnly.FromDateTime(model.CreatedDate) < model.Period)
-                {
-                    model.UnearnedAmount += model.Amount;
-                }
-                else
-                {
-                    model.CurrentAndPreviousAmount += model.Amount;
-                }
-
-                if (customer.CustomerType == "Vatable")
-                {
-                    model.CurrentAndPreviousAmount = Math.Round(model.CurrentAndPreviousAmount / 1.12m, 2);
-                    model.UnearnedAmount = Math.Round(model.UnearnedAmount / 1.12m, 2);
-
-                    var total = model.CurrentAndPreviousAmount + model.UnearnedAmount;
-
-                    var netOfVatAmount = _generalRepo.ComputeNetOfVat(model.Amount);
-                    var roundedNetAmount = Math.Round(netOfVatAmount, 2);
-
-                    if (roundedNetAmount > total)
+                    if (getLastNumber > 9999999999)
                     {
-                        var shortAmount = netOfVatAmount - total;
-
-                        model.CurrentAndPreviousAmount += shortAmount;
+                        TempData["error"] = "You reach the maximum Series Number";
+                        return View(model);
                     }
+                    var totalRemainingSeries = 9999999999 - getLastNumber;
+                    if (getLastNumber >= 9999999899)
+                    {
+                        TempData["warning"] = $"Service invoice created successfully, Warning {totalRemainingSeries} series number remaining";
+                    }
+                    else
+                    {
+                        TempData["success"] = "Service invoice created successfully";
+                    }
+
+                    #endregion --Validating the series
+
+                    #region --Retrieval of Services
+
+                    var services = await _serviceInvoiceRepo.GetServicesAsync(model?.ServicesId, cancellationToken);
+
+                    #endregion --Retrieval of Services
+
+                    #region --Retrieval of Customer
+
+                    var customer = await _serviceInvoiceRepo.FindCustomerAsync(model?.CustomerId, cancellationToken);
+
+                    #endregion --Retrieval of Customer
+
+                    #region --Saving the default properties
+
+                    model.SVNo = generateSvNo;
+
+                    model.CreatedBy = _userManager.GetUserName(this.User);
+
+                    model.ServiceNo = services.Number;
+
+                    model.Total = model.Amount;
+
+                    if (DateOnly.FromDateTime(model.CreatedDate) < model.Period)
+                    {
+                        model.UnearnedAmount += model.Amount;
+                    }
+                    else
+                    {
+                        model.CurrentAndPreviousAmount += model.Amount;
+                    }
+
+                    if (customer.CustomerType == "Vatable")
+                    {
+                        model.CurrentAndPreviousAmount = Math.Round(model.CurrentAndPreviousAmount / 1.12m, 2);
+                        model.UnearnedAmount = Math.Round(model.UnearnedAmount / 1.12m, 2);
+
+                        var total = model.CurrentAndPreviousAmount + model.UnearnedAmount;
+
+                        var netOfVatAmount = _generalRepo.ComputeNetOfVat(model.Amount);
+                        var roundedNetAmount = Math.Round(netOfVatAmount, 2);
+
+                        if (roundedNetAmount > total)
+                        {
+                            var shortAmount = netOfVatAmount - total;
+
+                            model.CurrentAndPreviousAmount += shortAmount;
+                        }
+                    }
+
+                    await _dbContext.AddAsync(model, cancellationToken);
+
+                    #endregion --Saving the default properties
+
+                    #region --Audit Trail Recording
+
+                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new service invoice# {model.SVNo}", "Service Invoice", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
+
+                    #endregion --Audit Trail Recording
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    return RedirectToAction(nameof(Index));
                 }
-
-                await _dbContext.AddAsync(model, cancellationToken);
-
-                #endregion --Saving the default properties
-
-                #region --Audit Trail Recording
-
-                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                catch (Exception ex)
                 {
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new service invoice# {model.SVNo}", "Service Invoice", ipAddress);
-                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                 await transaction.RollbackAsync(cancellationToken);
+                 TempData["error"] = ex.Message;
+                 return RedirectToAction(nameof(Index));
                 }
-
-                #endregion --Audit Trail Recording
-
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction(nameof(Index));
             }
 
             return View(model);
@@ -282,6 +293,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
         {
             var model = await _serviceInvoiceRepo.FindSv(id, cancellationToken);
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             try
             {
@@ -497,6 +509,7 @@ namespace Accounting_System.Controllers
                         #endregion --Audit Trail Recording
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
                         TempData["success"] = "Service invoice has been posted.";
                         return RedirectToAction(nameof(PrintInvoice), new { id = id });
                     }
@@ -508,6 +521,7 @@ namespace Accounting_System.Controllers
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync(cancellationToken);
                 TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(PrintInvoice), new { id = id });
             }
@@ -518,30 +532,41 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Cancel(int id, string cancellationRemarks, CancellationToken cancellationToken)
         {
             var model = await _dbContext.ServiceInvoices.FindAsync(id, cancellationToken);
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            if (model != null)
+            try
             {
-                if (!model.IsCanceled)
+                if (model != null)
                 {
-                    model.IsCanceled = true;
-                    model.CanceledBy = _userManager.GetUserName(this.User);
-                    model.CanceledDate = DateTime.Now;
-                    model.CancellationRemarks = cancellationRemarks;
-
-                    #region --Audit Trail Recording
-
-                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    if (!model.IsCanceled)
                     {
-                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled service invoice# {model.SVNo}", "Service Invoice", ipAddress);
-                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        model.IsCanceled = true;
+                        model.CanceledBy = _userManager.GetUserName(this.User);
+                        model.CanceledDate = DateTime.Now;
+                        model.CancellationRemarks = cancellationRemarks;
+
+                        #region --Audit Trail Recording
+
+                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled service invoice# {model.SVNo}", "Service Invoice", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Service invoice has been Cancelled.";
                     }
-
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Service invoice has been Cancelled.";
+                    return RedirectToAction(nameof(Index));
                 }
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
 
@@ -551,37 +576,48 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
         {
             var model = await _dbContext.ServiceInvoices.FindAsync(id, cancellationToken);
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            if (model != null)
+            try
             {
-                if (!model.IsVoided)
+                if (model != null)
                 {
-                    if (model.IsPosted)
+                    if (!model.IsVoided)
                     {
-                        model.IsPosted = false;
+                        if (model.IsPosted)
+                        {
+                            model.IsPosted = false;
+                        }
+
+                        model.IsVoided = true;
+                        model.VoidedBy = _userManager.GetUserName(this.User);
+                        model.VoidedDate = DateTime.Now;
+
+                        #region --Audit Trail Recording
+
+                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided service invoice# {model.SVNo}", "Service Invoice", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
+
+                        #endregion --Audit Trail Recording
+
+                        await _generalRepo.RemoveRecords<SalesBook>(gl => gl.SerialNo == model.SVNo, cancellationToken);
+                        await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.SVNo, cancellationToken);
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Service invoice has been voided.";
                     }
-
-                    model.IsVoided = true;
-                    model.VoidedBy = _userManager.GetUserName(this.User);
-                    model.VoidedDate = DateTime.Now;
-
-                    #region --Audit Trail Recording
-
-                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                    {
-                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided service invoice# {model.SVNo}", "Service Invoice", ipAddress);
-                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                    }
-
-                    #endregion --Audit Trail Recording
-
-                    await _generalRepo.RemoveRecords<SalesBook>(gl => gl.SerialNo == model.SVNo, cancellationToken);
-                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.SVNo, cancellationToken);
-
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    TempData["success"] = "Service invoice has been voided.";
+                    return RedirectToAction(nameof(Index));
                 }
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
 
@@ -634,46 +670,57 @@ namespace Accounting_System.Controllers
 
             if (ModelState.IsValid)
             {
-                #region --Retrieval of Services
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                try
+                {
+                    #region --Retrieval of Services
 
-                var services = await _serviceInvoiceRepo.GetServicesAsync(model.ServicesId, cancellationToken);
+                    var services = await _serviceInvoiceRepo.GetServicesAsync(model.ServicesId, cancellationToken);
 
-                #endregion --Retrieval of Services
+                    #endregion --Retrieval of Services
 
-                #region --Retrieval of Customer
+                    #region --Retrieval of Customer
 
-                var customer = await _serviceInvoiceRepo.FindCustomerAsync(model.CustomerId, cancellationToken);
+                    var customer = await _serviceInvoiceRepo.FindCustomerAsync(model.CustomerId, cancellationToken);
 
-                #endregion --Retrieval of Customer
+                    #endregion --Retrieval of Customer
 
-                #region --Saving the default properties
+                    #region --Saving the default properties
 
-                existingModel.Discount = model.Discount;
-                existingModel.Amount = model.Amount;
-                existingModel.Period = model.Period;
-                existingModel.DueDate = model.DueDate;
-                existingModel.Instructions = model.Instructions;
+                    existingModel.Discount = model.Discount;
+                    existingModel.Amount = model.Amount;
+                    existingModel.Period = model.Period;
+                    existingModel.DueDate = model.DueDate;
+                    existingModel.Instructions = model.Instructions;
 
-                decimal total = 0;
-                total += model.Amount;
-                existingModel.Total = total;
+                    decimal total = 0;
+                    total += model.Amount;
+                    existingModel.Total = total;
 
-                #endregion --Saving the default properties
+                    #endregion --Saving the default properties
 
-                #region --Audit Trail Recording
+                    #region --Audit Trail Recording
 
-                // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                // {
-                //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                //     AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit service invoice# {existingModel.SVNo}", "Service Invoice", ipAddress);
-                //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                // }
+                    // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    // {
+                    //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    //     AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit service invoice# {existingModel.SVNo}", "Service Invoice", ipAddress);
+                    //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    // }
 
-                #endregion --Audit Trail Recording
+                    #endregion --Audit Trail Recording
 
-                TempData["success"] = "Service Invoice updated successfully";
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                return RedirectToAction(nameof(Index));
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    TempData["success"] = "Service Invoice updated successfully";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index));
+                }
             }
 
             return View(existingModel);
@@ -683,7 +730,7 @@ namespace Accounting_System.Controllers
         #region -- export xlsx record --
 
         [HttpPost]
-        public async Task<IActionResult> Export(string selectedRecord)
+        public async Task<IActionResult> Export(string selectedRecord, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(selectedRecord))
             {
@@ -691,70 +738,80 @@ namespace Accounting_System.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            try
+		    {
+                var recordIds = selectedRecord.Split(',').Select(int.Parse).ToList();
 
-            // Retrieve the selected invoices from the database
-            var selectedList = await _dbContext.ServiceInvoices
-                .Where(sv => recordIds.Contains(sv.Id))
-                .OrderBy(sv => sv.SVNo)
-                .ToListAsync();
+                // Retrieve the selected invoices from the database
+                var selectedList = await _dbContext.ServiceInvoices
+                    .Where(sv => recordIds.Contains(sv.Id))
+                    .OrderBy(sv => sv.SVNo)
+                    .ToListAsync();
 
-            // Create the Excel package
-            using var package = new ExcelPackage();
-            // Add a new worksheet to the Excel package
-            var worksheet = package.Workbook.Worksheets.Add("ServiceInvoice");
+                // Create the Excel package
+                using var package = new ExcelPackage();
+                // Add a new worksheet to the Excel package
+                var worksheet = package.Workbook.Worksheets.Add("ServiceInvoice");
 
-            worksheet.Cells["A1"].Value = "DueDate";
-            worksheet.Cells["B1"].Value = "Period";
-            worksheet.Cells["C1"].Value = "Amount";
-            worksheet.Cells["D1"].Value = "Total";
-            worksheet.Cells["E1"].Value = "Discount";
-            worksheet.Cells["F1"].Value = "CurrentAndPreviousMonth";
-            worksheet.Cells["G1"].Value = "UnearnedAmount";
-            worksheet.Cells["H1"].Value = "Status";
-            worksheet.Cells["I1"].Value = "AmountPaid";
-            worksheet.Cells["J1"].Value = "Balance";
-            worksheet.Cells["K1"].Value = "Instructions";
-            worksheet.Cells["L1"].Value = "IsPaid";
-            worksheet.Cells["M1"].Value = "CreatedBy";
-            worksheet.Cells["N1"].Value = "CreatedDate";
-            worksheet.Cells["O1"].Value = "CancellationRemarks";
-            worksheet.Cells["P1"].Value = "OriginalCustomerId";
-            worksheet.Cells["Q1"].Value = "OriginalSVNo";
-            worksheet.Cells["R1"].Value = "OriginalServicesId";
-            worksheet.Cells["S1"].Value = "OriginalDocumentId";
+                worksheet.Cells["A1"].Value = "DueDate";
+                worksheet.Cells["B1"].Value = "Period";
+                worksheet.Cells["C1"].Value = "Amount";
+                worksheet.Cells["D1"].Value = "Total";
+                worksheet.Cells["E1"].Value = "Discount";
+                worksheet.Cells["F1"].Value = "CurrentAndPreviousMonth";
+                worksheet.Cells["G1"].Value = "UnearnedAmount";
+                worksheet.Cells["H1"].Value = "Status";
+                worksheet.Cells["I1"].Value = "AmountPaid";
+                worksheet.Cells["J1"].Value = "Balance";
+                worksheet.Cells["K1"].Value = "Instructions";
+                worksheet.Cells["L1"].Value = "IsPaid";
+                worksheet.Cells["M1"].Value = "CreatedBy";
+                worksheet.Cells["N1"].Value = "CreatedDate";
+                worksheet.Cells["O1"].Value = "CancellationRemarks";
+                worksheet.Cells["P1"].Value = "OriginalCustomerId";
+                worksheet.Cells["Q1"].Value = "OriginalSVNo";
+                worksheet.Cells["R1"].Value = "OriginalServicesId";
+                worksheet.Cells["S1"].Value = "OriginalDocumentId";
 
-            int row = 2;
+                int row = 2;
 
-            foreach (var item in selectedList)
+                foreach (var item in selectedList)
+                {
+                    worksheet.Cells[row, 1].Value = item.DueDate.ToString("yyyy-MM-dd");
+                    worksheet.Cells[row, 2].Value = item.Period.ToString("yyyy-MM-dd");
+                    worksheet.Cells[row, 3].Value = item.Amount;
+                    worksheet.Cells[row, 4].Value = item.Total;
+                    worksheet.Cells[row, 5].Value = item.Discount;
+                    worksheet.Cells[row, 6].Value = item.CurrentAndPreviousAmount;
+                    worksheet.Cells[row, 7].Value = item.UnearnedAmount;
+                    worksheet.Cells[row, 8].Value = item.Status;
+                    worksheet.Cells[row, 9].Value = item.AmountPaid;
+                    worksheet.Cells[row, 10].Value = item.Balance;
+                    worksheet.Cells[row, 11].Value = item.Instructions;
+                    worksheet.Cells[row, 12].Value = item.IsPaid;
+                    worksheet.Cells[row, 13].Value = item.CreatedBy;
+                    worksheet.Cells[row, 14].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 15].Value = item.CancellationRemarks;
+                    worksheet.Cells[row, 16].Value = item.CustomerId;
+                    worksheet.Cells[row, 17].Value = item.SVNo;
+                    worksheet.Cells[row, 18].Value = item.ServicesId;
+                    worksheet.Cells[row, 19].Value = item.Id;
+
+                    row++;
+                }
+
+                // Convert the Excel package to a byte array
+                var excelBytes = await package.GetAsByteArrayAsync();
+                await transaction.CommitAsync(cancellationToken);
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ServiceInvoiceList.xlsx");
+		    }
+            catch (Exception ex)
             {
-                worksheet.Cells[row, 1].Value = item.DueDate.ToString("yyyy-MM-dd");
-                worksheet.Cells[row, 2].Value = item.Period.ToString("yyyy-MM-dd");
-                worksheet.Cells[row, 3].Value = item.Amount;
-                worksheet.Cells[row, 4].Value = item.Total;
-                worksheet.Cells[row, 5].Value = item.Discount;
-                worksheet.Cells[row, 6].Value = item.CurrentAndPreviousAmount;
-                worksheet.Cells[row, 7].Value = item.UnearnedAmount;
-                worksheet.Cells[row, 8].Value = item.Status;
-                worksheet.Cells[row, 9].Value = item.AmountPaid;
-                worksheet.Cells[row, 10].Value = item.Balance;
-                worksheet.Cells[row, 11].Value = item.Instructions;
-                worksheet.Cells[row, 12].Value = item.IsPaid;
-                worksheet.Cells[row, 13].Value = item.CreatedBy;
-                worksheet.Cells[row, 14].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                worksheet.Cells[row, 15].Value = item.CancellationRemarks;
-                worksheet.Cells[row, 16].Value = item.CustomerId;
-                worksheet.Cells[row, 17].Value = item.SVNo;
-                worksheet.Cells[row, 18].Value = item.ServicesId;
-                worksheet.Cells[row, 19].Value = item.Id;
-
-                row++;
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
             }
-
-            // Convert the Excel package to a byte array
-            var excelBytes = await package.GetAsByteArrayAsync();
-
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ServiceInvoiceList.xlsx");
         }
 
         #endregion -- export xlsx record --
