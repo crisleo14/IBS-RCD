@@ -178,7 +178,7 @@ namespace Accounting_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Name,Percent,Id,CreatedBy,CreatedDate")] Services services, CancellationToken cancellationToken)
+        public async Task<IActionResult> Edit(int id, Services services, CancellationToken cancellationToken)
         {
             if (id != services.Id)
             {
