@@ -47,50 +47,5 @@ namespace Accounting_System.Repository
             return await _dbContext.BankAccounts
                 .AnyAsync(b => b.AccountName.ToUpper() == accountName.ToUpper());
         }
-
-        public async Task<long> GetLastSeriesNumber(CancellationToken cancellationToken = default)
-        {
-            var lastRecord = await _dbContext
-                .BankAccounts
-                .OrderByDescending(s => s.Id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (lastRecord != null)
-            {
-                // Increment the last serial by one and return it
-                return lastRecord.SeriesNumber + 1;
-            }
-            else
-            {
-                // If there are no existing records, you can start with a default value like 1
-                return 1;
-            }
-        }
-
-        public ChartOfAccount COAEntry(BankAccount model, ClaimsPrincipal user,
-            CancellationToken cancellationToken = default)
-        {
-            var coa = new ChartOfAccount
-            {
-                IsMain = false,
-                AccountNumber = model.AccountNoCOA,
-                AccountName = "Cash in Bank" + " - " + model.AccountName,
-                AccountType = "Asset",
-                NormalBalance = "Debit",
-                Parent = "101010000",
-                CreatedBy = _userManager.GetUserName(user),
-                CreatedDate = DateTime.Now,
-                Level = 5
-            };
-
-            if (coa != null)
-            {
-                return coa;
-            }
-            else
-            {
-                throw new ArgumentException("Invalid model chart of account.");
-            }
-        }
     }
 }

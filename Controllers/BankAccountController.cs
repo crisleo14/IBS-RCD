@@ -69,26 +69,7 @@ namespace Accounting_System.Controllers
                         return View(model);
                     }
 
-                    var checkLastAccountNo = await _dbContext
-                        .BankAccounts
-                        .OrderBy(bank => bank.Id)
-                        .LastOrDefaultAsync(cancellationToken);
-
-                    #region -- Generate AccountNo --
-
-                    model.SeriesNumber = await _bankAccountRepo.GetLastSeriesNumber(cancellationToken);
-                    model.AccountNoCOA = "101010100" + model.SeriesNumber.ToString("D2");
-
-                    #endregion -- Generate AccountNo --
-
                     model.CreatedBy = _userManager.GetUserName(this.User);
-
-                    #region -- COA Entry --
-
-                    var coa = _bankAccountRepo.COAEntry(model, User, cancellationToken);
-                    await _dbContext.AddAsync(coa, cancellationToken);
-
-                    #endregion -- COA Entry --
 
                     #region --Audit Trail Recording
 
@@ -286,30 +267,21 @@ namespace Accounting_System.Controllers
                         {
                             var bankAccount = new BankAccount
                             {
-                                SeriesNumber = await _bankAccountRepo.GetLastSeriesNumber(),
+                                BankCode = worksheet.Cells[row, 6].Text,
+                                AccountName = worksheet.Cells[row, 4].Text,
                                 CreatedBy = worksheet.Cells[row, 2].Text,
                                 CreatedDate = DateTime.TryParse(worksheet.Cells[row, 3].Text, out DateTime createdDate)
                                     ? createdDate
                                     : default,
-                                AccountName = worksheet.Cells[row, 4].Text,
-                                BankCode = worksheet.Cells[row, 6].Text,
                                 OriginalBankId = int.TryParse(worksheet.Cells[row, 7].Text, out int originalBankId)
                                     ? originalBankId
                                     : 0,
                             };
-                            bankAccount.AccountNoCOA = "101010100" + bankAccount.SeriesNumber.ToString("D2");
 
                             if (bankAccountList.Any(ba => ba.OriginalBankId == bankAccount.OriginalBankId))
                             {
                                 continue;
                             }
-
-                            #region -- COA Entry --
-
-                            var coa = _bankAccountRepo.COAEntry(bankAccount, User);
-                            await _dbContext.AddAsync(coa, cancellationToken);
-
-                            #endregion -- COA Entry --
 
                             await _dbContext.BankAccounts.AddAsync(bankAccount, cancellationToken);
                         }

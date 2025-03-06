@@ -266,18 +266,6 @@ namespace Accounting_System.Controllers
             return Json(null);
         }
 
-        public async Task<IActionResult> GetBankAccount(int bankId, CancellationToken cancellationToken)
-        {
-            if (bankId != 0)
-            {
-                var existingBankAccount = await _dbContext.BankAccounts.FindAsync(bankId, cancellationToken);
-                return Json(new
-                    { AccountNoCOA = existingBankAccount.AccountNoCOA, AccountName = existingBankAccount.AccountName });
-            }
-
-            return Json(null);
-        }
-
         public IActionResult GetAutomaticEntry(DateTime startDate, DateTime? endDate)
         {
             if (startDate != default && endDate != default)
