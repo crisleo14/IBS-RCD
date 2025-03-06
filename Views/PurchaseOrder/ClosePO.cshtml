@@ -23,58 +23,58 @@
             <input asp-for="Id" type="hidden" />
             <table class="table">
                 <tbody>
+                <tr>
+                    <th class="w-50">PONo.</th>
+                    <th class="w-50">Quantity</th>
+                </tr>
+                <tr>
+                    <td>@Model.PONo</td>
+                    <td>@Model.Quantity</td>
+                </tr>
+
+                @if (Model.RrList.Where(rr => rr.IsPosted).Any())
+                {
                     <tr>
-                        <th class="w-50">PONo.</th>
-                        <th class="w-50">Quantity</th>
-                    </tr>
-                    <tr>
-                        <td>@Model.PONo</td>
-                        <td>@Model.Quantity</td>
+                        <th>RRNo.(Posted RR)</th>
+                        <th>Quantity</th>
                     </tr>
 
-                    @if (Model.RrList.Where(rr => rr.IsPosted).Any())
+                    foreach (var rrPosted in Model.RrList.Where(rr => rr.IsPosted))
                     {
                         <tr>
-                            <th>RRNo.(Posted RR)</th>
-                            <th>Quantity</th>
+                            <td>@rrPosted.RRNo</td>
+                            <td>@rrPosted.QuantityReceived</td>
                         </tr>
-
-                        foreach (var rrPosted in Model.RrList.Where(rr => rr.IsPosted))
-                        {
-                            <tr>
-                                <td>@rrPosted.RRNo</td>
-                                <td>@rrPosted.QuantityReceived</td>
-                            </tr>
-                            postedQuantity += rrPosted.QuantityReceived;
-                        }
-                        totalPostedQuantity = Model.Quantity - postedQuantity;
-                        <tr>
-                            <th class="text-end">Total Quantity(Only Posted RR):</th>
-                            <td>@totalPostedQuantity</td>
-                        </tr>
+                        postedQuantity += rrPosted.QuantityReceived;
                     }
+                    totalPostedQuantity = Model.Quantity - postedQuantity;
+                    <tr>
+                        <th class="text-end">Total Quantity(Only Posted RR):</th>
+                        <td>@totalPostedQuantity</td>
+                    </tr>
+                }
 
-                    @if (Model.RrList.Where(rr => !rr.IsPosted && !rr.IsCanceled).Any())
+                @if (Model.RrList.Where(rr => !rr.IsPosted && !rr.IsCanceled).Any())
+                {
+                    <tr>
+                        <th>RRNo.(Unposted RR)</th>
+                        <th>Quantity</th>
+                    </tr>
+
+                    foreach (var rrNotPosted in Model.RrList.Where(rr => !rr.IsPosted && !rr.IsCanceled))
                     {
                         <tr>
-                            <th>RRNo.(Unposted RR)</th>
-                            <th>Quantity</th>
+                            <td>@rrNotPosted.RRNo</td>
+                            <td>@rrNotPosted.QuantityReceived</td>
                         </tr>
-
-                        foreach (var rrNotPosted in Model.RrList.Where(rr => !rr.IsPosted && !rr.IsCanceled))
-                        {
-                            <tr>
-                                <td>@rrNotPosted.RRNo</td>
-                                <td>@rrNotPosted.QuantityReceived</td>
-                            </tr>
-                            unPostedQuantity += rrNotPosted.QuantityReceived;
-                        }
-                        totalUnPostedQuantity = (Model.Quantity - unPostedQuantity) - postedQuantity;
-                        <tr>
-                            <th class="text-end">Total Quantity(Posted and Unposted):</th>
-                            <td>@totalUnPostedQuantity</td>
-                        </tr>
+                        unPostedQuantity += rrNotPosted.QuantityReceived;
                     }
+                    totalUnPostedQuantity = (Model.Quantity - unPostedQuantity) - postedQuantity;
+                    <tr>
+                        <th class="text-end">Total Quantity(Posted and Unposted):</th>
+                        <td>@totalUnPostedQuantity</td>
+                    </tr>
+                }
                 </tbody>
             </table>
             <div class="row pt-2">
@@ -88,3 +88,7 @@
         </form>
     </div>
 </div>
+@section Scripts
+{
+    <script src="~/js/submit-blocker.js"></script>
+}
