@@ -195,7 +195,10 @@ namespace Accounting_System.Controllers
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    _dbContext.Update(services);
+
+                    var existingServices = await _dbContext.Services.FindAsync(services.Id, cancellationToken);
+                    existingServices.Name = services.Name;
+                    existingServices.Percent = services.Percent;
 
                     #region --Audit Trail Recording
 
