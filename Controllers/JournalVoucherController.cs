@@ -681,7 +681,6 @@ namespace Accounting_System.Controllers
                     model.Particulars = viewModel.Particulars;
                     model.CRNo = viewModel.CRNo;
                     model.JVReason = viewModel.JVReason;
-                    model.CreatedBy = _userManager.GetUserName(this.User);
 
                     #endregion --Saving the default entries
 

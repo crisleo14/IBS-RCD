@@ -936,7 +936,6 @@ namespace Accounting_System.Controllers
                             .DebitMemos
                             .FirstOrDefaultAsync(dm => dm.Id == model.Id, cancellationToken);
 
-                    model.CreatedBy = _userManager.GetUserName(this.User);
 
                     if (model.Source == "Sales Invoice")
                     {
