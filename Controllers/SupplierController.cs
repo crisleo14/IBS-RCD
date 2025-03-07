@@ -290,7 +290,6 @@ namespace Accounting_System.Controllers
                     }
                     existingModel.WithholdingTaxtitle = supplier.WithholdingTaxtitle;
                     supplier.Number = existingModel.Number;
-                    supplier.CreatedBy = _userManager.GetUserName(this.User).ToString();
 
                     #region -- Upload file --
 

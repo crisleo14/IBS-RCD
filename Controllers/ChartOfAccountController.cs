@@ -148,7 +148,7 @@ namespace Accounting_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("IsMain,Number,Name,Type,Category,Level,Id,CreatedBy,CreatedDate")] ChartOfAccount chartOfAccount, CancellationToken cancellationToken)
+        public async Task<IActionResult> Edit(int id, ChartOfAccount chartOfAccount, CancellationToken cancellationToken)
         {
             if (id != chartOfAccount.AccountId)
             {
@@ -160,7 +160,16 @@ namespace Accounting_System.Controllers
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    _dbContext.Update(chartOfAccount);
+                    var existingModel = await _dbContext.ChartOfAccounts.FindAsync(id, cancellationToken);
+                    existingModel.IsMain = chartOfAccount.IsMain;
+                    existingModel.AccountNumber = chartOfAccount.AccountNumber;
+                    existingModel.AccountName = chartOfAccount.AccountName;
+                    existingModel.AccountType = chartOfAccount.AccountType;
+                    existingModel.NormalBalance = chartOfAccount.NormalBalance;
+                    existingModel.Level = chartOfAccount.Level;
+                    existingModel.AccountId = chartOfAccount.AccountId;
+                    existingModel.EditedBy = _userManager.GetUserName(this.User);
+                    existingModel.EditedDate = DateTime.UtcNow.AddHours(8);
 
                     #region --Audit Trail Recording
 

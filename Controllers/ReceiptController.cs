@@ -1152,8 +1152,6 @@ namespace Accounting_System.Controllers
 
                             offsetting.AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0];
                             offsetting.Amount = currentAccountAmount;
-                            offsetting.CreatedBy = _userManager.GetUserName(this.User);
-                            offsetting.CreatedDate = DateTime.Now;
 
                             if (ids.Count == 0)
                             {
@@ -1170,8 +1168,6 @@ namespace Accounting_System.Controllers
                                 Source = existingModel.CRNo,
                                 Reference = existingModel.SINo != null ? existingModel.SINo : existingModel.SVNo,
                                 Amount = currentAccountAmount,
-                                CreatedBy = _userManager.GetUserName(this.User),
-                                CreatedDate = DateTime.Now
                             };
                             await _dbContext.Offsettings.AddAsync(newOffsetting, cancellationToken);
                         }
@@ -1425,8 +1421,6 @@ namespace Accounting_System.Controllers
 
                             offsetting.AccountTitle = splitAccountTitle.Length > 1 ? splitAccountTitle[1] : splitAccountTitle[0];
                             offsetting.Amount = currentAccountAmount;
-                            offsetting.CreatedBy = _userManager.GetUserName(this.User);
-                            offsetting.CreatedDate = DateTime.Now;
 
                             if (ids.Count == 0)
                             {
@@ -1443,8 +1437,6 @@ namespace Accounting_System.Controllers
                                 Source = existingModel.CRNo,
                                 Reference = existingModel.SINo != null ? existingModel.SINo : existingModel.SVNo,
                                 Amount = currentAccountAmount,
-                                CreatedBy = _userManager.GetUserName(this.User),
-                                CreatedDate = DateTime.Now
                             };
                             await _dbContext.Offsettings.AddAsync(newOffsetting, cancellationToken);
                         }

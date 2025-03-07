@@ -338,8 +338,6 @@ namespace Accounting_System.Controllers
                             .CreditMemos
                             .FirstOrDefaultAsync(cm => cm.Id == model.Id, cancellationToken);
 
-                    model.CreatedBy = _userManager.GetUserName(this.User);
-
                     if (model.Source == "Sales Invoice")
                     {
                         model.ServiceInvoiceId = null;

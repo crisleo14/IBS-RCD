@@ -58,7 +58,7 @@ namespace Accounting_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Code,Name,Unit,Id,CreatedBy,CreatedDate")] Product product, CancellationToken cancellationToken)
+        public async Task<IActionResult> Create(Product product, CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
@@ -123,7 +123,7 @@ namespace Accounting_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Code,Name,Unit,Id,CreatedBy,CreatedDate")] Product product, CancellationToken cancellationToken)
+        public async Task<IActionResult> Edit(int id, Product product, CancellationToken cancellationToken)
         {
             if (id != product.Id)
             {
@@ -135,7 +135,13 @@ namespace Accounting_System.Controllers
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    _dbContext.Update(product);
+                    var existingProduct = await _dbContext.Products.FindAsync(product.Id, cancellationToken);
+                    existingProduct.Code = product.Code;
+                    existingProduct.Name = product.Name;
+                    existingProduct.Unit = product.Unit;
+                    existingProduct.Id = product.Id;
+                    existingProduct.CreatedBy = product.CreatedBy;
+                    existingProduct.CreatedDate = product.CreatedDate;
 
                     #region --Audit Trail Recording
 

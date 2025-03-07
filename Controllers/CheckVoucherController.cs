@@ -642,7 +642,6 @@ namespace Accounting_System.Controllers
                     existingHeaderModel.CheckDate = viewModel.CheckDate;
                     existingHeaderModel.Total = cashInBank;
                     existingHeaderModel.Amount = viewModel.Amount;
-                    existingHeaderModel.CreatedBy = viewModel.CreatedBy;
 
                     #endregion --Saving the default entries
 
@@ -2121,7 +2120,6 @@ namespace Accounting_System.Controllers
                     existingHeaderModel.Payee = viewModel.Payee;
                     existingHeaderModel.CheckDate = viewModel.CheckDate;
                     existingHeaderModel.Total = cashInBank;
-                    existingHeaderModel.CreatedBy = _userManager.GetUserName(this.User);
 
                     #endregion --Saving the default entries
 
