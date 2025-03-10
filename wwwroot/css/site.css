@@ -567,45 +567,52 @@ input[type=number] {
     text-align: justify;
 }
 
-/* From Uiverse.io by Abrar-Hussain1 */
+/* Body-scoped loader container styles */
 .loader-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    position: fixed; /* Fixed to ensure it stays in place */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: white; /* Solid background */
+    z-index: 1000; /* High enough to cover everything */
 }
 
+/* Spinner styles start of code */
 .loader {
     width: 70px;
     height: 70px;
     position: relative;
 }
 
-.loader:before {
-    content: "";
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    border: 6px solid rgba(25, 46, 47);
-    position: absolute;
-    top: 0;
-    left: 0;
-    animation: pulse 1s ease-in-out infinite;
-}
+    .loader:before {
+        content: "";
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        border: 6px solid rgba(25, 46, 47);
+        position: absolute;
+        top: 0;
+        left: 0;
+        animation: pulse 1s ease-in-out infinite;
+    }
 
-.loader:after {
-    content: "";
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    border: 6px solid transparent;
-    border-top-color: rgba(25, 46, 47);
-    position: absolute;
-    top: 0;
-    left: 0;
-    animation: spin 2s linear infinite;
-}
+    .loader:after {
+        content: "";
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        border: 6px solid transparent;
+        border-top-color: rgba(25, 46, 47);
+        position: absolute;
+        top: 0;
+        left: 0;
+        animation: spin 2s linear infinite;
+    }
 
 .loader-text {
     font-size: 24px;
@@ -621,10 +628,12 @@ input[type=number] {
         transform: scale(0.6);
         opacity: 1;
     }
+
     50% {
         transform: scale(1.2);
         opacity: 0;
     }
+
     100% {
         transform: scale(0.6);
         opacity: 1;
@@ -635,19 +644,14 @@ input[type=number] {
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(360deg);
     }
 }
 
-.content {
-    display: none;
+/* Optional: To prevent body scrolling while loading */
+body.loading {
+    overflow: hidden;
 }
-
-.loaded .loader-container {
-    display: none;
-}
-
-.loaded .content {
-    display: block;
-}
+/* Spinner styles end of code */

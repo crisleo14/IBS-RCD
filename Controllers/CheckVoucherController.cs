@@ -735,23 +735,30 @@ namespace Accounting_System.Controllers
                         // model.Header.SupportingFilePath = fileSavePath
                     }
 
-                    #region --Audit Trail Recording
-
-                    // if (existingHeaderModel.OriginalSeriesNumber == null && existingHeaderModel.OriginalDocumentId == 0)
-                    // {
-                    //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    //     AuditTrail auditTrailBook = new(viewModel.CreatedBy, $"Create new check voucher# {viewModel.CVNo}", "Check Voucher", ipAddress);
-                    //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                    // }
-
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken); // await the SaveChangesAsync method
-                    await transaction.CommitAsync(cancellationToken);
-                    TempData["success"] = "Trade edited successfully";
-                    return RedirectToAction(nameof(Index));
-
                     #endregion -- Uploading file --
+
+                    if (_dbContext.ChangeTracker.HasChanges())
+                    {
+                        #region --Audit Trail Recording
+
+                        // if (existingHeaderModel.OriginalSeriesNumber == null && existingHeaderModel.OriginalDocumentId == 0)
+                        // {
+                        //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        //     AuditTrail auditTrailBook = new(viewModel.CreatedBy, $"Create new check voucher# {viewModel.CVNo}", "Check Voucher", ipAddress);
+                        //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        // }
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken); // await the SaveChangesAsync method
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Trade edited successfully";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("No data changes!");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1952,23 +1959,30 @@ namespace Accounting_System.Controllers
                         // model.Header.SupportingFilePath = fileSavePath
                     }
 
-                    #region --Audit Trail Recording
-
-                    // if (existingModel.OriginalSeriesNumber == null && existingModel.OriginalDocumentId == 0)
-                    // {
-                    //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    //     AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Create new check voucher# {existingModel.CVNo}", "Check Voucher", ipAddress);
-                    //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                    // }
-
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken); // await the SaveChangesAsync method
-                    await transaction.CommitAsync(cancellationToken);
-                    TempData["success"] = "Non-trade invoicing edited successfully";
-                    return RedirectToAction(nameof(Index));
-
                     #endregion -- Uploading file --
+
+                    if (_dbContext.ChangeTracker.HasChanges())
+                    {
+                        #region --Audit Trail Recording
+
+                        // if (existingModel.OriginalSeriesNumber == null && existingModel.OriginalDocumentId == 0)
+                        // {
+                        //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        //     AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Create new check voucher# {existingModel.CVNo}", "Check Voucher", ipAddress);
+                        //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        // }
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken); // await the SaveChangesAsync method
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Non-trade invoicing edited successfully";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("No data changes!");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -2237,23 +2251,30 @@ namespace Accounting_System.Controllers
                         // model.Header.SupportingFilePath = fileSavePath
                     }
 
-                    #region --Audit Trail Recording
-
-                    // if (existingHeaderModel.OriginalSeriesNumber == null && existingHeaderModel.OriginalDocumentId == 0)
-                    // {
-                    //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    //     AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Create new check voucher# {existingHeaderModel.CVNo}", "Check Voucher", ipAddress);
-                    //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                    // }
-
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken); // await the SaveChangesAsync method
-                    await transaction.CommitAsync(cancellationToken);
-                    TempData["success"] = "Non-trade payment edited successfully";
-                    return RedirectToAction(nameof(Index));
-
                     #endregion -- Uploading file --
+
+                    if (_dbContext.ChangeTracker.HasChanges())
+                    {
+                        #region --Audit Trail Recording
+
+                        // if (existingHeaderModel.OriginalSeriesNumber == null && existingHeaderModel.OriginalDocumentId == 0)
+                        // {
+                        //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        //     AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Create new check voucher# {existingHeaderModel.CVNo}", "Check Voucher", ipAddress);
+                        //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        // }
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken); // await the SaveChangesAsync method
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Non-trade payment edited successfully";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("No data changes!");
+                    }
                 }
                 catch (Exception ex)
                 {

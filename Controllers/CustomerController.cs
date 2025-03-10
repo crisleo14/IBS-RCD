@@ -147,30 +147,38 @@ namespace Accounting_System.Controllers
                     existingModel.WithHoldingVat = customer.WithHoldingVat;
                     existingModel.ZipCode = customer.ZipCode;
 
-                    #region --Audit Trail Recording
-
-                    if (customer.OriginalCustomerId == 0)
+                    if (_dbContext.ChangeTracker.HasChanges())
                     {
-                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Updated customer {customer.Name}", "Customer", ipAddress);
-                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        #region --Audit Trail Recording
+
+                        if (customer.OriginalCustomerId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Updated customer {customer.Name}", "Customer", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Customer updated successfully";
+                        return RedirectToAction(nameof(Index));
                     }
-
-                    #endregion --Audit Trail Recording
-
-                    _dbContext.Update(existingModel);
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    await transaction.CommitAsync(cancellationToken);
-                    TempData["success"] = "Customer updated successfully";
+                    else
+                    {
+                        throw new InvalidOperationException("No data changes!");
+                    }
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
+                    return View(existingModel);
                 }
-                return RedirectToAction(nameof(Index));
+
             }
-            return View(customer);
+            return View(existingModel);
         }
 
         //Download as .xlsx file.(Export)

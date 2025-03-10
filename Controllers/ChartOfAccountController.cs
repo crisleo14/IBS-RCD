@@ -168,22 +168,30 @@ namespace Accounting_System.Controllers
                     existingModel.NormalBalance = chartOfAccount.NormalBalance;
                     existingModel.Level = chartOfAccount.Level;
                     existingModel.AccountId = chartOfAccount.AccountId;
-                    existingModel.EditedBy = _userManager.GetUserName(this.User);
-                    existingModel.EditedDate = DateTime.UtcNow.AddHours(8);
 
-                    #region --Audit Trail Recording
+                    if (_dbContext.ChangeTracker.HasChanges())
+                    {
+                        existingModel.EditedBy = _userManager.GetUserName(this.User);
+                        existingModel.EditedDate = DateTime.UtcNow.AddHours(8);
 
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User),
-                        $"Updated chart of account {chartOfAccount.AccountNumber} {chartOfAccount.AccountName}",
-                        "Chart of Account", ipAddress);
-                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        #region --Audit Trail Recording
 
-                    #endregion --Audit Trail Recording
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User),
+                            $"Updated chart of account {chartOfAccount.AccountNumber} {chartOfAccount.AccountName}",
+                            "Chart of Account", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
 
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    await transaction.CommitAsync(cancellationToken);
-                    TempData["success"] = "Chart of account updated successfully";
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Chart of account updated successfully";
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("No data changes!");
+                    }
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -201,7 +209,7 @@ namespace Accounting_System.Controllers
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(Index));
+                    return View(chartOfAccount);
                 }
 
                 return RedirectToAction(nameof(Index));

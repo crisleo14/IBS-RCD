@@ -355,20 +355,27 @@ namespace Accounting_System.Controllers
 
                     #endregion -- Upload file --
 
-                    #region --Audit Trail Recording
-
-                    if (supplier.OriginalSupplierId == 0)
+                    if (_context.ChangeTracker.HasChanges())
                     {
-                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Update supplier {supplier.Name}", "Supplier Master File", ipAddress);
-                        await _context.AddAsync(auditTrailBook, cancellationToken);
+                        #region --Audit Trail Recording
+
+                        if (supplier.OriginalSupplierId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Update supplier {supplier.Name}", "Supplier Master File", ipAddress);
+                            await _context.AddAsync(auditTrailBook, cancellationToken);
+                        }
+
+                        #endregion --Audit Trail Recording
+
+                        await _context.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = $"Supplier {supplier.Name} has been edited.";
                     }
-
-                    #endregion --Audit Trail Recording
-
-                    await _context.SaveChangesAsync(cancellationToken);
-                    await transaction.CommitAsync(cancellationToken);
-                    TempData["success"] = $"Supplier {supplier.Name} has been edited.";
+                    else
+                    {
+                        throw new InvalidOperationException("No data changes!");
+                    }
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -386,7 +393,7 @@ namespace Accounting_System.Controllers
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(Index));
+                    return View(supplier);
                 }
                 return RedirectToAction(nameof(Index));
             }

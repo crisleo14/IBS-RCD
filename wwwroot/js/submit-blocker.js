@@ -1,16 +1,21 @@
-const spinnerWrapper = document.querySelector('.loader-container');
-
 $(document).ready(function () {
+    const spinnerWrapper = $('.loader-container');
     let isSubmitting = sessionStorage.getItem('isSubmitting') === 'true';
+
+    // Move spinner to body if not already there
+    if (!spinnerWrapper.parent().is('body')) {
+        $('body').append(spinnerWrapper);
+    }
 
     // If page was loaded during submission, show loader
     if (isSubmitting) {
         // Clear the flag immediately on the new page
         sessionStorage.removeItem('isSubmitting');
-        spinnerWrapper.style.display = 'none';
+        spinnerWrapper.hide();
+        $('body').removeClass('loading');
     } else {
         // Initially hide the spinner
-        spinnerWrapper.style.display = 'none';
+        spinnerWrapper.hide();
     }
 
     $('form').on('submit', function (e) {
@@ -32,8 +37,8 @@ $(document).ready(function () {
         submitButton.prop('disabled', true);
 
         // Show the spinner wrapper when submitting
-        spinnerWrapper.style.display = 'flex'; // or 'block' depending on your CSS
-        spinnerWrapper.style.opacity = '1';
+        spinnerWrapper.show();
+        $('body').addClass('loading'); // Optional: prevent scrolling
 
         // Set flag for submission in progress
         sessionStorage.setItem('isSubmitting', 'true');

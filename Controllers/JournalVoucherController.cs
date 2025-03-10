@@ -751,21 +751,28 @@ namespace Accounting_System.Controllers
 
                     #endregion --CV Details Entry
 
-                    #region --Audit Trail Recording
+                    if (_dbContext.ChangeTracker.HasChanges())
+                    {
+                        #region --Audit Trail Recording
 
-                    // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                    // {
-                    //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    //     AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit journal voucher# {viewModel.JVNo}", "Journal Voucher", ipAddress);
-                    //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                    // }
+                        // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        // {
+                        //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        //     AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit journal voucher# {viewModel.JVNo}", "Journal Voucher", ipAddress);
+                        //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        // }
 
-                    #endregion --Audit Trail Recording
+                        #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
-                    await transaction.CommitAsync(cancellationToken);
-                    TempData["success"] = "Journal Voucher edited successfully";
-                    return RedirectToAction(nameof(Index));
+                        await _dbContext.SaveChangesAsync(cancellationToken);  // await the SaveChangesAsync method
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Journal Voucher edited successfully";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("No data changes!");
+                    }
                 }
                 catch (Exception ex)
                 {

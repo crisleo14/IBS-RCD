@@ -673,18 +673,6 @@ namespace Accounting_System.Controllers
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    #region --Retrieval of Services
-
-                    var services = await _serviceInvoiceRepo.GetServicesAsync(model.ServicesId, cancellationToken);
-
-                    #endregion --Retrieval of Services
-
-                    #region --Retrieval of Customer
-
-                    var customer = await _serviceInvoiceRepo.FindCustomerAsync(model.CustomerId, cancellationToken);
-
-                    #endregion --Retrieval of Customer
-
                     #region --Saving the default properties
 
                     existingModel.Discount = model.Discount;
@@ -699,27 +687,50 @@ namespace Accounting_System.Controllers
 
                     #endregion --Saving the default properties
 
-                    #region --Audit Trail Recording
+                    if (_dbContext.ChangeTracker.HasChanges())
+                    {
+                        #region --Audit Trail Recording
 
-                    // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                    // {
-                    //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    //     AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit service invoice# {existingModel.SVNo}", "Service Invoice", ipAddress);
-                    //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                    // }
+                        // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        // {
+                        //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        //     AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit service invoice# {existingModel.SVNo}", "Service Invoice", ipAddress);
+                        //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        // }
 
-                    #endregion --Audit Trail Recording
+                        #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    await transaction.CommitAsync(cancellationToken);
-                    TempData["success"] = "Service Invoice updated successfully";
-                    return RedirectToAction(nameof(Index));
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Service Invoice updated successfully";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("No data changes!");
+                    }
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync(cancellationToken);
+                    existingModel.Customers = await _dbContext.Customers
+                        .OrderBy(c => c.Id)
+                        .Select(c => new SelectListItem
+                        {
+                            Value = c.Id.ToString(),
+                            Text = c.Name
+                        })
+                        .ToListAsync(cancellationToken);
+                    existingModel.Services = await _dbContext.Services
+                        .OrderBy(s => s.Id)
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.Id.ToString(),
+                            Text = s.Name
+                        })
+                        .ToListAsync(cancellationToken);
                     TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(Index));
+                    return View(existingModel);
                 }
             }
 
