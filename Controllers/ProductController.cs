@@ -143,20 +143,28 @@ namespace Accounting_System.Controllers
                     existingProduct.CreatedBy = product.CreatedBy;
                     existingProduct.CreatedDate = product.CreatedDate;
 
-                    #region --Audit Trail Recording
-
-                    if (product.OriginalProductId == 0)
+                    if (_dbContext.ChangeTracker.HasChanges())
                     {
-                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Updated product {product.Name}", "Product", ipAddress);
-                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        #region --Audit Trail Recording
+
+                        if (product.OriginalProductId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Updated product {product.Name}", "Product", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Product updated successfully";
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("No data changes!");
                     }
 
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    await transaction.CommitAsync(cancellationToken);
-                    TempData["success"] = "Product updated successfully";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -174,7 +182,7 @@ namespace Accounting_System.Controllers
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(Index));
+                    return View(product);
                 }
                 return RedirectToAction(nameof(Index));
             }

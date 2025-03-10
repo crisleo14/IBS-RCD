@@ -290,27 +290,35 @@ namespace Accounting_System.Controllers
                     existingModel.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model?.SupplierId, cancellationToken);
                     existingModel.ProductNo = await _purchaseOrderRepo.GetProductNoAsync(model?.ProductId, cancellationToken);
 
-                    #region --Audit Trail Recording
+                    if (_dbContext.ChangeTracker.HasChanges())
+                    {
+                        #region --Audit Trail Recording
 
-                    // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                    // {
-                    //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    //     AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit purchase order# {existingModel.PONo}", "Purchase Order", ipAddress);
-                    //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                    // }
+                        // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        // {
+                        //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        //     AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit purchase order# {existingModel.PONo}", "Purchase Order", ipAddress);
+                        //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        // }
 
-                    #endregion --Audit Trail Recording
+                        #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    await transaction.CommitAsync(cancellationToken);
-                    TempData["success"] = "Purchase Order updated successfully";
-                    return RedirectToAction(nameof(Index));
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Purchase Order updated successfully";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("No data changes!");
+                    }
+
                 }
                 catch (Exception ex)
                 {
                  await transaction.RollbackAsync(cancellationToken);
                  TempData["error"] = ex.Message;
-                 return RedirectToAction(nameof(Index));
+                 return View(model);
                 }
             }
 

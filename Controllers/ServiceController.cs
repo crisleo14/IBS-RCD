@@ -200,20 +200,27 @@ namespace Accounting_System.Controllers
                     existingServices.Name = services.Name;
                     existingServices.Percent = services.Percent;
 
-                    #region --Audit Trail Recording
-
-                    if (services.OriginalServiceId == 0)
+                    if (_dbContext.ChangeTracker.HasChanges())
                     {
-                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Update service {services.Name}", "Service", ipAddress);
-                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        #region --Audit Trail Recording
+
+                        if (services.OriginalServiceId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Update service {services.Name}", "Service", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Services updated successfully";
                     }
-
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    await transaction.CommitAsync(cancellationToken);
-                    TempData["success"] = "Services updated successfully";
+                    else
+                    {
+                        throw new InvalidOperationException("No data changes!");
+                    }
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -231,7 +238,7 @@ namespace Accounting_System.Controllers
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(Index));
+                    return View(services);
                 }
                 return RedirectToAction(nameof(Index));
             }

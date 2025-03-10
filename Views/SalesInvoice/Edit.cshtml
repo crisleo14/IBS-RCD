@@ -40,27 +40,27 @@
 
                         <div class="form-group mb-3">
                             <label class="control-label">Tin No</label>
-                            <input id="tinNo" class="form-control" value="@Model.Customer.TinNo" readonly disabled />
+                            <input id="tinNo" class="form-control" value="@Model.Customer?.TinNo" readonly disabled />
                         </div>
 
                         <div class="form-group mb-3">
                             <label class="control-label">Customer Type</label>
-                            <input id="customerType" class="form-control" value="@Model.Customer.CustomerType" readonly disabled />
+                            <input id="customerType" class="form-control" value="@Model.Customer?.CustomerType" readonly disabled />
                         </div>
 
                         <div class="form-group mb-3">
                             <label class="control-label">Address</label>
-                            <input id="address" class="form-control" value="@Model.Customer.Address" readonly disabled />
+                            <input id="address" class="form-control" value="@Model.Customer?.Address" readonly disabled />
                         </div>
 
                         <div class="form-group mb-3">
                             <label class="control-label">Business Style</label>
-                            <input id="businessStyle" class="form-control" value="@Model.Customer.BusinessStyle" readonly disabled />
+                            <input id="businessStyle" class="form-control" value="@Model.Customer?.BusinessStyle" readonly disabled />
                         </div>
 
                         <div class="form-group mb-3">
                             <label class="control-label">Terms</label>
-                            <input id="terms" class="form-control" value="@Model.Customer.Terms" readonly disabled />
+                            <input id="terms" class="form-control" value="@Model.Customer?.Terms" readonly disabled />
                         </div>
                     </div>
                     <div class="col">
@@ -76,7 +76,7 @@
 
                         <div class="form-group mb-3">
                             <label class="control-label">Unit</label>
-                            <input id="productUnit" class="form-control" value="@Model.Product.Unit" readonly disabled />
+                            <input id="productUnit" class="form-control" value="@Model.Product?.Unit" readonly disabled />
                         </div>
                         <div class="form-group mb-3">
                             <label asp-for="Quantity" class="control-label"></label>

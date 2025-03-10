@@ -127,28 +127,35 @@ namespace Accounting_System.Controllers
                     existingModel.AccountName = model.AccountName;
                     existingModel.BankCode = model.BankCode;
 
-                    #region --Audit Trail Recording
-
-                    if (model.OriginalBankId == 0)
+                    if (_dbContext.ChangeTracker.HasChanges())
                     {
-                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User),
-                            $"Updated bank {model.AccountName}", "Bank Account", ipAddress);
-                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        #region --Audit Trail Recording
+
+                        if (model.OriginalBankId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User),
+                                $"Updated bank {model.AccountName}", "Bank Account", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Bank edited successfully.";
+                        return RedirectToAction(nameof(Index));
                     }
-
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    await transaction.CommitAsync(cancellationToken);
-                    TempData["success"] = "Bank edited successfully.";
-                    return RedirectToAction(nameof(Index));
+                    else
+                    {
+                        throw new InvalidOperationException("No data changes!");
+                    }
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(Index));
+                    return View(existingModel);
                 }
             }
             else

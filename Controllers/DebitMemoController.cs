@@ -981,28 +981,34 @@ namespace Accounting_System.Controllers
 
                         existingDM.DebitAmount = model.Amount ?? 0;
                     }
+                    if (_dbContext.ChangeTracker.HasChanges())
+                    {
+                        #region --Audit Trail Recording
 
-                    #region --Audit Trail Recording
+                        // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        // {
+                        //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        //     AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit debit memo# {existingDM.DMNo}", "Debit Memo", ipAddress);
+                        //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        // }
 
-                    // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                    // {
-                    //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    //     AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit debit memo# {existingDM.DMNo}", "Debit Memo", ipAddress);
-                    //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                    // }
+                        #endregion --Audit Trail Recording
 
-                    #endregion --Audit Trail Recording
-
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    await transaction.CommitAsync(cancellationToken);
-                    TempData["success"] = "Debit Memo edited successfully";
-                    return RedirectToAction(nameof(Index));
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Debit Memo edited successfully";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("No data changes!");
+                    }
                 }
                 catch (Exception ex)
                 {
                  await transaction.RollbackAsync(cancellationToken);
                  TempData["error"] = ex.Message;
-                 return RedirectToAction(nameof(Index));
+                 return View(model);
                 }
             }
 

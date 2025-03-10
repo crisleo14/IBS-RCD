@@ -252,65 +252,82 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
 
-            if (ModelState.IsValid)
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            try
             {
-                if (existingModel == null)
+                if (ModelState.IsValid)
                 {
-                    return NotFound();
+                    if (existingModel == null)
+                    {
+                        return NotFound();
+                    }
+
+                    #region --Retrieve PO
+
+                    var po = await _dbContext
+                                .PurchaseOrders
+                                .Include(po => po.Supplier)
+                                .Include(po => po.Product)
+                                .FirstOrDefaultAsync(po => po.Id == model.POId, cancellationToken);
+
+                    #endregion --Retrieve PO
+
+                    var rr = await _dbContext.ReceivingReports
+                    .Where(rr => rr.PONo == po.PONo)
+                    .ToListAsync(cancellationToken);
+
+                    var totalAmountRR = po.Quantity - po.QuantityReceived;
+
+                    if (model.QuantityDelivered > totalAmountRR && !existingModel.IsPosted)
+                    {
+                        TempData["error"] = "Input is exceed to remaining quantity delivered";
+                        return View(model);
+                    }
+
+                    existingModel.Date = model.Date;
+                    existingModel.POId = model.POId;
+                    existingModel.PONo = await _receivingReportRepo.GetPONoAsync(model.POId, cancellationToken);
+                    existingModel.DueDate = await _receivingReportRepo.ComputeDueDateAsync(model.POId, model.Date, cancellationToken);
+                    existingModel.SupplierInvoiceNumber = model.SupplierInvoiceNumber;
+                    existingModel.SupplierInvoiceDate = model.SupplierInvoiceDate;
+                    existingModel.TruckOrVessels = model.TruckOrVessels;
+                    existingModel.QuantityDelivered = model.QuantityDelivered;
+                    existingModel.QuantityReceived = model.QuantityReceived;
+                    existingModel.GainOrLoss = model.QuantityReceived - model.QuantityDelivered;
+                    existingModel.OtherRef = model.OtherRef;
+                    existingModel.Remarks = model.Remarks;
+                    existingModel.ReceivedDate = model.ReceivedDate;
+                    existingModel.Amount = model.QuantityReceived * po.Price;
+
+                    if (_dbContext.ChangeTracker.HasChanges())
+                    {
+                        #region --Audit Trail Recording
+
+                        // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        // {
+                        //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        //     AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit rr# {existingModel.RRNo}", "Receiving Report", ipAddress);
+                        //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        // }
+
+                        #endregion --Audit Trail Recording
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        TempData["success"] = "Receiving Report updated successfully";
+                        await transaction.CommitAsync(cancellationToken);
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("No data changes!");
+                    }
                 }
-
-                #region --Retrieve PO
-
-                var po = await _dbContext
-                            .PurchaseOrders
-                            .Include(po => po.Supplier)
-                            .Include(po => po.Product)
-                            .FirstOrDefaultAsync(po => po.Id == model.POId, cancellationToken);
-
-                #endregion --Retrieve PO
-
-                var rr = await _dbContext.ReceivingReports
-                .Where(rr => rr.PONo == po.PONo)
-                .ToListAsync(cancellationToken);
-
-                var totalAmountRR = po.Quantity - po.QuantityReceived;
-
-                if (model.QuantityDelivered > totalAmountRR && !existingModel.IsPosted)
-                {
-                    TempData["error"] = "Input is exceed to remaining quantity delivered";
-                    return View(model);
-                }
-
-                existingModel.Date = model.Date;
-                existingModel.POId = model.POId;
-                existingModel.PONo = await _receivingReportRepo.GetPONoAsync(model.POId, cancellationToken);
-                existingModel.DueDate = await _receivingReportRepo.ComputeDueDateAsync(model.POId, model.Date, cancellationToken);
-                existingModel.SupplierInvoiceNumber = model.SupplierInvoiceNumber;
-                existingModel.SupplierInvoiceDate = model.SupplierInvoiceDate;
-                existingModel.TruckOrVessels = model.TruckOrVessels;
-                existingModel.QuantityDelivered = model.QuantityDelivered;
-                existingModel.QuantityReceived = model.QuantityReceived;
-                existingModel.GainOrLoss = model.QuantityReceived - model.QuantityDelivered;
-                existingModel.OtherRef = model.OtherRef;
-                existingModel.Remarks = model.Remarks;
-                existingModel.ReceivedDate = model.ReceivedDate;
-                existingModel.Amount = model.QuantityReceived * po.Price;
-
-                #region --Audit Trail Recording
-
-                // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                // {
-                //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                //     AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit rr# {existingModel.RRNo}", "Receiving Report", ipAddress);
-                //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                // }
-
-                #endregion --Audit Trail Recording
-
-                await _dbContext.SaveChangesAsync(cancellationToken);
-
-                TempData["success"] = "Receiving Report updated successfully";
-                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
+                return View(existingModel);
             }
 
             return View(existingModel);

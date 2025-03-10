@@ -1031,6 +1031,11 @@ namespace Accounting_System.Controllers
         {
             var existingModel = await _receiptRepo.FindCR(model.Id, cancellationToken);
 
+            var offsettings = await _dbContext.Offsettings
+                .Where(offset => offset.Source == existingModel.CRNo)
+                .ToListAsync(cancellationToken);
+
+            ViewBag.Offsettings = offsettings;
             if (ModelState.IsValid)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
@@ -1185,28 +1190,35 @@ namespace Accounting_System.Controllers
 
                     #endregion --Offsetting function
 
-                    #region --Audit Trail Recording
+                    if (_dbContext.ChangeTracker.HasChanges())
+                    {
+                        #region --Audit Trail Recording
 
-                    // if (existingModel.OriginalSeriesNumber == null && existingModel.OriginalDocumentId == 0)
-                    // {
-                    //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    //     var modifiedBy = _userManager.GetUserName(this.User);
-                    //     AuditTrail auditTrailBook = new(modifiedBy, $"Edited collection receipt# {existingModel.CRNo}", "Collection Receipt", ipAddress);
-                    //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                    // }
+                        // if (existingModel.OriginalSeriesNumber == null && existingModel.OriginalDocumentId == 0)
+                        // {
+                        //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        //     var modifiedBy = _userManager.GetUserName(this.User);
+                        //     AuditTrail auditTrailBook = new(modifiedBy, $"Edited collection receipt# {existingModel.CRNo}", "Collection Receipt", ipAddress);
+                        //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        // }
 
-                    #endregion --Audit Trail Recording
+                        #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    await transaction.CommitAsync(cancellationToken);
-                    TempData["success"] = "Collection Receipt updated successfully";
-                    return RedirectToAction(nameof(CollectionIndex));
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Collection Receipt edited successfully";
+                        return RedirectToAction(nameof(CollectionIndex));
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("No data changes!");
+                    }
                 }
                 catch (Exception ex)
                 {
                  await transaction.RollbackAsync(cancellationToken);
                  TempData["error"] = ex.Message;
-                 return RedirectToAction(nameof(CollectionIndex));
+                 return View(existingModel);
                 }
             }
             else
@@ -1277,6 +1289,11 @@ namespace Accounting_System.Controllers
         {
             var existingModel = await _receiptRepo.FindCR(model.Id, cancellationToken);
 
+            var offsettings = await _dbContext.Offsettings
+                .Where(offset => offset.Source == existingModel.CRNo)
+                .ToListAsync(cancellationToken);
+
+            ViewBag.Offsettings = offsettings;
             if (ModelState.IsValid)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
@@ -1454,28 +1471,35 @@ namespace Accounting_System.Controllers
 
                     #endregion --Offsetting function
 
-                    #region --Audit Trail Recording
+                    if (_dbContext.ChangeTracker.HasChanges())
+                    {
+                        #region --Audit Trail Recording
 
-                    // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                    // {
-                    //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    //     var modifiedBy = _userManager.GetUserName(this.User);
-                    //     AuditTrail auditTrailBook = new(modifiedBy, $"Edited collection receipt# {existingModel.CRNo}", "Collection Receipt", ipAddress);
-                    //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                    // }
+                        // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        // {
+                        //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        //     var modifiedBy = _userManager.GetUserName(this.User);
+                        //     AuditTrail auditTrailBook = new(modifiedBy, $"Edited collection receipt# {existingModel.CRNo}", "Collection Receipt", ipAddress);
+                        //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        // }
 
-                    #endregion --Audit Trail Recording
+                        #endregion --Audit Trail Recording
 
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    await transaction.CommitAsync(cancellationToken);
-                    TempData["success"] = "Collection Receipt edited successfully";
-                    return RedirectToAction(nameof(CollectionIndex));
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Collection Receipt edited successfully";
+                        return RedirectToAction(nameof(CollectionIndex));
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("No data changes!");
+                    }
                 }
                 catch (Exception ex)
                 {
                  await transaction.RollbackAsync(cancellationToken);
                  TempData["error"] = ex.Message;
-                 return RedirectToAction(nameof(Index));
+                 return View(existingModel);
                 }
             }
             else

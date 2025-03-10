@@ -236,7 +236,7 @@ namespace Accounting_System.Controllers
                 {
                  await transaction.RollbackAsync(cancellationToken);
                  TempData["error"] = ex.Message;
-                 return RedirectToAction(nameof(Index));
+                 return View(sales);
                 }
             }
             else
@@ -375,17 +375,25 @@ namespace Accounting_System.Controllers
                     return View(model);
                 }
 
-                // Save the changes to the database
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
-                TempData["success"] = "Sales Invoice updated successfully";
-                return RedirectToAction(nameof(Index)); // Redirect to a success page or the index page
+                if (_dbContext.ChangeTracker.HasChanges())
+                {
+                    // Save the changes to the database
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    TempData["success"] = "Sales Invoice updated successfully";
+                    return RedirectToAction(nameof(Index)); // Redirect to a success page or the index page
+                }
+                else
+                {
+                    throw new InvalidOperationException("No data changes!");
+                    return View(model);
+                }
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync(cancellationToken);
-                _logger.LogError(ex, "An error occurred.");
-                return StatusCode(500, "An error occurred. Please try again later.");
+                TempData["error"] = ex.Message;
+                return View(model);
             }
         }
 
