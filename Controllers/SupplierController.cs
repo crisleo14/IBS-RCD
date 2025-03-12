@@ -313,46 +313,6 @@ namespace Accounting_System.Controllers
                         existingModel.ProofOfExemptionFilePath = fileSavePath;
                     }
 
-                    if (registration != null && registration.Length > 0)
-                    {
-                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Proof of Registration", supplier.Number.ToString());
-
-                        if (!Directory.Exists(uploadsFolder))
-                        {
-                            Directory.CreateDirectory(uploadsFolder);
-                        }
-
-                        string fileName = Path.GetFileName(registration.FileName);
-                        string fileSavePath = Path.Combine(uploadsFolder, fileName);
-
-                        using (FileStream stream = new FileStream(fileSavePath, FileMode.Create))
-                        {
-                            await registration.CopyToAsync(stream, cancellationToken);
-                        }
-
-                        existingModel.ProofOfRegistrationFilePath = fileSavePath;
-                    }
-                    else
-                    {
-                        supplier.DefaultExpenses = await _context.ChartOfAccounts
-                            .Select(s => new SelectListItem
-                            {
-                                Value = s.AccountNumber + " " + s.AccountName,
-                                Text = s.AccountNumber + " " + s.AccountName
-                            })
-                            .ToListAsync(cancellationToken);
-                        supplier.WithholdingTaxList = await _context.ChartOfAccounts
-                            .Where(coa => coa.AccountNumber == "201030210" || coa.AccountNumber == "201030220")
-                            .Select(s => new SelectListItem
-                            {
-                                Value = s.AccountNumber + " " + s.AccountName,
-                                Text = s.AccountNumber + " " + s.AccountName
-                            })
-                            .ToListAsync(cancellationToken);
-                        TempData["error"] = "There's something wrong in your file. Contact MIS.";
-                        return View(supplier);
-                    }
-
                     #endregion -- Upload file --
 
                     if (_context.ChangeTracker.HasChanges())
@@ -392,6 +352,21 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync(cancellationToken);
+                    supplier.DefaultExpenses = await _context.ChartOfAccounts
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.AccountNumber + " " + s.AccountName,
+                            Text = s.AccountNumber + " " + s.AccountName
+                        })
+                        .ToListAsync(cancellationToken);
+                    supplier.WithholdingTaxList = await _context.ChartOfAccounts
+                        .Where(coa => coa.AccountNumber == "201030210" || coa.AccountNumber == "201030220")
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.AccountNumber + " " + s.AccountName,
+                            Text = s.AccountNumber + " " + s.AccountName
+                        })
+                        .ToListAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return View(supplier);
                 }
