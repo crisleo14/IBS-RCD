@@ -328,16 +328,15 @@ namespace Accounting_System.Controllers
             var existingSv = await _dbContext.ServiceInvoices
                         .Include(sv => sv.Customer)
                         .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
+            var existingCM = await _dbContext
+                .CreditMemos
+                .FirstOrDefaultAsync(cm => cm.Id == model.Id, cancellationToken);
 
             if (ModelState.IsValid)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    var existingCM = await _dbContext
-                            .CreditMemos
-                            .FirstOrDefaultAsync(cm => cm.Id == model.Id, cancellationToken);
-
                     if (model.Source == "Sales Invoice")
                     {
                         model.ServiceInvoiceId = null;
@@ -350,10 +349,10 @@ namespace Accounting_System.Controllers
                         existingCM.AdjustedPrice = model.AdjustedPrice;
                         existingCM.Description = model.Description;
                         existingCM.Remarks = model.Remarks;
+                        existingCM.CreditAmount = (decimal)(model.Quantity * -model.AdjustedPrice);
 
                         #endregion -- Saving Default Enries --
 
-                        existingCM.CreditAmount = (decimal)(model.Quantity * -model.AdjustedPrice);
                     }
                     else if (model.Source == "Service Invoice")
                     {
@@ -361,7 +360,7 @@ namespace Accounting_System.Controllers
 
                         #region --Retrieval of Services
 
-                        existingCM.ServicesId = existingSv.ServicesId;
+
 
                         var services = await _dbContext
                         .Services
@@ -373,14 +372,15 @@ namespace Accounting_System.Controllers
 
                         existingCM.TransactionDate = model.TransactionDate;
                         existingCM.ServiceInvoiceId = model.ServiceInvoiceId;
+                        existingCM.ServicesId = existingSv.ServicesId;
                         existingCM.Period = model.Period;
                         existingCM.Amount = model.Amount;
                         existingCM.Description = model.Description;
                         existingCM.Remarks = model.Remarks;
+                        existingCM.CreditAmount = -model.Amount ?? 0;
 
                         #endregion -- Saving Default Enries --
 
-                        existingCM.CreditAmount = -model.Amount ?? 0;
                     }
 
                     if (_dbContext.ChangeTracker.HasChanges())
@@ -409,13 +409,45 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                  await transaction.RollbackAsync(cancellationToken);
+                 existingCM.SalesInvoices = await _dbContext.SalesInvoices
+                     .Where(si => si.IsPosted)
+                     .Select(si => new SelectListItem
+                     {
+                         Value = si.Id.ToString(),
+                         Text = si.SINo
+                     })
+                     .ToListAsync(cancellationToken);
+                 existingCM.ServiceInvoices = await _dbContext.ServiceInvoices
+                     .Where(sv => sv.IsPosted)
+                     .Select(sv => new SelectListItem
+                     {
+                         Value = sv.Id.ToString(),
+                         Text = sv.SVNo
+                     })
+                     .ToListAsync(cancellationToken);
                  TempData["error"] = ex.Message;
-                 return View(model);
+                 return View(existingCM);
                 }
             }
 
             ModelState.AddModelError("", "The information you submitted is not valid!");
-            return View(model);
+            existingCM.SalesInvoices = await _dbContext.SalesInvoices
+                .Where(si => si.IsPosted)
+                .Select(si => new SelectListItem
+                {
+                    Value = si.Id.ToString(),
+                    Text = si.SINo
+                })
+                .ToListAsync(cancellationToken);
+            existingCM.ServiceInvoices = await _dbContext.ServiceInvoices
+                .Where(sv => sv.IsPosted)
+                .Select(sv => new SelectListItem
+                {
+                    Value = sv.Id.ToString(),
+                    Text = sv.SVNo
+                })
+                .ToListAsync(cancellationToken);
+            return View(existingCM);
         }
 
         [HttpGet]

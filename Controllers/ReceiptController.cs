@@ -1047,7 +1047,45 @@ namespace Accounting_System.Controllers
                     if (computeTotalInModelIfZero == 0)
                     {
                         TempData["error"] = "Please input atleast one type form of payment";
-                        return View(model);
+                        existingModel.Customers = await _dbContext.Customers
+                            .OrderBy(c => c.Id)
+                            .Select(s => new SelectListItem
+                            {
+                                Value = s.Id.ToString(),
+                                Text = s.Name
+                            })
+                            .ToListAsync(cancellationToken);
+
+                        existingModel.SalesInvoices = await _dbContext.SalesInvoices
+                            .Where(si => !si.IsPaid && si.CustomerId == existingModel.CustomerId && si.IsPosted)
+                            .OrderBy(si => si.Id)
+                            .Select(s => new SelectListItem
+                            {
+                                Value = s.Id.ToString(),
+                                Text = s.SINo
+                            })
+                            .ToListAsync(cancellationToken);
+
+                        existingModel.ServiceInvoices = await _dbContext.ServiceInvoices
+                            .Where(si => !si.IsPaid && si.CustomerId == existingModel.CustomerId && si.IsPosted)
+                            .OrderBy(si => si.Id)
+                            .Select(s => new SelectListItem
+                            {
+                                Value = s.Id.ToString(),
+                                Text = s.SVNo
+                            })
+                            .ToListAsync(cancellationToken);
+
+                        existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
+                            .Where(coa => coa.Level == 4 || coa.Level == 5)
+                            .OrderBy(coa => coa.AccountId)
+                            .Select(s => new SelectListItem
+                            {
+                                Value = s.AccountNumber,
+                                Text = s.AccountNumber + " " + s.AccountName
+                            })
+                            .ToListAsync(cancellationToken);
+                        return View(existingModel);
                     }
 
                     existingModel.TransactionDate = model.TransactionDate;
@@ -1217,6 +1255,44 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                  await transaction.RollbackAsync(cancellationToken);
+                 existingModel.Customers = await _dbContext.Customers
+                     .OrderBy(c => c.Id)
+                     .Select(s => new SelectListItem
+                     {
+                         Value = s.Id.ToString(),
+                         Text = s.Name
+                     })
+                     .ToListAsync(cancellationToken);
+
+                 existingModel.SalesInvoices = await _dbContext.SalesInvoices
+                     .Where(si => !si.IsPaid && si.CustomerId == existingModel.CustomerId && si.IsPosted)
+                     .OrderBy(si => si.Id)
+                     .Select(s => new SelectListItem
+                     {
+                         Value = s.Id.ToString(),
+                         Text = s.SINo
+                     })
+                     .ToListAsync(cancellationToken);
+
+                 existingModel.ServiceInvoices = await _dbContext.ServiceInvoices
+                     .Where(si => !si.IsPaid && si.CustomerId == existingModel.CustomerId && si.IsPosted)
+                     .OrderBy(si => si.Id)
+                     .Select(s => new SelectListItem
+                     {
+                         Value = s.Id.ToString(),
+                         Text = s.SVNo
+                     })
+                     .ToListAsync(cancellationToken);
+
+                 existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
+                     .Where(coa => coa.Level == 4 || coa.Level == 5)
+                     .OrderBy(coa => coa.AccountId)
+                     .Select(s => new SelectListItem
+                     {
+                         Value = s.AccountNumber,
+                         Text = s.AccountNumber + " " + s.AccountName
+                     })
+                     .ToListAsync(cancellationToken);
                  TempData["error"] = ex.Message;
                  return View(existingModel);
                 }
@@ -1224,7 +1300,45 @@ namespace Accounting_System.Controllers
             else
             {
                 TempData["error"] = "The information you submitted is not valid!";
-                return View(model);
+                existingModel.Customers = await _dbContext.Customers
+                    .OrderBy(c => c.Id)
+                    .Select(s => new SelectListItem
+                    {
+                        Value = s.Id.ToString(),
+                        Text = s.Name
+                    })
+                    .ToListAsync(cancellationToken);
+
+                existingModel.SalesInvoices = await _dbContext.SalesInvoices
+                    .Where(si => !si.IsPaid && si.CustomerId == existingModel.CustomerId && si.IsPosted)
+                    .OrderBy(si => si.Id)
+                    .Select(s => new SelectListItem
+                    {
+                        Value = s.Id.ToString(),
+                        Text = s.SINo
+                    })
+                    .ToListAsync(cancellationToken);
+
+                existingModel.ServiceInvoices = await _dbContext.ServiceInvoices
+                    .Where(si => !si.IsPaid && si.CustomerId == existingModel.CustomerId && si.IsPosted)
+                    .OrderBy(si => si.Id)
+                    .Select(s => new SelectListItem
+                    {
+                        Value = s.Id.ToString(),
+                        Text = s.SVNo
+                    })
+                    .ToListAsync(cancellationToken);
+
+                existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
+                    .Where(coa => coa.Level == 4 || coa.Level == 5)
+                    .OrderBy(coa => coa.AccountId)
+                    .Select(s => new SelectListItem
+                    {
+                        Value = s.AccountNumber,
+                        Text = s.AccountNumber + " " + s.AccountName
+                    })
+                    .ToListAsync(cancellationToken);
+                return View(existingModel);
             }
         }
 
@@ -1305,7 +1419,35 @@ namespace Accounting_System.Controllers
                     if (computeTotalInModelIfZero == 0)
                     {
                         TempData["error"] = "Please input atleast one type form of payment";
-                        return View(model);
+                        existingModel.Customers = await _dbContext.Customers
+                            .OrderBy(c => c.Id)
+                            .Select(s => new SelectListItem
+                            {
+                                Value = s.Id.ToString(),
+                                Text = s.Name
+                            })
+                            .ToListAsync(cancellationToken);
+
+                        existingModel.SalesInvoices = await _dbContext.SalesInvoices
+                            .Where(si => !si.IsPaid && si.CustomerId == existingModel.CustomerId)
+                            .OrderBy(si => si.Id)
+                            .Select(s => new SelectListItem
+                            {
+                                Value = s.Id.ToString(),
+                                Text = s.SINo
+                            })
+                            .ToListAsync(cancellationToken);
+
+                        existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
+                            .Where(coa => coa.Level == 4 || coa.Level == 5)
+                            .OrderBy(coa => coa.AccountId)
+                            .Select(s => new SelectListItem
+                            {
+                                Value = s.AccountNumber,
+                                Text = s.AccountNumber + " " + s.AccountName
+                            })
+                            .ToListAsync(cancellationToken);
+                        return View(existingModel);
                     }
                     var existingSalesInvoice = await _dbContext.SalesInvoices
                                                    .Where(si => model.MultipleSIId.Contains(si.Id))
@@ -1498,6 +1640,34 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                  await transaction.RollbackAsync(cancellationToken);
+                 existingModel.Customers = await _dbContext.Customers
+                     .OrderBy(c => c.Id)
+                     .Select(s => new SelectListItem
+                     {
+                         Value = s.Id.ToString(),
+                         Text = s.Name
+                     })
+                     .ToListAsync(cancellationToken);
+
+                 existingModel.SalesInvoices = await _dbContext.SalesInvoices
+                     .Where(si => !si.IsPaid && si.CustomerId == existingModel.CustomerId)
+                     .OrderBy(si => si.Id)
+                     .Select(s => new SelectListItem
+                     {
+                         Value = s.Id.ToString(),
+                         Text = s.SINo
+                     })
+                     .ToListAsync(cancellationToken);
+
+                 existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
+                     .Where(coa => coa.Level == 4 || coa.Level == 5)
+                     .OrderBy(coa => coa.AccountId)
+                     .Select(s => new SelectListItem
+                     {
+                         Value = s.AccountNumber,
+                         Text = s.AccountNumber + " " + s.AccountName
+                     })
+                     .ToListAsync(cancellationToken);
                  TempData["error"] = ex.Message;
                  return View(existingModel);
                 }
@@ -1505,7 +1675,35 @@ namespace Accounting_System.Controllers
             else
             {
                 TempData["error"] = "The information you submitted is not valid!";
-                return View(model);
+                existingModel.Customers = await _dbContext.Customers
+                    .OrderBy(c => c.Id)
+                    .Select(s => new SelectListItem
+                    {
+                        Value = s.Id.ToString(),
+                        Text = s.Name
+                    })
+                    .ToListAsync(cancellationToken);
+
+                existingModel.SalesInvoices = await _dbContext.SalesInvoices
+                    .Where(si => !si.IsPaid && si.CustomerId == existingModel.CustomerId)
+                    .OrderBy(si => si.Id)
+                    .Select(s => new SelectListItem
+                    {
+                        Value = s.Id.ToString(),
+                        Text = s.SINo
+                    })
+                    .ToListAsync(cancellationToken);
+
+                existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
+                    .Where(coa => coa.Level == 4 || coa.Level == 5)
+                    .OrderBy(coa => coa.AccountId)
+                    .Select(s => new SelectListItem
+                    {
+                        Value = s.AccountNumber,
+                        Text = s.AccountNumber + " " + s.AccountName
+                    })
+                    .ToListAsync(cancellationToken);
+                return View(existingModel);
             }
         }
 

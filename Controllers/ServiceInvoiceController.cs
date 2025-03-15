@@ -734,6 +734,22 @@ namespace Accounting_System.Controllers
                 }
             }
 
+            existingModel.Customers = await _dbContext.Customers
+                .OrderBy(c => c.Id)
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name
+                })
+                .ToListAsync(cancellationToken);
+            existingModel.Services = await _dbContext.Services
+                .OrderBy(s => s.Id)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync(cancellationToken);
             return View(existingModel);
         }
 

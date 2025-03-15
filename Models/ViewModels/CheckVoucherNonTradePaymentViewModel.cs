@@ -8,7 +8,7 @@ namespace Accounting_System.Models.ViewModels
         public List<SelectListItem>? CheckVouchers { get; set; }
 
         [Required(ErrorMessage = "The CV No is required.")]
-        public int CvId { get; set; }
+        public int InvoicingId { get; set; }
         public int CVId { get; set; }
 
         [Display(Name = "Payee")]

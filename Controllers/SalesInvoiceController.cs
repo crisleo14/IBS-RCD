@@ -319,11 +319,10 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Edit(SalesInvoice model, CancellationToken cancellationToken)
         {
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            var existingModel = await _salesInvoiceRepo.FindSalesInvoice(model.Id, cancellationToken);
             try
             {
                 #region -- Checking existing record --
-
-                var existingModel = await _salesInvoiceRepo.FindSalesInvoice(model.Id, cancellationToken);
 
                 if (existingModel == null)
                 {
@@ -363,37 +362,85 @@ namespace Accounting_System.Controllers
                     }
                     else
                     {
+                        existingModel.Customers = await _dbContext.Customers
+                            .OrderBy(c => c.Id)
+                            .Select(c => new SelectListItem
+                            {
+                                Value = c.Id.ToString(),
+                                Text = c.Name
+                            })
+                            .ToListAsync(cancellationToken);
+                        existingModel.Products = await _dbContext.Products
+                            .OrderBy(p => p.Id)
+                            .Select(p => new SelectListItem
+                            {
+                                Value = p.Id.ToString(),
+                                Text = p.Name
+                            })
+                            .ToListAsync(cancellationToken);
                         TempData["error"] = "Please input below or exact amount based unit price multiply quantity";
-                        return View(model);
+                        return View(existingModel);
+                    }
+
+                    if (_dbContext.ChangeTracker.HasChanges())
+                    {
+                        // Save the changes to the database
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        TempData["success"] = "Sales Invoice updated successfully";
+                        return RedirectToAction(nameof(Index)); // Redirect to a success page or the index page
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("No data changes!");
                     }
 
                     #endregion -- Saving Default Enries --
                 }
                 else
                 {
-                    ModelState.AddModelError("", "The information you submitted is not valid!");
-                    return View(model);
-                }
+                    existingModel.Customers = await _dbContext.Customers
+                        .OrderBy(c => c.Id)
+                        .Select(c => new SelectListItem
+                        {
+                            Value = c.Id.ToString(),
+                            Text = c.Name
+                        })
+                        .ToListAsync(cancellationToken);
+                    existingModel.Products = await _dbContext.Products
+                        .OrderBy(p => p.Id)
+                        .Select(p => new SelectListItem
+                        {
+                            Value = p.Id.ToString(),
+                            Text = p.Name
+                        })
+                        .ToListAsync(cancellationToken);
 
-                if (_dbContext.ChangeTracker.HasChanges())
-                {
-                    // Save the changes to the database
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    await transaction.CommitAsync(cancellationToken);
-                    TempData["success"] = "Sales Invoice updated successfully";
-                    return RedirectToAction(nameof(Index)); // Redirect to a success page or the index page
-                }
-                else
-                {
-                    throw new InvalidOperationException("No data changes!");
-                    return View(model);
+                    ModelState.AddModelError("", "The information you submitted is not valid!");
+                    return View(existingModel);
                 }
             }
             catch (Exception ex)
             {
+                existingModel.Customers = await _dbContext.Customers
+                    .OrderBy(c => c.Id)
+                    .Select(c => new SelectListItem
+                    {
+                        Value = c.Id.ToString(),
+                        Text = c.Name
+                    })
+                    .ToListAsync(cancellationToken);
+                existingModel.Products = await _dbContext.Products
+                    .OrderBy(p => p.Id)
+                    .Select(p => new SelectListItem
+                    {
+                        Value = p.Id.ToString(),
+                        Text = p.Name
+                    })
+                    .ToListAsync(cancellationToken);
                 await transaction.RollbackAsync(cancellationToken);
                 TempData["error"] = ex.Message;
-                return View(model);
+                return View(existingModel);
             }
         }
 
