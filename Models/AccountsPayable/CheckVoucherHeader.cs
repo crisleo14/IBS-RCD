@@ -7,8 +7,6 @@ namespace Accounting_System.Models.AccountsPayable
 {
     public class CheckVoucherHeader : BaseEntity
     {
-        public object RRSeries;
-
         [Display(Name = "CV No")]
         public string? CVNo { get; set; }
 
@@ -116,6 +114,10 @@ namespace Accounting_System.Models.AccountsPayable
         public decimal AmountPaid { get; set; }
 
         public bool IsPaid { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:#,##0.0000;(#,##0.0000)}", ApplyFormatInEditMode = true)]
+        [Column(TypeName = "numeric(18,4)")]
+        public decimal InvoiceAmount { get; set; }
 
         //Ibs records
         public int? OriginalSupplierId { get; set; }
