@@ -492,7 +492,6 @@ namespace Accounting_System.Controllers
                 return NotFound();
             }
 
-            var exisitngCV = await _dbContext.CheckVoucherHeaders.FindAsync(id, cancellationToken);
             var existingHeaderModel = await _dbContext.CheckVoucherHeaders
                 .Include(supp => supp.Supplier)
                 .FirstOrDefaultAsync(cvh => cvh.Id == id, cancellationToken);
@@ -504,26 +503,6 @@ namespace Accounting_System.Controllers
             {
                 return NotFound();
             }
-
-            var accountNumbers = existingDetailsModel.Select(model => model.AccountNo).ToArray();
-            var accountTitles = existingDetailsModel.Select(model => model.AccountName).ToArray();
-            var debit = existingDetailsModel.Select(model => model.Debit).ToArray();
-            var credit = existingDetailsModel.Select(model => model.Credit).ToArray();
-            var poIds = _dbContext.PurchaseOrders.Where(model => exisitngCV.PONo.Contains(model.PONo))
-                .Select(model => model.Id).ToArray();
-            var rrIds = _dbContext.ReceivingReports.Where(model => exisitngCV.RRNo.Contains(model.RRNo))
-                .Select(model => model.Id).ToArray();
-
-            var coa = await _dbContext.ChartOfAccounts
-                .Where(coa =>
-                    !new[] { "2010102", "2010101", "1010101" }.Any(
-                        excludedNumber => coa.AccountNumber.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
-                .Select(s => new SelectListItem
-                {
-                    Value = s.AccountNumber,
-                    Text = s.AccountNumber + " " + s.AccountName
-                })
-                .ToListAsync(cancellationToken);
 
             CheckVoucherTradeViewModel model = new()
             {
@@ -543,16 +522,27 @@ namespace Accounting_System.Controllers
                 CheckDate = existingHeaderModel.CheckDate ?? DateOnly.MinValue,
                 Particulars = existingHeaderModel.Particulars,
                 Amount = existingHeaderModel.Amount,
-                AccountNumber = accountNumbers,
-                AccountTitle = accountTitles,
-                Debit = debit,
-                Credit = credit,
-                COA = coa,
-                CVId = exisitngCV.Id,
-                CVNo = exisitngCV.CVNo,
+                AccountNumber = existingDetailsModel.Select(model => model.AccountNo).ToArray(),
+                AccountTitle = existingDetailsModel.Select(model => model.AccountName).ToArray(),
+                Debit = existingDetailsModel.Select(model => model.Debit).ToArray(),
+                Credit = existingDetailsModel.Select(model => model.Credit).ToArray(),
+                COA = await _dbContext.ChartOfAccounts
+                    .Where(coa =>
+                        !new[] { "2010102", "2010101", "1010101" }.Any(
+                            excludedNumber => coa.AccountNumber.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
+                    .Select(s => new SelectListItem
+                    {
+                        Value = s.AccountNumber,
+                        Text = s.AccountNumber + " " + s.AccountName
+                    })
+                    .ToListAsync(cancellationToken),
+                CVId = id ?? 0,
+                CVNo = existingHeaderModel.CVNo,
                 CreatedBy = _userManager.GetUserName(this.User),
-                POId = poIds,
-                RRId = rrIds
+                POId = _dbContext.PurchaseOrders.Where(model => existingHeaderModel.PONo.Contains(model.PONo))
+                    .Select(model => model.Id).ToArray(),
+                RRId = _dbContext.ReceivingReports.Where(model => existingHeaderModel.RRNo.Contains(model.RRNo))
+                    .Select(model => model.Id).ToArray()
             };
 
             return View(model);
@@ -562,15 +552,14 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> EditTrade(CheckVoucherTradeViewModel viewModel, IFormFile? file,
             CancellationToken cancellationToken)
         {
+            var existingHeaderModel =
+                await _dbContext.CheckVoucherHeaders.FindAsync(viewModel.CVId, cancellationToken);
             if (ModelState.IsValid)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     #region --Check if duplicate CheckNo
-
-                    var existingHeaderModel =
-                        await _dbContext.CheckVoucherHeaders.FindAsync(viewModel.CVId, cancellationToken);
 
                     if (viewModel.CheckNo != null && !viewModel.CheckNo.Contains("DM"))
                     {
@@ -583,6 +572,21 @@ namespace Accounting_System.Controllers
                         if (cv.Any())
                         {
                             TempData["error"] = "Check No. Is already exist";
+                            viewModel.Suppliers = await _generalRepo.GetSupplierListAsync(cancellationToken);
+                            viewModel.RR = await _generalRepo.GetReceivingReportListAsync(existingHeaderModel.RRNo, cancellationToken);
+                            viewModel.PONo = await _generalRepo.GetPurchaseOrderListAsync(cancellationToken);
+                            viewModel.BankAccounts = await _generalRepo.GetBankAccountListAsync(cancellationToken);
+                            viewModel.COA = await _dbContext.ChartOfAccounts
+                                .Where(coa =>
+                                    !new[] { "2010102", "2010101", "1010101" }.Any(
+                                        excludedNumber => coa.AccountNumber.Contains(excludedNumber)) && coa.Level == 4 ||
+                                    coa.Level == 5)
+                                .Select(s => new SelectListItem
+                                {
+                                    Value = s.AccountNumber,
+                                    Text = s.AccountNumber + " " + s.AccountName
+                                })
+                                .ToListAsync(cancellationToken);
                             return View(viewModel);
                         }
                     }
@@ -763,6 +767,21 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync(cancellationToken);
+                    viewModel.Suppliers = await _generalRepo.GetSupplierListAsync(cancellationToken);
+                    viewModel.RR = await _generalRepo.GetReceivingReportListAsync(existingHeaderModel.RRNo, cancellationToken);
+                    viewModel.PONo = await _generalRepo.GetPurchaseOrderListAsync(cancellationToken);
+                    viewModel.BankAccounts = await _generalRepo.GetBankAccountListAsync(cancellationToken);
+                    viewModel.COA = await _dbContext.ChartOfAccounts
+                        .Where(coa =>
+                            !new[] { "2010102", "2010101", "1010101" }.Any(
+                                excludedNumber => coa.AccountNumber.Contains(excludedNumber)) && coa.Level == 4 ||
+                            coa.Level == 5)
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.AccountNumber,
+                            Text = s.AccountNumber + " " + s.AccountName
+                        })
+                        .ToListAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return View(viewModel);
                 }
@@ -1555,7 +1574,7 @@ namespace Accounting_System.Controllers
                     #region--Get Check Voucher Invoicing
 
                     var invoicingVoucher = await _dbContext.CheckVoucherHeaders
-                        .FindAsync(viewModel.CvId, cancellationToken);
+                        .FindAsync(viewModel.InvoicingId, cancellationToken);
 
                     #endregion
 
@@ -1634,7 +1653,7 @@ namespace Accounting_System.Controllers
 
                     #region--Update invoicing voucher
 
-                    await _checkVoucherRepo.UpdateInvoicingVoucher(checkVoucherHeader.Total, viewModel.CvId,
+                    await _checkVoucherRepo.UpdateInvoicingVoucher(checkVoucherHeader.Total, viewModel.InvoicingId,
                         cancellationToken);
 
                     #endregion
@@ -1755,31 +1774,9 @@ namespace Accounting_System.Controllers
             var existingDetailsModel = await _dbContext.CheckVoucherDetails
                 .Where(d => d.TransactionNo == existingModel.CVNo).ToListAsync(cancellationToken);
 
-            existingModel.Suppliers = await _dbContext.Suppliers
-                .Select(sup => new SelectListItem
-                {
-                    Value = sup.Id.ToString(),
-                    Text = sup.Name
-                })
-                .ToListAsync(cancellationToken);
-            existingModel.COA = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
-                .Select(s => new SelectListItem
-                {
-                    Value = s.AccountNumber,
-                    Text = s.AccountNumber + " " + s.AccountName
-                })
-                .ToListAsync(cancellationToken);
-
-            var accountNumbers = existingDetailsModel.OrderBy(x => x.Id).Select(model => model.AccountNo).ToArray();
-            var accountTitles = existingDetailsModel.OrderBy(x => x.Id).Select(model => model.AccountName).ToArray();
-            var debit = existingDetailsModel.OrderBy(x => x.Id).Select(model => model.Debit).ToArray();
-            var credit = existingDetailsModel.OrderBy(x => x.Id).Select(model => model.Credit).ToArray();
-
             CheckVoucherNonTradeInvoicingViewModel viewModel = new()
             {
                 CVId = existingModel.Id,
-                Suppliers = existingModel.Suppliers,
                 SupplierName = existingModel.Supplier.Name,
                 ChartOfAccounts = existingModel.COA,
                 TransactionDate = existingModel.Date,
@@ -1790,8 +1787,8 @@ namespace Accounting_System.Controllers
                 SiNo = existingModel.SINo?.FirstOrDefault(),
                 Total = existingModel.Total,
                 Particulars = existingModel.Particulars,
-                AccountNumber = accountNumbers,
-                AccountTitle = accountTitles,
+                AccountNumber = existingDetailsModel.OrderBy(x => x.Id).Select(model => model.AccountNo).ToArray(),
+                AccountTitle = existingDetailsModel.OrderBy(x => x.Id).Select(model => model.AccountName).ToArray(),
                 DefaultExpenses = await _dbContext.ChartOfAccounts
                     .Where(coa => coa.Level == 4 || coa.Level == 5)
                     .Select(s => new SelectListItem
@@ -1800,9 +1797,24 @@ namespace Accounting_System.Controllers
                         Text = s.AccountName
                     })
                     .ToListAsync(cancellationToken),
-                Debit = debit,
-                Credit = credit
+                Debit = existingDetailsModel.OrderBy(x => x.Id).Select(model => model.Debit).ToArray(),
+                Credit = existingDetailsModel.OrderBy(x => x.Id).Select(model => model.Credit).ToArray()
             };
+            viewModel.Suppliers = await _dbContext.Suppliers
+                .Select(sup => new SelectListItem
+                {
+                    Value = sup.Id.ToString(),
+                    Text = sup.Name
+                })
+                .ToListAsync(cancellationToken);
+            viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
+                })
+                .ToListAsync(cancellationToken);
 
             return View(viewModel);
         }
@@ -1856,13 +1868,6 @@ namespace Accounting_System.Controllers
                             existingModel.AmountPerMonth = (amount.Value / viewModel.NumberOfYears) / 12;
                         }
                     }
-                    else
-                    {
-                        existingModel.StartDate = null;
-                        existingModel.EndDate = null;
-                        existingModel.NumberOfMonths = 0;
-                        existingModel.AmountPerMonth = 0;
-                    }
 
                     #endregion --Saving the default entries
 
@@ -1902,6 +1907,7 @@ namespace Accounting_System.Controllers
                             details.Debit = viewModel.Debit[i];
                             details.Credit = viewModel.Credit[i];
                             details.TransactionNo = existingModel.CVNo;
+                            details.CVHeaderId = existingModel.Id;
 
                             if (ids.Count == 0)
                             {
@@ -1917,7 +1923,8 @@ namespace Accounting_System.Controllers
                                 AccountName = viewModel.AccountTitle[i],
                                 Debit = viewModel.Debit[i],
                                 Credit = viewModel.Credit[i],
-                                TransactionNo = existingModel.CVNo
+                                TransactionNo = existingModel.CVNo,
+                                CVHeaderId = existingModel.Id
                             };
                             await _dbContext.CheckVoucherDetails.AddAsync(newDetails, cancellationToken);
                         }
@@ -1994,12 +2001,28 @@ namespace Accounting_System.Controllers
                             Text = sup.Name
                         })
                         .ToListAsync(cancellationToken);
-
+                    viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
+                        .Where(coa => coa.Level == 4 || coa.Level == 5)
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.AccountNumber,
+                            Text = s.AccountNumber + " " + s.AccountName
+                        })
+                        .ToListAsync(cancellationToken);
+                    viewModel.DefaultExpenses = await _dbContext.ChartOfAccounts
+                        .Where(coa => coa.Level == 4 || coa.Level == 5)
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.AccountNumber,
+                            Text = s.AccountName
+                        })
+                        .ToListAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return View(viewModel);
                 }
             }
 
+            TempData["error"] = "The information provided was invalid.";
             viewModel.Suppliers = await _dbContext.Suppliers
                 .Select(sup => new SelectListItem
                 {
@@ -2007,8 +2030,14 @@ namespace Accounting_System.Controllers
                     Text = sup.Name
                 })
                 .ToListAsync(cancellationToken);
-
-            TempData["error"] = "The information provided was invalid.";
+            viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
+                })
+                .ToListAsync(cancellationToken);
             return View(viewModel);
         }
 
@@ -2025,17 +2054,12 @@ namespace Accounting_System.Controllers
                 await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cvh => cvh.CVNo == existingModel.Reference,
                     cancellationToken);
 
-            var accountNumbers = existingDetailsModel.Select(model => model.AccountNo).ToArray();
-            var accountTitles = existingDetailsModel.Select(model => model.AccountName).ToArray();
-            var debit = existingDetailsModel.Select(model => model.Debit).ToArray();
-            var credit = existingDetailsModel.Select(model => model.Credit).ToArray();
-
             #region -- insert fetch data into viewModel --
 
             CheckVoucherNonTradePaymentViewModel viewModel = new()
             {
-                CvId = invoicing.Id,
-                CVId = existingModel.Id,
+                InvoicingId = invoicing.Id,
+                CVId = id,
                 TransactionDate = existingModel.Date,
                 Payee = existingModel.Payee,
                 PayeeAddress = existingModel.Supplier.Address,
@@ -2045,10 +2069,10 @@ namespace Accounting_System.Controllers
                 CheckNo = existingModel.CheckNo,
                 CheckDate = existingModel.CheckDate ?? default,
                 Particulars = existingModel.Particulars,
-                AccountNumber = accountNumbers,
-                AccountTitle = accountTitles,
-                Debit = debit,
-                Credit = credit,
+                AccountNumber = existingDetailsModel.Select(model => model.AccountNo).ToArray(),
+                AccountTitle = existingDetailsModel.Select(model => model.AccountName).ToArray(),
+                Debit = existingDetailsModel.Select(model => model.Debit).ToArray(),
+                Credit = existingDetailsModel.Select(model => model.Credit).ToArray(),
 
                 CheckVouchers = await _dbContext.CheckVoucherHeaders
                     .Where(cvh => cvh.CvType == "Invoicing" && cvh.IsPosted)
@@ -2098,7 +2122,7 @@ namespace Accounting_System.Controllers
                         .FirstOrDefaultAsync(cv => cv.Id == viewModel.CVId, cancellationToken);
                     var invoicing =
                         await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(
-                            cvh => cvh.CVNo == existingHeaderModel.Reference, cancellationToken);
+                            cvh => cvh.Id == viewModel.InvoicingId, cancellationToken);
 
                     if (viewModel.CheckNo != null && !viewModel.CheckNo.Contains("DM"))
                     {
@@ -2111,6 +2135,31 @@ namespace Accounting_System.Controllers
                         if (cv.Any())
                         {
                             TempData["error"] = "Check No. Is already exist";
+                            viewModel.CheckVouchers = await _dbContext.CheckVoucherHeaders
+                                .Where(cvh => cvh.CvType == "Invoicing" && cvh.IsPosted)
+                                .Select(cvh => new SelectListItem
+                                {
+                                    Value = cvh.Id.ToString(),
+                                    Text = cvh.CVNo
+                                })
+                                .ToListAsync(cancellationToken);
+
+                            viewModel.Banks = await _dbContext.BankAccounts
+                                .Select(ba => new SelectListItem
+                                {
+                                    Value = ba.Id.ToString(),
+                                    Text = ba.AccountName
+                                })
+                                .ToListAsync(cancellationToken);
+
+                            viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
+                                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                                .Select(s => new SelectListItem
+                                {
+                                    Value = s.AccountNumber,
+                                    Text = s.AccountNumber + " " + s.AccountName
+                                })
+                                .ToListAsync(cancellationToken);
                             return View(viewModel);
                         }
                     }
@@ -2121,7 +2170,6 @@ namespace Accounting_System.Controllers
 
                     var cashInBank = viewModel.Credit[1];
                     existingHeaderModel.Reference = invoicing.CVNo;
-                    existingHeaderModel.Id = existingHeaderModel.Id;
                     existingHeaderModel.CVNo = existingHeaderModel.CVNo;
                     existingHeaderModel.Date = viewModel.TransactionDate;
                     existingHeaderModel.SupplierId = existingHeaderModel.Supplier.Id;
@@ -2279,12 +2327,62 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync(cancellationToken);
+                    viewModel.CheckVouchers = await _dbContext.CheckVoucherHeaders
+                        .Where(cvh => cvh.CvType == "Invoicing" && cvh.IsPosted)
+                        .Select(cvh => new SelectListItem
+                        {
+                            Value = cvh.Id.ToString(),
+                            Text = cvh.CVNo
+                        })
+                        .ToListAsync(cancellationToken);
+
+                    viewModel.Banks = await _dbContext.BankAccounts
+                        .Select(ba => new SelectListItem
+                        {
+                            Value = ba.Id.ToString(),
+                            Text = ba.AccountName
+                        })
+                        .ToListAsync(cancellationToken);
+
+                    viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
+                        .Where(coa => coa.Level == 4 || coa.Level == 5)
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.AccountNumber,
+                            Text = s.AccountNumber + " " + s.AccountName
+                        })
+                        .ToListAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return View(viewModel);
                 }
             }
 
             TempData["error"] = "The information provided was invalid.";
+            viewModel.CheckVouchers = await _dbContext.CheckVoucherHeaders
+                .Where(cvh => cvh.CvType == "Invoicing" && cvh.IsPosted)
+                .Select(cvh => new SelectListItem
+                {
+                    Value = cvh.Id.ToString(),
+                    Text = cvh.CVNo
+                })
+                .ToListAsync(cancellationToken);
+
+            viewModel.Banks = await _dbContext.BankAccounts
+                .Select(ba => new SelectListItem
+                {
+                    Value = ba.Id.ToString(),
+                    Text = ba.AccountName
+                })
+                .ToListAsync(cancellationToken);
+
+            viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
+                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.AccountNumber,
+                    Text = s.AccountNumber + " " + s.AccountName
+                })
+                .ToListAsync(cancellationToken);
             return View(viewModel);
         }
 

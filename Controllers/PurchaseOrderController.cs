@@ -251,33 +251,16 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(PurchaseOrder model, CancellationToken cancellationToken)
         {
+            var existingModel = await _dbContext.PurchaseOrders.FindAsync(model.Id, cancellationToken);
             if (ModelState.IsValid)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    var existingModel = await _dbContext.PurchaseOrders.FindAsync(model.Id, cancellationToken);
-
                     if (existingModel == null)
                     {
                         return NotFound();
                     }
-
-                    model.Suppliers = await _dbContext.Suppliers
-                    .Select(s => new SelectListItem
-                    {
-                        Value = s.Id.ToString(),
-                        Text = s.Name
-                    })
-                    .ToListAsync(cancellationToken);
-
-                    model.Products = await _dbContext.Products
-                    .Select(s => new SelectListItem
-                    {
-                        Value = s.Id.ToString(),
-                        Text = s.Name
-                    })
-                    .ToListAsync(cancellationToken);
 
                     existingModel.Date = model.Date;
                     existingModel.SupplierId = model.SupplierId;
@@ -317,12 +300,42 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                  await transaction.RollbackAsync(cancellationToken);
+                 existingModel.Suppliers = await _dbContext.Suppliers
+                     .Select(s => new SelectListItem
+                     {
+                         Value = s.Id.ToString(),
+                         Text = s.Name
+                     })
+                     .ToListAsync(cancellationToken);
+
+                 existingModel.Products = await _dbContext.Products
+                     .Select(s => new SelectListItem
+                     {
+                         Value = s.Id.ToString(),
+                         Text = s.Name
+                     })
+                     .ToListAsync(cancellationToken);
                  TempData["error"] = ex.Message;
-                 return View(model);
+                 return View(existingModel);
                 }
             }
 
-            return View(model);
+            existingModel.Suppliers = await _dbContext.Suppliers
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync(cancellationToken);
+
+            existingModel.Products = await _dbContext.Products
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync(cancellationToken);
+            return View(existingModel);
         }
 
         [HttpGet]

@@ -244,14 +244,6 @@ namespace Accounting_System.Controllers
         {
             var existingModel = await _dbContext.ReceivingReports.FindAsync(model.Id, cancellationToken);
 
-            existingModel.PurchaseOrders = await _dbContext.PurchaseOrders
-                .Select(s => new SelectListItem
-                {
-                    Value = s.Id.ToString(),
-                    Text = s.PONo
-                })
-                .ToListAsync(cancellationToken);
-
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
             try
             {
@@ -272,16 +264,19 @@ namespace Accounting_System.Controllers
 
                     #endregion --Retrieve PO
 
-                    var rr = await _dbContext.ReceivingReports
-                    .Where(rr => rr.PONo == po.PONo)
-                    .ToListAsync(cancellationToken);
-
                     var totalAmountRR = po.Quantity - po.QuantityReceived;
 
                     if (model.QuantityDelivered > totalAmountRR && !existingModel.IsPosted)
                     {
                         TempData["error"] = "Input is exceed to remaining quantity delivered";
-                        return View(model);
+                        existingModel.PurchaseOrders = await _dbContext.PurchaseOrders
+                            .Select(s => new SelectListItem
+                            {
+                                Value = s.Id.ToString(),
+                                Text = s.PONo
+                            })
+                            .ToListAsync(cancellationToken);
+                        return View(existingModel);
                     }
 
                     existingModel.Date = model.Date;
@@ -326,10 +321,24 @@ namespace Accounting_System.Controllers
             catch (Exception ex)
             {
                 await transaction.RollbackAsync(cancellationToken);
+                existingModel.PurchaseOrders = await _dbContext.PurchaseOrders
+                    .Select(s => new SelectListItem
+                    {
+                        Value = s.Id.ToString(),
+                        Text = s.PONo
+                    })
+                    .ToListAsync(cancellationToken);
                 TempData["error"] = ex.Message;
                 return View(existingModel);
             }
 
+            existingModel.PurchaseOrders = await _dbContext.PurchaseOrders
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.PONo
+                })
+                .ToListAsync(cancellationToken);
             return View(existingModel);
         }
 

@@ -29,10 +29,10 @@
                 </div>
                 <div class="form-group mb-3">
                     <label class="control-label">CV #<span class="required">*</span></label>
-                    <select asp-for="CvId" asp-items="@Model.CheckVouchers" class="form-select js-select2" required>
+                    <select asp-for="InvoicingId" asp-items="@Model.CheckVouchers" class="form-select js-select2" required>
                         <option></option>
                     </select>
-                    <span asp-validation-for="CvId" class="text-danger"></span>
+                    <span asp-validation-for="InvoicingId" class="text-danger"></span>
                 </div>
                 <div class="form-floating mb-3">
                     <input asp-for="Payee" type="text" class="form-control" placeholder="Optional" readonly />
@@ -189,7 +189,7 @@
             dropdownParent: $('#AddAccEntry')
         });
 
-        $("#CvId").change(function () {
+        $("#InvoicingId").change(function () {
             var cvId = $(this).val();
             if (cvId !== "") {
                 $.ajax({

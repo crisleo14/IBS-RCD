@@ -916,7 +916,6 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
 
-
             return View(debitMemo);
         }
 
@@ -924,19 +923,22 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Edit(DebitMemo model, CancellationToken cancellationToken)
         {
             var existingSv = await _dbContext.ServiceInvoices
-                        .Include(sv => sv.Customer)
-                        .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
+                .Include(sv => sv.Customer)
+                .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
+
+            var existingDM = await _dbContext.DebitMemos
+                .Include(cm => cm.SalesInvoice)
+                .Include(cm => cm.ServiceInvoice)
+                .ThenInclude(sv => sv.Customer)
+                .Include(cm => cm.ServiceInvoice)
+                .ThenInclude(sv => sv.Service)
+                .FirstOrDefaultAsync(r => r.Id == model.Id, cancellationToken);
 
             if (ModelState.IsValid)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    var existingDM = await _dbContext
-                            .DebitMemos
-                            .FirstOrDefaultAsync(dm => dm.Id == model.Id, cancellationToken);
-
-
                     if (model.Source == "Sales Invoice")
                     {
                         model.ServiceInvoiceId = null;
@@ -949,37 +951,26 @@ namespace Accounting_System.Controllers
                         existingDM.AdjustedPrice = model.AdjustedPrice;
                         existingDM.Description = model.Description;
                         existingDM.Remarks = model.Remarks;
+                        existingDM.DebitAmount = (decimal)(model.Quantity * model.AdjustedPrice);
 
                         #endregion -- Saving Default Enries --
-
-                        existingDM.DebitAmount = (decimal)(model.Quantity * model.AdjustedPrice);
                     }
                     else if (model.Source == "Service Invoice")
                     {
                         model.SalesInvoiceId = null;
 
-                        #region --Retrieval of Services
-
-                        existingDM.ServicesId = existingSv.ServicesId;
-
-                        var services = await _dbContext
-                        .Services
-                        .FirstOrDefaultAsync(s => s.Id == existingDM.ServicesId, cancellationToken);
-
-                        #endregion --Retrieval of Services
-
                         #region -- Saving Default Enries --
 
                         existingDM.TransactionDate = model.TransactionDate;
                         existingDM.ServiceInvoiceId = model.ServiceInvoiceId;
+                        existingDM.ServicesId = existingSv.ServicesId;
                         existingDM.Period = model.Period;
                         existingDM.Amount = model.Amount;
                         existingDM.Description = model.Description;
                         existingDM.Remarks = model.Remarks;
+                        existingDM.DebitAmount = model.Amount ?? 0;
 
                         #endregion -- Saving Default Enries --
-
-                        existingDM.DebitAmount = model.Amount ?? 0;
                     }
                     if (_dbContext.ChangeTracker.HasChanges())
                     {
@@ -1007,13 +998,45 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                  await transaction.RollbackAsync(cancellationToken);
+                 existingDM.SalesInvoices = await _dbContext.SalesInvoices
+                     .Where(si => si.IsPosted)
+                     .Select(si => new SelectListItem
+                     {
+                         Value = si.Id.ToString(),
+                         Text = si.SINo
+                     })
+                     .ToListAsync(cancellationToken);
+                 existingDM.ServiceInvoices = await _dbContext.ServiceInvoices
+                     .Where(sv => sv.IsPosted)
+                     .Select(sv => new SelectListItem
+                     {
+                         Value = sv.Id.ToString(),
+                         Text = sv.SVNo
+                     })
+                     .ToListAsync(cancellationToken);
                  TempData["error"] = ex.Message;
-                 return View(model);
+                 return View(existingDM);
                 }
             }
 
             ModelState.AddModelError("", "The information you submitted is not valid!");
-            return View(model);
+            existingDM.SalesInvoices = await _dbContext.SalesInvoices
+                .Where(si => si.IsPosted)
+                .Select(si => new SelectListItem
+                {
+                    Value = si.Id.ToString(),
+                    Text = si.SINo
+                })
+                .ToListAsync(cancellationToken);
+            existingDM.ServiceInvoices = await _dbContext.ServiceInvoices
+                .Where(sv => sv.IsPosted)
+                .Select(sv => new SelectListItem
+                {
+                    Value = sv.Id.ToString(),
+                    Text = sv.SVNo
+                })
+                .ToListAsync(cancellationToken);
+            return View(existingDM);
         }
 
         //Download as .xlsx file.(Export)
