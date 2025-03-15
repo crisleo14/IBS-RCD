@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Accounting_System.Models.AccountsPayable;
+using Accounting_System.Models.MasterFile;
 
 namespace Accounting_System.Models
 {
@@ -33,5 +34,22 @@ namespace Accounting_System.Models
         public CheckVoucherHeader Header { get; set; }
 
         public int? OriginalDocumentId { get; set; }
+
+        public int? SupplierId { get; set; }
+
+        [ForeignKey("SupplierId")]
+        public Supplier? Supplier { get; set; }
+
+        [Column(TypeName = "numeric(18,4)")]
+        public decimal Amount { get; set; }
+
+        [Column(TypeName = "numeric(18,4)")]
+        public decimal AmountPaid { get; set; }
+
+        public bool IsVatable { get; set; }
+
+        public decimal EwtPercent { get; set; }
+
+        public bool IsUserSelected { get; set; }
     }
 }
