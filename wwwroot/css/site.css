@@ -506,13 +506,13 @@ bg-success {
 }
 
 /*start here the css in nav bar menu*/
-.dropdown-layout .dropdown-menu {
-    display: none;
-}
+/*.dropdown-layout .dropdown-menu {*/
+/*    display: none;*/
+/*}*/
 
-.dropdown-layout:hover > .dropdown-menu, .dropend:hover > .dropdown-menu {
-    display: block;
-}
+/*.dropdown-layout:hover > .dropdown-menu, .dropend:hover > .dropdown-menu {*/
+/*    display: block;*/
+/*}*/
 
 @media screen and (min-width:992px) {
     .dropend:hover > .dropdown-menu {
@@ -524,8 +524,8 @@ bg-success {
     .dropend .dropdown-toggle {
     }
 }
-
 /*end of code*/
+
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
     -webkit-appearance: none;

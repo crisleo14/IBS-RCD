@@ -30,21 +30,21 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        <li class="nav-item dropdown-layout">
-                            <a class="nav-link dropdown-toggle" aria-expanded="false" style="color: darkgray !important">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: darkgray !important">
                                 Accounts Receivable
                             </a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" asp-controller="SalesInvoice" asp-action="Index">Sales Invoice</a></li>
                                 <li><a class="dropdown-item" asp-controller="ServiceInvoice" asp-action="Index">Service Invoice</a></li>
                                 <li class="nav-item dropend">
-                                    <a class="dropdown-item dropdown-toggle" asp-controller="Receipt" asp-action="CollectionIndex">
+                                    <a class="dropdown-item dropdown-toggle" role="button" data-bs-toggle="dropdown" asp-controller="Receipt" asp-action="CollectionIndex">
                                         Collection Receipt
                                     </a>
                                     <ul class="dropdown-menu">
                                         <li><a class="dropdown-item" asp-controller="Receipt" asp-action="CollectionCreateForService">For Service</a></li>
                                         <li class="nav-item dropend">
-                                            <a class="dropdown-item dropdown-toggle" style="color: gray !important">
+                                            <a class="dropdown-item dropdown-toggle" role="button" data-bs-toggle="dropdown" style="color: gray !important">
                                                 For Sales
                                             </a>
                                             <ul class="dropdown-menu">
@@ -59,21 +59,21 @@
                                 <li><a class="dropdown-item" asp-controller="CreditMemo" asp-action="Index">Credit Memo</a></li>
                             </ul>
                         </li>
-                        <li class="nav-item dropdown-layout">
-                            <a class="nav-link dropdown-toggle" aria-expanded="false" style="color: darkgray !important">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: darkgray !important">
                                 Accounts Payable
                             </a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" asp-controller="PurchaseOrder" asp-action="Index">Purchase Order</a></li>
                                 <li><a class="dropdown-item" asp-controller="ReceivingReport" asp-action="Index">Receiving Report</a></li>
                                 <li class="nav-item dropend">
-                                    <a class="dropdown-item dropdown-toggle" style="color: gray !important">
+                                    <a class="dropdown-item dropdown-toggle" role="button" data-bs-toggle="dropdown" style="color: gray !important">
                                         Check Voucher
                                     </a>
                                     <ul class="dropdown-menu">
                                         <li><a class="dropdown-item" asp-controller="CheckVoucherTrade" asp-action="Index">Trade</a></li>
                                         <li class="nav-item dropend">
-                                            <a class="dropdown-item dropdown-toggle" style="color: gray !important">
+                                            <a class="dropdown-item dropdown-toggle" role="button" data-bs-toggle="dropdown" style="color: gray !important">
                                                 Non-Trade
                                             </a>
                                             <ul class="dropdown-menu">
@@ -87,8 +87,8 @@
                                 <li><a class="dropdown-item" asp-controller="JournalVoucher" asp-action="Index">Journal Voucher</a></li>
                             </ul>
                         </li>
-                        <li class="nav-item dropdown-layout">
-                            <a class="nav-link dropdown-toggle" aria-expanded="false" style="color: darkgray !important">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: darkgray !important">
                                 Inventory
                             </a>
                             <ul class="dropdown-menu">
@@ -96,8 +96,8 @@
                                 <li><a class="dropdown-item" asp-controller="Inventory" asp-action="ActualInventory">Actual</a></li>
                             </ul>
                         </li>
-                        <li class="nav-item dropdown-layout">
-                            <a class="nav-link dropdown-toggle" aria-expanded="false" style="color: darkgray !important">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: darkgray !important">
                                 Books
                             </a>
                             <ul class="dropdown-menu">
@@ -110,8 +110,8 @@
                                 <li><a class="dropdown-item" asp-controller="Report" asp-action="SalesBook">Sales</a></li>
                             </ul>
                         </li>
-                        <li class="nav-item dropdown-layout">
-                            <a class="nav-link dropdown-toggle" aria-expanded="false" style="color: darkgray !important">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: darkgray !important">
                                 Master File
                             </a>
                             <ul class="dropdown-menu">
@@ -123,8 +123,8 @@
                                 <li><a class="dropdown-item" asp-controller="ChartOfAccount" asp-action="Index">Chart of Accounts</a></li>
                             </ul>
                         </li>
-                        <li class="nav-item dropdown-layout">
-                            <a class="nav-link dropdown-toggle" aria-expanded="false" style="color: darkgray !important">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: darkgray !important">
                                 Report
                             </a>
                             <ul class="dropdown-menu">
@@ -133,8 +133,8 @@
                                 <li><a class="dropdown-item" asp-controller="Inventory" asp-action="InventoryReport">Inventory</a></li>
                             </ul>
                         </li>
-                        <li class="nav-item dropdown-layout">
-                            <a class="nav-link dropdown-toggle" aria-expanded="false" style="color: darkgray !important">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: darkgray !important">
                                 Import / Export
                             </a>
                             <ul class="dropdown-menu">
