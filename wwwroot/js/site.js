@@ -212,3 +212,40 @@ document.addEventListener("keydown", function (event) {
     alert("Printing is disabled!");
 }
 });
+
+//navigation bar dropend implementation
+document.addEventListener("DOMContentLoaded", function () {
+    // Get all dropend elements
+    const dropends = document.querySelectorAll(".dropend");
+
+    // Track the currently open parent dropend
+    let openParentDropend = null;
+
+    dropends.forEach(function (dropend) {
+        dropend.addEventListener("click", function (event) {
+            // Stop event from bubbling up
+            event.stopPropagation();
+
+            const clickedMenu = this.querySelector(".dropdown-menu");
+
+            // If clicking on a child menu inside an open parent, allow it
+            if (openParentDropend && openParentDropend.contains(this)) {
+                return;
+            }
+
+            // Close the currently open parent dropend if different
+            if (openParentDropend && openParentDropend !== this) {
+                const openMenu = openParentDropend.querySelector(".dropdown-menu");
+                if (openMenu) {
+                    openMenu.classList.remove("show");
+                }
+            }
+
+            // Open the clicked dropend
+            if (clickedMenu) {
+                clickedMenu.classList.add("show");
+                openParentDropend = this;
+            }
+        });
+    });
+});
