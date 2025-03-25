@@ -56,7 +56,7 @@ namespace Accounting_System.Controllers
             var viewModel = new Services();
 
             viewModel.CurrentAndPreviousTitles = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !coa.HasChildren)
                 .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
@@ -66,7 +66,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             viewModel.UnearnedTitles = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !coa.HasChildren)
                 .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
@@ -83,7 +83,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Create(Services services, CancellationToken cancellationToken)
         {
             services.CurrentAndPreviousTitles = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !coa.HasChildren)
                 .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
@@ -93,7 +93,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             services.UnearnedTitles = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !coa.HasChildren)
                 .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {

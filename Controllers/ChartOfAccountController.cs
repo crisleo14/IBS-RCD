@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.IdentityModel.Tokens;
 using OfficeOpenXml;
 
 namespace Accounting_System.Controllers
@@ -265,13 +266,17 @@ namespace Accounting_System.Controllers
                 worksheet.Cells["A1"].Value = "IsMain";
                 worksheet.Cells["B1"].Value = "AccountNumber";
                 worksheet.Cells["C1"].Value = "AccountName";
-                worksheet.Cells["D1"].Value = "Type";
-                worksheet.Cells["E1"].Value = "Category";
-                worksheet.Cells["F1"].Value = "Parent";
+                worksheet.Cells["D1"].Value = "AccountType";
+                worksheet.Cells["E1"].Value = "NormalBalance";
+                worksheet.Cells["F1"].Value = "Level";
                 worksheet.Cells["G1"].Value = "CreatedBy";
                 worksheet.Cells["H1"].Value = "CreatedDate";
-                worksheet.Cells["I1"].Value = "Level";
-                worksheet.Cells["J1"].Value = "OriginalChartOfAccount";
+                worksheet.Cells["I1"].Value = "EditedBy";
+                worksheet.Cells["J1"].Value = "EditedDate";
+                worksheet.Cells["K1"].Value = "HasChildren";
+                worksheet.Cells["L1"].Value = "ParentAccountId";
+                worksheet.Cells["M1"].Value = "OriginalChartOfAccount";
+                worksheet.Cells["N1"].Value = "Parent";
 
                 int row = 2;
 
@@ -282,11 +287,15 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 3].Value = item.AccountName;
                     worksheet.Cells[row, 4].Value = item.AccountType;
                     worksheet.Cells[row, 5].Value = item.NormalBalance;
+                    worksheet.Cells[row, 6].Value = item.Level;
                     worksheet.Cells[row, 6].Value = item.Parent;
                     worksheet.Cells[row, 7].Value = item.CreatedBy;
                     worksheet.Cells[row, 8].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet.Cells[row, 9].Value = item.Level;
-                    worksheet.Cells[row, 10].Value = item.AccountId;
+                    worksheet.Cells[row, 9].Value = item.EditedBy;
+                    worksheet.Cells[row, 10].Value = item.EditedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 11].Value = item.HasChildren;
+                    worksheet.Cells[row, 12].Value = item.ParentAccountId;
+                    worksheet.Cells[row, 13].Value = item.AccountId;
 
                     row++;
                 }
@@ -354,11 +363,15 @@ namespace Accounting_System.Controllers
                                 AccountName = worksheet.Cells[row, 3].Text,
                                 AccountType = worksheet.Cells[row, 4].Text,
                                 NormalBalance = worksheet.Cells[row, 5].Text,
-                                Parent = worksheet.Cells[row, 6].Text,
+                                Level = int.TryParse(worksheet.Cells[row, 6].Text, out int level) ? level : 0,
                                 CreatedBy = worksheet.Cells[row, 7].Text,
                                 CreatedDate = DateTime.TryParse(worksheet.Cells[row, 8].Text, out DateTime createdDate) ? createdDate : default,
-                                Level = int.TryParse(worksheet.Cells[row, 9].Text, out int level) ? level : 0,
-                                OriginalChartOfAccountId = int.TryParse(worksheet.Cells[row, 10].Text, out int originalChartOfAccountId) ? originalChartOfAccountId : 0,
+                                EditedBy = worksheet.Cells[row, 9].Text,
+                                EditedDate = DateTime.TryParse(worksheet.Cells[row, 10].Text, out DateTime editedDate) ? createdDate : default,
+                                HasChildren = bool.TryParse(worksheet.Cells[row, 11].Text, out bool hasChildren) ? hasChildren : false,
+                                ParentAccountId = null,
+                                OriginalChartOfAccountId = int.TryParse(worksheet.Cells[row, 13].Text, out int originalChartOfAccountId) ? originalChartOfAccountId : 0,
+                                Parent = worksheet.Cells[row, 14].Text ?? string.Empty,
                             };
 
                             if (chartOfAccountList.Any(c => c.OriginalChartOfAccountId == coa.OriginalChartOfAccountId))
@@ -368,6 +381,29 @@ namespace Accounting_System.Controllers
 
                             await _dbContext.ChartOfAccounts.AddAsync(coa, cancellationToken);
                         }
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+
+                        //refresh data set
+                        chartOfAccountList = await _dbContext.ChartOfAccounts.ToListAsync(cancellationToken);
+
+                        var excelRowCount = worksheet.Dimension.Rows;
+
+                        for (int rows = 2; rows <= excelRowCount; rows++)  // Assuming the first row is the header
+                        {
+                            string cellValue = worksheet.Cells[rows, 12].Text;
+
+                            if (!string.IsNullOrEmpty(cellValue) || int.TryParse(cellValue, out int result) && result != 0)
+                            {
+                                var existingRecord =
+                                     chartOfAccountList.FirstOrDefault(c=> c.AccountNumber == worksheet.Cells[rows, 2].Text);
+                                var findAccountIdForParentAccountId =
+                                    chartOfAccountList.FirstOrDefault(c =>
+                                        c.OriginalChartOfAccountId == int.Parse(worksheet.Cells[rows, 12].Text));
+
+                                existingRecord.ParentAccountId = findAccountIdForParentAccountId?.AccountId ?? null;
+                            }
+                        }
+
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         await transaction.CommitAsync(cancellationToken);
                     }

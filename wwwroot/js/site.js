@@ -205,3 +205,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 // end of code for formatting of input type for tin number
+
+document.addEventListener("keydown", function (event) {
+    if (event.ctrlKey && event.key === "p") {
+    event.preventDefault();
+    alert("Printing is disabled!");
+}
+});

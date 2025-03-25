@@ -40,7 +40,7 @@ namespace Accounting_System.Models.ViewModels
         [Display(Name = "RR No.")]
         public string[]? RRSeries { get; set; }
 
-        public decimal[] Amount { get; set; }
+        public decimal[]? Amount { get; set; }
 
         [Required]
         [Display(Name = "Transaction Date")]
@@ -79,5 +79,14 @@ namespace Accounting_System.Models.ViewModels
 
         //others
         public string? CreatedBy { get; set; }
+
+        public List<ReceivingReportList> RRs { get; set; }
+    }
+
+    public class ReceivingReportList
+    {
+        public int Id { get; set; }
+
+        public decimal Amount { get; set; }
     }
 }

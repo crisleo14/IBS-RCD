@@ -26,10 +26,19 @@ namespace Accounting_System.Models
         [Column(TypeName = "varchar(20)")]
         public string? NormalBalance { get; set; }
 
-        public int? Level { get; set; }
+        public int Level { get; set; }
+
+        // Change Parent to an int? (nullable) for FK reference
+        public int? ParentAccountId { get; set; }
 
         [Column(TypeName = "varchar(15)")]
         public string? Parent { get; set; }
+        // Navigation property for Parent Account
+        [ForeignKey("ParentAccountId")]
+        public virtual ChartOfAccount? ParentAccount { get; set; }
+
+        // Navigation property for Child Accounts
+        public virtual ICollection<ChartOfAccount> Children { get; set; } = new List<ChartOfAccount>();
 
         [NotMapped]
         public List<SelectListItem>? Main { get; set; }
@@ -39,7 +48,7 @@ namespace Accounting_System.Models
         public string? CreatedBy { get; set; }
 
         [Display(Name = "Created Date")]
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow.AddHours(8);
 
         [Display(Name = "Edited By")]
         [Column(TypeName = "varchar(50)")]
@@ -49,5 +58,12 @@ namespace Accounting_System.Models
         public DateTime EditedDate { get; set; }
 
         public int? OriginalChartOfAccountId { get; set; }
+
+        public bool HasChildren { get; set; }
+
+        // Select List
+
+        [NotMapped]
+        public List<SelectListItem>? Accounts { get; set; }
     }
 }
