@@ -18,4 +18,10 @@
         BankAccount,
         ChartOfAccount
     }
+
+    public enum CVType
+    {
+        Invoicing,
+        Payment
+    }
 }

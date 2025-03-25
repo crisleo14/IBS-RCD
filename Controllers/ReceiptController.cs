@@ -132,7 +132,7 @@ namespace Accounting_System.Controllers
                .ToListAsync(cancellationToken);
 
             viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !coa.HasChildren)
                 .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
@@ -167,7 +167,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             model.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !coa.HasChildren)
                 .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
@@ -341,7 +341,7 @@ namespace Accounting_System.Controllers
                .ToListAsync(cancellationToken);
 
             viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !coa.HasChildren)
                 .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
@@ -376,7 +376,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             model.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !coa.HasChildren)
                 .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
@@ -567,7 +567,7 @@ namespace Accounting_System.Controllers
                .ToListAsync(cancellationToken);
 
             viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !coa.HasChildren)
                 .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
@@ -602,7 +602,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             model.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !coa.HasChildren)
                 .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
@@ -1004,7 +1004,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !coa.HasChildren)
                 .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
@@ -1077,7 +1077,7 @@ namespace Accounting_System.Controllers
                             .ToListAsync(cancellationToken);
 
                         existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                            .Where(coa => coa.Level == 4 || coa.Level == 5)
+                            .Where(coa => !coa.HasChildren)
                             .OrderBy(coa => coa.AccountId)
                             .Select(s => new SelectListItem
                             {
@@ -1285,7 +1285,7 @@ namespace Accounting_System.Controllers
                      .ToListAsync(cancellationToken);
 
                  existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                     .Where(coa => coa.Level == 4 || coa.Level == 5)
+                     .Where(coa => !coa.HasChildren)
                      .OrderBy(coa => coa.AccountId)
                      .Select(s => new SelectListItem
                      {
@@ -1330,7 +1330,7 @@ namespace Accounting_System.Controllers
                     .ToListAsync(cancellationToken);
 
                 existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                    .Where(coa => coa.Level == 4 || coa.Level == 5)
+                    .Where(coa => !coa.HasChildren)
                     .OrderBy(coa => coa.AccountId)
                     .Select(s => new SelectListItem
                     {
@@ -1376,7 +1376,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !coa.HasChildren)
                 .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
@@ -1439,7 +1439,7 @@ namespace Accounting_System.Controllers
                             .ToListAsync(cancellationToken);
 
                         existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                            .Where(coa => coa.Level == 4 || coa.Level == 5)
+                            .Where(coa => !coa.HasChildren)
                             .OrderBy(coa => coa.AccountId)
                             .Select(s => new SelectListItem
                             {
@@ -1660,7 +1660,7 @@ namespace Accounting_System.Controllers
                      .ToListAsync(cancellationToken);
 
                  existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                     .Where(coa => coa.Level == 4 || coa.Level == 5)
+                     .Where(coa => !coa.HasChildren)
                      .OrderBy(coa => coa.AccountId)
                      .Select(s => new SelectListItem
                      {
@@ -1695,7 +1695,7 @@ namespace Accounting_System.Controllers
                     .ToListAsync(cancellationToken);
 
                 existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
-                    .Where(coa => coa.Level == 4 || coa.Level == 5)
+                    .Where(coa => !coa.HasChildren)
                     .OrderBy(coa => coa.AccountId)
                     .Select(s => new SelectListItem
                     {

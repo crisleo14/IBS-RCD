@@ -131,7 +131,7 @@ namespace Accounting_System.Controllers
             };
 
             viewModel.Header.COA = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !coa.HasChildren)
                 .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
@@ -156,7 +156,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Create(JournalVoucherVM? model, string[] accountNumber, decimal[]? debit, decimal[]? credit, CancellationToken cancellationToken)
         {
             model.Header.COA = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !coa.HasChildren)
                 .OrderBy(coa => coa.AccountId)
                 .Select(s => new SelectListItem
                 {
@@ -638,7 +638,7 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken),
                 COA = await _dbContext.ChartOfAccounts
-                    .Where(coa => !new[] { "202010200", "202010100", "101010100" }.Any(excludedNumber => coa.AccountNumber.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
+                    .Where(coa => !new[] { "202010200", "202010100", "101010100" }.Any(excludedNumber => coa.AccountNumber.Contains(excludedNumber)) && !coa.HasChildren)
                     .Select(s => new SelectListItem
                     {
                         Value = s.AccountNumber,
@@ -777,7 +777,7 @@ namespace Accounting_System.Controllers
                     viewModel.COA = await _dbContext.ChartOfAccounts
                         .Where(coa =>
                             !new[] { "202010200", "202010100", "101010100" }.Any(excludedNumber =>
-                                coa.AccountNumber.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
+                                coa.AccountNumber.Contains(excludedNumber)) && !coa.HasChildren)
                         .Select(s => new SelectListItem
                         {
                             Value = s.AccountNumber,
@@ -801,7 +801,7 @@ namespace Accounting_System.Controllers
             viewModel.COA = await _dbContext.ChartOfAccounts
                 .Where(coa =>
                     !new[] { "202010200", "202010100", "101010100" }.Any(excludedNumber =>
-                        coa.AccountNumber.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
+                        coa.AccountNumber.Contains(excludedNumber)) && !coa.HasChildren)
                 .Select(s => new SelectListItem
                 {
                     Value = s.AccountNumber,

@@ -67,18 +67,18 @@
                                 <li><a class="dropdown-item" asp-controller="PurchaseOrder" asp-action="Index">Purchase Order</a></li>
                                 <li><a class="dropdown-item" asp-controller="ReceivingReport" asp-action="Index">Receiving Report</a></li>
                                 <li class="nav-item dropend">
-                                    <a class="dropdown-item dropdown-toggle" asp-controller="CheckVoucher" asp-action="Index">
+                                    <a class="dropdown-item dropdown-toggle" style="color: gray !important">
                                         Check Voucher
                                     </a>
                                     <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" asp-controller="CheckVoucher" asp-action="Trade">Trade</a></li>
+                                        <li><a class="dropdown-item" asp-controller="CheckVoucherTrade" asp-action="Index">Trade</a></li>
                                         <li class="nav-item dropend">
                                             <a class="dropdown-item dropdown-toggle" style="color: gray !important">
                                                 Non-Trade
                                             </a>
                                             <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" asp-controller="CheckVoucher" asp-action="NonTradeInvoicing">Invoicing</a></li>
-                                                <li><a class="dropdown-item" asp-controller="CheckVoucher" asp-action="NonTradePayment">Payment</a></li>
+                                                <li><a class="dropdown-item" asp-controller="CheckVoucherNonTradeInvoice" asp-action="Index">Invoicing</a></li>
+                                                <li><a class="dropdown-item" asp-controller="CheckVoucherNonTradePayment" asp-action="Index">Payment</a></li>
                                             </ul>
                                         </li>
 

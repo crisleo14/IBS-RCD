@@ -117,7 +117,7 @@ namespace Accounting_System.Repository
         public async Task<List<SelectListItem>> GetCOAListAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext.ChartOfAccounts
-                .Where(coa => !new[] { "202010200", "202010100", "101010100" }.Any(excludedNumber => coa.AccountNumber.Contains(excludedNumber)) && coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !new[] { "202010200", "202010100", "101010100" }.Any(excludedNumber => coa.AccountNumber.Contains(excludedNumber)) && !coa.HasChildren)
                 .Select(s => new SelectListItem
                 {
                     Value = s.AccountNumber,
@@ -179,7 +179,7 @@ namespace Accounting_System.Repository
         public async Task<List<AccountTitleDto>> GetListOfAccountTitleDto(CancellationToken cancellationToken = default)
         {
             return await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !coa.HasChildren)
                 .Select(coa => new AccountTitleDto
                 {
                     AccountId = coa.AccountId,

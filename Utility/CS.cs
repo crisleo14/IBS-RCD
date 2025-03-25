@@ -45,5 +45,13 @@
         public const string TaxType_Exempt = "Exempt";
 
         #endregion Tax Type
+
+        #region Format string
+
+        public const string Two_Decimal_Format = "N2";
+        public const string Four_Decimal_Format = "N4";
+        public const string Date_Format = "MMM dd, yyyy";
+
+        #endregion Format string
     }
 }

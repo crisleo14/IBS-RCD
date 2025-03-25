@@ -58,7 +58,7 @@ namespace Accounting_System.Controllers
         {
             Supplier model = new();
             model.DefaultExpenses = await _context.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !coa.HasChildren)
                 .Select(s => new SelectListItem
                 {
                     Value = s.AccountNumber + " " + s.AccountName,
@@ -236,7 +236,7 @@ namespace Accounting_System.Controllers
                 return NotFound();
             }
             supplier.DefaultExpenses = await _context.ChartOfAccounts
-                .Where(coa => coa.Level == 4 || coa.Level == 5)
+                .Where(coa => !coa.HasChildren)
                 .Select(s => new SelectListItem
                 {
                     Value = s.AccountNumber + " " + s.AccountName,

@@ -3,6 +3,7 @@ using System;
 using Accounting_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250319091733_AddNeededEntityForEnhancementOfCheckVoucherModule")]
+    partial class AddNeededEntityForEnhancementOfCheckVoucherModule
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,12 +52,12 @@ namespace Accounting_System.Migrations
                         .HasColumnName("document_type");
 
                     b.HasKey("Id")
-                        .HasName("pk_cv_trade_payments");
+                        .HasName("pk_filpride_cv_trade_payments");
 
                     b.HasIndex("CheckVoucherId")
-                        .HasDatabaseName("ix_cv_trade_payments_check_voucher_id");
+                        .HasDatabaseName("ix_filpride_cv_trade_payments_check_voucher_id");
 
-                    b.ToTable("cv_trade_payments", (string)null);
+                    b.ToTable("filpride_cv_trade_payments", (string)null);
                 });
 
             modelBuilder.Entity("Accounting_System.Models.AccountsPayable.CheckVoucherHeader", b =>
@@ -3000,7 +3003,7 @@ namespace Accounting_System.Migrations
                         .HasForeignKey("CheckVoucherId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_cv_trade_payments_check_voucher_headers_check_voucher_id");
+                        .HasConstraintName("fk_filpride_cv_trade_payments_check_voucher_headers_check_vouc");
 
                     b.Navigation("CV");
                 });

@@ -29,4 +29,7 @@
   <ItemGroup>
     <Folder Include="Migrations\" />
   </ItemGroup>
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Pages\CheckVoucherNonTradeInvoice\Index.cshtml" />
+  </ItemGroup>
 </Project>

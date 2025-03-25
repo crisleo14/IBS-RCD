@@ -52,6 +52,10 @@ namespace Accounting_System.Data
 
         public DbSet<ImportExportLog> ImportExportLogs { get; set; }
 
+        public DbSet<MultipleCheckVoucherPayment> MultipleCheckVoucherPayments { get; set; }
+
+        public DbSet<CVTradePayment> CVTradePayments { get; set; }
+
         #region--Fluent API Implementation
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -241,6 +245,35 @@ namespace Accounting_System.Data
             });
 
             #endregion -- Check Voucher --
+
+            #region -- Check Voucher Trade Payment --
+
+            builder.Entity<CVTradePayment>(cv =>
+            {
+                cv.HasOne(cv => cv.CV)
+                    .WithMany()
+                    .HasForeignKey(cv => cv.CheckVoucherId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            #endregion -- Check Voucher Trade Payment --
+
+            #region -- Multiple Check Voucher Payment --
+
+            builder.Entity<MultipleCheckVoucherPayment>(mcvp =>
+            {
+                mcvp.HasOne(mcvp => mcvp.CheckVoucherHeaderPayment)
+                    .WithMany()
+                    .HasForeignKey(mcvp => mcvp.CheckVoucherHeaderPaymentId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                mcvp.HasOne(mcvp => mcvp.CheckVoucherHeaderInvoice)
+                    .WithMany()
+                    .HasForeignKey(mcvp => mcvp.CheckVoucherHeaderInvoiceId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            #endregion -- Multiple Check Voucher Payment --
 
             #endregion -- Accounts Payable --
 
