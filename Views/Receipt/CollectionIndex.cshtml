@@ -19,7 +19,16 @@
     </div>
     <div class="card-body p-4 table-responsive">
         <div class="row pb-3">
-            <div class="col-6">
+            <div class="col-12 text-end">
+                <a asp-controller="Receipt" asp-action="CollectionCreateForService" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Create New Service
+                </a>
+                <a asp-controller="Receipt" asp-action="SingleCollectionCreateForSales" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Create New Single Sales
+                </a>
+                <a asp-controller="Receipt" asp-action="MultipleCollectionCreateForSales" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Create New Multiple Sales
+                </a>
             </div>
         </div>
         <table class="table table-bordered table-hover" id="collectionReceiptTable">
