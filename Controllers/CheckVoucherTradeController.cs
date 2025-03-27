@@ -62,7 +62,7 @@ namespace Accounting_System.Controllers
                     .Where(cv => cv.CvType != "Payment")
                     .ToListAsync(cancellationToken);
 
-                return View("ExportIndex", checkVoucherHeaders);
+                return View("ImportExportIndex", checkVoucherHeaders);
             }
 
             return View();
@@ -1176,6 +1176,16 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
+        [HttpGet]
+        public IActionResult GetAllCheckVoucherIds()
+        {
+            var cvIds = _dbContext.CheckVoucherHeaders
+                                     .Select(cv => cv.Id) // Assuming Id is the primary key
+                                     .ToList();
+
+            return Json(cvIds);
+        }
+
         //Download as .xlsx file.(Export)
 
         #region -- export xlsx record --
@@ -2036,13 +2046,15 @@ namespace Accounting_System.Controllers
                                         : 0,
                             };
 
-                            var cvhList = checkVoucherHeadersList.Any(cv => cv.OriginalDocumentId == checkVoucherHeader.OriginalDocumentId);
-                            var existingCV = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(si => si.OriginalDocumentId == checkVoucherHeader.OriginalDocumentId, cancellationToken);
-                            cvDictionary.TryAdd((existingCV != null ? existingCV.CVNo : checkVoucherHeader.CVNo) ?? checkVoucherHeader.CVNo, cvhList);
+                            if (!cvDictionary.TryAdd(checkVoucherHeader.OriginalSeriesNumber, true) || checkVoucherHeader.OriginalSeriesNumber.Contains("CVNU") || checkVoucherHeader.OriginalSeriesNumber.Contains("INVU") || checkVoucherHeader.OriginalSeriesNumber.Contains("CVU"))
+                            {
+                                continue;
+                            }
 
-                            if (cvhList)
+                            if (checkVoucherHeadersList.Any(cm => cm.OriginalDocumentId == checkVoucherHeader.OriginalDocumentId))
                             {
                                 var cvChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                                var existingCV = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(si => si.OriginalDocumentId == checkVoucherHeader.OriginalDocumentId, cancellationToken);
 
                                 if (existingCV.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())
                                 {
@@ -2164,12 +2176,17 @@ namespace Accounting_System.Controllers
 
                                 if (existingCV.Category.TrimStart().TrimEnd() == "Trade")
                                 {
-                                    var amount = existingCV.Amount != null
-                                        ? string.Join(" ", existingCV.Amount.Select(si => si.ToString("N4")))
-                                        : null;
-                                    if (amount != null && amount.TrimStart().TrimEnd() != worksheet.Cells[row, 22].Text.TrimStart().TrimEnd())
+                                    var cellText = worksheet.Cells[row, 22].Text.TrimStart().TrimEnd();
+                                    if (decimal.TryParse(cellText, out var parsedAmount))
                                     {
-                                        cvChanges["Amount"] = (string.Join(" ", existingCV.Amount.Select(si => si.ToString("F4").TrimStart().TrimEnd())), worksheet.Cells[row, 22].Text.TrimStart().TrimEnd())!;
+                                        var amount = existingCV.Amount != null
+                                            ? string.Join(" ", existingCV.Amount.Select(si => si.ToString("F2")))
+                                            : null;
+
+                                        if (amount != null && amount != parsedAmount.ToString("F2"))
+                                        {
+                                            cvChanges["Amount"] = (amount, parsedAmount.ToString("F2"));
+                                        }
                                     }
                                 }
 
@@ -2379,15 +2396,5 @@ namespace Accounting_System.Controllers
         }
 
         #endregion -- import xlsx record --
-
-        [HttpGet]
-        public IActionResult GetAllCheckVoucherIds()
-        {
-            var cvIds = _dbContext.CheckVoucherHeaders
-                                     .Select(cv => cv.Id) // Assuming Id is the primary key
-                                     .ToList();
-
-            return Json(cvIds);
-        }
     }
 }

@@ -4,6 +4,49 @@
     ViewData["Title"] = "Service";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<style>
+    .container {
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    /* Custom styles for professional look */
+    .table th {
+        font-weight: 600;
+        color: #374151;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.025em;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(59, 130, 246, 0.05);
+    }
+
+    .table-loading {
+        position: relative;
+        opacity: 0.6;
+    }
+
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.8em;
+        font-size: 0.75rem;
+    }
+
+    .actions-dropdown .dropdown-item {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .actions-dropdown .dropdown-item:hover {
+        background-color: #f3f4f6;
+    }
+</style>
 <div class="loader-container">
     <div class="loader"></div>
     <div class="loader-text">Loading...</div>
@@ -35,31 +78,34 @@
 
         <table class="table table-bordered table-hover" id="dataTable">
             <thead class="table-secondary">
-                <tr>
-                    <th>
-                        @Html.DisplayNameFor(model => model.Number)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.Name)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.Percent)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.CreatedBy)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.CreatedDate)
-                    </th>
-                    <th data-orderable="false">
-                        <input type="checkbox" class="text-center" id="selectAll" onclick="toggleSelectAll(this)">
-                    </th>
-                </tr>
+            <tr>
+                <th data-orderable="false">
+                    <input type="checkbox" class="text-center" id="selectAll" onclick="toggleSelectAll(this)">
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Number)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Name)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Percent)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.CreatedBy)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.CreatedDate)
+                </th>
+            </tr>
             </thead>
             <tbody>
                 @foreach (var item in Model)
                 {
                     <tr>
+                        <td>
+                            <input type="checkbox" class="selectCheckbox text-center" value="@item.Id">
+                        </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.Number)
                         </td>
@@ -74,9 +120,6 @@
                         </td>
                         <td>
                             @item.CreatedDate.ToString("MM/dd/yyyy")
-                        </td>
-                        <td>
-                            <input type="checkbox" class="selectCheckbox text-center" value="@item.Id">
                         </td>
                     </tr>
                 }

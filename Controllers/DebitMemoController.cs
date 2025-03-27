@@ -1770,9 +1770,14 @@ namespace Accounting_System.Controllers
                                     dmChanges["Remarks"] = (existingDM.Remarks.TrimStart().TrimEnd(), worksheet.Cells[row, 7].Text.TrimStart().TrimEnd())!;
                                 }
 
-                                if (existingDM.Period.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != DateOnly.Parse(worksheet.Cells[row, 8].Text).ToString("yyyy-MM-dd").TrimStart().TrimEnd())
+                                string cellValue = worksheet.Cells[row, 8].Text.Trim();
+
+                                if (DateOnly.TryParse(cellValue, out DateOnly parsedDate))
                                 {
-                                    dmChanges["Period"] = (existingDM.Period.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet.Cells[row, 8].Text.TrimStart().TrimEnd())!;
+                                    if (existingDM.Period.ToString("yyyy-MM") != parsedDate.ToString("yyyy-MM"))
+                                    {
+                                        dmChanges["Period"] = (existingDM.Period.ToString("yyyy-MM"), parsedDate.ToString("yyyy-MM"));
+                                    }
                                 }
 
                                 if ((existingDM.Amount != null ? existingDM.Amount?.ToString("F2").TrimStart().TrimEnd() : 0.ToString("F2")) != decimal.Parse(worksheet.Cells[row, 9].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 9].Text.TrimStart().TrimEnd() : 0.ToString("F2")).ToString("F2").TrimStart().TrimEnd())

@@ -8,6 +8,49 @@
     ViewData["Title"] = "Sales Invoice";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<style>
+    .container {
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    /* Custom styles for professional look */
+    .table th {
+        font-weight: 600;
+        color: #374151;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.025em;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(59, 130, 246, 0.05);
+    }
+
+    .table-loading {
+        position: relative;
+        opacity: 0.6;
+    }
+
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.8em;
+        font-size: 0.75rem;
+    }
+
+    .actions-dropdown .dropdown-item {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .actions-dropdown .dropdown-item:hover {
+        background-color: #f3f4f6;
+    }
+</style>
 <div class="loader-container">
     <div class="loader"></div>
     <div class="loader-text">Loading...</div>
@@ -39,37 +82,40 @@
 
         <table class="table table-bordered table-hover" id="dataTable">
             <thead class="table-secondary">
-                <tr class="text-nowrap">
-                    <th>
-                        @Html.DisplayNameFor(model => model.SINo)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.Customer.Name)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.TransactionDate)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.Customer.Terms)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.Amount)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.CreatedBy)
-                    </th>
-                    <th>
-                        Status
-                    </th>
-                    <th data-orderable="false">
-                        <input type="checkbox" class="text-center" id="selectAll" onclick="toggleSelectAll(this)">
-                    </th>
-                </tr>
+            <tr class="text-nowrap">
+                <th data-orderable="false">
+                    <input type="checkbox" class="text-center" id="selectAll" onclick="toggleSelectAll(this)">
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.SINo)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Customer.Name)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.TransactionDate)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Customer.Terms)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Amount)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.CreatedBy)
+                </th>
+                <th>
+                    Status
+                </th>
+            </tr>
             </thead>
             <tbody>
                 @foreach (var invoice in Model)
                 {
                     <tr class="align-text-bottom">
+                        <td>
+                            <input type="checkbox" class="selectCheckbox text-center" value="@invoice.Id">
+                        </td>
                         <td>
                             @Html.DisplayFor(model => invoice.SINo)
                         </td>
@@ -91,23 +137,14 @@
                         <td>
                             @{
                                 var status = invoice.PostedBy != null && invoice.VoidedBy == null && invoice.CanceledBy == null
-                                ? "Posted"
-                                : invoice.VoidedBy != null
-                                ? "Voided"
-                                : invoice.CanceledBy != null
-                                ? "Cancelled"
-                                : "Pending";
+                                    ? "Posted"
+                                    : invoice.VoidedBy != null
+                                        ? "Voided"
+                                        : invoice.CanceledBy != null
+                                            ? "Cancelled"
+                                            : "Pending";
                             }
-                            <span class="badge rounded-pill @if(status == "Posted") {
-                        <text>bg-info</text>
-} else if(status == "Voided") {
-                        <text>bg-danger</text>
-} else if(status == "Cancelled") {
-                        <text>bg-warning</text>
-}">@status</span>
-                        </td>
-                        <td>
-                            <input type="checkbox" class="selectCheckbox text-center" value="@invoice.Id">
+                            <span class="badge rounded-pill @if (status == "Posted") { <text>bg-info</text> }else if (status == "Voided") { <text>bg-danger</text> }else if (status == "Cancelled") { <text>bg-warning</text> }">@status</span>
                         </td>
                     </tr>
                 }
