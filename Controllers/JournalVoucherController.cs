@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using System.Linq.Dynamic.Core;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Accounting_System.Controllers
 {
@@ -1364,6 +1365,8 @@ namespace Accounting_System.Controllers
                                 Remarks = worksheet3.Cells[row, 10].Text,
                                 CreatedBy = worksheet3.Cells[row, 11].Text,
                                 CreatedDate = DateTime.TryParse(worksheet3.Cells[row, 12].Text, out DateTime createdDate) ? createdDate : default,
+                                PostedBy = worksheet3.Cells[row, 19].Text,
+                                PostedDate = DateTime.TryParse(worksheet3.Cells[row, 20].Text, out DateTime postedDate) ? postedDate : default,
                                 IsClosed = bool.TryParse(worksheet3.Cells[row, 13].Text, out bool isClosed) ? isClosed : default,
                                 CancellationRemarks = worksheet3.Cells[row, 14].Text != "" ? worksheet3.Cells[row, 14].Text : null,
                                 OriginalProductId = int.TryParse(worksheet3.Cells[row, 15].Text, out int originalProductId) ? originalProductId : 0,
@@ -1469,6 +1472,25 @@ namespace Accounting_System.Controllers
 
                                 continue;
                             }
+                            else
+                            {
+                                #region --Audit Trail Recording
+
+                                if (!purchaseOrder.CreatedBy.IsNullOrEmpty())
+                                {
+                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                    AuditTrail auditTrailBook = new(purchaseOrder.CreatedBy, $"Create new purchase order# {purchaseOrder.PONo}", "Purchase Order", ipAddress, purchaseOrder.CreatedDate);
+                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                                }
+                                if (!purchaseOrder.PostedBy.IsNullOrEmpty())
+                                {
+                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                    AuditTrail auditTrailBook = new(purchaseOrder.PostedBy, $"Posted purchase order# {purchaseOrder.PONo}", "Purchase Order", ipAddress, purchaseOrder.PostedDate);
+                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                                }
+
+                                #endregion --Audit Trail Recording
+                            }
 
                             var getProduct = await _dbContext.Products
                                 .Where(p => p.OriginalProductId == purchaseOrder.OriginalProductId)
@@ -1539,6 +1561,8 @@ namespace Accounting_System.Controllers
                                 // CanceledQuantity = decimal.TryParse(worksheet.Cells[row, 15].Text, out decimal netAmountOfEWT) ? netAmountOfEWT : 0,
                                 CreatedBy = worksheet4.Cells[row, 16].Text,
                                 CreatedDate = DateTime.TryParse(worksheet4.Cells[row, 17].Text, out DateTime createdDate) ? createdDate : default,
+                                PostedBy = worksheet4.Cells[row, 23].Text,
+                                PostedDate = DateTime.TryParse(worksheet4.Cells[row, 24].Text, out DateTime postedDate) ? postedDate : default,
                                 CancellationRemarks = worksheet4.Cells[row, 18].Text != "" ? worksheet4.Cells[row, 18].Text : null,
                                 ReceivedDate = DateOnly.TryParse(worksheet4.Cells[row, 19].Text, out DateOnly receivedDate) ? receivedDate : default,
                                 OriginalPOId = int.TryParse(worksheet4.Cells[row, 20].Text, out int OriginalPOId) ? OriginalPOId : 0,
@@ -1659,6 +1683,25 @@ namespace Accounting_System.Controllers
 
                                 continue;
                             }
+                            else
+                            {
+                                #region --Audit Trail Recording
+
+                                if (!receivingReport.CreatedBy.IsNullOrEmpty())
+                                {
+                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                    AuditTrail auditTrailBook = new(receivingReport.CreatedBy, $"Create new receiving report# {receivingReport.RRNo}", "Receiving Report", ipAddress, receivingReport.CreatedDate);
+                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                                }
+                                if (!receivingReport.PostedBy.IsNullOrEmpty())
+                                {
+                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                    AuditTrail auditTrailBook = new(receivingReport.PostedBy, $"Posted receiving report# {receivingReport.RRNo}", "Receiving Report", ipAddress, receivingReport.PostedDate);
+                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                                }
+
+                                #endregion --Audit Trail Recording
+                            }
 
                             var getPo = await _dbContext
                                 .PurchaseOrders
@@ -1735,6 +1778,11 @@ namespace Accounting_System.Controllers
                                 CreatedDate = DateTime.TryParse(worksheet5.Cells[row, 20].Text, out DateTime createdDate)
                                     ? createdDate
                                     : default,
+                                PostedBy = worksheet5.Cells[row, 32].Text,
+                                PostedDate = DateTime.TryParse(worksheet5.Cells[row, 33].Text, out DateTime postedDate)
+                                    ? postedDate
+                                    : default,
+
                                 Total = decimal.TryParse(worksheet5.Cells[row, 21].Text, out decimal total) ? total : 0,
                                 Amount = worksheet5.Cells[row, 22].Text.Split(' ').Select(arrayAmount =>
                                     decimal.TryParse(arrayAmount.Trim(), out decimal amount) ? amount : 0).ToArray(),
@@ -1950,6 +1998,25 @@ namespace Accounting_System.Controllers
 
                                 continue;
                             }
+                            else
+                            {
+                                #region --Audit Trail Recording
+
+                                if (!checkVoucherHeader.CreatedBy.IsNullOrEmpty())
+                                {
+                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                    AuditTrail auditTrailBook = new(checkVoucherHeader.CreatedBy, $"Create new check vouchcer# {checkVoucherHeader.CVNo}", "Check Voucher", ipAddress, checkVoucherHeader.CreatedDate);
+                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                                }
+                                if (!checkVoucherHeader.PostedBy.IsNullOrEmpty())
+                                {
+                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                    AuditTrail auditTrailBook = new(checkVoucherHeader.PostedBy, $"Posted check voucher# {checkVoucherHeader.CVNo}", "Check Voucher", ipAddress, checkVoucherHeader.PostedDate);
+                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                                }
+
+                                #endregion --Audit Trail Recording
+                            }
 
                             checkVoucherHeader.SupplierId = await _dbContext.Suppliers
                                                                 .Where(supp =>
@@ -2081,6 +2148,8 @@ namespace Accounting_System.Controllers
                                 JVReason = worksheet.Cells[row, 5].Text,
                                 CreatedBy = worksheet.Cells[row, 6].Text,
                                 CreatedDate = DateTime.TryParse(worksheet.Cells[row, 7].Text, out DateTime createdDate) ? createdDate : default,
+                                PostedBy = worksheet.Cells[row, 12].Text,
+                                PostedDate = DateTime.TryParse(worksheet.Cells[row, 13].Text, out DateTime postedDate) ? postedDate : default,
                                 CancellationRemarks = worksheet.Cells[row, 8].Text,
                                 OriginalCVId = int.TryParse(worksheet.Cells[row, 9].Text, out int originalCVId) ? originalCVId : 0,
                                 OriginalSeriesNumber = worksheet.Cells[row, 10].Text,
@@ -2161,6 +2230,25 @@ namespace Accounting_System.Controllers
                                 }
 
                                 continue;
+                            }
+                            else
+                            {
+                                #region --Audit Trail Recording
+
+                                if (!journalVoucherHeader.CreatedBy.IsNullOrEmpty())
+                                {
+                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                    AuditTrail auditTrailBook = new(journalVoucherHeader.CreatedBy, $"Create new journal vouchcer# {journalVoucherHeader.JVNo}", "Journal Voucher", ipAddress, journalVoucherHeader.CreatedDate);
+                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                                }
+                                if (!journalVoucherHeader.PostedBy.IsNullOrEmpty())
+                                {
+                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                    AuditTrail auditTrailBook = new(journalVoucherHeader.PostedBy, $"Posted journal voucher# {journalVoucherHeader.JVNo}", "journal Voucher", ipAddress, journalVoucherHeader.PostedDate);
+                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                                }
+
+                                #endregion --Audit Trail Recording
                             }
 
                             journalVoucherHeader.CVId = await _dbContext.CheckVoucherHeaders

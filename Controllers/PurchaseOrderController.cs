@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using System.Linq.Dynamic.Core;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Accounting_System.Controllers
 {
@@ -802,6 +803,8 @@ namespace Accounting_System.Controllers
                                 Remarks = worksheet.Cells[row, 10].Text,
                                 CreatedBy = worksheet.Cells[row, 11].Text,
                                 CreatedDate = DateTime.TryParse(worksheet.Cells[row, 12].Text, out DateTime createdDate) ? createdDate : default,
+                                PostedBy = worksheet.Cells[row, 19].Text,
+                                PostedDate = DateTime.TryParse(worksheet.Cells[row, 20].Text, out DateTime postedDate) ? postedDate : default,
                                 IsClosed = bool.TryParse(worksheet.Cells[row, 13].Text, out bool isClosed) ? isClosed : default,
                                 CancellationRemarks = worksheet.Cells[row, 14].Text != "" ? worksheet.Cells[row, 14].Text : null,
                                 OriginalProductId = int.TryParse(worksheet.Cells[row, 15].Text, out int originalProductId) ? originalProductId : 0,
@@ -906,6 +909,25 @@ namespace Accounting_System.Controllers
                                 }
 
                                 continue;
+                            }
+                            else
+                            {
+                                #region --Audit Trail Recording
+
+                                if (!purchaseOrder.CreatedBy.IsNullOrEmpty())
+                                {
+                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                    AuditTrail auditTrailBook = new(purchaseOrder.CreatedBy, $"Create new purchase order# {purchaseOrder.PONo}", "Purchase Order", ipAddress, purchaseOrder.CreatedDate);
+                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                                }
+                                if (!purchaseOrder.PostedBy.IsNullOrEmpty())
+                                {
+                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                    AuditTrail auditTrailBook = new(purchaseOrder.PostedBy, $"Posted purchase order# {purchaseOrder.PONo}", "Purchase Order", ipAddress, purchaseOrder.PostedDate);
+                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                                }
+
+                                #endregion --Audit Trail Recording
                             }
 
                             var getProduct = await _dbContext.Products

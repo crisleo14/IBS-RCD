@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using System.Linq.Dynamic.Core;
 using Accounting_System.Utility;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Accounting_System.Controllers
 {
@@ -901,6 +902,8 @@ namespace Accounting_System.Controllers
                                 // IsPaid = bool.TryParse(worksheet.Cells[row, 12].Text, out bool isPaid) ? isPaid : false,
                                 CreatedBy = worksheet.Cells[row, 13].Text,
                                 CreatedDate = DateTime.TryParse(worksheet.Cells[row, 14].Text, out DateTime createdDate) ? createdDate : default,
+                                PostedBy = worksheet.Cells[row, 20].Text,
+                                PostedDate = DateTime.TryParse(worksheet.Cells[row, 21].Text, out DateTime postedDate) ? postedDate : default,
                                 CancellationRemarks = worksheet.Cells[row, 15].Text,
                                 OriginalCustomerId = int.TryParse(worksheet.Cells[row, 16].Text, out int originalCustomerId) ? originalCustomerId : 0,
                                 OriginalSeriesNumber = worksheet.Cells[row, 17].Text,
@@ -1009,6 +1012,25 @@ namespace Accounting_System.Controllers
                                 }
 
                                 continue;
+                            }
+                            else
+                            {
+                                #region --Audit Trail Recording
+
+                                if (!serviceInvoice.CreatedBy.IsNullOrEmpty())
+                                {
+                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                    AuditTrail auditTrailBook = new(serviceInvoice.CreatedBy, $"Create new service invoice# {serviceInvoice.SVNo}", "Service Invoice", ipAddress, serviceInvoice.CreatedDate);
+                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                                }
+                                if (!serviceInvoice.PostedBy.IsNullOrEmpty())
+                                {
+                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                    AuditTrail auditTrailBook = new(serviceInvoice.PostedBy, $"Posted service invoice# {serviceInvoice.SVNo}", "Service Invoice", ipAddress, serviceInvoice.PostedDate);
+                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                                }
+
+                                #endregion --Audit Trail Recording
                             }
 
                             serviceInvoice.CustomerId = await _dbContext.Customers
