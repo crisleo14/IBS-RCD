@@ -457,47 +457,47 @@ bg-success {
     }
 
     p {
-        font-size: 12px;
+        font-size: 12px !important;
     }
 
     table {
-        font-size: 12px;
+        font-size: 12px !important;
     }
 
     #printButton {
-        display: none;
-        visibility: hidden;
+        display: none !important;
+        visibility: hidden !important;
     }
 
     #otherButton {
-        display: none;
-        visibility: hidden;
+        display: none !important;
+        visibility: hidden !important;
     }
 
     header {
-        display: none;
-        visibility: hidden;
+        display: none !important;
+        visibility: hidden !important;
     }
 
     footer {
-        display: none;
-        visibility: hidden;
+        display: none !important;
+        visibility: hidden !important;
     }
 
     body {
-        margin: 0;
-        padding: 0;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     .container {
-        margin: 0;
-        padding: 0;
-        max-width: 100%;
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: 100% !important;
     }
 
     main {
-        margin: 0;
-        padding: 0;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 }
 

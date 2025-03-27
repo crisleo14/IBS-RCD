@@ -254,7 +254,7 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    if (model.Header.OriginalSeriesNumber == null && model.Header.OriginalDocumentId == 0)
+                    if (model.Header.OriginalSeriesNumber.IsNullOrEmpty() && model.Header.OriginalDocumentId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                         AuditTrail auditTrailBook = new(model.Header.CreatedBy, $"Create new journal voucher# {model.Header.JVNo}", "Journal Voucher", ipAddress);
@@ -370,7 +370,7 @@ namespace Accounting_System.Controllers
 
                 #region --Audit Trail Recording
 
-                if (jv.OriginalSeriesNumber == null && jv.OriginalDocumentId == 0)
+                if (jv.OriginalSeriesNumber.IsNullOrEmpty() && jv.OriginalDocumentId == 0)
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                     var printedBy = _userManager.GetUserName(this.User);
@@ -460,7 +460,7 @@ namespace Accounting_System.Controllers
 
                         #region --Audit Trail Recording
 
-                        if (modelHeader.OriginalSeriesNumber == null && modelHeader.OriginalDocumentId == 0)
+                        if (modelHeader.OriginalSeriesNumber.IsNullOrEmpty() && modelHeader.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(modelHeader.PostedBy, $"Posted journal voucher# {modelHeader.JVNo}", "Journal Voucher", ipAddress);
@@ -519,7 +519,7 @@ namespace Accounting_System.Controllers
 
                         #region --Audit Trail Recording
 
-                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided journal voucher# {model.JVNo}", "Journal Voucher", ipAddress);
@@ -563,7 +563,7 @@ namespace Accounting_System.Controllers
 
                         #region --Audit Trail Recording
 
-                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled journal voucher# {model.JVNo}", "Journal Voucher", ipAddress);
@@ -745,12 +745,12 @@ namespace Accounting_System.Controllers
                     {
                         #region --Audit Trail Recording
 
-                        // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                        // {
-                        //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        //     AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit journal voucher# {viewModel.JVNo}", "Journal Voucher", ipAddress);
-                        //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                        // }
+                        if (existingModel.OriginalSeriesNumber.IsNullOrEmpty() && existingModel.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit journal voucher# {viewModel.JVNo}", "Journal Voucher", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
 
                         #endregion --Audit Trail Recording
 
@@ -2005,13 +2005,13 @@ namespace Accounting_System.Controllers
                                 if (!checkVoucherHeader.CreatedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(checkVoucherHeader.CreatedBy, $"Create new check vouchcer# {checkVoucherHeader.CVNo}", "Check Voucher", ipAddress, checkVoucherHeader.CreatedDate);
+                                    AuditTrail auditTrailBook = new(checkVoucherHeader.CreatedBy, $"Create new check vouchcer# {checkVoucherHeader.CVNo}", $"Check Voucher {(checkVoucherHeader.CvType == "Invoicing" ? "Non Trade Invoice" : checkVoucherHeader.CvType == "Payment" ? "Non Trade Payment" : "Trade")}", ipAddress, checkVoucherHeader.CreatedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
                                 if (!checkVoucherHeader.PostedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(checkVoucherHeader.PostedBy, $"Posted check voucher# {checkVoucherHeader.CVNo}", "Check Voucher", ipAddress, checkVoucherHeader.PostedDate);
+                                    AuditTrail auditTrailBook = new(checkVoucherHeader.PostedBy, $"Posted check voucher# {checkVoucherHeader.CVNo}", $"Check Voucher {(checkVoucherHeader.CvType == "Invoicing" ? "Non Trade Invoice" : checkVoucherHeader.CvType == "Payment" ? "Non Trade Payment" : "Trade")}", ipAddress, checkVoucherHeader.PostedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
 

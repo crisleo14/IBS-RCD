@@ -132,7 +132,7 @@ else
     </p>
 </div>
 <div>
-    @if (Model.PostedBy == null)
+    @if (!Model.IsPosted)
     {
         <a class="btn btn-success" onclick="confirmPost(@Model.Id)" style="margin-top: 25px;">Post</a>
     }

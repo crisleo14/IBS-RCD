@@ -119,7 +119,7 @@ else
     </div>
  }
 
-@if (Model.PostedBy == null)
+@if (!Model.IsPosted)
 {
     <a id="approveButton" class="btn btn-success" onclick="confirmPost(@Model.Id)" style="margin-top: 25px;">Post</a>
 }

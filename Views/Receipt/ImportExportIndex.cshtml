@@ -162,11 +162,11 @@
                         </td>
                         <td>
                             @{
-                                var status = item.PostedBy != null && item.VoidedBy == null && item.CanceledBy == null
+                                var status = item.IsPosted && !item.IsVoided && !item.IsCanceled
                                     ? "Posted"
-                                    : item.VoidedBy != null
+                                    : item.IsVoided
                                         ? "Voided"
-                                        : item.CanceledBy != null
+                                        : item.IsCanceled
                                             ? "Cancelled"
                                             : "Pending";
                             }

@@ -166,13 +166,13 @@
                         "orderable": false,
                         "render": function (data, type, row) {
                             let dropdownHtml = `
-                                            <div class="dropdown" style="${row.voidedBy != null || row.canceledBy != null ? 'display:none;' : ''}">
+                                            <div class="dropdown" style="${row.isVoided || row.isCanceled ? 'display:none;' : ''}">
                                                 <button class="btn btn-light dropdown-toggle" type="button" id="actionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                                     Actions
                                                 </button>
                                                 <ul class="dropdown-menu" aria-labelledby="actionsDropdown">`;
 
-                            if (row.postedBy == null) {
+                            if (!row.isPosted) {
                                 if (row.multipleSIId != null) {
                                     dropdownHtml += `
                                                 <li><a href="@Url.Action("MultipleCollectionEdit", "Receipt")/${row.id}" class="dropdown-item">Edit</a></li>

@@ -12,6 +12,7 @@ using System.Linq.Dynamic.Core;
 using Accounting_System.Models.Reports;
 using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Accounting_System.Controllers
 {
@@ -142,6 +143,29 @@ namespace Accounting_System.Controllers
             return View(viewModel);
         }
 
+        public async Task<IActionResult> Printed(int id, int? supplierId, CancellationToken cancellationToken)
+        {
+            var cv = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+            if (!cv.IsPrinted)
+            {
+                #region --Audit Trail Recording
+
+                if (cv.OriginalSeriesNumber.IsNullOrEmpty() && cv.OriginalDocumentId == 0)
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    AuditTrail auditTrailBook = new(cv.CreatedBy,
+                        $"Printed original copy of check voucher# {cv.CVNo}", "Check Voucher Non Trade Payment", ipAddress);
+                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                }
+
+                #endregion --Audit Trail Recording
+
+                cv.IsPrinted = true;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+            return RedirectToAction(nameof(Print), new { id, supplierId });
+        }
+
         public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
         {
             var modelHeader = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cv => cv.Id == id, cancellationToken);
@@ -153,6 +177,8 @@ namespace Accounting_System.Controllers
 
                 try
                 {
+                    if (!modelHeader.IsPosted)
+                    {
                         modelHeader.PostedBy = _userManager.GetUserName(this.User);
                         modelHeader.PostedDate = DateTime.UtcNow.AddHours(8);
                         modelHeader.IsPosted = true;
@@ -222,7 +248,7 @@ namespace Accounting_System.Controllers
 
                         #region --Audit Trail Recording
 
-                        if (modelHeader.OriginalSeriesNumber == null && modelHeader.OriginalDocumentId == 0)
+                        if (modelHeader.OriginalSeriesNumber.IsNullOrEmpty() && modelHeader.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(modelHeader.CreatedBy,
@@ -248,7 +274,7 @@ namespace Accounting_System.Controllers
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         await transaction.CommitAsync(cancellationToken);
                         TempData["success"] = "Check Voucher has been Posted.";
-
+                    }
                     return RedirectToAction(nameof(Print), new { id });
                 }
                 catch (Exception ex)
@@ -319,7 +345,7 @@ namespace Accounting_System.Controllers
 
                 #region --Audit Trail Recording
 
-                if (existingHeaderModel.OriginalSeriesNumber == null && existingHeaderModel.OriginalDocumentId == 0)
+                if (existingHeaderModel.OriginalSeriesNumber.IsNullOrEmpty() && existingHeaderModel.OriginalDocumentId == 0)
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                     AuditTrail auditTrailBook = new(existingHeaderModel.CreatedBy,
@@ -395,7 +421,6 @@ namespace Accounting_System.Controllers
                         }
                     }
 
-                    existingHeaderModel.PostedBy = null;
                     existingHeaderModel.IsPosted = false;
                     existingHeaderModel.VoidedBy = _userManager.GetUserName(this.User);
                     existingHeaderModel.VoidedDate = DateTime.UtcNow.AddHours(8);
@@ -409,7 +434,7 @@ namespace Accounting_System.Controllers
                     //re-compute amount paid in trade and payment voucher
                     #region --Audit Trail Recording
 
-                    if (existingHeaderModel.OriginalSeriesNumber == null && existingHeaderModel.OriginalDocumentId == 0)
+                    if (existingHeaderModel.OriginalSeriesNumber.IsNullOrEmpty() && existingHeaderModel.OriginalDocumentId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                         AuditTrail auditTrailBook = new(existingHeaderModel.CreatedBy,
@@ -747,13 +772,13 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    // if (existingHeaderModel.OriginalSeriesNumber == null && existingHeaderModel.OriginalDocumentId == 0)
-                    // {
-                    //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    //     AuditTrail auditTrailBook = new(existingHeaderModel.CreatedBy,
-                    //         $"Edited check voucher# {existingHeaderModel.CVNo}", "Check Voucher Non Trade Payment", ipAddress);
-                    //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                    // }
+                    if (existingHeaderModel.OriginalSeriesNumber.IsNullOrEmpty() && existingHeaderModel.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(existingHeaderModel.CreatedBy,
+                            $"Edited check voucher# {existingHeaderModel.CVNo}", "Check Voucher Non Trade Payment", ipAddress);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
 
                     #endregion --Audit Trail Recording
 
@@ -1143,7 +1168,7 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    if (checkVoucherHeader.OriginalSeriesNumber == null && checkVoucherHeader.OriginalDocumentId == 0)
+                    if (checkVoucherHeader.OriginalSeriesNumber.IsNullOrEmpty() && checkVoucherHeader.OriginalDocumentId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                         AuditTrail auditTrailBook = new(checkVoucherHeader.CreatedBy,
