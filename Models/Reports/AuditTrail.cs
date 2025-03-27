@@ -22,10 +22,10 @@ namespace Accounting_System.Models.Reports
 
         }
 
-        public AuditTrail(string username, string activity, string documentType, string ipAddress)
+        public AuditTrail(string username, string activity, string documentType, string ipAddress, DateTime? date = null)
         {
             Username = username;
-            Date = DateTime.Now;
+            Date = date ?? DateTime.Now;
 
             // Attempt to resolve IP to hostname, fallback to IP if resolution fails
             try

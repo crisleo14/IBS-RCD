@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using System.Linq.Dynamic.Core;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Accounting_System.Controllers
 {
@@ -2326,6 +2327,10 @@ namespace Accounting_System.Controllers
                                 CreatedDate = DateTime.TryParse(worksheet3.Cells[row, 15].Text, out DateTime createdDate)
                                     ? createdDate
                                     : default,
+                                PostedBy = worksheet3.Cells[row, 23].Text,
+                                PostedDate = DateTime.TryParse(worksheet3.Cells[row, 24].Text, out DateTime postedDate)
+                                    ? postedDate
+                                    : default,
                                 CancellationRemarks = worksheet3.Cells[row, 16].Text != ""
                                     ? worksheet3.Cells[row, 16].Text
                                     : null,
@@ -2444,6 +2449,25 @@ namespace Accounting_System.Controllers
 
                                 continue;
                             }
+                            else
+                            {
+                                #region --Audit Trail Recording
+
+                                if (!invoice.CreatedBy.IsNullOrEmpty())
+                                {
+                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                    AuditTrail auditTrailBook = new(invoice.CreatedBy, $"Create new invoice# {invoice.SINo}", "Sales Invoice", ipAddress, invoice.CreatedDate);
+                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                                }
+                                if (!invoice.PostedBy.IsNullOrEmpty())
+                                {
+                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                    AuditTrail auditTrailBook = new(invoice.PostedBy, $"Posted invoice# {invoice.SINo}", "Sales Invoice", ipAddress, invoice.PostedDate);
+                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                                }
+
+                                #endregion --Audit Trail Recording
+                            }
 
                             invoice.CustomerId = await _dbContext.Customers
                                                      .Where(c => c.OriginalCustomerId == invoice.OriginalCustomerId)
@@ -2493,6 +2517,8 @@ namespace Accounting_System.Controllers
                                 // IsPaid = bool.TryParse(worksheet.Cells[row, 12].Text, out bool isPaid) ? isPaid : false,
                                 CreatedBy = worksheet4.Cells[row, 13].Text,
                                 CreatedDate = DateTime.TryParse(worksheet4.Cells[row, 14].Text, out DateTime createdDate) ? createdDate : default,
+                                PostedBy = worksheet4.Cells[row, 20].Text,
+                                PostedDate = DateTime.TryParse(worksheet4.Cells[row, 21].Text, out DateTime postedDate) ? postedDate : default,
                                 CancellationRemarks = worksheet4.Cells[row, 15].Text,
                                 OriginalCustomerId = int.TryParse(worksheet4.Cells[row, 16].Text, out int originalCustomerId) ? originalCustomerId : 0,
                                 OriginalSeriesNumber = worksheet4.Cells[row, 17].Text,
@@ -2602,6 +2628,25 @@ namespace Accounting_System.Controllers
 
                                 continue;
                             }
+                            else
+                            {
+                                #region --Audit Trail Recording
+
+                                if (!serviceInvoice.CreatedBy.IsNullOrEmpty())
+                                {
+                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                    AuditTrail auditTrailBook = new(serviceInvoice.CreatedBy, $"Create new service invoice# {serviceInvoice.SVNo}", "Service Invoice", ipAddress, serviceInvoice.CreatedDate);
+                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                                }
+                                if (!serviceInvoice.PostedBy.IsNullOrEmpty())
+                                {
+                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                    AuditTrail auditTrailBook = new(serviceInvoice.PostedBy, $"Posted service invoice# {serviceInvoice.SVNo}", "Service Invoice", ipAddress, serviceInvoice.PostedDate);
+                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                                }
+
+                                #endregion --Audit Trail Recording
+                            }
 
                             serviceInvoice.CustomerId = await _dbContext.Customers
                                 .Where(sv => sv.OriginalCustomerId == serviceInvoice.OriginalCustomerId)
@@ -2654,6 +2699,8 @@ namespace Accounting_System.Controllers
                                 F2307FilePath = worksheet.Cells[row, 20].Text,
                                 CreatedBy = worksheet.Cells[row, 21].Text,
                                 CreatedDate = DateTime.TryParse(worksheet.Cells[row, 22].Text, out DateTime createdDate) ? createdDate : default,
+                                PostedBy = worksheet.Cells[row, 33].Text,
+                                PostedDate = DateTime.TryParse(worksheet.Cells[row, 34].Text, out DateTime postedDate) ? postedDate : default,
                                 CancellationRemarks = worksheet.Cells[row, 23].Text,
                                 MultipleSI = worksheet.Cells[row, 24].Text.Split(',').Select(si => si.Trim()).ToArray(),
                                 MultipleSIId = worksheet.Cells[row, 25].Text.Split(',').Select(multipleId => int.TryParse(multipleId.Trim(), out int multipleSIId) ? multipleSIId : 0).ToArray(),
@@ -2862,6 +2909,25 @@ namespace Accounting_System.Controllers
                                 }
 
                                 continue;
+                            }
+                            else
+                            {
+                                #region --Audit Trail Recording
+
+                                if (!collectionReceipt.CreatedBy.IsNullOrEmpty())
+                                {
+                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                    AuditTrail auditTrailBook = new(collectionReceipt.CreatedBy, $"Create new collection receipt# {collectionReceipt.CRNo}", "Collection Receipt", ipAddress, collectionReceipt.CreatedDate);
+                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                                }
+                                if (!collectionReceipt.PostedBy.IsNullOrEmpty())
+                                {
+                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                    AuditTrail auditTrailBook = new(collectionReceipt.PostedBy, $"Posted collection receipt# {collectionReceipt.CRNo}", "Collection Receipt", ipAddress, collectionReceipt.PostedDate);
+                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                                }
+
+                                #endregion --Audit Trail Recording
                             }
 
                             collectionReceipt.CustomerId = await _dbContext.Customers
