@@ -491,8 +491,8 @@ namespace Accounting_System.Controllers
             }
 
             var checkVoucher = await _dbContext.CheckVoucherDetails
-                .Where(cvd => cvd.Header.SupplierId != null && cvd.Header.PostedBy != null && cvd.Header.CvType == nameof(CVType.Invoicing) ||
-                              cvd.SupplierId != null && cvd.Header.PostedBy != null && cvd.Header.CvType == nameof(CVType.Invoicing) && cvd.CVHeaderId == cvd.Header.Id)
+                .Where(cvd => cvd.Header.SupplierId != null && cvd.Header.IsPosted && cvd.Header.CvType == nameof(CVType.Invoicing) ||
+                              cvd.SupplierId != null && cvd.Header.IsPosted && cvd.Header.CvType == nameof(CVType.Invoicing) && cvd.CVHeaderId == cvd.Header.Id)
                 .Include(cvd => cvd.Header)
                 .OrderBy(cvd => cvd.Id)
                 .Select(cvd => new SelectListItem
@@ -1266,7 +1266,7 @@ namespace Accounting_System.Controllers
                 var query = _dbContext.CheckVoucherDetails
                     .Include(cvd => cvd.Header)
                     .Where(cvd =>
-                        cvd.Header.PostedBy != null &&
+                        cvd.Header.IsPosted &&
                         cvd.Header.CvType == nameof(CVType.Invoicing) &&
                         (
                             (cvd.Header.SupplierId != null &&

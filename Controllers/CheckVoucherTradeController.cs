@@ -205,7 +205,7 @@ namespace Accounting_System.Controllers
                                 .ToListAsync();
 
                             viewModel.PONo = await _dbContext.PurchaseOrders
-                                .Where(po => po.SupplierId == viewModel.SupplierId && po.PostedBy != null)
+                                .Where(po => po.SupplierId == viewModel.SupplierId && po.IsPosted)
                                 .Select(po => new SelectListItem
                                 {
                                     Value = po.PONo.ToString(),
@@ -385,7 +385,7 @@ namespace Accounting_System.Controllers
                             .ToListAsync();
 
                     viewModel.PONo = await _dbContext.PurchaseOrders
-                                .Where(po => po.SupplierId == viewModel.SupplierId && po.PostedBy != null)
+                                .Where(po => po.SupplierId == viewModel.SupplierId && po.IsPosted)
                                 .Select(po => new SelectListItem
                                 {
                                     Value = po.PONo.ToString(),
@@ -425,7 +425,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync();
 
             viewModel.PONo = await _dbContext.PurchaseOrders
-                .Where(po => po.SupplierId == viewModel.SupplierId && po.PostedBy != null)
+                .Where(po => po.SupplierId == viewModel.SupplierId && po.IsPosted)
                 .Select(po => new SelectListItem
                 {
                     Value = po.PONo.ToString(),
@@ -448,7 +448,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetPOs(int supplierId)
         {
             var purchaseOrders = await _dbContext.PurchaseOrders
-                .Where(po => po.SupplierId == supplierId && po.PostedBy != null)
+                .Where(po => po.SupplierId == supplierId && po.IsPosted)
                 .ToListAsync();
 
             if (purchaseOrders != null && purchaseOrders.Any())
@@ -467,7 +467,7 @@ namespace Accounting_System.Controllers
             var query = _dbContext.ReceivingReports
                 .Where(rr => !rr.IsPaid
                              && poNumber.Contains(rr.PONo)
-                             && rr.PostedBy != null);
+                             && rr.IsPosted);
 
             if (cvId != null)
             {
