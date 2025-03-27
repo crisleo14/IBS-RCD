@@ -136,11 +136,11 @@
                         </td>
                         <td>
                             @{
-                                var status = invoice.PostedBy != null && invoice.VoidedBy == null && invoice.CanceledBy == null
+                                var status = invoice.IsPosted && !invoice.IsVoided && !invoice.IsCanceled
                                     ? "Posted"
-                                    : invoice.VoidedBy != null
+                                    : invoice.IsVoided
                                         ? "Voided"
-                                        : invoice.CanceledBy != null
+                                        : invoice.IsCanceled
                                             ? "Cancelled"
                                             : "Pending";
                             }

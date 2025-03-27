@@ -257,7 +257,7 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                         AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new debit memo# {model.DMNo}", "Debit Memo", ipAddress);
@@ -319,7 +319,7 @@ namespace Accounting_System.Controllers
 
                 #region --Audit Trail Recording
 
-                if (findIdOfDM.OriginalSeriesNumber == null && findIdOfDM.OriginalDocumentId == 0)
+                if (findIdOfDM.OriginalSeriesNumber.IsNullOrEmpty() && findIdOfDM.OriginalDocumentId == 0)
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                     var printedBy = _userManager.GetUserName(this.User);
@@ -742,7 +742,7 @@ namespace Accounting_System.Controllers
 
                         #region --Audit Trail Recording
 
-                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(model.PostedBy, $"Posted debit memo# {model.DMNo}", "Debit Memo", ipAddress);
@@ -793,7 +793,7 @@ namespace Accounting_System.Controllers
 
                         #region --Audit Trail Recording
 
-                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided debit memo# {model.DMNo}", "Debit Memo", ipAddress);
@@ -837,7 +837,7 @@ namespace Accounting_System.Controllers
 
                         #region --Audit Trail Recording
 
-                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled debit memo# {model.DMNo}", "Debit Memo", ipAddress);
@@ -977,12 +977,12 @@ namespace Accounting_System.Controllers
                     {
                         #region --Audit Trail Recording
 
-                        // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                        // {
-                        //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        //     AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit debit memo# {existingDM.DMNo}", "Debit Memo", ipAddress);
-                        //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                        // }
+                        if (existingDM.OriginalSeriesNumber.IsNullOrEmpty() && existingDM.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit debit memo# {existingDM.DMNo}", "Debit Memo", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
 
                         #endregion --Audit Trail Recording
 

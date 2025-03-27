@@ -255,7 +255,7 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                    if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                         AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new credit memo# {model.CMNo}", "Credit Memo", ipAddress);
@@ -388,12 +388,12 @@ namespace Accounting_System.Controllers
                     {
                         #region --Audit Trail Recording
 
-                        // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                        // {
-                        //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        //     AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit credit memo# {existingCM.CMNo}", "Credit Memo", ipAddress);
-                        //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                        // }
+                        if (existingCM.OriginalSeriesNumber.IsNullOrEmpty() && existingCM.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit credit memo# {existingCM.CMNo}", "Credit Memo", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
 
                         #endregion --Audit Trail Recording
 
@@ -485,7 +485,7 @@ namespace Accounting_System.Controllers
 
                 #region --Audit Trail Recording
 
-                if (cm.OriginalSeriesNumber == null && cm.OriginalDocumentId == 0)
+                if (cm.OriginalSeriesNumber.IsNullOrEmpty() && cm.OriginalDocumentId == 0)
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                     var printedBy = _userManager.GetUserName(this.User);
@@ -941,7 +941,7 @@ namespace Accounting_System.Controllers
 
                         #region --Audit Trail Recording
 
-                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(model.PostedBy, $"Posted credit memo# {model.CMNo}", "Credit Memo", ipAddress);
@@ -993,7 +993,7 @@ namespace Accounting_System.Controllers
 
                         #region --Audit Trail Recording
 
-                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided credit memo# {model.CMNo}", "Credit Memo", ipAddress);
@@ -1037,7 +1037,7 @@ namespace Accounting_System.Controllers
 
                         #region --Audit Trail Recording
 
-                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled credit memo# {model.CMNo}", "Credit Memo", ipAddress);

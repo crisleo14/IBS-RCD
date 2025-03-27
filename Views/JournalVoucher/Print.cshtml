@@ -213,7 +213,7 @@ else
     </div>
 }
 <div>
-    @if (Model.Header.PostedBy == null)
+    @if (!Model.Header.IsPosted)
     {
         <a id="approveButton" class="btn btn-success" onclick="confirmPost(@Model.Header.Id)" style="margin-top: 25px;">Post</a>
     }

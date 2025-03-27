@@ -196,10 +196,10 @@ namespace Accounting_System.Controllers
 
                 #region --Audit Trail Recording
 
-                if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new rr# {model.RRNo}", "Receiving Report", ipAddress);
+                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new receiving report# {model.RRNo}", "Receiving Report", ipAddress);
                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                 }
 
@@ -299,12 +299,12 @@ namespace Accounting_System.Controllers
                     {
                         #region --Audit Trail Recording
 
-                        // if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
-                        // {
-                        //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        //     AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit rr# {existingModel.RRNo}", "Receiving Report", ipAddress);
-                        //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                        // }
+                        if (existingModel.OriginalSeriesNumber.IsNullOrEmpty() && existingModel.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edited receiving report# {existingModel.RRNo}", "Receiving Report", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
 
                         #endregion --Audit Trail Recording
 
@@ -369,7 +369,7 @@ namespace Accounting_System.Controllers
 
                 #region --Audit Trail Recording
 
-                if (rr.OriginalSeriesNumber == null && rr.OriginalDocumentId == 0)
+                if (rr.OriginalSeriesNumber.IsNullOrEmpty() && rr.OriginalDocumentId == 0)
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                     var printedBy = _userManager.GetUserName(this.User);
@@ -410,7 +410,7 @@ namespace Accounting_System.Controllers
 
                         #region --Audit Trail Recording
 
-                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(model.PostedBy, $"Posted rr# {model.RRNo}", "Receiving Report", ipAddress);
@@ -472,7 +472,7 @@ namespace Accounting_System.Controllers
 
                             #region --Audit Trail Recording
 
-                            if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                            if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                             {
                                 var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                                 AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided rr# {model.RRNo}", "Receiving Report", ipAddress);
@@ -519,7 +519,7 @@ namespace Accounting_System.Controllers
 
                         #region --Audit Trail Recording
 
-                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled rr# {model.RRNo}", "Receiving Report", ipAddress);

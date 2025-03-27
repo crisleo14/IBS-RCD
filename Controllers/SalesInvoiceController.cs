@@ -218,7 +218,7 @@ namespace Accounting_System.Controllers
 
                     #region --Audit Trail Recording
 
-                    if (sales.OriginalSeriesNumber == null && sales.OriginalDocumentId == 0)
+                    if (sales.OriginalSeriesNumber.IsNullOrEmpty() && sales.OriginalDocumentId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                         AuditTrail auditTrailBook = new(sales.CreatedBy, $"Create new invoice# {sales.SINo}", "Sales Invoice", ipAddress);
@@ -351,13 +351,13 @@ namespace Accounting_System.Controllers
                     {
                         #region --Audit Trail Recording
 
-                        // if (existingModel.OriginalSeriesNumber == null && existingModel.OriginalDocumentId == 0)
-                        // {
-                        //     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        //     var modifiedBy = _userManager.GetUserName(this.User);
-                        //     AuditTrail auditTrailBook = new(modifiedBy, $"Edited invoice# {existingModel.SINo}", "Sales Invoice", ipAddress);
-                        //     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                        // }
+                        if (existingModel.OriginalSeriesNumber.IsNullOrEmpty() && existingModel.OriginalDocumentId == 0)
+                        {
+                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                            var modifiedBy = _userManager.GetUserName(this.User);
+                            AuditTrail auditTrailBook = new(modifiedBy, $"Edited invoice# {existingModel.SINo}", "Sales Invoice", ipAddress);
+                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                        }
 
                         #endregion --Audit Trail Recording
                     }
@@ -460,7 +460,7 @@ namespace Accounting_System.Controllers
 
                 #region --Audit Trail Recording
 
-                if (sales.OriginalSeriesNumber == null && sales.OriginalDocumentId == 0)
+                if (sales.OriginalSeriesNumber.IsNullOrEmpty() && sales.OriginalDocumentId == 0)
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                     var printedBy = _userManager.GetUserName(this.User);
@@ -647,7 +647,7 @@ namespace Accounting_System.Controllers
 
                         #region --Audit Trail Recording
 
-                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(model.PostedBy, $"Posted invoice# {model.SINo}", "Sales Invoice", ipAddress);
@@ -703,7 +703,7 @@ namespace Accounting_System.Controllers
 
                         #region --Audit Trail Recording
 
-                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided invoice# {model.SINo}", "Sales Invoice", ipAddress);
@@ -748,7 +748,7 @@ namespace Accounting_System.Controllers
 
                         #region --Audit Trail Recording
 
-                        if (model.OriginalSeriesNumber == null && model.OriginalDocumentId == 0)
+                        if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled invoice# {model.SINo}", "Sales Invoice", ipAddress);

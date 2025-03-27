@@ -320,7 +320,7 @@ else
 
 <div class="row pt-2">
     @{
-        if (Model.Header.PostedBy == null)
+        if (!Model.Header.IsPosted)
         {
             <div class="col-6 col-md-3">
                 <a id="approveButton" class="btn btn-primary form-control buttons" onclick="confirmPost(@Model.Header.Id)">Post</a>
@@ -329,77 +329,21 @@ else
         else
         {
             <div class="col-6 col-md-3">
-                <a asp-controller="CheckVoucherNonTradeInvoice" asp-action="Printed" asp-route-id="@Model.Header.Id" asp-route-supplierId="@supplierId" onclick="window.print()" class="btn btn-primary form-control buttons">Print</a>
+                <a asp-controller="CheckVoucherNonTradeInvoice" asp-action="Printed" asp-route-id="@Model.Header.Id" asp-route-supplierId="@supplierId" onclick="window.print()" class="btn btn-primary form-control buttons" id="otherButton">Print</a>
             </div>
         }
     }
 
     <div class="col-6 col-md-3">
-        <a asp-controller="CheckVoucherNonTradeInvoice" asp-action="Index" class="btn btn-outline-primary border form-control buttons">Back to List</a>
+        <a asp-controller="CheckVoucherNonTradeInvoice" asp-action="Index" class="btn btn-outline-primary border form-control buttons" id="otherButton">Back to List</a>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        var originalFontSizes = [];
         function printPage() {
-            var printButton = document.getElementById("printButton");
-            var otherButton = document.getElementById("otherButton");
-
-            // Hide the header and footer
-            document.querySelector("header").style.display = "none";
-
-            // Hide the buttons before printing
-            if (printButton) {
-                printButton.style.visibility = "hidden";
-            }
-            if (otherButton) {
-                otherButton.style.visibility = "hidden";
-            }
-
-            // Get all paragraph elements
-            var paragraphs = document.querySelectorAll("p");
-
-            // Store the original font sizes
-            for (var i = 0; i < paragraphs.length; i++) {
-                originalFontSizes[i] = paragraphs[i].style.fontSize;
-                // Set the font size of all paragraph elements to 12px for printing
-                paragraphs[i].style.fontSize = "12px";
-            }
-
-            // Get all table text elements
-            var mytable = document.querySelectorAll("table");
-
-            // Store the original font sizes
-            for (var i = 0; i < mytable.length; i++) {
-                originalFontSizes[i] = mytable[i].style.fontSize;
-                // Set the font size of all paragraph elements to 12px for printing
-                mytable[i].style.fontSize = "12px";
-            }
-
             // Call the print function
             window.print();
-
-            // Restore the font sizes
-            for (var i = 0; i < paragraphs.length; i++) {
-                paragraphs[i].style.fontSize = originalFontSizes[i];
-            }
-
-            // Restore the font sizes
-            for (var i = 0; i < mytable.length; i++) {
-                mytable[i].style.fontSize = originalFontSizes[i];
-            }
-
-            // Restore the buttons' visibility after printing (optional)
-            if (printButton) {
-                printButton.style.visibility = "visible";
-            }
-            if (otherButton) {
-                otherButton.style.visibility = "visible";
-            }
-
-            // Restore the header and footer's visibility after printing (optional)
-            document.querySelector("header").style.display = "";
         }
     </script>
     <script>
