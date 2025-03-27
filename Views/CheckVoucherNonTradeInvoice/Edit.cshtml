@@ -513,9 +513,6 @@
 
             });
 
-            // Initialize bank account display for edit mode
-            initializeBankAccountDisplay();
-
             // Initialize calculations for existing rows
             recalculateAllRows();
 
@@ -628,98 +625,5 @@
             });
         });
 
-    </script>
-
-    <script src="~/js/masterFileSelector.js"></script>
-    <script>
-        // Initialize the master file selector with URLs
-        $(document).ready(function() {
-            const masterFileSelector = new MasterFileSelector({
-                getBankAccounts: '@Url.Action("GetBankAccounts", "CheckVoucherNonTradeInvoice")',
-                getCompanies: '@Url.Action("GetCompanies", "CheckVoucherNonTradeInvoice")',
-                getEmployees: '@Url.Action("GetEmployees", "CheckVoucherNonTradeInvoice")',
-                getCustomers: '@Url.Action("GetCustomers", "CheckVoucherNonTradeInvoice")',
-                getSuppliers: '@Url.Action("GetSuppliers", "CheckVoucherNonTradeInvoice")',
-            });
-
-            // Handle selection button clicks
-            $(document).on('click', '.select-master-file', function() {
-                const typeId = $(this).data('type');
-                const type = masterFileSelector.masterFileTypes[typeId.toUpperCase()];
-                const select = $(`#${typeId}Select`);
-                const selectedId = select.val();
-                const selectedText = select.find('option:selected').text();
-                const row = $(`#${typeId}Modal`).data('row');
-
-                masterFileSelector.handleSelection(type, row, selectedId, selectedText);
-            });
-
-            // Initialize Select2 for all dropdowns
-            $('.js-select2').select2({
-                placeholder: "Select an option...",
-                allowClear: true,
-                width: 'resolve',
-                theme: 'classic'
-            });
-        });
-    </script>
-    <script>
-        // Add this function to handle initial loading of bank details for edit mode
-        function initializeBankAccountDisplay() {
-            // Find rows with bank master file IDs
-            document.querySelectorAll('#accountTable tbody tr').forEach(row => {
-                const masterFileIds = {
-                    bankId: row.querySelector('.bank-master-file-id')?.value,
-                    companyId: row.querySelector('.company-master-file-id')?.value,
-                    employeeId: row.querySelector('.employee-master-file-id')?.value,
-                    customerId: row.querySelector('.customer-master-file-id')?.value,
-                    supplierId: row.querySelector('.supplier-master-file-id')?.value
-                };
-
-                const accountSelect = row.querySelector('.chart-of-accounts');
-                if (!accountSelect) return;
-
-                // Mapping of accounts to their respective API endpoints
-                const accountMappings = [
-                    { key: 'bankId', accounts: ['101010100 Cash in Bank', '101020500 AR-Non Trade Receivable'], url: 'GetBankAccountById' },
-                    { key: 'companyId', accounts: ['101010400 Fund Transfer', '101020600 AR-Exchange Check', '101020500 AR-Non Trade Receivable'], url: 'GetCompanyById' },
-                    { key: 'employeeId', accounts: ['101020400 Advances from Officers and Employees', '101020500 AR-Non Trade Receivable'], url: 'GetEmployeeById' },
-                    { key: 'customerId', accounts: ['101020500 AR-Non Trade Receivable'], url: 'GetCustomerById' },
-                    { key: 'supplierId', accounts: ['101020500 AR-Non Trade Receivable'], url: 'GetSupplierById' }
-                ];
-
-                for (const { key, accounts, url } of accountMappings) {
-                    if (masterFileIds[key] && accounts.includes(accountSelect.value)) {
-                        fetchAccountDetails(url, key, masterFileIds[key], accountSelect);
-                        break; // Exit loop once a match is found
-                    }
-                }
-            });
-        }
-
-        function fetchAccountDetails(action, paramKey, paramValue, accountSelect) {
-            let url = '@Url.Action("PLACEHOLDER", "CheckVoucherNonTradeInvoice")';
-            url = url.replace("PLACEHOLDER", action);
-
-            $.ajax({
-                url: url,
-                type: 'GET',
-                data: { [paramKey]: paramValue },
-                success: function(data) {
-                    if (data && data.accountName) {
-                        const originalText = accountSelect.options[accountSelect.selectedIndex].text;
-                        accountSelect.dataset.originalText = originalText; // Store original text
-
-                        const updatedText = `${originalText} (${data.accountNumber} - ${data.accountName})`;
-                        accountSelect.options[accountSelect.selectedIndex].text = updatedText;
-
-                        recalculateAllRows();
-                    }
-                },
-                error: function() {
-                    console.error(`Error loading details for ${paramKey}`);
-                }
-            });
-        }
     </script>
 }
