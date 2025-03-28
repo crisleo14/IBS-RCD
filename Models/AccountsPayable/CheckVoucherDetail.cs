@@ -28,10 +28,10 @@ namespace Accounting_System.Models
         [Column(TypeName = "numeric(18,4)")]
         public decimal Credit { get; set; }
 
-        public int CVHeaderId { get; set; }
+        public int? CVHeaderId { get; set; }
 
         [ForeignKey("CVHeaderId")]
-        public CheckVoucherHeader Header { get; set; }
+        public CheckVoucherHeader? Header { get; set; }
 
         public int? OriginalDocumentId { get; set; }
 

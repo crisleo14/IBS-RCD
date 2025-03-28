@@ -1606,6 +1606,10 @@ namespace Accounting_System.Controllers
 
                         var worksheet4 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "ReceivingReport");
 
+                        var worksheet5 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "CheckVoucherTradePayments");
+
+                        var worksheet6 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "MultipleCheckVoucherPayments");
+
                         if (worksheet == null)
                         {
                             TempData["error"] = "The Excel file contains no worksheets of check voucher header.";
@@ -2342,9 +2346,88 @@ namespace Accounting_System.Controllers
 
                         #endregion -- Check Voucher Header Import --
 
+                        #region -- Check Voucher Trade Payment Import --
+
+                        var cvTradePaymentRowCount = worksheet5.Dimension.Rows;
+
+                        for (int cvTradePaymentRow = 2; cvTradePaymentRow <= cvTradePaymentRowCount; cvTradePaymentRow++)
+                        {
+                            var rrId = int.TryParse(worksheet5.Cells[cvTradePaymentRow, 2].Text, out int rrDocumentId)
+                                ? rrDocumentId
+                                : 0;
+                            var cvId = int.TryParse(worksheet5.Cells[cvTradePaymentRow, 4].Text, out int cvDocumentId)
+                                ? cvDocumentId
+                                : 0;
+                            var getRR = await _dbContext.ReceivingReports.FirstOrDefaultAsync(rr => rr.OriginalDocumentId == rrId);
+                            var getCV = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cv => cv.OriginalDocumentId == cvId);
+                            var cvTradePayment = new CVTradePayment
+                            {
+                                DocumentId = getRR.Id,
+                                DocumentType = "RR",
+                                CheckVoucherId = getCV.Id,
+                                AmountPaid = decimal.TryParse(worksheet5.Cells[cvTradePaymentRow, 5].Text, out decimal amountPaid) ? amountPaid : 0,
+                            };
+
+                            if (!checkVoucherHeadersList.Select(cv => cv.OriginalDocumentId).Contains(cvId))
+                            {
+                                await _dbContext.CVTradePayments.AddAsync(cvTradePayment, cancellationToken);
+                            }
+                        }
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+
+                        #endregion -- Check Voucher Trade Payment Import --
+
+                        #region -- Check Voucher Multiple Payment Import --
+
+                        var cvMultiplePaymentRowCount = worksheet6.Dimension.Rows;
+                        var cvMultiplePaymentList = await _dbContext
+                            .MultipleCheckVoucherPayments
+                            .Include(cvmp => cvmp.CheckVoucherHeaderPayment)
+                            .Include(cvmp => cvmp.CheckVoucherHeaderInvoice)
+                            .ToListAsync(cancellationToken);
+
+                        for (int cvMultiplePaymentRow = 2; cvMultiplePaymentRow <= cvMultiplePaymentRowCount; cvMultiplePaymentRow++)
+                        {
+                            var paymentId = int.TryParse(worksheet6.Cells[cvMultiplePaymentRow, 2].Text, out int cvnId)
+                                ? cvnId
+                                : 0;
+                            var invoiceId = int.TryParse(worksheet6.Cells[cvMultiplePaymentRow, 3].Text, out int invId)
+                                ? invId
+                                : 0;
+                            var getPayment = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(rr => rr.OriginalDocumentId == paymentId);
+                            var getInvoice = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cv => cv.OriginalDocumentId == invoiceId);
+
+                            if (getInvoice != null && getPayment != null)
+                            {
+                                var cvMultiplePayment = new MultipleCheckVoucherPayment
+                                {
+                                    Id = Guid.NewGuid(),
+                                    CheckVoucherHeaderPaymentId = getPayment.Id, // Guaranteed non-null
+                                    CheckVoucherHeaderInvoiceId = getInvoice.Id, // Guaranteed non-null
+                                    AmountPaid = decimal.TryParse(worksheet6.Cells[cvMultiplePaymentRow, 4]?.Text,
+                                        out decimal amountPaid)
+                                        ? amountPaid
+                                        : 0,
+                                };
+
+                                if (!cvMultiplePaymentList.Select(cv => cv.CheckVoucherHeaderPayment.OriginalDocumentId).Contains(paymentId))
+                                {
+                                    await _dbContext.MultipleCheckVoucherPayments.AddAsync(cvMultiplePayment, cancellationToken);
+                                }
+                            }
+                        }
+
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+
+                        #endregion -- Check Voucher Multiple Payment Import --
+
                         #region -- Check Voucher Details Import --
 
                         var cvdRowCount = worksheet2.Dimension.Rows;
+                        var checkVoucherDetailList = await _dbContext
+                            .CheckVoucherDetails
+                            .ToListAsync(cancellationToken);
 
                         for (int cvdRow = 2; cvdRow <= cvdRowCount; cvdRow++)
                         {
@@ -2352,31 +2435,38 @@ namespace Accounting_System.Controllers
                             {
                                 AccountNo = worksheet2.Cells[cvdRow, 1].Text,
                                 AccountName = worksheet2.Cells[cvdRow, 2].Text,
-                                Debit = decimal.TryParse(worksheet2.Cells[cvdRow, 4].Text, out decimal debit)
-                                    ? debit
-                                    : 0,
-                                Credit = decimal.TryParse(worksheet2.Cells[cvdRow, 5].Text, out decimal credit)
-                                    ? credit
-                                    : 0,
-                                OriginalDocumentId = int.Parse(worksheet2.Cells[cvdRow, 7].Text)
+                                Debit = decimal.TryParse(worksheet2.Cells[cvdRow, 4].Text, out decimal debit) ? debit : 0,
+                                Credit = decimal.TryParse(worksheet2.Cells[cvdRow, 5].Text, out decimal credit) ? credit : 0,
+                                OriginalDocumentId = int.TryParse(worksheet2.Cells[cvdRow, 7].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                                Amount = decimal.TryParse(worksheet2.Cells[cvdRow, 8].Text, out decimal amount) ? amount : 0,
+                                AmountPaid = decimal.TryParse(worksheet2.Cells[cvdRow, 9].Text, out decimal amountPaid) ? amountPaid : 0,
+                                SupplierId = int.TryParse(worksheet2.Cells[cvdRow, 10].Text, out int supplierId) ? supplierId : 0,
+                                EwtPercent = decimal.TryParse(worksheet2.Cells[cvdRow, 11].Text, out decimal ewtPercent) ? ewtPercent : 0,
+                                IsUserSelected = bool.TryParse(worksheet2.Cells[cvdRow, 12].Text, out bool isUserSelected) ? isUserSelected : false,
+                                IsVatable = bool.TryParse(worksheet2.Cells[cvdRow, 13].Text, out bool isVatable) ? isVatable : false
                             };
 
                             var cvHeader = await _dbContext.CheckVoucherHeaders
-                                .Where(cvh => cvh.OriginalDocumentId.ToString() == worksheet2.Cells[cvdRow, 6].Text)
+                                .Where(cvh => cvh.OriginalDocumentId.ToString() == worksheet2.Cells[cvdRow, 6].Text.TrimStart().TrimEnd())
                                 .FirstOrDefaultAsync(cancellationToken);
 
                             if (cvHeader != null)
                             {
+                                var getSupplier = await _dbContext.Suppliers
+                                    .Where(cvh => cvh.OriginalSupplierId.ToString() == worksheet2.Cells[cvdRow, 10].Text.TrimStart().TrimEnd())
+                                    .FirstOrDefaultAsync(cancellationToken);
+
+                                checkVoucherDetails.SupplierId = getSupplier?.Id ?? null;
                                 checkVoucherDetails.CVHeaderId = cvHeader.Id;
                                 checkVoucherDetails.TransactionNo = cvHeader.CVNo;
                             }
 
-                            if (cvDictionary.TryGetValue(checkVoucherDetails.TransactionNo, out var value) && !value)
+                            if (!checkVoucherDetailList.Any(cm => cm.OriginalDocumentId == checkVoucherDetails.OriginalDocumentId) && !worksheet2.Cells[cvdRow, 3].Text.TrimStart().TrimEnd().Contains("CVNU") && !worksheet2.Cells[cvdRow, 3].Text.TrimStart().TrimEnd().Contains("INVU") && !worksheet2.Cells[cvdRow, 3].Text.TrimStart().TrimEnd().Contains("CVU"))
                             {
                                 await _dbContext.CheckVoucherDetails.AddAsync(checkVoucherDetails, cancellationToken);
                             }
 
-                            if (cvDictionary.TryGetValue(checkVoucherDetails.TransactionNo, out var boolean) && boolean)
+                            if (checkVoucherDetailList.Any(cm => cm.OriginalDocumentId == checkVoucherDetails.OriginalDocumentId) && !worksheet2.Cells[cvdRow, 3].Text.TrimStart().TrimEnd().Contains("CVNU") && !worksheet2.Cells[cvdRow, 3].Text.TrimStart().TrimEnd().Contains("INVU") && !worksheet2.Cells[cvdRow, 3].Text.TrimStart().TrimEnd().Contains("CVU"))
                             {
                                 var cvdChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
                                 var existingCVD = await _dbContext.CheckVoucherDetails
@@ -2395,11 +2485,6 @@ namespace Accounting_System.Controllers
                                         cvdChanges["AccountName"] = (existingCVD.AccountName.TrimStart().TrimEnd(), worksheet2.Cells[cvdRow, 2].Text.TrimStart().TrimEnd())!;
                                     }
 
-                                    if (existingCVD.Header.OriginalSeriesNumber.TrimStart().TrimEnd() != worksheet2.Cells[cvdRow, 3].Text.TrimStart().TrimEnd())
-                                    {
-                                        cvdChanges["TransactionNo"] = (existingCVD.Header.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet2.Cells[cvdRow, 3].Text.TrimStart().TrimEnd())!;
-                                    }
-
                                     if (existingCVD.Debit.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[cvdRow, 4].Text).ToString("F2").TrimStart().TrimEnd())
                                     {
                                         cvdChanges["Debit"] = (existingCVD.Debit.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[cvdRow, 4].Text).ToString("F2").TrimStart().TrimEnd());
@@ -2410,9 +2495,9 @@ namespace Accounting_System.Controllers
                                         cvdChanges["Credit"] = (existingCVD.Credit.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[cvdRow, 5].Text).ToString("F2").TrimStart().TrimEnd());
                                     }
 
-                                    if (existingCVD.Header.OriginalDocumentId.ToString("F0").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[cvdRow, 6].Text).ToString("F0").TrimStart().TrimEnd())
+                                    if (existingCVD.Header?.OriginalDocumentId.ToString().TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[cvdRow, 6].Text).ToString("F0").TrimStart().TrimEnd())
                                     {
-                                        cvdChanges["CVHeaderId"] = (existingCVD.Header.OriginalDocumentId.ToString("F0").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[cvdRow, 6].Text).ToString("F0").TrimStart().TrimEnd());
+                                        cvdChanges["CVHeaderId"] = (existingCVD.Header?.OriginalDocumentId.ToString().TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[cvdRow, 6].Text).ToString("F0").TrimStart().TrimEnd());
                                     }
 
                                     if (cvdChanges.Any())

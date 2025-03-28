@@ -1287,7 +1287,7 @@ namespace Accounting_System.Controllers
                     // Include existing records in the query
                     query = query.Union(_dbContext.CheckVoucherDetails
                         .Include(cvd => cvd.Header)
-                        .Where(cvd => cvd.SupplierId == supplierId && existingInvoiceIds.Contains(cvd.CVHeaderId)));
+                        .Where(cvd => cvd.SupplierId == supplierId && existingInvoiceIds.Contains(cvd.CVHeaderId ?? 0)));
                 }
 
                 var checkVouchers = await query.ToListAsync(cancellationToken);
@@ -1317,7 +1317,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetMultipleInvoiceDetails(int[] cvId, int supplierId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetMultipleInvoiceDetails(int?[] cvId, int supplierId, CancellationToken cancellationToken)
         {
             if (cvId == null)
             {
