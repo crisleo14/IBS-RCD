@@ -80,8 +80,6 @@ namespace Accounting_System.Migrations
                     account_name = table.Column<string>(type: "text", nullable: false),
                     created_by = table.Column<string>(type: "varchar(50)", nullable: true),
                     created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    account_no_coa = table.Column<string>(type: "text", nullable: true),
-                    series_number = table.Column<long>(type: "bigint", nullable: false),
                     original_bank_id = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
@@ -123,17 +121,24 @@ namespace Accounting_System.Migrations
                     account_name = table.Column<string>(type: "varchar(100)", nullable: false),
                     account_type = table.Column<string>(type: "varchar(25)", nullable: true),
                     normal_balance = table.Column<string>(type: "varchar(20)", nullable: true),
-                    level = table.Column<int>(type: "integer", nullable: true),
+                    level = table.Column<int>(type: "integer", nullable: false),
+                    parent_account_id = table.Column<int>(type: "integer", nullable: true),
                     parent = table.Column<string>(type: "varchar(15)", nullable: true),
                     created_by = table.Column<string>(type: "varchar(50)", nullable: true),
                     created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     edited_by = table.Column<string>(type: "varchar(50)", nullable: true),
                     edited_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    original_chart_of_account_id = table.Column<int>(type: "integer", nullable: true)
+                    original_chart_of_account_id = table.Column<int>(type: "integer", nullable: true),
+                    has_children = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_chart_of_accounts", x => x.account_id);
+                    table.ForeignKey(
+                        name: "fk_chart_of_accounts_chart_of_accounts_parent_account_id",
+                        column: x => x.parent_account_id,
+                        principalTable: "chart_of_accounts",
+                        principalColumn: "account_id");
                 });
 
             migrationBuilder.CreateTable(
@@ -154,7 +159,8 @@ namespace Accounting_System.Migrations
                     created_by = table.Column<string>(type: "varchar(50)", nullable: true),
                     created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     original_customer_id = table.Column<int>(type: "integer", nullable: false),
-                    original_customer_number = table.Column<string>(type: "text", nullable: false)
+                    original_customer_number = table.Column<string>(type: "text", nullable: true),
+                    zip_code = table.Column<string>(type: "varchar(10)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -206,6 +212,27 @@ namespace Accounting_System.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_general_ledger_books", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "import_export_logs",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    document_record_id = table.Column<int>(type: "integer", nullable: false),
+                    module = table.Column<string>(type: "text", nullable: false),
+                    table_name = table.Column<string>(type: "text", nullable: false),
+                    column_name = table.Column<string>(type: "text", nullable: false),
+                    original_value = table.Column<string>(type: "text", nullable: true),
+                    adjusted_value = table.Column<string>(type: "text", nullable: true),
+                    time_stamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    uploaded_by = table.Column<string>(type: "text", nullable: true),
+                    action = table.Column<string>(type: "text", nullable: false),
+                    executed = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_import_export_logs", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -370,7 +397,8 @@ namespace Accounting_System.Migrations
                     default_expense_number = table.Column<string>(type: "text", nullable: true),
                     withholding_tax_percent = table.Column<int>(type: "integer", nullable: true),
                     withholding_taxtitle = table.Column<string>(type: "text", nullable: true),
-                    original_supplier_id = table.Column<int>(type: "integer", nullable: true)
+                    original_supplier_id = table.Column<int>(type: "integer", nullable: true),
+                    zip_code = table.Column<string>(type: "varchar(10)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -484,6 +512,95 @@ namespace Accounting_System.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "inventories",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    date = table.Column<DateOnly>(type: "date", nullable: false),
+                    product_id = table.Column<int>(type: "integer", nullable: true),
+                    particular = table.Column<string>(type: "varchar(200)", nullable: false),
+                    reference = table.Column<string>(type: "varchar(12)", nullable: true),
+                    quantity = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    cost = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    total = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    inventory_balance = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    average_cost = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    total_balance = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    unit = table.Column<string>(type: "varchar(2)", nullable: false),
+                    is_validated = table.Column<bool>(type: "boolean", nullable: false),
+                    validated_by = table.Column<string>(type: "varchar(20)", nullable: true),
+                    validated_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    original_product_id = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_inventories", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_inventories_products_product_id",
+                        column: x => x.product_id,
+                        principalTable: "products",
+                        principalColumn: "id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "sales_invoices",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    si_no = table.Column<string>(type: "varchar(12)", nullable: true),
+                    customer_id = table.Column<int>(type: "integer", nullable: false),
+                    product_id = table.Column<int>(type: "integer", nullable: false),
+                    other_ref_no = table.Column<string>(type: "varchar(500)", nullable: false),
+                    quantity = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    unit_price = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    remarks = table.Column<string>(type: "varchar(500)", nullable: false),
+                    status = table.Column<string>(type: "varchar(20)", nullable: false),
+                    transaction_date = table.Column<DateOnly>(type: "date", nullable: false),
+                    discount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    amount_paid = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    balance = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    is_paid = table.Column<bool>(type: "boolean", nullable: false),
+                    is_tax_and_vat_paid = table.Column<bool>(type: "boolean", nullable: false),
+                    due_date = table.Column<DateOnly>(type: "date", nullable: false),
+                    original_customer_id = table.Column<int>(type: "integer", nullable: true),
+                    original_product_id = table.Column<int>(type: "integer", nullable: true),
+                    created_by = table.Column<string>(type: "varchar(50)", nullable: true),
+                    created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    is_printed = table.Column<bool>(type: "boolean", nullable: false),
+                    is_canceled = table.Column<bool>(type: "boolean", nullable: false),
+                    is_voided = table.Column<bool>(type: "boolean", nullable: false),
+                    is_posted = table.Column<bool>(type: "boolean", nullable: false),
+                    canceled_by = table.Column<string>(type: "varchar(50)", nullable: true),
+                    canceled_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    voided_by = table.Column<string>(type: "varchar(50)", nullable: true),
+                    voided_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    posted_by = table.Column<string>(type: "varchar(50)", nullable: true),
+                    posted_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    cancellation_remarks = table.Column<string>(type: "text", nullable: true),
+                    original_series_number = table.Column<string>(type: "text", nullable: true),
+                    original_document_id = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_sales_invoices", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_sales_invoices_customers_customer_id",
+                        column: x => x.customer_id,
+                        principalTable: "customers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_sales_invoices_products_product_id",
+                        column: x => x.product_id,
+                        principalTable: "products",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "service_invoices",
                 columns: table => new
                 {
@@ -573,6 +690,7 @@ namespace Accounting_System.Migrations
                     check_amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     amount_paid = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     is_paid = table.Column<bool>(type: "boolean", nullable: false),
+                    invoice_amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     original_supplier_id = table.Column<int>(type: "integer", nullable: true),
                     original_bank_id = table.Column<int>(type: "integer", nullable: true),
                     created_by = table.Column<string>(type: "varchar(50)", nullable: true),
@@ -661,254 +779,6 @@ namespace Accounting_System.Migrations
                         name: "fk_purchase_orders_suppliers_supplier_id",
                         column: x => x.supplier_id,
                         principalTable: "suppliers",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "check_voucher_details",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    account_no = table.Column<string>(type: "text", nullable: false),
-                    account_name = table.Column<string>(type: "text", nullable: false),
-                    transaction_no = table.Column<string>(type: "text", nullable: false),
-                    debit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    credit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    cv_header_id = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_check_voucher_details", x => x.id);
-                    table.ForeignKey(
-                        name: "fk_check_voucher_details_check_voucher_headers_cv_header_id",
-                        column: x => x.cv_header_id,
-                        principalTable: "check_voucher_headers",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "journal_voucher_headers",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    jv_no = table.Column<string>(type: "text", nullable: true),
-                    date = table.Column<DateOnly>(type: "date", nullable: false),
-                    references = table.Column<string>(type: "text", nullable: true),
-                    cv_id = table.Column<int>(type: "integer", nullable: true),
-                    particulars = table.Column<string>(type: "text", nullable: false),
-                    cr_no = table.Column<string>(type: "text", nullable: true),
-                    jv_reason = table.Column<string>(type: "text", nullable: false),
-                    original_cv_id = table.Column<int>(type: "integer", nullable: true),
-                    created_by = table.Column<string>(type: "varchar(50)", nullable: true),
-                    created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    is_printed = table.Column<bool>(type: "boolean", nullable: false),
-                    is_canceled = table.Column<bool>(type: "boolean", nullable: false),
-                    is_voided = table.Column<bool>(type: "boolean", nullable: false),
-                    is_posted = table.Column<bool>(type: "boolean", nullable: false),
-                    canceled_by = table.Column<string>(type: "varchar(50)", nullable: true),
-                    canceled_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    voided_by = table.Column<string>(type: "varchar(50)", nullable: true),
-                    voided_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    posted_by = table.Column<string>(type: "varchar(50)", nullable: true),
-                    posted_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    cancellation_remarks = table.Column<string>(type: "text", nullable: true),
-                    original_series_number = table.Column<string>(type: "text", nullable: true),
-                    original_document_id = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_journal_voucher_headers", x => x.id);
-                    table.ForeignKey(
-                        name: "fk_journal_voucher_headers_check_voucher_headers_cv_id",
-                        column: x => x.cv_id,
-                        principalTable: "check_voucher_headers",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "inventories",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    date = table.Column<DateOnly>(type: "date", nullable: false),
-                    product_id = table.Column<int>(type: "integer", nullable: true),
-                    particular = table.Column<string>(type: "varchar(200)", nullable: false),
-                    reference = table.Column<string>(type: "varchar(12)", nullable: true),
-                    quantity = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    cost = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    total = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    inventory_balance = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    average_cost = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    total_balance = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    unit = table.Column<string>(type: "varchar(2)", nullable: false),
-                    is_validated = table.Column<bool>(type: "boolean", nullable: false),
-                    validated_by = table.Column<string>(type: "varchar(20)", nullable: true),
-                    validated_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    po_id = table.Column<int>(type: "integer", nullable: true),
-                    original_product_id = table.Column<int>(type: "integer", nullable: true),
-                    original_po_id = table.Column<int>(type: "integer", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_inventories", x => x.id);
-                    table.ForeignKey(
-                        name: "fk_inventories_products_product_id",
-                        column: x => x.product_id,
-                        principalTable: "products",
-                        principalColumn: "id");
-                    table.ForeignKey(
-                        name: "fk_inventories_purchase_orders_po_id",
-                        column: x => x.po_id,
-                        principalTable: "purchase_orders",
-                        principalColumn: "id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "receiving_reports",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    rr_no = table.Column<string>(type: "varchar(12)", nullable: true),
-                    date = table.Column<DateOnly>(type: "date", nullable: false),
-                    due_date = table.Column<DateOnly>(type: "date", nullable: false),
-                    po_id = table.Column<int>(type: "integer", nullable: false),
-                    po_no = table.Column<string>(type: "varchar(12)", nullable: true),
-                    supplier_invoice_number = table.Column<string>(type: "varchar(100)", nullable: true),
-                    supplier_invoice_date = table.Column<string>(type: "text", nullable: true),
-                    truck_or_vessels = table.Column<string>(type: "varchar(100)", nullable: false),
-                    quantity_delivered = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    quantity_received = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    gain_or_loss = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    other_ref = table.Column<string>(type: "varchar(100)", nullable: true),
-                    remarks = table.Column<string>(type: "text", nullable: false),
-                    amount_paid = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    is_paid = table.Column<bool>(type: "boolean", nullable: false),
-                    paid_date = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    canceled_quantity = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    received_date = table.Column<DateOnly>(type: "date", nullable: true),
-                    original_po_id = table.Column<int>(type: "integer", nullable: true),
-                    created_by = table.Column<string>(type: "varchar(50)", nullable: true),
-                    created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    is_printed = table.Column<bool>(type: "boolean", nullable: false),
-                    is_canceled = table.Column<bool>(type: "boolean", nullable: false),
-                    is_voided = table.Column<bool>(type: "boolean", nullable: false),
-                    is_posted = table.Column<bool>(type: "boolean", nullable: false),
-                    canceled_by = table.Column<string>(type: "varchar(50)", nullable: true),
-                    canceled_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    voided_by = table.Column<string>(type: "varchar(50)", nullable: true),
-                    voided_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    posted_by = table.Column<string>(type: "varchar(50)", nullable: true),
-                    posted_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    cancellation_remarks = table.Column<string>(type: "text", nullable: true),
-                    original_series_number = table.Column<string>(type: "text", nullable: true),
-                    original_document_id = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_receiving_reports", x => x.id);
-                    table.ForeignKey(
-                        name: "fk_receiving_reports_purchase_orders_po_id",
-                        column: x => x.po_id,
-                        principalTable: "purchase_orders",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "sales_invoices",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    si_no = table.Column<string>(type: "varchar(12)", nullable: true),
-                    customer_id = table.Column<int>(type: "integer", nullable: false),
-                    product_id = table.Column<int>(type: "integer", nullable: false),
-                    other_ref_no = table.Column<string>(type: "varchar(500)", nullable: false),
-                    quantity = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    unit_price = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    remarks = table.Column<string>(type: "varchar(500)", nullable: false),
-                    status = table.Column<string>(type: "varchar(20)", nullable: false),
-                    transaction_date = table.Column<DateOnly>(type: "date", nullable: false),
-                    discount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    amount_paid = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    balance = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    is_paid = table.Column<bool>(type: "boolean", nullable: false),
-                    is_tax_and_vat_paid = table.Column<bool>(type: "boolean", nullable: false),
-                    due_date = table.Column<DateOnly>(type: "date", nullable: false),
-                    po_id = table.Column<int>(type: "integer", nullable: true),
-                    receiving_report_id = table.Column<int>(type: "integer", nullable: false),
-                    original_customer_id = table.Column<int>(type: "integer", nullable: true),
-                    original_product_id = table.Column<int>(type: "integer", nullable: true),
-                    original_po_id = table.Column<int>(type: "integer", nullable: true),
-                    original_receiving_report_id = table.Column<int>(type: "integer", nullable: true),
-                    created_by = table.Column<string>(type: "varchar(50)", nullable: true),
-                    created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    is_printed = table.Column<bool>(type: "boolean", nullable: false),
-                    is_canceled = table.Column<bool>(type: "boolean", nullable: false),
-                    is_voided = table.Column<bool>(type: "boolean", nullable: false),
-                    is_posted = table.Column<bool>(type: "boolean", nullable: false),
-                    canceled_by = table.Column<string>(type: "varchar(50)", nullable: true),
-                    canceled_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    voided_by = table.Column<string>(type: "varchar(50)", nullable: true),
-                    voided_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    posted_by = table.Column<string>(type: "varchar(50)", nullable: true),
-                    posted_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    cancellation_remarks = table.Column<string>(type: "text", nullable: true),
-                    original_series_number = table.Column<string>(type: "text", nullable: true),
-                    original_document_id = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_sales_invoices", x => x.id);
-                    table.ForeignKey(
-                        name: "fk_sales_invoices_customers_customer_id",
-                        column: x => x.customer_id,
-                        principalTable: "customers",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "fk_sales_invoices_products_product_id",
-                        column: x => x.product_id,
-                        principalTable: "products",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "fk_sales_invoices_purchase_orders_po_id",
-                        column: x => x.po_id,
-                        principalTable: "purchase_orders",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "journal_voucher_details",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    account_no = table.Column<string>(type: "text", nullable: false),
-                    account_name = table.Column<string>(type: "text", nullable: false),
-                    transaction_no = table.Column<string>(type: "text", nullable: false),
-                    debit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    credit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    jv_header_id = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_journal_voucher_details", x => x.id);
-                    table.ForeignKey(
-                        name: "fk_journal_voucher_details_journal_voucher_headers_jv_header_id",
-                        column: x => x.jv_header_id,
-                        principalTable: "journal_voucher_headers",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -1103,6 +973,209 @@ namespace Accounting_System.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "check_voucher_details",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    account_no = table.Column<string>(type: "text", nullable: false),
+                    account_name = table.Column<string>(type: "text", nullable: false),
+                    transaction_no = table.Column<string>(type: "text", nullable: false),
+                    debit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    credit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    cv_header_id = table.Column<int>(type: "integer", nullable: true),
+                    original_document_id = table.Column<int>(type: "integer", nullable: true),
+                    supplier_id = table.Column<int>(type: "integer", nullable: true),
+                    amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    amount_paid = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    is_vatable = table.Column<bool>(type: "boolean", nullable: false),
+                    ewt_percent = table.Column<decimal>(type: "numeric", nullable: false),
+                    is_user_selected = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_check_voucher_details", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_check_voucher_details_check_voucher_headers_cv_header_id",
+                        column: x => x.cv_header_id,
+                        principalTable: "check_voucher_headers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_check_voucher_details_suppliers_supplier_id",
+                        column: x => x.supplier_id,
+                        principalTable: "suppliers",
+                        principalColumn: "id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "cv_trade_payments",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    document_id = table.Column<int>(type: "integer", nullable: false),
+                    document_type = table.Column<string>(type: "text", nullable: false),
+                    check_voucher_id = table.Column<int>(type: "integer", nullable: false),
+                    amount_paid = table.Column<decimal>(type: "numeric(18,4)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_cv_trade_payments", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_cv_trade_payments_check_voucher_headers_check_voucher_id",
+                        column: x => x.check_voucher_id,
+                        principalTable: "check_voucher_headers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "journal_voucher_headers",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    jv_no = table.Column<string>(type: "text", nullable: true),
+                    date = table.Column<DateOnly>(type: "date", nullable: false),
+                    references = table.Column<string>(type: "text", nullable: true),
+                    cv_id = table.Column<int>(type: "integer", nullable: true),
+                    particulars = table.Column<string>(type: "text", nullable: false),
+                    cr_no = table.Column<string>(type: "text", nullable: true),
+                    jv_reason = table.Column<string>(type: "text", nullable: false),
+                    original_cv_id = table.Column<int>(type: "integer", nullable: true),
+                    created_by = table.Column<string>(type: "varchar(50)", nullable: true),
+                    created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    is_printed = table.Column<bool>(type: "boolean", nullable: false),
+                    is_canceled = table.Column<bool>(type: "boolean", nullable: false),
+                    is_voided = table.Column<bool>(type: "boolean", nullable: false),
+                    is_posted = table.Column<bool>(type: "boolean", nullable: false),
+                    canceled_by = table.Column<string>(type: "varchar(50)", nullable: true),
+                    canceled_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    voided_by = table.Column<string>(type: "varchar(50)", nullable: true),
+                    voided_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    posted_by = table.Column<string>(type: "varchar(50)", nullable: true),
+                    posted_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    cancellation_remarks = table.Column<string>(type: "text", nullable: true),
+                    original_series_number = table.Column<string>(type: "text", nullable: true),
+                    original_document_id = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_journal_voucher_headers", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_journal_voucher_headers_check_voucher_headers_cv_id",
+                        column: x => x.cv_id,
+                        principalTable: "check_voucher_headers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "multiple_check_voucher_payments",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    check_voucher_header_payment_id = table.Column<int>(type: "integer", nullable: false),
+                    check_voucher_header_invoice_id = table.Column<int>(type: "integer", nullable: false),
+                    amount_paid = table.Column<decimal>(type: "numeric(18,4)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_multiple_check_voucher_payments", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_multiple_check_voucher_payments_check_voucher_headers_check",
+                        column: x => x.check_voucher_header_invoice_id,
+                        principalTable: "check_voucher_headers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_multiple_check_voucher_payments_check_voucher_headers_check1",
+                        column: x => x.check_voucher_header_payment_id,
+                        principalTable: "check_voucher_headers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "receiving_reports",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    rr_no = table.Column<string>(type: "varchar(12)", nullable: true),
+                    date = table.Column<DateOnly>(type: "date", nullable: false),
+                    due_date = table.Column<DateOnly>(type: "date", nullable: false),
+                    po_id = table.Column<int>(type: "integer", nullable: false),
+                    po_no = table.Column<string>(type: "varchar(12)", nullable: true),
+                    supplier_invoice_number = table.Column<string>(type: "varchar(100)", nullable: true),
+                    supplier_invoice_date = table.Column<string>(type: "text", nullable: true),
+                    truck_or_vessels = table.Column<string>(type: "varchar(100)", nullable: false),
+                    quantity_delivered = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    quantity_received = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    gain_or_loss = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    other_ref = table.Column<string>(type: "varchar(100)", nullable: true),
+                    remarks = table.Column<string>(type: "text", nullable: false),
+                    amount_paid = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    is_paid = table.Column<bool>(type: "boolean", nullable: false),
+                    paid_date = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    canceled_quantity = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    received_date = table.Column<DateOnly>(type: "date", nullable: true),
+                    original_po_id = table.Column<int>(type: "integer", nullable: true),
+                    created_by = table.Column<string>(type: "varchar(50)", nullable: true),
+                    created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    is_printed = table.Column<bool>(type: "boolean", nullable: false),
+                    is_canceled = table.Column<bool>(type: "boolean", nullable: false),
+                    is_voided = table.Column<bool>(type: "boolean", nullable: false),
+                    is_posted = table.Column<bool>(type: "boolean", nullable: false),
+                    canceled_by = table.Column<string>(type: "varchar(50)", nullable: true),
+                    canceled_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    voided_by = table.Column<string>(type: "varchar(50)", nullable: true),
+                    voided_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    posted_by = table.Column<string>(type: "varchar(50)", nullable: true),
+                    posted_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    cancellation_remarks = table.Column<string>(type: "text", nullable: true),
+                    original_series_number = table.Column<string>(type: "text", nullable: true),
+                    original_document_id = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_receiving_reports", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_receiving_reports_purchase_orders_po_id",
+                        column: x => x.po_id,
+                        principalTable: "purchase_orders",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "journal_voucher_details",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    account_no = table.Column<string>(type: "text", nullable: false),
+                    account_name = table.Column<string>(type: "text", nullable: false),
+                    transaction_no = table.Column<string>(type: "text", nullable: false),
+                    debit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    credit = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    jv_header_id = table.Column<int>(type: "integer", nullable: false),
+                    original_document_id = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_journal_voucher_details", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_journal_voucher_details_journal_voucher_headers_jv_header_id",
+                        column: x => x.jv_header_id,
+                        principalTable: "journal_voucher_headers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "ix_asp_net_role_claims_role_id",
                 table: "AspNetRoleClaims",
@@ -1141,9 +1214,19 @@ namespace Accounting_System.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "ix_chart_of_accounts_parent_account_id",
+                table: "chart_of_accounts",
+                column: "parent_account_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_check_voucher_details_cv_header_id",
                 table: "check_voucher_details",
                 column: "cv_header_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_check_voucher_details_supplier_id",
+                table: "check_voucher_details",
+                column: "supplier_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_check_voucher_headers_bank_id",
@@ -1181,6 +1264,11 @@ namespace Accounting_System.Migrations
                 column: "service_invoice_id");
 
             migrationBuilder.CreateIndex(
+                name: "ix_cv_trade_payments_check_voucher_id",
+                table: "cv_trade_payments",
+                column: "check_voucher_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_debit_memos_sales_invoice_id",
                 table: "debit_memos",
                 column: "sales_invoice_id");
@@ -1189,11 +1277,6 @@ namespace Accounting_System.Migrations
                 name: "ix_debit_memos_service_invoice_id",
                 table: "debit_memos",
                 column: "service_invoice_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_inventories_po_id",
-                table: "inventories",
-                column: "po_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_inventories_product_id",
@@ -1209,6 +1292,16 @@ namespace Accounting_System.Migrations
                 name: "ix_journal_voucher_headers_cv_id",
                 table: "journal_voucher_headers",
                 column: "cv_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_multiple_check_voucher_payments_check_voucher_header_invoic",
+                table: "multiple_check_voucher_payments",
+                column: "check_voucher_header_invoice_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_multiple_check_voucher_payments_check_voucher_header_paymen",
+                table: "multiple_check_voucher_payments",
+                column: "check_voucher_header_payment_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_purchase_orders_product_id",
@@ -1229,11 +1322,6 @@ namespace Accounting_System.Migrations
                 name: "ix_sales_invoices_customer_id",
                 table: "sales_invoices",
                 column: "customer_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_sales_invoices_po_id",
-                table: "sales_invoices",
-                column: "po_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_sales_invoices_product_id",
@@ -1288,6 +1376,9 @@ namespace Accounting_System.Migrations
                 name: "credit_memos");
 
             migrationBuilder.DropTable(
+                name: "cv_trade_payments");
+
+            migrationBuilder.DropTable(
                 name: "debit_memos");
 
             migrationBuilder.DropTable(
@@ -1297,6 +1388,9 @@ namespace Accounting_System.Migrations
                 name: "general_ledger_books");
 
             migrationBuilder.DropTable(
+                name: "import_export_logs");
+
+            migrationBuilder.DropTable(
                 name: "inventories");
 
             migrationBuilder.DropTable(
@@ -1304,6 +1398,9 @@ namespace Accounting_System.Migrations
 
             migrationBuilder.DropTable(
                 name: "journal_voucher_details");
+
+            migrationBuilder.DropTable(
+                name: "multiple_check_voucher_payments");
 
             migrationBuilder.DropTable(
                 name: "offsettings");
