@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250315041152_AddNewFieldInChartOfAccountModel")]
-    partial class AddNewFieldInChartOfAccountModel
+    [Migration("20250329054228_Initial-PostCleanup")]
+    partial class InitialPostCleanup
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,41 @@ namespace Accounting_System.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Accounting_System.Models.AccountsPayable.CVTradePayment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AmountPaid")
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("amount_paid");
+
+                    b.Property<int>("CheckVoucherId")
+                        .HasColumnType("integer")
+                        .HasColumnName("check_voucher_id");
+
+                    b.Property<int>("DocumentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("document_id");
+
+                    b.Property<string>("DocumentType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("document_type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cv_trade_payments");
+
+                    b.HasIndex("CheckVoucherId")
+                        .HasDatabaseName("ix_cv_trade_payments_check_voucher_id");
+
+                    b.ToTable("cv_trade_payments", (string)null);
+                });
 
             modelBuilder.Entity("Accounting_System.Models.AccountsPayable.CheckVoucherHeader", b =>
                 {
@@ -274,6 +309,37 @@ namespace Accounting_System.Migrations
                         .HasDatabaseName("ix_journal_voucher_details_jv_header_id");
 
                     b.ToTable("journal_voucher_details", (string)null);
+                });
+
+            modelBuilder.Entity("Accounting_System.Models.AccountsPayable.MultipleCheckVoucherPayment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("AmountPaid")
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("amount_paid");
+
+                    b.Property<int>("CheckVoucherHeaderInvoiceId")
+                        .HasColumnType("integer")
+                        .HasColumnName("check_voucher_header_invoice_id");
+
+                    b.Property<int>("CheckVoucherHeaderPaymentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("check_voucher_header_payment_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_multiple_check_voucher_payments");
+
+                    b.HasIndex("CheckVoucherHeaderInvoiceId")
+                        .HasDatabaseName("ix_multiple_check_voucher_payments_check_voucher_header_invoic");
+
+                    b.HasIndex("CheckVoucherHeaderPaymentId")
+                        .HasDatabaseName("ix_multiple_check_voucher_payments_check_voucher_header_paymen");
+
+                    b.ToTable("multiple_check_voucher_payments", (string)null);
                 });
 
             modelBuilder.Entity("Accounting_System.Models.AccountsPayable.PurchaseOrder", b =>
@@ -1531,7 +1597,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount_paid");
 
-                    b.Property<int>("CVHeaderId")
+                    b.Property<int?>("CVHeaderId")
                         .HasColumnType("integer")
                         .HasColumnName("cv_header_id");
 
@@ -2930,6 +2996,18 @@ namespace Accounting_System.Migrations
                     b.HasDiscriminator().HasValue("ApplicationUser");
                 });
 
+            modelBuilder.Entity("Accounting_System.Models.AccountsPayable.CVTradePayment", b =>
+                {
+                    b.HasOne("Accounting_System.Models.AccountsPayable.CheckVoucherHeader", "CV")
+                        .WithMany()
+                        .HasForeignKey("CheckVoucherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_cv_trade_payments_check_voucher_headers_check_voucher_id");
+
+                    b.Navigation("CV");
+                });
+
             modelBuilder.Entity("Accounting_System.Models.AccountsPayable.CheckVoucherHeader", b =>
                 {
                     b.HasOne("Accounting_System.Models.MasterFile.BankAccount", "BankAccount")
@@ -2959,6 +3037,27 @@ namespace Accounting_System.Migrations
                         .HasConstraintName("fk_journal_voucher_details_journal_voucher_headers_jv_header_id");
 
                     b.Navigation("Header");
+                });
+
+            modelBuilder.Entity("Accounting_System.Models.AccountsPayable.MultipleCheckVoucherPayment", b =>
+                {
+                    b.HasOne("Accounting_System.Models.AccountsPayable.CheckVoucherHeader", "CheckVoucherHeaderInvoice")
+                        .WithMany()
+                        .HasForeignKey("CheckVoucherHeaderInvoiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_multiple_check_voucher_payments_check_voucher_headers_check");
+
+                    b.HasOne("Accounting_System.Models.AccountsPayable.CheckVoucherHeader", "CheckVoucherHeaderPayment")
+                        .WithMany()
+                        .HasForeignKey("CheckVoucherHeaderPaymentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_multiple_check_voucher_payments_check_voucher_headers_check1");
+
+                    b.Navigation("CheckVoucherHeaderInvoice");
+
+                    b.Navigation("CheckVoucherHeaderPayment");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.AccountsPayable.PurchaseOrder", b =>
@@ -3118,7 +3217,6 @@ namespace Accounting_System.Migrations
                         .WithMany("Details")
                         .HasForeignKey("CVHeaderId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
                         .HasConstraintName("fk_check_voucher_details_check_voucher_headers_cv_header_id");
 
                     b.HasOne("Accounting_System.Models.MasterFile.Supplier", "Supplier")
