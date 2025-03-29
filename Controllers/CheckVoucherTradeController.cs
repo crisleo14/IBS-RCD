@@ -2440,7 +2440,6 @@ namespace Accounting_System.Controllers
                                 OriginalDocumentId = int.TryParse(worksheet2.Cells[cvdRow, 7].Text, out int originalDocumentId) ? originalDocumentId : 0,
                                 Amount = decimal.TryParse(worksheet2.Cells[cvdRow, 8].Text, out decimal amount) ? amount : 0,
                                 AmountPaid = decimal.TryParse(worksheet2.Cells[cvdRow, 9].Text, out decimal amountPaid) ? amountPaid : 0,
-                                SupplierId = int.TryParse(worksheet2.Cells[cvdRow, 10].Text, out int supplierId) ? supplierId : 0,
                                 EwtPercent = decimal.TryParse(worksheet2.Cells[cvdRow, 11].Text, out decimal ewtPercent) ? ewtPercent : 0,
                                 IsUserSelected = bool.TryParse(worksheet2.Cells[cvdRow, 12].Text, out bool isUserSelected) ? isUserSelected : false,
                                 IsVatable = bool.TryParse(worksheet2.Cells[cvdRow, 13].Text, out bool isVatable) ? isVatable : false
