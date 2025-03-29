@@ -327,8 +327,8 @@ namespace Accounting_System.Controllers
                             }
 
                             await _dbContext.Customers.AddAsync(customer, cancellationToken);
+                            await _dbContext.SaveChangesAsync(cancellationToken);
                         }
-                        await _dbContext.SaveChangesAsync(cancellationToken);
                         await transaction.CommitAsync(cancellationToken);
                     }
                 }

@@ -550,8 +550,8 @@ namespace Accounting_System.Controllers
                             }
 
                             await _context.Suppliers.AddAsync(supplier, cancellationToken);
+                            await _context.SaveChangesAsync(cancellationToken);
                         }
-                        await _context.SaveChangesAsync(cancellationToken);
                         await transaction.CommitAsync(cancellationToken);
                     }
                 }
