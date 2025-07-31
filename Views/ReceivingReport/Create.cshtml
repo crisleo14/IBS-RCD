@@ -119,7 +119,7 @@
             console.log(id);
             if (id != "") {
                 $.ajax({
-                    url: "/ReceivingReport/GetLiquidations",
+                    url: '@Url.Action("GetLiquidations", "ReceivingReport")',
                     type: "GET",
                     data: { id: id },
                     success: function (data) {

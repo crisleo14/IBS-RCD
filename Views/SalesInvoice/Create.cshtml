@@ -146,7 +146,7 @@
                 if (customerId !== "") {
                     // Make an AJAX request to get the customer details based on the selected CustomerId
                     $.ajax({
-                        url: "/SalesInvoice/GetCustomerDetails", // Replace with the actual controller and action names
+                        url: '@Url.Action("GetCustomerDetails", "SalesInvoice")',
                         method: "GET",
                         data: { customerId: customerId },
                         success: function (data) {
@@ -190,7 +190,7 @@
                 if (productId !== "") {
                     // Make an AJAX request to get the customer details based on the selected CustomerId
                     $.ajax({
-                        url: "/SalesInvoice/GetProductDetails", // Replace with the actual controller and action names
+                        url: '@Url.Action("GetProductDetails", "SalesInvoice")',
                         method: "GET",
                         data: { productId: productId },
                         success: function (data) {
@@ -220,7 +220,7 @@
                 if (productId !== "") {
                     // Make an AJAX request to get the POs based on the selected SupplierId
                     $.ajax({
-                        url: "/SalesInvoice/GetPOs",
+                        url: '@Url.Action("GetPOs", "SalesInvoice")',
                         method: "GET",
                         data: { productId: productId },
                         success: function (data) {
@@ -263,7 +263,7 @@
                 if (purchaseOrderId !== "") {
                     // Make an AJAX request to get the RRs based on the selected PurchaseOrderId
                     $.ajax({
-                        url: "/SalesInvoice/GetRRs",
+                        url: '@Url.Action("GetRRs", "SalesInvoice")',
                         method: "GET",
                         data: { purchaseOrderId: purchaseOrderId },
                         success: function (data) {

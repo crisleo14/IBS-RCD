@@ -237,7 +237,7 @@ Balance:        <span id="balance"></span>
                 var customerNo = $(this).val();
 
                 $.ajax({
-                    url: "/Receipt/GetSalesInvoices",
+                    url: '@Url.Action("GetSalesInvoices", "Receipt")',
                     type: "GET",
                     data: { customerNo: customerNo },
                     success: function (data) {
@@ -329,7 +329,7 @@ Balance:        <span id="balance"></span>
 
             if (salesInvoice != undefined) {
                 $.ajax({
-                    url: "/Receipt/GetInvoiceDetails",
+                    url: '@Url.Action("GetInvoiceDetails", "Receipt")',
                     type: "GET",
                     data: {
                         invoiceNo: salesInvoice,
@@ -348,7 +348,7 @@ Balance:        <span id="balance"></span>
                 });
             } else {
                 $.ajax({
-                    url: "/Receipt/GetInvoiceDetails",
+                    url: '@Url.Action("GetInvoiceDetails", "Receipt")',
                     type: "GET",
                     data: {
                         invoiceNo: serviceInvoice,

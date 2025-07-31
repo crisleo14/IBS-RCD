@@ -241,7 +241,7 @@
                     var customerNo = $(this).val();
 
                     $.ajax({
-                        url: "/Receipt/GetSalesInvoices",
+                        url: '@Url.Action("GetSalesInvoices", "Receipt")',
                         type: "GET",
                         data: { customerNo: customerNo },
                         success: function (data) {
@@ -359,7 +359,7 @@
                         if (siNo !== "") {
                         // Make an AJAX request to get the balance based on the selected siNo
                         $.ajax({
-                            url: "/Receipt/MultipleInvoiceBalance",
+                            url: '@Url.Action("MultipleInvoiceBalance", "Receipt")',
                             method: "GET",
                             data: { siNo: siNo },
                             success: function (data) {

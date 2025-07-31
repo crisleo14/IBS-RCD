@@ -401,7 +401,7 @@ else
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Replace with the actual URL that you want to redirect to
-                    var url = `/DebitMemo/Post?id=${id}`;
+                    var url = `@Url.Action("Post", "DebitMemo")/${id}`;
                     window.location.href = url;
                 }
             })

@@ -159,7 +159,7 @@
                 }
 
                 $.ajax({
-                    url: "/Inventory/GetProducts",
+                    url: '@Url.Action("GetProducts", "Inventory")',
                     method: "GET",
                     data: { id: productId, dateTo: date },
                     success: function (data) {
