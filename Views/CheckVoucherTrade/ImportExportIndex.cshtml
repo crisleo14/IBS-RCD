@@ -183,7 +183,7 @@
             if (allRecordsSelected) {
                 // Optionally make an AJAX call to get all IDs if "Select All" was selected
                 // Example of a call:
-                fetch('@Url.Action("GetAllCheckVoucherIds", "CheckVoucher")')
+                fetch('@Url.Action("GetAllCheckVoucherIds", "CheckVoucherTrade")')
                     .then(response => response.json())
                     .then(data => {
                         selectedIds = data.join(',');
@@ -203,7 +203,7 @@
         function submitForm(selectedIds) {
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = '@Url.Action("Export", "CheckVoucher")';
+            form.action = '@Url.Action("Export", "CheckVoucherTrade")';
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'selectedRecord';
