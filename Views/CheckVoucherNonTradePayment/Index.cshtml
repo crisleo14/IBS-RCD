@@ -1,18 +1,10 @@
-@model IEnumerable<CheckVoucherDetail>
-@using Accounting_System.Utility
-@using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
-@inject UserManager<IdentityUser> UserManager
+@model IEnumerable<Accounting_System.Models.AccountsPayable.CheckVoucherDetail>
 @{
     ViewData["Title"] = "Check Voucher";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <style>
-    .container {
-        max-width: 100% !important;
-        width: 100% !important;
-    }
 
     /* Custom styles for professional look */
     .table th {
@@ -31,26 +23,13 @@
         background-color: rgba(59, 130, 246, 0.05);
     }
 
-    .table-loading {
-        position: relative;
-        opacity: 0.6;
-    }
-
     .badge {
         font-weight: 500;
         padding: 0.35em 0.8em;
         font-size: 0.75rem;
     }
 
-    .actions-dropdown .dropdown-item {
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
-    }
-
-    .actions-dropdown .dropdown-item:hover {
-        background-color: #f3f4f6;
-    }
-</style>
+    </style>
 <div class="card shadow border-0 mt-4">
     <div class="card-header bg-secondary bg-gradient ml-0 py-3">
         <div class="row">
@@ -100,8 +79,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Replace with the actual URL that you want to redirect to
-                    var url = `@Url.Action("Void", "CheckVoucherNonTradePayment")/${id}`;
-                    window.location.href = url;
+                    window.location.href = `@Url.Action("Void", "CheckVoucherNonTradePayment")/${id}`;
                 }
             })
         }
@@ -122,19 +100,19 @@
                 confirmButtonText: 'Yes'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    var cancellationRemarks = $("#cancellationRemarks").val();
+                    let cancellationRemarks = $("#cancellationRemarks").val();
                     // Encode the cancellationRemarks to make it URL safe
-                    var encodedRemarks = encodeURIComponent(cancellationRemarks);
+                    let encodedRemarks = encodeURIComponent(cancellationRemarks);
                     // Append the encoded remarks as a parameter in the URL
-                    var url = `@Url.Action("Cancel", "CheckVoucherNonTradePayment")?id=${id}&cancellationRemarks=${encodedRemarks}`;
-                    window.location.href = url;
+                    
+                    window.location.href = `@Url.Action("Cancel", "CheckVoucherNonTradePayment")?id=${id}&cancellationRemarks=${encodedRemarks}`;
                 }
             })
         }
     </script>
     <script>
         $(document).ready(function () {
-            var table = $('#paginatedTable').DataTable({
+            $('#paginatedTable').DataTable({
                 "processing": true,
                 "serverSide": true,
                 "stateSave": true,
@@ -154,28 +132,28 @@
                             __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
                         });
                     },
-                    "error": function (xhr, error, thrown) {
+                    "error": function (xhr, error) {
                         console.error('DataTables error:', error);
                         alert('An error occurred while loading the data');
                     }
                 },
-                "preDrawCallback": function(settings) {
+                "preDrawCallback": function() {
                     $('#paginatedTable').addClass('table-loading');
                 },
-                "drawCallback": function(settings) {
+                "drawCallback": function() {
                     $('#paginatedTable').removeClass('table-loading');
 
                     // Initialize all tooltips
                     $('[data-bs-toggle="tooltip"]').tooltip();
                 },
                 "columns": [
-                    { "data": "cvNo" },
+                    { "data": "checkVoucherHeaderNo" },
                     {
                         "data": "date",
                         "name": "date",
-                        "render": function (data, type, row) {
+                        "render": function (data) {
                             // Assuming 'Date' is in ISO format like "2024-07-12T00:00:00"
-                            var date = new Date(data);
+                            let date = new Date(data);
                             return date.toLocaleDateString('en-US', {
                                 year: 'numeric',
                                 month: 'short',
@@ -183,18 +161,18 @@
                             });
                         }
                     },
-                    { "data": "supplier.name" },
+                    { "data": "supplier.supplierName" },
                     {
                         "data": "total",
-                        "render": function (data, type, row) {
-                            var amount = $.fn.dataTable.render.number(',', '.', 2).display(data);
+                        "render": function (data) {
+                            let amount = $.fn.dataTable.render.number(',', '.', 2).display(data);
                             return `<span class="d-block fw-medium">${amount}</span>`;
                         }
                     },
                     {
-                        "data": null,
+                        "data": "cvType",
                         "render": function (data, type, row) {
-                            var cvType = row.category + ' - ' + row.cvType;
+                            let cvType = row.category + ' - ' + row.cvType;
 
                             return `<span class="d-block fw-medium">${cvType}</span>`;
                         }
@@ -203,21 +181,21 @@
                     {
                         "data": null,
                         "render": function (data, type, row) {
-                            var status = row.isPosted && !row.isVoided && !row.isCanceled
+                            let status = row.isPosted && !row.isVoided && !row.isCanceled
                                 ? "Posted"
                                 : row.isVoided
                                     ? "Voided"
                                     : row.isCanceled
                                         ? "Cancelled"
                                         : "Pending";
-                            var statusClass = status == "Posted" ? "bg-info" :
-                                status == "Voided" ? "bg-danger" :
-                                    status == "Cancelled" ? "bg-warning" : "";
+                            let statusClass = status === "Posted" ? "bg-info" :
+                                status === "Voided" ? "bg-danger" :
+                                    status === "Cancelled" ? "bg-warning" : "";
                             return `<span class="badge rounded-pill ${statusClass}">${status}</span>`;
                         }
                     },
                     {
-                        "data": "id",
+                        "data": "checkVoucherHeaderId",
                         "orderable": false,
                         "render": function (data, type, row) {
                             return `<div class="dropdown actions-dropdown" style="${row.isVoided || row.isCanceled || row.cvType !== 'Payment' ? 'display:none;' : ''}">
@@ -230,19 +208,19 @@
                                             <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                                               ${!row.isPosted ?
                                 `<li>
-                                   <a class="dropdown-item" href="@Url.Action("Edit", "CheckVoucherNonTradePayment")/${row.id}">Edit</a>
+                                   <a class="dropdown-item" href="@Url.Action("Edit", "CheckVoucherNonTradePayment")/${row.checkVoucherHeaderId}">Edit</a>
                                  </li>
                                  <li>
-                                   <a class="dropdown-item" href="@Url.Action("Print", "CheckVoucherNonTradePayment")?id=${row.id}">Preview</a>
+                                   <a class="dropdown-item" href="@Url.Action("Print", "CheckVoucherNonTradePayment")?id=${row.checkVoucherHeaderId}">Preview</a>
                                  </li>
                                  <li>
-                                   <a class="dropdown-item" href="javascript:void(0);" onclick="confirmCancel(${row.id})">Cancel</a>
+                                   <a class="dropdown-item" href="javascript:void(0);" onclick="confirmCancel(${row.checkVoucherHeaderId})">Cancel</a>
                                  </li>` :
                                 `<li>
-                                   <a class="dropdown-item" href="@Url.Action("Print", "CheckVoucherNonTradePayment")?id=${row.id}">Print</a>
+                                   <a class="dropdown-item" href="@Url.Action("Print", "CheckVoucherNonTradePayment")?id=${row.checkVoucherHeaderId}">Print</a>
                                  </li>
                                  <li>
-                                   <a class="dropdown-item" href="javascript:void(0);" onclick="confirmVoid(${row.id})">Void</a>
+                                   <a class="dropdown-item" href="javascript:void(0);" onclick="confirmVoid(${row.checkVoucherHeaderId})">Void</a>
                                  </li>`
                             }
                                 </ul>

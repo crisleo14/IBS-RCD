@@ -1,6 +1,5 @@
 @model Accounting_System.Models.ViewModels.CheckVoucherVM
 @using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 @using Humanizer
 @using Accounting_System.Utility
@@ -11,10 +10,12 @@
 
 <br />
 <div class="text-end">
-    <img src="~/img/Filpride.jpg" height="" width="130px" />
+    <img src="~/img/Filpride.jpg" height="" width="130px" alt=""/>
 </div>
 <div class="text-center">
-    <h2><u><b>&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b></u></h2>
+    <h2>
+        <b class="text-decoration-underline">&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b>
+    </h2>
     <p style="line-height: 1; margin-top:-7px;">
         57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone,<br />
         Kalaklan, Olongapo City, 2200 Zambales, Philippines<br />
@@ -26,7 +27,7 @@
         </span>
     </h3>
     <div class="text-end" style="margin-top:-60px;">
-        <h6><b>No.&nbsp;@Html.DisplayFor(model => model.Header.CVNo)</b></h6>
+        <h6><b>No.&nbsp;@Html.DisplayFor(model => model.Header!.CheckVoucherHeaderNo)</b></h6>
     </div>
 </div>
 
@@ -35,18 +36,19 @@
         <thead>
         <tr style="border: 1px solid black;">
             <th colspan="2" style="padding-left:20px;">I. PAYEE DETAILS</th>
-            <td colspan="2" class="text-end"><b>Date : </b>@Model.Header.Date.ToString(CS.Date_Format)</td>
+            <td colspan="2" class="text-end"><b>Date : </b>@Model.Header!.Date.ToString(CS.Date_Format)
+            </td>
         </tr>
         </thead>
         <tbody>
         <tr>
             <td style="width:10%; padding-left:20px;">Name :</td>
-            <td>@Html.DisplayFor(model => model.Header.Payee)</td>
+            <td>@Html.DisplayFor(model => model.Header!.Payee)</td>
             <td style="width:50%;" colspan="2" class="text-nowrap">Other References</td>
         </tr>
         <tr>
             <td style="padding-left:20px;">Address :</td>
-            <td>@Html.DisplayFor(model => model.Header.Supplier.Address)</td>
+            <td>@Html.DisplayFor(model => model.Header!.Supplier!.SupplierAddress)</td>
             <td style="width:5%;">PO # :</td>
             <td>
                 @if (Model.Header.PONo != null)
@@ -67,18 +69,21 @@
         </tr>
         <tr>
             <td style="padding-left:20px;">TIN # :</td>
-            <td>@Html.DisplayFor(model => model.Header.Supplier.TinNo)</td>
+            <td>@Html.DisplayFor(model => model.Header!.Supplier!.SupplierTin)</td>
             <td>SI # :</td>
             <td>
-                @for (int i = 0; i < Model.Header.SINo.Length; i++)
+                @if (Model.Header.SINo != null)
                 {
-                    if (i != Model.Header.SINo.Length - 1)
+                    for (int i = 0; i < Model.Header.SINo.Length; i++)
                     {
-                        <span>@Model.Header.SINo[i],</span>
-                    }
-                    else
-                    {
-                        <span>@Model.Header.SINo[i]</span>
+                        if (i != Model.Header.SINo.Length - 1)
+                        {
+                            <span>@Model.Header.SINo[i],</span>
+                        }
+                        else
+                        {
+                            <span>@Model.Header.SINo[i]</span>
+                        }
                     }
                 }
             </td>
@@ -102,7 +107,7 @@
         <tbody>
         <tr>
             <td style="width:20%; padding-left:20px;">Payee :</td>
-            <td>@Html.DisplayFor(model => model.Header.Payee)</td>
+            <td>@Html.DisplayFor(model => model.Header!.Payee)</td>
             <td class="text-end">@Model.Header.Total.ToString(CS.Two_Decimal_Format)</td>
         </tr>
         <tr>
@@ -126,22 +131,15 @@
                 string upperCaseTwo = centsWords;
 
                 // Combine words and formatting
-                string words;
 
-                if (cents > 0)
-                {
+                var words =
                     // If there is a decimal part, include "And" before it
-                    words = $"{upperCaseOne} Pesos and {upperCaseTwo} Centavos Only";
-                }
-                else
-                {
+                    cents > 0 ? $"{upperCaseOne} Pesos and {upperCaseTwo} Centavos Only" :
                     // If there is no decimal part, exclude "And"
-                    words = $"{upperCaseOne} Pesos Only";
-                }
+                    $"{upperCaseOne} Pesos Only";
 
                 // Capitalize first letters
                 // words = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(words.ToLower());
-
                 words = words.Replace(" And", "");
                 words = words.Replace("-", " ");
             }
@@ -157,12 +155,12 @@
         </tr>
         <tr>
             <td style="padding-left:20px;">Particulars :</td>
-            <td><p style="margin: 0; padding: 0; text-align: justify">@Html.DisplayFor(model => model.Header.Particulars)</p></td>
+            <td><p style="margin: 0; padding: 0; text-align: justify">@Html.DisplayFor(model => model.Header!.Particulars)</p></td>
             <td></td>
         </tr>
         <tr>
             <td style="padding-left:20px;">Check #:</td>
-            <td>@Html.DisplayFor(model => model.Header.CheckNo)</td>
+            <td>@Html.DisplayFor(model => model.Header!.CheckNo)</td>
             <td></td>
         </tr>
         <tr>
@@ -193,20 +191,23 @@
             <th class="text-end">CREDIT</th>
         </tr>
 
-        @foreach (var cv in Model.Details.OrderBy(model => model.Id))
+        @if (Model.Details != null)
         {
-            <tr>
-                <td style="width:60%; padding-left:20px;">@cv.AccountNo&nbsp;@cv.AccountName</td>
-                <td class="text-end" style="width:7%;">@cv.Debit.ToString(CS.Two_Decimal_Format)</td>
-                <td class="text-end" style="width:7%;">@cv.Credit.ToString(CS.Two_Decimal_Format)</td>
-            </tr>
+            foreach (var cv in Model.Details.OrderBy(model => model.CheckVoucherDetailId))
+            {
+                <tr>
+                    <td style="width:60%; padding-left:20px;">@cv.AccountNo&nbsp;@cv.AccountName</td>
+                    <td class="text-end" style="width:7%;">@cv.Debit.ToString(CS.Two_Decimal_Format)</td>
+                    <td class="text-end" style="width:7%;">@cv.Credit.ToString(CS.Two_Decimal_Format)</td>
+                </tr>
+            }
         }
 
         <tr style="border-bottom:double;"></tr>
         <tr>
             <td></td>
-            <td class="text-end">@Model.Details.Sum(d => d.Debit).ToString(CS.Two_Decimal_Format)</td>
-            <td class="text-end">@Model.Details.Sum(d => d.Credit).ToString(CS.Two_Decimal_Format)</td>
+            <td class="text-end">@Model.Details!.Sum(d => d.Debit).ToString(CS.Two_Decimal_Format)</td>
+            <td class="text-end">@Model.Details!.Sum(d => d.Credit).ToString(CS.Two_Decimal_Format)</td>
         </tr>
         </tbody>
     </table>
@@ -259,7 +260,7 @@
             <br />
             <strong>Version :</strong> @CS.Version
             <br />
-            <strong>Printed By :</strong> @UserManager.GetUserName(User).ToUpper()
+            <strong>Printed By :</strong> @UserManager.GetUserName(User)!.ToUpper()
             <br />
             <strong>Date & Time Printed :</strong> @DateTime.UtcNow.AddHours(8).ToString("MM/dd/yyyy hh:mm tt")
         </em>
@@ -284,13 +285,13 @@ else
         if (!Model.Header.IsPosted)
         {
             <div class="col-6 col-md-3">
-                <a id="approveButton" class="btn btn-primary form-control buttons" onclick="confirmPost(@Model.Header.Id)">Post</a>
+                <a id="approveButton" class="btn btn-primary form-control buttons" onclick="confirmPost(@Model.Header.CheckVoucherHeaderId)">Post</a>
             </div>
         }
         else
         {
             <div class="col-6 col-md-3">
-                <a asp-controller="CheckVoucherNonTradePayment" asp-action="Printed" asp-route-id="@Model.Header.Id" onclick="window.print()" class="btn btn-primary form-control buttons" id="printButton">Print</a>
+                <a asp-controller="CheckVoucherNonTradePayment" asp-action="Printed" asp-route-id="@Model.Header.CheckVoucherHeaderId" onclick="window.print()" class="btn btn-primary form-control buttons" id="printButton">Print</a>
             </div>
         }
     }
@@ -320,8 +321,8 @@ else
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Properly encode the parameters to prevent any issues with special characters
-                    var url = `@Url.Action("Post", "CheckVoucherNonTradePayment")?id=${encodeURIComponent(id)}`;
-                    window.location.href = url;
+                    
+                    window.location.href = `@Url.Action("Post", "CheckVoucherNonTradePayment")?id=${encodeURIComponent(id)}`;
                 }
             })
         }

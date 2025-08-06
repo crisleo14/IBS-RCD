@@ -44,7 +44,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetAllBankAccountIds(CancellationToken cancellationToken)
         {
             var bankAccountIds = await _dbContext.BankAccounts
-                .Select(ba => ba.Id) // Assuming Id is the primary key
+                .Select(ba => ba.BankAccountId) // Assuming Id is the primary key
                 .ToListAsync(cancellationToken);
             return Json(bankAccountIds);
         }
@@ -113,7 +113,7 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(BankAccount model, CancellationToken cancellationToken)
         {
-            var existingModel = await _bankAccountRepo.FindBankAccount(model.Id, cancellationToken);
+            var existingModel = await _bankAccountRepo.FindBankAccount(model.BankAccountId, cancellationToken);
             if (existingModel == null)
             {
                 return NotFound();
@@ -125,7 +125,7 @@ namespace Accounting_System.Controllers
                 try
                 {
                     existingModel.AccountName = model.AccountName;
-                    existingModel.BankCode = model.BankCode;
+                    existingModel.Bank = model.Bank;
 
                     if (_dbContext.ChangeTracker.HasChanges())
                     {
@@ -185,8 +185,8 @@ namespace Accounting_System.Controllers
 
                 // Retrieve the selected invoices from the database
                 var selectedList = await _dbContext.BankAccounts
-                    .Where(bank => recordIds.Contains(bank.Id))
-                    .OrderBy(bank => bank.Id)
+                    .Where(bank => recordIds.Contains(bank.BankAccountId))
+                    .OrderBy(bank => bank.BankAccountId)
                     .ToListAsync();
 
                 // Create the Excel package
@@ -209,8 +209,8 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 2].Value = item.CreatedBy;
                     worksheet.Cells[row, 3].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
                     worksheet.Cells[row, 4].Value = item.AccountName;
-                    worksheet.Cells[row, 6].Value = item.BankCode;
-                    worksheet.Cells[row, 7].Value = item.Id;
+                    worksheet.Cells[row, 6].Value = item.Bank;
+                    worksheet.Cells[row, 7].Value = item.BankAccountId;
 
                     row++;
                 }
@@ -274,7 +274,7 @@ namespace Accounting_System.Controllers
                         {
                             var bankAccount = new BankAccount
                             {
-                                BankCode = worksheet.Cells[row, 6].Text,
+                                Bank = worksheet.Cells[row, 6].Text,
                                 AccountName = worksheet.Cells[row, 4].Text,
                                 CreatedBy = worksheet.Cells[row, 2].Text,
                                 CreatedDate = DateTime.TryParse(worksheet.Cells[row, 3].Text, out DateTime createdDate)

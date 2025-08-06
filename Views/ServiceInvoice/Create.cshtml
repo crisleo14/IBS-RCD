@@ -41,7 +41,7 @@
             </div>
             <div class="form-floating mb-3">
                 <input asp-for="Discount" class="form-control moneyInput" placeholder="0.00" />
-                <label for="discount" class="control-label">Discount</label>
+                <label asp-for="Discount" class="control-label">Discount</label>
                 <span asp-validation-for="Discount" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
@@ -79,7 +79,7 @@
     }
     <script>
         // Get the current date in the format "YYYY-MM-DD" (required for the date input)
-        var currentDate = new Date().toISOString().slice(0, 10);
+        let currentDate = new Date().toISOString().slice(0, 10);
 
         // Set the default value of the input field
         document.getElementById("DueDate").value = currentDate;

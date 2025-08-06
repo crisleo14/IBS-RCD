@@ -6,14 +6,19 @@ namespace Accounting_System.Models.Reports
     public class AuditTrail
     {
         public Guid Id { get; set; }
+
+        [StringLength(100)]
         public string Username { get; set; }
         public DateTime Date { get; set; }
 
+        [StringLength(500)]
         [Display(Name = "Machine Name")]
         public string MachineName { get; set; }
 
+        [StringLength(2000)]
         public string Activity { get; set; }
 
+        [StringLength(200)]
         [Display(Name = "Document Type")]
         public string DocumentType { get; set; }
 

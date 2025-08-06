@@ -25,12 +25,12 @@ namespace Accounting_System.Repository
         {
             var journalVoucher = await _dbContext
                 .JournalVoucherHeaders
-                .OrderByDescending(j => j.JVNo)
+                .OrderByDescending(j => j.JournalVoucherHeaderNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (journalVoucher != null)
             {
-                string lastSeries = journalVoucher.JVNo ?? throw new InvalidOperationException("JVNo is null pls Contact MIS Enterprise");
+                string lastSeries = journalVoucher.JournalVoucherHeaderNo ?? throw new InvalidOperationException("JVNo is null pls Contact MIS Enterprise");
                 string numericPart = lastSeries.Substring(2);
                 int incrementedNumber = int.Parse(numericPart) + 1;
 

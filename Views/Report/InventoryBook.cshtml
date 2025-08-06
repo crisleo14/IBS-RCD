@@ -3,8 +3,6 @@
 
 @{
 ViewData["Title"] = "Inventory Book";
-var dateFrom = ViewBag.DateFrom;
-var dateTo = ViewBag.DateTo;
 }
 
 <div class="card shadow border-0 mt-4">
@@ -45,7 +43,7 @@ var dateTo = ViewBag.DateTo;
     }
     <script>
         function submitForm(action) {
-            var form = document.getElementById('dynamicForm');
+            let form = document.getElementById('dynamicForm');
             form.action = action;
             form.submit();
         }

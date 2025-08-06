@@ -5,10 +5,8 @@
     ViewData["Title"] = "CLOSE PURCHASE ORDER";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    decimal postedQuantity = 0m;
-    decimal totalPostedQuantity = 0m;
-    decimal unPostedQuantity = 0m;
-    decimal totalUnPostedQuantity = 0m;
+    var postedQuantity = 0m;
+    var unPostedQuantity = 0m;
 }
 <div class="loader-container">
     <div class="loader"></div>
@@ -24,7 +22,7 @@
     </div>
     <div class="card-body p-4">
         <form asp-action="ClosePO">
-            <input asp-for="Id" type="hidden" />
+            <input asp-for="PurchaseOrderId" type="hidden" />
             <table class="table">
                 <tbody>
                 <tr>
@@ -32,48 +30,50 @@
                     <th class="w-50">Quantity</th>
                 </tr>
                 <tr>
-                    <td>@Model.PONo</td>
+                    <td>@Model.PurchaseOrderNo</td>
                     <td>@Model.Quantity</td>
                 </tr>
 
-                @if (Model.RrList.Where(rr => rr.IsPosted).Any())
+                @if (Model.RrList!.Any(rr => rr.IsPosted))
                 {
                     <tr>
                         <th>RRNo.(Posted RR)</th>
                         <th>Quantity</th>
                     </tr>
 
-                    foreach (var rrPosted in Model.RrList.Where(rr => rr.IsPosted))
+                    foreach (var rrPosted in Model.RrList!.Where(rr => rr.IsPosted))
                     {
                         <tr>
-                            <td>@rrPosted.RRNo</td>
+                            <td>@rrPosted.ReceivingReportNo</td>
                             <td>@rrPosted.QuantityReceived</td>
                         </tr>
                         postedQuantity += rrPosted.QuantityReceived;
                     }
-                    totalPostedQuantity = Model.Quantity - postedQuantity;
+
+                    var totalPostedQuantity = Model.Quantity - postedQuantity;
                     <tr>
                         <th class="text-end">Total Quantity(Only Posted RR):</th>
                         <td>@totalPostedQuantity</td>
                     </tr>
                 }
 
-                @if (Model.RrList.Where(rr => !rr.IsPosted && !rr.IsCanceled).Any())
+                @if (Model.RrList!.Any(rr => !rr.IsPosted && !rr.IsCanceled))
                 {
                     <tr>
                         <th>RRNo.(Unposted RR)</th>
                         <th>Quantity</th>
                     </tr>
 
-                    foreach (var rrNotPosted in Model.RrList.Where(rr => !rr.IsPosted && !rr.IsCanceled))
+                    foreach (var rrNotPosted in Model.RrList!.Where(rr => !rr.IsPosted && !rr.IsCanceled))
                     {
                         <tr>
-                            <td>@rrNotPosted.RRNo</td>
+                            <td>@rrNotPosted.ReceivingReportNo</td>
                             <td>@rrNotPosted.QuantityReceived</td>
                         </tr>
                         unPostedQuantity += rrNotPosted.QuantityReceived;
                     }
-                    totalUnPostedQuantity = (Model.Quantity - unPostedQuantity) - postedQuantity;
+
+                    var totalUnPostedQuantity = (Model.Quantity - unPostedQuantity) - postedQuantity;
                     <tr>
                         <th class="text-end">Total Quantity(Posted and Unposted):</th>
                         <td>@totalUnPostedQuantity</td>

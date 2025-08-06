@@ -69,7 +69,7 @@
             <thead class="table-secondary">
                 <tr>
                     <th>
-                        @Html.DisplayNameFor(model => model.Number)
+                        @Html.DisplayNameFor(model => model.ServiceNo)
                     </th>
                     <th>
                         @Html.DisplayNameFor(model => model.Name)
@@ -91,7 +91,7 @@
                 {
                     <tr>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Number)
+                            @Html.DisplayFor(modelItem => item.ServiceNo)
                         </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.Name)
@@ -106,7 +106,7 @@
                             @item.CreatedDate.ToString("MM/dd/yyyy")
                         </td>
                         <td>
-                            <a asp-action="Edit" class="btn btn-light" asp-route-id="@item.Id">Edit</a>
+                            <a asp-action="Edit" class="btn btn-light" asp-route-id="@item.ServiceId">Edit</a>
                         </td>
                     </tr>
                 }

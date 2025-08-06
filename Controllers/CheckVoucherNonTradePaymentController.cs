@@ -64,9 +64,9 @@ namespace Accounting_System.Controllers
 
                     checkVoucherDetails = checkVoucherDetails
                         .Where(cv =>
-                            cv.CVNo.ToLower().Contains(searchValue) ||
+                            cv.CheckVoucherHeaderNo.ToLower().Contains(searchValue) ||
                             cv.Date.ToString(CS.Date_Format).ToLower().Contains(searchValue) ||
-                            cv.Supplier?.Name.ToLower().Contains(searchValue) == true ||
+                            cv.Supplier?.SupplierName.ToLower().Contains(searchValue) == true ||
                             cv.Total.ToString().Contains(searchValue) ||
                             cv.Amount?.ToString()?.Contains(searchValue) == true ||
                             cv.AmountPaid.ToString().Contains(searchValue) ||
@@ -123,7 +123,7 @@ namespace Accounting_System.Controllers
             }
 
             var header = await _dbContext.CheckVoucherHeaders
-                .FirstOrDefaultAsync(cvh => cvh.Id == id.Value, cancellationToken);
+                .FirstOrDefaultAsync(cvh => cvh.CheckVoucherHeaderId == id.Value, cancellationToken);
 
             if (header == null)
             {
@@ -131,7 +131,7 @@ namespace Accounting_System.Controllers
             }
 
             var details = await _dbContext.CheckVoucherDetails
-                .Where(cvd => cvd.CVHeaderId == header.Id)
+                .Where(cvd => cvd.CheckVoucherHeaderId == header.CheckVoucherHeaderId)
                 .ToListAsync(cancellationToken);
 
             var viewModel = new CheckVoucherVM
@@ -145,7 +145,7 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Printed(int id, int? supplierId, CancellationToken cancellationToken)
         {
-            var cv = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+            var cv = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(x => x.CheckVoucherHeaderId == id, cancellationToken);
             if (!cv.IsPrinted)
             {
                 #region --Audit Trail Recording
@@ -154,7 +154,7 @@ namespace Accounting_System.Controllers
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                     AuditTrail auditTrailBook = new(cv.CreatedBy,
-                        $"Printed original copy of check voucher# {cv.CVNo}", "Check Voucher Non Trade Payment", ipAddress);
+                        $"Printed original copy of check voucher# {cv.CheckVoucherHeaderNo}", "Check Voucher Non Trade Payment", ipAddress);
                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                 }
 
@@ -168,8 +168,8 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
         {
-            var modelHeader = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cv => cv.Id == id, cancellationToken);
-            var modelDetails = await _dbContext.CheckVoucherDetails.Where(cvd => cvd.CVHeaderId == modelHeader.Id).ToListAsync();
+            var modelHeader = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cv => cv.CheckVoucherHeaderId == id, cancellationToken);
+            var modelDetails = await _dbContext.CheckVoucherDetails.Where(cvd => cvd.CheckVoucherHeaderId == modelHeader.CheckVoucherHeaderId).ToListAsync();
 
             if (modelHeader != null)
             {
@@ -195,7 +195,7 @@ namespace Accounting_System.Controllers
                                     new GeneralLedgerBook
                                     {
                                         Date = modelHeader.Date,
-                                        Reference = modelHeader.CVNo,
+                                        Reference = modelHeader.CheckVoucherHeaderNo,
                                         Description = modelHeader.Particulars,
                                         AccountNo = account.AccountNumber,
                                         AccountTitle = account.AccountName,
@@ -221,16 +221,16 @@ namespace Accounting_System.Controllers
                         var disbursement = new List<DisbursementBook>();
                         foreach (var details in modelDetails)
                         {
-                            var bank = _dbContext.BankAccounts.FirstOrDefault(model => model.Id == modelHeader.BankId);
+                            var bank = _dbContext.BankAccounts.FirstOrDefault(model => model.BankAccountId == modelHeader.BankId);
                             disbursement.Add(
                                     new DisbursementBook
                                     {
                                         Date = modelHeader.Date,
-                                        CVNo = modelHeader.CVNo,
+                                        CVNo = modelHeader.CheckVoucherHeaderNo,
                                         Payee = modelHeader.Payee,
                                         Amount = modelHeader.Total,
                                         Particulars = modelHeader.Particulars,
-                                        Bank = bank != null ? bank.BankCode : "N/A",
+                                        Bank = bank != null ? bank.Bank : "N/A",
                                         CheckNo = modelHeader.CheckNo,
                                         CheckDate = modelHeader.CheckDate?.ToString("MM/dd/yyyy"),
                                         ChartOfAccount = details.AccountNo + " " + details.AccountName,
@@ -252,7 +252,7 @@ namespace Accounting_System.Controllers
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(modelHeader.CreatedBy,
-                                $"Posted check voucher# {modelHeader.CVNo}", "Check Voucher Non Trade Payment", ipAddress);
+                                $"Posted check voucher# {modelHeader.CheckVoucherHeaderNo}", "Check Voucher Non Trade Payment", ipAddress);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -308,12 +308,12 @@ namespace Accounting_System.Controllers
                     existingHeaderModel.CancellationRemarks = cancellationRemarks;
 
                 var IsForTheBir = existingHeaderModel.SupplierId == await _dbContext.Suppliers
-                    .Where(s => s.Name.Contains("BUREAU OF INTERNAL REVENUE"))
-                    .Select(s => s.Id)
+                    .Where(s => s.SupplierName.Contains("BUREAU OF INTERNAL REVENUE"))
+                    .Select(s => s.SupplierId)
                     .FirstOrDefaultAsync(); //BIR
 
                 var getCVs = await _dbContext.MultipleCheckVoucherPayments
-                    .Where(cvp => cvp.CheckVoucherHeaderPaymentId == existingHeaderModel.Id)
+                    .Where(cvp => cvp.CheckVoucherHeaderPaymentId == existingHeaderModel.CheckVoucherHeaderId)
                     .Include(cvp => cvp.CheckVoucherHeaderInvoice)
                     .Include(cvp => cvp.CheckVoucherHeaderPayment)
                     .ToListAsync(cancellationToken);
@@ -323,7 +323,7 @@ namespace Accounting_System.Controllers
                     foreach (var cv in getCVs)
                     {
                         var existingDetails = await _dbContext.CheckVoucherDetails
-                            .Where(d => d.CVHeaderId == cv.CheckVoucherHeaderInvoiceId &&
+                            .Where(d => d.CheckVoucherHeaderId == cv.CheckVoucherHeaderInvoiceId &&
                                         d.SupplierId == existingHeaderModel.SupplierId)
                             .ToListAsync(cancellationToken);
 
@@ -349,7 +349,7 @@ namespace Accounting_System.Controllers
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                     AuditTrail auditTrailBook = new(existingHeaderModel.CreatedBy,
-                        $"Canceled check voucher# {existingHeaderModel.CVNo}", "Check Voucher Non Trade Payment", ipAddress);
+                        $"Canceled check voucher# {existingHeaderModel.CheckVoucherHeaderNo}", "Check Voucher Non Trade Payment", ipAddress);
                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                 }
 
@@ -385,12 +385,12 @@ namespace Accounting_System.Controllers
                 try
                 {
                     var IsForTheBir = existingHeaderModel.SupplierId == await _dbContext.Suppliers
-                        .Where(s => s.Name.Contains("BUREAU OF INTERNAL REVENUE"))
-                        .Select(s => s.Id)
+                        .Where(s => s.SupplierName.Contains("BUREAU OF INTERNAL REVENUE"))
+                        .Select(s => s.SupplierId)
                         .FirstOrDefaultAsync(); //BIR
 
                     var getCVs = await _dbContext.MultipleCheckVoucherPayments
-                        .Where(cvp => cvp.CheckVoucherHeaderPaymentId == existingHeaderModel.Id)
+                        .Where(cvp => cvp.CheckVoucherHeaderPaymentId == existingHeaderModel.CheckVoucherHeaderId)
                         .Include(cvp => cvp.CheckVoucherHeaderInvoice)
                         .Include(cvp => cvp.CheckVoucherHeaderPayment)
                         .ToListAsync(cancellationToken);
@@ -400,7 +400,7 @@ namespace Accounting_System.Controllers
                         foreach (var cv in getCVs)
                         {
                             var existingDetails = await _dbContext.CheckVoucherDetails
-                                .Where(d => d.CVHeaderId == cv.CheckVoucherHeaderInvoiceId &&
+                                .Where(d => d.CheckVoucherHeaderId == cv.CheckVoucherHeaderInvoiceId &&
                                             d.SupplierId == existingHeaderModel.SupplierId)
                                 .ToListAsync(cancellationToken);
 
@@ -428,8 +428,8 @@ namespace Accounting_System.Controllers
                     //existingHeaderModel.Status = nameof(CheckVoucherPaymentStatus.Voided);
 
 
-                    await _generalRepo.RemoveRecords<DisbursementBook>(db => db.CVNo == existingHeaderModel.CVNo);
-                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == existingHeaderModel.CVNo);
+                    await _generalRepo.RemoveRecords<DisbursementBook>(db => db.CVNo == existingHeaderModel.CheckVoucherHeaderNo);
+                    await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == existingHeaderModel.CheckVoucherHeaderNo);
 
                     //re-compute amount paid in trade and payment voucher
                     #region --Audit Trail Recording
@@ -438,7 +438,7 @@ namespace Accounting_System.Controllers
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                         AuditTrail auditTrailBook = new(existingHeaderModel.CreatedBy,
-                            $"Voided check voucher# {existingHeaderModel.CVNo}", "Check Voucher Non Trade Payment", ipAddress);
+                            $"Voided check voucher# {existingHeaderModel.CheckVoucherHeaderNo}", "Check Voucher Non Trade Payment", ipAddress);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -473,7 +473,7 @@ namespace Accounting_System.Controllers
 
             var existingHeaderModel = await _dbContext.CheckVoucherHeaders
                 .Include(cvh => cvh.Supplier)
-                .FirstOrDefaultAsync(cvh => cvh.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(cvh => cvh.CheckVoucherHeaderId == id, cancellationToken);
 
             if (existingHeaderModel == null)
             {
@@ -481,7 +481,7 @@ namespace Accounting_System.Controllers
             }
 
             var existingDetailsModel = await _dbContext.CheckVoucherDetails
-                .Where(cvd => cvd.CVHeaderId == existingHeaderModel.Id)
+                .Where(cvd => cvd.CheckVoucherHeaderId == existingHeaderModel.CheckVoucherHeaderId)
                 .Include(cvd => cvd.Supplier)
                 .FirstOrDefaultAsync();
 
@@ -491,14 +491,14 @@ namespace Accounting_System.Controllers
             }
 
             var checkVoucher = await _dbContext.CheckVoucherDetails
-                .Where(cvd => cvd.Header.SupplierId != null && cvd.Header.IsPosted && cvd.Header.CvType == nameof(CVType.Invoicing) ||
-                              cvd.SupplierId != null && cvd.Header.IsPosted && cvd.Header.CvType == nameof(CVType.Invoicing) && cvd.CVHeaderId == cvd.Header.Id)
-                .Include(cvd => cvd.Header)
-                .OrderBy(cvd => cvd.Id)
+                .Where(cvd => cvd.CheckVoucherHeader.SupplierId != null && cvd.CheckVoucherHeader.IsPosted && cvd.CheckVoucherHeader.CvType == nameof(CVType.Invoicing) ||
+                              cvd.SupplierId != null && cvd.CheckVoucherHeader.IsPosted && cvd.CheckVoucherHeader.CvType == nameof(CVType.Invoicing) && cvd.CheckVoucherHeaderId == cvd.CheckVoucherHeader.CheckVoucherHeaderId)
+                .Include(cvd => cvd.CheckVoucherHeader)
+                .OrderBy(cvd => cvd.CheckVoucherDetailId)
                 .Select(cvd => new SelectListItem
                 {
-                    Value = cvd.CVHeaderId.ToString(),
-                    Text = cvd.Header.CVNo
+                    Value = cvd.CheckVoucherHeaderId.ToString(),
+                    Text = cvd.CheckVoucherHeader.CheckVoucherHeaderNo
                 })
                 .Distinct()
                 .ToListAsync();
@@ -506,21 +506,21 @@ namespace Accounting_System.Controllers
             var suppliers = await _dbContext.Suppliers
                 .Select(cvh => new SelectListItem
                 {
-                    Value = cvh.Id.ToString(),
-                    Text = cvh.Name
+                    Value = cvh.SupplierId.ToString(),
+                    Text = cvh.SupplierName
                 })
                 .ToListAsync();
 
             var bankAccounts = await _dbContext.BankAccounts
                 .Select(ba => new SelectListItem
                 {
-                    Value = ba.Id.ToString(),
-                    Text = ba.BankCode + " " + ba.AccountName
+                    Value = ba.BankAccountId.ToString(),
+                    Text = ba.Bank + " " + ba.AccountName
                 })
                 .ToListAsync();
 
             var getCVs = await _dbContext.MultipleCheckVoucherPayments
-                .Where(cvp => cvp.CheckVoucherHeaderPaymentId == existingHeaderModel.Id)
+                .Where(cvp => cvp.CheckVoucherHeaderPaymentId == existingHeaderModel.CheckVoucherHeaderId)
                 .Select(cvp => cvp.CheckVoucherHeaderInvoiceId)
                 .ToListAsync(cancellationToken);
 
@@ -539,12 +539,12 @@ namespace Accounting_System.Controllers
                 CheckNo = existingHeaderModel.CheckNo,
                 CheckDate = existingHeaderModel.CheckDate ?? default,
                 Particulars = index >= 0 ? particulars.Substring(0, index).Trim() : particulars,
-                Payee = existingHeaderModel.SupplierId != null ? existingHeaderModel.Supplier.Name : existingDetailsModel.Supplier.Name,
-                PayeeAddress = existingHeaderModel.Supplier.Address,
-                PayeeTin = existingHeaderModel.Supplier.TinNo,
+                Payee = existingHeaderModel.SupplierId != null ? existingHeaderModel.Supplier.SupplierName : existingDetailsModel.Supplier.SupplierName,
+                PayeeAddress = existingHeaderModel.Supplier.SupplierAddress,
+                PayeeTin = existingHeaderModel.Supplier.SupplierTin,
                 MultipleSupplierId = existingHeaderModel.SupplierId != null ? existingHeaderModel.SupplierId : existingDetailsModel.SupplierId,
                 Suppliers = suppliers,
-                CvId = existingHeaderModel.Id
+                CvId = existingHeaderModel.CheckVoucherHeaderId
             };
 
             return View(model);
@@ -563,7 +563,7 @@ namespace Accounting_System.Controllers
 
                     var existingHeaderModel = await _dbContext.CheckVoucherHeaders
                         .Include(cv => cv.Supplier)
-                        .FirstOrDefaultAsync(cv => cv.Id == viewModel.CvId, cancellationToken);
+                        .FirstOrDefaultAsync(cv => cv.CheckVoucherHeaderId == viewModel.CvId, cancellationToken);
 
                     if (existingHeaderModel == null)
                     {
@@ -571,20 +571,20 @@ namespace Accounting_System.Controllers
                     }
 
                     var getCVs = await _dbContext.MultipleCheckVoucherPayments
-                        .Where(cvp => cvp.CheckVoucherHeaderPaymentId == existingHeaderModel.Id)
+                        .Where(cvp => cvp.CheckVoucherHeaderPaymentId == existingHeaderModel.CheckVoucherHeaderId)
                         .Include(cvp => cvp.CheckVoucherHeaderInvoice)
                         .Include(cvp => cvp.CheckVoucherHeaderPayment)
                         .ToListAsync(cancellationToken);
 
                     if (existingHeaderModel.SupplierId == await _dbContext.Suppliers
-                            .Where(s => s.Name.Contains("BUREAU OF INTERNAL REVENUE"))
-                            .Select(s => s.Id)
+                            .Where(s => s.SupplierName.Contains("BUREAU OF INTERNAL REVENUE"))
+                            .Select(s => s.SupplierId)
                             .FirstOrDefaultAsync())//BIR
                     {
                         foreach (var cv in getCVs)
                         {
                             var existingDetails = await _dbContext.CheckVoucherDetails
-                                .Where(d => d.CVHeaderId == cv.CheckVoucherHeaderInvoiceId &&
+                                .Where(d => d.CheckVoucherHeaderId == cv.CheckVoucherHeaderInvoiceId &&
                                             d.SupplierId == existingHeaderModel.SupplierId)
                                 .ToListAsync(cancellationToken);
 
@@ -597,30 +597,30 @@ namespace Accounting_System.Controllers
                     }
 
                     var invoicingVoucher = await _dbContext.CheckVoucherHeaders
-                        .Where(cv => viewModel.MultipleCvId.Contains(cv.Id))
-                        .OrderBy(cv => cv.Id)
+                        .Where(cv => viewModel.MultipleCvId.Contains(cv.CheckVoucherHeaderId))
+                        .OrderBy(cv => cv.CheckVoucherHeaderId)
                         .ToListAsync(cancellationToken);
 
                     bool isForTheBir = false;
 
                     foreach (var invoice in invoicingVoucher)
                     {
-                        var cv = viewModel.PaymentDetails.FirstOrDefault(c => c.CVId == invoice.Id);
+                        var cv = viewModel.PaymentDetails.FirstOrDefault(c => c.CVId == invoice.CheckVoucherHeaderId);
 
                         var getCVDetails = await _dbContext.CheckVoucherDetails
-                            .Where(i => cv.CVId == i.CVHeaderId &&
+                            .Where(i => cv.CVId == i.CheckVoucherHeaderId &&
                                         i.SupplierId != null &&
                                         i.SupplierId == viewModel.MultipleSupplierId &&
-                                        i.Header.CvType == nameof(CVType.Invoicing))
-                            .OrderBy(i => i.CVHeaderId)
+                                        i.CheckVoucherHeader.CvType == nameof(CVType.Invoicing))
+                            .OrderBy(i => i.CheckVoucherHeaderId)
                             .FirstOrDefaultAsync(cancellationToken);
 
-                        if (getCVDetails != null && getCVDetails.CVHeaderId == cv.CVId)
+                        if (getCVDetails != null && getCVDetails.CheckVoucherHeaderId == cv.CVId)
                         {
                             getCVDetails.AmountPaid += cv.AmountPaid;
                             isForTheBir = getCVDetails.SupplierId == await _dbContext.Suppliers
-                                .Where(s => s.Name.Contains("BUREAU OF INTERNAL REVENUE"))
-                                .Select(s => s.Id)
+                                .Where(s => s.SupplierName.Contains("BUREAU OF INTERNAL REVENUE"))
+                                .Select(s => s.SupplierId)
                                 .FirstOrDefaultAsync() && !getCVDetails.IsUserSelected; //BIR Supplier Id
                         }
                     }
@@ -637,13 +637,13 @@ namespace Accounting_System.Controllers
                         existingHeaderModel.PONo = invoicingVoucher.Select(i => i.PONo).FirstOrDefault();
                         existingHeaderModel.SINo = invoicingVoucher.Select(i => i.SINo).FirstOrDefault();
                         existingHeaderModel.SupplierId = viewModel.MultipleSupplierId;
-                        existingHeaderModel.Particulars = $"{viewModel.Particulars} Payment for {string.Join(",", invoicingVoucher.Select(i => i.CVNo))}";
+                        existingHeaderModel.Particulars = $"{viewModel.Particulars} Payment for {string.Join(",", invoicingVoucher.Select(i => i.CheckVoucherHeaderNo))}";
                         existingHeaderModel.Total = viewModel.Total;
                         // existingHeaderModel.EditedBy = _userManager.GetUserName(this.User);
                         // existingHeaderModel.EditedDate = DateTimeHelper.GetCurrentPhilippineTime();
                         existingHeaderModel.Category = "Non-Trade";
                         existingHeaderModel.CvType = nameof(CVType.Payment);
-                        existingHeaderModel.Reference = string.Join(", ", invoicingVoucher.Select(inv => inv.CVNo));
+                        existingHeaderModel.Reference = string.Join(", ", invoicingVoucher.Select(inv => inv.CheckVoucherHeaderNo));
                         existingHeaderModel.BankId = viewModel.BankId;
                         existingHeaderModel.Payee = viewModel.Payee;
                         // existingHeaderModel.Address = viewModel.PayeeAddress;
@@ -678,7 +678,7 @@ namespace Accounting_System.Controllers
                         MultipleCheckVoucherPayment multipleCheckVoucherPayment = new()
                         {
                             Id = Guid.NewGuid(),
-                            CheckVoucherHeaderPaymentId = existingHeaderModel.Id,
+                            CheckVoucherHeaderPaymentId = existingHeaderModel.CheckVoucherHeaderId,
                             CheckVoucherHeaderInvoiceId = paymentDetail.CVId,
                             AmountPaid = paymentDetail.AmountPaid,
                         };
@@ -690,7 +690,7 @@ namespace Accounting_System.Controllers
                     #region--Update invoicing voucher
 
                     var updateMultipleInvoicingVoucher = await _dbContext.MultipleCheckVoucherPayments
-                        .Where(mcvp => viewModel.MultipleCvId.Contains(mcvp.CheckVoucherHeaderInvoiceId) && mcvp.CheckVoucherHeaderPaymentId == existingHeaderModel.Id)
+                        .Where(mcvp => viewModel.MultipleCvId.Contains(mcvp.CheckVoucherHeaderInvoiceId) && mcvp.CheckVoucherHeaderPaymentId == existingHeaderModel.CheckVoucherHeaderId)
                         .Include(mcvp => mcvp.CheckVoucherHeaderInvoice)
                         .ToListAsync(cancellationToken);
 
@@ -715,7 +715,7 @@ namespace Accounting_System.Controllers
                     #region -- Check Voucher Details --
 
                     var existingDetailsModel = await _dbContext.CheckVoucherDetails
-                        .Where(d => d.CVHeaderId == existingHeaderModel.Id)
+                        .Where(d => d.CheckVoucherHeaderId == existingHeaderModel.CheckVoucherHeaderId)
                         .ToListAsync(cancellationToken);
 
                     _dbContext.RemoveRange(existingDetailsModel);
@@ -729,8 +729,8 @@ namespace Accounting_System.Controllers
                         {
                             AccountNo = viewModel.AccountNumber[i],
                             AccountName = viewModel.AccountTitle[i],
-                            TransactionNo = existingHeaderModel.CVNo,
-                            CVHeaderId = existingHeaderModel.Id,
+                            TransactionNo = existingHeaderModel.CheckVoucherHeaderNo,
+                            CheckVoucherHeaderId = existingHeaderModel.CheckVoucherHeaderId,
                             Debit = viewModel.Debit[i],
                             Credit = viewModel.Credit[i],
                             Amount = 0,
@@ -749,7 +749,7 @@ namespace Accounting_System.Controllers
                     if (file != null && file.Length > 0)
                     {
                         string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Supporting CV Files",
-                            existingHeaderModel.CVNo);
+                            existingHeaderModel.CheckVoucherHeaderNo);
 
                         if (!Directory.Exists(uploadsFolder))
                         {
@@ -776,7 +776,7 @@ namespace Accounting_System.Controllers
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                         AuditTrail auditTrailBook = new(existingHeaderModel.CreatedBy,
-                            $"Edited check voucher# {existingHeaderModel.CVNo}", "Check Voucher Non Trade Payment", ipAddress);
+                            $"Edited check voucher# {existingHeaderModel.CheckVoucherHeaderNo}", "Check Voucher Non Trade Payment", ipAddress);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -803,8 +803,8 @@ namespace Accounting_System.Controllers
                     viewModel.Banks = await _dbContext.BankAccounts
                         .Select(ba => new SelectListItem
                         {
-                            Value = ba.Id.ToString(),
-                            Text = ba.BankCode + " " + ba.AccountName
+                            Value = ba.BankAccountId.ToString(),
+                            Text = ba.Bank + " " + ba.AccountName
                         })
                         .ToListAsync();
 
@@ -827,8 +827,8 @@ namespace Accounting_System.Controllers
             viewModel.Banks = await _dbContext.BankAccounts
                 .Select(ba => new SelectListItem
                 {
-                    Value = ba.Id.ToString(),
-                    Text = ba.BankCode + " " + ba.AccountName
+                    Value = ba.BankAccountId.ToString(),
+                    Text = ba.Bank + " " + ba.AccountName
                 })
                 .ToListAsync();
 
@@ -843,12 +843,12 @@ namespace Accounting_System.Controllers
                     .FindAsync(suppId, cancellationToken);
 
             var credit = await _dbContext.CheckVoucherDetails
-                .Where(cvd => cvd.SupplierId == suppId && cvd.CVHeaderId == cvId)
-                .Include(cvd => cvd.Header)
+                .Where(cvd => cvd.SupplierId == suppId && cvd.CheckVoucherHeaderId == cvId)
+                .Include(cvd => cvd.CheckVoucherHeader)
                 .Select(cvd => new
                 {
                     RemainingCredit = cvd.Credit - cvd.AmountPaid,
-                    cvd.Header!.Particulars
+                    cvd.CheckVoucherHeader!.Particulars
                 })
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -861,9 +861,9 @@ namespace Accounting_System.Controllers
 
             return Json(new
             {
-                Payee = supplier.Name,
-                PayeeAddress = supplier.Address,
-                PayeeTin = supplier.TinNo,
+                Payee = supplier.SupplierName,
+                PayeeAddress = supplier.SupplierAddress,
+                PayeeTin = supplier.SupplierTin,
                 credit.Particulars,
                 Total = credit.RemainingCredit,
             });
@@ -874,7 +874,7 @@ namespace Accounting_System.Controllers
         {
             var cv = await _dbContext.CheckVoucherHeaders
                     .Include(c => c.Supplier)
-                    .FirstOrDefaultAsync(c => c.Id == cvId, cancellationToken);
+                    .FirstOrDefaultAsync(c => c.CheckVoucherHeaderId == cvId, cancellationToken);
 
             // Ensure that cv is not null before proceeding
             if (cv == null)
@@ -884,18 +884,18 @@ namespace Accounting_System.Controllers
 
             // Retrieve the list of supplier IDs from the check voucher details
             var supplierIds = await _dbContext.CheckVoucherDetails
-                .Where(cvd => cvd.TransactionNo == cv.CVNo)
+                .Where(cvd => cvd.TransactionNo == cv.CheckVoucherHeaderNo)
                 .Select(cvd => cvd.SupplierId)
                 .ToListAsync(cancellationToken);
 
             // Fetch suppliers whose IDs are in the supplierIds list
             var suppliers = await _dbContext.Suppliers
-                .Where(supp => supplierIds.Contains(supp.Id))
-                .OrderBy(supp => supp.Id)
+                .Where(supp => supplierIds.Contains(supp.SupplierId))
+                .OrderBy(supp => supp.SupplierId)
                 .Select(supp => new SelectListItem
                 {
-                    Value = supp.Id.ToString(),
-                    Text = supp.Name
+                    Value = supp.SupplierId.ToString(),
+                    Text = supp.SupplierName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -912,12 +912,12 @@ namespace Accounting_System.Controllers
                     .FindAsync(suppId, cancellationToken);
 
             var credit = await _dbContext.CheckVoucherDetails
-                .Where(cvd => cvd.SupplierId == suppId && cvd.CVHeaderId == cvId)
-                .Include(cvd => cvd.Header)
+                .Where(cvd => cvd.SupplierId == suppId && cvd.CheckVoucherHeaderId == cvId)
+                .Include(cvd => cvd.CheckVoucherHeader)
                 .Select(cvd => new
                 {
                     RemainingCredit = cvd.Credit - cvd.AmountPaid,
-                    Particulars = cvd.Header.Particulars
+                    Particulars = cvd.CheckVoucherHeader.Particulars
                 })
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -930,9 +930,9 @@ namespace Accounting_System.Controllers
 
             return Json(new
             {
-                Payee = supplier.Name,
-                PayeeAddress = supplier.Address,
-                PayeeTin = supplier.TinNo,
+                Payee = supplier.SupplierName,
+                PayeeAddress = supplier.SupplierAddress,
+                PayeeTin = supplier.SupplierTin,
                 credit.Particulars,
                 Total = credit.RemainingCredit
             });
@@ -948,15 +948,15 @@ namespace Accounting_System.Controllers
 
             var invoice = await _dbContext.CheckVoucherHeaders
                 .Include(i => i.Supplier)
-                .FirstOrDefaultAsync(i => i.Id == invoiceId, cancellationToken);
+                .FirstOrDefaultAsync(i => i.CheckVoucherHeaderId == invoiceId, cancellationToken);
 
             if (invoice != null)
             {
                 return Json(new
                 {
-                    Payee = invoice.Supplier.Name,
-                    PayeeAddress = invoice.Supplier.Address,
-                    PayeeTin = invoice.Supplier.TinNo,
+                    Payee = invoice.Supplier.SupplierName,
+                    PayeeAddress = invoice.Supplier.SupplierAddress,
+                    PayeeTin = invoice.Supplier.SupplierTin,
                     invoice.Particulars,
                     Total = invoice.InvoiceAmount
                 });
@@ -982,16 +982,16 @@ namespace Accounting_System.Controllers
             viewModel.Suppliers = await _dbContext.Suppliers
                 .Select(cvh => new SelectListItem
                 {
-                    Value = cvh.Id.ToString(),
-                    Text = cvh.Name
+                    Value = cvh.SupplierId.ToString(),
+                    Text = cvh.SupplierName
                 })
                 .ToListAsync();
 
             viewModel.Banks = await _dbContext.BankAccounts
                 .Select(ba => new SelectListItem
                 {
-                    Value = ba.Id.ToString(),
-                    Text = ba.BankCode + " " + ba.AccountName
+                    Value = ba.BankAccountId.ToString(),
+                    Text = ba.Bank + " " + ba.AccountName
                 })
                 .ToListAsync();
 
@@ -1012,28 +1012,28 @@ namespace Accounting_System.Controllers
 
                     bool isForTheBir = false;
                     var invoicingVoucher = await _dbContext.CheckVoucherHeaders
-                        .Where(cv => viewModel.MultipleCvId.Contains(cv.Id))
-                        .OrderBy(cv => cv.Id)
+                        .Where(cv => viewModel.MultipleCvId.Contains(cv.CheckVoucherHeaderId))
+                        .OrderBy(cv => cv.CheckVoucherHeaderId)
                         .ToListAsync(cancellationToken);
 
                     foreach (var invoice in invoicingVoucher)
                     {
-                        var cv = viewModel.PaymentDetails.FirstOrDefault(c => c.CVId == invoice.Id);
+                        var cv = viewModel.PaymentDetails.FirstOrDefault(c => c.CVId == invoice.CheckVoucherHeaderId);
 
                         var getCVDetails = await _dbContext.CheckVoucherDetails
-                            .Where(i => cv.CVId == i.CVHeaderId &&
+                            .Where(i => cv.CVId == i.CheckVoucherHeaderId &&
                                         i.SupplierId != null &&
                                         i.SupplierId == viewModel.MultipleSupplierId &&
-                                        i.Header.CvType == nameof(CVType.Invoicing))
-                            .OrderBy(i => i.Id)
+                                        i.CheckVoucherHeader.CvType == nameof(CVType.Invoicing))
+                            .OrderBy(i => i.CheckVoucherDetailId)
                             .FirstOrDefaultAsync(cancellationToken);
 
-                        if (getCVDetails != null && getCVDetails.CVHeaderId == cv.CVId)
+                        if (getCVDetails != null && getCVDetails.CheckVoucherHeaderId == cv.CVId)
                         {
                             getCVDetails.AmountPaid += cv.AmountPaid;
                             isForTheBir = getCVDetails.SupplierId == await _dbContext.Suppliers
-                                .Where(s => s.Name.Contains("BUREAU OF INTERNAL REVENUE"))
-                                .Select(s => s.Id)
+                                .Where(s => s.SupplierName.Contains("BUREAU OF INTERNAL REVENUE"))
+                                .Select(s => s.SupplierId)
                                 .FirstOrDefaultAsync() && !getCVDetails.IsUserSelected; //BIR Supplier Id
                         }
                     }
@@ -1046,17 +1046,17 @@ namespace Accounting_System.Controllers
 
                     CheckVoucherHeader checkVoucherHeader = new()
                     {
-                        CVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken),
+                        CheckVoucherHeaderNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken),
                         Date = viewModel.TransactionDate,
                         PONo = invoicingVoucher.Select(i => i.PONo).FirstOrDefault(),
                         SINo = invoicingVoucher.Select(i => i.SINo).FirstOrDefault(),
                         SupplierId = viewModel.MultipleSupplierId,
-                        Particulars = $"{viewModel.Particulars}. Payment for {string.Join(",", invoicingVoucher.Select(i => i.CVNo))}",
+                        Particulars = $"{viewModel.Particulars}. Payment for {string.Join(",", invoicingVoucher.Select(i => i.CheckVoucherHeaderNo))}",
                         Total = viewModel.Total,
                         CreatedBy = _userManager.GetUserName(this.User),
                         Category = "Non-Trade",
                         CvType = nameof(CVType.Payment),
-                        Reference = string.Join(", ", invoicingVoucher.Select(inv => inv.CVNo)),
+                        Reference = string.Join(", ", invoicingVoucher.Select(inv => inv.CheckVoucherHeaderNo)),
                         BankId = viewModel.BankId,
                         Payee = viewModel.Payee,
                         // Address = viewModel.PayeeAddress,
@@ -1078,7 +1078,7 @@ namespace Accounting_System.Controllers
                         MultipleCheckVoucherPayment multipleCheckVoucherPayment = new()
                         {
                             Id = Guid.NewGuid(),
-                            CheckVoucherHeaderPaymentId = checkVoucherHeader.Id,
+                            CheckVoucherHeaderPaymentId = checkVoucherHeader.CheckVoucherHeaderId,
                             CheckVoucherHeaderInvoiceId = paymentDetail.CVId,
                             AmountPaid = paymentDetail.AmountPaid,
                         };
@@ -1090,7 +1090,7 @@ namespace Accounting_System.Controllers
                     #region--Update invoicing voucher
 
                     var updateMultipleInvoicingVoucher = await _dbContext.MultipleCheckVoucherPayments
-                        .Where(mcvp => viewModel.MultipleCvId.Contains(mcvp.CheckVoucherHeaderInvoiceId) && mcvp.CheckVoucherHeaderPaymentId == checkVoucherHeader.Id)
+                        .Where(mcvp => viewModel.MultipleCvId.Contains(mcvp.CheckVoucherHeaderInvoiceId) && mcvp.CheckVoucherHeaderPaymentId == checkVoucherHeader.CheckVoucherHeaderId)
                         .Include(mcvp => mcvp.CheckVoucherHeaderInvoice)
                         .ToListAsync(cancellationToken);
 
@@ -1124,8 +1124,8 @@ namespace Accounting_System.Controllers
                             {
                                 AccountNo = viewModel.AccountNumber[i],
                                 AccountName = viewModel.AccountTitle[i],
-                                TransactionNo = checkVoucherHeader.CVNo,
-                                CVHeaderId = checkVoucherHeader.Id,
+                                TransactionNo = checkVoucherHeader.CheckVoucherHeaderNo,
+                                CheckVoucherHeaderId = checkVoucherHeader.CheckVoucherHeaderId,
                                 Debit = viewModel.Debit[i],
                                 Credit = viewModel.Credit[i],
                                 Amount =  0,
@@ -1145,7 +1145,7 @@ namespace Accounting_System.Controllers
                     if (file != null && file.Length > 0)
                     {
                         string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Supporting CV Files",
-                            checkVoucherHeader.CVNo);
+                            checkVoucherHeader.CheckVoucherHeaderNo);
 
                         if (!Directory.Exists(uploadsFolder))
                         {
@@ -1172,7 +1172,7 @@ namespace Accounting_System.Controllers
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                         AuditTrail auditTrailBook = new(checkVoucherHeader.CreatedBy,
-                            $"Created new check voucher# {checkVoucherHeader.CVNo}", "Check Voucher Non Trade Payment", ipAddress);
+                            $"Created new check voucher# {checkVoucherHeader.CheckVoucherHeaderNo}", "Check Voucher Non Trade Payment", ipAddress);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -1199,8 +1199,8 @@ namespace Accounting_System.Controllers
                     viewModel.Banks = await _dbContext.BankAccounts
                         .Select(ba => new SelectListItem
                         {
-                            Value = ba.Id.ToString(),
-                            Text = ba.BankCode + " " + ba.AccountName
+                            Value = ba.BankAccountId.ToString(),
+                            Text = ba.Bank + " " + ba.AccountName
                         })
                         .ToListAsync();
 
@@ -1223,8 +1223,8 @@ namespace Accounting_System.Controllers
             viewModel.Banks = await _dbContext.BankAccounts
                 .Select(ba => new SelectListItem
                 {
-                    Value = ba.Id.ToString(),
-                    Text = ba.BankCode + " " + ba.AccountName
+                    Value = ba.BankAccountId.ToString(),
+                    Text = ba.Bank + " " + ba.AccountName
                 })
                 .ToListAsync();
 
@@ -1243,9 +1243,9 @@ namespace Accounting_System.Controllers
                 {
                     return Json(new
                     {
-                        Name = supplier.Name,
-                        Address = supplier.Address,
-                        TinNo = supplier.TinNo,
+                        Name = supplier.SupplierName,
+                        Address = supplier.SupplierAddress,
+                        TinNo = supplier.SupplierTin,
                         TaxType = supplier.TaxType,
                         Category = supplier.Category,
                         TaxPercent = supplier.WithholdingTaxPercent,
@@ -1264,14 +1264,14 @@ namespace Accounting_System.Controllers
             try
             {
                 var query = _dbContext.CheckVoucherDetails
-                    .Include(cvd => cvd.Header)
+                    .Include(cvd => cvd.CheckVoucherHeader)
                     .Where(cvd =>
-                        cvd.Header.IsPosted &&
-                        cvd.Header.CvType == nameof(CVType.Invoicing) &&
+                        cvd.CheckVoucherHeader.IsPosted &&
+                        cvd.CheckVoucherHeader.CvType == nameof(CVType.Invoicing) &&
                         (
-                            (cvd.Header.SupplierId != null &&
-                             cvd.Header.SupplierId == supplierId &&
-                             !cvd.Header.IsPaid) ||
+                            (cvd.CheckVoucherHeader.SupplierId != null &&
+                             cvd.CheckVoucherHeader.SupplierId == supplierId &&
+                             !cvd.CheckVoucherHeader.IsPaid) ||
                             (cvd.SupplierId != null &&
                              cvd.SupplierId == supplierId &&
                              cvd.Credit > cvd.AmountPaid)
@@ -1286,8 +1286,8 @@ namespace Accounting_System.Controllers
 
                     // Include existing records in the query
                     query = query.Union(_dbContext.CheckVoucherDetails
-                        .Include(cvd => cvd.Header)
-                        .Where(cvd => cvd.SupplierId == supplierId && existingInvoiceIds.Contains(cvd.CVHeaderId ?? 0)));
+                        .Include(cvd => cvd.CheckVoucherHeader)
+                        .Where(cvd => cvd.SupplierId == supplierId && existingInvoiceIds.Contains(cvd.CheckVoucherHeaderId ?? 0)));
                 }
 
                 var checkVouchers = await query.ToListAsync(cancellationToken);
@@ -1298,10 +1298,10 @@ namespace Accounting_System.Controllers
                 }
 
                 var cvList = checkVouchers
-                    .OrderBy(cv => cv.Id)
+                    .OrderBy(cv => cv.CheckVoucherDetailId)
                     .Select(cv => new {
-                        Id = cv.Header.Id,
-                        CVNumber = cv.Header.CVNo
+                        Id = cv.CheckVoucherHeader.CheckVoucherHeaderId,
+                        CVNumber = cv.CheckVoucherHeader.CheckVoucherHeaderNo
                     })
                     .Distinct()
                     .ToList();
@@ -1326,14 +1326,14 @@ namespace Accounting_System.Controllers
 
             var invoices = await _dbContext.CheckVoucherDetails
                 .Where(i =>
-                    cvId.Contains(i.CVHeaderId) &&
+                    cvId.Contains(i.CheckVoucherHeaderId) &&
                     i.SupplierId == supplierId)
                 .Include(i => i.Supplier)
-                .Include(i => i.Header)
+                .Include(i => i.CheckVoucherHeader)
                 .ToListAsync(cancellationToken);
 
             // Get the first CV's particulars
-            var firstParticulars = invoices.FirstOrDefault()?.Header?.Particulars ?? "";
+            var firstParticulars = invoices.FirstOrDefault()?.CheckVoucherHeader?.Particulars ?? "";
 
             var journalEntries = new List<object>();
             var totalDebit = 0m;
@@ -1345,7 +1345,7 @@ namespace Accounting_System.Controllers
             {
                 cvBalances.Add(new
                 {
-                    CvId = invoice.Header.Id,
+                    CvId = invoice.CheckVoucherHeader.CheckVoucherHeaderId,
                     CvNumber = invoice.TransactionNo,
                     Balance = invoice.Credit,
                 });

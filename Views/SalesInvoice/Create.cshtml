@@ -142,7 +142,7 @@
     <script>
         $(function () {
             $("#CustomerId").change(function () {
-                var customerId = $(this).val();
+                let customerId = $(this).val();
                 if (customerId !== "") {
                     // Make an AJAX request to get the customer details based on the selected CustomerId
                     $.ajax({
@@ -150,7 +150,6 @@
                         method: "GET",
                         data: { customerId: customerId },
                         success: function (data) {
-                            console.log(data);
                             if (data) {
                                 $("#soldTo").val(data.soldTo);
                                 $("#address").val(data.address);
@@ -186,7 +185,7 @@
                 }
             });
             $("#ProductId").change(function () {
-                var productId = $(this).val();
+                let productId = $(this).val();
                 if (productId !== "") {
                     // Make an AJAX request to get the customer details based on the selected CustomerId
                     $.ajax({
@@ -194,7 +193,6 @@
                         method: "GET",
                         data: { productId: productId },
                         success: function (data) {
-                            console.log(data);
                             if (data) {
                                 $("#productName").val(data.productName);
                                 $("#productUnit").val(data.productUnit);
@@ -216,7 +214,7 @@
     <script>
         $(function () {
             $(".GetPOList").change(function () {
-                var productId = $(this).val();
+                let productId = $(this).val();
                 if (productId !== "") {
                     // Make an AJAX request to get the POs based on the selected SupplierId
                     $.ajax({
@@ -258,8 +256,11 @@
     </script>
     <script>
         $(function () {
+            let receivingReportId = $("#ReceivingReportId");
+            let transactionDate = $("input[name='TransactionDate']");
             $(".GetRRList").change(function () {
-                var purchaseOrderId = $(this).val();
+                let purchaseOrderId = $(this).val();
+                
                 if (purchaseOrderId !== "") {
                     // Make an AJAX request to get the RRs based on the selected PurchaseOrderId
                     $.ajax({
@@ -267,28 +268,29 @@
                         method: "GET",
                         data: { purchaseOrderId: purchaseOrderId },
                         success: function (data) {
+                            
                             if (data) {
                                 // Clear existing options in the RR dropdown
-                                $("#ReceivingReportId").empty();
-                                $('#ReceivingReportId').append('<option value="">Select RR</option>');
+                                receivingReportId.empty();
+                                receivingReportId.append('<option value="">Select RR</option>');
                                 // Reset transaction date
-                                $("input[name='TransactionDate']").val("");
+                                transactionDate.val("");
                                 $.each(data, function (index, rr) {
                                     if (rr && rr.rrNo && rr.receivedDate) {
-                                        $('#ReceivingReportId').append('<option value="' + rr.id + '" data-rr-date="' + rr.receivedDate + '">' + rr.rrNo + '</option>');
+                                        receivingReportId.append('<option value="' + rr.id + '" data-rr-date="' + rr.receivedDate + '">' + rr.rrNo + '</option>');
                                     } else {
                                         console.error("Invalid RR object:", rr);
                                     }
                                 });
                                 // If only one RR is returned, auto-select it and set the TransactionDate
                                 if (data.length === 1) {
-                                    $("#ReceivingReportId").val(data[0].id);
-                                    $("input[name='TransactionDate']").val(data[0].receivedDate);
+                                    receivingReportId.val(data[0].id);
+                                    transactionDate.val(data[0].receivedDate);
                                 }
                             } else {
                                 // Clear the fields if no RRs are found
-                                $("#ReceivingReportId").empty();
-                                $("input[name='TransactionDate']").val("");
+                                receivingReportId.empty();
+                                transactionDate.val("");
                             }
                         },
                         error: function (xhr, status, error) {
@@ -297,17 +299,16 @@
                     });
                 } else {
                     // Clear the fields if no PO is selected
-                    $("#ReceivingReportId").empty();
-                    $("input[name='TransactionDate']").val("");
+                    receivingReportId.empty();
+                    transactionDate.val("");
                 }
             });
             // Update TransactionDate when an RR is selected
-            $("#ReceivingReportId").change(function () {
-                var rrId = $(this).val();
+            receivingReportId.change(function () {
+                let rrId = $(this).val();
                 if (rrId !== "") {
-                    var selectedRR = $(this).find("option:selected").data("rr-date");
-                    console.log(selectedRR)
-                    $("input[name='TransactionDate']").val(selectedRR);
+                    let selectedRR = $(this).find("option:selected").data("rr-date");
+                    transactionDate.val(selectedRR);
                 }
             });
         });

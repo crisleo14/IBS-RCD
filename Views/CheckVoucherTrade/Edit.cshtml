@@ -169,13 +169,14 @@
         });
     </script>
     <script>
+        let supplier = $(".supplier");
         $(document).ready(function () {
-            $(".supplier").each(function () {
-                var suppId = $(this).val();
+            supplier.each(function () {
+                let suppId = $(this).val();
                 computeDefaultEntry(suppId)
             });
-            $(".supplier").change(function () {
-                var suppId = $(this).val();
+            supplier.change(function () {
+                let suppId = $(this).val();
                 computeDefaultEntry(suppId)
             });
         });
@@ -212,7 +213,7 @@
 
         $(function () {
             $(".GetPOList").change(function () {
-                var suppId = $(this).val();
+                let suppId = $(this).val();
                 if (suppId !== "") {
                     // Make an AJAX request to get the POs based on the selected SupplierId
                     $.ajax({
@@ -250,7 +251,7 @@
         displayRecords(@Html.Raw(Json.Serialize(Model.POSeries)), @Html.Raw(Json.Serialize(Model.CVId)));
 
         $(".GetRRList").change(function () {
-            var poNumber = $(this).val(); // Get all selected POIds
+            let poNumber = $(this).val(); // Get all selected POIds
             displayRecords(poNumber)
         });
 
@@ -271,11 +272,8 @@
                     tbody.empty();
 
                     if (data){
-                        data.forEach((rr, index) => {
+                        data.forEach((rr) => {
                             let balance = parseNumber(rr.netOfEwtAmount) - parseNumber(rr.amountPaid);
-                            const rrAmount = modelRRs.get(rr.id) || 0;
-                            let amountPaid = parseNumber(rr.amountPaid) - rrAmount;
-                            let checkingBalance = parseNumber(rr.netOfEwtAmount) - amountPaid;
 
                             const isChecked = modelRRs.has(rr.id) ? 'checked' : '';
                             const tr = $(`
@@ -329,7 +327,6 @@
 
             $('.selectCheckbox').each(function () {
                 const checkbox = $(this);
-                const row = checkbox.closest('tr');
                 const rrId = checkbox.val(); // Get checkbox value
 
                 if (isChecked) {
@@ -415,11 +412,11 @@
         });
 
         function updateAmounts() {
-            var amountInputs = document.querySelectorAll('.inputAmount');
-            var totalNetOfEWT = 0;
+            let amountInputs = document.querySelectorAll('.inputAmount');
+            let totalNetOfEWT = 0;
             amountInputs.forEach(function (input) {
-                var rawValue = input.value;
-                var rrAmount = parseNumber(rawValue);
+                let rawValue = input.value;
+                let rrAmount = parseNumber(rawValue);
 
                 totalNetOfEWT += rrAmount;
             });
@@ -429,19 +426,19 @@
         }
 
         function updateTotalDebitAndCredit() {
-            var totalDebit = 0;
-            var totalCredit = 0;
+            let totalDebit = 0;
+            let totalCredit = 0;
 
             // Loop through each row in the table body and sum up the debit values
             $("#accountingEntriesBody tr, .defaultEntry tr").each(function () {
-                var debitInput = $(this).find("td:eq(2) input").val();
-                var creditInput = $(this).find("td:eq(3) input").val();
+                let debitInput = $(this).find("td:eq(2) input").val();
+                let creditInput = $(this).find("td:eq(3) input").val();
                 // Ensure debitInput and creditInput are strings before using replace
                 debitInput = debitInput ? String(debitInput) : ""; // convert to string if not null/undefined
                 creditInput = creditInput ? String(creditInput) : "";
 
-                var debit = parseNumber(debitInput);
-                var credit = parseNumber(creditInput);
+                let debit = parseNumber(debitInput);
+                let credit = parseNumber(creditInput);
 
                 totalDebit += debit;
                 totalCredit += credit;
@@ -456,12 +453,13 @@
     </script>
     <script>
         function validateDebitAndCredit() {
-            var totalDebit = parseNumber($(".totalDebit").text());
-            var totalCredit = parseNumber($(".totalCredit").text());
-            var errorMessage = "";
-            var isValid = true;
-
-            if ($("#balance-error-message").length === 0) {
+            let totalDebit = parseNumber($(".totalDebit").text());
+            let totalCredit = parseNumber($(".totalCredit").text());
+            let errorMessage = "";
+            let isValid = true;
+            let balanceErrorMessage = ($("#balance-error-message"));
+            
+            if (balanceErrorMessage.length === 0) {
                 $("#accountingEntriesBody").after('<div id="balance-error-message" class="text-danger mt-2"></div>');
             }
 
@@ -477,7 +475,7 @@
             }
 
             // Display or clear the error message
-            $("#balance-error-message").text(errorMessage);
+            balanceErrorMessage.text(errorMessage);
 
             // Optionally disable/enable the submit button based on validation
             $("button[type='submit']").prop("disabled", !isValid);

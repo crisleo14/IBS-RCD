@@ -28,12 +28,12 @@ namespace Accounting_System.Repository
         {
             var serviceInvoice = await _dbContext
                 .ServiceInvoices
-                .OrderByDescending(s => s.SVNo)
+                .OrderByDescending(s => s.ServiceInvoiceNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (serviceInvoice != null)
             {
-                string lastSeries = serviceInvoice.SVNo;
+                string lastSeries = serviceInvoice.ServiceInvoiceNo;
                 string numericPart = lastSeries.Substring(2);
                 int incrementedNumber = int.Parse(numericPart) + 1;
 
@@ -51,7 +51,7 @@ namespace Accounting_System.Repository
                 .ServiceInvoices
                 .Include(s => s.Customer)
                 .Include(s => s.Service)
-                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(s => s.ServiceInvoiceId == id, cancellationToken);
 
             if (serviceInvoice != null)
             {
@@ -67,7 +67,7 @@ namespace Accounting_System.Repository
         {
             var services = await _dbContext
                 .Services
-                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(s => s.ServiceId == id, cancellationToken);
 
             if (services != null)
             {
@@ -83,7 +83,7 @@ namespace Accounting_System.Repository
         {
             var customer = await _dbContext
                 .Customers
-                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(s => s.CustomerId == id, cancellationToken);
 
             if (customer != null)
             {

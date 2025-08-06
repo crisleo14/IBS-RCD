@@ -4,22 +4,25 @@
 
 @{
     ViewData["Title"] = "Print Sales Invoice";
-    decimal netDiscount = Model.Amount - Model.Discount;
-    decimal netOfVatAmount = Model.Customer.CustomerType == CS.VatType_Vatable ? netDiscount / 1.12m : netDiscount;
-    decimal vatAmount = Model.Customer.CustomerType == CS.VatType_Vatable ? netOfVatAmount * 0.12m : 0;
-    decimal withHoldingTaxAmount = Model.Customer.WithHoldingTax ? (netDiscount / 1.12m) * 0.01m : 0;
-    decimal withHoldingVatAmount = Model.Customer.WithHoldingVat ? (netDiscount / 1.12m) * 0.05m : 0;
+    var netDiscount = Model.Amount - Model.Discount;
+    var netOfVatAmount = Model.Customer!.CustomerType == CS.VatType_Vatable ? netDiscount / 1.12m : netDiscount;
+    var vatAmount = Model.Customer.CustomerType == CS.VatType_Vatable ? netOfVatAmount * 0.12m : 0;
+    var withHoldingTaxAmount = Model.Customer.WithHoldingTax ? (netDiscount / 1.12m) * 0.01m : 0;
+    var withHoldingVatAmount = Model.Customer.WithHoldingVat ? (netDiscount / 1.12m) * 0.05m : 0;
 }
 
 <br class="br-top" />
 <table class="w-100">
     <tbody>
         <tr>
-            <td class="text-end" style="padding: 0 !important;"><img src="~/img/Filpride.jpg" width="130px" /></td>
+            <td class="text-end" style="padding: 0 !important;"><img src="~/img/Filpride.jpg" width="130px" alt=""/>
+            </td>
         </tr>
         <tr style="margin: 0 !important;">
             <td class="text-center" style="padding: 0 !important;">
-                <h2 class="company-name" style="margin: 0 0 1px 0;"><u><b>&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b></u></h2>
+                <h2 class="company-name" style="margin: 0 0 1px 0;">
+                    <b class="text-decoration-underline">&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b>
+                </h2>
                 <p style="margin: 0; padding: 0; line-height: 1;">
                     57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone,<br />
                     Kalaklan, Olongapo City, 2200 Zambales, Philippines<br />
@@ -28,7 +31,7 @@
             </td>
         </tr>
         <tr>
-            <td class="text-end" style="padding: 0 !important;"><h6 class="series"><b>No.&nbsp;@Html.DisplayFor(model => model.SINo)</b></h6></td>
+            <td class="text-end" style="padding: 0 !important;"><h6 class="series"><b>No.&nbsp;@Html.DisplayFor(model => model.SalesInvoiceNo)</b></h6></td>
         </tr>
         <tr>
             <td class="text-center" style="padding: 0 !important;"><h3 class="module-name"><b>SALES INVOICE</b></h3></td>
@@ -42,16 +45,16 @@
             <tr>
                 <td>
                     <span><b>Sold to:</b></span>
-                    &nbsp; @Html.DisplayFor(model => model.Customer.Name) &nbsp;<br />
+                    &nbsp; @Html.DisplayFor(model => model.Customer!.CustomerName) &nbsp;<br />
 
                     <span><b>Address:</b></span>
-                    &nbsp; @Html.DisplayFor(model => model.Customer.Address) &nbsp;<br />
+                    &nbsp; @Html.DisplayFor(model => model.Customer!.CustomerAddress) &nbsp;<br />
 
                     <span><b>TIN:</b></span>
-                    &nbsp; @Html.DisplayFor(model => model.Customer.TinNo) &nbsp;<br />
+                    &nbsp; @Html.DisplayFor(model => model.Customer!.CustomerTin) &nbsp;<br />
 
                     <span><b>Business Style:</b></span>
-                    &nbsp; @Html.DisplayFor(model => model.Customer.BusinessStyle) &nbsp;
+                    &nbsp; @Html.DisplayFor(model => model.Customer!.BusinessStyle) &nbsp;
                 </td>
 
                 <td class="w-25 text-nowrap">
@@ -59,7 +62,7 @@
                     <b>Invoice Date:</b>
                     &nbsp; <span>@Model.TransactionDate.ToString("MM/dd/yyyy")</span>
                     <br />
-                    <b>Terms:</b>&nbsp;<span>@Html.DisplayFor(model => model.Customer.Terms)</span>&nbsp;<br />
+                    <b>Terms:</b>&nbsp;<span>@Html.DisplayFor(model => model.Customer!.CustomerTerms)</span>&nbsp;<br />
                     <b>Due Date:</b>&nbsp; <span>@Model.DueDate.ToString("MM/dd/yyyy")</span><br />
 
                     <b>Other Ref No.:</b>&nbsp; @Html.DisplayFor(model => model.OtherRefNo) &nbsp;
@@ -81,8 +84,8 @@
             </tr>
 
             <tr style="height:80px;">
-                <td>@Html.DisplayFor(model => model.Product.Name)</td>
-                <td>@Html.DisplayFor(model => model.Product.Unit)</td>
+                <td>@Html.DisplayFor(model => model.Product!.ProductName)</td>
+                <td>@Html.DisplayFor(model => model.Product!.ProductUnit)</td>
                 <td>@Html.DisplayFor(model => model.Quantity)</td>
                 <td>@Html.DisplayFor(model => model.UnitPrice)</td>
                 <td>@Html.DisplayFor(model => model.Amount)</td>
@@ -299,11 +302,11 @@ else
 
 @if (!Model.IsPosted)
 {
-    <a id="approveButton" class="btn btn-success" onclick="confirmPost(@Model.Id)" style="margin-top: 25px;">Post</a>
+    <a id="approveButton" class="btn btn-success" onclick="confirmPost(@Model.SalesInvoiceId)" style="margin-top: 25px;">Post</a>
 }
 else
 {
-    <a asp-action="PrintedInvoice" class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" style="margin-top: 25px;" id="printButton">Print</a>
+    <a asp-action="PrintedInvoice" class="btn btn-success" asp-route-id="@Model.SalesInvoiceId" onclick="printPage()" style="margin-top: 25px;" id="printButton">Print</a>
 }
 <a asp-action="Index" class="btn" style="margin-top: 25px;" id="otherButton">Back</a>
 
@@ -316,7 +319,6 @@ else
     </script>
     <script>
         function confirmPost(id) {
-            console.log(id);
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
@@ -328,8 +330,8 @@ else
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Replace with the actual URL that you want to redirect to
-                    var url = `@Url.Action("Post", "SalesInvoice")/${id}`;
-                    window.location.href = url;
+                    
+                    window.location.href = `@Url.Action("Post", "SalesInvoice")/${id}`;
                 }
             })
         }

@@ -7,23 +7,28 @@ namespace Accounting_System.Models.Reports
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+        public int PurchaseBookId { get; set; }
 
         [Column(TypeName = "date")]
         public DateOnly Date { get; set; }
 
         [Display(Name = "Supplier Name")]
+        [StringLength(100)]
         public string SupplierName { get; set; }
 
+        [StringLength(20)]
         [Display(Name = "Supplier TIN")]
         public string SupplierTin { get; set; }
 
+        [StringLength(200)]
         [Display(Name = "Supplier Address")]
         public string SupplierAddress { get; set; }
 
+        [StringLength(13)]
         [Display(Name = "Document No")]
         public string DocumentNo { get; set; }
 
+        [StringLength(1000)]
         public string Description { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
@@ -50,14 +55,14 @@ namespace Accounting_System.Models.Reports
         public decimal NetPurchases { get; set; }
 
         [Display(Name = "Created By")]
-        [Column(TypeName = "varchar(50)")]
+        [StringLength(50)]
         public string? CreatedBy { get; set; }
 
         [Display(Name = "Created Date")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         [Display(Name = "PO No.")]
-        [Column(TypeName = "varchar(12)")]
+        [StringLength(13)]
         public string PONo { get; set; }
 
         [Display(Name = "Due Date")]

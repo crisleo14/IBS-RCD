@@ -1,5 +1,4 @@
-﻿@using System.ComponentModel.DataAnnotations;
-@using Accounting_System.Models.AccountsReceivable;
+﻿@using Accounting_System.Models.AccountsReceivable;
 @model CollectionReceipt
 
 @{
@@ -36,13 +35,13 @@
                         <span asp-validation-for="TransactionDate" class="text-danger"></span>
                     </div>
                     <div class="form-floating mb-3">
-                        <input asp-for="ReferenceNo" id="floatingInput" type="text" class="form-control" placeholder="Reference #" />
-                        <label for="floatingInput" class="control-label">Reference #</label>
+                        <input asp-for="ReferenceNo" type="text" class="form-control" placeholder="Reference #" />
+                        <label asp-for="ReferenceNo" class="control-label">Reference #</label>
                         <span asp-validation-for="ReferenceNo" class="text-danger"></span>
                     </div>
                     <div class="form-floating mb-3">
-                        <input asp-for="Remarks" id="floatingInput" type="text" class="form-control" placeholder="Optional" />
-                        <label for="floatingInput" class="control-label">Remarks</label>
+                        <input asp-for="Remarks" type="text" class="form-control" placeholder="Optional" />
+                        <label asp-for="Remarks" class="control-label">Remarks</label>
                         <span asp-validation-for="Remarks" class="text-danger"></span>
                     </div>
                     <div class="form-group mb-3">
@@ -253,24 +252,24 @@
     <script>
         $(document).ready(function () {
             $("#CustomerId").change(function () {
-                var customerNo = $(this).val();
+                let customerNo = $(this).val();
 
                 $.ajax({
                     url: '@Url.Action("GetSalesInvoices", "Receipt")',
                     type: "GET",
                     data: { customerNo: customerNo },
                     success: function (data) {
-
-                        $("#invoices").empty();
+                        let invoice = $("#invoices");
+                        invoice.empty();
 
                         // Check if data is an array and not null
                         if (Array.isArray(data) && data.length > 0) {
 
-                            $("#invoices").append('<option>');
+                            invoice.append('<option>');
 
                             // Iterate over the array and append options
                             $.each(data, function (index, item) {
-                                $("#invoices").append($('<option>', {
+                                invoice.append($('<option>', {
                                     value: item.value,   // Use the correct property for value
                                     text: item.text      // Use the correct property for text
                                 }));
@@ -288,9 +287,11 @@
     <script>
         function saveAccountingEntry() {
             // Get the values from the modal inputs
-            var accountTitle = $("#AccountTitle").val();
-            var accountTitleText = $("#AccountTitle option:selected").text();
-            var accountAmount = parseFloat($("#AccountAmount").val().replace(/,/g, '')) || 0.00;
+            let getAccountTitle = $("#AccountTitle");
+            let getAccountAmount = $("#AccountAmount");
+            let accountTitle = getAccountTitle.val();
+            let accountTitleText = $("#AccountTitle option:selected").text();
+            let accountAmount = parseFloat(getAccountAmount.val().replace(/,/g, '')) || 0.00;
 
             if (accountAmount === 0) {
                 event.preventDefault();
@@ -303,10 +304,10 @@
             }
 
             // Format debit and credit values with commas and two decimal places
-            var formattedAmount = accountAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            let formattedAmount = accountAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             // Create a new row with the text only and a hidden input for the value
-            var newRow = `<tr>
+            let newRow = `<tr>
                                                                                         <td>
                                                                                             <input type='hidden' name='accountTitle' value='${accountTitle}' />
                                                                                             <input type='text' name='accountTitleText' value='${accountTitleText}' style='border:none' readonly />
@@ -322,9 +323,9 @@
             $("#AddAccEntry").modal("hide");
 
             // Clear the modal inputs
-            $("#AccountTitle").val(""); // Reset the select to its default state
-            $("#AccountTitle").trigger("change"); // Trigger change event for the select
-            $("#AccountAmount").val("");
+            getAccountTitle.val(""); // Reset the select to its default state
+            getAccountTitle.trigger("change"); // Trigger change event for the select
+            getAccountAmount.val("");
         }
 
 
@@ -336,13 +337,14 @@
 
     </script>
     <script>
+        let invoice = $("#invoices");
         $(function () {
-            $("#invoices").each(function () {
-                var siSelect = $("#invoices").val();
+            invoice.each(function () {
+                let siSelect = $("#invoices").val();
                 getInvoice(siSelect)
             });
-            $("#invoices").change(function () {
-                var siSelect = $("#invoices").val();
+            invoice.change(function () {
+                let siSelect = $("#invoices").val();
                 getInvoice(siSelect)
             });
             function getInvoice(siSelect) {
@@ -350,14 +352,13 @@
                 $(".siList").empty();
                 $(".siAmount").empty();
 
-                var amounts = @Html.Raw(Json.Serialize(Model.SIMultipleAmount));
-                var siNos = @Html.Raw(Json.Serialize(Model.MultipleSIId));
+                let amounts = @Html.Raw(Json.Serialize(Model.SIMultipleAmount));
+                let siNos = @Html.Raw(Json.Serialize(Model.MultipleSIId));
 
                 siSelect.forEach(function (siNo, index) {
-                    var siSelectText = $("#invoices option[value='" + siNo + "']").text();
-                    console.log(siNos)
-                    var amount = amounts[index] !== undefined ? amounts[index] : 0;
-                    var newRow = `<tr>
+                    let siSelectText = $("#invoices option[value='" + siNo + "']").text();
+                    let amount = amounts[index] !== undefined ? amounts[index] : 0;
+                    let newRow = `<tr>
                                                                             <td>
                                                                                 <input type='hidden' value='${siNo}' />
                                                                                 <input type='text' value='${siSelectText}' style='border:none' readonly />
@@ -365,7 +366,7 @@
                                                                                 <td><input type='text' name='SIMultipleAmount' class='inputAmount money' value='${amount}'/></td>
                                                                         </tr>`;
 
-                    var siAmount = `<tr id='row_${siNo}'>
+                    let siAmount = `<tr id='row_${siNo}'>
                                                                                 <td style='padding-left:20px;'>
                                                                                     <input type='hidden' value='${siNo}' />
                                                                                     <input type='text' value='${siSelectText}' style='border:none' readonly />
@@ -391,19 +392,19 @@
                             success: function (data) {
                                 if (data !== null) {
                                     //compute / show existing SI
-                                    var gross = data.amount;
+                                    let gross = data.amount;
                                     $("#amount_" + siNo).text(gross.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                                    var netAmount = gross / 1.12;
+                                    let netAmount = gross / 1.12;
                                     $("#netAmount_" + siNo).text(netAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                                    var vatAmount = data.wvatAmount;
+                                    let vatAmount = data.wvatAmount;
                                     $("#vatAmount_" + siNo).text(vatAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                                    var ewtAmount = data.ewtAmount;
+                                    let ewtAmount = data.ewtAmount;
                                     $("#ewtAmount_" + siNo).text(ewtAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                                    var siAmountNetOfEWT = gross - (ewtAmount + vatAmount);
+                                    let siAmountNetOfEWT = gross - (ewtAmount + vatAmount);
                                     $("#siAmountNetOfEWT_" + siNo).text(siAmountNetOfEWT.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                                    var amountPaid = data.amountPaid
+                                    let amountPaid = data.amountPaid
                                     $("#amountPaid_" + siNo).text(amountPaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                                    var balance = data.balance
+                                    let balance = data.balance
                                     $("#balance_" + siNo).text(balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                                     // $(".paymentAmount_" + siNo).val(balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
@@ -422,41 +423,41 @@
             }
 
             function calculateGrandTotalRRAmount() {
-                var grandTotalRRAmount = 0;
-                var grandTotalNetAmount = 0;
-                var grandTotalVatAmount = 0;
-                var grandTotalEWTAmount = 0;
-                var grandTotalNetOfEWT = 0;
-                var grandTotalAmountPaid = 0;
-                var grandTotalBalance = 0;
+                let grandTotalRRAmount = 0;
+                let grandTotalNetAmount = 0;
+                let grandTotalVatAmount = 0;
+                let grandTotalEWTAmount = 0;
+                let grandTotalNetOfEWT = 0;
+                let grandTotalAmountPaid = 0;
+                let grandTotalBalance = 0;
 
                 $(".siAmount tr").each(function () {
-                    var amount = $(this).find("[id^='amount_']").text();
-                    var totalAmount = parseFloat(amount.replace(/,/g, '')) || 0;
+                    let amount = $(this).find("[id^='amount_']").text();
+                    let totalAmount = parseFloat(amount.replace(/,/g, '')) || 0;
                     grandTotalRRAmount += totalAmount;
 
-                    var netAmount = $(this).find("[id^='netAmount_']").text();
-                    var totalNetAmount = parseFloat(netAmount.replace(/,/g, '')) || 0;
+                    let netAmount = $(this).find("[id^='netAmount_']").text();
+                    let totalNetAmount = parseFloat(netAmount.replace(/,/g, '')) || 0;
                     grandTotalNetAmount += totalNetAmount;
 
-                    var vatAmount = $(this).find("[id^='vatAmount_']").text();
-                    var totalVatAmount = parseFloat(vatAmount.replace(/,/g, '')) || 0;
+                    let vatAmount = $(this).find("[id^='vatAmount_']").text();
+                    let totalVatAmount = parseFloat(vatAmount.replace(/,/g, '')) || 0;
                     grandTotalVatAmount += totalVatAmount;
 
-                    var ewtAmount = $(this).find("[id^='ewtAmount_']").text();
-                    var totalEwtAmount = parseFloat(ewtAmount.replace(/,/g, '')) || 0;
+                    let ewtAmount = $(this).find("[id^='ewtAmount_']").text();
+                    let totalEwtAmount = parseFloat(ewtAmount.replace(/,/g, '')) || 0;
                     grandTotalEWTAmount += totalEwtAmount;
 
-                    var rrAmountNetOfEWT = $(this).find("[id^='siAmountNetOfEWT_']").text();
-                    var totalAmountNetOfEWT = parseFloat(rrAmountNetOfEWT.replace(/,/g, '')) || 0;
+                    let rrAmountNetOfEWT = $(this).find("[id^='siAmountNetOfEWT_']").text();
+                    let totalAmountNetOfEWT = parseFloat(rrAmountNetOfEWT.replace(/,/g, '')) || 0;
                     grandTotalNetOfEWT += totalAmountNetOfEWT;
 
-                    var amountPaid = $(this).find("[id^='amountPaid_']").text();
-                    var totalAmountPaid = parseFloat(amountPaid.replace(/,/g, '')) || 0;
+                    let amountPaid = $(this).find("[id^='amountPaid_']").text();
+                    let totalAmountPaid = parseFloat(amountPaid.replace(/,/g, '')) || 0;
                     grandTotalAmountPaid += totalAmountPaid;
 
-                    var balance = $(this).find("[id^='balance_']").text();
-                    var totalBalance = parseFloat(balance.replace(/,/g, '')) || 0;
+                    let balance = $(this).find("[id^='balance_']").text();
+                    let totalBalance = parseFloat(balance.replace(/,/g, '')) || 0;
                     grandTotalBalance += totalBalance;
                 });
 

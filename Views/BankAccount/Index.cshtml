@@ -6,10 +6,6 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <style>
-    .container {
-        max-width: 100% !important;
-        width: 100% !important;
-    }
 
     /* Custom styles for professional look */
     .table th {
@@ -28,25 +24,6 @@
         background-color: rgba(59, 130, 246, 0.05);
     }
 
-    .table-loading {
-        position: relative;
-        opacity: 0.6;
-    }
-
-    .badge {
-        font-weight: 500;
-        padding: 0.35em 0.8em;
-        font-size: 0.75rem;
-    }
-
-    .actions-dropdown .dropdown-item {
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
-    }
-
-    .actions-dropdown .dropdown-item:hover {
-        background-color: #f3f4f6;
-    }
 </style>
 <div class="card shadow border-0 mt-4">
     <div class="card-header bg-secondary bg-gradient ml-0 py-3">
@@ -73,7 +50,7 @@
                     @Html.DisplayNameFor(model => model.AccountName)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.BankCode)
+                    @Html.DisplayNameFor(model => model.Bank)
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.CreatedBy)
@@ -92,7 +69,7 @@
                         @Html.DisplayFor(modelItem => data.AccountName)
                     </td>
                     <td>
-                        @Html.DisplayFor(modelItem => data.BankCode)
+                        @Html.DisplayFor(modelItem => data.Bank)
                     </td>
                     <td>
                         @Html.DisplayFor(modelItem => data.CreatedBy)
@@ -101,7 +78,7 @@
                         @data.CreatedDate.ToString("MM/dd/yyyy")
                     </td>
                     <td>
-                        <a asp-action="Edit" class="btn btn-light" asp-route-id="@data.Id">Edit</a>
+                        <a asp-action="Edit" class="btn btn-light" asp-route-id="@data.BankAccountId">Edit</a>
                     </td>
                 </tr>
             }

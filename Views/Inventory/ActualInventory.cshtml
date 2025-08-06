@@ -137,7 +137,7 @@
     }
     <script>
         // Get the current date in the format "YYYY-MM-DD" (required for the date input)
-        var currentDate = new Date().toISOString().slice(0, 10);
+        let currentDate = new Date().toISOString().slice(0, 10);
 
         // Set the default value of the input field
         document.getElementById("Date").value = currentDate;
@@ -145,14 +145,14 @@
     <script>
         $(document).ready(function () {
             $('#ProductId').change(function () {
-                var productId = $('#ProductId').val();
-                var date = $("#Date").val();
+                let productId = $('#ProductId').val();
+                let date = $("#Date").val();
 
-                var product = $("#ProductId option:selected").text().replace(/^\S+\s/, '');
+                let product = $("#ProductId option:selected").text().replace(/^\S+\s/, '');
                 $(".accountTitle").val("Inventory " + product);
-                if (product = "Biodiesel") {
+                if (product === "Biodiesel") {
                     $(".accountNumber").val("101040100");
-                } else if (product = "Econogas") {
+                } else if (product === "Econogas") {
                     $(".accountNumber").val("101040200");
                 }else{
                     $(".accountNumber").val("101040300");
@@ -184,12 +184,12 @@
     <script>
         $(document).ready(function () {
             $("#ActualVolume").on('input', function () {
-                var inputValue = $(this).val();
-                var perBookAmount = $("#PerBook").val();
-                var perBook = parseFloat(perBookAmount.replace(/,/g, '')) || 0;
-                var variance = (inputValue - perBook);
-                var averageCost = $(".averageCost").val();
-                var total = Math.abs(variance * averageCost);
+                let inputValue = $(this).val();
+                let perBookAmount = $("#PerBook").val();
+                let perBook = parseFloat(perBookAmount.replace(/,/g, '')) || 0;
+                let variance = (inputValue - perBook);
+                let averageCost = $(".averageCost").val();
+                let total = Math.abs(variance * averageCost);
 
                 if (!inputValue) {
                     $(".credit").val("0.00");
@@ -212,17 +212,20 @@
         });
     </script>
     <script>
-        $('#AccountNo').select2({
+        let accountNo = $('#AccountNo');
+        
+        accountNo.select2({
             dropdownParent: $('#AddAccEntry')
         });
-    </script>
-    <script>
+
         function saveAccountingEntry(event) {
+            let getDebit = $('#Debit');
+            let getCredit = $('#Credit');
             // Get the values from the modal inputs
-            var accountNumber = $("#AccountNo").val();
-            var accountNumberText = $("#AccountNo option:selected").text().replace(/^\S+\s/, '');
-            var debit = parseFloat($("#Debit").val().replace(/,/g, '')) || 0.00;
-            var credit = parseFloat($("#Credit").val().replace(/,/g, '')) || 0.00;
+            let accountNumber = accountNo.val();
+            let accountNumberText = $("#AccountNo option:selected").text().replace(/^\S+\s/, '');
+            let debit = parseFloat(getDebit.val().replace(/,/g, '')) || 0.00;
+            let credit = parseFloat(getCredit.val().replace(/,/g, '')) || 0.00;
 
             if (debit === 0 && credit === 0) {
                 event.preventDefault();
@@ -235,11 +238,11 @@
             }
 
             // Format debit and credit values with commas and two decimal places
-            var formattedDebit = debit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            var formattedCredit = credit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            let formattedDebit = debit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            let formattedCredit = credit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             // Create a new row with the text only and a hidden input for the value
-            var newRow = `<tr>
+            let newRow = `<tr>
                             <td>
                                 <input type='hidden' name='AccountNumber' value='${accountNumber}'/>
                                 <input type='text' name='AccountTitle' value='${accountNumberText}' style='border:none' class='w-100' readonly />
@@ -257,8 +260,8 @@
             $("#AddAccEntry").modal("hide");
 
             // Clear the modal inputs
-            $("#AccountNo").val(""); // Reset the select to its default state
-            $("#AccountNo").trigger("change"); // Trigger change event for the select
+            accountNo.val(""); // Reset the select to its default state
+            accountNo.trigger("change"); // Trigger change event for the select
             $("#Debit").val("0.00");
             $("#Credit").val("0.00");
 
@@ -266,19 +269,19 @@
         }
 
         function updateTotalDebitAndCredit() {
-            var totalDebit = 0;
-            var totalCredit = 0;
+            let totalDebit = 0;
+            let totalCredit = 0;
 
             // Loop through each row in the table body and sum up the debit values
             $("#accountingEntriesBody tr").each(function () {
-                var debitInput = $(this).find("td:eq(1) input").val();
-                var creditInput = $(this).find("td:eq(2) input").val();
+                let debitInput = $(this).find("td:eq(1) input").val();
+                let creditInput = $(this).find("td:eq(2) input").val();
                 // Ensure debitInput and creditInput are strings before using replace
                 debitInput = debitInput ? String(debitInput) : ""; // convert to string if not null/undefined
                 creditInput = creditInput ? String(creditInput) : "";
 
-                var debit = parseFloat(debitInput.replace(/,/g, '')) || 0;
-                var credit = parseFloat(creditInput.replace(/,/g, '')) || 0;
+                let debit = parseFloat(debitInput.replace(/,/g, '')) || 0;
+                let credit = parseFloat(creditInput.replace(/,/g, '')) || 0;
 
                 totalDebit += debit;
                 totalCredit += credit;
@@ -297,12 +300,12 @@
     </script>
     <script>
         function validateDebitAndCredit(event) {
-            var debit = parseFloat($(".totalDebit").text().replace(/,/g, '')) || 0.00;
-            var credit = parseFloat($(".totalCredit").text().replace(/,/g, '')) || 0.00;
+            let debit = parseFloat($(".totalDebit").text().replace(/,/g, '')) || 0.00;
+            let credit = parseFloat($(".totalCredit").text().replace(/,/g, '')) || 0.00;
             if (debit !== credit) {
                 event.preventDefault();
                 alert('Total Debit and Credit do not match.');
-                return;
+                return null;
             }
         }
     </script>

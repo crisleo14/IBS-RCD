@@ -65,10 +65,10 @@ namespace Accounting_System.Controllers
                     var searchValue = parameters.Search.Value.ToLower();
                     debitMemos = debitMemos
                         .Where(dm =>
-                            dm.DMNo.ToLower().Contains(searchValue) ||
+                            dm.DebitMemoNo.ToLower().Contains(searchValue) ||
                             dm.TransactionDate.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
-                            dm.SalesInvoice?.SINo?.ToLower().Contains(searchValue) == true ||
-                            dm.ServiceInvoice?.SVNo?.ToLower().Contains(searchValue) == true ||
+                            dm.SalesInvoice?.SalesInvoiceNo?.ToLower().Contains(searchValue) == true ||
+                            dm.ServiceInvoice?.ServiceInvoiceNo?.ToLower().Contains(searchValue) == true ||
                             dm.Source.ToLower().Contains(searchValue) ||
                             dm.DebitAmount.ToString().Contains(searchValue) ||
                             dm.Remarks?.ToLower().Contains(searchValue) == true ||
@@ -112,7 +112,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetAllDebitMemoIds(CancellationToken cancellationToken)
         {
             var debitMemoIds = await _dbContext.DebitMemos
-                                     .Select(dm => dm.Id) // Assuming Id is the primary key
+                                     .Select(dm => dm.DebitMemoId) // Assuming Id is the primary key
                                      .ToListAsync(cancellationToken);
             return Json(debitMemoIds);
         }
@@ -125,8 +125,8 @@ namespace Accounting_System.Controllers
                 .Where(si => si.IsPosted)
                 .Select(si => new SelectListItem
                 {
-                    Value = si.Id.ToString(),
-                    Text = si.SINo
+                    Value = si.SalesInvoiceId.ToString(),
+                    Text = si.SalesInvoiceNo
                 })
                 .ToListAsync(cancellationToken);
 
@@ -134,8 +134,8 @@ namespace Accounting_System.Controllers
                 .Where(sv => sv.IsPosted)
                 .Select(sv => new SelectListItem
                 {
-                    Value = sv.Id.ToString(),
-                    Text = sv.SVNo
+                    Value = sv.ServiceInvoiceId.ToString(),
+                    Text = sv.ServiceInvoiceNo
                 })
                 .ToListAsync(cancellationToken);
 
@@ -149,8 +149,8 @@ namespace Accounting_System.Controllers
                 .Where(si => si.IsPosted)
                 .Select(si => new SelectListItem
                 {
-                    Value = si.Id.ToString(),
-                    Text = si.SINo
+                    Value = si.SalesInvoiceId.ToString(),
+                    Text = si.SalesInvoiceNo
                 })
                 .ToListAsync(cancellationToken);
 
@@ -158,14 +158,14 @@ namespace Accounting_System.Controllers
                 .Where(sv => sv.IsPosted)
                 .Select(sv => new SelectListItem
                 {
-                    Value = sv.Id.ToString(),
-                    Text = sv.SVNo
+                    Value = sv.ServiceInvoiceId.ToString(),
+                    Text = sv.ServiceInvoiceNo
                 })
                 .ToListAsync(cancellationToken);
 
             var existingSv = await _dbContext.ServiceInvoices
                         .Include(sv => sv.Customer)
-                        .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
+                        .FirstOrDefaultAsync(sv => sv.ServiceInvoiceId == model.ServiceInvoiceId, cancellationToken);
 
             if (ModelState.IsValid)
             {
@@ -176,14 +176,14 @@ namespace Accounting_System.Controllers
 
                         var existingSiDms = await _dbContext.DebitMemos
                                       .Where(dm => !dm.IsPosted && !dm.IsCanceled && !dm.IsVoided)
-                                      .OrderBy(dm => dm.Id)
+                                      .OrderBy(dm => dm.DebitMemoId)
                                       .ToListAsync(cancellationToken);
                         if (existingSiDms.Count > 0)
                         {
                             var dmNo = new List<string>();
                             foreach (var item in existingSiDms)
                             {
-                                dmNo.Add(item.DMNo);
+                                dmNo.Add(item.DebitMemoNo);
                             }
                             ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM. {string.Join(" , ", dmNo)}");
                             return View(model);
@@ -191,7 +191,7 @@ namespace Accounting_System.Controllers
 
                         var existingSiCms = await _dbContext.CreditMemos
                                           .Where(cm => !cm.IsPosted && !cm.IsCanceled && !cm.IsVoided)
-                                          .OrderBy(cm => cm.Id)
+                                          .OrderBy(cm => cm.CreditMemoId)
                                           .ToListAsync(cancellationToken);
 
                         if (existingSiCms.Count > 0)
@@ -199,7 +199,7 @@ namespace Accounting_System.Controllers
                             var cmNo = new List<string>();
                             foreach (var item in existingSiCms)
                             {
-                                cmNo.Add(item.CMNo);
+                                cmNo.Add(item.CreditMemoNo);
                             }
                             ModelState.AddModelError("", $"Can’t proceed to create you have unposted CM. {string.Join(" , ", cmNo)}");
                             return View(model);
@@ -229,7 +229,7 @@ namespace Accounting_System.Controllers
 
                     #endregion --Validating the series--
 
-                    model.DMNo = generateDmNo;
+                    model.DebitMemoNo = generateDmNo;
                     model.CreatedBy = _userManager.GetUserName(this.User);
 
                     if (model.Source == "Sales Invoice")
@@ -248,7 +248,7 @@ namespace Accounting_System.Controllers
 
                         var services = await _dbContext
                         .Services
-                        .FirstOrDefaultAsync(s => s.Id == model.ServicesId, cancellationToken);
+                        .FirstOrDefaultAsync(s => s.ServiceId == model.ServicesId, cancellationToken);
 
                         #endregion --Retrieval of Services
 
@@ -260,7 +260,7 @@ namespace Accounting_System.Controllers
                     if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new debit memo# {model.DMNo}", "Debit Memo", ipAddress);
+                        AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new debit memo# {model.DebitMemoNo}", "Debit Memo", ipAddress);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -303,7 +303,7 @@ namespace Accounting_System.Controllers
                 .ThenInclude(sv => sv.Customer)
                 .Include(dm => dm.ServiceInvoice)
                 .ThenInclude(sv => sv.Service)
-                .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(r => r.DebitMemoId == id, cancellationToken);
             if (debitMemo == null)
             {
                 return NotFound();
@@ -323,7 +323,7 @@ namespace Accounting_System.Controllers
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                     var printedBy = _userManager.GetUserName(this.User);
-                    AuditTrail auditTrailBook = new(printedBy, $"Printed original copy of dm# {findIdOfDM.DMNo}", "Debit Memo", ipAddress);
+                    AuditTrail auditTrailBook = new(printedBy, $"Printed original copy of dm# {findIdOfDM.DebitMemoNo}", "Debit Memo", ipAddress);
                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                 }
 
@@ -355,7 +355,7 @@ namespace Accounting_System.Controllers
                         var arNonTradeReceivableTitle = accountTitlesDto.Find(c => c.AccountNumber == "101020500") ?? throw new ArgumentException("Account number: '101020500', Account title: 'AR-Non Trade Receivable' not found.");
                         var arTradeCwt = accountTitlesDto.Find(c => c.AccountNumber == "101020200") ?? throw new ArgumentException("Account number: '101020200', Account title: 'AR-Trade Receivable - Creditable Withholding Tax' not found.");
                         var arTradeCwv = accountTitlesDto.Find(c => c.AccountNumber == "101020300") ?? throw new ArgumentException("Account number: '101020300', Account title: 'AR-Trade Receivable - Creditable Withholding Vat' not found.");
-                        var (salesAcctNo, salesAcctTitle) = _generalRepo.GetSalesAccountTitle(model.SalesInvoice.Product.Code);
+                        var (salesAcctNo, salesAcctTitle) = _generalRepo.GetSalesAccountTitle(model.SalesInvoice.Product.ProductCode);
                         var salesTitle = accountTitlesDto.Find(c => c.AccountNumber == salesAcctNo) ?? throw new ArgumentException($"Account title '{salesAcctNo}' not found.");
                         var vatOutputTitle = accountTitlesDto.Find(c => c.AccountNumber == "201030100") ?? throw new ArgumentException("Account number: '201030100', Account title: 'Vat - Output' not found.");
 
@@ -368,7 +368,7 @@ namespace Accounting_System.Controllers
                                 .SalesInvoices
                                 .Include(c => c.Customer)
                                 .Include(s => s.Product)
-                                .FirstOrDefaultAsync(invoice => invoice.Id == model.SalesInvoiceId, cancellationToken);
+                                .FirstOrDefaultAsync(invoice => invoice.SalesInvoiceId == model.SalesInvoiceId, cancellationToken);
 
                             #endregion --Retrieval of SI
 
@@ -379,11 +379,11 @@ namespace Accounting_System.Controllers
                             if (model.SalesInvoice.Customer.CustomerType == "Vatable")
                             {
                                 sales.TransactionDate = model.TransactionDate;
-                                sales.SerialNo = model.DMNo;
-                                sales.SoldTo = model.SalesInvoice.Customer.Name;
-                                sales.TinNo = model.SalesInvoice.Customer.TinNo;
-                                sales.Address = model.SalesInvoice.Customer.Address;
-                                sales.Description = model.SalesInvoice.Product.Name;
+                                sales.SerialNo = model.DebitMemoNo;
+                                sales.SoldTo = model.SalesInvoice.Customer.CustomerName;
+                                sales.TinNo = model.SalesInvoice.Customer.CustomerTin;
+                                sales.Address = model.SalesInvoice.Customer.CustomerAddress;
+                                sales.Description = model.SalesInvoice.Product.ProductName;
                                 sales.Amount = model.DebitAmount;
                                 sales.VatableSales = _generalRepo.ComputeNetOfVat(sales.Amount);
                                 sales.VatAmount = _generalRepo.ComputeVatAmount(sales.VatableSales);
@@ -397,11 +397,11 @@ namespace Accounting_System.Controllers
                             else if (model.SalesInvoice.Customer.CustomerType == "Exempt")
                             {
                                 sales.TransactionDate = model.TransactionDate;
-                                sales.SerialNo = model.DMNo;
-                                sales.SoldTo = model.SalesInvoice.Customer.Name;
-                                sales.TinNo = model.SalesInvoice.Customer.TinNo;
-                                sales.Address = model.SalesInvoice.Customer.Address;
-                                sales.Description = model.SalesInvoice.Product.Name;
+                                sales.SerialNo = model.DebitMemoNo;
+                                sales.SoldTo = model.SalesInvoice.Customer.CustomerName;
+                                sales.TinNo = model.SalesInvoice.Customer.CustomerTin;
+                                sales.Address = model.SalesInvoice.Customer.CustomerAddress;
+                                sales.Description = model.SalesInvoice.Product.ProductName;
                                 sales.Amount = model.DebitAmount;
                                 sales.VatExemptSales = model.DebitAmount;
                                 //sales.Discount = model.Discount;
@@ -414,11 +414,11 @@ namespace Accounting_System.Controllers
                             else
                             {
                                 sales.TransactionDate = model.TransactionDate;
-                                sales.SerialNo = model.DMNo;
-                                sales.SoldTo = model.SalesInvoice.Customer.Name;
-                                sales.TinNo = model.SalesInvoice.Customer.TinNo;
-                                sales.Address = model.SalesInvoice.Customer.Address;
-                                sales.Description = model.SalesInvoice.Product.Name;
+                                sales.SerialNo = model.DebitMemoNo;
+                                sales.SoldTo = model.SalesInvoice.Customer.CustomerName;
+                                sales.TinNo = model.SalesInvoice.Customer.CustomerTin;
+                                sales.Address = model.SalesInvoice.Customer.CustomerAddress;
+                                sales.Description = model.SalesInvoice.Product.ProductName;
                                 sales.Amount = model.DebitAmount;
                                 sales.ZeroRated = model.DebitAmount;
                                 //sales.Discount = model.Discount;
@@ -462,8 +462,8 @@ namespace Accounting_System.Controllers
                                 new GeneralLedgerBook
                                 {
                                     Date = model.TransactionDate,
-                                    Reference = model.DMNo,
-                                    Description = model.SalesInvoice.Product.Name,
+                                    Reference = model.DebitMemoNo,
+                                    Description = model.SalesInvoice.Product.ProductName,
                                     AccountNo = arTradeReceivableTitle.AccountNumber,
                                     AccountTitle = arTradeReceivableTitle.AccountName,
                                     Debit = model.DebitAmount - (withHoldingTaxAmount + withHoldingVatAmount),
@@ -479,8 +479,8 @@ namespace Accounting_System.Controllers
                                     new GeneralLedgerBook
                                     {
                                         Date = model.TransactionDate,
-                                        Reference = model.DMNo,
-                                        Description = model.SalesInvoice.Product.Name,
+                                        Reference = model.DebitMemoNo,
+                                        Description = model.SalesInvoice.Product.ProductName,
                                         AccountNo = arTradeCwt.AccountNumber,
                                         AccountTitle = arTradeCwt.AccountNumber,
                                         Debit = withHoldingTaxAmount,
@@ -496,8 +496,8 @@ namespace Accounting_System.Controllers
                                     new GeneralLedgerBook
                                     {
                                         Date = model.TransactionDate,
-                                        Reference = model.DMNo,
-                                        Description = model.SalesInvoice.Product.Name,
+                                        Reference = model.DebitMemoNo,
+                                        Description = model.SalesInvoice.Product.ProductName,
                                         AccountNo = arTradeCwv.AccountNumber,
                                         AccountTitle = arTradeCwv.AccountName,
                                         Debit = withHoldingVatAmount,
@@ -511,8 +511,8 @@ namespace Accounting_System.Controllers
                                 new GeneralLedgerBook
                                 {
                                     Date = model.TransactionDate,
-                                    Reference = model.DMNo,
-                                    Description = model.SalesInvoice.Product.Name,
+                                    Reference = model.DebitMemoNo,
+                                    Description = model.SalesInvoice.Product.ProductName,
                                     AccountNo = salesTitle.AccountNumber,
                                     AccountTitle = salesTitle.AccountNumber,
                                     Debit = 0,
@@ -527,8 +527,8 @@ namespace Accounting_System.Controllers
                                     new GeneralLedgerBook
                                     {
                                         Date = model.TransactionDate,
-                                        Reference = model.DMNo,
-                                        Description = model.SalesInvoice.Product.Name,
+                                        Reference = model.DebitMemoNo,
+                                        Description = model.SalesInvoice.Product.ProductName,
                                         AccountNo = vatOutputTitle.AccountNumber,
                                         AccountTitle = vatOutputTitle.AccountName,
                                         Debit = 0,
@@ -554,7 +554,7 @@ namespace Accounting_System.Controllers
                             var existingSv = await _dbContext.ServiceInvoices
                                 .Include(sv => sv.Customer)
                                 .Include(sv => sv.Service)
-                                .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
+                                .FirstOrDefaultAsync(sv => sv.ServiceInvoiceId == model.ServiceInvoiceId, cancellationToken);
 
                             #region --SV Computation--
 
@@ -590,10 +590,10 @@ namespace Accounting_System.Controllers
                             if (model.ServiceInvoice.Customer.CustomerType == "Vatable")
                             {
                                 sales.TransactionDate = viewModelDMCM.Period;
-                                sales.SerialNo = model.DMNo;
-                                sales.SoldTo = model.ServiceInvoice.Customer.Name;
-                                sales.TinNo = model.ServiceInvoice.Customer.TinNo;
-                                sales.Address = model.ServiceInvoice.Customer.Address;
+                                sales.SerialNo = model.DebitMemoNo;
+                                sales.SoldTo = model.ServiceInvoice.Customer.CustomerName;
+                                sales.TinNo = model.ServiceInvoice.Customer.CustomerTin;
+                                sales.Address = model.ServiceInvoice.Customer.CustomerAddress;
                                 sales.Description = model.ServiceInvoice.Service.Name;
                                 sales.Amount = viewModelDMCM.Total;
                                 sales.VatAmount = viewModelDMCM.VatAmount;
@@ -603,15 +603,15 @@ namespace Accounting_System.Controllers
                                 sales.CreatedBy = model.CreatedBy;
                                 sales.CreatedDate = model.CreatedDate;
                                 sales.DueDate = existingSv.DueDate;
-                                sales.DocumentId = existingSv.Id;
+                                sales.DocumentId = existingSv.ServiceInvoiceId;
                             }
                             else if (model.ServiceInvoice.Customer.CustomerType == "Exempt")
                             {
                                 sales.TransactionDate = viewModelDMCM.Period;
-                                sales.SerialNo = model.DMNo;
-                                sales.SoldTo = model.ServiceInvoice.Customer.Name;
-                                sales.TinNo = model.ServiceInvoice.Customer.TinNo;
-                                sales.Address = model.ServiceInvoice.Customer.Address;
+                                sales.SerialNo = model.DebitMemoNo;
+                                sales.SoldTo = model.ServiceInvoice.Customer.CustomerName;
+                                sales.TinNo = model.ServiceInvoice.Customer.CustomerTin;
+                                sales.Address = model.ServiceInvoice.Customer.CustomerAddress;
                                 sales.Description = model.ServiceInvoice.Service.Name;
                                 sales.Amount = viewModelDMCM.Total;
                                 sales.VatExemptSales = viewModelDMCM.Total;
@@ -620,15 +620,15 @@ namespace Accounting_System.Controllers
                                 sales.CreatedBy = model.CreatedBy;
                                 sales.CreatedDate = model.CreatedDate;
                                 sales.DueDate = existingSv.DueDate;
-                                sales.DocumentId = existingSv.Id;
+                                sales.DocumentId = existingSv.ServiceInvoiceId;
                             }
                             else
                             {
                                 sales.TransactionDate = viewModelDMCM.Period;
-                                sales.SerialNo = model.DMNo;
-                                sales.SoldTo = model.ServiceInvoice.Customer.Name;
-                                sales.TinNo = model.ServiceInvoice.Customer.TinNo;
-                                sales.Address = model.ServiceInvoice.Customer.Address;
+                                sales.SerialNo = model.DebitMemoNo;
+                                sales.SoldTo = model.ServiceInvoice.Customer.CustomerName;
+                                sales.TinNo = model.ServiceInvoice.Customer.CustomerTin;
+                                sales.Address = model.ServiceInvoice.Customer.CustomerAddress;
                                 sales.Description = model.ServiceInvoice.Service.Name;
                                 sales.Amount = viewModelDMCM.Total;
                                 sales.ZeroRated = viewModelDMCM.Total;
@@ -637,7 +637,7 @@ namespace Accounting_System.Controllers
                                 sales.CreatedBy = model.CreatedBy;
                                 sales.CreatedDate = model.CreatedDate;
                                 sales.DueDate = existingSv.DueDate;
-                                sales.DocumentId = existingSv.Id;
+                                sales.DocumentId = existingSv.ServiceInvoiceId;
                             }
                             await _dbContext.AddAsync(sales, cancellationToken);
 
@@ -651,7 +651,7 @@ namespace Accounting_System.Controllers
                                     new GeneralLedgerBook
                                     {
                                         Date = model.TransactionDate,
-                                        Reference = model.DMNo,
+                                        Reference = model.DebitMemoNo,
                                         Description = model.ServiceInvoice.Service.Name,
                                         AccountNo = arNonTradeReceivableTitle.AccountNumber,
                                         AccountTitle = arNonTradeReceivableTitle.AccountName,
@@ -667,7 +667,7 @@ namespace Accounting_System.Controllers
                                     new GeneralLedgerBook
                                     {
                                         Date = model.TransactionDate,
-                                        Reference = model.DMNo,
+                                        Reference = model.DebitMemoNo,
                                         Description = model.ServiceInvoice.Service.Name,
                                         AccountNo = arTradeCwt.AccountNumber,
                                         AccountTitle = arTradeCwt.AccountName,
@@ -684,7 +684,7 @@ namespace Accounting_System.Controllers
                                     new GeneralLedgerBook
                                     {
                                         Date = model.TransactionDate,
-                                        Reference = model.DMNo,
+                                        Reference = model.DebitMemoNo,
                                         Description = model.ServiceInvoice.Service.Name,
                                         AccountNo = arTradeCwv.AccountNumber,
                                         AccountTitle = arTradeCwv.AccountName,
@@ -701,7 +701,7 @@ namespace Accounting_System.Controllers
                                 ledgers.Add(new GeneralLedgerBook
                                 {
                                     Date = model.TransactionDate,
-                                    Reference = model.DMNo,
+                                    Reference = model.DebitMemoNo,
                                     Description = model.ServiceInvoice.Service.Name,
                                     AccountNo = model.ServiceInvoice.Service.CurrentAndPreviousNo,
                                     AccountTitle = model.ServiceInvoice.Service.CurrentAndPreviousTitle,
@@ -718,7 +718,7 @@ namespace Accounting_System.Controllers
                                     new GeneralLedgerBook
                                     {
                                         Date = model.TransactionDate,
-                                        Reference = model.DMNo,
+                                        Reference = model.DebitMemoNo,
                                         Description = model.ServiceInvoice.Service.Name,
                                         AccountNo = vatOutputTitle.AccountNumber,
                                         AccountTitle = vatOutputTitle.AccountName,
@@ -745,7 +745,7 @@ namespace Accounting_System.Controllers
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(model.PostedBy, $"Posted debit memo# {model.DMNo}", "Debit Memo", ipAddress);
+                            AuditTrail auditTrailBook = new(model.PostedBy, $"Posted debit memo# {model.DebitMemoNo}", "Debit Memo", ipAddress);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -788,15 +788,15 @@ namespace Accounting_System.Controllers
                         model.VoidedBy = _userManager.GetUserName(this.User);
                         model.VoidedDate = DateTime.Now;
 
-                        await _generalRepo.RemoveRecords<SalesBook>(crb => crb.SerialNo == model.DMNo, cancellationToken);
-                        await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.DMNo, cancellationToken);
+                        await _generalRepo.RemoveRecords<SalesBook>(crb => crb.SerialNo == model.DebitMemoNo, cancellationToken);
+                        await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.DebitMemoNo, cancellationToken);
 
                         #region --Audit Trail Recording
 
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided debit memo# {model.DMNo}", "Debit Memo", ipAddress);
+                            AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided debit memo# {model.DebitMemoNo}", "Debit Memo", ipAddress);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -840,7 +840,7 @@ namespace Accounting_System.Controllers
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled debit memo# {model.DMNo}", "Debit Memo", ipAddress);
+                            AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled debit memo# {model.DebitMemoNo}", "Debit Memo", ipAddress);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -866,7 +866,7 @@ namespace Accounting_System.Controllers
         [HttpGet]
         public async Task<JsonResult> GetSVDetails(int svId, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.ServiceInvoices.FirstOrDefaultAsync(sv => sv.Id == svId, cancellationToken);
+            var model = await _dbContext.ServiceInvoices.FirstOrDefaultAsync(sv => sv.ServiceInvoiceId == svId, cancellationToken);
             if (model != null)
             {
                 return Json(new
@@ -893,7 +893,7 @@ namespace Accounting_System.Controllers
                 .ThenInclude(sv => sv.Customer)
                 .Include(cm => cm.ServiceInvoice)
                 .ThenInclude(sv => sv.Service)
-                .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(r => r.DebitMemoId == id, cancellationToken);
 
             if (debitMemo == null)
             {
@@ -904,16 +904,16 @@ namespace Accounting_System.Controllers
                 .Where(si => si.IsPosted)
                 .Select(si => new SelectListItem
                 {
-                    Value = si.Id.ToString(),
-                    Text = si.SINo
+                    Value = si.SalesInvoiceId.ToString(),
+                    Text = si.SalesInvoiceNo
                 })
                 .ToListAsync(cancellationToken);
             debitMemo.ServiceInvoices = await _dbContext.ServiceInvoices
                 .Where(sv => sv.IsPosted)
                 .Select(sv => new SelectListItem
                 {
-                    Value = sv.Id.ToString(),
-                    Text = sv.SVNo
+                    Value = sv.ServiceInvoiceId.ToString(),
+                    Text = sv.ServiceInvoiceNo
                 })
                 .ToListAsync(cancellationToken);
 
@@ -925,7 +925,7 @@ namespace Accounting_System.Controllers
         {
             var existingSv = await _dbContext.ServiceInvoices
                 .Include(sv => sv.Customer)
-                .FirstOrDefaultAsync(sv => sv.Id == model.ServiceInvoiceId, cancellationToken);
+                .FirstOrDefaultAsync(sv => sv.ServiceInvoiceId == model.ServiceInvoiceId, cancellationToken);
 
             var existingDM = await _dbContext.DebitMemos
                 .Include(cm => cm.SalesInvoice)
@@ -933,7 +933,7 @@ namespace Accounting_System.Controllers
                 .ThenInclude(sv => sv.Customer)
                 .Include(cm => cm.ServiceInvoice)
                 .ThenInclude(sv => sv.Service)
-                .FirstOrDefaultAsync(r => r.Id == model.Id, cancellationToken);
+                .FirstOrDefaultAsync(r => r.DebitMemoId == model.DebitMemoId, cancellationToken);
 
             if (ModelState.IsValid)
             {
@@ -980,7 +980,7 @@ namespace Accounting_System.Controllers
                         if (existingDM.OriginalSeriesNumber.IsNullOrEmpty() && existingDM.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit debit memo# {existingDM.DMNo}", "Debit Memo", ipAddress);
+                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit debit memo# {existingDM.DebitMemoNo}", "Debit Memo", ipAddress);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -1003,16 +1003,16 @@ namespace Accounting_System.Controllers
                      .Where(si => si.IsPosted)
                      .Select(si => new SelectListItem
                      {
-                         Value = si.Id.ToString(),
-                         Text = si.SINo
+                         Value = si.SalesInvoiceId.ToString(),
+                         Text = si.SalesInvoiceNo
                      })
                      .ToListAsync(cancellationToken);
                  existingDM.ServiceInvoices = await _dbContext.ServiceInvoices
                      .Where(sv => sv.IsPosted)
                      .Select(sv => new SelectListItem
                      {
-                         Value = sv.Id.ToString(),
-                         Text = sv.SVNo
+                         Value = sv.ServiceInvoiceId.ToString(),
+                         Text = sv.ServiceInvoiceNo
                      })
                      .ToListAsync(cancellationToken);
                  TempData["error"] = ex.Message;
@@ -1025,16 +1025,16 @@ namespace Accounting_System.Controllers
                 .Where(si => si.IsPosted)
                 .Select(si => new SelectListItem
                 {
-                    Value = si.Id.ToString(),
-                    Text = si.SINo
+                    Value = si.SalesInvoiceId.ToString(),
+                    Text = si.SalesInvoiceNo
                 })
                 .ToListAsync(cancellationToken);
             existingDM.ServiceInvoices = await _dbContext.ServiceInvoices
                 .Where(sv => sv.IsPosted)
                 .Select(sv => new SelectListItem
                 {
-                    Value = sv.Id.ToString(),
-                    Text = sv.SVNo
+                    Value = sv.ServiceInvoiceId.ToString(),
+                    Text = sv.ServiceInvoiceNo
                 })
                 .ToListAsync(cancellationToken);
             return View(existingDM);
@@ -1059,10 +1059,10 @@ namespace Accounting_System.Controllers
 
                 // Retrieve the selected invoices from the database
                 var selectedList = await _dbContext.DebitMemos
-                    .Where(dm => recordIds.Contains(dm.Id))
+                    .Where(dm => recordIds.Contains(dm.DebitMemoId))
                     .Include(dm => dm.SalesInvoice)
                     .Include(dm => dm.ServiceInvoice)
-                    .OrderBy(dm => dm.DMNo)
+                    .OrderBy(dm => dm.DebitMemoNo)
                     .ToListAsync();
 
                 // Create the Excel package
@@ -1172,9 +1172,9 @@ namespace Accounting_System.Controllers
                         worksheet.Cells[row, 14].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
                         worksheet.Cells[row, 15].Value = item.CancellationRemarks;
                         worksheet.Cells[row, 16].Value = item.SalesInvoiceId;
-                        worksheet.Cells[row, 17].Value = item.DMNo;
+                        worksheet.Cells[row, 17].Value = item.DebitMemoNo;
                         worksheet.Cells[row, 18].Value = item.ServiceInvoiceId;
-                        worksheet.Cells[row, 19].Value = item.Id;
+                        worksheet.Cells[row, 19].Value = item.DebitMemoId;
 
                         row++;
                     }
@@ -1209,8 +1209,8 @@ namespace Accounting_System.Controllers
                         worksheet2.Cells[siRow, 16].Value = item.SalesInvoice.CancellationRemarks;
                         worksheet2.Cells[siRow, 18].Value = item.SalesInvoice.CustomerId;
                         worksheet2.Cells[siRow, 20].Value = item.SalesInvoice.ProductId;
-                        worksheet2.Cells[siRow, 21].Value = item.SalesInvoice.SINo;
-                        worksheet2.Cells[siRow, 22].Value = item.SalesInvoice.Id;
+                        worksheet2.Cells[siRow, 21].Value = item.SalesInvoice.SalesInvoiceNo;
+                        worksheet2.Cells[siRow, 22].Value = item.SalesInvoice.SalesInvoiceId;
 
                         siRow++;
                     }
@@ -1243,9 +1243,9 @@ namespace Accounting_System.Controllers
                         worksheet3.Cells[svRow, 14].Value = item.ServiceInvoice.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
                         worksheet3.Cells[svRow, 15].Value = item.ServiceInvoice.CancellationRemarks;
                         worksheet3.Cells[svRow, 16].Value = item.ServiceInvoice.CustomerId;
-                        worksheet3.Cells[svRow, 17].Value = item.ServiceInvoice.SVNo;
+                        worksheet3.Cells[svRow, 17].Value = item.ServiceInvoice.ServiceInvoiceNo;
                         worksheet3.Cells[svRow, 18].Value = item.ServiceInvoice.ServicesId;
-                        worksheet3.Cells[svRow, 19].Value = item.ServiceInvoice.Id;
+                        worksheet3.Cells[svRow, 19].Value = item.ServiceInvoice.ServiceInvoiceId;
 
                         svRow++;
                     }
@@ -1325,7 +1325,7 @@ namespace Accounting_System.Controllers
                             }
                             var invoice = new SalesInvoice
                             {
-                                SINo = worksheet2.Cells[row, 21].Text,
+                                SalesInvoiceNo = worksheet2.Cells[row, 21].Text,
                                 OtherRefNo = worksheet2.Cells[row, 1].Text,
                                 Quantity = decimal.TryParse(worksheet2.Cells[row, 2].Text, out decimal quantity)
                                     ? quantity
@@ -1391,9 +1391,9 @@ namespace Accounting_System.Controllers
                                 var siChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
                                 var existingSI = await _dbContext.SalesInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == invoice.OriginalDocumentId, cancellationToken);
 
-                                if (existingSI.SINo.TrimStart().TrimEnd() != worksheet2.Cells[row, 21].Text.TrimStart().TrimEnd())
+                                if (existingSI.SalesInvoiceNo.TrimStart().TrimEnd() != worksheet2.Cells[row, 21].Text.TrimStart().TrimEnd())
                                 {
-                                    siChanges["SiNo"] = (existingSI.SINo.TrimStart().TrimEnd(), worksheet2.Cells[row, 21].Text.TrimStart().TrimEnd())!;
+                                    siChanges["SiNo"] = (existingSI.SalesInvoiceNo.TrimStart().TrimEnd(), worksheet2.Cells[row, 21].Text.TrimStart().TrimEnd())!;
                                 }
 
                                 if (existingSI.OriginalCustomerId.ToString().TrimStart().TrimEnd() != worksheet2.Cells[row, 18].Text.TrimStart().TrimEnd())
@@ -1490,13 +1490,13 @@ namespace Accounting_System.Controllers
                                 if (!invoice.CreatedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(invoice.CreatedBy, $"Create new invoice# {invoice.SINo}", "Sales Invoice", ipAddress, invoice.CreatedDate);
+                                    AuditTrail auditTrailBook = new(invoice.CreatedBy, $"Create new invoice# {invoice.SalesInvoiceNo}", "Sales Invoice", ipAddress, invoice.CreatedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
                                 if (!invoice.PostedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(invoice.PostedBy, $"Posted invoice# {invoice.SINo}", "Sales Invoice", ipAddress, invoice.PostedDate);
+                                    AuditTrail auditTrailBook = new(invoice.PostedBy, $"Posted invoice# {invoice.SalesInvoiceNo}", "Sales Invoice", ipAddress, invoice.PostedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
 
@@ -1505,12 +1505,12 @@ namespace Accounting_System.Controllers
 
                             invoice.CustomerId = await _dbContext.Customers
                                                      .Where(c => c.OriginalCustomerId == invoice.OriginalCustomerId)
-                                                     .Select(c => (int?)c.Id)
+                                                     .Select(c => (int?)c.CustomerId)
                                                      .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
 
                             invoice.ProductId = await _dbContext.Products
                                                     .Where(c => c.OriginalProductId == invoice.OriginalProductId)
-                                                    .Select(c => (int?)c.Id)
+                                                    .Select(c => (int?)c.ProductId)
                                                     .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the product master file first.");
 
                             await _dbContext.SalesInvoices.AddAsync(invoice, cancellationToken);
@@ -1536,7 +1536,7 @@ namespace Accounting_System.Controllers
                             }
                             var serviceInvoice = new ServiceInvoice
                             {
-                                SVNo = worksheet3.Cells[row, 17].Text,
+                                ServiceInvoiceNo = worksheet3.Cells[row, 17].Text,
                                 DueDate = DateOnly.TryParse(worksheet3.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
                                 Period = DateOnly.TryParse(worksheet3.Cells[row, 2].Text, out DateOnly period) ? period : default,
                                 Amount = decimal.TryParse(worksheet3.Cells[row, 3].Text, out decimal amount) ? amount : 0,
@@ -1570,9 +1570,9 @@ namespace Accounting_System.Controllers
                                 var svChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
                                 var existingSV = await _dbContext.ServiceInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == serviceInvoice.OriginalDocumentId, cancellationToken);
 
-                                if (existingSV.SVNo.TrimStart().TrimEnd() != worksheet3.Cells[row, 17].Text.TrimStart().TrimEnd())
+                                if (existingSV.ServiceInvoiceNo.TrimStart().TrimEnd() != worksheet3.Cells[row, 17].Text.TrimStart().TrimEnd())
                                 {
-                                    svChanges["SvNo"] = (existingSV.SVNo.TrimStart().TrimEnd(), worksheet3.Cells[row, 17].Text.TrimStart().TrimEnd())!;
+                                    svChanges["SvNo"] = (existingSV.ServiceInvoiceNo.TrimStart().TrimEnd(), worksheet3.Cells[row, 17].Text.TrimStart().TrimEnd())!;
                                 }
 
                                 if (existingSV.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet3.Cells[row, 1].Text.TrimStart().TrimEnd())
@@ -1669,13 +1669,13 @@ namespace Accounting_System.Controllers
                                 if (!serviceInvoice.CreatedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(serviceInvoice.CreatedBy, $"Create new service invoice# {serviceInvoice.SVNo}", "Service Invoice", ipAddress, serviceInvoice.CreatedDate);
+                                    AuditTrail auditTrailBook = new(serviceInvoice.CreatedBy, $"Create new service invoice# {serviceInvoice.ServiceInvoiceNo}", "Service Invoice", ipAddress, serviceInvoice.CreatedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
                                 if (!serviceInvoice.PostedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(serviceInvoice.PostedBy, $"Posted service invoice# {serviceInvoice.SVNo}", "Service Invoice", ipAddress, serviceInvoice.PostedDate);
+                                    AuditTrail auditTrailBook = new(serviceInvoice.PostedBy, $"Posted service invoice# {serviceInvoice.ServiceInvoiceNo}", "Service Invoice", ipAddress, serviceInvoice.PostedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
 
@@ -1684,12 +1684,12 @@ namespace Accounting_System.Controllers
 
                             serviceInvoice.CustomerId = await _dbContext.Customers
                                 .Where(sv => sv.OriginalCustomerId == serviceInvoice.OriginalCustomerId)
-                                .Select(sv => (int?)sv.Id)
+                                .Select(sv => (int?)sv.CustomerId)
                                 .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
 
                             serviceInvoice.ServicesId = await _dbContext.Services
                                 .Where(sv => sv.OriginalServiceId == serviceInvoice.OriginalServicesId)
-                                .Select(sv => (int?)sv.Id)
+                                .Select(sv => (int?)sv.ServiceId)
                                 .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the service master file first.");
 
                             await _dbContext.ServiceInvoices.AddAsync(serviceInvoice, cancellationToken);
@@ -1710,7 +1710,7 @@ namespace Accounting_System.Controllers
                         {
                             var debitMemo = new DebitMemo
                             {
-                                DMNo = worksheet.Cells[row, 17].Text,
+                                DebitMemoNo = worksheet.Cells[row, 17].Text,
                                 TransactionDate =
                                     DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly transactionDate)
                                         ? transactionDate
@@ -1779,9 +1779,9 @@ namespace Accounting_System.Controllers
                                 var dmChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
                                 var existingDM = await _dbContext.DebitMemos.FirstOrDefaultAsync(si => si.OriginalDocumentId == debitMemo.OriginalDocumentId, cancellationToken);
 
-                                if (existingDM.DMNo.TrimStart().TrimEnd() != worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())
+                                if (existingDM.DebitMemoNo.TrimStart().TrimEnd() != worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())
                                 {
-                                    dmChanges["DMNo"] = (existingDM.DMNo.TrimStart().TrimEnd(), worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())!;
+                                    dmChanges["DMNo"] = (existingDM.DebitMemoNo.TrimStart().TrimEnd(), worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())!;
                                 }
 
                                 if (existingDM.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())
@@ -1898,13 +1898,13 @@ namespace Accounting_System.Controllers
                                 if (!debitMemo.CreatedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(debitMemo.CreatedBy, $"Create new debit memo# {debitMemo.DMNo}", "Debit Memo", ipAddress, debitMemo.CreatedDate);
+                                    AuditTrail auditTrailBook = new(debitMemo.CreatedBy, $"Create new debit memo# {debitMemo.DebitMemoNo}", "Debit Memo", ipAddress, debitMemo.CreatedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
                                 if (!debitMemo.PostedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(debitMemo.PostedBy, $"Posted debit memo# {debitMemo.DMNo}", "Debit Memo", ipAddress, debitMemo.PostedDate);
+                                    AuditTrail auditTrailBook = new(debitMemo.PostedBy, $"Posted debit memo# {debitMemo.DebitMemoNo}", "Debit Memo", ipAddress, debitMemo.PostedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
 
@@ -1913,12 +1913,12 @@ namespace Accounting_System.Controllers
 
                             debitMemo.SalesInvoiceId = await _dbContext.SalesInvoices
                                 .Where(c => c.OriginalDocumentId == debitMemo.OriginalSalesInvoiceId)
-                                .Select(c => (int?)c.Id)
+                                .Select(c => (int?)c.SalesInvoiceId)
                                 .FirstOrDefaultAsync(cancellationToken);
 
                             debitMemo.ServiceInvoiceId = await _dbContext.ServiceInvoices
                                 .Where(c => c.OriginalDocumentId == debitMemo.OriginalServiceInvoiceId)
-                                .Select(c => (int?)c.Id)
+                                .Select(c => (int?)c.ServiceInvoiceId)
                                 .FirstOrDefaultAsync(cancellationToken);
 
                             if (debitMemo.SalesInvoiceId == null && debitMemo.ServiceInvoiceId == null)

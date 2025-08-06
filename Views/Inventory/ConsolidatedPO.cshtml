@@ -1,11 +1,10 @@
-﻿@using Accounting_System.Models.ViewModels
-@model IEnumerable<Inventory>
+﻿@model IEnumerable<Inventory>
 
 @{
     ViewData["Title"] = "Inventory Report";
-    decimal totalAmount = 0m;
-    decimal totalQty = 0m;
-    decimal totalPrice = 0m;
+    var totalAmount = 0m;
+    var totalQty = 0m;
+    var totalPrice = 0m;
 }
 
 <div class="mb-3">
@@ -34,9 +33,9 @@
                 var distinctInventoryReport = Model.Select(ir => new { ir.ProductId }).Distinct().ToList();
                 foreach (var poId in distinctInventoryReport)
                 {
-                    var inventoryWithSamePOId = Model.Where(ir => ir.ProductId == poId.ProductId).ToList();
+                    var inventoryWithSamePoId = Model.Where(ir => ir.ProductId == poId.ProductId).ToList();
 
-                    foreach (var inventory in inventoryWithSamePOId)
+                    foreach (var inventory in inventoryWithSamePoId)
                     {
                         if (inventory.Particular.StartsWith("Sales") || inventory.Particular.StartsWith("Actual Inventory(Loss)"))
                         {
@@ -44,9 +43,9 @@
                             totalQty -= inventory.Quantity;
                             totalPrice = totalAmount != 0 && totalQty != 0 ? totalAmount / totalQty : inventory.Cost;
                             <tr>
-                                @if (inventory == inventoryWithSamePOId.First())
+                                @if (inventory == inventoryWithSamePoId.First())
                                 {
-                                    <td rowspan="@inventoryWithSamePOId.Count"> @Html.DisplayFor(model => inventory.Product.Name) </td>
+                                    <td rowspan="@inventoryWithSamePoId.Count"> @Html.DisplayFor(model => inventory.Product.ProductName) </td>
                                 }
                                 <td>@inventory.Date.ToString("MM/dd/yyyy")</td>
                                 <td>@Html.DisplayFor(model => inventory.Particular)</td>
@@ -75,9 +74,9 @@
                             totalQty += inventory.Quantity;
                             totalPrice = totalAmount != 0 && totalQty != 0 ? totalAmount / totalQty : inventory.Cost;
                             <tr>
-                                @if (inventory == inventoryWithSamePOId.First())
+                                @if (inventory == inventoryWithSamePoId.First())
                                 {
-                                    <td rowspan="@inventoryWithSamePOId.Count"> @Html.DisplayFor(model => inventory.Product.Name) </td>
+                                    <td rowspan="@inventoryWithSamePoId.Count"> @Html.DisplayFor(model => inventory.Product.ProductName) </td>
                                 }
                                 <td>@inventory.Date.ToString("MM/dd/yyyy")</td>
                                 <td>@Html.DisplayFor(model => inventory.Particular)</td>

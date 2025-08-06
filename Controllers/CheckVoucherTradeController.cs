@@ -83,9 +83,9 @@ namespace Accounting_System.Controllers
 
                     checkVoucherHeaders = checkVoucherHeaders
                         .Where(cv =>
-                            cv.CVNo.ToLower().Contains(searchValue) ||
+                            cv.CheckVoucherHeaderNo.ToLower().Contains(searchValue) ||
                             cv.Date.ToString(CS.Date_Format).ToLower().Contains(searchValue) ||
-                            cv.Supplier?.Name.ToLower().Contains(searchValue) == true ||
+                            cv.Supplier?.SupplierName.ToLower().Contains(searchValue) == true ||
                             cv.Total.ToString().Contains(searchValue) ||
                             cv.Amount?.ToString()?.Contains(searchValue) == true ||
                             cv.AmountPaid.ToString().Contains(searchValue) ||
@@ -151,16 +151,16 @@ namespace Accounting_System.Controllers
                 .OrderBy(supp => supp.Number)
                 .Select(sup => new SelectListItem
                 {
-                    Value = sup.Id.ToString(),
-                    Text = sup.Name
+                    Value = sup.SupplierId.ToString(),
+                    Text = sup.SupplierName
                 })
                 .ToListAsync();
 
             model.BankAccounts = await _dbContext.BankAccounts
                 .Select(ba => new SelectListItem
                 {
-                    Value = ba.Id.ToString(),
-                    Text = ba.BankCode + " " + ba.AccountName
+                    Value = ba.BankAccountId.ToString(),
+                    Text = ba.Bank + " " + ba.AccountName
                 })
                 .ToListAsync();
 
@@ -199,8 +199,8 @@ namespace Accounting_System.Controllers
                                 .Where(supp => supp.Category == "Trade")
                                 .Select(sup => new SelectListItem
                                 {
-                                    Value = sup.Id.ToString(),
-                                    Text = sup.Name
+                                    Value = sup.SupplierId.ToString(),
+                                    Text = sup.SupplierName
                                 })
                                 .ToListAsync();
 
@@ -208,16 +208,16 @@ namespace Accounting_System.Controllers
                                 .Where(po => po.SupplierId == viewModel.SupplierId && po.IsPosted)
                                 .Select(po => new SelectListItem
                                 {
-                                    Value = po.PONo.ToString(),
-                                    Text = po.PONo
+                                    Value = po.PurchaseOrderNo.ToString(),
+                                    Text = po.PurchaseOrderNo
                                 })
                                 .ToListAsync(cancellationToken);
 
                             viewModel.BankAccounts = await _dbContext.BankAccounts
                                 .Select(ba => new SelectListItem
                                 {
-                                    Value = ba.Id.ToString(),
-                                    Text = ba.BankCode + " " + ba.AccountName
+                                    Value = ba.BankAccountId.ToString(),
+                                    Text = ba.Bank + " " + ba.AccountName
                                 })
                                 .ToListAsync();
 
@@ -232,14 +232,14 @@ namespace Accounting_System.Controllers
 
                     var supplier = await _dbContext
                                 .Suppliers
-                                .FirstOrDefaultAsync(po => po.Id == viewModel.SupplierId, cancellationToken);
+                                .FirstOrDefaultAsync(po => po.SupplierId == viewModel.SupplierId, cancellationToken);
 
                     #endregion --Retrieve Supplier
 
                     #region -- Get PO --
 
                     var getPurchaseOrder = await _dbContext.PurchaseOrders
-                                                    .Where(po => viewModel.POSeries.Contains(po.PONo))
+                                                    .Where(po => viewModel.POSeries.Contains(po.PurchaseOrderNo))
                                                     .FirstOrDefaultAsync();
 
                     #endregion -- Get PO --
@@ -250,7 +250,7 @@ namespace Accounting_System.Controllers
                     var cashInBank = viewModel.Credit[1];
                     var cvh = new CheckVoucherHeader
                     {
-                        CVNo = generateCVNo,
+                        CheckVoucherHeaderNo = generateCVNo,
                         Date = viewModel.TransactionDate,
                         PONo = viewModel.POSeries,
                         SupplierId = viewModel.SupplierId,
@@ -286,8 +286,8 @@ namespace Accounting_System.Controllers
                                 AccountName = viewModel.AccountTitle[i],
                                 Debit = viewModel.Debit[i],
                                 Credit = viewModel.Credit[i],
-                                TransactionNo = cvh.CVNo,
-                                CVHeaderId = cvh.Id,
+                                TransactionNo = cvh.CheckVoucherHeaderNo,
+                                CheckVoucherHeaderId = cvh.CheckVoucherHeaderId,
                                 SupplierId = i == 0 ? viewModel.SupplierId : null
                             });
                         }
@@ -308,9 +308,9 @@ namespace Accounting_System.Controllers
                         cvTradePaymentModel.Add(
                             new CVTradePayment
                             {
-                                DocumentId = getReceivingReport.Id,
+                                DocumentId = getReceivingReport.ReceivingReportId,
                                 DocumentType = "RR",
-                                CheckVoucherId = cvh.Id,
+                                CheckVoucherId = cvh.CheckVoucherHeaderId,
                                 AmountPaid = item.Amount
                             });
                     }
@@ -324,7 +324,7 @@ namespace Accounting_System.Controllers
                     if (file != null && file.Length > 0)
                     {
                         string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Supporting CV Files",
-                            cvh.CVNo);
+                            cvh.CheckVoucherHeaderNo);
 
                         if (!Directory.Exists(uploadsFolder))
                         {
@@ -349,7 +349,7 @@ namespace Accounting_System.Controllers
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                         AuditTrail auditTrailBook = new(cvh.CreatedBy,
-                            $"Create new check voucher# {cvh.CVNo}", "Check Voucher Trade", ipAddress);
+                            $"Create new check voucher# {cvh.CheckVoucherHeaderNo}", "Check Voucher Trade", ipAddress);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -379,8 +379,8 @@ namespace Accounting_System.Controllers
                             .Where(supp => supp.Category == "Trade")
                             .Select(sup => new SelectListItem
                             {
-                                Value = sup.Id.ToString(),
-                                Text = sup.Name
+                                Value = sup.SupplierId.ToString(),
+                                Text = sup.SupplierName
                             })
                             .ToListAsync();
 
@@ -388,16 +388,16 @@ namespace Accounting_System.Controllers
                                 .Where(po => po.SupplierId == viewModel.SupplierId && po.IsPosted)
                                 .Select(po => new SelectListItem
                                 {
-                                    Value = po.PONo.ToString(),
-                                    Text = po.PONo
+                                    Value = po.PurchaseOrderNo.ToString(),
+                                    Text = po.PurchaseOrderNo
                                 })
                                 .ToListAsync(cancellationToken);
 
                     viewModel.BankAccounts = await _dbContext.BankAccounts
                         .Select(ba => new SelectListItem
                         {
-                            Value = ba.Id.ToString(),
-                            Text = ba.BankCode + " " + ba.AccountName
+                            Value = ba.BankAccountId.ToString(),
+                            Text = ba.Bank + " " + ba.AccountName
                         })
                         .ToListAsync();
 
@@ -419,8 +419,8 @@ namespace Accounting_System.Controllers
                 .Where(supp => supp.Category == "Trade")
                 .Select(sup => new SelectListItem
                 {
-                    Value = sup.Id.ToString(),
-                    Text = sup.Name
+                    Value = sup.SupplierId.ToString(),
+                    Text = sup.SupplierName
                 })
                 .ToListAsync();
 
@@ -428,16 +428,16 @@ namespace Accounting_System.Controllers
                 .Where(po => po.SupplierId == viewModel.SupplierId && po.IsPosted)
                 .Select(po => new SelectListItem
                 {
-                    Value = po.PONo.ToString(),
-                    Text = po.PONo
+                    Value = po.PurchaseOrderNo.ToString(),
+                    Text = po.PurchaseOrderNo
                 })
                 .ToListAsync(cancellationToken);
 
             viewModel.BankAccounts = await _dbContext.BankAccounts
                 .Select(ba => new SelectListItem
                 {
-                    Value = ba.Id.ToString(),
-                    Text = ba.BankCode + " " + ba.AccountName
+                    Value = ba.BankAccountId.ToString(),
+                    Text = ba.Bank + " " + ba.AccountName
                 })
                 .ToListAsync();
 
@@ -453,8 +453,8 @@ namespace Accounting_System.Controllers
 
             if (purchaseOrders != null && purchaseOrders.Any())
             {
-                var poList = purchaseOrders.OrderBy(po => po.PONo)
-                                        .Select(po => new { Id = po.Id, PONumber = po.PONo })
+                var poList = purchaseOrders.OrderBy(po => po.PurchaseOrderNo)
+                                        .Select(po => new { Id = po.PurchaseOrderId, PONumber = po.PurchaseOrderNo })
                                         .ToList();
                 return Json(poList);
             }
@@ -477,13 +477,13 @@ namespace Accounting_System.Controllers
                     .ToListAsync(cancellationToken);
 
                 query = query.Union(_dbContext.ReceivingReports
-                    .Where(rr => poNumber.Contains(rr.PONo) && rrIds.Contains(rr.Id)));
+                    .Where(rr => poNumber.Contains(rr.PONo) && rrIds.Contains(rr.ReceivingReportId)));
             }
 
             var receivingReports = await query
                 .Include(rr => rr.PurchaseOrder)
                 .ThenInclude(rr => rr.Supplier)
-                .OrderBy(rr => rr.RRNo)
+                .OrderBy(rr => rr.ReceivingReportNo)
                 .ToListAsync(cancellationToken);
 
             if (receivingReports.Any())
@@ -501,8 +501,8 @@ namespace Accounting_System.Controllers
                             : netOfVatAmount;
 
                         return new {
-                            Id = rr.Id,
-                            ReceivingReportNo = rr.RRNo,
+                            Id = rr.ReceivingReportId,
+                            ReceivingReportNo = rr.ReceivingReportNo,
                             AmountPaid = rr.AmountPaid.ToString(CS.Two_Decimal_Format),
                             NetOfEwtAmount = netOfEwtAmount.ToString(CS.Two_Decimal_Format)
                         };
@@ -524,9 +524,9 @@ namespace Accounting_System.Controllers
                 {
                     return Json(new
                     {
-                        Name = supplier.Name,
-                        Address = supplier.Address,
-                        TinNo = supplier.TinNo,
+                        Name = supplier.SupplierName,
+                        Address = supplier.SupplierAddress,
+                        TinNo = supplier.SupplierTin,
                         TaxType = supplier.TaxType,
                         Category = supplier.Category,
                         TaxPercent = supplier.WithholdingTaxPercent,
@@ -549,10 +549,10 @@ namespace Accounting_System.Controllers
             }
 
             var existingHeaderModel = await _dbContext.CheckVoucherHeaders
-                .FirstOrDefaultAsync(cvh => cvh.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(cvh => cvh.CheckVoucherHeaderId == id, cancellationToken);
 
             var existingDetailsModel = await _dbContext.CheckVoucherDetails
-                .Where(cvd => cvd.CVHeaderId == existingHeaderModel.Id)
+                .Where(cvd => cvd.CheckVoucherHeaderId == existingHeaderModel.CheckVoucherHeaderId)
                 .ToListAsync(cancellationToken);
 
             if (existingHeaderModel == null || existingDetailsModel == null)
@@ -572,8 +572,8 @@ namespace Accounting_System.Controllers
                 CheckNo = existingHeaderModel.CheckNo,
                 CheckDate = existingHeaderModel.CheckDate ?? DateOnly.MinValue,
                 Particulars = existingHeaderModel.Particulars,
-                CVId = existingHeaderModel.Id,
-                CVNo = existingHeaderModel.CVNo,
+                CVId = existingHeaderModel.CheckVoucherHeaderId,
+                CVNo = existingHeaderModel.CheckVoucherHeaderNo,
                 CreatedBy = _userManager.GetUserName(this.User),
                 RRs = new List<ReceivingReportList>()
             };
@@ -583,8 +583,8 @@ namespace Accounting_System.Controllers
                 .OrderBy(supp => supp.Number)
                 .Select(sup => new SelectListItem
                 {
-                    Value = sup.Id.ToString(),
-                    Text = sup.Name
+                    Value = sup.SupplierId.ToString(),
+                    Text = sup.SupplierName
                 })
                 .ToListAsync();
 
@@ -611,19 +611,19 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             model.PONo = await _dbContext.PurchaseOrders
-                .OrderBy(s => s.PONo)
+                .OrderBy(s => s.PurchaseOrderNo)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.PONo,
-                    Text = s.PONo
+                    Value = s.PurchaseOrderNo,
+                    Text = s.PurchaseOrderNo
                 })
                 .ToListAsync(cancellationToken);
 
             model.BankAccounts = await _dbContext.BankAccounts
                 .Select(ba => new SelectListItem
                 {
-                    Value = ba.Id.ToString(),
-                    Text = ba.BankCode + " " + ba.AccountName
+                    Value = ba.BankAccountId.ToString(),
+                    Text = ba.Bank + " " + ba.AccountName
                 })
                 .ToListAsync();
 
@@ -636,13 +636,13 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-                var existingHeaderModel = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cv => cv.Id == viewModel.CVId, cancellationToken);
+                var existingHeaderModel = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cv => cv.CheckVoucherHeaderId == viewModel.CVId, cancellationToken);
 
                 try
                 {
                     #region --CV Details Entry
 
-                    var existingDetailsModel = await _dbContext.CheckVoucherDetails.Where(d => d.CVHeaderId == existingHeaderModel.Id).ToListAsync();
+                    var existingDetailsModel = await _dbContext.CheckVoucherDetails.Where(d => d.CheckVoucherHeaderId == existingHeaderModel.CheckVoucherHeaderId).ToListAsync();
 
                     _dbContext.RemoveRange(existingDetailsModel);
                     await _dbContext.SaveChangesAsync(cancellationToken);
@@ -660,8 +660,8 @@ namespace Accounting_System.Controllers
                             AccountName = viewModel.AccountTitle[i],
                             Debit = viewModel.Debit[i],
                             Credit = viewModel.Credit[i],
-                            TransactionNo = existingHeaderModel.CVNo,
-                            CVHeaderId = viewModel.CVId,
+                            TransactionNo = existingHeaderModel.CheckVoucherHeaderNo,
+                            CheckVoucherHeaderId = viewModel.CVId,
                             SupplierId = i == 0 ? viewModel.SupplierId : null
                         });
                     }
@@ -692,7 +692,7 @@ namespace Accounting_System.Controllers
                     #region -- Partial payment of RR's
 
                     var getCheckVoucherTradePayment = await _dbContext.CVTradePayments
-                        .Where(cv => cv.CheckVoucherId == existingHeaderModel.Id && cv.DocumentType == "RR")
+                        .Where(cv => cv.CheckVoucherId == existingHeaderModel.CheckVoucherHeaderId && cv.DocumentType == "RR")
                         .ToListAsync(cancellationToken);
 
                     foreach (var item in getCheckVoucherTradePayment)
@@ -714,9 +714,9 @@ namespace Accounting_System.Controllers
                         cvTradePaymentModel.Add(
                             new CVTradePayment
                             {
-                                DocumentId = getReceivingReport.Id,
+                                DocumentId = getReceivingReport.ReceivingReportId,
                                 DocumentType = "RR",
-                                CheckVoucherId = existingHeaderModel.Id,
+                                CheckVoucherId = existingHeaderModel.CheckVoucherHeaderId,
                                 AmountPaid = item.Amount
                             });
                     }
@@ -731,7 +731,7 @@ namespace Accounting_System.Controllers
                     if (file != null && file.Length > 0)
                     {
                         string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Supporting CV Files",
-                            existingHeaderModel.CVNo);
+                            existingHeaderModel.CheckVoucherHeaderNo);
 
                         if (!Directory.Exists(uploadsFolder))
                         {
@@ -758,7 +758,7 @@ namespace Accounting_System.Controllers
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                         AuditTrail auditTrailBook = new(existingHeaderModel.CreatedBy,
-                            $"Edited check voucher# {existingHeaderModel.CVNo}", "Check Voucher Trade", ipAddress);
+                            $"Edited check voucher# {existingHeaderModel.CheckVoucherHeaderNo}", "Check Voucher Trade", ipAddress);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -783,19 +783,19 @@ namespace Accounting_System.Controllers
                         .ToListAsync(cancellationToken);
 
                     viewModel.PONo = await _dbContext.PurchaseOrders
-                        .OrderBy(s => s.PONo)
+                        .OrderBy(s => s.PurchaseOrderNo)
                         .Select(s => new SelectListItem
                         {
-                            Value = s.PONo,
-                            Text = s.PONo
+                            Value = s.PurchaseOrderNo,
+                            Text = s.PurchaseOrderNo
                         })
                         .ToListAsync(cancellationToken);
 
                     viewModel.BankAccounts = await _dbContext.BankAccounts
                         .Select(ba => new SelectListItem
                         {
-                            Value = ba.Id.ToString(),
-                            Text = ba.BankCode + " " + ba.AccountName
+                            Value = ba.BankAccountId.ToString(),
+                            Text = ba.Bank + " " + ba.AccountName
                         })
                         .ToListAsync();
 
@@ -803,8 +803,8 @@ namespace Accounting_System.Controllers
                             .OrderBy(s => s.Number)
                             .Select(s => new SelectListItem
                             {
-                                Value = s.Id.ToString(),
-                                Text = s.Number + " " + s.Name
+                                Value = s.SupplierId.ToString(),
+                                Text = s.Number + " " + s.SupplierName
                             })
                             .ToListAsync(cancellationToken);
 
@@ -828,7 +828,7 @@ namespace Accounting_System.Controllers
 
             var header = await _dbContext.CheckVoucherHeaders
                 .Include(cvh => cvh.Supplier)
-                .FirstOrDefaultAsync(cvh => cvh.Id == id.Value, cancellationToken);
+                .FirstOrDefaultAsync(cvh => cvh.CheckVoucherHeaderId == id.Value, cancellationToken);
 
             if (header == null)
             {
@@ -837,7 +837,7 @@ namespace Accounting_System.Controllers
 
             var details = await _dbContext.CheckVoucherDetails
                 .Include(cvd => cvd.Supplier)
-                .Where(cvd => cvd.CVHeaderId == header.Id)
+                .Where(cvd => cvd.CheckVoucherHeaderId == header.CheckVoucherHeaderId)
                 .ToListAsync(cancellationToken);
 
             var getSupplier = await _dbContext.Suppliers
@@ -851,7 +851,7 @@ namespace Accounting_System.Controllers
                     var rrValue = header.RRNo[i];
 
                     var rr = await _dbContext.ReceivingReports
-                                .FirstOrDefaultAsync(p => p.RRNo == rrValue);
+                                .FirstOrDefaultAsync(p => p.ReceivingReportNo == rrValue);
 
                     if (rr != null)
                     {
@@ -874,7 +874,7 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Printed(int id, int? supplierId, CancellationToken cancellationToken)
         {
-            var cv = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+            var cv = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(x => x.CheckVoucherHeaderId == id, cancellationToken);
             if (!cv.IsPrinted)
             {
                 #region --Audit Trail Recording
@@ -883,7 +883,7 @@ namespace Accounting_System.Controllers
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                     AuditTrail auditTrailBook = new(cv.CreatedBy,
-                        $"Printed original copy of check voucher# {cv.CVNo}", "Check Voucher Trade", ipAddress);
+                        $"Printed original copy of check voucher# {cv.CheckVoucherHeaderNo}", "Check Voucher Trade", ipAddress);
                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                 }
 
@@ -897,9 +897,9 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Post(int id, int? supplierId, CancellationToken cancellationToken)
         {
-            var modelHeader = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cv => cv.Id == id, cancellationToken);
-            var modelDetails = await _dbContext.CheckVoucherDetails.Where(cvd => cvd.CVHeaderId == modelHeader.Id).ToListAsync();
-            var supplierName = await _dbContext.Suppliers.Where(s => s.Id == supplierId).Select(s => s.Name).FirstOrDefaultAsync(cancellationToken);
+            var modelHeader = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cv => cv.CheckVoucherHeaderId == id, cancellationToken);
+            var modelDetails = await _dbContext.CheckVoucherDetails.Where(cvd => cvd.CheckVoucherHeaderId == modelHeader.CheckVoucherHeaderId).ToListAsync();
+            var supplierName = await _dbContext.Suppliers.Where(s => s.SupplierId == supplierId).Select(s => s.SupplierName).FirstOrDefaultAsync(cancellationToken);
 
             if (modelHeader != null)
             {
@@ -945,7 +945,7 @@ namespace Accounting_System.Controllers
                                     new GeneralLedgerBook
                                     {
                                         Date = modelHeader.Date,
-                                        Reference = modelHeader.CVNo,
+                                        Reference = modelHeader.CheckVoucherHeaderNo,
                                         Description = modelHeader.Particulars,
                                         AccountNo = account.AccountNumber,
                                         AccountTitle = account.AccountName,
@@ -971,16 +971,16 @@ namespace Accounting_System.Controllers
                         var disbursement = new List<DisbursementBook>();
                         foreach (var details in modelDetails)
                         {
-                            var bank = _dbContext.BankAccounts.FirstOrDefault(model => model.Id == modelHeader.BankId);
+                            var bank = _dbContext.BankAccounts.FirstOrDefault(model => model.BankAccountId == modelHeader.BankId);
                             disbursement.Add(
                                     new DisbursementBook
                                     {
                                         Date = modelHeader.Date,
-                                        CVNo = modelHeader.CVNo,
+                                        CVNo = modelHeader.CheckVoucherHeaderNo,
                                         Payee = modelHeader.Payee != null ? modelHeader.Payee : supplierName,
                                         Amount = modelHeader.Total,
                                         Particulars = modelHeader.Particulars,
-                                        Bank = bank != null ? bank.BankCode : "N/A",
+                                        Bank = bank != null ? bank.Bank : "N/A",
                                         CheckNo = !string.IsNullOrEmpty(modelHeader.CheckNo) ? modelHeader.CheckNo : "N/A",
                                         CheckDate = modelHeader.CheckDate != null ? modelHeader.CheckDate?.ToString("MM/dd/yyyy") : "N/A",
                                         ChartOfAccount = details.AccountNo + " " + details.AccountName,
@@ -1002,7 +1002,7 @@ namespace Accounting_System.Controllers
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(modelHeader.CreatedBy,
-                                $"Posted check voucher# {modelHeader.CVNo}", "Check Voucher Trade", ipAddress);
+                                $"Posted check voucher# {modelHeader.CheckVoucherHeaderNo}", "Check Voucher Trade", ipAddress);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -1072,7 +1072,7 @@ namespace Accounting_System.Controllers
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(model.CreatedBy,
-                                $"Canceled check voucher# {model.CVNo}", "Check Voucher Trade", ipAddress);
+                                $"Canceled check voucher# {model.CheckVoucherHeaderNo}", "Check Voucher Trade", ipAddress);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -1121,8 +1121,8 @@ namespace Accounting_System.Controllers
                         model.IsVoided = true;
                         //model.Status = nameof(Status.Voided);
 
-                        await _generalRepo.RemoveRecords<DisbursementBook>(db => db.CVNo == model.CVNo);
-                        await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CVNo);
+                        await _generalRepo.RemoveRecords<DisbursementBook>(db => db.CVNo == model.CheckVoucherHeaderNo);
+                        await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.CheckVoucherHeaderNo);
 
                         //re-compute amount paid in trade and payment voucher
                         #region -- Recalculate payment of RR's or DR's
@@ -1151,7 +1151,7 @@ namespace Accounting_System.Controllers
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(model.CreatedBy,
-                                $"Voided check voucher# {model.CVNo}", "Check Voucher Trade", ipAddress);
+                                $"Voided check voucher# {model.CheckVoucherHeaderNo}", "Check Voucher Trade", ipAddress);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -1181,7 +1181,7 @@ namespace Accounting_System.Controllers
         public IActionResult GetAllCheckVoucherIds()
         {
             var cvIds = _dbContext.CheckVoucherHeaders
-                                     .Select(cv => cv.Id) // Assuming Id is the primary key
+                                     .Select(cv => cv.CheckVoucherHeaderId) // Assuming Id is the primary key
                                      .ToList();
 
             return Json(cvIds);
@@ -1207,8 +1207,8 @@ namespace Accounting_System.Controllers
 
                 // Retrieve the selected invoices from the database
                 var selectedList = await _dbContext.CheckVoucherHeaders
-                    .Where(cvh => recordIds.Contains(cvh.Id))
-                    .OrderBy(cvh => cvh.CVNo)
+                    .Where(cvh => recordIds.Contains(cvh.CheckVoucherHeaderId))
+                    .OrderBy(cvh => cvh.CheckVoucherHeaderNo)
                     .ToListAsync(cancellationToken);
 
                 // Create the Excel package
@@ -1374,9 +1374,9 @@ namespace Accounting_System.Controllers
                         worksheet.Cells[row, 26].Value = item.IsPaid;
                         worksheet.Cells[row, 27].Value = item.CancellationRemarks;
                         worksheet.Cells[row, 28].Value = item.BankId;
-                        worksheet.Cells[row, 29].Value = item.CVNo;
+                        worksheet.Cells[row, 29].Value = item.CheckVoucherHeaderNo;
                         worksheet.Cells[row, 30].Value = item.SupplierId;
-                        worksheet.Cells[row, 31].Value = item.Id;
+                        worksheet.Cells[row, 31].Value = item.CheckVoucherHeaderId;
 
                         row++;
                     }
@@ -1385,7 +1385,7 @@ namespace Accounting_System.Controllers
 
                     #region -- Check Voucher Header Export (Payment) --
 
-                    var cvNos = selectedList.Select(item => item.CVNo).ToList();
+                    var cvNos = selectedList.Select(item => item.CheckVoucherHeaderNo).ToList();
 
                     var checkVoucherPayment = await _dbContext.CheckVoucherHeaders
                         .Where(cvh => cvh.Reference != null && cvNos.Contains(cvh.Reference))
@@ -1421,9 +1421,9 @@ namespace Accounting_System.Controllers
                         worksheet.Cells[row, 26].Value = item.IsPaid;
                         worksheet.Cells[row, 27].Value = item.CancellationRemarks;
                         worksheet.Cells[row, 28].Value = item.BankId;
-                        worksheet.Cells[row, 29].Value = item.CVNo;
+                        worksheet.Cells[row, 29].Value = item.CheckVoucherHeaderNo;
                         worksheet.Cells[row, 30].Value = item.SupplierId;
-                        worksheet.Cells[row, 31].Value = item.Id;
+                        worksheet.Cells[row, 31].Value = item.CheckVoucherHeaderId;
 
                         row++;
                     }
@@ -1436,7 +1436,7 @@ namespace Accounting_System.Controllers
 
                     getCVDetails = await _dbContext.CheckVoucherDetails
                         .Where(cvd => cvNos.Contains(cvd.TransactionNo))
-                        .OrderBy(cvd => cvd.Id)
+                        .OrderBy(cvd => cvd.CheckVoucherDetailId)
                         .ToListAsync(cancellationToken);
 
                     int cvdRow = 2;
@@ -1448,8 +1448,8 @@ namespace Accounting_System.Controllers
                         worksheet2.Cells[cvdRow, 3].Value = item.TransactionNo;
                         worksheet2.Cells[cvdRow, 4].Value = item.Debit;
                         worksheet2.Cells[cvdRow, 5].Value = item.Credit;
-                        worksheet2.Cells[cvdRow, 6].Value = item.CVHeaderId;
-                        worksheet2.Cells[cvdRow, 7].Value = item.Id;
+                        worksheet2.Cells[cvdRow, 6].Value = item.CheckVoucherHeaderId;
+                        worksheet2.Cells[cvdRow, 7].Value = item.CheckVoucherDetailId;
 
                         cvdRow++;
                     }
@@ -1461,8 +1461,8 @@ namespace Accounting_System.Controllers
                     List<CheckVoucherDetail> getCvPaymentDetails = new List<CheckVoucherDetail>();
 
                     getCvPaymentDetails = await _dbContext.CheckVoucherDetails
-                        .Where(cvd => checkVoucherPayment.Select(cvh => cvh.CVNo).Contains(cvd.TransactionNo))
-                        .OrderBy(cvd => cvd.Id)
+                        .Where(cvd => checkVoucherPayment.Select(cvh => cvh.CheckVoucherHeaderNo).Contains(cvd.TransactionNo))
+                        .OrderBy(cvd => cvd.CheckVoucherDetailId)
                         .ToListAsync(cancellationToken);
 
                     foreach (var item in getCvPaymentDetails)
@@ -1472,8 +1472,8 @@ namespace Accounting_System.Controllers
                         worksheet2.Cells[cvdRow, 3].Value = item.TransactionNo;
                         worksheet2.Cells[cvdRow, 4].Value = item.Debit;
                         worksheet2.Cells[cvdRow, 5].Value = item.Credit;
-                        worksheet2.Cells[cvdRow, 6].Value = item.CVHeaderId;
-                        worksheet2.Cells[cvdRow, 7].Value = item.Id;
+                        worksheet2.Cells[cvdRow, 6].Value = item.CheckVoucherHeaderId;
+                        worksheet2.Cells[cvdRow, 7].Value = item.CheckVoucherDetailId;
 
                         cvdRow++;
                     }
@@ -1486,8 +1486,8 @@ namespace Accounting_System.Controllers
 
                     getReceivingReport = _dbContext.ReceivingReports
                         .AsEnumerable()
-                        .Where(rr => selectedList?.Select(item => item?.RRNo).Any(rrs => rrs?.Contains(rr.RRNo) == true) == true)
-                        .OrderBy(rr => rr.RRNo)
+                        .Where(rr => selectedList?.Select(item => item?.RRNo).Any(rrs => rrs?.Contains(rr.ReceivingReportNo) == true) == true)
+                        .OrderBy(rr => rr.ReceivingReportNo)
                         .ToList();
 
                     int rrRow = 2;
@@ -1514,8 +1514,8 @@ namespace Accounting_System.Controllers
                         worksheet3.Cells[rrRow, 18].Value = item.CancellationRemarks;
                         worksheet3.Cells[rrRow, 19].Value = item.ReceivedDate?.ToString("yyyy-MM-dd");
                         worksheet3.Cells[rrRow, 20].Value = item.POId;
-                        worksheet3.Cells[rrRow, 21].Value = item.RRNo;
-                        worksheet3.Cells[rrRow, 22].Value = item.Id;
+                        worksheet3.Cells[rrRow, 21].Value = item.ReceivingReportNo;
+                        worksheet3.Cells[rrRow, 22].Value = item.ReceivingReportId;
 
                         rrRow++;
                     }
@@ -1527,8 +1527,8 @@ namespace Accounting_System.Controllers
                     List<PurchaseOrder> getPurchaseOrder = new List<PurchaseOrder>();
 
                     getPurchaseOrder = await _dbContext.PurchaseOrders
-                        .Where(po => getReceivingReport.Select(item => item.POId).Contains(po.Id))
-                        .OrderBy(po => po.PONo)
+                        .Where(po => getReceivingReport.Select(item => item.POId).Contains(po.PurchaseOrderId))
+                        .OrderBy(po => po.PurchaseOrderNo)
                         .ToListAsync(cancellationToken);
 
                     int poRow = 2;
@@ -1550,9 +1550,9 @@ namespace Accounting_System.Controllers
                         worksheet4.Cells[poRow, 13].Value = item.IsClosed;
                         worksheet4.Cells[poRow, 14].Value = item.CancellationRemarks;
                         worksheet4.Cells[poRow, 15].Value = item.ProductId;
-                        worksheet4.Cells[poRow, 16].Value = item.PONo;
+                        worksheet4.Cells[poRow, 16].Value = item.PurchaseOrderNo;
                         worksheet4.Cells[poRow, 17].Value = item.SupplierId;
-                        worksheet4.Cells[poRow, 18].Value = item.Id;
+                        worksheet4.Cells[poRow, 18].Value = item.PurchaseOrderId;
 
                         poRow++;
                     }
@@ -1644,7 +1644,7 @@ namespace Accounting_System.Controllers
                             }
                             var purchaseOrder = new PurchaseOrder
                             {
-                                PONo = worksheet3.Cells[row, 16].Text,
+                                PurchaseOrderNo = worksheet3.Cells[row, 16].Text,
                                 Date = DateOnly.TryParse(worksheet3.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
                                 Terms = worksheet3.Cells[row, 2].Text,
                                 Quantity = decimal.TryParse(worksheet3.Cells[row, 3].Text, out decimal quantity) ? quantity : 0,
@@ -1677,9 +1677,9 @@ namespace Accounting_System.Controllers
                                 var poChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
                                 var existingPO = await _dbContext.PurchaseOrders.FirstOrDefaultAsync(si => si.OriginalDocumentId == purchaseOrder.OriginalDocumentId, cancellationToken);
 
-                                if (existingPO.PONo.TrimStart().TrimEnd() != worksheet3.Cells[row, 16].Text.TrimStart().TrimEnd())
+                                if (existingPO.PurchaseOrderNo.TrimStart().TrimEnd() != worksheet3.Cells[row, 16].Text.TrimStart().TrimEnd())
                                 {
-                                    poChanges["PONo"] = (existingPO.PONo.TrimStart().TrimEnd(), worksheet3.Cells[row, 16].Text.TrimStart().TrimEnd())!;
+                                    poChanges["PONo"] = (existingPO.PurchaseOrderNo.TrimStart().TrimEnd(), worksheet3.Cells[row, 16].Text.TrimStart().TrimEnd())!;
                                 }
 
                                 if (existingPO.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet3.Cells[row, 1].Text.TrimStart().TrimEnd())
@@ -1771,13 +1771,13 @@ namespace Accounting_System.Controllers
                                 if (!purchaseOrder.CreatedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(purchaseOrder.CreatedBy, $"Create new purchase order# {purchaseOrder.PONo}", "Purchase Order", ipAddress, purchaseOrder.CreatedDate);
+                                    AuditTrail auditTrailBook = new(purchaseOrder.CreatedBy, $"Create new purchase order# {purchaseOrder.PurchaseOrderNo}", "Purchase Order", ipAddress, purchaseOrder.CreatedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
                                 if (!purchaseOrder.PostedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(purchaseOrder.PostedBy, $"Posted purchase order# {purchaseOrder.PONo}", "Purchase Order", ipAddress, purchaseOrder.PostedDate);
+                                    AuditTrail auditTrailBook = new(purchaseOrder.PostedBy, $"Posted purchase order# {purchaseOrder.PurchaseOrderNo}", "Purchase Order", ipAddress, purchaseOrder.PostedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
 
@@ -1790,9 +1790,9 @@ namespace Accounting_System.Controllers
 
                             if (getProduct != null)
                             {
-                                purchaseOrder.ProductId = getProduct.Id;
+                                purchaseOrder.ProductId = getProduct.ProductId;
 
-                                purchaseOrder.ProductNo = getProduct.Code;
+                                purchaseOrder.ProductNo = getProduct.ProductCode;
                             }
                             else
                             {
@@ -1805,7 +1805,7 @@ namespace Accounting_System.Controllers
 
                             if (getSupplier != null)
                             {
-                                purchaseOrder.SupplierId = getSupplier.Id;
+                                purchaseOrder.SupplierId = getSupplier.SupplierId;
 
                                 purchaseOrder.SupplierNo = getSupplier.Number;
                             }
@@ -1836,7 +1836,7 @@ namespace Accounting_System.Controllers
                             }
                             var receivingReport = new ReceivingReport
                             {
-                                RRNo = worksheet4.Cells[row, 21].Text,
+                                ReceivingReportNo = worksheet4.Cells[row, 21].Text,
                                 Date = DateOnly.TryParse(worksheet4.Cells[row, 1].Text, out DateOnly date) ? date : default,
                                 DueDate = DateOnly.TryParse(worksheet4.Cells[row, 2].Text, out DateOnly dueDate) ? dueDate : default,
                                 SupplierInvoiceNumber = worksheet4.Cells[row, 3].Text != "" ? worksheet4.Cells[row, 3].Text : null,
@@ -1874,9 +1874,9 @@ namespace Accounting_System.Controllers
                                 var rrChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
                                 var existingRR = await _dbContext.ReceivingReports.FirstOrDefaultAsync(rr => rr.OriginalDocumentId == receivingReport.OriginalDocumentId, cancellationToken);
 
-                                if (existingRR.RRNo.TrimStart().TrimEnd() != worksheet4.Cells[row, 21].Text.TrimStart().TrimEnd())
+                                if (existingRR.ReceivingReportNo.TrimStart().TrimEnd() != worksheet4.Cells[row, 21].Text.TrimStart().TrimEnd())
                                 {
-                                    rrChanges["RRNo"] = (existingRR.RRNo.TrimStart().TrimEnd(), worksheet4.Cells[row, 21].Text.TrimStart().TrimEnd())!;
+                                    rrChanges["RRNo"] = (existingRR.ReceivingReportNo.TrimStart().TrimEnd(), worksheet4.Cells[row, 21].Text.TrimStart().TrimEnd())!;
                                 }
 
                                 if (existingRR.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet4.Cells[row, 1].Text.TrimStart().TrimEnd())
@@ -1983,13 +1983,13 @@ namespace Accounting_System.Controllers
                                 if (!receivingReport.CreatedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(receivingReport.CreatedBy, $"Create new receiving report# {receivingReport.RRNo}", "Receiving Report", ipAddress, receivingReport.CreatedDate);
+                                    AuditTrail auditTrailBook = new(receivingReport.CreatedBy, $"Create new receiving report# {receivingReport.ReceivingReportNo}", "Receiving Report", ipAddress, receivingReport.CreatedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
                                 if (!receivingReport.PostedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(receivingReport.PostedBy, $"Posted receiving report# {receivingReport.RRNo}", "Receiving Report", ipAddress, receivingReport.PostedDate);
+                                    AuditTrail auditTrailBook = new(receivingReport.PostedBy, $"Posted receiving report# {receivingReport.ReceivingReportNo}", "Receiving Report", ipAddress, receivingReport.PostedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
 
@@ -2001,8 +2001,8 @@ namespace Accounting_System.Controllers
                                 .Where(po => po.OriginalDocumentId == receivingReport.OriginalPOId)
                                 .FirstOrDefaultAsync(cancellationToken);
 
-                            receivingReport.POId = getPo.Id;
-                            receivingReport.PONo = getPo.PONo;
+                            receivingReport.POId = getPo.PurchaseOrderId;
+                            receivingReport.PONo = getPo.PurchaseOrderNo;
 
                             await _dbContext.ReceivingReports.AddAsync(receivingReport, cancellationToken);
                         }
@@ -2023,7 +2023,7 @@ namespace Accounting_System.Controllers
                         {
                             var checkVoucherHeader = new CheckVoucherHeader
                             {
-                                CVNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken),
+                                CheckVoucherHeaderNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken),
                                 Date = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly date)
                                     ? date
                                     : default,
@@ -2203,7 +2203,7 @@ namespace Accounting_System.Controllers
 
                                 if (existingCV.CvType.TrimStart().TrimEnd() == "Payment")
                                 {
-                                    var getCvInvoicing = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cvh => existingCV.Reference == cvh.CVNo, cancellationToken);
+                                    var getCvInvoicing = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cvh => existingCV.Reference == cvh.CheckVoucherHeaderNo, cancellationToken);
                                     if (getCvInvoicing != null && getCvInvoicing.OriginalSeriesNumber.TrimStart().TrimEnd() != worksheet.Cells[row, 18].Text.TrimStart().TrimEnd())
                                     {
                                         cvChanges["Reference"] = (getCvInvoicing.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet.Cells[row, 18].Text.TrimStart().TrimEnd())!;
@@ -2300,13 +2300,13 @@ namespace Accounting_System.Controllers
                                 if (!checkVoucherHeader.CreatedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(checkVoucherHeader.CreatedBy, $"Create new check vouchcer# {checkVoucherHeader.CVNo}", $"Check Voucher {(checkVoucherHeader.CvType == "Invoicing" ? "Non Trade Invoice" : checkVoucherHeader.CvType == "Payment" ? "Non Trade Payment" : "Trade")}", ipAddress, checkVoucherHeader.CreatedDate);
+                                    AuditTrail auditTrailBook = new(checkVoucherHeader.CreatedBy, $"Create new check vouchcer# {checkVoucherHeader.CheckVoucherHeaderNo}", $"Check Voucher {(checkVoucherHeader.CvType == "Invoicing" ? "Non Trade Invoice" : checkVoucherHeader.CvType == "Payment" ? "Non Trade Payment" : "Trade")}", ipAddress, checkVoucherHeader.CreatedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
                                 if (!checkVoucherHeader.PostedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(checkVoucherHeader.PostedBy, $"Posted check voucher# {checkVoucherHeader.CVNo}", $"Check Voucher {(checkVoucherHeader.CvType == "Invoicing" ? "Non Trade Invoice" : checkVoucherHeader.CvType == "Payment" ? "Non Trade Payment" : "Trade")}", ipAddress, checkVoucherHeader.PostedDate);
+                                    AuditTrail auditTrailBook = new(checkVoucherHeader.PostedBy, $"Posted check voucher# {checkVoucherHeader.CheckVoucherHeaderNo}", $"Check Voucher {(checkVoucherHeader.CvType == "Invoicing" ? "Non Trade Invoice" : checkVoucherHeader.CvType == "Payment" ? "Non Trade Payment" : "Trade")}", ipAddress, checkVoucherHeader.PostedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
 
@@ -2316,14 +2316,14 @@ namespace Accounting_System.Controllers
                             if (checkVoucherHeader.CvType == "Payment")
                             {
                                 var getCvInvoicing = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cvh => cvh.OriginalSeriesNumber == checkVoucherHeader.Reference, cancellationToken);
-                                checkVoucherHeader.Reference = getCvInvoicing?.CVNo;
+                                checkVoucherHeader.Reference = getCvInvoicing?.CheckVoucherHeaderNo;
                             }
 
                             checkVoucherHeader.SupplierId = await _dbContext.Suppliers
                                                                 .Where(supp =>
                                                                     supp.OriginalSupplierId ==
                                                                     checkVoucherHeader.OriginalSupplierId)
-                                                                .Select(supp => (int?)supp.Id)
+                                                                .Select(supp => (int?)supp.SupplierId)
                                                                 .FirstOrDefaultAsync(cancellationToken) ??
                                                             throw new InvalidOperationException(
                                                                 "Please upload the Excel file for the supplier master file first.");
@@ -2334,7 +2334,7 @@ namespace Accounting_System.Controllers
                                                                 .Where(bank =>
                                                                     bank.OriginalBankId ==
                                                                     checkVoucherHeader.OriginalBankId)
-                                                                .Select(bank => (int?)bank.Id)
+                                                                .Select(bank => (int?)bank.BankAccountId)
                                                                 .FirstOrDefaultAsync(cancellationToken) ??
                                                             throw new InvalidOperationException(
                                                                 "Please upload the Excel file for the bank account master file first.");
@@ -2362,9 +2362,9 @@ namespace Accounting_System.Controllers
                             var getCV = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cv => cv.OriginalDocumentId == cvId);
                             var cvTradePayment = new CVTradePayment
                             {
-                                DocumentId = getRR.Id,
+                                DocumentId = getRR.ReceivingReportId,
                                 DocumentType = "RR",
-                                CheckVoucherId = getCV.Id,
+                                CheckVoucherId = getCV.CheckVoucherHeaderId,
                                 AmountPaid = decimal.TryParse(worksheet5.Cells[cvTradePaymentRow, 5].Text, out decimal amountPaid) ? amountPaid : 0,
                             };
 
@@ -2403,8 +2403,8 @@ namespace Accounting_System.Controllers
                                 var cvMultiplePayment = new MultipleCheckVoucherPayment
                                 {
                                     Id = Guid.NewGuid(),
-                                    CheckVoucherHeaderPaymentId = getPayment.Id, // Guaranteed non-null
-                                    CheckVoucherHeaderInvoiceId = getInvoice.Id, // Guaranteed non-null
+                                    CheckVoucherHeaderPaymentId = getPayment.CheckVoucherHeaderId, // Guaranteed non-null
+                                    CheckVoucherHeaderInvoiceId = getInvoice.CheckVoucherHeaderId, // Guaranteed non-null
                                     AmountPaid = decimal.TryParse(worksheet6.Cells[cvMultiplePaymentRow, 4]?.Text,
                                         out decimal amountPaid)
                                         ? amountPaid
@@ -2455,9 +2455,9 @@ namespace Accounting_System.Controllers
                                     .Where(cvh => cvh.OriginalSupplierId.ToString() == worksheet2.Cells[cvdRow, 10].Text.TrimStart().TrimEnd())
                                     .FirstOrDefaultAsync(cancellationToken);
 
-                                checkVoucherDetails.SupplierId = getSupplier?.Id ?? null;
-                                checkVoucherDetails.CVHeaderId = cvHeader.Id;
-                                checkVoucherDetails.TransactionNo = cvHeader.CVNo;
+                                checkVoucherDetails.SupplierId = getSupplier?.SupplierId ?? null;
+                                checkVoucherDetails.CheckVoucherHeaderId = cvHeader.CheckVoucherHeaderId;
+                                checkVoucherDetails.TransactionNo = cvHeader.CheckVoucherHeaderNo;
                             }
 
                             if (!checkVoucherDetailList.Any(cm => cm.OriginalDocumentId == checkVoucherDetails.OriginalDocumentId) && !worksheet2.Cells[cvdRow, 3].Text.TrimStart().TrimEnd().Contains("CVNU") && !worksheet2.Cells[cvdRow, 3].Text.TrimStart().TrimEnd().Contains("INVU") && !worksheet2.Cells[cvdRow, 3].Text.TrimStart().TrimEnd().Contains("CVU"))
@@ -2469,7 +2469,7 @@ namespace Accounting_System.Controllers
                             {
                                 var cvdChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
                                 var existingCVD = await _dbContext.CheckVoucherDetails
-                                    .Include(cvd => cvd.Header)
+                                    .Include(cvd => cvd.CheckVoucherHeader)
                                     .FirstOrDefaultAsync(cvd => cvd.OriginalDocumentId == checkVoucherDetails.OriginalDocumentId, cancellationToken);
 
                                 if (existingCVD != null)
@@ -2494,9 +2494,9 @@ namespace Accounting_System.Controllers
                                         cvdChanges["Credit"] = (existingCVD.Credit.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[cvdRow, 5].Text).ToString("F2").TrimStart().TrimEnd());
                                     }
 
-                                    if (existingCVD.Header?.OriginalDocumentId.ToString().TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[cvdRow, 6].Text).ToString("F0").TrimStart().TrimEnd())
+                                    if (existingCVD.CheckVoucherHeader?.OriginalDocumentId.ToString().TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[cvdRow, 6].Text).ToString("F0").TrimStart().TrimEnd())
                                     {
-                                        cvdChanges["CVHeaderId"] = (existingCVD.Header?.OriginalDocumentId.ToString().TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[cvdRow, 6].Text).ToString("F0").TrimStart().TrimEnd());
+                                        cvdChanges["CVHeaderId"] = (existingCVD.CheckVoucherHeader?.OriginalDocumentId.ToString().TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[cvdRow, 6].Text).ToString("F0").TrimStart().TrimEnd());
                                     }
 
                                     if (cvdChanges.Any())

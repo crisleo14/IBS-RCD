@@ -1,8 +1,5 @@
 ﻿@model IEnumerable<PurchaseOrder>
 @using Accounting_System.Models.AccountsPayable
-@using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
-@inject UserManager<IdentityUser> UserManager
 @{
     ViewData["Title"] = "Purchase Order";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -74,7 +71,7 @@
         <table class="table table-bordered table-hover" id="purchaseOrderTable">
             <thead class="table-secondary">
                 <tr>
-                    <th>@Html.DisplayNameFor(model => model.PONo)</th>
+                    <th>@Html.DisplayNameFor(model => model.PurchaseOrderNo)</th>
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
                     <th>@Html.DisplayNameFor(model => model.Supplier)</th>
                     <th>Product</th>
@@ -102,26 +99,26 @@
                             __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
                         });
                     },
-                    error: function (xhr, error, thrown) {
+                    error: function (xhr) {
                         console.log(xhr.responseText);
                     }
                 },
                 columns: [
-                    { data: 'poNo' },
+                    { data: 'purchaseOrderNo' },
                     {
                         "data": "date",
                         "name": "transactionDate",
-                        "render": function (data, type, row) {
+                        "render": function (data) {
                             // Assuming 'Date' is in ISO format like "2024-07-12T00:00:00"
-                            var date = new Date(data);
+                            let date = new Date(data);
                             return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
                         }
                     },
-                    { data: 'supplier.name' },
-                    { data: 'product.name' },
+                    { data: 'supplier.supplierName' },
+                    { data: 'product.productName' },
                     {
                         data: 'amount',
-                        render: function (data, type, row) {
+                        render: function (data) {
                             return formatNumber(data);
                         }
                     },
@@ -129,7 +126,7 @@
                     {
                         "data": null,
                         "render": function (data, type, row) {
-                            var status = row.isPosted && !row.isVoided && !row.isCanceled && !row.isClosed
+                            let status = row.isPosted && !row.isVoided && !row.isCanceled && !row.isClosed
                                 ? "Posted"
                                 : row.isVoided
                                     ? "Voided"
@@ -138,10 +135,10 @@
                                             : row.isClosed
                                                 ? "Closed"
                                                 : "Pending";
-                            var statusClass = status == "Posted" ? "bg-info" :
-                                    status == "Voided" ? "bg-danger" :
-                                    status == "Cancelled" ? "bg-warning" :
-                                    status == "Closed" ? "bg-secondary" : "";
+                            let statusClass = status === "Posted" ? "bg-info" :
+                                    status === "Voided" ? "bg-danger" :
+                                    status === "Cancelled" ? "bg-warning" :
+                                    status === "Closed" ? "bg-secondary" : "";
                             return `<span class="badge rounded-pill ${statusClass}">${status}</span>`;
                         }
                     }
@@ -153,14 +150,14 @@
                             dropdown += `<button class="btn btn-light dropdown-toggle" type="button" id="actionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">Actions</button>`;
                             dropdown += `<ul class="dropdown-menu" aria-labelledby="actionsDropdown">`;
                             if (!row.isPosted && !row.isVoided && !row.isCanceled) {
-                                dropdown += `<li><a href="@Url.Action("Edit", "PurchaseOrder")/${row.id}" class="dropdown-item">Edit</a></li>`;
-                                dropdown += `<li><a href="@Url.Action("Print", "PurchaseOrder")/${row.id}" class="dropdown-item">Preview</a></li>`;
-                                dropdown += `<li><a class="dropdown-item" onclick="confirmCancel(${row.id})">Cancel</a></li>`;
+                                dropdown += `<li><a href="@Url.Action("Edit", "PurchaseOrder")/${row.purchaseOrderId}" class="dropdown-item">Edit</a></li>`;
+                                dropdown += `<li><a href="@Url.Action("Print", "PurchaseOrder")/${row.purchaseOrderId}" class="dropdown-item">Preview</a></li>`;
+                                dropdown += `<li><a class="dropdown-item" onclick="confirmCancel(${row.purchaseOrderId})">Cancel</a></li>`;
                             }
                             if (row.isPosted && !row.isVoided && !row.isCanceled && !row.isClosed) {
-                                dropdown += `<li><a href="@Url.Action("Print", "PurchaseOrder")/${row.id}" class="dropdown-item">Print</a></li>`;
+                                dropdown += `<li><a href="@Url.Action("Print", "PurchaseOrder")/${row.purchaseOrderId}" class="dropdown-item">Print</a></li>`;
                                 if (row.quantityReceived === 0) {
-                                    dropdown += `<li><a class="dropdown-item" onclick="confirmVoid(${row.id})">Void</a></li>`;
+                                    dropdown += `<li><a class="dropdown-item" onclick="confirmVoid(${row.purchaseOrderId})">Void</a></li>`;
                                 } else {
                                     dropdown += `<li><button class="dropdown-item" disabled readonly>Void</button></li>`;
                                 }
@@ -177,7 +174,6 @@
     </script>
     <script>
         function confirmVoid(id) {
-            console.log(id);
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
@@ -189,15 +185,14 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Replace with the actual URL that you want to redirect to
-                    var url = `@Url.Action("Void", "PurchaseOrder")/${id}`;
-                    window.location.href = url;
+                    
+                    window.location.href = `@Url.Action("Void", "PurchaseOrder")/${id}`;
                 }
             })
         }
     </script>
     <script>
         function confirmCancel(id) {
-            console.log(id);
             Swal.fire({
                 title: "Please Input Remarks",
                 html:
@@ -212,12 +207,12 @@
                 confirmButtonText: 'Yes'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    var cancellationRemarks = $("#cancellationRemarks").val();
+                    let cancellationRemarks = $("#cancellationRemarks").val();
                     // Encode the cancellationRemarks to make it URL safe
-                    var encodedRemarks = encodeURIComponent(cancellationRemarks);
+                    let encodedRemarks = encodeURIComponent(cancellationRemarks);
                     // Append the encoded remarks as a parameter in the URL
-                    var url = `@Url.Action("Cancel", "PurchaseOrder")/${id}?cancellationRemarks=${encodedRemarks}`;
-                    window.location.href = url;
+                    
+                    window.location.href = `@Url.Action("Cancel", "PurchaseOrder")/${id}?cancellationRemarks=${encodedRemarks}`;
                 }
             })
         }

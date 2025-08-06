@@ -12,6 +12,7 @@ namespace Accounting_System.Models.ViewModels
         public List<SelectListItem>? Suppliers { get; set; }
 
         [Required]
+        [StringLength(150)]
         public string Payee { get; set; }
 
         [Required]
@@ -53,6 +54,7 @@ namespace Accounting_System.Models.ViewModels
         public int? BankId { get; set; }
 
         [Required]
+        [StringLength(50)]
         [Display(Name = "Check #")]
         [RegularExpression(@"^(?:\d{10,}|DM\d{10})$", ErrorMessage = "Invalid format. Please enter either a 'DM' followed by a 10-digits or CV number minimum 10 digits.")]
         public string CheckNo { get; set; }
@@ -61,6 +63,7 @@ namespace Accounting_System.Models.ViewModels
         [Display(Name = "Check Date")]
         public DateOnly CheckDate { get; set; }
 
+        [StringLength(1000)]
         public string Particulars { get; set; }
 
         public List<SelectListItem>? COA { get; set; }

@@ -28,12 +28,12 @@ namespace Accounting_System.Repository
         {
             var salesInvoice = await _dbContext
                 .SalesInvoices
-                .OrderByDescending(s => s.SINo)
+                .OrderByDescending(s => s.SalesInvoiceNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (salesInvoice != null)
             {
-                string lastSeries = salesInvoice.SINo;
+                string lastSeries = salesInvoice.SalesInvoiceNo;
                 string numericPart = lastSeries.Substring(2);
                 int incrementedNumber = int.Parse(numericPart) + 1;
 
@@ -51,7 +51,7 @@ namespace Accounting_System.Repository
                 .SalesInvoices
                 .Include(c => c.Customer)
                 .Include(s => s.Product)
-                .FirstOrDefaultAsync(invoice => invoice.Id == id);
+                .FirstOrDefaultAsync(invoice => invoice.SalesInvoiceId == id);
 
             if (invoice != null)
             {

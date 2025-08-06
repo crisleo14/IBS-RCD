@@ -13,17 +13,17 @@ namespace Accounting_System.Models
         public bool IsMain { get; set; }
 
         [Display(Name = "Account Number")]
-        [Column(TypeName = "varchar(15)")]
+        [StringLength(15)]
         public string? AccountNumber { get; set; }
 
         [Display(Name = "Account Name")]
-        [Column(TypeName = "varchar(100)")]
+        [StringLength(100)]
         public string AccountName { get; set; }
 
-        [Column(TypeName = "varchar(25)")]
+        [StringLength(25)]
         public string? AccountType { get; set; }
 
-        [Column(TypeName = "varchar(20)")]
+        [StringLength(20)]
         public string? NormalBalance { get; set; }
 
         public int Level { get; set; }
@@ -31,10 +31,10 @@ namespace Accounting_System.Models
         // Change Parent to an int? (nullable) for FK reference
         public int? ParentAccountId { get; set; }
 
-        [Column(TypeName = "varchar(15)")]
+        [StringLength(15)]
         public string? Parent { get; set; }
         // Navigation property for Parent Account
-        [ForeignKey("ParentAccountId")]
+        [ForeignKey(nameof(ParentAccountId))]
         public virtual ChartOfAccount? ParentAccount { get; set; }
 
         // Navigation property for Child Accounts
@@ -44,14 +44,14 @@ namespace Accounting_System.Models
         public List<SelectListItem>? Main { get; set; }
 
         [Display(Name = "Created By")]
-        [Column(TypeName = "varchar(50)")]
+        [StringLength(50)]
         public string? CreatedBy { get; set; }
 
         [Display(Name = "Created Date")]
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow.AddHours(8);
 
         [Display(Name = "Edited By")]
-        [Column(TypeName = "varchar(50)")]
+        [StringLength(50)]
         public string? EditedBy { get; set; }
 
         [Display(Name = "Edited Date")]

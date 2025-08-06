@@ -65,7 +65,7 @@ namespace Accounting_System.Controllers
                     var searchValue = parameters.Search.Value.ToLower();
                     receivingReports = receivingReports
                         .Where(rr =>
-                            rr.RRNo?.ToLower().Contains(searchValue) == true ||
+                            rr.ReceivingReportNo?.ToLower().Contains(searchValue) == true ||
                             rr.Date.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
                             rr.PONo?.ToLower().Contains(searchValue) == true ||
                             rr.QuantityDelivered.ToString().Contains(searchValue) ||
@@ -111,7 +111,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetAllReceivingReportIds(CancellationToken cancellationToken)
         {
             var receivingReportIds = await _dbContext.ReceivingReports
-                                     .Select(rr => rr.Id) // Assuming Id is the primary key
+                                     .Select(rr => rr.ReceivingReportId) // Assuming Id is the primary key
                                      .ToListAsync(cancellationToken);
             return Json(receivingReportIds);
         }
@@ -124,8 +124,8 @@ namespace Accounting_System.Controllers
                 .Where(po => !po.IsReceived && po.IsPosted && !po.IsClosed)
                 .Select(po => new SelectListItem
                 {
-                    Value = po.Id.ToString(),
-                    Text = po.PONo
+                    Value = po.PurchaseOrderId.ToString(),
+                    Text = po.PurchaseOrderNo
                 })
                 .ToListAsync(cancellationToken);
 
@@ -140,8 +140,8 @@ namespace Accounting_System.Controllers
                 .Where(po => !po.IsReceived && po.IsPosted)
                 .Select(po => new SelectListItem
                 {
-                    Value = po.Id.ToString(),
-                    Text = po.PONo
+                    Value = po.PurchaseOrderId.ToString(),
+                    Text = po.PurchaseOrderNo
                 })
                 .ToListAsync(cancellationToken);
             if (ModelState.IsValid)
@@ -152,7 +152,7 @@ namespace Accounting_System.Controllers
                             .PurchaseOrders
                             .Include(po => po.Supplier)
                             .Include(po => po.Product)
-                            .FirstOrDefaultAsync(po => po.Id == model.POId, cancellationToken);
+                            .FirstOrDefaultAsync(po => po.PurchaseOrderId == model.POId, cancellationToken);
 
                 #endregion --Retrieve PO
 
@@ -186,7 +186,7 @@ namespace Accounting_System.Controllers
 
                 #endregion --Validating Series
 
-                model.RRNo = generatedRr;
+                model.ReceivingReportNo = generatedRr;
                 model.CreatedBy = _userManager.GetUserName(this.User);
                 model.GainOrLoss = model.QuantityReceived - model.QuantityDelivered;
                 model.PONo = await _receivingReportRepo.GetPONoAsync(model?.POId, cancellationToken);
@@ -199,7 +199,7 @@ namespace Accounting_System.Controllers
                 if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new receiving report# {model.RRNo}", "Receiving Report", ipAddress);
+                    AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new receiving report# {model.ReceivingReportNo}", "Receiving Report", ipAddress);
                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                 }
 
@@ -232,8 +232,8 @@ namespace Accounting_System.Controllers
             receivingReport.PurchaseOrders = await _dbContext.PurchaseOrders
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Id.ToString(),
-                    Text = s.PONo
+                    Value = s.PurchaseOrderId.ToString(),
+                    Text = s.PurchaseOrderNo
                 })
                 .ToListAsync(cancellationToken);
 
@@ -243,7 +243,7 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(ReceivingReport model, CancellationToken cancellationToken)
         {
-            var existingModel = await _dbContext.ReceivingReports.FindAsync(model.Id, cancellationToken);
+            var existingModel = await _dbContext.ReceivingReports.FindAsync(model.ReceivingReportId, cancellationToken);
 
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
             try
@@ -261,7 +261,7 @@ namespace Accounting_System.Controllers
                                 .PurchaseOrders
                                 .Include(po => po.Supplier)
                                 .Include(po => po.Product)
-                                .FirstOrDefaultAsync(po => po.Id == model.POId, cancellationToken);
+                                .FirstOrDefaultAsync(po => po.PurchaseOrderId == model.POId, cancellationToken);
 
                     #endregion --Retrieve PO
 
@@ -273,8 +273,8 @@ namespace Accounting_System.Controllers
                         existingModel.PurchaseOrders = await _dbContext.PurchaseOrders
                             .Select(s => new SelectListItem
                             {
-                                Value = s.Id.ToString(),
-                                Text = s.PONo
+                                Value = s.PurchaseOrderId.ToString(),
+                                Text = s.PurchaseOrderNo
                             })
                             .ToListAsync(cancellationToken);
                         return View(existingModel);
@@ -302,7 +302,7 @@ namespace Accounting_System.Controllers
                         if (existingModel.OriginalSeriesNumber.IsNullOrEmpty() && existingModel.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edited receiving report# {existingModel.RRNo}", "Receiving Report", ipAddress);
+                            AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edited receiving report# {existingModel.ReceivingReportNo}", "Receiving Report", ipAddress);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -325,8 +325,8 @@ namespace Accounting_System.Controllers
                 existingModel.PurchaseOrders = await _dbContext.PurchaseOrders
                     .Select(s => new SelectListItem
                     {
-                        Value = s.Id.ToString(),
-                        Text = s.PONo
+                        Value = s.PurchaseOrderId.ToString(),
+                        Text = s.PurchaseOrderNo
                     })
                     .ToListAsync(cancellationToken);
                 TempData["error"] = ex.Message;
@@ -336,8 +336,8 @@ namespace Accounting_System.Controllers
             existingModel.PurchaseOrders = await _dbContext.PurchaseOrders
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Id.ToString(),
-                    Text = s.PONo
+                    Value = s.PurchaseOrderId.ToString(),
+                    Text = s.PurchaseOrderNo
                 })
                 .ToListAsync(cancellationToken);
             return View(existingModel);
@@ -373,7 +373,7 @@ namespace Accounting_System.Controllers
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                     var printedBy = _userManager.GetUserName(this.User);
-                    AuditTrail auditTrailBook = new(printedBy, $"Printed original copy of rr# {rr.RRNo}", "Receiving Report", ipAddress);
+                    AuditTrail auditTrailBook = new(printedBy, $"Printed original copy of rr# {rr.ReceivingReportNo}", "Receiving Report", ipAddress);
                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                 }
 
@@ -413,7 +413,7 @@ namespace Accounting_System.Controllers
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(model.PostedBy, $"Posted rr# {model.RRNo}", "Receiving Report", ipAddress);
+                            AuditTrail auditTrailBook = new(model.PostedBy, $"Posted rr# {model.ReceivingReportNo}", "Receiving Report", ipAddress);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -447,7 +447,7 @@ namespace Accounting_System.Controllers
 
             var existingInventory = await _dbContext.Inventories
                 .Include(i => i.Product)
-                .FirstOrDefaultAsync(i => i.Reference == model.RRNo);
+                .FirstOrDefaultAsync(i => i.Reference == model.ReceivingReportNo);
 
             if (model != null && existingInventory != null)
             {
@@ -464,8 +464,8 @@ namespace Accounting_System.Controllers
                             model.VoidedBy = _userManager.GetUserName(this.User);
                             model.VoidedDate = DateTime.Now;
 
-                            await _generalRepo.RemoveRecords<PurchaseJournalBook>(pb => pb.DocumentNo == model.RRNo, cancellationToken);
-                            await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.RRNo, cancellationToken);
+                            await _generalRepo.RemoveRecords<PurchaseJournalBook>(pb => pb.DocumentNo == model.ReceivingReportNo, cancellationToken);
+                            await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.ReceivingReportNo, cancellationToken);
                             await _inventoryRepo.VoidInventory(existingInventory, cancellationToken);
                             await _receivingReportRepo.RemoveQuantityReceived(model?.POId, model.QuantityReceived, cancellationToken);
                             model.QuantityReceived = 0;
@@ -475,7 +475,7 @@ namespace Accounting_System.Controllers
                             if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                             {
                                 var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided rr# {model.RRNo}", "Receiving Report", ipAddress);
+                                AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided rr# {model.ReceivingReportNo}", "Receiving Report", ipAddress);
                                 await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                             }
 
@@ -522,7 +522,7 @@ namespace Accounting_System.Controllers
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled rr# {model.RRNo}", "Receiving Report", ipAddress);
+                            AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled rr# {model.ReceivingReportNo}", "Receiving Report", ipAddress);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -552,29 +552,29 @@ namespace Accounting_System.Controllers
 
             var rrPostedOnly = await _dbContext
                 .ReceivingReports
-                .Where(rr => rr.PONo == po.PONo && rr.IsPosted)
+                .Where(rr => rr.PONo == po.PurchaseOrderNo && rr.IsPosted)
                 .ToListAsync(cancellationToken);
 
             var rr = await _dbContext
                 .ReceivingReports
-                .Where(rr => rr.PONo == po.PONo)
+                .Where(rr => rr.PONo == po.PurchaseOrderNo)
                 .ToListAsync(cancellationToken);
 
             var rrNotPosted = await _dbContext
                 .ReceivingReports
-                .Where(rr => rr.PONo == po.PONo && !rr.IsPosted && !rr.IsCanceled)
+                .Where(rr => rr.PONo == po.PurchaseOrderNo && !rr.IsPosted && !rr.IsCanceled)
                 .ToListAsync(cancellationToken);
 
             var rrCanceled = await _dbContext
                 .ReceivingReports
-                .Where(rr => rr.PONo == po.PONo && rr.IsCanceled)
+                .Where(rr => rr.PONo == po.PurchaseOrderNo && rr.IsCanceled)
                 .ToListAsync(cancellationToken);
 
             if (po != null)
             {
                 return Json(new
                 {
-                    poNo = po.PONo,
+                    poNo = po.PurchaseOrderNo,
                     poQuantity = po.Quantity.ToString("N2"),
                     rrList = rr,
                     rrListPostedOnly = rrPostedOnly,
@@ -607,9 +607,9 @@ namespace Accounting_System.Controllers
 
                 // Retrieve the selected records from the database
                 var selectedList = await _dbContext.ReceivingReports
-                    .Where(rr => recordIds.Contains(rr.Id))
+                    .Where(rr => recordIds.Contains(rr.ReceivingReportId))
                     .Include(rr => rr.PurchaseOrder)
-                    .OrderBy(rr => rr.RRNo)
+                    .OrderBy(rr => rr.ReceivingReportNo)
                     .ToListAsync();
 
                 // Create the Excel package
@@ -696,8 +696,8 @@ namespace Accounting_System.Controllers
                         worksheet.Cells[row, 18].Value = item.CancellationRemarks;
                         worksheet.Cells[row, 19].Value = item.ReceivedDate?.ToString("yyyy-MM-dd");
                         worksheet.Cells[row, 20].Value = item.POId;
-                        worksheet.Cells[row, 21].Value = item.RRNo;
-                        worksheet.Cells[row, 22].Value = item.Id;
+                        worksheet.Cells[row, 21].Value = item.ReceivingReportNo;
+                        worksheet.Cells[row, 22].Value = item.ReceivingReportId;
 
                         row++;
                     }
@@ -732,9 +732,9 @@ namespace Accounting_System.Controllers
                         worksheet2.Cells[poRow, 13].Value = item.PurchaseOrder.IsClosed;
                         worksheet2.Cells[poRow, 14].Value = item.PurchaseOrder.CancellationRemarks;
                         worksheet2.Cells[poRow, 15].Value = item.PurchaseOrder.ProductId;
-                        worksheet2.Cells[poRow, 16].Value = item.PurchaseOrder.PONo;
+                        worksheet2.Cells[poRow, 16].Value = item.PurchaseOrder.PurchaseOrderNo;
                         worksheet2.Cells[poRow, 17].Value = item.PurchaseOrder.SupplierId;
-                        worksheet2.Cells[poRow, 18].Value = item.PurchaseOrder.Id;
+                        worksheet2.Cells[poRow, 18].Value = item.PurchaseOrder.PurchaseOrderId;
 
                         poRow++;
                     }
@@ -811,7 +811,7 @@ namespace Accounting_System.Controllers
                             }
                             var purchaseOrder = new PurchaseOrder
                             {
-                                PONo = worksheet2.Cells[row, 16].Text,
+                                PurchaseOrderNo = worksheet2.Cells[row, 16].Text,
                                 Date = DateOnly.TryParse(worksheet2.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
                                 Terms = worksheet2.Cells[row, 2].Text,
                                 Quantity = decimal.TryParse(worksheet2.Cells[row, 3].Text, out decimal quantity) ? quantity : 0,
@@ -844,9 +844,9 @@ namespace Accounting_System.Controllers
                                 var poChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
                                 var existingPO = await _dbContext.PurchaseOrders.FirstOrDefaultAsync(si => si.OriginalDocumentId == purchaseOrder.OriginalDocumentId, cancellationToken);
 
-                                if (existingPO.PONo.TrimStart().TrimEnd() != worksheet2.Cells[row, 16].Text.TrimStart().TrimEnd())
+                                if (existingPO.PurchaseOrderNo.TrimStart().TrimEnd() != worksheet2.Cells[row, 16].Text.TrimStart().TrimEnd())
                                 {
-                                    poChanges["PONo"] = (existingPO.PONo.TrimStart().TrimEnd(), worksheet2.Cells[row, 16].Text.TrimStart().TrimEnd())!;
+                                    poChanges["PONo"] = (existingPO.PurchaseOrderNo.TrimStart().TrimEnd(), worksheet2.Cells[row, 16].Text.TrimStart().TrimEnd())!;
                                 }
 
                                 if (existingPO.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet2.Cells[row, 1].Text.TrimStart().TrimEnd())
@@ -938,13 +938,13 @@ namespace Accounting_System.Controllers
                                 if (!purchaseOrder.CreatedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(purchaseOrder.CreatedBy, $"Create new purchase order# {purchaseOrder.PONo}", "Purchase Order", ipAddress, purchaseOrder.CreatedDate);
+                                    AuditTrail auditTrailBook = new(purchaseOrder.CreatedBy, $"Create new purchase order# {purchaseOrder.PurchaseOrderNo}", "Purchase Order", ipAddress, purchaseOrder.CreatedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
                                 if (!purchaseOrder.PostedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(purchaseOrder.PostedBy, $"Posted purchase order# {purchaseOrder.PONo}", "Purchase Order", ipAddress, purchaseOrder.PostedDate);
+                                    AuditTrail auditTrailBook = new(purchaseOrder.PostedBy, $"Posted purchase order# {purchaseOrder.PurchaseOrderNo}", "Purchase Order", ipAddress, purchaseOrder.PostedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
 
@@ -957,9 +957,9 @@ namespace Accounting_System.Controllers
 
                             if (getProduct != null)
                             {
-                                purchaseOrder.ProductId = getProduct.Id;
+                                purchaseOrder.ProductId = getProduct.ProductId;
 
-                                purchaseOrder.ProductNo = getProduct.Code;
+                                purchaseOrder.ProductNo = getProduct.ProductCode;
                             }
                             else
                             {
@@ -972,7 +972,7 @@ namespace Accounting_System.Controllers
 
                             if (getSupplier != null)
                             {
-                                purchaseOrder.SupplierId = getSupplier.Id;
+                                purchaseOrder.SupplierId = getSupplier.SupplierId;
 
                                 purchaseOrder.SupplierNo = getSupplier.Number;
                             }
@@ -999,7 +999,7 @@ namespace Accounting_System.Controllers
                         {
                             var receivingReport = new ReceivingReport
                             {
-                                RRNo = worksheet.Cells[row, 21].Text,
+                                ReceivingReportNo = worksheet.Cells[row, 21].Text,
                                 Date = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly date) ? date : default,
                                 DueDate = DateOnly.TryParse(worksheet.Cells[row, 2].Text, out DateOnly dueDate) ? dueDate : default,
                                 SupplierInvoiceNumber = worksheet.Cells[row, 3].Text != "" ? worksheet.Cells[row, 3].Text : null,
@@ -1037,9 +1037,9 @@ namespace Accounting_System.Controllers
                                 var rrChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
                                 var existingRR = await _dbContext.ReceivingReports.FirstOrDefaultAsync(rr => rr.OriginalDocumentId == receivingReport.OriginalDocumentId, cancellationToken);
 
-                                if (existingRR.RRNo.TrimStart().TrimEnd() != worksheet.Cells[row, 21].Text.TrimStart().TrimEnd())
+                                if (existingRR.ReceivingReportNo.TrimStart().TrimEnd() != worksheet.Cells[row, 21].Text.TrimStart().TrimEnd())
                                 {
-                                    rrChanges["RRNo"] = (existingRR.RRNo.TrimStart().TrimEnd(), worksheet.Cells[row, 21].Text.TrimStart().TrimEnd())!;
+                                    rrChanges["RRNo"] = (existingRR.ReceivingReportNo.TrimStart().TrimEnd(), worksheet.Cells[row, 21].Text.TrimStart().TrimEnd())!;
                                 }
 
                                 if (existingRR.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())
@@ -1146,13 +1146,13 @@ namespace Accounting_System.Controllers
                                 if (!receivingReport.CreatedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(receivingReport.CreatedBy, $"Create new receiving report# {receivingReport.RRNo}", "Receiving Report", ipAddress, receivingReport.CreatedDate);
+                                    AuditTrail auditTrailBook = new(receivingReport.CreatedBy, $"Create new receiving report# {receivingReport.ReceivingReportNo}", "Receiving Report", ipAddress, receivingReport.CreatedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
                                 if (!receivingReport.PostedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(receivingReport.PostedBy, $"Posted receiving report# {receivingReport.RRNo}", "Receiving report", ipAddress, receivingReport.PostedDate);
+                                    AuditTrail auditTrailBook = new(receivingReport.PostedBy, $"Posted receiving report# {receivingReport.ReceivingReportNo}", "Receiving report", ipAddress, receivingReport.PostedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
 
@@ -1164,8 +1164,8 @@ namespace Accounting_System.Controllers
                                 .Where(po => po.OriginalDocumentId == receivingReport.OriginalPOId)
                                 .FirstOrDefaultAsync(cancellationToken);
 
-                            receivingReport.POId = getPo.Id;
-                            receivingReport.PONo = getPo.PONo;
+                            receivingReport.POId = getPo.PurchaseOrderId;
+                            receivingReport.PONo = getPo.PurchaseOrderNo;
 
                             await _dbContext.ReceivingReports.AddAsync(receivingReport, cancellationToken);
                         }

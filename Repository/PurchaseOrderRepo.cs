@@ -28,13 +28,13 @@ namespace Accounting_System.Repository
         {
             var purchaseOrder = await _dbContext
                 .PurchaseOrders
-                .Where(po => !po.PONo.StartsWith("POBEG"))
-                .OrderByDescending(s => s.PONo)
+                .Where(po => !po.PurchaseOrderNo.StartsWith("POBEG"))
+                .OrderByDescending(s => s.PurchaseOrderNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (purchaseOrder != null)
             {
-                string lastSeries = purchaseOrder.PONo ?? throw new InvalidOperationException("PONo is null pls Contact MIS Enterprise");
+                string lastSeries = purchaseOrder.PurchaseOrderNo ?? throw new InvalidOperationException("PONo is null pls Contact MIS Enterprise");
                 string numericPart = lastSeries.Substring(2);
                 int incrementedNumber = int.Parse(numericPart) + 1;
 
@@ -52,7 +52,7 @@ namespace Accounting_System.Repository
             {
                 var supplier = await _dbContext
                                 .Suppliers
-                                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+                                .FirstOrDefaultAsync(s => s.SupplierId == id, cancellationToken);
                 return supplier.Number;
             }
             else
@@ -67,8 +67,8 @@ namespace Accounting_System.Repository
             {
                 var product = await _dbContext
                                 .Products
-                                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
-                return product.Code;
+                                .FirstOrDefaultAsync(s => s.ProductId == id, cancellationToken);
+                return product.ProductCode;
             }
             else
             {
@@ -82,7 +82,7 @@ namespace Accounting_System.Repository
                 .PurchaseOrders
                 .Include(p => p.Supplier)
                 .Include(p => p.Product)
-                .FirstOrDefaultAsync(po => po.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(po => po.PurchaseOrderId == id, cancellationToken);
 
             if (po != null)
             {

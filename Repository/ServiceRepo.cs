@@ -16,12 +16,12 @@ namespace Accounting_System.Repository
         {
             var lastNumber = await _dbContext
                 .Services
-                .OrderByDescending(s => s.Id)
+                .OrderByDescending(s => s.ServiceId)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (lastNumber != null)
             {
-                return lastNumber.Number + 1;
+                return lastNumber.ServiceNo + 1;
             }
             else
             {

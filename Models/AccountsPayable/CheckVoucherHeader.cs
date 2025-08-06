@@ -7,8 +7,13 @@ namespace Accounting_System.Models.AccountsPayable
 {
     public class CheckVoucherHeader : BaseEntity
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int CheckVoucherHeaderId { get; set; }
+
         [Display(Name = "CV No")]
-        public string? CVNo { get; set; }
+        [StringLength(13)]
+        public string? CheckVoucherHeaderNo { get; set; }
 
         [Display(Name = "Transaction Date")]
         [Column(TypeName = "date")]
@@ -35,7 +40,7 @@ namespace Accounting_System.Models.AccountsPayable
         [Display(Name = "Supplier Id")]
         public int? SupplierId { get; set; }
 
-        [ForeignKey("SupplierId")]
+        [ForeignKey(nameof(SupplierId))]
         public Supplier? Supplier { get; set; }
 
         [NotMapped]
@@ -48,21 +53,25 @@ namespace Accounting_System.Models.AccountsPayable
         [Column(TypeName = "numeric(18,4)[]")]
         public decimal[]? Amount { get; set; }
 
+        [StringLength(1000)]
         public string? Particulars { get; set; }
 
         [Display(Name = "Bank Account Name")]
         public int? BankId { get; set; }
 
-        [ForeignKey("BankId")]
+        [ForeignKey(nameof(BankId))]
         public BankAccount? BankAccount { get; set; }
 
         [Display(Name = "Check #")]
+        [StringLength(50)]
         [RegularExpression(@"^(?:\d{10,}|DM\d{10})$", ErrorMessage = "Invalid format. Please enter either a 'DM' followed by a 10-digits or CV number minimum 10 digits.")]
         public string? CheckNo { get; set; }
 
+        [StringLength(20)]
         public string Category { get; set; }
 
         [Display(Name = "Payee")]
+        [StringLength(150)]
         public string? Payee { get; set; }
 
         [NotMapped]
@@ -95,14 +104,16 @@ namespace Accounting_System.Models.AccountsPayable
 
         public bool IsComplete { get; set; }
 
+        [StringLength(50)]
         public string? AccruedType { get; set; }
 
+        [StringLength(13)]
         public string? Reference { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? CheckVouchers { get; set; }
 
-        [Column(TypeName = "varchar(10)")]
+        [StringLength(10)]
         public string? CvType { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]

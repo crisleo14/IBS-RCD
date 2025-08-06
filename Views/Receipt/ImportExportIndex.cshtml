@@ -1,12 +1,8 @@
 ﻿@model IEnumerable<CollectionReceipt>
 @using Accounting_System.Models.AccountsReceivable
-@using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
-@inject UserManager<IdentityUser> UserManager
 @{
     ViewData["Title"] = "Collection Receipt";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var model = new CollectionReceipt();
 }
 <style>
     .container {
@@ -114,10 +110,10 @@
                 {
                     <tr class="text-truncate">
                         <td>
-                            <input type="checkbox" class="selectCheckbox text-center" value="@item.Id">
+                            <input type="checkbox" class="selectCheckbox text-center" value="@item.CollectionReceiptId">
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.CRNo)
+                            @Html.DisplayFor(modelItem => item.CollectionReceiptNo)
                         </td>
                         <td>
                             @item.TransactionDate.ToString("MM/dd/yyyy")
@@ -129,10 +125,13 @@
                             }
                             else if (item.MultipleSIId != null)
                             {
-                                for (int i = 0; i < item.MultipleSI.Length; i++)
+                                if (item.MultipleSI != null)
                                 {
-                                    var siNo = $"{item.MultipleSI[i]}, ";
-                                    @siNo
+                                    for (var i = 0; i < item.MultipleSI.Length; i++)
+                                    {
+                                        var siNo = $"{item.MultipleSI[i]}, ";
+                                        @siNo
+                                    }
                                 }
                             }
                             else
@@ -143,15 +142,15 @@
                         <td>
                             @if (item.SalesInvoiceId != null)
                             {
-                                @Html.DisplayFor(modelItem => item.SalesInvoice.Customer.Name)
+                                @Html.DisplayFor(modelItem => item.SalesInvoice!.Customer!.CustomerName)
                             }
                             else if (item.MultipleSIId != null)
                             {
-                                @Html.DisplayFor(modelItem => item.Customer.Name)
+                                @Html.DisplayFor(modelItem => item.Customer!.CustomerName)
                             }
                             else
                             {
-                                @Html.DisplayFor(modelItem => item.ServiceInvoice.Customer.Name)
+                                @Html.DisplayFor(modelItem => item.ServiceInvoice!.Customer!.CustomerName)
                             }
                         </td>
                         <td class="text-end px-4">

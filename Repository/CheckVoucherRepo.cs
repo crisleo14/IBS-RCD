@@ -26,12 +26,12 @@ namespace Accounting_System.Repository
         {
             var checkVoucher = await _dbContext
                 .CheckVoucherHeaders
-                .OrderByDescending(s => s.CVNo)
+                .OrderByDescending(s => s.CheckVoucherHeaderNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (checkVoucher != null)
             {
-                string lastSeries = checkVoucher.CVNo ?? throw new InvalidOperationException("CVNo is null pls Contact MIS Enterprise");
+                string lastSeries = checkVoucher.CheckVoucherHeaderNo ?? throw new InvalidOperationException("CVNo is null pls Contact MIS Enterprise");
                 string numericPart = lastSeries.Substring(2);
                 int incrementedNumber = int.Parse(numericPart) + 1;
 

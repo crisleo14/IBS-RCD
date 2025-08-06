@@ -84,13 +84,13 @@
                     <input type="checkbox" class="text-center" id="selectAll" onclick="toggleSelectAll(this)">
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Code)
+                    @Html.DisplayNameFor(model => model.ProductCode)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Name)
+                    @Html.DisplayNameFor(model => model.ProductName)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Unit)
+                    @Html.DisplayNameFor(model => model.ProductUnit)
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.CreatedBy)
@@ -105,16 +105,16 @@
                 {
                     <tr>
                         <td>
-                            <input type="checkbox" class="selectCheckbox text-center" value="@item.Id">
+                            <input type="checkbox" class="selectCheckbox text-center" value="@item.ProductId">
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Code)
+                            @Html.DisplayFor(modelItem => item.ProductCode)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Name)
+                            @Html.DisplayFor(modelItem => item.ProductName)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Unit)
+                            @Html.DisplayFor(modelItem => item.ProductUnit)
                         </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.CreatedBy)

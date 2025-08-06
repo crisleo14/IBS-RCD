@@ -7,9 +7,13 @@ namespace Accounting_System.Models.AccountsPayable
 {
     public class PurchaseOrder : BaseEntity
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int PurchaseOrderId { get; set; }
+
         [Display(Name = "PO No")]
-        [Column(TypeName = "varchar(12)")]
-        public string? PONo { get; set; }
+        [StringLength(13)]
+        public string? PurchaseOrderNo { get; set; }
 
         [Required]
         [Column(TypeName = "date")]
@@ -20,7 +24,7 @@ namespace Accounting_System.Models.AccountsPayable
         [Display(Name = "Supplier Name")]
         public int? SupplierId { get; set; }
 
-        [ForeignKey("SupplierId")]
+        [ForeignKey(nameof(SupplierId))]
         public Supplier? Supplier { get; set; }
 
         [NotMapped]
@@ -32,15 +36,16 @@ namespace Accounting_System.Models.AccountsPayable
         [Display(Name = "Product Name")]
         public int? ProductId { get; set; }
 
-        [ForeignKey("ProductId")]
+        [ForeignKey(nameof(ProductId))]
         public Product? Product { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? Products { get; set; }
 
+        [StringLength(15)]
         public string? ProductNo { get; set; }
 
-        [Column(TypeName = "varchar(10)")]
+        [StringLength(10)]
         public string Terms { get; set; }
 
         [Required]
@@ -70,7 +75,7 @@ namespace Accounting_System.Models.AccountsPayable
         public DateTime ReceivedDate { get; set; }
 
         [Required]
-        [Column(TypeName = "varchar(200)")]
+        [StringLength(1000)]
         public string Remarks { get; set; }
 
         public bool IsClosed { get; set; }

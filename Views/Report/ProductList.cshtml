@@ -1,7 +1,6 @@
 ﻿@model IEnumerable<Product>
 @using Accounting_System.Models.MasterFile
 @using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
 @{
@@ -11,10 +10,12 @@
 
 <br />
 <div class="text-end">
-    <img src="~/img/Filpride.jpg" height="" width="130px" />
+    <img src="~/img/Filpride.jpg" height="" width="130px" alt=""/>
 </div>
 <div class="text-center">
-    <h2><u><b>&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b></u></h2>
+    <h2>
+        <b class="text-decoration-underline">&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b>
+    </h2>
     <p style="line-height: 1; margin-top:-7px;">
         57 Westgate Offices, Sampson RO CBD, Subic Bay, Freeport Zone,<br />
         Kalaklan Olongapo City, 2000 Zambales Philippines<br />
@@ -31,13 +32,13 @@
         <thead>
             <tr class="text-primary" style="border: 1px solid black;">
                 <th>
-                    @Html.DisplayNameFor(model => model.Code)
+                    @Html.DisplayNameFor(model => model.ProductCode)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Name)
+                    @Html.DisplayNameFor(model => model.ProductName)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Unit)
+                    @Html.DisplayNameFor(model => model.ProductUnit)
                 </th>
             </tr>
         </thead>
@@ -46,13 +47,13 @@
             {
                 <tr>
                     <td>
-                        @Html.DisplayFor(modelItem => item.Code)
+                        @Html.DisplayFor(modelItem => item.ProductCode)
                     </td>
                     <td>
-                        @Html.DisplayFor(modelItem => item.Name)
+                        @Html.DisplayFor(modelItem => item.ProductName)
                     </td>
                     <td>
-                        @Html.DisplayFor(modelItem => item.Unit)
+                        @Html.DisplayFor(modelItem => item.ProductUnit)
                     </td>
 
                 </tr>
@@ -67,7 +68,7 @@
             <br />
             <strong>Version :</strong> v1.1
             <br />
-            <strong>Printed By :</strong> @UserManager.GetUserName(User).ToUpper()
+            <strong>Printed By :</strong> @UserManager.GetUserName(User)!.ToUpper()
             <br />
             <strong>Date & Time Printed :</strong> @DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")
         </em>
@@ -81,10 +82,10 @@
 
 @section Scripts{
     <script>
-        var originalFontSizes = [];
+        let originalFontSizes = [];
         function printPage() {
-            var printButton = document.getElementById("printButton");
-            var otherButton = document.getElementById("otherButton");
+            let printButton = document.getElementById("printButton");
+            let otherButton = document.getElementById("otherButton");
 
             // Hide the header and footer
             document.querySelector("header").style.display = "none";
@@ -99,20 +100,20 @@
             }
 
             // Get all paragraph elements
-            var paragraphs = document.querySelectorAll("p");
+            let paragraphs = document.querySelectorAll("p");
 
             // Store the original font sizes
-            for (var i = 0; i < paragraphs.length; i++) {
+            for (let i = 0; i < paragraphs.length; i++) {
                 originalFontSizes[i] = paragraphs[i].style.fontSize;
                 // Set the font size of all paragraph elements to 12px for printing
                 paragraphs[i].style.fontSize = "12px";
             }
 
             // Get all table text elements
-            var mytable = document.querySelectorAll("table");
+            let mytable = document.querySelectorAll("table");
 
             // Store the original font sizes
-            for (var i = 0; i < mytable.length; i++) {
+            for (let i = 0; i < mytable.length; i++) {
                 originalFontSizes[i] = mytable[i].style.fontSize;
                 // Set the font size of all paragraph elements to 12px for printing
                 mytable[i].style.fontSize = "12px";
@@ -122,12 +123,12 @@
             window.print();
 
             // Restore the font sizes
-            for (var i = 0; i < paragraphs.length; i++) {
+            for (let i = 0; i < paragraphs.length; i++) {
                 paragraphs[i].style.fontSize = originalFontSizes[i];
             }
 
             // Restore the font sizes
-            for (var i = 0; i < mytable.length; i++) {
+            for (let i = 0; i < mytable.length; i++) {
                 mytable[i].style.fontSize = originalFontSizes[i];
             }
 

@@ -44,16 +44,16 @@ namespace Accounting_System.Controllers
                 .Where(soa => soa.IsPosted)
                 .Select(soa => new SelectListItem
                 {
-                    Value = soa.Id.ToString(),
-                    Text = soa.SVNo
+                    Value = soa.ServiceInvoiceId.ToString(),
+                    Text = soa.ServiceInvoiceNo
                 })
                 .ToListAsync(cancellationToken),
                 SI = await _dbContext.SalesInvoices
                 .Where(si => si.IsPosted)
                 .Select(soa => new SelectListItem
                 {
-                    Value = soa.Id.ToString(),
-                    Text = soa.SINo
+                    Value = soa.SalesInvoiceId.ToString(),
+                    Text = soa.SalesInvoiceNo
                 })
                 .ToListAsync(cancellationToken)
             };
@@ -149,8 +149,8 @@ namespace Accounting_System.Controllers
                 .Where(po => po.IsPosted)
                 .Select(po => new SelectListItem
                 {
-                    Value = po.Id.ToString(),
-                    Text = po.PONo
+                    Value = po.PurchaseOrderId.ToString(),
+                    Text = po.PurchaseOrderNo
                 })
                 .ToListAsync(cancellationToken)
             };
@@ -885,9 +885,9 @@ namespace Accounting_System.Controllers
                     fileContent.AppendLine();
                     fileContent.AppendLine($"{"Field Name"}\t{"Description"}\t{"From"}\t{"To"}\t{"Length"}\t{"Example"}");
                     fileContent.AppendLine($"{"Date",-8}\t{"Date",-8}\t{"1"}\t{"10"}\t{"10"}\t{Truncate(firstRecord.Date.ToString("MM/dd/yyyy"), 10)}");
-                    fileContent.AppendLine($"{"ProductCode",-8}\t{"Product Code",-8}\t{"12"}\t{"31"}\t{"20"}\t{Truncate(firstRecord.Product.Code, 20)}");
-                    fileContent.AppendLine($"{"ProductName",-8}\t{"Product Name",-8}\t{"33"}\t{"82"}\t{"50"}\t{Truncate(firstRecord.Product.Name, 50)}");
-                    fileContent.AppendLine($"{"Unit",-8}\t{"Unit",-8}\t{"84"}\t{"85"}\t{"2"}\t{Truncate(firstRecord.Product.Unit, 2)}");
+                    fileContent.AppendLine($"{"ProductCode",-8}\t{"Product Code",-8}\t{"12"}\t{"31"}\t{"20"}\t{Truncate(firstRecord.Product.ProductCode, 20)}");
+                    fileContent.AppendLine($"{"ProductName",-8}\t{"Product Name",-8}\t{"33"}\t{"82"}\t{"50"}\t{Truncate(firstRecord.Product.ProductName, 50)}");
+                    fileContent.AppendLine($"{"Unit",-8}\t{"Unit",-8}\t{"84"}\t{"85"}\t{"2"}\t{Truncate(firstRecord.Product.ProductUnit, 2)}");
                     fileContent.AppendLine($"{"Quantity",-8}\t{"Quantity",-8}\t{"87"}\t{"104"}\t{"18"}\t{Truncate(firstRecord.Quantity.ToString(), 18)}");
                     fileContent.AppendLine($"{"Price",-8}\t{"Price Per Unit",-8}\t{"106"}\t{"123"}\t{"18"}\t{Truncate(firstRecord.Cost.ToString(), 18)}");
                     fileContent.AppendLine($"{"Amount",-8}\t{"Amount",-8}\t{"125"}\t{"142"}\t{"18"}\t{Truncate(firstRecord.Total.ToString(), 18)}");
@@ -910,8 +910,8 @@ namespace Accounting_System.Controllers
                             totalPriceUnitAmount = getLastRecordCost;
                         }
                         fileContent.AppendLine($"{Truncate(record.Date.ToString("MM/dd/yyyy"), 10),-10}\t" +
-                                               $"{Truncate(record.Product.Code, 20),-20}\t" +
-                                               $"{Truncate(record.Product.Code, 50),-50}\t" +
+                                               $"{Truncate(record.Product.ProductCode, 20),-20}\t" +
+                                               $"{Truncate(record.Product.ProductCode, 50),-50}\t" +
                                                $"{Truncate(record.Unit, 2),-2}\t" +
                                                $"{Truncate(record.Quantity.ToString(), 18),18}\t" +
                                                $"{Truncate(record.Cost.ToString(), 18),18}\t" +
@@ -1691,9 +1691,9 @@ namespace Accounting_System.Controllers
                     totalPriceUnitAmount = getLastRecordCost;
                 }
                 worksheet.Cells[row, 1].Value = inventory.Date;
-                worksheet.Cells[row, 2].Value = inventory.Product.Code;
-                worksheet.Cells[row, 3].Value = inventory.Product.Name;
-                worksheet.Cells[row, 4].Value = inventory.Product.Unit;
+                worksheet.Cells[row, 2].Value = inventory.Product.ProductCode;
+                worksheet.Cells[row, 3].Value = inventory.Product.ProductName;
+                worksheet.Cells[row, 4].Value = inventory.Product.ProductUnit;
 
                 worksheet.Cells[row, 5].Value = inventory.Quantity;
                 worksheet.Cells[row, 6].Value = inventory.Cost;

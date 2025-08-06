@@ -1,11 +1,10 @@
-﻿@using Accounting_System.Models.ViewModels
-@model IEnumerable<Inventory>
+﻿@model IEnumerable<Inventory>
 
 @{
     ViewData["Title"] = "Inventory Report";
-    decimal totalAmount = 0m;
-    decimal totalQty = 0m;
-    decimal totalPrice = 0m;
+    var totalAmount = 0m;
+    var totalQty = 0m;
+    var totalPrice = 0m;
 }
 
 <div class="mb-3">

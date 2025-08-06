@@ -42,7 +42,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetAllCustomerIds(CancellationToken cancellationToken)
         {
             var customerIds = await _dbContext.Customers
-                                     .Select(c => c.Id) // Assuming Id is the primary key
+                                     .Select(c => c.CustomerId) // Assuming Id is the primary key
                                      .ToListAsync(cancellationToken);
             return Json(customerIds);
         }
@@ -62,13 +62,13 @@ namespace Accounting_System.Controllers
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    if (await _customerRepo.IsCustomerExist(customer.Name, cancellationToken))
+                    if (await _customerRepo.IsCustomerExist(customer.CustomerName, cancellationToken))
                     {
                         ModelState.AddModelError("Name", "Customer already exist!");
                         return View(customer);
                     }
 
-                    if (await _customerRepo.IsTinNoExist(customer.TinNo, cancellationToken))
+                    if (await _customerRepo.IsTinNoExist(customer.CustomerTin, cancellationToken))
                     {
                         ModelState.AddModelError("TinNo", "Tin# already exist!");
                         return View(customer);
@@ -82,7 +82,7 @@ namespace Accounting_System.Controllers
                     if (customer.OriginalCustomerId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(customer.CreatedBy, $"Created new customer {customer.Name}", "Customer", ipAddress);
+                        AuditTrail auditTrailBook = new(customer.CreatedBy, $"Created new customer {customer.CustomerName}", "Customer", ipAddress);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -126,7 +126,7 @@ namespace Accounting_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Customer customer, CancellationToken cancellationToken)
         {
-            if (id != customer.Id)
+            if (id != customer.CustomerId)
             {
                 return NotFound();
             }
@@ -137,11 +137,11 @@ namespace Accounting_System.Controllers
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    existingModel.Name = customer.Name;
-                    existingModel.Address = customer.Address;
-                    existingModel.TinNo = customer.TinNo;
+                    existingModel.CustomerName = customer.CustomerName;
+                    existingModel.CustomerAddress = customer.CustomerAddress;
+                    existingModel.CustomerTin = customer.CustomerTin;
                     existingModel.BusinessStyle = customer.BusinessStyle;
-                    existingModel.Terms = customer.Terms;
+                    existingModel.CustomerTerms = customer.CustomerTerms;
                     existingModel.CustomerType = customer.CustomerType;
                     existingModel.WithHoldingTax = customer.WithHoldingTax;
                     existingModel.WithHoldingVat = customer.WithHoldingVat;
@@ -154,7 +154,7 @@ namespace Accounting_System.Controllers
                         if (customer.OriginalCustomerId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Updated customer {customer.Name}", "Customer", ipAddress);
+                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Updated customer {customer.CustomerName}", "Customer", ipAddress);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -201,8 +201,8 @@ namespace Accounting_System.Controllers
 
                 // Retrieve the selected invoices from the database
                 var selectedList = await _dbContext.Customers
-                    .Where(c => recordIds.Contains(c.Id))
-                    .OrderBy(c => c.Id)
+                    .Where(c => recordIds.Contains(c.CustomerId))
+                    .OrderBy(c => c.CustomerId)
                     .ToListAsync();
 
                 // Create the Excel package
@@ -228,18 +228,18 @@ namespace Accounting_System.Controllers
 
                 foreach (var item in selectedList)
                 {
-                    worksheet.Cells[row, 1].Value = item.Name;
-                    worksheet.Cells[row, 2].Value = item.Address;
+                    worksheet.Cells[row, 1].Value = item.CustomerName;
+                    worksheet.Cells[row, 2].Value = item.CustomerAddress;
                     worksheet.Cells[row, 3].Value = item.ZipCode;
-                    worksheet.Cells[row, 4].Value = item.TinNo;
+                    worksheet.Cells[row, 4].Value = item.CustomerTin;
                     worksheet.Cells[row, 5].Value = item.BusinessStyle;
-                    worksheet.Cells[row, 6].Value = item.Terms;
+                    worksheet.Cells[row, 6].Value = item.CustomerTerms;
                     worksheet.Cells[row, 7].Value = item.CustomerType;
                     worksheet.Cells[row, 8].Value = item.WithHoldingVat;
                     worksheet.Cells[row, 9].Value = item.WithHoldingTax;
                     worksheet.Cells[row, 10].Value = item.CreatedBy;
                     worksheet.Cells[row, 11].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet.Cells[row, 12].Value = item.Id;
+                    worksheet.Cells[row, 12].Value = item.CustomerId;
                     worksheet.Cells[row, 13].Value = item.Number;
 
                     row++;
@@ -306,12 +306,12 @@ namespace Accounting_System.Controllers
                             var customer = new Customer
                             {
                                 Number = await _customerRepo.GetLastNumber(),
-                                Name = worksheet.Cells[row, 1].Text,
-                                Address = worksheet.Cells[row, 2].Text,
+                                CustomerName = worksheet.Cells[row, 1].Text,
+                                CustomerAddress = worksheet.Cells[row, 2].Text,
                                 ZipCode = worksheet.Cells[row, 3].Text,
-                                TinNo = worksheet.Cells[row, 4].Text,
+                                CustomerTin = worksheet.Cells[row, 4].Text,
                                 BusinessStyle = worksheet.Cells[row, 5].Text,
-                                Terms = worksheet.Cells[row, 6].Text,
+                                CustomerTerms = worksheet.Cells[row, 6].Text,
                                 CustomerType = worksheet.Cells[row, 7].Text,
                                 WithHoldingVat = bool.TryParse(worksheet.Cells[row, 8].Text, out bool withHoldingVat) ? withHoldingVat : false,
                                 WithHoldingTax = bool.TryParse(worksheet.Cells[row, 9].Text, out bool withHoldingTax) ? withHoldingTax : false,

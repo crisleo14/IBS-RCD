@@ -7,11 +7,15 @@ namespace Accounting_System.Models.AccountsPayable
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+        public int JournalVoucherDetailId { get; set; }
 
+        [StringLength(20)]
         public string AccountNo { get; set; } = " ";
+
+        [StringLength(200)]
         public string AccountName { get; set; } = " ";
 
+        [StringLength(13)]
         public string TransactionNo { get; set; } = " ";
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
@@ -22,10 +26,10 @@ namespace Accounting_System.Models.AccountsPayable
         [Column(TypeName = "numeric(18,4)")]
         public decimal Credit { get; set; }
 
-        public int JVHeaderId { get; set; }
+        public int JournalVoucherHeaderId { get; set; }
 
-        [ForeignKey("JVHeaderId")]
-        public JournalVoucherHeader Header { get; set; }
+        [ForeignKey(nameof(JournalVoucherHeaderId))]
+        public JournalVoucherHeader JournalVoucherHeader { get; set; }
 
         public int? OriginalDocumentId { get; set; }
     }

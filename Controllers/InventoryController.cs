@@ -40,11 +40,11 @@ namespace Accounting_System.Controllers
             BeginningInventoryViewModel? viewModel = new();
 
             viewModel.ProductList = await _dbContext.Products
-                .OrderBy(p => p.Code)
+                .OrderBy(p => p.ProductCode)
                 .Select(p => new SelectListItem
                 {
-                    Value = p.Id.ToString(),
-                    Text = $"{p.Code} {p.Name}"
+                    Value = p.ProductId.ToString(),
+                    Text = $"{p.ProductCode} {p.ProductName}"
                 })
                 .ToListAsync(cancellationToken);
 
@@ -64,11 +64,11 @@ namespace Accounting_System.Controllers
                     if (hasBeginningInventory)
                     {
                         viewModel.ProductList = await _dbContext.Products
-                            .OrderBy(p => p.Code)
+                            .OrderBy(p => p.ProductCode)
                             .Select(p => new SelectListItem
                             {
-                                Value = p.Id.ToString(),
-                                Text = $"{p.Code} {p.Name}"
+                                Value = p.ProductId.ToString(),
+                                Text = $"{p.ProductCode} {p.ProductName}"
                             })
                             .ToListAsync(cancellationToken);
 
@@ -90,11 +90,11 @@ namespace Accounting_System.Controllers
             }
 
             viewModel.ProductList = await _dbContext.Products
-                .OrderBy(p => p.Code)
+                .OrderBy(p => p.ProductCode)
                 .Select(p => new SelectListItem
                 {
-                    Value = p.Id.ToString(),
-                    Text = $"{p.Code} {p.Name}"
+                    Value = p.ProductId.ToString(),
+                    Text = $"{p.ProductCode} {p.ProductName}"
                 })
                 .ToListAsync(cancellationToken);
 
@@ -107,11 +107,11 @@ namespace Accounting_System.Controllers
             InventoryReportViewModel viewModel = new InventoryReportViewModel();
 
             viewModel.Products = await _dbContext.Products
-                .OrderBy(p => p.Code)
+                .OrderBy(p => p.ProductCode)
                 .Select(p => new SelectListItem
                 {
-                    Value = p.Id.ToString(),
-                    Text = $"{p.Code} {p.Name}"
+                    Value = p.ProductId.ToString(),
+                    Text = $"{p.ProductCode} {p.ProductName}"
                 })
                 .ToListAsync(cancellationToken);
 
@@ -148,7 +148,7 @@ namespace Accounting_System.Controllers
                 var product = await _dbContext.Products
                     .FindAsync(viewModel.ProductId, cancellationToken);
 
-                ViewData["Product"] = product.Name;
+                ViewData["Product"] = product.ProductName;
                 ViewBag.ProductId = viewModel.ProductId;
 
                 return View(inventories);
@@ -171,7 +171,7 @@ namespace Accounting_System.Controllers
                 var product = await _dbContext.Products
                     .FindAsync(viewModel.ProductId, cancellationToken);
 
-                ViewData["Product"] = product.Name;
+                ViewData["Product"] = product.ProductName;
                 ViewBag.ProductId = viewModel.ProductId;
 
                 return View(inventories);
@@ -186,11 +186,11 @@ namespace Accounting_System.Controllers
             ActualInventoryViewModel? viewModel = new();
 
             viewModel.ProductList = await _dbContext.Products
-                .OrderBy(p => p.Code)
+                .OrderBy(p => p.ProductCode)
                 .Select(p => new SelectListItem
                 {
-                    Value = p.Id.ToString(),
-                    Text = $"{p.Code} {p.Name}"
+                    Value = p.ProductId.ToString(),
+                    Text = $"{p.ProductCode} {p.ProductName}"
                 })
                 .ToListAsync(cancellationToken);
 
@@ -242,11 +242,11 @@ namespace Accounting_System.Controllers
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     viewModel.ProductList = await _dbContext.Products
-                        .OrderBy(p => p.Code)
+                        .OrderBy(p => p.ProductCode)
                         .Select(p => new SelectListItem
                         {
-                            Value = p.Id.ToString(),
-                            Text = $"{p.Code} {p.Name}"
+                            Value = p.ProductId.ToString(),
+                            Text = $"{p.ProductCode} {p.ProductName}"
                         })
                         .ToListAsync(cancellationToken);
 
@@ -265,11 +265,11 @@ namespace Accounting_System.Controllers
             }
 
             viewModel.ProductList = await _dbContext.Products
-                .OrderBy(p => p.Code)
+                .OrderBy(p => p.ProductCode)
                 .Select(p => new SelectListItem
                 {
-                    Value = p.Id.ToString(),
-                    Text = $"{p.Code} {p.Name}"
+                    Value = p.ProductId.ToString(),
+                    Text = $"{p.ProductCode} {p.ProductName}"
                 })
                 .ToListAsync(cancellationToken);
 
@@ -309,7 +309,7 @@ namespace Accounting_System.Controllers
 
                         var header = new JournalVoucherHeader
                         {
-                            JVNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken),
+                            JournalVoucherHeaderNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken),
                             JVReason = "Actual Inventory",
                             Particulars = inventory.Particular,
                             Date = inventory.Date,
@@ -328,16 +328,16 @@ namespace Accounting_System.Controllers
                         foreach (var entry in ledgerEntries)
                         {
                             entry.IsPosted = true;
-                            entry.Reference = header.JVNo;
+                            entry.Reference = header.JournalVoucherHeaderNo;
 
                             details.Add(new JournalVoucherDetail
                             {
                                 AccountNo = entry.AccountNo,
                                 AccountName = entry.AccountTitle,
-                                TransactionNo = header.JVNo,
+                                TransactionNo = header.JournalVoucherHeaderNo,
                                 Debit = entry.Debit,
                                 Credit = entry.Credit,
-                                JVHeaderId = header.Id
+                                JournalVoucherHeaderId = header.JournalVoucherHeaderId
                             });
                         }
 
@@ -358,7 +358,7 @@ namespace Accounting_System.Controllers
                             journalBook.Add(new JournalBook
                             {
                                 Date = entry.Date,
-                                Reference = header.JVNo,
+                                Reference = header.JournalVoucherHeaderNo,
                                 Description = "Actual Inventory",
                                 AccountTitle = entry.AccountNo + " " + entry.AccountTitle,
                                 Debit = Math.Abs(entry.Debit),

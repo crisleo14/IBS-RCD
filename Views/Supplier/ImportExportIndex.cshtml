@@ -87,16 +87,16 @@
                     @Html.DisplayNameFor(model => model.Number)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Name)
+                    @Html.DisplayNameFor(model => model.SupplierName)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Address)
+                    @Html.DisplayNameFor(model => model.SupplierAddress)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.TinNo)
+                    @Html.DisplayNameFor(model => model.SupplierTin)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Terms)
+                    @Html.DisplayNameFor(model => model.SupplierTerms)
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.VatType)
@@ -111,22 +111,22 @@
                 {
                     <tr>
                         <td>
-                            <input type="checkbox" class="selectCheckbox text-center" value="@item.Id">
+                            <input type="checkbox" class="selectCheckbox text-center" value="@item.SupplierId">
                         </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.Number)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Name)
+                            @Html.DisplayFor(modelItem => item.SupplierName)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Address)
+                            @Html.DisplayFor(modelItem => item.SupplierAddress)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.TinNo)
+                            @Html.DisplayFor(modelItem => item.SupplierTin)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Terms)
+                            @Html.DisplayFor(modelItem => item.SupplierTerms)
                         </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.VatType)

@@ -1,17 +1,10 @@
 ﻿@model IEnumerable<CreditMemo>
 @using Accounting_System.Models.AccountsReceivable
-@using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
-@inject UserManager<IdentityUser> UserManager
 @{
     ViewData["Title"] = "Credit Memo";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <style>
-    .container {
-        max-width: 100% !important;
-        width: 100% !important;
-    }
 
     /* Custom styles for professional look */
     .table th {
@@ -30,26 +23,13 @@
         background-color: rgba(59, 130, 246, 0.05);
     }
 
-    .table-loading {
-        position: relative;
-        opacity: 0.6;
-    }
-
     .badge {
         font-weight: 500;
         padding: 0.35em 0.8em;
         font-size: 0.75rem;
     }
 
-    .actions-dropdown .dropdown-item {
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
-    }
-
-    .actions-dropdown .dropdown-item:hover {
-        background-color: #f3f4f6;
-    }
-</style>
+    </style>
 <div class="loader-container">
     <div class="loader"></div>
     <div class="loader-text">Loading...</div>
@@ -86,7 +66,7 @@
                     <input type="checkbox" class="text-center" id="selectAll" onclick="toggleSelectAll(this)">
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.CMNo)
+                    @Html.DisplayNameFor(model => model.CreditMemoNo)
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.TransactionDate)
@@ -113,10 +93,10 @@
                 {
                     <tr>
                         <td>
-                            <input type="checkbox" class="selectCheckbox text-center" value="@item.Id">
+                            <input type="checkbox" class="selectCheckbox text-center" value="@item.CreditMemoId">
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.CMNo)
+                            @Html.DisplayFor(modelItem => item.CreditMemoNo)
                         </td>
                         <td>
                             @item.TransactionDate.ToString("MM/dd/yyyy")
@@ -124,13 +104,13 @@
                         @if (item.Source == "Sales Invoice")
                         {
                             <td>
-                                @Html.DisplayFor(modelItem => item.SalesInvoice.SINo)
+                                @Html.DisplayFor(modelItem => item.SalesInvoice!.SalesInvoiceNo)
                             </td>
                         }
                         else
                         {
                             <td>
-                                @Html.DisplayFor(modelItem => item.ServiceInvoice.SVNo)
+                                @Html.DisplayFor(modelItem => item.ServiceInvoice!.ServiceInvoiceNo)
                             </td>
                         }
                         <td>

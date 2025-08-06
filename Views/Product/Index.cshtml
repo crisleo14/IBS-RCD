@@ -70,13 +70,13 @@
             <thead class="table-secondary">
                 <tr>
                     <th>
-                        @Html.DisplayNameFor(model => model.Code)
+                        @Html.DisplayNameFor(model => model.ProductCode)
                     </th>
                     <th>
-                        @Html.DisplayNameFor(model => model.Name)
+                        @Html.DisplayNameFor(model => model.ProductName)
                     </th>
                     <th>
-                        @Html.DisplayNameFor(model => model.Unit)
+                        @Html.DisplayNameFor(model => model.ProductUnit)
                     </th>
                     <th>
                         @Html.DisplayNameFor(model => model.CreatedBy)
@@ -92,13 +92,13 @@
                 {
                     <tr>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Code)
+                            @Html.DisplayFor(modelItem => item.ProductCode)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Name)
+                            @Html.DisplayFor(modelItem => item.ProductName)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Unit)
+                            @Html.DisplayFor(modelItem => item.ProductUnit)
                         </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.CreatedBy)
@@ -107,7 +107,7 @@
                             @item.CreatedDate.ToString("MM/dd/yyyy")
                         </td>
                         <td>
-                            <a asp-action="Edit" class="btn btn-light" asp-route-id="@item.Id">Edit</a>
+                            <a asp-action="Edit" class="btn btn-light" asp-route-id="@item.ProductId">Edit</a>
                         </td>
                     </tr>
                 }

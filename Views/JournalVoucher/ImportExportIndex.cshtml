@@ -1,8 +1,4 @@
-﻿@using Accounting_System.Models.AccountsPayable
-@model IEnumerable<JournalVoucherHeader>
-@using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
-@inject UserManager<IdentityUser> UserManager
+﻿@model IEnumerable<JournalVoucherHeader>
 @{
     ViewData["Title"] = "Journal Voucher";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -86,13 +82,13 @@
                     <input type="checkbox" class="text-center" id="selectAll" onclick="toggleSelectAll(this)">
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.JVNo)
+                    @Html.DisplayNameFor(model => model.JournalVoucherHeaderNo)
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.Date)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.CheckVoucherHeader.CVNo)
+                    @Html.DisplayNameFor(model => model.CheckVoucherHeader!.CheckVoucherHeaderNo)
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.CRNo)
@@ -113,16 +109,16 @@
                 {
                     <tr>
                         <td>
-                            <input type="checkbox" class="selectCheckbox text-center" value="@item.Id">
+                            <input type="checkbox" class="selectCheckbox text-center" value="@item.JournalVoucherHeaderId">
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.JVNo)
+                            @Html.DisplayFor(modelItem => item.JournalVoucherHeaderNo)
                         </td>
                         <td>
                             @item.Date.ToString("MM/dd/yyyy")
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.CheckVoucherHeader.CVNo)
+                            @Html.DisplayFor(modelItem => item.CheckVoucherHeader!.CheckVoucherHeaderNo)
                         </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.CRNo)

@@ -35,12 +35,14 @@ namespace Accounting_System.Models.ViewModels
         [Required(ErrorMessage = "The bank account is required.")]
         public int BankId { get; set; }
 
+        [StringLength(50)]
         [Display(Name = "Check No.")]
         public string CheckNo { get; set; }
 
         [Display(Name = "Check Date")]
         public DateOnly CheckDate { get; set; }
 
+        [StringLength(1000)]
         public string Particulars { get; set; }
 
         public List<SelectListItem>? ChartOfAccounts { get; set; }

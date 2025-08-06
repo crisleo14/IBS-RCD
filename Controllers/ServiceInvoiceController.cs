@@ -59,11 +59,11 @@ namespace Accounting_System.Controllers
                     var searchValue = parameters.Search.Value.ToLower();
                     serviceInvoices = serviceInvoices
                         .Where(sv =>
-                            sv.SVNo.ToLower().Contains(searchValue) ||
-                            sv.Customer.Name.ToLower().Contains(searchValue) ||
-                            sv.Customer.Terms.ToLower().Contains(searchValue) ||
+                            sv.ServiceInvoiceNo.ToLower().Contains(searchValue) ||
+                            sv.Customer.CustomerName.ToLower().Contains(searchValue) ||
+                            sv.Customer.CustomerTerms.ToLower().Contains(searchValue) ||
                             sv.Service.Name.ToLower().Contains(searchValue) ||
-                            sv.Service.Number.ToString().Contains(searchValue) ||
+                            sv.Service.ServiceNo.ToString().Contains(searchValue) ||
                             sv.Period.ToString("MMM yyyy").ToLower().Contains(searchValue) ||
                             sv.Amount.ToString().Contains(searchValue) ||
                             sv.Instructions?.ToLower().Contains(searchValue) == true ||
@@ -106,7 +106,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetAllServiceInvoiceIds(CancellationToken  cancellationToken)
         {
             var invoiceIds = await _dbContext.ServiceInvoices
-                                     .Select(sv => sv.Id) // Assuming Id is the primary key
+                                     .Select(sv => sv.ServiceInvoiceId) // Assuming Id is the primary key
                                      .ToListAsync(cancellationToken);
             return Json(invoiceIds);
         }
@@ -116,18 +116,18 @@ namespace Accounting_System.Controllers
         {
             var viewModel = new ServiceInvoice();
             viewModel.Customers = await _dbContext.Customers
-                .OrderBy(c => c.Id)
+                .OrderBy(c => c.CustomerId)
                 .Select(c => new SelectListItem
                 {
-                    Value = c.Id.ToString(),
-                    Text = c.Name
+                    Value = c.CustomerId.ToString(),
+                    Text = c.CustomerName
                 })
                 .ToListAsync(cancellationToken);
             viewModel.Services = await _dbContext.Services
-                .OrderBy(s => s.Id)
+                .OrderBy(s => s.ServiceId)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Id.ToString(),
+                    Value = s.ServiceId.ToString(),
                     Text = s.Name
                 })
                 .ToListAsync(cancellationToken);
@@ -138,18 +138,18 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Create(ServiceInvoice model, CancellationToken cancellationToken)
         {
             model.Customers = await _dbContext.Customers
-                .OrderBy(c => c.Id)
+                .OrderBy(c => c.CustomerId)
                 .Select(c => new SelectListItem
                 {
-                    Value = c.Id.ToString(),
-                    Text = c.Name
+                    Value = c.CustomerId.ToString(),
+                    Text = c.CustomerName
                 })
                 .ToListAsync(cancellationToken);
             model.Services = await _dbContext.Services
-                .OrderBy(s => s.Id)
+                .OrderBy(s => s.ServiceId)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Id.ToString(),
+                    Value = s.ServiceId.ToString(),
                     Text = s.Name
                 })
                 .ToListAsync(cancellationToken);
@@ -194,11 +194,11 @@ namespace Accounting_System.Controllers
 
                     #region --Saving the default properties
 
-                    model.SVNo = generateSvNo;
+                    model.ServiceInvoiceNo = generateSvNo;
 
                     model.CreatedBy = _userManager.GetUserName(this.User);
 
-                    model.ServiceNo = services.Number;
+                    model.ServiceNo = services.ServiceNo;
 
                     model.Total = model.Amount;
 
@@ -238,7 +238,7 @@ namespace Accounting_System.Controllers
                     if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new service invoice# {model.SVNo}", "Service Invoice", ipAddress);
+                        AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new service invoice# {model.ServiceInvoiceNo}", "Service Invoice", ipAddress);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -279,7 +279,7 @@ namespace Accounting_System.Controllers
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                     var printedBy = _userManager.GetUserName(this.User);
-                    AuditTrail auditTrailBook = new(printedBy, $"Printed original copy of sv# {findIdOfSOA.SVNo}", "Service Invoice", ipAddress);
+                    AuditTrail auditTrailBook = new(printedBy, $"Printed original copy of sv# {findIdOfSOA.ServiceInvoiceNo}", "Service Invoice", ipAddress);
                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                 }
 
@@ -344,10 +344,10 @@ namespace Accounting_System.Controllers
                         if (model.Customer.CustomerType == "Vatable")
                         {
                             sales.TransactionDate = postedDate;
-                            sales.SerialNo = model.SVNo;
-                            sales.SoldTo = model.Customer.Name;
-                            sales.TinNo = model.Customer.TinNo;
-                            sales.Address = model.Customer.Address;
+                            sales.SerialNo = model.ServiceInvoiceNo;
+                            sales.SoldTo = model.Customer.CustomerName;
+                            sales.TinNo = model.Customer.CustomerTin;
+                            sales.Address = model.Customer.CustomerAddress;
                             sales.Description = model.Service.Name;
                             sales.Amount = model.Total;
                             sales.VatAmount = vatAmount;
@@ -357,15 +357,15 @@ namespace Accounting_System.Controllers
                             sales.CreatedBy = model.CreatedBy;
                             sales.CreatedDate = model.CreatedDate;
                             sales.DueDate = model.DueDate;
-                            sales.DocumentId = model.Id;
+                            sales.DocumentId = model.ServiceInvoiceId;
                         }
                         else if (model.Customer.CustomerType == "Exempt")
                         {
                             sales.TransactionDate = postedDate;
-                            sales.SerialNo = model.SVNo;
-                            sales.SoldTo = model.Customer.Name;
-                            sales.TinNo = model.Customer.TinNo;
-                            sales.Address = model.Customer.Address;
+                            sales.SerialNo = model.ServiceInvoiceNo;
+                            sales.SoldTo = model.Customer.CustomerName;
+                            sales.TinNo = model.Customer.CustomerTin;
+                            sales.Address = model.Customer.CustomerAddress;
                             sales.Description = model.Service.Name;
                             sales.Amount = model.Total;
                             sales.VatExemptSales = model.Total;
@@ -374,15 +374,15 @@ namespace Accounting_System.Controllers
                             sales.CreatedBy = model.CreatedBy;
                             sales.CreatedDate = model.CreatedDate;
                             sales.DueDate = model.DueDate;
-                            sales.DocumentId = model.Id;
+                            sales.DocumentId = model.ServiceInvoiceId;
                         }
                         else
                         {
                             sales.TransactionDate = postedDate;
-                            sales.SerialNo = model.SVNo;
-                            sales.SoldTo = model.Customer.Name;
-                            sales.TinNo = model.Customer.TinNo;
-                            sales.Address = model.Customer.Address;
+                            sales.SerialNo = model.ServiceInvoiceNo;
+                            sales.SoldTo = model.Customer.CustomerName;
+                            sales.TinNo = model.Customer.CustomerTin;
+                            sales.Address = model.Customer.CustomerAddress;
                             sales.Description = model.Service.Name;
                             sales.Amount = model.Total;
                             sales.ZeroRated = model.Total;
@@ -391,7 +391,7 @@ namespace Accounting_System.Controllers
                             sales.CreatedBy = model.CreatedBy;
                             sales.CreatedDate = model.CreatedDate;
                             sales.DueDate = model.DueDate;
-                            sales.DocumentId = model.Id;
+                            sales.DocumentId = model.ServiceInvoiceId;
                         }
 
                         await _dbContext.AddAsync(sales, cancellationToken);
@@ -411,7 +411,7 @@ namespace Accounting_System.Controllers
                                 new GeneralLedgerBook
                                 {
                                     Date = postedDate,
-                                    Reference = model.SVNo,
+                                    Reference = model.ServiceInvoiceNo,
                                     Description = model.Service.Name,
                                     AccountNo = arNonTradeTitle.AccountNumber,
                                     AccountTitle = arNonTradeTitle.AccountName,
@@ -427,7 +427,7 @@ namespace Accounting_System.Controllers
                                 new GeneralLedgerBook
                                 {
                                     Date = postedDate,
-                                    Reference = model.SVNo,
+                                    Reference = model.ServiceInvoiceNo,
                                     Description = model.Service.Name,
                                     AccountNo = arTradeCwt.AccountNumber,
                                     AccountTitle = arTradeCwt.AccountName,
@@ -444,7 +444,7 @@ namespace Accounting_System.Controllers
                                 new GeneralLedgerBook
                                 {
                                     Date = postedDate,
-                                    Reference = model.SVNo,
+                                    Reference = model.ServiceInvoiceNo,
                                     Description = model.Service.Name,
                                     AccountNo = arTradeCwv.AccountNumber,
                                     AccountTitle = arTradeCwv.AccountName,
@@ -460,7 +460,7 @@ namespace Accounting_System.Controllers
                                new GeneralLedgerBook
                                {
                                    Date = postedDate,
-                                   Reference = model.SVNo,
+                                   Reference = model.ServiceInvoiceNo,
                                    Description = model.Service.Name,
                                    AccountNo = model.Service.CurrentAndPreviousNo,
                                    AccountTitle = model.Service.CurrentAndPreviousTitle,
@@ -477,7 +477,7 @@ namespace Accounting_System.Controllers
                                 new GeneralLedgerBook
                                 {
                                     Date = postedDate,
-                                    Reference = model.SVNo,
+                                    Reference = model.ServiceInvoiceNo,
                                     Description = model.Service.Name,
                                     AccountNo = vatOutputTitle.AccountNumber,
                                     AccountTitle = vatOutputTitle.AccountName,
@@ -503,7 +503,7 @@ namespace Accounting_System.Controllers
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(model.PostedBy, $"Posted service invoice# {model.SVNo}", "Service Invoice", ipAddress);
+                            AuditTrail auditTrailBook = new(model.PostedBy, $"Posted service invoice# {model.ServiceInvoiceNo}", "Service Invoice", ipAddress);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -551,7 +551,7 @@ namespace Accounting_System.Controllers
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled service invoice# {model.SVNo}", "Service Invoice", ipAddress);
+                            AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled service invoice# {model.ServiceInvoiceNo}", "Service Invoice", ipAddress);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -599,14 +599,14 @@ namespace Accounting_System.Controllers
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided service invoice# {model.SVNo}", "Service Invoice", ipAddress);
+                            AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided service invoice# {model.ServiceInvoiceNo}", "Service Invoice", ipAddress);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
                         #endregion --Audit Trail Recording
 
-                        await _generalRepo.RemoveRecords<SalesBook>(gl => gl.SerialNo == model.SVNo, cancellationToken);
-                        await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.SVNo, cancellationToken);
+                        await _generalRepo.RemoveRecords<SalesBook>(gl => gl.SerialNo == model.ServiceInvoiceNo, cancellationToken);
+                        await _generalRepo.RemoveRecords<GeneralLedgerBook>(gl => gl.Reference == model.ServiceInvoiceNo, cancellationToken);
 
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         await transaction.CommitAsync(cancellationToken);
@@ -640,18 +640,18 @@ namespace Accounting_System.Controllers
             }
 
             existingModel.Customers = await _dbContext.Customers
-                .OrderBy(c => c.Id)
+                .OrderBy(c => c.CustomerId)
                 .Select(c => new SelectListItem
                 {
-                    Value = c.Id.ToString(),
-                    Text = c.Name
+                    Value = c.CustomerId.ToString(),
+                    Text = c.CustomerName
                 })
                 .ToListAsync(cancellationToken);
             existingModel.Services = await _dbContext.Services
-                .OrderBy(s => s.Id)
+                .OrderBy(s => s.ServiceId)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Id.ToString(),
+                    Value = s.ServiceId.ToString(),
                     Text = s.Name
                 })
                 .ToListAsync(cancellationToken);
@@ -662,7 +662,7 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(ServiceInvoice model, CancellationToken cancellationToken)
         {
-            var existingModel = await _serviceInvoiceRepo.FindSv(model.Id, cancellationToken);
+            var existingModel = await _serviceInvoiceRepo.FindSv(model.ServiceInvoiceId, cancellationToken);
 
             if (existingModel == null)
             {
@@ -695,7 +695,7 @@ namespace Accounting_System.Controllers
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edited service invoice# {existingModel.SVNo}", "Service Invoice", ipAddress);
+                            AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edited service invoice# {existingModel.ServiceInvoiceNo}", "Service Invoice", ipAddress);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -715,18 +715,18 @@ namespace Accounting_System.Controllers
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     existingModel.Customers = await _dbContext.Customers
-                        .OrderBy(c => c.Id)
+                        .OrderBy(c => c.CustomerId)
                         .Select(c => new SelectListItem
                         {
-                            Value = c.Id.ToString(),
-                            Text = c.Name
+                            Value = c.CustomerId.ToString(),
+                            Text = c.CustomerName
                         })
                         .ToListAsync(cancellationToken);
                     existingModel.Services = await _dbContext.Services
-                        .OrderBy(s => s.Id)
+                        .OrderBy(s => s.ServiceId)
                         .Select(s => new SelectListItem
                         {
-                            Value = s.Id.ToString(),
+                            Value = s.ServiceId.ToString(),
                             Text = s.Name
                         })
                         .ToListAsync(cancellationToken);
@@ -736,18 +736,18 @@ namespace Accounting_System.Controllers
             }
 
             existingModel.Customers = await _dbContext.Customers
-                .OrderBy(c => c.Id)
+                .OrderBy(c => c.CustomerId)
                 .Select(c => new SelectListItem
                 {
-                    Value = c.Id.ToString(),
-                    Text = c.Name
+                    Value = c.CustomerId.ToString(),
+                    Text = c.CustomerName
                 })
                 .ToListAsync(cancellationToken);
             existingModel.Services = await _dbContext.Services
-                .OrderBy(s => s.Id)
+                .OrderBy(s => s.ServiceId)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Id.ToString(),
+                    Value = s.ServiceId.ToString(),
                     Text = s.Name
                 })
                 .ToListAsync(cancellationToken);
@@ -773,8 +773,8 @@ namespace Accounting_System.Controllers
 
                 // Retrieve the selected invoices from the database
                 var selectedList = await _dbContext.ServiceInvoices
-                    .Where(sv => recordIds.Contains(sv.Id))
-                    .OrderBy(sv => sv.SVNo)
+                    .Where(sv => recordIds.Contains(sv.ServiceInvoiceId))
+                    .OrderBy(sv => sv.ServiceInvoiceNo)
                     .ToListAsync();
 
                 // Create the Excel package
@@ -822,9 +822,9 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 14].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
                     worksheet.Cells[row, 15].Value = item.CancellationRemarks;
                     worksheet.Cells[row, 16].Value = item.CustomerId;
-                    worksheet.Cells[row, 17].Value = item.SVNo;
+                    worksheet.Cells[row, 17].Value = item.ServiceInvoiceNo;
                     worksheet.Cells[row, 18].Value = item.ServicesId;
-                    worksheet.Cells[row, 19].Value = item.Id;
+                    worksheet.Cells[row, 19].Value = item.ServiceInvoiceId;
 
                     row++;
                 }
@@ -887,7 +887,7 @@ namespace Accounting_System.Controllers
                         {
                             var serviceInvoice = new ServiceInvoice
                             {
-                                SVNo = worksheet.Cells[row, 17].Text,
+                                ServiceInvoiceNo = worksheet.Cells[row, 17].Text,
                                 DueDate = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
                                 Period = DateOnly.TryParse(worksheet.Cells[row, 2].Text, out DateOnly period) ? period : default,
                                 Amount = decimal.TryParse(worksheet.Cells[row, 3].Text, out decimal amount) ? amount : 0,
@@ -921,9 +921,9 @@ namespace Accounting_System.Controllers
                                 var svChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
                                 var existingSV = await _dbContext.ServiceInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == serviceInvoice.OriginalDocumentId, cancellationToken);
 
-                                if (existingSV.SVNo.TrimStart().TrimEnd() != worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())
+                                if (existingSV.ServiceInvoiceNo.TrimStart().TrimEnd() != worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())
                                 {
-                                    svChanges["SvNo"] = (existingSV.SVNo.TrimStart().TrimEnd(), worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())!;
+                                    svChanges["SvNo"] = (existingSV.ServiceInvoiceNo.TrimStart().TrimEnd(), worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())!;
                                 }
 
                                 if (existingSV.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())
@@ -1020,13 +1020,13 @@ namespace Accounting_System.Controllers
                                 if (!serviceInvoice.CreatedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(serviceInvoice.CreatedBy, $"Create new service invoice# {serviceInvoice.SVNo}", "Service Invoice", ipAddress, serviceInvoice.CreatedDate);
+                                    AuditTrail auditTrailBook = new(serviceInvoice.CreatedBy, $"Create new service invoice# {serviceInvoice.ServiceInvoiceNo}", "Service Invoice", ipAddress, serviceInvoice.CreatedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
                                 if (!serviceInvoice.PostedBy.IsNullOrEmpty())
                                 {
                                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(serviceInvoice.PostedBy, $"Posted service invoice# {serviceInvoice.SVNo}", "Service Invoice", ipAddress, serviceInvoice.PostedDate);
+                                    AuditTrail auditTrailBook = new(serviceInvoice.PostedBy, $"Posted service invoice# {serviceInvoice.ServiceInvoiceNo}", "Service Invoice", ipAddress, serviceInvoice.PostedDate);
                                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                                 }
 
@@ -1035,12 +1035,12 @@ namespace Accounting_System.Controllers
 
                             serviceInvoice.CustomerId = await _dbContext.Customers
                                 .Where(sv => sv.OriginalCustomerId == serviceInvoice.OriginalCustomerId)
-                                .Select(sv => (int?)sv.Id)
+                                .Select(sv => (int?)sv.CustomerId)
                                 .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
 
                             serviceInvoice.ServicesId = await _dbContext.Services
                                 .Where(sv => sv.OriginalServiceId == serviceInvoice.OriginalServicesId)
-                                .Select(sv => (int?)sv.Id)
+                                .Select(sv => (int?)sv.ServiceId)
                                 .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the service master file first.");
 
                             await _dbContext.ServiceInvoices.AddAsync(serviceInvoice, cancellationToken);

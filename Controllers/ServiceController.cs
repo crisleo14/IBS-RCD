@@ -46,7 +46,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetAllServiceIds(CancellationToken cancellationToken)
         {
             var serviceIds = await _dbContext.Services
-                                     .Select(s => s.Id) // Assuming Id is the primary key
+                                     .Select(s => s.ServiceId) // Assuming Id is the primary key
                                      .ToListAsync(cancellationToken);
             return Json(serviceIds);
         }
@@ -132,7 +132,7 @@ namespace Accounting_System.Controllers
                     services.UnearnedTitle = unearned.AccountName;
 
                     services.CreatedBy = _userManager.GetUserName(this.User).ToUpper();
-                    services.Number = await _serviceRepo.GetLastNumber(cancellationToken);
+                    services.ServiceNo = await _serviceRepo.GetLastNumber(cancellationToken);
 
                     #region --Audit Trail Recording
 
@@ -180,7 +180,7 @@ namespace Accounting_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Services services, CancellationToken cancellationToken)
         {
-            if (id != services.Id)
+            if (id != services.ServiceId)
             {
                 return NotFound();
             }
@@ -196,7 +196,7 @@ namespace Accounting_System.Controllers
                 try
                 {
 
-                    var existingServices = await _dbContext.Services.FindAsync(services.Id, cancellationToken);
+                    var existingServices = await _dbContext.Services.FindAsync(services.ServiceId, cancellationToken);
                     existingServices.Name = services.Name;
                     existingServices.Percent = services.Percent;
 
@@ -225,7 +225,7 @@ namespace Accounting_System.Controllers
                 catch (DbUpdateConcurrencyException)
                 {
                     await transaction.RollbackAsync(cancellationToken);
-                    if (!ServicesExists(services.Id))
+                    if (!ServicesExists(services.ServiceId))
                     {
                         return NotFound();
                     }
@@ -247,7 +247,7 @@ namespace Accounting_System.Controllers
 
         private bool ServicesExists(int id)
         {
-            return (_dbContext.Services?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_dbContext.Services?.Any(e => e.ServiceId == id)).GetValueOrDefault();
         }
 
         //Download as .xlsx file.(Export)
@@ -269,8 +269,8 @@ namespace Accounting_System.Controllers
 
                 // Retrieve the selected invoices from the database
                 var selectedList = await _dbContext.Services
-                    .Where(service => recordIds.Contains(service.Id))
-                    .OrderBy(service => service.Id)
+                    .Where(service => recordIds.Contains(service.ServiceId))
+                    .OrderBy(service => service.ServiceId)
                     .ToListAsync();
 
                 // Create the Excel package
@@ -300,7 +300,7 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 6].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
                     worksheet.Cells[row, 7].Value = item.CurrentAndPreviousNo;
                     worksheet.Cells[row, 8].Value = item.UnearnedNo;
-                    worksheet.Cells[row, 9].Value = item.Id;
+                    worksheet.Cells[row, 9].Value = item.ServiceId;
 
                     row++;
                 }
@@ -362,7 +362,7 @@ namespace Accounting_System.Controllers
                         {
                             var services = new Services
                             {
-                                Number = await _serviceRepo.GetLastNumber(),
+                                ServiceNo = await _serviceRepo.GetLastNumber(),
                                 CurrentAndPreviousTitle = worksheet.Cells[row, 1].Text,
                                 UnearnedTitle = worksheet.Cells[row, 2].Text,
                                 Name = worksheet.Cells[row, 3].Text,

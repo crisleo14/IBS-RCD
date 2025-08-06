@@ -1,8 +1,5 @@
 ﻿@model IEnumerable<ReceivingReport>
 @using Accounting_System.Models.AccountsPayable
-@using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
-@inject UserManager<IdentityUser> UserManager
 @{
     ViewData["Title"] = "Receiving Report";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -86,13 +83,13 @@
                     <input type="checkbox" class="text-center" id="selectAll" onclick="toggleSelectAll(this)">
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.RRNo)
+                    @Html.DisplayNameFor(model => model.ReceivingReportNo)
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.Date)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.PurchaseOrder.PONo)
+                    @Html.DisplayNameFor(model => model.PurchaseOrder!.PurchaseOrderNo)
                 </th>
                 <th>
                     Delivered
@@ -101,7 +98,7 @@
                     Received
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.PurchaseOrder.CreatedBy)
+                    @Html.DisplayNameFor(model => model.PurchaseOrder!.CreatedBy)
                 </th>
                 <th>
                     Status
@@ -113,16 +110,16 @@
                 {
                     <tr>
                         <td>
-                            <input type="checkbox" class="selectCheckbox text-center" value="@item.Id">
+                            <input type="checkbox" class="selectCheckbox text-center" value="@item.ReceivingReportId">
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.RRNo)
+                            @Html.DisplayFor(modelItem => item.ReceivingReportNo)
                         </td>
                         <td>
                             @item.Date.ToString("MM/dd/yyyy")
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.PurchaseOrder.PONo)
+                            @Html.DisplayFor(modelItem => item.PurchaseOrder!.PurchaseOrderNo)
                         </td>
                         <td>
                             @item.QuantityDelivered.ToString("N2")
@@ -131,7 +128,7 @@
                             @item.QuantityReceived.ToString("N2")
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.PurchaseOrder.CreatedBy)
+                            @Html.DisplayFor(modelItem => item.PurchaseOrder!.CreatedBy)
                         </td>
                         <td>
                             @{

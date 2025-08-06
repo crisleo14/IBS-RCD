@@ -8,16 +8,16 @@ namespace Accounting_System.Models
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+        public int ServiceId { get; set; }
 
         [Display(Name = "Service No")]
-        public int Number { get; set; }
+        public int ServiceNo { get; set; }
 
-        [Column(TypeName = "varchar(20)")]
+        [StringLength(20)]
         public string? CurrentAndPreviousNo { get; set; }
 
         [Display(Name = "Current and Previous")]
-        [Column(TypeName = "varchar(50)")]
+        [StringLength(50)]
         public string? CurrentAndPreviousTitle { get; set; }
 
         [NotMapped]
@@ -29,10 +29,10 @@ namespace Accounting_System.Models
         [NotMapped]
         public int UnearnedId { get; set; }
 
-        [Column(TypeName = "varchar(50)")]
+        [StringLength(50)]
         public string? UnearnedTitle { get; set; }
 
-        [Column(TypeName = "varchar(20)")]
+        [StringLength(20)]
         public string? UnearnedNo { get; set; }
 
         [NotMapped]
@@ -40,14 +40,14 @@ namespace Accounting_System.Models
 
         [Required]
         [Display(Name = "Service Name")]
-        [Column(TypeName = "varchar(50)")]
+        [StringLength(50)]
         public string Name { get; set; }
 
         [Required]
         public int Percent { get; set; }
 
         [Display(Name = "Created By")]
-        [Column(TypeName = "varchar(50)")]
+        [StringLength(50)]
         public string? CreatedBy { get; set; }
 
         [Display(Name = "Created Date")]

@@ -1,5 +1,4 @@
-﻿@using System.ComponentModel.DataAnnotations;
-@using Accounting_System.Models.ViewModels;
+﻿@using Accounting_System.Models.ViewModels;
 @model JournalVoucherViewModel
 
 @{
@@ -230,7 +229,7 @@
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                     <div class="form-group">
                         <label class="control-label">Account No.</label>
-                        <select asp-items="@Model?.COA" class="form-select" style="width: 100%" id="AccountNo">
+                        <select asp-items="@Model.COA" class="form-select" style="width: 100%" id="AccountNo">
                             <option></option>
                         </select>
                         <span class="text-danger"></span>
@@ -270,12 +269,15 @@
         });
     </script>
     <script>
+        let accountNo = $("#AccountNo");
         function saveAccountingEntry() {
             // Get the values from the modal inputs
-            var accountNumber = $("#AccountNo").val();
-            var accountNumberText = $("#AccountNo option:selected").text();
-            var debit = parseFloat($("#Debit").val().replace(/,/g, '')) || 0.00;
-            var credit = parseFloat($("#Credit").val().replace(/,/g, '')) || 0.00;
+            let accountNumber = accountNo.val();
+            let getDebit = $("#Debit");
+            let getCredit = $("#Credit");
+            let accountNumberText = $("#AccountNo option:selected").text();
+            let debit = parseFloat(getDebit.val().replace(/,/g, '')) || 0.00;
+            let credit = parseFloat(getCredit.val().replace(/,/g, '')) || 0.00;
 
             if (debit === 0 && credit === 0) {
                 event.preventDefault();
@@ -288,11 +290,11 @@
             }
 
             // Format debit and credit values with commas and two decimal places
-            var formattedDebit = debit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            var formattedCredit = credit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            let formattedDebit = debit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            let formattedCredit = credit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             // Create a new row with the text only and a hidden input for the value
-            var newRow = `<tr>
+            let newRow = `<tr>
                                                             <td>
                                                                 <input type='hidden' name='AccountNumber' value='${accountNumber}'/>
                                                                 <input type='text' name='AccountTitle' value='${accountNumberText}' style='border:none' class='w-100' readonly />
@@ -310,29 +312,29 @@
             $("#AddAccEntry").modal("hide");
 
             // Clear the modal inputs
-            $("#AccountNo").val(""); // Reset the select to its default state
-            $("#AccountNo").trigger("change"); // Trigger change event for the select
-            $("#Debit").val("0.00");
-            $("#Credit").val("0.00");
+            accountNo.val(""); // Reset the select to its default state
+            accountNo.trigger("change"); // Trigger change event for the select
+            getDebit.val("0.00");
+            getCredit.val("0.00");
 
             updateTotalDebitAndCredit();
         }
 
         function updateTotalDebitAndCredit() {
-            var totalDebit = 0;
-            var totalCredit = 0;
+            let totalDebit = 0;
+            let totalCredit = 0;
 
             // Loop through each row in the table body and sum up the debit values
             $("#accountingEntriesBody tr").each(function () {
-                var debitInput = $(this).find("td:eq(1) input").val();
-                var creditInput = $(this).find("td:eq(2) input").val();
+                let debitInput = $(this).find("td:eq(1) input").val();
+                let creditInput = $(this).find("td:eq(2) input").val();
 
                 // Ensure debitInput and creditInput are strings before using replace
                 debitInput = debitInput ? String(debitInput) : ""; // convert to string if not null/undefined
                 creditInput = creditInput ? String(creditInput) : "";
 
-                var debit = parseFloat(debitInput.replace(/,/g, '')) || 0;
-                var credit = parseFloat(creditInput.replace(/,/g, '')) || 0;
+                let debit = parseFloat(debitInput.replace(/,/g, '')) || 0;
+                let credit = parseFloat(creditInput.replace(/,/g, '')) || 0;
 
                 totalDebit += debit;
                 totalCredit += credit;
@@ -365,7 +367,8 @@
                         method: "GET",
                         data: { id: cvId },
                         success: function (data) {
-                            $("#tableBody").empty();
+                            let tableBody = $("#tableBody");
+                            tableBody.empty();
                             if (data !== null) {
                                 $("#cvNo").text(data.cvNo);
                                 $("#date").text(new Date(data.date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }));
@@ -381,11 +384,11 @@
                                 $("#totalDebit").text(data.totalDebit);
                                 $("#totalCredit").text(data.totalCredit);
                                 for (let i = 0; i < data.accountNo.length; i++) {
-                                    var row = $("<tr></tr>");
+                                    let row = $("<tr></tr>");
                                     row.append("<td style='width:60%; padding-left:20px;'>" + data.accountNo[i] + " " + data.accountName[i] + "</td>");
                                     row.append("<td class='text-end' style='width:7%;'>" + data.debit[i] + "</td>");
                                     row.append("<td class='text-end' style='width:7%;'>" + data.credit[i] + "</td>");
-                                    $("#tableBody").append(row);
+                                    tableBody.append(row);
                                 }
                             } else {
                                 clearFields();
@@ -414,28 +417,28 @@
                 $("#checkNo").text("");
                 $("#totalDebit").text("");
                 $("#totalCredit").text("");
-                $("#tableBody").empty();
+                tableBody.empty();
             }
-
-            $(".checkVoucher").each(function () {
-                var cvId = $(this).val();
+            let checkVoucher = $(".checkVoucher");
+            checkVoucher.each(function () {
+                let cvId = $(this).val();
                 cvDetails(cvId);
             });
 
-            $(".checkVoucher").change(function () {
-                var cvId = $(this).val();
+            checkVoucher.change(function () {
+                let cvId = $(this).val();
                 cvDetails(cvId);
             });
         });
     </script>
     <script>
         function validateDebitAndCredit(event) {
-            var debit = parseFloat($(".totalDebit").text().replace(/,/g, '')) || 0.00;
-            var credit = parseFloat($(".totalCredit").text().replace(/,/g, '')) || 0.00;
+            let debit = parseFloat($(".totalDebit").text().replace(/,/g, '')) || 0.00;
+            let credit = parseFloat($(".totalCredit").text().replace(/,/g, '')) || 0.00;
             if (debit !== credit) {
                 event.preventDefault();
                 alert('Total Debit and Credit do not match.');
-                return;
+                return null;
             }
         }
     </script>

@@ -45,7 +45,7 @@ namespace Accounting_System.Controllers
 
                     if (columnName == "SINo")
                     {
-                        existingSI.SINo = importRecord.AdjustedValue;
+                        existingSI.SalesInvoiceNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "OriginalCustomerId")
                     {
@@ -123,7 +123,7 @@ namespace Accounting_System.Controllers
 
                     if (columnName == "SVNo")
                     {
-                        existingSV.SVNo = importRecord.AdjustedValue;
+                        existingSV.ServiceInvoiceNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "DueDate")
                     {
@@ -201,7 +201,7 @@ namespace Accounting_System.Controllers
 
                         if (columnName == "CRNo")
                         {
-                            existingCR.CRNo = importRecord.AdjustedValue;
+                            existingCR.CollectionReceiptNo = importRecord.AdjustedValue;
                         }
                         if (columnName == "TransactionDate")
                         {
@@ -386,7 +386,7 @@ namespace Accounting_System.Controllers
 
                     if (columnName == "DMNo")
                     {
-                        existingDM.DMNo = importRecord.AdjustedValue;
+                        existingDM.DebitMemoNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "TransactionDate")
                     {
@@ -476,7 +476,7 @@ namespace Accounting_System.Controllers
 
                     if (columnName == "CMNo")
                     {
-                        existingCM.CMNo = importRecord.AdjustedValue;
+                        existingCM.CreditMemoNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "TransactionDate")
                     {
@@ -570,7 +570,7 @@ namespace Accounting_System.Controllers
 
                     if (columnName == "PONo")
                     {
-                        existingPO.PONo = importRecord.AdjustedValue;
+                        existingPO.PurchaseOrderNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "Date")
                     {
@@ -644,7 +644,7 @@ namespace Accounting_System.Controllers
 
                     if (columnName == "RRNo")
                     {
-                        existingRR.RRNo = importRecord.AdjustedValue;
+                        existingRR.ReceivingReportNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "Date")
                     {
@@ -730,7 +730,7 @@ namespace Accounting_System.Controllers
 
                     if (columnName == "CVNo")
                     {
-                        existingCVH.CVNo = importRecord.AdjustedValue;
+                        existingCVH.CheckVoucherHeaderNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "Date")
                     {
@@ -888,7 +888,7 @@ namespace Accounting_System.Controllers
                     }
                     if (columnName == "CVHeaderId")
                     {
-                        existingCVD.CVHeaderId = int.Parse(importRecord.AdjustedValue);
+                        existingCVD.CheckVoucherHeaderId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "TransactionNo")
                     {
@@ -906,7 +906,7 @@ namespace Accounting_System.Controllers
 
                     if (columnName == "JVNo")
                     {
-                        existingJVH.JVNo = importRecord.AdjustedValue;
+                        existingJVH.JournalVoucherHeaderNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "Date")
                     {
@@ -984,7 +984,7 @@ namespace Accounting_System.Controllers
                     }
                     if (columnName == "JVHeaderId")
                     {
-                        existingJVD.JVHeaderId = int.Parse(importRecord.AdjustedValue);
+                        existingJVD.JournalVoucherHeaderId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "TransactionNo")
                     {

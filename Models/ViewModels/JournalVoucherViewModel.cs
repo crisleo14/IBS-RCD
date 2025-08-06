@@ -19,7 +19,6 @@ namespace Accounting_System.Models.ViewModels
         [Display(Name = "CV Id")]
         public int? CVId { get; set; }
 
-        [ForeignKey("CVId")]
         public CheckVoucherHeader? CheckVoucherHeader { get; set; }
 
         [NotMapped]

@@ -46,7 +46,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetAllProductIds(CancellationToken cancellationToken)
         {
             var productIds = await _dbContext.Products
-                                     .Select(p => p.Id) // Assuming Id is the primary key
+                                     .Select(p => p.ProductId) // Assuming Id is the primary key
                                      .ToListAsync(cancellationToken);
             return Json(productIds);
         }
@@ -65,13 +65,13 @@ namespace Accounting_System.Controllers
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    if (await _productRepository.IsProductCodeExist(product.Code, cancellationToken))
+                    if (await _productRepository.IsProductCodeExist(product.ProductCode, cancellationToken))
                     {
                         ModelState.AddModelError("Code", "Product code already exist!");
                         return View(product);
                     }
 
-                    if (await _productRepository.IsProductNameExist(product.Name, cancellationToken))
+                    if (await _productRepository.IsProductNameExist(product.ProductName, cancellationToken))
                     {
                         ModelState.AddModelError("Name", "Product name already exist!");
                         return View(product);
@@ -84,7 +84,7 @@ namespace Accounting_System.Controllers
                     if (product.OriginalProductId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(product.CreatedBy, $"Created new product {product.Name}", "Product", ipAddress);
+                        AuditTrail auditTrailBook = new(product.CreatedBy, $"Created new product {product.ProductName}", "Product", ipAddress);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -125,7 +125,7 @@ namespace Accounting_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Product product, CancellationToken cancellationToken)
         {
-            if (id != product.Id)
+            if (id != product.ProductId)
             {
                 return NotFound();
             }
@@ -135,11 +135,11 @@ namespace Accounting_System.Controllers
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    var existingProduct = await _dbContext.Products.FindAsync(product.Id, cancellationToken);
-                    existingProduct.Code = product.Code;
-                    existingProduct.Name = product.Name;
-                    existingProduct.Unit = product.Unit;
-                    existingProduct.Id = product.Id;
+                    var existingProduct = await _dbContext.Products.FindAsync(product.ProductId, cancellationToken);
+                    existingProduct.ProductCode = product.ProductCode;
+                    existingProduct.ProductName = product.ProductName;
+                    existingProduct.ProductUnit = product.ProductUnit;
+                    existingProduct.ProductId = product.ProductId;
                     existingProduct.CreatedBy = product.CreatedBy;
                     existingProduct.CreatedDate = product.CreatedDate;
 
@@ -150,7 +150,7 @@ namespace Accounting_System.Controllers
                         if (product.OriginalProductId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Updated product {product.Name}", "Product", ipAddress);
+                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Updated product {product.ProductName}", "Product", ipAddress);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -169,7 +169,7 @@ namespace Accounting_System.Controllers
                 catch (DbUpdateConcurrencyException)
                 {
                     await transaction.RollbackAsync(cancellationToken);
-                    if (!ProductExists(product.Id))
+                    if (!ProductExists(product.ProductId))
                     {
                         return NotFound();
                     }
@@ -191,7 +191,7 @@ namespace Accounting_System.Controllers
 
         private bool ProductExists(int id)
         {
-            return (_dbContext.Products?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_dbContext.Products?.Any(e => e.ProductId == id)).GetValueOrDefault();
         }
 
         //Download as .xlsx file.(Export)
@@ -213,8 +213,8 @@ namespace Accounting_System.Controllers
 
                 // Retrieve the selected invoices from the database
                 var selectedList = await _dbContext.Products
-                    .Where(p => recordIds.Contains(p.Id))
-                    .OrderBy(p => p.Id)
+                    .Where(p => recordIds.Contains(p.ProductId))
+                    .OrderBy(p => p.ProductId)
                     .ToListAsync();
 
                 // Create the Excel package
@@ -233,12 +233,12 @@ namespace Accounting_System.Controllers
 
                 foreach (var item in selectedList)
                 {
-                    worksheet.Cells[row, 1].Value = item.Code;
-                    worksheet.Cells[row, 2].Value = item.Name;
-                    worksheet.Cells[row, 3].Value = item.Unit;
+                    worksheet.Cells[row, 1].Value = item.ProductCode;
+                    worksheet.Cells[row, 2].Value = item.ProductName;
+                    worksheet.Cells[row, 3].Value = item.ProductUnit;
                     worksheet.Cells[row, 4].Value = item.CreatedBy;
                     worksheet.Cells[row, 5].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet.Cells[row, 6].Value = item.Id;
+                    worksheet.Cells[row, 6].Value = item.ProductId;
 
                     row++;
                 }
@@ -301,9 +301,9 @@ namespace Accounting_System.Controllers
                         {
                             var product = new Product
                             {
-                                Code = worksheet.Cells[row, 1].Text,
-                                Name = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(worksheet.Cells[row, 2].Text.ToLower()),
-                                Unit = worksheet.Cells[row, 3].Text,
+                                ProductCode = worksheet.Cells[row, 1].Text,
+                                ProductName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(worksheet.Cells[row, 2].Text.ToLower()),
+                                ProductUnit = worksheet.Cells[row, 3].Text,
                                 CreatedBy = worksheet.Cells[row, 4].Text,
                                 CreatedDate = DateTime.TryParse(worksheet.Cells[row, 5].Text, out DateTime createdDate) ? createdDate : default,
                                 OriginalProductId = int.TryParse(worksheet.Cells[row, 6].Text, out int originalProductId) ? originalProductId : 0,

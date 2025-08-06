@@ -71,7 +71,7 @@ namespace Accounting_System.Repository
         public async Task AddPurchaseToInventoryAsync(ReceivingReport receivingReport, ClaimsPrincipal user, CancellationToken cancellationToken = default)
         {
             var sortedInventory = await _dbContext.Inventories
-            .Where(i => i.ProductId == receivingReport.PurchaseOrder.Product.Id)
+            .Where(i => i.ProductId == receivingReport.PurchaseOrder.Product.ProductId)
             .OrderBy(i => i.Date)
             .ThenBy(i => i.Id)
             .ToListAsync(cancellationToken);
@@ -94,7 +94,7 @@ namespace Accounting_System.Repository
                 Date = receivingReport.Date,
                 ProductId = receivingReport.PurchaseOrder.ProductId,
                 Particular = "Purchases",
-                Reference = receivingReport.RRNo,
+                Reference = receivingReport.ReceivingReportNo,
                 Quantity = receivingReport.QuantityReceived,
                 Cost = receivingReport.PurchaseOrder.Price / 1.12m, //unit cost
                 IsValidated = true,
@@ -174,7 +174,7 @@ namespace Accounting_System.Repository
         public async Task AddSalesToInventoryAsync(SalesInvoice salesInvoice, ClaimsPrincipal user, CancellationToken cancellationToken = default)
         {
             var sortedInventory = await _dbContext.Inventories
-            .Where(i => i.ProductId == salesInvoice.Product.Id)
+            .Where(i => i.ProductId == salesInvoice.Product.ProductId)
             .OrderBy(i => i.Date)
             .ThenBy(i => i.Id)
             .ToListAsync(cancellationToken);
@@ -186,7 +186,7 @@ namespace Accounting_System.Repository
             }
             else
             {
-                throw new ArgumentException($"Beginning inventory for {salesInvoice.Product.Name} not found!");
+                throw new ArgumentException($"Beginning inventory for {salesInvoice.Product.ProductName} not found!");
             }
 
             var previousInventory = sortedInventory.FirstOrDefault();
@@ -195,7 +195,7 @@ namespace Accounting_System.Repository
             {
                 if (previousInventory.InventoryBalance < salesInvoice.Quantity)
                 {
-                    throw new InvalidOperationException($"The quantity exceeds the available inventory of '{salesInvoice.Product.Name}'.");
+                    throw new InvalidOperationException($"The quantity exceeds the available inventory of '{salesInvoice.Product.ProductName}'.");
                 }
 
                 decimal total = salesInvoice.Quantity * previousInventory.AverageCost;
@@ -206,9 +206,9 @@ namespace Accounting_System.Repository
                 Inventory inventory = new()
                 {
                     Date = salesInvoice.TransactionDate,
-                    ProductId = salesInvoice.Product.Id,
+                    ProductId = salesInvoice.Product.ProductId,
                     Particular = "Sales",
-                    Reference = salesInvoice.SINo,
+                    Reference = salesInvoice.SalesInvoiceNo,
                     Quantity = salesInvoice.Quantity,
                     Cost = previousInventory.AverageCost,
                     IsValidated = true,
@@ -285,10 +285,10 @@ namespace Accounting_System.Repository
                     new GeneralLedgerBook
                     {
                         Date = salesInvoice.TransactionDate,
-                        Reference = salesInvoice.SINo,
-                        Description = salesInvoice.Product.Name,
-                        AccountNo = salesInvoice.Product.Code == "PET001" ? "501010100" : salesInvoice.Product.Code == "PET002" ? "501010200" : "501010300",
-                        AccountTitle = salesInvoice.Product.Code == "PET001" ? "COGS - Biodiesel" : salesInvoice.Product.Code == "PET002" ? "COGS - Econogas" : "COGS - Envirogas",
+                        Reference = salesInvoice.SalesInvoiceNo,
+                        Description = salesInvoice.Product.ProductName,
+                        AccountNo = salesInvoice.Product.ProductCode == "PET001" ? "501010100" : salesInvoice.Product.ProductCode == "PET002" ? "501010200" : "501010300",
+                        AccountTitle = salesInvoice.Product.ProductCode == "PET001" ? "COGS - Biodiesel" : salesInvoice.Product.ProductCode == "PET002" ? "COGS - Econogas" : "COGS - Envirogas",
                         Debit = inventory.Total,
                         Credit = 0,
                         CreatedBy = salesInvoice.CreatedBy,
@@ -297,10 +297,10 @@ namespace Accounting_System.Repository
                     new GeneralLedgerBook
                     {
                         Date = salesInvoice.TransactionDate,
-                        Reference = salesInvoice.SINo,
-                        Description = salesInvoice.Product.Name,
-                        AccountNo = salesInvoice.Product.Code == "PET001" ? "101040100" : salesInvoice.Product.Code == "PET002" ? "101040200" : "101040300",
-                        AccountTitle = salesInvoice.Product.Code == "PET001" ? "Inventory - Biodiesel" : salesInvoice.Product.Code == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
+                        Reference = salesInvoice.SalesInvoiceNo,
+                        Description = salesInvoice.Product.ProductName,
+                        AccountNo = salesInvoice.Product.ProductCode == "PET001" ? "101040100" : salesInvoice.Product.ProductCode == "PET002" ? "101040200" : "101040300",
+                        AccountTitle = salesInvoice.Product.ProductCode == "PET001" ? "Inventory - Biodiesel" : salesInvoice.Product.ProductCode == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
                         Debit = 0,
                         Credit = inventory.Total,
                         CreatedBy = salesInvoice.CreatedBy,
@@ -325,7 +325,7 @@ namespace Accounting_System.Repository
             }
             else
             {
-                throw new InvalidOperationException($"Beginning inventory for this product '{salesInvoice.Product.Name}' not found!");
+                throw new InvalidOperationException($"Beginning inventory for this product '{salesInvoice.Product.ProductName}' not found!");
             }
         }
 
@@ -386,7 +386,7 @@ namespace Accounting_System.Repository
         {
             var existingPO = await _dbContext.PurchaseOrders
             .Include(po => po.Supplier)
-            .FirstOrDefaultAsync(po => po.Id == purchaseChangePriceViewModel.POId, cancellationToken);
+            .FirstOrDefaultAsync(po => po.PurchaseOrderId == purchaseChangePriceViewModel.POId, cancellationToken);
 
 
             var previousInventory = await _dbContext.Inventories
@@ -447,9 +447,9 @@ namespace Accounting_System.Repository
                     new JournalVoucherHeader
                     {
                         Date = DateOnly.FromDateTime(DateTime.Now),
-                        JVNo = generateJVNo,
+                        JournalVoucherHeaderNo = generateJVNo,
                         References = "",
-                        Particulars = $"Change price of {existingPO.PONo} from {existingPO.Price} to {existingPO.FinalPrice }",
+                        Particulars = $"Change price of {existingPO.PurchaseOrderNo} from {existingPO.Price} to {existingPO.FinalPrice }",
                         CRNo = "",
                         JVReason = "Change Price",
                         CreatedBy = _userManager.GetUserName(user),
@@ -469,8 +469,8 @@ namespace Accounting_System.Repository
                     {
                         new JournalVoucherDetail
                         {
-                            AccountNo = previousInventory.Product.Code == "PET001" ? "101040100" : previousInventory.Product.Code == "PET002" ? "101040200" : "101040300",
-                            AccountName = previousInventory.Product.Code == "PET001" ? "Inventory - Biodiesel" : previousInventory.Product.Code == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
+                            AccountNo = previousInventory.Product.ProductCode == "PET001" ? "101040100" : previousInventory.Product.ProductCode == "PET002" ? "101040200" : "101040300",
+                            AccountName = previousInventory.Product.ProductCode == "PET001" ? "Inventory - Biodiesel" : previousInventory.Product.ProductCode == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
                             TransactionNo = generateJVNo,
                             Debit = Math.Abs(productAmount),
                             Credit = 0
@@ -513,8 +513,8 @@ namespace Accounting_System.Repository
                     {
                         new JournalVoucherDetail
                         {
-                            AccountNo = previousInventory.Product.Code == "PET001" ? "101040100" : previousInventory.Product.Code == "PET002" ? "101040200" : "101040300",
-                            AccountName = previousInventory.Product.Code == "PET001" ? "Inventory - Biodiesel" : previousInventory.Product.Code == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
+                            AccountNo = previousInventory.Product.ProductCode == "PET001" ? "101040100" : previousInventory.Product.ProductCode == "PET002" ? "101040200" : "101040300",
+                            AccountName = previousInventory.Product.ProductCode == "PET001" ? "Inventory - Biodiesel" : previousInventory.Product.ProductCode == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
                             TransactionNo = generateJVNo,
                             Debit = 0,
                             Credit = Math.Abs(productAmount)
@@ -569,7 +569,7 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountTitle = previousInventory.Product.Code == "PET001" ? "101040100 Inventory - Biodiesel" : previousInventory.Product.Code == "PET002" ? "101040200 Inventory - Econogas" : "101040300 Inventory - Envirogas",
+                            AccountTitle = previousInventory.Product.ProductCode == "PET001" ? "101040100 Inventory - Biodiesel" : previousInventory.Product.ProductCode == "PET002" ? "101040200 Inventory - Econogas" : "101040300 Inventory - Envirogas",
                             Debit = Math.Abs(productAmount),
                             Credit = 0,
                             CreatedBy = _userManager.GetUserName(user),
@@ -624,7 +624,7 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountTitle = previousInventory.Product.Code == "PET001" ? "101040100 Inventory - Biodiesel" : previousInventory.Product.Code == "PET002" ? "101040200 Inventory - Econogas" : "101040300 Inventory - Envirogas",
+                            AccountTitle = previousInventory.Product.ProductCode == "PET001" ? "101040100 Inventory - Biodiesel" : previousInventory.Product.ProductCode == "PET002" ? "101040200 Inventory - Econogas" : "101040300 Inventory - Envirogas",
                             Debit = 0,
                             Credit = Math.Abs(productAmount),
                             CreatedBy = _userManager.GetUserName(user),
@@ -678,17 +678,17 @@ namespace Accounting_System.Repository
                         new PurchaseJournalBook
                         {
                             Date = existingPO.Date,
-                            SupplierName = existingPO.Supplier.Name,
-                            SupplierTin = existingPO.Supplier.TinNo,
-                            SupplierAddress = existingPO.Supplier.Address,
+                            SupplierName = existingPO.Supplier.SupplierName,
+                            SupplierTin = existingPO.Supplier.SupplierTin,
+                            SupplierAddress = existingPO.Supplier.SupplierAddress,
                             DocumentNo = "",
-                            Description = existingPO.Product.Name,
+                            Description = existingPO.Product.ProductName,
                             Discount = 0,
                             VatAmount = inventory.Total * 0.12m,
                             Amount = newTotal,
                             WhtAmount = inventory.Total * 0.01m,
                             NetPurchases = inventory.Total,
-                            PONo = existingPO.PONo,
+                            PONo = existingPO.PurchaseOrderNo,
                             DueDate = DateOnly.FromDateTime(DateTime.MinValue),
                             CreatedBy = _userManager.GetUserName(user),
                             CreatedDate = DateTime.Now
@@ -710,8 +710,8 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountNo = previousInventory.Product.Code == "PET001" ? "101040100" : previousInventory.Product.Code == "PET002" ? "101040200" : "101040300",
-                            AccountTitle = previousInventory.Product.Code == "PET001" ? "Inventory - Biodiesel" : previousInventory.Product.Code == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
+                            AccountNo = previousInventory.Product.ProductCode == "PET001" ? "101040100" : previousInventory.Product.ProductCode == "PET002" ? "101040200" : "101040300",
+                            AccountTitle = previousInventory.Product.ProductCode == "PET001" ? "Inventory - Biodiesel" : previousInventory.Product.ProductCode == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
                             Debit = Math.Abs(productAmount),
                             Credit = 0,
                             CreatedBy = _userManager.GetUserName(user),
@@ -769,8 +769,8 @@ namespace Accounting_System.Repository
                             Date = existingPO.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
-                            AccountNo = previousInventory.Product.Code == "PET001" ? "101040100" : previousInventory.Product.Code == "PET002" ? "101040200" : "101040300",
-                            AccountTitle = previousInventory.Product.Code == "PET001" ? "Inventory - Biodiesel" : previousInventory.Product.Code == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
+                            AccountNo = previousInventory.Product.ProductCode == "PET001" ? "101040100" : previousInventory.Product.ProductCode == "PET002" ? "101040200" : "101040300",
+                            AccountTitle = previousInventory.Product.ProductCode == "PET001" ? "Inventory - Biodiesel" : previousInventory.Product.ProductCode == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
                             Debit = 0,
                             Credit = Math.Abs(productAmount),
                             CreatedBy = _userManager.GetUserName(user),
@@ -826,7 +826,7 @@ namespace Accounting_System.Repository
             }
             else
             {
-                throw new InvalidOperationException($"Beginning inventory for this product '{existingPO.Product.Name}' not found!");
+                throw new InvalidOperationException($"Beginning inventory for this product '{existingPO.Product.ProductName}' not found!");
             }
         }
 

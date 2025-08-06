@@ -9,12 +9,16 @@ namespace Accounting_System.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
+        [StringLength(100)]
         public string AccountNo { get; set; }
 
+        [StringLength(200)]
         public string AccountTitle { get; set; }
 
+        [StringLength(100)]
         public string Source { get; set; }
 
+        [StringLength(13)]
         public string? Reference { get; set; }
 
         public bool IsRemoved { get; set; }
@@ -24,7 +28,7 @@ namespace Accounting_System.Models
         public decimal Amount { get; set; }
 
         [Display(Name = "Created By")]
-        [Column(TypeName = "varchar(50)")]
+        [StringLength(50)]
         public string? CreatedBy { get; set; }
 
         [Display(Name = "Created Date")]

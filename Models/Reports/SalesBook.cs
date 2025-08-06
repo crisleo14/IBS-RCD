@@ -7,23 +7,28 @@ namespace Accounting_System.Models
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+        public int SalesBookId { get; set; }
 
         [Display(Name = "Tran. Date")]
         [Column(TypeName = "date")]
         public DateOnly TransactionDate { get; set; }
 
         [Display(Name = "Serial Number")]
+        [StringLength(200)]
         public string SerialNo { get; set; }
 
         [Display(Name = "Customer Name")]
+        [StringLength(100)]
         public string SoldTo { get; set; }
 
         [Display(Name = "Tin#")]
+        [StringLength(20)]
         public string TinNo { get; set; }
 
+        [StringLength(200)]
         public string Address { get; set; }
 
+        [StringLength(1000)]
         public string Description { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
@@ -60,7 +65,7 @@ namespace Accounting_System.Models
         public decimal NetSales { get; set; }
 
         [Display(Name = "Created By")]
-        [Column(TypeName = "varchar(50)")]
+        [StringLength(50)]
         public string? CreatedBy { get; set; }
 
         [Display(Name = "Created Date")]

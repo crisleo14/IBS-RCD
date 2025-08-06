@@ -29,7 +29,7 @@ namespace Accounting_System.Repository
         {
             var bankAccount = await _dbContext
                 .BankAccounts
-                .FirstOrDefaultAsync(ba => ba.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(ba => ba.BankAccountId == id, cancellationToken);
 
             if (bankAccount != null)
             {

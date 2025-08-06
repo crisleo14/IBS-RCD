@@ -86,16 +86,16 @@
                     @Html.DisplayNameFor(model => model.Number)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Name)
+                    @Html.DisplayNameFor(model => model.CustomerName)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.TinNo)
+                    @Html.DisplayNameFor(model => model.CustomerTin)
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.BusinessStyle)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Terms)
+                    @Html.DisplayNameFor(model => model.CustomerTerms)
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.CustomerType)
@@ -107,22 +107,22 @@
                 {
                     <tr>
                         <td>
-                            <input type="checkbox" class="selectCheckbox text-center" value="@item.Id">
+                            <input type="checkbox" class="selectCheckbox text-center" value="@item.CustomerId">
                         </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.Number)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Name)
+                            @Html.DisplayFor(modelItem => item.CustomerName)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.TinNo)
+                            @Html.DisplayFor(modelItem => item.CustomerTin)
                         </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.BusinessStyle)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Terms)
+                            @Html.DisplayFor(modelItem => item.CustomerTerms)
                         </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.CustomerType)

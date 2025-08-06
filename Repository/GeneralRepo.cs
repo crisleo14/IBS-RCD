@@ -69,8 +69,8 @@ namespace Accounting_System.Repository
             return await _dbContext.Suppliers
                 .Select(supp => new SelectListItem
                 {
-                    Value = supp.Id.ToString(),
-                    Text = supp.Name
+                    Value = supp.SupplierId.ToString(),
+                    Text = supp.SupplierName
                 })
                 .ToListAsync(cancellationToken);
         }
@@ -80,8 +80,8 @@ namespace Accounting_System.Repository
             return await _dbContext.PurchaseOrders
                 .Select(po => new SelectListItem
                 {
-                    Value = po.PONo.ToString(),
-                    Text = po.PONo
+                    Value = po.PurchaseOrderNo.ToString(),
+                    Text = po.PurchaseOrderNo
                 })
                 .ToListAsync(cancellationToken);
         }
@@ -91,12 +91,12 @@ namespace Accounting_System.Repository
             var rrNoHashSet = new HashSet<string>(rrNos);
 
             var rrList = await _dbContext.ReceivingReports
-                .OrderBy(rr => rrNoHashSet.Contains(rr.RRNo) ? Array.IndexOf(rrNos, rr.RRNo) : int.MaxValue) // Order by index in rrNos array if present in HashSet
-                .ThenBy(rr => rr.Id) // Secondary ordering by Id
+                .OrderBy(rr => rrNoHashSet.Contains(rr.ReceivingReportNo) ? Array.IndexOf(rrNos, rr.ReceivingReportNo) : int.MaxValue) // Order by index in rrNos array if present in HashSet
+                .ThenBy(rr => rr.ReceivingReportId) // Secondary ordering by Id
                 .Select(rr => new SelectListItem
                 {
-                    Value = rr.RRNo.ToString(),
-                    Text = rr.RRNo
+                    Value = rr.ReceivingReportNo.ToString(),
+                    Text = rr.ReceivingReportNo
                 })
                 .ToListAsync(cancellationToken);
 
@@ -108,7 +108,7 @@ namespace Accounting_System.Repository
             return await _dbContext.BankAccounts
                 .Select(ba => new SelectListItem
                 {
-                    Value = ba.Id.ToString(),
+                    Value = ba.BankAccountId.ToString(),
                     Text = ba.AccountName
                 })
                 .ToListAsync(cancellationToken);

@@ -1,12 +1,8 @@
 ﻿@model IEnumerable<CollectionReceipt>
 @using Accounting_System.Models.AccountsReceivable
-@using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
-@inject UserManager<IdentityUser> UserManager
 @{
     ViewData["Title"] = "Collection Receipt";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var model = new CollectionReceipt();
 }
 <style>
     .container {
@@ -107,22 +103,21 @@
                         });
                     },
                     "dataSrc": function (json) {
-                        console.log(json); // Log the returned data to the console
                         return json.data; // Return the data to populate the DataTable
                     }
                 },
                 "columns": [
-                    { "data": "crNo" },
+                    { "data": "collectionReceiptNo" },
                     {
                         "data": "transactionDate",
                         "name": "transactionDate",
-                        "render": function (data, type, row) {
-                            var date = new Date(data);
+                        "render": function (data) {
+                            let date = new Date(data);
                             return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
                         }
                     },
                     {
-                        "data": "id",
+                        "data": null,
                         "render": function (data, type, row) {
                             if (row.salesInvoiceId != null) {
                                 return row.siNo;
@@ -135,18 +130,18 @@
                             }
                         }
                     },
-                    { "data": "customer.name" },
+                    { "data": "customer.customerName" },
                     { 
                         "data": "total",
-                        render: function (data, type, row) {
+                        render: function (data) {
                             return formatNumber(data);
                         }
                     },
                     { "data": "createdBy" },
                     {
-                        "data": "null",
+                        "data": null,
                         "render": function (data, type, row) {
-                            var status = row.isPosted && !row.isVoided && !row.isCanceled
+                            let status = row.isPosted && !row.isVoided && !row.isCanceled
                                 ? "Posted"
                                 : row.isVoided
                                     ? "Voided"
@@ -154,9 +149,9 @@
                                         ? "Cancelled"
                                         : "Pending";
 
-                            var statusClass = status == "Posted" ? "bg-info" :
-                                status == "Voided" ? "bg-danger" :
-                                    status == "Cancelled" ? "bg-warning" : "";
+                            let statusClass = status === "Posted" ? "bg-info" :
+                                status === "Voided" ? "bg-danger" :
+                                    status === "Cancelled" ? "bg-warning" : "";
 
                             return `<span class="badge rounded-pill ${statusClass}">${status}</span>`;
                         }     
@@ -175,23 +170,23 @@
                             if (!row.isPosted) {
                                 if (row.multipleSIId != null) {
                                     dropdownHtml += `
-                                                <li><a href="@Url.Action("MultipleCollectionEdit", "Receipt")/${row.id}" class="dropdown-item">Edit</a></li>
-                                                <li><a href="@Url.Action("MultipleCollectionPrint", "Receipt")/${row.id}" class="dropdown-item">Preview</a></li>`;
+                                                <li><a href="@Url.Action("MultipleCollectionEdit", "Receipt")/${row.collectionReceiptId}" class="dropdown-item">Edit</a></li>
+                                                <li><a href="@Url.Action("MultipleCollectionPrint", "Receipt")/${row.collectionReceiptId}" class="dropdown-item">Preview</a></li>`;
                                 } else {
                                     dropdownHtml += `
-                                                <li><a href="@Url.Action("CollectionEdit", "Receipt")/${row.id}" class="dropdown-item">Edit</a></li>
-                                                <li><a href="@Url.Action("CollectionPrint", "Receipt")/${row.id}" class="dropdown-item">Preview</a></li>`;
+                                                <li><a href="@Url.Action("CollectionEdit", "Receipt")/${row.collectionReceiptId}" class="dropdown-item">Edit</a></li>
+                                                <li><a href="@Url.Action("CollectionPrint", "Receipt")/${row.collectionReceiptId}" class="dropdown-item">Preview</a></li>`;
                                 }
-                                dropdownHtml += `<li><a class="dropdown-item" onclick="confirmCancel(${row.id})">Cancel</a></li>`;
+                                dropdownHtml += `<li><a class="dropdown-item" onclick="confirmCancel(${row.collectionReceiptId})">Cancel</a></li>`;
                             } else {
                                 if (row.multipleSIId != null) {
                                     dropdownHtml += `
-                                                <li><a href="@Url.Action("MultipleCollectionPrint", "Receipt")/${row.id}" class="dropdown-item">Print</a></li>`;
+                                                <li><a href="@Url.Action("MultipleCollectionPrint", "Receipt")/${row.collectionReceiptId}" class="dropdown-item">Print</a></li>`;
                                 } else {
                                     dropdownHtml += `
-                                                <li><a href="@Url.Action("CollectionPrint", "Receipt")/${row.id}" class="dropdown-item">Print</a></li>`;
+                                                <li><a href="@Url.Action("CollectionPrint", "Receipt")/${row.collectionReceiptId}" class="dropdown-item">Print</a></li>`;
                                 }
-                                dropdownHtml += `<li><a class="dropdown-item" onclick="confirmVoid(${row.id})">Void</a></li>`;
+                                dropdownHtml += `<li><a class="dropdown-item" onclick="confirmVoid(${row.collectionReceiptId})">Void</a></li>`;
                             }
 
                             dropdownHtml += `</ul></div>`;
@@ -209,7 +204,6 @@
     </script>
     <script>
         function confirmVoid(id) {
-            console.log(id);
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
@@ -221,15 +215,14 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Replace with the actual URL that you want to redirect to
-                    var url = `@Url.Action("Void", "Receipt")/${id}`;
-                    window.location.href = url;
+                    
+                    window.location.href = `@Url.Action("Void", "Receipt")/${id}`;
                 }
             })
         }
     </script>
     <script>
         function confirmCancel(id) {
-            console.log(id);
             Swal.fire({
                 title: "Please Input Remarks",
                 html:
@@ -244,12 +237,12 @@
                 confirmButtonText: 'Yes'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    var cancellationRemarks = $("#cancellationRemarks").val();
+                    let cancellationRemarks = $("#cancellationRemarks").val();
                     // Encode the cancellationRemarks to make it URL safe
-                    var encodedRemarks = encodeURIComponent(cancellationRemarks);
+                    let encodedRemarks = encodeURIComponent(cancellationRemarks);
                     // Append the encoded remarks as a parameter in the URL
-                    var url = `@Url.Action("Cancel", "Receipt")/${id}?cancellationRemarks=${encodedRemarks}`;
-                    window.location.href = url;
+                    
+                    window.location.href = `@Url.Action("Cancel", "Receipt")/${id}?cancellationRemarks=${encodedRemarks}`;
                 }
             })
         }

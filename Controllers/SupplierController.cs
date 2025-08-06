@@ -48,7 +48,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetAllSupplierIds(CancellationToken cancellationToken)
         {
             var supplierIds = await _context.Suppliers
-                                     .Select(s => s.Id) // Assuming Id is the primary key
+                                     .Select(s => s.SupplierId) // Assuming Id is the primary key
                                      .ToListAsync(cancellationToken);
             return Json(supplierIds);
         }
@@ -86,7 +86,7 @@ namespace Accounting_System.Controllers
                 await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    if (await _supplierRepo.IsSupplierNameExist(supplier.Name, supplier.Category, cancellationToken))
+                    if (await _supplierRepo.IsSupplierNameExist(supplier.SupplierName, supplier.Category, cancellationToken))
                     {
                         ModelState.AddModelError("Name", "Supplier name already exist!");
                         supplier.DefaultExpenses = await _context.ChartOfAccounts
@@ -107,7 +107,7 @@ namespace Accounting_System.Controllers
                         return View(supplier);
                     }
 
-                    if (await _supplierRepo.IsSupplierTinExist(supplier.TinNo, supplier.Category, cancellationToken))
+                    if (await _supplierRepo.IsSupplierTinExist(supplier.SupplierTin, supplier.Category, cancellationToken))
                     {
                         ModelState.AddModelError("TinNo", "Supplier tin already exist!");
                         supplier.DefaultExpenses = await _context.ChartOfAccounts
@@ -202,7 +202,7 @@ namespace Accounting_System.Controllers
                     if (supplier.OriginalSupplierId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(supplier.CreatedBy, $"Create new supplier {supplier.Name}", "Supplier Master File", ipAddress);
+                        AuditTrail auditTrailBook = new(supplier.CreatedBy, $"Create new supplier {supplier.SupplierName}", "Supplier Master File", ipAddress);
                         await _context.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -210,7 +210,7 @@ namespace Accounting_System.Controllers
 
                     await _context.SaveChangesAsync(cancellationToken);
                     await transaction.CommitAsync(cancellationToken);
-                    TempData["success"] = $"Supplier {supplier.Name} has been created.";
+                    TempData["success"] = $"Supplier {supplier.SupplierName} has been created.";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -258,7 +258,7 @@ namespace Accounting_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Supplier supplier, IFormFile? document, IFormFile? registration, CancellationToken cancellationToken)
         {
-            if (id != supplier.Id)
+            if (id != supplier.SupplierId)
             {
                 return NotFound();
             }
@@ -268,15 +268,15 @@ namespace Accounting_System.Controllers
                 await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    var existingModel = await _context.Suppliers.FindAsync(supplier.Id, cancellationToken);
+                    var existingModel = await _context.Suppliers.FindAsync(supplier.SupplierId, cancellationToken);
 
                     existingModel.ReasonOfExemption = supplier.ReasonOfExemption;
                     existingModel.Validity = supplier.Validity;
                     existingModel.ValidityDate = supplier.ValidityDate;
-                    existingModel.Name = supplier.Name;
-                    existingModel.Address = supplier.Address;
-                    existingModel.TinNo = supplier.TinNo;
-                    existingModel.Terms = supplier.Terms;
+                    existingModel.SupplierName = supplier.SupplierName;
+                    existingModel.SupplierAddress = supplier.SupplierAddress;
+                    existingModel.SupplierTin = supplier.SupplierTin;
+                    existingModel.SupplierTerms = supplier.SupplierTerms;
                     existingModel.VatType = supplier.VatType;
                     existingModel.TaxType = supplier.TaxType;
                     existingModel.Category = supplier.Category;
@@ -322,7 +322,7 @@ namespace Accounting_System.Controllers
                         if (supplier.OriginalSupplierId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Update supplier {supplier.Name}", "Supplier Master File", ipAddress);
+                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Update supplier {supplier.SupplierName}", "Supplier Master File", ipAddress);
                             await _context.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -330,7 +330,7 @@ namespace Accounting_System.Controllers
 
                         await _context.SaveChangesAsync(cancellationToken);
                         await transaction.CommitAsync(cancellationToken);
-                        TempData["success"] = $"Supplier {supplier.Name} has been edited.";
+                        TempData["success"] = $"Supplier {supplier.SupplierName} has been edited.";
                     }
                     else
                     {
@@ -340,7 +340,7 @@ namespace Accounting_System.Controllers
                 catch (DbUpdateConcurrencyException)
                 {
                     await transaction.RollbackAsync(cancellationToken);
-                    if (!SupplierExists(supplier.Id))
+                    if (!SupplierExists(supplier.SupplierId))
                     {
                         return NotFound();
                     }
@@ -377,7 +377,7 @@ namespace Accounting_System.Controllers
 
         private bool SupplierExists(int id)
         {
-            return (_context.Suppliers?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.Suppliers?.Any(e => e.SupplierId == id)).GetValueOrDefault();
         }
 
         //Download as .xlsx file.(Export)
@@ -400,7 +400,7 @@ namespace Accounting_System.Controllers
 
                 // Retrieve the selected invoices from the database
                 var selectedList = await _context.Suppliers
-                    .Where(supp => recordIds.Contains(supp.Id))
+                    .Where(supp => recordIds.Contains(supp.SupplierId))
                     .OrderBy(supp => supp.Number)
                     .ToListAsync();
 
@@ -435,11 +435,11 @@ namespace Accounting_System.Controllers
 
                 foreach (var item in selectedList)
                 {
-                    worksheet.Cells[row, 1].Value = item.Name;
-                    worksheet.Cells[row, 2].Value = item.Address;
+                    worksheet.Cells[row, 1].Value = item.SupplierName;
+                    worksheet.Cells[row, 2].Value = item.SupplierAddress;
                     worksheet.Cells[row, 3].Value = item.ZipCode;
-                    worksheet.Cells[row, 4].Value = item.TinNo;
-                    worksheet.Cells[row, 5].Value = item.Terms;
+                    worksheet.Cells[row, 4].Value = item.SupplierTin;
+                    worksheet.Cells[row, 5].Value = item.SupplierTerms;
                     worksheet.Cells[row, 6].Value = item.VatType;
                     worksheet.Cells[row, 7].Value = item.TaxType;
                     worksheet.Cells[row, 8].Value = item.ProofOfRegistrationFilePath;
@@ -455,7 +455,7 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 18].Value = item.DefaultExpenseNumber;
                     worksheet.Cells[row, 19].Value = item.WithholdingTaxPercent;
                     worksheet.Cells[row, 20].Value = item.WithholdingTaxtitle;
-                    worksheet.Cells[row, 21].Value = item.Id;
+                    worksheet.Cells[row, 21].Value = item.SupplierId;
 
                     row++;
                 }
@@ -521,11 +521,11 @@ namespace Accounting_System.Controllers
                             var supplier = new Supplier
                             {
                                 Number = await _supplierRepo.GetLastNumber(),
-                                Name = worksheet.Cells[row, 1].Text,
-                                Address = worksheet.Cells[row, 2].Text,
+                                SupplierName = worksheet.Cells[row, 1].Text,
+                                SupplierAddress = worksheet.Cells[row, 2].Text,
                                 ZipCode = worksheet.Cells[row, 3].Text,
-                                TinNo = worksheet.Cells[row, 4].Text,
-                                Terms = worksheet.Cells[row, 5].Text,
+                                SupplierTin = worksheet.Cells[row, 4].Text,
+                                SupplierTerms = worksheet.Cells[row, 5].Text,
                                 VatType = worksheet.Cells[row, 6].Text,
                                 TaxType = worksheet.Cells[row, 7].Text,
                                 ProofOfRegistrationFilePath = worksheet.Cells[row, 8].Text,

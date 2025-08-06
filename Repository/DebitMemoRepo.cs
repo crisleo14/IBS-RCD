@@ -33,12 +33,12 @@ namespace Accounting_System.Repository
         {
             var debitMemo = await _dbContext
                 .DebitMemos
-                .OrderByDescending(s => s.DMNo)
+                .OrderByDescending(s => s.DebitMemoNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (debitMemo != null)
             {
-                string lastSeries = debitMemo.DMNo ?? throw new InvalidOperationException("DMNo is null pls Contact MIS Enterprise");
+                string lastSeries = debitMemo.DebitMemoNo ?? throw new InvalidOperationException("DMNo is null pls Contact MIS Enterprise");
                 string numericPart = lastSeries.Substring(2);
                 int incrementedNumber = int.Parse(numericPart) + 1;
 
@@ -62,7 +62,7 @@ namespace Accounting_System.Repository
                 .ThenInclude(soa => soa.Customer)
                 .Include(c => c.ServiceInvoice)
                 .ThenInclude(soa => soa.Service)
-                .FirstOrDefaultAsync(debitMemo => debitMemo.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(debitMemo => debitMemo.DebitMemoId == id, cancellationToken);
 
             if (debitMemo != null)
             {
@@ -78,7 +78,7 @@ namespace Accounting_System.Repository
         {
             var services = await _dbContext
                 .Services
-                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(s => s.ServiceId == id, cancellationToken);
 
             if (services != null)
             {
