@@ -17,7 +17,7 @@ namespace Accounting_System.Repository
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromDays(1)); // Change interval as needed
+            _timer = new Timer(DoWork!, null, TimeSpan.Zero, TimeSpan.FromDays(1)); // Change interval as needed
             return Task.CompletedTask;
         }
 
@@ -145,13 +145,13 @@ namespace Accounting_System.Repository
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _timer?.Change(Timeout.Infinite, 0);
+            _timer.Change(Timeout.Infinite, 0);
             return Task.CompletedTask;
         }
 
         public void Dispose()
         {
-            _timer?.Dispose();
+            _timer.Dispose();
         }
     }
 }

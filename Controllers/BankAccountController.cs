@@ -76,8 +76,8 @@ namespace Accounting_System.Controllers
                     if (model.OriginalBankId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(model.CreatedBy, $"Created new bank {model.AccountName}",
-                            "Bank Account", ipAddress);
+                        AuditTrail auditTrailBook = new(model.CreatedBy!, $"Created new bank {model.AccountName}",
+                            "Bank Account", ipAddress!);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -114,10 +114,6 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Edit(BankAccount model, CancellationToken cancellationToken)
         {
             var existingModel = await _bankAccountRepo.FindBankAccount(model.BankAccountId, cancellationToken);
-            if (existingModel == null)
-            {
-                return NotFound();
-            }
 
             if (ModelState.IsValid)
             {
@@ -134,8 +130,8 @@ namespace Accounting_System.Controllers
                         if (model.OriginalBankId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User),
-                                $"Updated bank {model.AccountName}", "Bank Account", ipAddress);
+                            AuditTrail auditTrailBook = new(User.Identity!.Name!,
+                                $"Updated bank {model.AccountName}", "Bank Account", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -146,10 +142,8 @@ namespace Accounting_System.Controllers
                         TempData["success"] = "Bank edited successfully.";
                         return RedirectToAction(nameof(Index));
                     }
-                    else
-                    {
-                        throw new InvalidOperationException("No data changes!");
-                    }
+
+                    throw new InvalidOperationException("No data changes!");
                 }
                 catch (Exception ex)
                 {
@@ -187,7 +181,7 @@ namespace Accounting_System.Controllers
                 var selectedList = await _dbContext.BankAccounts
                     .Where(bank => recordIds.Contains(bank.BankAccountId))
                     .OrderBy(bank => bank.BankAccountId)
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken: cancellationToken);
 
                 // Create the Excel package
                 using var package = new ExcelPackage();
@@ -216,7 +210,7 @@ namespace Accounting_System.Controllers
                 }
 
                 // Convert the Excel package to a byte array
-                var excelBytes = await package.GetAsByteArrayAsync();
+                var excelBytes = await package.GetAsByteArrayAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
                 return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     "BankAccountList.xlsx");
@@ -238,64 +232,62 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
-            if (file == null || file.Length == 0)
+            if (file.Length == 0)
             {
                 return RedirectToAction(nameof(Index));
             }
 
             using (var stream = new MemoryStream())
             {
-                await file.CopyToAsync(stream);
+                await file.CopyToAsync(stream, cancellationToken);
                 stream.Position = 0;
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    using (var package = new ExcelPackage(stream))
+                    using var package = new ExcelPackage(stream);
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null)
                     {
-                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                        if (worksheet == null)
-                        {
-                            TempData["error"] = "The Excel file contains no worksheets.";
-                            return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
-                        }
-
-                        if (worksheet.ToString() != nameof(DynamicView.BankAccount))
-                        {
-                            TempData["error"] = "The Excel file is not related to bank account master file.";
-                            return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
-                        }
-
-                        var rowCount = worksheet.Dimension.Rows;
-                        var bankAccountList = await _dbContext
-                            .BankAccounts
-                            .ToListAsync(cancellationToken);
-
-                        for (int row = 2; row <= rowCount; row++) // Assuming the first row is the header
-                        {
-                            var bankAccount = new BankAccount
-                            {
-                                Bank = worksheet.Cells[row, 6].Text,
-                                AccountName = worksheet.Cells[row, 4].Text,
-                                CreatedBy = worksheet.Cells[row, 2].Text,
-                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 3].Text, out DateTime createdDate)
-                                    ? createdDate
-                                    : default,
-                                OriginalBankId = int.TryParse(worksheet.Cells[row, 7].Text, out int originalBankId)
-                                    ? originalBankId
-                                    : 0,
-                            };
-
-                            if (bankAccountList.Any(ba => ba.OriginalBankId == bankAccount.OriginalBankId))
-                            {
-                                continue;
-                            }
-
-                            await _dbContext.BankAccounts.AddAsync(bankAccount, cancellationToken);
-                        }
-
-                        await _dbContext.SaveChangesAsync(cancellationToken);
-                        await transaction.CommitAsync(cancellationToken);
+                        TempData["error"] = "The Excel file contains no worksheets.";
+                        return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
                     }
+
+                    if (worksheet.ToString() != nameof(DynamicView.BankAccount))
+                    {
+                        TempData["error"] = "The Excel file is not related to bank account master file.";
+                        return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
+                    }
+
+                    var rowCount = worksheet.Dimension.Rows;
+                    var bankAccountList = await _dbContext
+                        .BankAccounts
+                        .ToListAsync(cancellationToken);
+
+                    for (int row = 2; row <= rowCount; row++) // Assuming the first row is the header
+                    {
+                        var bankAccount = new BankAccount
+                        {
+                            Bank = worksheet.Cells[row, 6].Text,
+                            AccountName = worksheet.Cells[row, 4].Text,
+                            CreatedBy = worksheet.Cells[row, 2].Text,
+                            CreatedDate = DateTime.TryParse(worksheet.Cells[row, 3].Text, out DateTime createdDate)
+                                ? createdDate
+                                : default,
+                            OriginalBankId = int.TryParse(worksheet.Cells[row, 7].Text, out int originalBankId)
+                                ? originalBankId
+                                : 0,
+                        };
+
+                        if (bankAccountList.Any(ba => ba.OriginalBankId == bankAccount.OriginalBankId))
+                        {
+                            continue;
+                        }
+
+                        await _dbContext.BankAccounts.AddAsync(bankAccount, cancellationToken);
+                    }
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
                 }
                 catch (OperationCanceledException oce)
                 {

@@ -1,7 +1,7 @@
-﻿using Accounting_System.Data;
+﻿using System.Globalization;
+using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Models.AccountsReceivable;
-using Accounting_System.Models.MasterFile;
 using Accounting_System.Models.Reports;
 using Accounting_System.Models.ViewModels;
 using Accounting_System.Repository;
@@ -61,20 +61,20 @@ namespace Accounting_System.Controllers
             {
                 var creditMemos = await _creditMemoRepo.GetCreditMemosAsync(cancellationToken);
                 // Search filter
-                if (!string.IsNullOrEmpty(parameters.Search?.Value))
+                if (!string.IsNullOrEmpty(parameters.Search.Value))
                 {
                     var searchValue = parameters.Search.Value.ToLower();
                     creditMemos = creditMemos
                         .Where(cm =>
-                            cm.CreditMemoNo.ToLower().Contains(searchValue) ||
+                            cm.CreditMemoNo!.ToLower().Contains(searchValue) ||
                             cm.TransactionDate.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
                             cm.SalesInvoice?.SalesInvoiceNo?.ToLower().Contains(searchValue) == true ||
                             cm.ServiceInvoice?.ServiceInvoiceNo?.ToLower().Contains(searchValue) == true ||
                             cm.Source.ToLower().Contains(searchValue) ||
-                            cm.CreditAmount.ToString().Contains(searchValue) ||
+                            cm.CreditAmount.ToString(CultureInfo.InvariantCulture).Contains(searchValue) ||
                             cm.Remarks?.ToLower().Contains(searchValue) == true ||
                             cm.Description.ToLower().Contains(searchValue) ||
-                            cm.CreatedBy.ToLower().Contains(searchValue)
+                            cm.CreatedBy!.ToLower().Contains(searchValue)
                             )
                         .ToList();
                 }
@@ -120,23 +120,25 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
-            var viewModel = new CreditMemo();
-            viewModel.SalesInvoices = await _dbContext.SalesInvoices
-                .Where(si => si.IsPosted)
-                .Select(si => new SelectListItem
-                {
-                    Value = si.SalesInvoiceId.ToString(),
-                    Text = si.SalesInvoiceNo
-                })
-                .ToListAsync(cancellationToken);
-            viewModel.ServiceInvoices = await _dbContext.ServiceInvoices
-                .Where(sv => sv.IsPosted)
-                .Select(sv => new SelectListItem
-                {
-                    Value = sv.ServiceInvoiceId.ToString(),
-                    Text = sv.ServiceInvoiceNo
-                })
-                .ToListAsync(cancellationToken);
+            var viewModel = new CreditMemo
+            {
+                SalesInvoices = await _dbContext.SalesInvoices
+                    .Where(si => si.IsPosted)
+                    .Select(si => new SelectListItem
+                    {
+                        Value = si.SalesInvoiceId.ToString(),
+                        Text = si.SalesInvoiceNo
+                    })
+                    .ToListAsync(cancellationToken),
+                ServiceInvoices = await _dbContext.ServiceInvoices
+                    .Where(sv => sv.IsPosted)
+                    .Select(sv => new SelectListItem
+                    {
+                        Value = sv.ServiceInvoiceId.ToString(),
+                        Text = sv.ServiceInvoiceNo
+                    })
+                    .ToListAsync(cancellationToken)
+            };
 
             return View(viewModel);
         }
@@ -182,7 +184,7 @@ namespace Accounting_System.Controllers
                             var dmNo = new List<string>();
                             foreach (var item in existingSiDms)
                             {
-                                dmNo.Add(item.DebitMemoNo);
+                                dmNo.Add(item.DebitMemoNo!);
                             }
                             ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {string.Join(" , ", dmNo)}");
                             return View(model);
@@ -197,7 +199,7 @@ namespace Accounting_System.Controllers
                             var cmNo = new List<string>();
                             foreach (var item in existingSiCms)
                             {
-                                cmNo.Add(item.CreditMemoNo);
+                                cmNo.Add(item.CreditMemoNo!);
                             }
                             ModelState.AddModelError("", $"Can’t proceed to create you have unposted DM/CM. {string.Join(" , ", cmNo)}");
                             return View(model);
@@ -234,7 +236,7 @@ namespace Accounting_System.Controllers
                     {
                         model.ServiceInvoiceId = null;
 
-                        model.CreditAmount = (decimal)(model.Quantity * -model.AdjustedPrice);
+                        model.CreditAmount = (decimal)(model.Quantity * -model.AdjustedPrice)!;
                     }
                     else if (model.Source == "Service Invoice")
                     {
@@ -242,11 +244,11 @@ namespace Accounting_System.Controllers
 
                         #region --Retrieval of Services
 
-                        model.ServicesId = existingSv.ServicesId;
+                        model.ServicesId = existingSv?.ServicesId;
 
-                        var services = await _dbContext
-                        .Services
-                        .FirstOrDefaultAsync(s => s.ServiceId == model.ServicesId, cancellationToken);
+                        await _dbContext
+                            .Services
+                            .FirstOrDefaultAsync(s => s.ServiceId == model.ServicesId, cancellationToken);
 
                         #endregion --Retrieval of Services
 
@@ -258,7 +260,7 @@ namespace Accounting_System.Controllers
                     if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new credit memo# {model.CreditMemoNo}", "Credit Memo", ipAddress);
+                        AuditTrail auditTrailBook = new(model.CreatedBy!, $"Create new credit memo# {model.CreditMemoNo}", "Credit Memo", ipAddress!);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -284,7 +286,7 @@ namespace Accounting_System.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int? id, CancellationToken cancellationToken)
         {
-            if (id == null || _dbContext.CreditMemos == null)
+            if (id == null || !_dbContext.CreditMemos.Any())
             {
                 return NotFound();
             }
@@ -292,9 +294,9 @@ namespace Accounting_System.Controllers
             var creditMemo = await _dbContext.CreditMemos
                 .Include(cm => cm.SalesInvoice)
                 .Include(cm => cm.ServiceInvoice)
-                .ThenInclude(sv => sv.Customer)
+                .ThenInclude(sv => sv!.Customer)
                 .Include(cm => cm.ServiceInvoice)
-                .ThenInclude(sv => sv.Service)
+                .ThenInclude(sv => sv!.Service)
                 .FirstOrDefaultAsync(r => r.CreditMemoId == id, cancellationToken);
 
             if (creditMemo == null)
@@ -329,7 +331,7 @@ namespace Accounting_System.Controllers
             var existingSv = await _dbContext.ServiceInvoices
                         .Include(sv => sv.Customer)
                         .FirstOrDefaultAsync(sv => sv.ServiceInvoiceId == model.ServiceInvoiceId, cancellationToken);
-            var existingCM = await _dbContext
+            var existingCm = await _dbContext
                 .CreditMemos
                 .FirstOrDefaultAsync(cm => cm.CreditMemoId == model.CreditMemoId, cancellationToken);
 
@@ -344,13 +346,13 @@ namespace Accounting_System.Controllers
 
                         #region -- Saving Default Enries --
 
-                        existingCM.TransactionDate = model.TransactionDate;
-                        existingCM.SalesInvoiceId = model.SalesInvoiceId;
-                        existingCM.Quantity = model.Quantity;
-                        existingCM.AdjustedPrice = model.AdjustedPrice;
-                        existingCM.Description = model.Description;
-                        existingCM.Remarks = model.Remarks;
-                        existingCM.CreditAmount = (decimal)(model.Quantity * -model.AdjustedPrice);
+                        existingCm!.TransactionDate = model.TransactionDate;
+                        existingCm.SalesInvoiceId = model.SalesInvoiceId;
+                        existingCm.Quantity = model.Quantity;
+                        existingCm.AdjustedPrice = model.AdjustedPrice;
+                        existingCm.Description = model.Description;
+                        existingCm.Remarks = model.Remarks;
+                        existingCm.CreditAmount = (decimal)(model.Quantity * -model.AdjustedPrice)!;
 
                         #endregion -- Saving Default Enries --
 
@@ -361,24 +363,22 @@ namespace Accounting_System.Controllers
 
                         #region --Retrieval of Services
 
-
-
-                        var services = await _dbContext
-                        .Services
-                        .FirstOrDefaultAsync(s => s.ServiceId == existingCM.ServicesId, cancellationToken);
+                        await _dbContext
+                            .Services
+                            .FirstOrDefaultAsync(s => s.ServiceId == existingCm!.ServicesId, cancellationToken);
 
                         #endregion --Retrieval of Services
 
                         #region -- Saving Default Enries --
 
-                        existingCM.TransactionDate = model.TransactionDate;
-                        existingCM.ServiceInvoiceId = model.ServiceInvoiceId;
-                        existingCM.ServicesId = existingSv.ServicesId;
-                        existingCM.Period = model.Period;
-                        existingCM.Amount = model.Amount;
-                        existingCM.Description = model.Description;
-                        existingCM.Remarks = model.Remarks;
-                        existingCM.CreditAmount = -model.Amount ?? 0;
+                        existingCm!.TransactionDate = model.TransactionDate;
+                        existingCm.ServiceInvoiceId = model.ServiceInvoiceId;
+                        existingCm.ServicesId = existingSv!.ServicesId;
+                        existingCm.Period = model.Period;
+                        existingCm.Amount = model.Amount;
+                        existingCm.Description = model.Description;
+                        existingCm.Remarks = model.Remarks;
+                        existingCm.CreditAmount = -model.Amount ?? 0;
 
                         #endregion -- Saving Default Enries --
 
@@ -388,10 +388,10 @@ namespace Accounting_System.Controllers
                     {
                         #region --Audit Trail Recording
 
-                        if (existingCM.OriginalSeriesNumber.IsNullOrEmpty() && existingCM.OriginalDocumentId == 0)
+                        if (existingCm!.OriginalSeriesNumber.IsNullOrEmpty() && existingCm.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Edit credit memo# {existingCM.CreditMemoNo}", "Credit Memo", ipAddress);
+                            AuditTrail auditTrailBook = new(User.Identity!.Name!, $"Edit credit memo# {existingCm.CreditMemoNo}", "Credit Memo", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -410,7 +410,7 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                  await transaction.RollbackAsync(cancellationToken);
-                 existingCM.SalesInvoices = await _dbContext.SalesInvoices
+                 existingCm!.SalesInvoices = await _dbContext.SalesInvoices
                      .Where(si => si.IsPosted)
                      .Select(si => new SelectListItem
                      {
@@ -418,7 +418,7 @@ namespace Accounting_System.Controllers
                          Text = si.SalesInvoiceNo
                      })
                      .ToListAsync(cancellationToken);
-                 existingCM.ServiceInvoices = await _dbContext.ServiceInvoices
+                 existingCm.ServiceInvoices = await _dbContext.ServiceInvoices
                      .Where(sv => sv.IsPosted)
                      .Select(sv => new SelectListItem
                      {
@@ -427,12 +427,12 @@ namespace Accounting_System.Controllers
                      })
                      .ToListAsync(cancellationToken);
                  TempData["error"] = ex.Message;
-                 return View(existingCM);
+                 return View(existingCm);
                 }
             }
 
             ModelState.AddModelError("", "The information you submitted is not valid!");
-            existingCM.SalesInvoices = await _dbContext.SalesInvoices
+            existingCm!.SalesInvoices = await _dbContext.SalesInvoices
                 .Where(si => si.IsPosted)
                 .Select(si => new SelectListItem
                 {
@@ -440,7 +440,7 @@ namespace Accounting_System.Controllers
                     Text = si.SalesInvoiceNo
                 })
                 .ToListAsync(cancellationToken);
-            existingCM.ServiceInvoices = await _dbContext.ServiceInvoices
+            existingCm.ServiceInvoices = await _dbContext.ServiceInvoices
                 .Where(sv => sv.IsPosted)
                 .Select(sv => new SelectListItem
                 {
@@ -448,26 +448,26 @@ namespace Accounting_System.Controllers
                     Text = sv.ServiceInvoiceNo
                 })
                 .ToListAsync(cancellationToken);
-            return View(existingCM);
+            return View(existingCm);
         }
 
         [HttpGet]
         public async Task<IActionResult> Print(int? id, CancellationToken cancellationToken)
         {
-            if (id == null || _dbContext.CreditMemos == null)
+            if (id == null || !_dbContext.CreditMemos.Any())
             {
                 return NotFound();
             }
 
             var creditMemo = await _dbContext.CreditMemos
                 .Include(cm => cm.SalesInvoice)
-                .ThenInclude(s => s.Customer)
+                .ThenInclude(s => s!.Customer)
                 .Include(cm => cm.SalesInvoice)
-                .ThenInclude(s => s.Product)
+                .ThenInclude(s => s!.Product)
                 .Include(cm => cm.ServiceInvoice)
-                .ThenInclude(sv => sv.Customer)
+                .ThenInclude(sv => sv!.Customer)
                 .Include(cm => cm.ServiceInvoice)
-                .ThenInclude(sv => sv.Service)
+                .ThenInclude(sv => sv!.Service)
                 .FirstOrDefaultAsync(r => r.CreditMemoId == id, cancellationToken);
             if (creditMemo == null)
             {
@@ -479,7 +479,7 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Printed(int id, CancellationToken cancellationToken)
         {
-            var cm = await _dbContext.CreditMemos.FindAsync(id, cancellationToken);
+            var cm = await _dbContext.CreditMemos.FirstOrDefaultAsync(x => x.CreditMemoId == id, cancellationToken);
             if (cm != null && !cm.IsPrinted)
             {
 
@@ -489,7 +489,7 @@ namespace Accounting_System.Controllers
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                     var printedBy = _userManager.GetUserName(this.User);
-                    AuditTrail auditTrailBook = new(printedBy, $"Printed original copy of cm# {cm.CreditMemoNo}", "Credit Memo", ipAddress);
+                    AuditTrail auditTrailBook = new(printedBy!, $"Printed original copy of cm# {cm.CreditMemoNo}", "Credit Memo", ipAddress!);
                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                 }
 
@@ -501,477 +501,471 @@ namespace Accounting_System.Controllers
             return RedirectToAction(nameof(Print), new { id });
         }
 
-        public async Task<IActionResult> Post(int id, CancellationToken cancellationToken, ViewModelDMCM viewModelDMCM)
+        public async Task<IActionResult> Post(int id, CancellationToken cancellationToken, ViewModelDMCM viewModelDmcm)
         {
             var model = await _creditMemoRepo.FindCM(id, cancellationToken);
 
-            if (model != null)
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            try
             {
-                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-                try
+                if (!model.IsPosted)
                 {
-                    if (!model.IsPosted)
+                    model.IsPosted = true;
+                    model.PostedBy = _userManager.GetUserName(this.User);
+                    model.PostedDate = DateTime.Now;
+
+                    var accountTitlesDto = await _generalRepo.GetListOfAccountTitleDto(cancellationToken);
+                    var arTradeReceivableTitle = accountTitlesDto.Find(c => c.AccountNumber == "101020100") ?? throw new ArgumentException("Account number: '101020100', Account title: 'AR-Trade Receivable' not found.");
+                    var arNonTradeReceivableTitle = accountTitlesDto.Find(c => c.AccountNumber == "101020500") ?? throw new ArgumentException("Account number: '101020500', Account title: 'AR-Non Trade Receivable' not found.");
+                    var arTradeCwt = accountTitlesDto.Find(c => c.AccountNumber == "101020200") ?? throw new ArgumentException("Account number: '101020200', Account title: 'AR-Trade Receivable - Creditable Withholding Tax' not found.");
+                    var arTradeCwv = accountTitlesDto.Find(c => c.AccountNumber == "101020300") ?? throw new ArgumentException("Account number: '101020300', Account title: 'AR-Trade Receivable - Creditable Withholding Vat' not found.");
+                    var (salesAcctNo, _) = _generalRepo.GetSalesAccountTitle(model.SalesInvoice!.Product!.ProductCode!);
+                    var salesTitle = accountTitlesDto.Find(c => c.AccountNumber == salesAcctNo) ?? throw new ArgumentException($"Account title '{salesAcctNo}' not found.");
+                    var vatOutputTitle = accountTitlesDto.Find(c => c.AccountNumber == "201030100") ?? throw new ArgumentException("Account number: '201030100', Account title: 'Vat - Output' not found.");
+
+
+                    if (model.SalesInvoiceId != null)
                     {
-                        model.IsPosted = true;
-                        model.PostedBy = _userManager.GetUserName(this.User);
-                        model.PostedDate = DateTime.Now;
+                        #region --Retrieval of SI and SOA--
 
-                        var accountTitlesDto = await _generalRepo.GetListOfAccountTitleDto(cancellationToken);
-                        var arTradeReceivableTitle = accountTitlesDto.Find(c => c.AccountNumber == "101020100") ?? throw new ArgumentException("Account number: '101020100', Account title: 'AR-Trade Receivable' not found.");
-                        var arNonTradeReceivableTitle = accountTitlesDto.Find(c => c.AccountNumber == "101020500") ?? throw new ArgumentException("Account number: '101020500', Account title: 'AR-Non Trade Receivable' not found.");
-                        var arTradeCwt = accountTitlesDto.Find(c => c.AccountNumber == "101020200") ?? throw new ArgumentException("Account number: '101020200', Account title: 'AR-Trade Receivable - Creditable Withholding Tax' not found.");
-                        var arTradeCwv = accountTitlesDto.Find(c => c.AccountNumber == "101020300") ?? throw new ArgumentException("Account number: '101020300', Account title: 'AR-Trade Receivable - Creditable Withholding Vat' not found.");
-                        var (salesAcctNo, salesAcctTitle) = _generalRepo.GetSalesAccountTitle(model.SalesInvoice.Product.ProductCode);
-                        var salesTitle = accountTitlesDto.Find(c => c.AccountNumber == salesAcctNo) ?? throw new ArgumentException($"Account title '{salesAcctNo}' not found.");
-                        var vatOutputTitle = accountTitlesDto.Find(c => c.AccountNumber == "201030100") ?? throw new ArgumentException("Account number: '201030100', Account title: 'Vat - Output' not found.");
+                        var existingSi = await _dbContext.SalesInvoices
+                                                    .Include(s => s.Customer)
+                                                    .Include(s => s.Product)
+                                                    .FirstOrDefaultAsync(si => si.SalesInvoiceId == model.SalesInvoiceId, cancellationToken);
 
+                        #endregion --Retrieval of SI and SOA--
 
-                        if (model.SalesInvoiceId != null)
+                        #region --Sales Book Recording(SI)--
+
+                        var sales = new SalesBook();
+
+                        if (model.SalesInvoice.Customer!.CustomerType == "Vatable")
                         {
-                            #region --Retrieval of SI and SOA--
+                            sales.TransactionDate = model.TransactionDate;
+                            sales.SerialNo = model.CreditMemoNo!;
+                            sales.SoldTo = model.SalesInvoice.Customer.CustomerName;
+                            sales.TinNo = model.SalesInvoice.Customer.CustomerTin;
+                            sales.Address = model.SalesInvoice.Customer.CustomerAddress;
+                            sales.Description = model.SalesInvoice.Product.ProductName;
+                            sales.Amount = model.CreditAmount;
+                            sales.VatableSales = (_generalRepo.ComputeNetOfVat(Math.Abs(sales.Amount))) * -1;
+                            sales.VatAmount = (_generalRepo.ComputeVatAmount(Math.Abs(sales.VatableSales))) * -1;
+                            //sales.Discount = model.Discount;
+                            sales.NetSales = sales.VatableSales;
+                            sales.CreatedBy = model.CreatedBy;
+                            sales.CreatedDate = model.CreatedDate;
+                            sales.DueDate = existingSi!.DueDate;
+                            sales.DocumentId = model.SalesInvoiceId;
+                        }
+                        else if (model.SalesInvoice.Customer.CustomerType == "Exempt")
+                        {
+                            sales.TransactionDate = model.TransactionDate;
+                            sales.SerialNo = model.CreditMemoNo!;
+                            sales.SoldTo = model.SalesInvoice.Customer.CustomerName;
+                            sales.TinNo = model.SalesInvoice.Customer.CustomerTin;
+                            sales.Address = model.SalesInvoice.Customer.CustomerAddress;
+                            sales.Description = model.SalesInvoice.Product.ProductName;
+                            sales.Amount = model.CreditAmount;
+                            sales.VatExemptSales = model.CreditAmount;
+                            //sales.Discount = model.Discount;
+                            sales.NetSales = sales.Amount;
+                            sales.CreatedBy = model.CreatedBy;
+                            sales.CreatedDate = model.CreatedDate;
+                            sales.DueDate = existingSi!.DueDate;
+                            sales.DocumentId = model.SalesInvoiceId;
+                        }
+                        else
+                        {
+                            sales.TransactionDate = model.TransactionDate;
+                            sales.SerialNo = model.CreditMemoNo!;
+                            sales.SoldTo = model.SalesInvoice.Customer.CustomerName;
+                            sales.TinNo = model.SalesInvoice.Customer.CustomerTin;
+                            sales.Address = model.SalesInvoice.Customer.CustomerAddress;
+                            sales.Description = model.SalesInvoice.Product.ProductName;
+                            sales.Amount = model.CreditAmount;
+                            sales.ZeroRated = model.CreditAmount;
+                            //sales.Discount = model.Discount;
+                            sales.NetSales = sales.Amount;
+                            sales.CreatedBy = model.CreatedBy;
+                            sales.CreatedDate = model.CreatedDate;
+                            sales.DueDate = existingSi!.DueDate;
+                            sales.DocumentId = model.SalesInvoiceId;
+                        }
+                        await _dbContext.AddAsync(sales, cancellationToken);
 
-                            var existingSI = await _dbContext.SalesInvoices
-                                                        .Include(s => s.Customer)
-                                                        .Include(s => s.Product)
-                                                        .FirstOrDefaultAsync(si => si.SalesInvoiceId == model.SalesInvoiceId, cancellationToken);
+                        #endregion --Sales Book Recording(SI)--
 
-                            #endregion --Retrieval of SI and SOA--
+                        #region --General Ledger Book Recording(SI)--
 
-                            #region --Sales Book Recording(SI)--
+                        decimal withHoldingTaxAmount = 0;
+                        decimal withHoldingVatAmount = 0;
+                        decimal netOfVatAmount;
+                        decimal vatAmount = 0;
+                        if (model.SalesInvoice.Customer.CustomerType == CS.VatType_Vatable)
+                        {
+                            netOfVatAmount = (_generalRepo.ComputeNetOfVat(Math.Abs(model.CreditAmount))) * -1;
+                            vatAmount = (_generalRepo.ComputeVatAmount(Math.Abs(netOfVatAmount))) * -1;
+                        }
+                        else
+                        {
+                            netOfVatAmount = model.CreditAmount;
+                        }
+                        if (model.SalesInvoice.Customer.WithHoldingTax)
+                        {
+                            withHoldingTaxAmount = (_generalRepo.ComputeEwtAmount(Math.Abs(netOfVatAmount), 0.01m)) * -1;
 
-                            var sales = new SalesBook();
-
-                            if (model.SalesInvoice.Customer.CustomerType == "Vatable")
-                            {
-                                sales.TransactionDate = model.TransactionDate;
-                                sales.SerialNo = model.CreditMemoNo;
-                                sales.SoldTo = model.SalesInvoice.Customer.CustomerName;
-                                sales.TinNo = model.SalesInvoice.Customer.CustomerTin;
-                                sales.Address = model.SalesInvoice.Customer.CustomerAddress;
-                                sales.Description = model.SalesInvoice.Product.ProductName;
-                                sales.Amount = model.CreditAmount;
-                                sales.VatableSales = (_generalRepo.ComputeNetOfVat(Math.Abs(sales.Amount))) * -1;
-                                sales.VatAmount = (_generalRepo.ComputeVatAmount(Math.Abs(sales.VatableSales))) * -1;
-                                //sales.Discount = model.Discount;
-                                sales.NetSales = sales.VatableSales;
-                                sales.CreatedBy = model.CreatedBy;
-                                sales.CreatedDate = model.CreatedDate;
-                                sales.DueDate = existingSI.DueDate;
-                                sales.DocumentId = model.SalesInvoiceId;
-                            }
-                            else if (model.SalesInvoice.Customer.CustomerType == "Exempt")
-                            {
-                                sales.TransactionDate = model.TransactionDate;
-                                sales.SerialNo = model.CreditMemoNo;
-                                sales.SoldTo = model.SalesInvoice.Customer.CustomerName;
-                                sales.TinNo = model.SalesInvoice.Customer.CustomerTin;
-                                sales.Address = model.SalesInvoice.Customer.CustomerAddress;
-                                sales.Description = model.SalesInvoice.Product.ProductName;
-                                sales.Amount = model.CreditAmount;
-                                sales.VatExemptSales = model.CreditAmount;
-                                //sales.Discount = model.Discount;
-                                sales.NetSales = sales.Amount;
-                                sales.CreatedBy = model.CreatedBy;
-                                sales.CreatedDate = model.CreatedDate;
-                                sales.DueDate = existingSI.DueDate;
-                                sales.DocumentId = model.SalesInvoiceId;
-                            }
-                            else
-                            {
-                                sales.TransactionDate = model.TransactionDate;
-                                sales.SerialNo = model.CreditMemoNo;
-                                sales.SoldTo = model.SalesInvoice.Customer.CustomerName;
-                                sales.TinNo = model.SalesInvoice.Customer.CustomerTin;
-                                sales.Address = model.SalesInvoice.Customer.CustomerAddress;
-                                sales.Description = model.SalesInvoice.Product.ProductName;
-                                sales.Amount = model.CreditAmount;
-                                sales.ZeroRated = model.CreditAmount;
-                                //sales.Discount = model.Discount;
-                                sales.NetSales = sales.Amount;
-                                sales.CreatedBy = model.CreatedBy;
-                                sales.CreatedDate = model.CreatedDate;
-                                sales.DueDate = existingSI.DueDate;
-                                sales.DocumentId = model.SalesInvoiceId;
-                            }
-                            await _dbContext.AddAsync(sales, cancellationToken);
-
-                            #endregion --Sales Book Recording(SI)--
-
-                            #region --General Ledger Book Recording(SI)--
-
-                            decimal withHoldingTaxAmount = 0;
-                            decimal withHoldingVatAmount = 0;
-                            decimal netOfVatAmount = 0;
-                            decimal vatAmount = 0;
-                            if (model.SalesInvoice.Customer.CustomerType == CS.VatType_Vatable)
-                            {
-                                netOfVatAmount = (_generalRepo.ComputeNetOfVat(Math.Abs(model.CreditAmount))) * -1;
-                                vatAmount = (_generalRepo.ComputeVatAmount(Math.Abs(netOfVatAmount))) * -1;
-                            }
-                            else
-                            {
-                                netOfVatAmount = model.CreditAmount;
-                            }
-                            if (model.SalesInvoice.Customer.WithHoldingTax)
-                            {
-                                withHoldingTaxAmount = (_generalRepo.ComputeEwtAmount(Math.Abs(netOfVatAmount), 0.01m)) * -1;
-
-                            }
-                            if (model.SalesInvoice.Customer.WithHoldingVat)
-                            {
-                                withHoldingVatAmount = (_generalRepo.ComputeEwtAmount(Math.Abs(netOfVatAmount), 0.05m)) * -1;
-                            }
-
-                            var ledgers = new List<GeneralLedgerBook>();
-
-                            ledgers.Add(
-                                new GeneralLedgerBook
-                                {
-                                    Date = model.TransactionDate,
-                                    Reference = model.CreditMemoNo,
-                                    Description = model.SalesInvoice.Product.ProductName,
-                                    AccountNo = arTradeReceivableTitle.AccountNumber,
-                                    AccountTitle = arTradeReceivableTitle.AccountName,
-                                    Debit = 0,
-                                    Credit = Math.Abs(model.CreditAmount - (withHoldingTaxAmount + withHoldingVatAmount)),
-                                    CreatedBy = model.CreatedBy,
-                                    CreatedDate = model.CreatedDate
-                                }
-                            );
-
-                            if (withHoldingTaxAmount < 0)
-                            {
-                                ledgers.Add(
-                                    new GeneralLedgerBook
-                                    {
-                                        Date = model.TransactionDate,
-                                        Reference = model.CreditMemoNo,
-                                        Description = model.SalesInvoice.Product.ProductName,
-                                        AccountNo = arTradeCwt.AccountNumber,
-                                        AccountTitle = arTradeCwt.AccountName,
-                                        Debit = 0,
-                                        Credit = Math.Abs(withHoldingTaxAmount),
-                                        CreatedBy = model.CreatedBy,
-                                        CreatedDate = model.CreatedDate
-                                    }
-                                );
-                            }
-                            if (withHoldingVatAmount < 0)
-                            {
-                                ledgers.Add(
-                                    new GeneralLedgerBook
-                                    {
-                                        Date = model.TransactionDate,
-                                        Reference = model.CreditMemoNo,
-                                        Description = model.SalesInvoice.Product.ProductName,
-                                        AccountNo = arTradeCwv.AccountNumber,
-                                        AccountTitle = arTradeCwv.AccountName,
-                                        Debit = 0,
-                                        Credit = Math.Abs(withHoldingVatAmount),
-                                        CreatedBy = model.CreatedBy,
-                                        CreatedDate = model.CreatedDate
-                                    }
-                                );
-                            }
-                            ledgers.Add(
-                                new GeneralLedgerBook
-                                {
-                                    Date = model.TransactionDate,
-                                    Reference = model.CreditMemoNo,
-                                    Description = model.SalesInvoice.Product.ProductName,
-                                    AccountNo = salesTitle.AccountNumber,
-                                    AccountTitle = salesTitle.AccountName,
-                                    Debit = Math.Abs(netOfVatAmount),
-                                    CreatedBy = model.CreatedBy,
-                                    Credit = 0,
-                                    CreatedDate = model.CreatedDate
-                                }
-                            );
-                            if (vatAmount < 0)
-                            {
-                                ledgers.Add(
-                                    new GeneralLedgerBook
-                                    {
-                                        Date = model.TransactionDate,
-                                        Reference = model.CreditMemoNo,
-                                        Description = model.SalesInvoice.Product.ProductName,
-                                        AccountNo = vatOutputTitle.AccountNumber,
-                                        AccountTitle = vatOutputTitle.AccountName,
-                                        Debit = Math.Abs(vatAmount),
-                                        Credit = 0,
-                                        CreatedBy = model.CreatedBy,
-                                        CreatedDate = model.CreatedDate
-                                    }
-                                );
-                            }
-
-                            if (!_generalRepo.IsJournalEntriesBalanced(ledgers))
-                            {
-                                throw new ArgumentException("Debit and Credit is not equal, check your entries.");
-                            }
-
-                            await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
-
-                            #endregion --General Ledger Book Recording(SI)--
+                        }
+                        if (model.SalesInvoice.Customer.WithHoldingVat)
+                        {
+                            withHoldingVatAmount = (_generalRepo.ComputeEwtAmount(Math.Abs(netOfVatAmount), 0.05m)) * -1;
                         }
 
-                        if (model.ServiceInvoiceId != null)
+                        var ledgers = new List<GeneralLedgerBook>
                         {
-                            var existingSv = await _dbContext.ServiceInvoices
-                                                    .Include(sv => sv.Customer)
-                                                    .Include(sv => sv.Service)
-                                                    .FirstOrDefaultAsync(si => si.ServiceInvoiceId == model.ServiceInvoiceId, cancellationToken);
-
-                            #region --SV Computation--
-
-                            viewModelDMCM.Period = DateOnly.FromDateTime(model.CreatedDate) >= model.Period ? DateOnly.FromDateTime(model.CreatedDate) : model.Period.AddMonths(1).AddDays(-1);
-
-                            if (existingSv.Customer.CustomerType == "Vatable")
-                            {
-                                viewModelDMCM.Total = -model.Amount ?? 0;
-                                viewModelDMCM.NetAmount = (model.Amount ?? 0 - existingSv.Discount) / 1.12m;
-                                viewModelDMCM.VatAmount = (model.Amount ?? 0 - existingSv.Discount) - viewModelDMCM.NetAmount;
-                                viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (existingSv.Service.Percent / 100m);
-                                if (existingSv.Customer.WithHoldingVat)
-                                {
-                                    viewModelDMCM.WithholdingVatAmount = viewModelDMCM.NetAmount * 0.05m;
-                                }
-                            }
-                            else
-                            {
-                                viewModelDMCM.NetAmount = model.Amount ?? 0 - existingSv.Discount;
-                                viewModelDMCM.WithholdingTaxAmount = viewModelDMCM.NetAmount * (existingSv.Service.Percent / 100m);
-                                if (existingSv.Customer.WithHoldingVat)
-                                {
-                                    viewModelDMCM.WithholdingVatAmount = viewModelDMCM.NetAmount * 0.05m;
-                                }
-                            }
-
-                            if (existingSv.Customer.CustomerType == "Vatable")
-                            {
-                                var total = Math.Round(model.Amount ?? 0 / 1.12m, 2);
-
-                                var roundedNetAmount = Math.Round(viewModelDMCM.NetAmount, 2);
-
-                                if (roundedNetAmount > total)
-                                {
-                                    var shortAmount = viewModelDMCM.NetAmount - total;
-
-                                    viewModelDMCM.Amount += shortAmount;
-                                }
-                            }
-
-                            #endregion --SV Computation--
-
-                            #region --Sales Book Recording(SV)--
-
-                            var sales = new SalesBook();
-
-                            if (model.ServiceInvoice.Customer.CustomerType == "Vatable")
-                            {
-                                sales.TransactionDate = viewModelDMCM.Period;
-                                sales.SerialNo = model.CreditMemoNo;
-                                sales.SoldTo = model.ServiceInvoice.Customer.CustomerName;
-                                sales.TinNo = model.ServiceInvoice.Customer.CustomerTin;
-                                sales.Address = model.ServiceInvoice.Customer.CustomerAddress;
-                                sales.Description = model.ServiceInvoice.Service.Name;
-                                sales.Amount = viewModelDMCM.Total;
-                                sales.VatableSales = (_generalRepo.ComputeNetOfVat(Math.Abs(sales.Amount))) * -1;
-                                sales.VatAmount = (_generalRepo.ComputeVatAmount(Math.Abs(sales.VatableSales))) * -1;
-                                //sales.Discount = model.Discount;
-                                sales.NetSales = viewModelDMCM.NetAmount;
-                                sales.CreatedBy = model.CreatedBy;
-                                sales.CreatedDate = model.CreatedDate;
-                                sales.DueDate = existingSv.DueDate;
-                                sales.DocumentId = model.ServiceInvoiceId;
-                            }
-                            else if (model.ServiceInvoice.Customer.CustomerType == "Exempt")
-                            {
-                                sales.TransactionDate = viewModelDMCM.Period;
-                                sales.SerialNo = model.CreditMemoNo;
-                                sales.SoldTo = model.ServiceInvoice.Customer.CustomerName;
-                                sales.TinNo = model.ServiceInvoice.Customer.CustomerTin;
-                                sales.Address = model.ServiceInvoice.Customer.CustomerAddress;
-                                sales.Description = model.ServiceInvoice.Service.Name;
-                                sales.Amount = viewModelDMCM.Total;
-                                sales.VatExemptSales = viewModelDMCM.Total;
-                                //sales.Discount = model.Discount;
-                                sales.NetSales = viewModelDMCM.NetAmount;
-                                sales.CreatedBy = model.CreatedBy;
-                                sales.CreatedDate = model.CreatedDate;
-                                sales.DueDate = existingSv.DueDate;
-                                sales.DocumentId = model.ServiceInvoiceId;
-                            }
-                            else
-                            {
-                                sales.TransactionDate = viewModelDMCM.Period;
-                                sales.SerialNo = model.CreditMemoNo;
-                                sales.SoldTo = model.ServiceInvoice.Customer.CustomerName;
-                                sales.TinNo = model.ServiceInvoice.Customer.CustomerTin;
-                                sales.Address = model.ServiceInvoice.Customer.CustomerAddress;
-                                sales.Description = model.ServiceInvoice.Service.Name;
-                                sales.Amount = viewModelDMCM.Total;
-                                sales.ZeroRated = viewModelDMCM.Total;
-                                //sales.Discount = model.Discount;
-                                sales.NetSales = viewModelDMCM.NetAmount;
-                                sales.CreatedBy = model.CreatedBy;
-                                sales.CreatedDate = model.CreatedDate;
-                                sales.DueDate = existingSv.DueDate;
-                                sales.DocumentId = model.ServiceInvoiceId;
-                            }
-                            await _dbContext.AddAsync(sales, cancellationToken);
-
-                            #endregion --Sales Book Recording(SV)--
-
-                            #region --General Ledger Book Recording(SV)--
-
-                            decimal withHoldingTaxAmount = 0;
-                            decimal withHoldingVatAmount = 0;
-                            decimal netOfVatAmount = 0;
-                            decimal vatAmount = 0;
-                            if (model.ServiceInvoice.Customer.CustomerType == CS.VatType_Vatable)
-                            {
-                                netOfVatAmount = (_generalRepo.ComputeNetOfVat(Math.Abs(model.CreditAmount))) * -1;
-                                vatAmount = (_generalRepo.ComputeVatAmount(Math.Abs(netOfVatAmount))) * -1;
-                            }
-                            else
-                            {
-                                netOfVatAmount = model.CreditAmount;
-                            }
-                            if (model.ServiceInvoice.Customer.WithHoldingTax)
-                            {
-                                withHoldingTaxAmount = (_generalRepo.ComputeEwtAmount(Math.Abs(netOfVatAmount), 0.01m)) * -1;
-                            }
-                            if (model.ServiceInvoice.Customer.WithHoldingVat)
-                            {
-                                withHoldingVatAmount = (_generalRepo.ComputeEwtAmount(Math.Abs(netOfVatAmount), 0.05m)) * -1;
-                            }
-
-                            var ledgers = new List<GeneralLedgerBook>();
-
-                            ledgers.Add(
-                                    new GeneralLedgerBook
-                                    {
-                                        Date = model.TransactionDate,
-                                        Reference = model.CreditMemoNo,
-                                        Description = model.ServiceInvoice.Service.Name,
-                                        AccountNo = arNonTradeReceivableTitle.AccountNumber,
-                                        AccountTitle = arNonTradeReceivableTitle.AccountName,
-                                        Debit = 0,
-                                        Credit = Math.Abs(model.CreditAmount - (withHoldingTaxAmount + withHoldingVatAmount)),
-                                        CreatedBy = model.CreatedBy,
-                                        CreatedDate = model.CreatedDate
-                                    }
-                                );
-                            if (withHoldingTaxAmount < 0)
-                            {
-                                ledgers.Add(
-                                    new GeneralLedgerBook
-                                    {
-                                        Date = model.TransactionDate,
-                                        Reference = model.CreditMemoNo,
-                                        Description = model.ServiceInvoice.Service.Name,
-                                        AccountNo = arTradeCwt.AccountNumber,
-                                        AccountTitle = arTradeCwt.AccountName,
-                                        Debit = 0,
-                                        Credit = Math.Abs(withHoldingTaxAmount),
-                                        CreatedBy = model.CreatedBy,
-                                        CreatedDate = model.CreatedDate
-                                    }
-                                );
-                            }
-                            if (withHoldingVatAmount < 0)
-                            {
-                                ledgers.Add(
-                                    new GeneralLedgerBook
-                                    {
-                                        Date = model.TransactionDate,
-                                        Reference = model.CreditMemoNo,
-                                        Description = model.ServiceInvoice.Service.Name,
-                                        AccountNo = arTradeCwv.AccountNumber,
-                                        AccountTitle = arTradeCwv.AccountName,
-                                        Debit = 0,
-                                        Credit = Math.Abs(withHoldingVatAmount),
-                                        CreatedBy = model.CreatedBy,
-                                        CreatedDate = model.CreatedDate
-                                    }
-                                );
-                            }
-
-                            ledgers.Add(new GeneralLedgerBook
+                            new GeneralLedgerBook
                             {
                                 Date = model.TransactionDate,
-                                Reference = model.CreditMemoNo,
-                                Description = model.ServiceInvoice.Service.Name,
-                                AccountNo = model.ServiceInvoice.Service.CurrentAndPreviousNo,
-                                AccountTitle = model.ServiceInvoice.Service.CurrentAndPreviousTitle,
-                                Debit = viewModelDMCM.NetAmount,
-                                Credit = 0,
+                                Reference = model.CreditMemoNo!,
+                                Description = model.SalesInvoice.Product.ProductName,
+                                AccountNo = arTradeReceivableTitle.AccountNumber,
+                                AccountTitle = arTradeReceivableTitle.AccountName,
+                                Debit = 0,
+                                Credit = Math.Abs(model.CreditAmount - (withHoldingTaxAmount + withHoldingVatAmount)),
                                 CreatedBy = model.CreatedBy,
                                 CreatedDate = model.CreatedDate
-                            });
-
-                            if (vatAmount < 0)
-                            {
-                                ledgers.Add(
-                                    new GeneralLedgerBook
-                                    {
-                                        Date = model.TransactionDate,
-                                        Reference = model.CreditMemoNo,
-                                        Description = model.ServiceInvoice.Service.Name,
-                                        AccountNo = vatOutputTitle.AccountNumber,
-                                        AccountTitle = vatOutputTitle.AccountName,
-                                        Debit = Math.Abs(vatAmount),
-                                        Credit = 0,
-                                        CreatedBy = model.CreatedBy,
-                                        CreatedDate = model.CreatedDate
-                                    }
-                                );
                             }
+                        };
 
-                            if (!_generalRepo.IsJournalEntriesBalanced(ledgers))
-                            {
-                                throw new ArgumentException("Debit and Credit is not equal, check your entries.");
-                            }
-
-                            await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
-
-                            #endregion --General Ledger Book Recording(SV)--
-                        }
-
-                        #region --Audit Trail Recording
-
-                        if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
+                        if (withHoldingTaxAmount < 0)
                         {
-                            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(model.PostedBy, $"Posted credit memo# {model.CreditMemoNo}", "Credit Memo", ipAddress);
-                            await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.TransactionDate,
+                                    Reference = model.CreditMemoNo!,
+                                    Description = model.SalesInvoice.Product.ProductName,
+                                    AccountNo = arTradeCwt.AccountNumber,
+                                    AccountTitle = arTradeCwt.AccountName,
+                                    Debit = 0,
+                                    Credit = Math.Abs(withHoldingTaxAmount),
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+                        if (withHoldingVatAmount < 0)
+                        {
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.TransactionDate,
+                                    Reference = model.CreditMemoNo!,
+                                    Description = model.SalesInvoice.Product.ProductName,
+                                    AccountNo = arTradeCwv.AccountNumber,
+                                    AccountTitle = arTradeCwv.AccountName,
+                                    Debit = 0,
+                                    Credit = Math.Abs(withHoldingVatAmount),
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+                        ledgers.Add(
+                            new GeneralLedgerBook
+                            {
+                                Date = model.TransactionDate,
+                                Reference = model.CreditMemoNo!,
+                                Description = model.SalesInvoice.Product.ProductName,
+                                AccountNo = salesTitle.AccountNumber,
+                                AccountTitle = salesTitle.AccountName,
+                                Debit = Math.Abs(netOfVatAmount),
+                                CreatedBy = model.CreatedBy,
+                                Credit = 0,
+                                CreatedDate = model.CreatedDate
+                            }
+                        );
+                        if (vatAmount < 0)
+                        {
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.TransactionDate,
+                                    Reference = model.CreditMemoNo!,
+                                    Description = model.SalesInvoice.Product.ProductName,
+                                    AccountNo = vatOutputTitle.AccountNumber,
+                                    AccountTitle = vatOutputTitle.AccountName,
+                                    Debit = Math.Abs(vatAmount),
+                                    Credit = 0,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
                         }
 
-                        #endregion --Audit Trail Recording
+                        if (!_generalRepo.IsJournalEntriesBalanced(ledgers))
+                        {
+                            throw new ArgumentException("Debit and Credit is not equal, check your entries.");
+                        }
 
-                        //await _receiptRepo.UpdateCreditMemo(model.SalesInvoice.Id, model.Total, offsetAmount);
+                        await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
 
-                        await _dbContext.SaveChangesAsync(cancellationToken);
-                        await transaction.CommitAsync(cancellationToken);
-                        TempData["success"] = "Credit Memo has been Posted.";
+                        #endregion --General Ledger Book Recording(SI)--
                     }
+
+                    if (model.ServiceInvoiceId != null)
+                    {
+                        var existingSv = await _dbContext.ServiceInvoices
+                                                .Include(sv => sv.Customer)
+                                                .Include(sv => sv.Service)
+                                                .FirstOrDefaultAsync(si => si.ServiceInvoiceId == model.ServiceInvoiceId, cancellationToken);
+
+                        #region --SV Computation--
+
+                        viewModelDmcm.Period = DateOnly.FromDateTime(model.CreatedDate) >= model.Period ? DateOnly.FromDateTime(model.CreatedDate) : model.Period.AddMonths(1).AddDays(-1);
+
+                        if (existingSv!.Customer!.CustomerType == "Vatable")
+                        {
+                            viewModelDmcm.Total = -model.Amount ?? 0;
+                            viewModelDmcm.NetAmount = (model.Amount ?? 0 - existingSv.Discount) / 1.12m;
+                            viewModelDmcm.VatAmount = (model.Amount ?? 0 - existingSv.Discount) - viewModelDmcm.NetAmount;
+                            viewModelDmcm.WithholdingTaxAmount = viewModelDmcm.NetAmount * (existingSv.Service!.Percent / 100m);
+                            if (existingSv.Customer.WithHoldingVat)
+                            {
+                                viewModelDmcm.WithholdingVatAmount = viewModelDmcm.NetAmount * 0.05m;
+                            }
+                        }
+                        else
+                        {
+                            viewModelDmcm.NetAmount = model.Amount ?? 0 - existingSv.Discount;
+                            viewModelDmcm.WithholdingTaxAmount = viewModelDmcm.NetAmount * (existingSv.Service!.Percent / 100m);
+                            if (existingSv.Customer.WithHoldingVat)
+                            {
+                                viewModelDmcm.WithholdingVatAmount = viewModelDmcm.NetAmount * 0.05m;
+                            }
+                        }
+
+                        if (existingSv.Customer.CustomerType == "Vatable")
+                        {
+                            var total = Math.Round(model.Amount ?? 0 / 1.12m, 2);
+
+                            var roundedNetAmount = Math.Round(viewModelDmcm.NetAmount, 2);
+
+                            if (roundedNetAmount > total)
+                            {
+                                var shortAmount = viewModelDmcm.NetAmount - total;
+
+                                viewModelDmcm.Amount += shortAmount;
+                            }
+                        }
+
+                        #endregion --SV Computation--
+
+                        #region --Sales Book Recording(SV)--
+
+                        var sales = new SalesBook();
+
+                        if (model.ServiceInvoice!.Customer!.CustomerType == "Vatable")
+                        {
+                            sales.TransactionDate = viewModelDmcm.Period;
+                            sales.SerialNo = model.CreditMemoNo!;
+                            sales.SoldTo = model.ServiceInvoice.Customer.CustomerName;
+                            sales.TinNo = model.ServiceInvoice.Customer.CustomerTin;
+                            sales.Address = model.ServiceInvoice.Customer.CustomerAddress;
+                            sales.Description = model.ServiceInvoice.Service!.Name;
+                            sales.Amount = viewModelDmcm.Total;
+                            sales.VatableSales = (_generalRepo.ComputeNetOfVat(Math.Abs(sales.Amount))) * -1;
+                            sales.VatAmount = (_generalRepo.ComputeVatAmount(Math.Abs(sales.VatableSales))) * -1;
+                            //sales.Discount = model.Discount;
+                            sales.NetSales = viewModelDmcm.NetAmount;
+                            sales.CreatedBy = model.CreatedBy;
+                            sales.CreatedDate = model.CreatedDate;
+                            sales.DueDate = existingSv.DueDate;
+                            sales.DocumentId = model.ServiceInvoiceId;
+                        }
+                        else if (model.ServiceInvoice.Customer.CustomerType == "Exempt")
+                        {
+                            sales.TransactionDate = viewModelDmcm.Period;
+                            sales.SerialNo = model.CreditMemoNo!;
+                            sales.SoldTo = model.ServiceInvoice.Customer.CustomerName;
+                            sales.TinNo = model.ServiceInvoice.Customer.CustomerTin;
+                            sales.Address = model.ServiceInvoice.Customer.CustomerAddress;
+                            sales.Description = model.ServiceInvoice.Service!.Name;
+                            sales.Amount = viewModelDmcm.Total;
+                            sales.VatExemptSales = viewModelDmcm.Total;
+                            //sales.Discount = model.Discount;
+                            sales.NetSales = viewModelDmcm.NetAmount;
+                            sales.CreatedBy = model.CreatedBy;
+                            sales.CreatedDate = model.CreatedDate;
+                            sales.DueDate = existingSv.DueDate;
+                            sales.DocumentId = model.ServiceInvoiceId;
+                        }
+                        else
+                        {
+                            sales.TransactionDate = viewModelDmcm.Period;
+                            sales.SerialNo = model.CreditMemoNo!;
+                            sales.SoldTo = model.ServiceInvoice.Customer.CustomerName;
+                            sales.TinNo = model.ServiceInvoice.Customer.CustomerTin;
+                            sales.Address = model.ServiceInvoice.Customer.CustomerAddress;
+                            sales.Description = model.ServiceInvoice.Service!.Name;
+                            sales.Amount = viewModelDmcm.Total;
+                            sales.ZeroRated = viewModelDmcm.Total;
+                            //sales.Discount = model.Discount;
+                            sales.NetSales = viewModelDmcm.NetAmount;
+                            sales.CreatedBy = model.CreatedBy;
+                            sales.CreatedDate = model.CreatedDate;
+                            sales.DueDate = existingSv.DueDate;
+                            sales.DocumentId = model.ServiceInvoiceId;
+                        }
+                        await _dbContext.AddAsync(sales, cancellationToken);
+
+                        #endregion --Sales Book Recording(SV)--
+
+                        #region --General Ledger Book Recording(SV)--
+
+                        decimal withHoldingTaxAmount = 0;
+                        decimal withHoldingVatAmount = 0;
+                        decimal netOfVatAmount;
+                        decimal vatAmount = 0;
+                        if (model.ServiceInvoice.Customer.CustomerType == CS.VatType_Vatable)
+                        {
+                            netOfVatAmount = (_generalRepo.ComputeNetOfVat(Math.Abs(model.CreditAmount))) * -1;
+                            vatAmount = (_generalRepo.ComputeVatAmount(Math.Abs(netOfVatAmount))) * -1;
+                        }
+                        else
+                        {
+                            netOfVatAmount = model.CreditAmount;
+                        }
+                        if (model.ServiceInvoice.Customer.WithHoldingTax)
+                        {
+                            withHoldingTaxAmount = (_generalRepo.ComputeEwtAmount(Math.Abs(netOfVatAmount), 0.01m)) * -1;
+                        }
+                        if (model.ServiceInvoice.Customer.WithHoldingVat)
+                        {
+                            withHoldingVatAmount = _generalRepo.ComputeEwtAmount(Math.Abs(netOfVatAmount), 0.05m) * -1;
+                        }
+
+                        var ledgers = new List<GeneralLedgerBook>
+                        {
+                            new GeneralLedgerBook
+                            {
+                                Date = model.TransactionDate,
+                                Reference = model.CreditMemoNo!,
+                                Description = model.ServiceInvoice.Service.Name,
+                                AccountNo = arNonTradeReceivableTitle.AccountNumber,
+                                AccountTitle = arNonTradeReceivableTitle.AccountName,
+                                Debit = 0,
+                                Credit = Math.Abs(model.CreditAmount - (withHoldingTaxAmount + withHoldingVatAmount)),
+                                CreatedBy = model.CreatedBy,
+                                CreatedDate = model.CreatedDate
+                            }
+                        };
+
+                        if (withHoldingTaxAmount < 0)
+                        {
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.TransactionDate,
+                                    Reference = model.CreditMemoNo!,
+                                    Description = model.ServiceInvoice.Service.Name,
+                                    AccountNo = arTradeCwt.AccountNumber,
+                                    AccountTitle = arTradeCwt.AccountName,
+                                    Debit = 0,
+                                    Credit = Math.Abs(withHoldingTaxAmount),
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+                        if (withHoldingVatAmount < 0)
+                        {
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.TransactionDate,
+                                    Reference = model.CreditMemoNo!,
+                                    Description = model.ServiceInvoice.Service.Name,
+                                    AccountNo = arTradeCwv.AccountNumber,
+                                    AccountTitle = arTradeCwv.AccountName,
+                                    Debit = 0,
+                                    Credit = Math.Abs(withHoldingVatAmount),
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+
+                        ledgers.Add(new GeneralLedgerBook
+                        {
+                            Date = model.TransactionDate,
+                            Reference = model.CreditMemoNo!,
+                            Description = model.ServiceInvoice.Service.Name,
+                            AccountNo = model.ServiceInvoice.Service.CurrentAndPreviousNo!,
+                            AccountTitle = model.ServiceInvoice.Service.CurrentAndPreviousTitle!,
+                            Debit = viewModelDmcm.NetAmount,
+                            Credit = 0,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate
+                        });
+
+                        if (vatAmount < 0)
+                        {
+                            ledgers.Add(
+                                new GeneralLedgerBook
+                                {
+                                    Date = model.TransactionDate,
+                                    Reference = model.CreditMemoNo!,
+                                    Description = model.ServiceInvoice.Service.Name,
+                                    AccountNo = vatOutputTitle.AccountNumber,
+                                    AccountTitle = vatOutputTitle.AccountName,
+                                    Debit = Math.Abs(vatAmount),
+                                    Credit = 0,
+                                    CreatedBy = model.CreatedBy,
+                                    CreatedDate = model.CreatedDate
+                                }
+                            );
+                        }
+
+                        if (!_generalRepo.IsJournalEntriesBalanced(ledgers))
+                        {
+                            throw new ArgumentException("Debit and Credit is not equal, check your entries.");
+                        }
+
+                        await _dbContext.GeneralLedgerBooks.AddRangeAsync(ledgers, cancellationToken);
+
+                        #endregion --General Ledger Book Recording(SV)--
+                    }
+
+                    #region --Audit Trail Recording
+
+                    if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
+                    {
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        AuditTrail auditTrailBook = new(model.PostedBy!, $"Posted credit memo# {model.CreditMemoNo}", "Credit Memo", ipAddress!);
+                        await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                    }
+
+                    #endregion --Audit Trail Recording
+
+                    //await _receiptRepo.UpdateCreditMemo(model.SalesInvoice.Id, model.Total, offsetAmount);
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    TempData["success"] = "Credit Memo has been Posted.";
                 }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync(cancellationToken);
-                    TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(Index));
-                }
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
-
-            return NotFound();
+            return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.CreditMemos.FindAsync(id, cancellationToken);
+            var model = await _dbContext.CreditMemos.FirstOrDefaultAsync(x => x.CreditMemoId == id, cancellationToken);
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
             try
             {
@@ -996,7 +990,7 @@ namespace Accounting_System.Controllers
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided credit memo# {model.CreditMemoNo}", "Credit Memo", ipAddress);
+                            AuditTrail auditTrailBook = new(model.VoidedBy!, $"Voided credit memo# {model.CreditMemoNo}", "Credit Memo", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -1021,7 +1015,7 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Cancel(int id, string cancellationRemarks, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.CreditMemos.FindAsync(id, cancellationToken);
+            var model = await _dbContext.CreditMemos.FirstOrDefaultAsync(x => x.CreditMemoId == id, cancellationToken);
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             try
@@ -1040,7 +1034,7 @@ namespace Accounting_System.Controllers
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled credit memo# {model.CreditMemoNo}", "Credit Memo", ipAddress);
+                            AuditTrail auditTrailBook = new(model.CanceledBy!, $"Cancelled credit memo# {model.CreditMemoNo}", "Credit Memo", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -1102,202 +1096,200 @@ namespace Accounting_System.Controllers
                     .Include(cm => cm.SalesInvoice)
                     .Include(cm => cm.ServiceInvoice)
                     .OrderBy(cm => cm.CreditMemoNo)
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken: cancellationToken);
 
                 // Create the Excel package
-                using (var package = new ExcelPackage())
+                using var package = new ExcelPackage();
+                // Add a new worksheet to the Excel package
+                #region -- Sales Invoice Table Header --
+
+                var worksheet2 = package.Workbook.Worksheets.Add("SalesInvoice");
+
+                worksheet2.Cells["A1"].Value = "OtherRefNo";
+                worksheet2.Cells["B1"].Value = "Quantity";
+                worksheet2.Cells["C1"].Value = "UnitPrice";
+                worksheet2.Cells["D1"].Value = "Amount";
+                worksheet2.Cells["E1"].Value = "Remarks";
+                worksheet2.Cells["F1"].Value = "Status";
+                worksheet2.Cells["G1"].Value = "TransactionDate";
+                worksheet2.Cells["H1"].Value = "Discount";
+                worksheet2.Cells["I1"].Value = "AmountPaid";
+                worksheet2.Cells["J1"].Value = "Balance";
+                worksheet2.Cells["K1"].Value = "IsPaid";
+                worksheet2.Cells["L1"].Value = "IsTaxAndVatPaid";
+                worksheet2.Cells["M1"].Value = "DueDate";
+                worksheet2.Cells["N1"].Value = "CreatedBy";
+                worksheet2.Cells["O1"].Value = "CreatedDate";
+                worksheet2.Cells["P1"].Value = "CancellationRemarks";
+                worksheet2.Cells["Q1"].Value = "OriginalReceivingReportId";
+                worksheet2.Cells["R1"].Value = "OriginalCustomerId";
+                worksheet2.Cells["S1"].Value = "OriginalPOId";
+                worksheet2.Cells["T1"].Value = "OriginalProductId";
+                worksheet2.Cells["U1"].Value = "OriginalSINo";
+                worksheet2.Cells["V1"].Value = "OriginalDocumentId";
+
+                #endregion -- Sales Invoice Table Header --
+
+                #region -- Service Invoice Table Header --
+
+                var worksheet3 = package.Workbook.Worksheets.Add("ServiceInvoice");
+
+                worksheet3.Cells["A1"].Value = "DueDate";
+                worksheet3.Cells["B1"].Value = "Period";
+                worksheet3.Cells["C1"].Value = "Amount";
+                worksheet3.Cells["D1"].Value = "Total";
+                worksheet3.Cells["E1"].Value = "Discount";
+                worksheet3.Cells["F1"].Value = "CurrentAndPreviousMonth";
+                worksheet3.Cells["G1"].Value = "UnearnedAmount";
+                worksheet3.Cells["H1"].Value = "Status";
+                worksheet3.Cells["I1"].Value = "AmountPaid";
+                worksheet3.Cells["J1"].Value = "Balance";
+                worksheet3.Cells["K1"].Value = "Instructions";
+                worksheet3.Cells["L1"].Value = "IsPaid";
+                worksheet3.Cells["M1"].Value = "CreatedBy";
+                worksheet3.Cells["N1"].Value = "CreatedDate";
+                worksheet3.Cells["O1"].Value = "CancellationRemarks";
+                worksheet3.Cells["P1"].Value = "OriginalCustomerId";
+                worksheet3.Cells["Q1"].Value = "OriginalSVNo";
+                worksheet3.Cells["R1"].Value = "OriginalServicesId";
+                worksheet3.Cells["S1"].Value = "OriginalDocumentId";
+
+                #endregion -- Service Invoice Table Header --
+
+                #region -- Credit Memo Table Header --
+
+                var worksheet = package.Workbook.Worksheets.Add("CreditMemo");
+
+                worksheet.Cells["A1"].Value = "TransactionDate";
+                worksheet.Cells["B1"].Value = "DebitAmount";
+                worksheet.Cells["C1"].Value = "Description";
+                worksheet.Cells["D1"].Value = "AdjustedPrice";
+                worksheet.Cells["E1"].Value = "Quantity";
+                worksheet.Cells["F1"].Value = "Source";
+                worksheet.Cells["G1"].Value = "Remarks";
+                worksheet.Cells["H1"].Value = "Period";
+                worksheet.Cells["I1"].Value = "Amount";
+                worksheet.Cells["J1"].Value = "CurrentAndPreviousAmount";
+                worksheet.Cells["K1"].Value = "UnearnedAmount";
+                worksheet.Cells["L1"].Value = "ServicesId";
+                worksheet.Cells["M1"].Value = "CreatedBy";
+                worksheet.Cells["N1"].Value = "CreatedDate";
+                worksheet.Cells["O1"].Value = "CancellationRemarks";
+                worksheet.Cells["P1"].Value = "OriginalSalesInvoiceId";
+                worksheet.Cells["Q1"].Value = "OriginalCMNo";
+                worksheet.Cells["R1"].Value = "OriginalServiceInvoiceId";
+                worksheet.Cells["S1"].Value = "OriginalDocumentId";
+
+                #endregion -- Credit Memo Table Header --
+
+                #region -- Credit Memo Export --
+
+                int row = 2;
+
+                foreach (var item in selectedList)
                 {
-                    // Add a new worksheet to the Excel package
-                    #region -- Sales Invoice Table Header --
+                    worksheet.Cells[row, 1].Value = item.TransactionDate.ToString("yyyy-MM-dd");
+                    worksheet.Cells[row, 2].Value = item.CreditAmount;
+                    worksheet.Cells[row, 3].Value = item.Description;
+                    worksheet.Cells[row, 4].Value = item.AdjustedPrice;
+                    worksheet.Cells[row, 5].Value = item.Quantity;
+                    worksheet.Cells[row, 6].Value = item.Source;
+                    worksheet.Cells[row, 7].Value = item.Remarks;
+                    worksheet.Cells[row, 8].Value = item.Period.ToString("yyyy-MM-dd");
+                    worksheet.Cells[row, 9].Value = item.Amount;
+                    worksheet.Cells[row, 10].Value = item.CurrentAndPreviousAmount;
+                    worksheet.Cells[row, 11].Value = item.UnearnedAmount;
+                    worksheet.Cells[row, 12].Value = item.ServicesId;
+                    worksheet.Cells[row, 13].Value = item.CreatedBy;
+                    worksheet.Cells[row, 14].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 15].Value = item.CancellationRemarks;
+                    worksheet.Cells[row, 16].Value = item.SalesInvoiceId;
+                    worksheet.Cells[row, 17].Value = item.CreditMemoNo;
+                    worksheet.Cells[row, 18].Value = item.ServiceInvoiceId;
+                    worksheet.Cells[row, 19].Value = item.CreditMemoId;
 
-                        var worksheet2 = package.Workbook.Worksheets.Add("SalesInvoice");
-
-                        worksheet2.Cells["A1"].Value = "OtherRefNo";
-                        worksheet2.Cells["B1"].Value = "Quantity";
-                        worksheet2.Cells["C1"].Value = "UnitPrice";
-                        worksheet2.Cells["D1"].Value = "Amount";
-                        worksheet2.Cells["E1"].Value = "Remarks";
-                        worksheet2.Cells["F1"].Value = "Status";
-                        worksheet2.Cells["G1"].Value = "TransactionDate";
-                        worksheet2.Cells["H1"].Value = "Discount";
-                        worksheet2.Cells["I1"].Value = "AmountPaid";
-                        worksheet2.Cells["J1"].Value = "Balance";
-                        worksheet2.Cells["K1"].Value = "IsPaid";
-                        worksheet2.Cells["L1"].Value = "IsTaxAndVatPaid";
-                        worksheet2.Cells["M1"].Value = "DueDate";
-                        worksheet2.Cells["N1"].Value = "CreatedBy";
-                        worksheet2.Cells["O1"].Value = "CreatedDate";
-                        worksheet2.Cells["P1"].Value = "CancellationRemarks";
-                        worksheet2.Cells["Q1"].Value = "OriginalReceivingReportId";
-                        worksheet2.Cells["R1"].Value = "OriginalCustomerId";
-                        worksheet2.Cells["S1"].Value = "OriginalPOId";
-                        worksheet2.Cells["T1"].Value = "OriginalProductId";
-                        worksheet2.Cells["U1"].Value = "OriginalSINo";
-                        worksheet2.Cells["V1"].Value = "OriginalDocumentId";
-
-                    #endregion -- Sales Invoice Table Header --
-
-                    #region -- Service Invoice Table Header --
-
-                        var worksheet3 = package.Workbook.Worksheets.Add("ServiceInvoice");
-
-                        worksheet3.Cells["A1"].Value = "DueDate";
-                        worksheet3.Cells["B1"].Value = "Period";
-                        worksheet3.Cells["C1"].Value = "Amount";
-                        worksheet3.Cells["D1"].Value = "Total";
-                        worksheet3.Cells["E1"].Value = "Discount";
-                        worksheet3.Cells["F1"].Value = "CurrentAndPreviousMonth";
-                        worksheet3.Cells["G1"].Value = "UnearnedAmount";
-                        worksheet3.Cells["H1"].Value = "Status";
-                        worksheet3.Cells["I1"].Value = "AmountPaid";
-                        worksheet3.Cells["J1"].Value = "Balance";
-                        worksheet3.Cells["K1"].Value = "Instructions";
-                        worksheet3.Cells["L1"].Value = "IsPaid";
-                        worksheet3.Cells["M1"].Value = "CreatedBy";
-                        worksheet3.Cells["N1"].Value = "CreatedDate";
-                        worksheet3.Cells["O1"].Value = "CancellationRemarks";
-                        worksheet3.Cells["P1"].Value = "OriginalCustomerId";
-                        worksheet3.Cells["Q1"].Value = "OriginalSVNo";
-                        worksheet3.Cells["R1"].Value = "OriginalServicesId";
-                        worksheet3.Cells["S1"].Value = "OriginalDocumentId";
-
-                    #endregion -- Service Invoice Table Header --
-
-                    #region -- Credit Memo Table Header --
-
-                    var worksheet = package.Workbook.Worksheets.Add("CreditMemo");
-
-                    worksheet.Cells["A1"].Value = "TransactionDate";
-                    worksheet.Cells["B1"].Value = "DebitAmount";
-                    worksheet.Cells["C1"].Value = "Description";
-                    worksheet.Cells["D1"].Value = "AdjustedPrice";
-                    worksheet.Cells["E1"].Value = "Quantity";
-                    worksheet.Cells["F1"].Value = "Source";
-                    worksheet.Cells["G1"].Value = "Remarks";
-                    worksheet.Cells["H1"].Value = "Period";
-                    worksheet.Cells["I1"].Value = "Amount";
-                    worksheet.Cells["J1"].Value = "CurrentAndPreviousAmount";
-                    worksheet.Cells["K1"].Value = "UnearnedAmount";
-                    worksheet.Cells["L1"].Value = "ServicesId";
-                    worksheet.Cells["M1"].Value = "CreatedBy";
-                    worksheet.Cells["N1"].Value = "CreatedDate";
-                    worksheet.Cells["O1"].Value = "CancellationRemarks";
-                    worksheet.Cells["P1"].Value = "OriginalSalesInvoiceId";
-                    worksheet.Cells["Q1"].Value = "OriginalCMNo";
-                    worksheet.Cells["R1"].Value = "OriginalServiceInvoiceId";
-                    worksheet.Cells["S1"].Value = "OriginalDocumentId";
-
-                    #endregion -- Credit Memo Table Header --
-
-                    #region -- Credit Memo Export --
-
-                    int row = 2;
-
-                    foreach (var item in selectedList)
-                    {
-                        worksheet.Cells[row, 1].Value = item.TransactionDate.ToString("yyyy-MM-dd");
-                        worksheet.Cells[row, 2].Value = item.CreditAmount;
-                        worksheet.Cells[row, 3].Value = item.Description;
-                        worksheet.Cells[row, 4].Value = item.AdjustedPrice;
-                        worksheet.Cells[row, 5].Value = item.Quantity;
-                        worksheet.Cells[row, 6].Value = item.Source;
-                        worksheet.Cells[row, 7].Value = item.Remarks;
-                        worksheet.Cells[row, 8].Value = item.Period.ToString("yyyy-MM-dd");
-                        worksheet.Cells[row, 9].Value = item.Amount;
-                        worksheet.Cells[row, 10].Value = item.CurrentAndPreviousAmount;
-                        worksheet.Cells[row, 11].Value = item.UnearnedAmount;
-                        worksheet.Cells[row, 12].Value = item.ServicesId;
-                        worksheet.Cells[row, 13].Value = item.CreatedBy;
-                        worksheet.Cells[row, 14].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                        worksheet.Cells[row, 15].Value = item.CancellationRemarks;
-                        worksheet.Cells[row, 16].Value = item.SalesInvoiceId;
-                        worksheet.Cells[row, 17].Value = item.CreditMemoNo;
-                        worksheet.Cells[row, 18].Value = item.ServiceInvoiceId;
-                        worksheet.Cells[row, 19].Value = item.CreditMemoId;
-
-                        row++;
-                    }
-
-                    #endregion -- Credit Memo Export --
-
-                    #region -- Sales Invoice Export --
-
-                    int siRow = 2;
-
-                    foreach (var item in selectedList)
-                    {
-                        if (item.SalesInvoice == null)
-                        {
-                            continue;
-                        }
-                        worksheet2.Cells[siRow, 1].Value = item.SalesInvoice.OtherRefNo;
-                        worksheet2.Cells[siRow, 2].Value = item.SalesInvoice.Quantity;
-                        worksheet2.Cells[siRow, 3].Value = item.SalesInvoice.UnitPrice;
-                        worksheet2.Cells[siRow, 4].Value = item.SalesInvoice.Amount;
-                        worksheet2.Cells[siRow, 5].Value = item.SalesInvoice.Remarks;
-                        worksheet2.Cells[siRow, 6].Value = item.SalesInvoice.Status;
-                        worksheet2.Cells[siRow, 7].Value = item.SalesInvoice.TransactionDate.ToString("yyyy-MM-dd");
-                        worksheet2.Cells[siRow, 8].Value = item.SalesInvoice.Discount;
-                        worksheet2.Cells[siRow, 9].Value = item.SalesInvoice.AmountPaid;
-                        worksheet2.Cells[siRow, 10].Value = item.SalesInvoice.Balance;
-                        worksheet2.Cells[siRow, 11].Value = item.SalesInvoice.IsPaid;
-                        worksheet2.Cells[siRow, 12].Value = item.SalesInvoice.IsTaxAndVatPaid;
-                        worksheet2.Cells[siRow, 13].Value = item.SalesInvoice.DueDate.ToString("yyyy-MM-dd");
-                        worksheet2.Cells[siRow, 14].Value = item.SalesInvoice.CreatedBy;
-                        worksheet2.Cells[siRow, 15].Value = item.SalesInvoice.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                        worksheet2.Cells[siRow, 16].Value = item.SalesInvoice.CancellationRemarks;
-                        worksheet2.Cells[siRow, 18].Value = item.SalesInvoice.CustomerId;
-                        worksheet2.Cells[siRow, 20].Value = item.SalesInvoice.ProductId;
-                        worksheet2.Cells[siRow, 21].Value = item.SalesInvoice.SalesInvoiceNo;
-                        worksheet2.Cells[siRow, 22].Value = item.SalesInvoice.SalesInvoiceId;
-
-                        siRow++;
-                    }
-
-                    #endregion -- Sales Invoice Export --
-
-                    #region -- Service Invoice Export --
-
-                        int svRow = 2;
-
-                        foreach (var item in selectedList)
-                        {
-                            if (item.ServiceInvoice == null)
-                            {
-                                continue;
-                            }
-                            worksheet3.Cells[svRow, 1].Value = item.ServiceInvoice.DueDate.ToString("yyyy-MM-dd");
-                            worksheet3.Cells[svRow, 2].Value = item.ServiceInvoice.Period.ToString("yyyy-MM-dd");
-                            worksheet3.Cells[svRow, 3].Value = item.ServiceInvoice.Amount;
-                            worksheet3.Cells[svRow, 4].Value = item.ServiceInvoice.Total;
-                            worksheet3.Cells[svRow, 5].Value = item.ServiceInvoice.Discount;
-                            worksheet3.Cells[svRow, 6].Value = item.ServiceInvoice.CurrentAndPreviousAmount;
-                            worksheet3.Cells[svRow, 7].Value = item.ServiceInvoice.UnearnedAmount;
-                            worksheet3.Cells[svRow, 8].Value = item.ServiceInvoice.Status;
-                            worksheet3.Cells[svRow, 9].Value = item.ServiceInvoice.AmountPaid;
-                            worksheet3.Cells[svRow, 10].Value = item.ServiceInvoice.Balance;
-                            worksheet3.Cells[svRow, 11].Value = item.ServiceInvoice.Instructions;
-                            worksheet3.Cells[svRow, 12].Value = item.ServiceInvoice.IsPaid;
-                            worksheet3.Cells[svRow, 13].Value = item.ServiceInvoice.CreatedBy;
-                            worksheet3.Cells[svRow, 14].Value = item.ServiceInvoice.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                            worksheet3.Cells[svRow, 15].Value = item.ServiceInvoice.CancellationRemarks;
-                            worksheet3.Cells[svRow, 16].Value = item.ServiceInvoice.CustomerId;
-                            worksheet3.Cells[svRow, 17].Value = item.ServiceInvoice.ServiceInvoiceNo;
-                            worksheet3.Cells[svRow, 18].Value = item.ServiceInvoice.ServicesId;
-                            worksheet3.Cells[svRow, 19].Value = item.ServiceInvoice.ServiceInvoiceId;
-
-                            svRow++;
-                        }
-
-                        #endregion -- Service Invoice Export --
-
-                    // Convert the Excel package to a byte array
-                    var excelBytes = await package.GetAsByteArrayAsync();
-                    await transaction.CommitAsync(cancellationToken);
-                    return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        "CreditMemoList.xlsx");
+                    row++;
                 }
-		    }
+
+                #endregion -- Credit Memo Export --
+
+                #region -- Sales Invoice Export --
+
+                int siRow = 2;
+
+                foreach (var item in selectedList)
+                {
+                    if (item.SalesInvoice == null)
+                    {
+                        continue;
+                    }
+                    worksheet2.Cells[siRow, 1].Value = item.SalesInvoice.OtherRefNo;
+                    worksheet2.Cells[siRow, 2].Value = item.SalesInvoice.Quantity;
+                    worksheet2.Cells[siRow, 3].Value = item.SalesInvoice.UnitPrice;
+                    worksheet2.Cells[siRow, 4].Value = item.SalesInvoice.Amount;
+                    worksheet2.Cells[siRow, 5].Value = item.SalesInvoice.Remarks;
+                    worksheet2.Cells[siRow, 6].Value = item.SalesInvoice.Status;
+                    worksheet2.Cells[siRow, 7].Value = item.SalesInvoice.TransactionDate.ToString("yyyy-MM-dd");
+                    worksheet2.Cells[siRow, 8].Value = item.SalesInvoice.Discount;
+                    worksheet2.Cells[siRow, 9].Value = item.SalesInvoice.AmountPaid;
+                    worksheet2.Cells[siRow, 10].Value = item.SalesInvoice.Balance;
+                    worksheet2.Cells[siRow, 11].Value = item.SalesInvoice.IsPaid;
+                    worksheet2.Cells[siRow, 12].Value = item.SalesInvoice.IsTaxAndVatPaid;
+                    worksheet2.Cells[siRow, 13].Value = item.SalesInvoice.DueDate.ToString("yyyy-MM-dd");
+                    worksheet2.Cells[siRow, 14].Value = item.SalesInvoice.CreatedBy;
+                    worksheet2.Cells[siRow, 15].Value = item.SalesInvoice.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet2.Cells[siRow, 16].Value = item.SalesInvoice.CancellationRemarks;
+                    worksheet2.Cells[siRow, 18].Value = item.SalesInvoice.CustomerId;
+                    worksheet2.Cells[siRow, 20].Value = item.SalesInvoice.ProductId;
+                    worksheet2.Cells[siRow, 21].Value = item.SalesInvoice.SalesInvoiceNo;
+                    worksheet2.Cells[siRow, 22].Value = item.SalesInvoice.SalesInvoiceId;
+
+                    siRow++;
+                }
+
+                #endregion -- Sales Invoice Export --
+
+                #region -- Service Invoice Export --
+
+                int svRow = 2;
+
+                foreach (var item in selectedList)
+                {
+                    if (item.ServiceInvoice == null)
+                    {
+                        continue;
+                    }
+                    worksheet3.Cells[svRow, 1].Value = item.ServiceInvoice.DueDate.ToString("yyyy-MM-dd");
+                    worksheet3.Cells[svRow, 2].Value = item.ServiceInvoice.Period.ToString("yyyy-MM-dd");
+                    worksheet3.Cells[svRow, 3].Value = item.ServiceInvoice.Amount;
+                    worksheet3.Cells[svRow, 4].Value = item.ServiceInvoice.Total;
+                    worksheet3.Cells[svRow, 5].Value = item.ServiceInvoice.Discount;
+                    worksheet3.Cells[svRow, 6].Value = item.ServiceInvoice.CurrentAndPreviousAmount;
+                    worksheet3.Cells[svRow, 7].Value = item.ServiceInvoice.UnearnedAmount;
+                    worksheet3.Cells[svRow, 8].Value = item.ServiceInvoice.Status;
+                    worksheet3.Cells[svRow, 9].Value = item.ServiceInvoice.AmountPaid;
+                    worksheet3.Cells[svRow, 10].Value = item.ServiceInvoice.Balance;
+                    worksheet3.Cells[svRow, 11].Value = item.ServiceInvoice.Instructions;
+                    worksheet3.Cells[svRow, 12].Value = item.ServiceInvoice.IsPaid;
+                    worksheet3.Cells[svRow, 13].Value = item.ServiceInvoice.CreatedBy;
+                    worksheet3.Cells[svRow, 14].Value = item.ServiceInvoice.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet3.Cells[svRow, 15].Value = item.ServiceInvoice.CancellationRemarks;
+                    worksheet3.Cells[svRow, 16].Value = item.ServiceInvoice.CustomerId;
+                    worksheet3.Cells[svRow, 17].Value = item.ServiceInvoice.ServiceInvoiceNo;
+                    worksheet3.Cells[svRow, 18].Value = item.ServiceInvoice.ServicesId;
+                    worksheet3.Cells[svRow, 19].Value = item.ServiceInvoice.ServiceInvoiceId;
+
+                    svRow++;
+                }
+
+                #endregion -- Service Invoice Export --
+
+                // Convert the Excel package to a byte array
+                var excelBytes = await package.GetAsByteArrayAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "CreditMemoList.xlsx");
+            }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync(cancellationToken);
@@ -1315,633 +1307,631 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
-            if (file == null || file.Length == 0)
+            if (file.Length == 0)
             {
                 return RedirectToAction(nameof(Index));
             }
 
             using (var stream = new MemoryStream())
             {
-                await file.CopyToAsync(stream);
+                await file.CopyToAsync(stream, cancellationToken);
                 stream.Position = 0;
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
                 try
                 {
-                    using (var package = new ExcelPackage(stream))
+                    using var package = new ExcelPackage(stream);
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "CreditMemo");
+
+                    var worksheet2 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "SalesInvoice");
+
+                    var worksheet3 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "ServiceInvoice");
+
+                    if (worksheet == null)
                     {
-                        var worksheet = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "CreditMemo");
-
-                        var worksheet2 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "SalesInvoice");
-
-                        var worksheet3 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "ServiceInvoice");
-
-                        if (worksheet == null)
-                        {
-                            TempData["error"] = "The Excel file contains no worksheets.";
-                            return RedirectToAction(nameof(Index), new { view = DynamicView.CreditMemo });
-                        }
-                        if (worksheet.ToString() != nameof(DynamicView.CreditMemo))
-                        {
-                            TempData["error"] = "The Excel file is not related to credit memo.";
-                            return RedirectToAction(nameof(Index), new { view = DynamicView.CreditMemo });
-                        }
-
-                        #region -- Sales Invoice Import --
-
-                        var siRowCount = worksheet2?.Dimension?.Rows ?? 0;
-                        var siDictionary = new Dictionary<string, bool>();
-                        var invoiceList = await _dbContext
-                            .SalesInvoices
-                            .ToListAsync(cancellationToken);
-
-                        for (int row = 2; row <= siRowCount; row++) // Assuming the first row is the header
-                        {
-                            if (worksheet2 == null || siRowCount == 0)
-                            {
-                                continue;
-                            }
-                            var invoice = new SalesInvoice
-                            {
-                                SalesInvoiceNo = worksheet2.Cells[row, 21].Text,
-                                OtherRefNo = worksheet2.Cells[row, 1].Text,
-                                Quantity = decimal.TryParse(worksheet2.Cells[row, 2].Text, out decimal quantity)
-                                    ? quantity
-                                    : 0,
-                                UnitPrice = decimal.TryParse(worksheet2.Cells[row, 3].Text, out decimal unitPrice)
-                                    ? unitPrice
-                                    : 0,
-                                Amount =
-                                    decimal.TryParse(worksheet2.Cells[row, 4].Text, out decimal amount) ? amount : 0,
-                                Remarks = worksheet2.Cells[row, 5].Text,
-                                Status = worksheet2.Cells[row, 6].Text,
-                                TransactionDate =
-                                    DateOnly.TryParse(worksheet2.Cells[row, 7].Text, out DateOnly transactionDate)
-                                        ? transactionDate
-                                        : default,
-                                Discount = decimal.TryParse(worksheet2.Cells[row, 8].Text, out decimal discount)
-                                    ? discount
-                                    : 0,
-                                // AmountPaid = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amountPaid)
-                                //     ? amountPaid
-                                //     : 0,
-                                // Balance = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal balance)
-                                //     ? balance
-                                //     : 0,
-                                // IsPaid = bool.TryParse(worksheet.Cells[row, 11].Text, out bool isPaid) ? isPaid : false,
-                                // IsTaxAndVatPaid = bool.TryParse(worksheet.Cells[row, 12].Text, out bool isTaxAndVatPaid)
-                                //     ? isTaxAndVatPaid
-                                //     : false,
-                                DueDate = DateOnly.TryParse(worksheet2.Cells[row, 13].Text, out DateOnly dueDate)
-                                    ? dueDate
-                                    : default,
-                                CreatedBy = worksheet2.Cells[row, 14].Text,
-                                CreatedDate = DateTime.TryParse(worksheet2.Cells[row, 15].Text, out DateTime createdDate)
-                                    ? createdDate
-                                    : default,
-                                PostedBy = worksheet2.Cells[row, 23].Text,
-                                PostedDate = DateTime.TryParse(worksheet2.Cells[row, 24].Text, out DateTime postedDate)
-                                    ? postedDate
-                                    : default,
-                                CancellationRemarks = worksheet2.Cells[row, 16].Text != ""
-                                    ? worksheet2.Cells[row, 16].Text
-                                    : null,
-                                OriginalCustomerId = int.TryParse(worksheet2.Cells[row, 18].Text, out int customerId)
-                                    ? customerId
-                                    : 0,
-                                OriginalProductId = int.TryParse(worksheet2.Cells[row, 20].Text, out int productId)
-                                    ? productId
-                                    : 0,
-                                OriginalSeriesNumber = worksheet2.Cells[row, 21].Text,
-                                OriginalDocumentId =
-                                    int.TryParse(worksheet2.Cells[row, 22].Text, out int originalDocumentId)
-                                        ? originalDocumentId
-                                        : 0,
-                            };
-
-                            if (!siDictionary.TryAdd(invoice.OriginalSeriesNumber, true))
-                            {
-                                continue;
-                            }
-
-                            if (invoiceList.Any(si => si.OriginalDocumentId == invoice.OriginalDocumentId))
-                            {
-                                var siChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
-                                var existingSI = await _dbContext.SalesInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == invoice.OriginalDocumentId, cancellationToken);
-
-                                if (existingSI.SalesInvoiceNo.TrimStart().TrimEnd() != worksheet2.Cells[row, 21].Text.TrimStart().TrimEnd())
-                                {
-                                    siChanges["SiNo"] = (existingSI.SalesInvoiceNo.TrimStart().TrimEnd(), worksheet2.Cells[row, 21].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSI.OriginalCustomerId.ToString().TrimStart().TrimEnd() != worksheet2.Cells[row, 18].Text.TrimStart().TrimEnd())
-                                {
-                                    siChanges["OriginalCustomerId"] = (existingSI.OriginalCustomerId.ToString().TrimStart().TrimEnd(), worksheet2.Cells[row, 18].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSI.OriginalProductId.ToString().TrimStart().TrimEnd() != worksheet2.Cells[row, 20].Text.TrimStart().TrimEnd())
-                                {
-                                    siChanges["OriginalProductId"] = (existingSI.OriginalProductId.ToString().TrimStart().TrimEnd(), worksheet2.Cells[row, 20].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSI.OtherRefNo.TrimStart().TrimEnd() != worksheet2.Cells[row, 1].Text.TrimStart().TrimEnd())
-                                {
-                                    siChanges["OtherRefNo"] = (existingSI.OtherRefNo.TrimStart().TrimEnd(), worksheet2.Cells[row, 1].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSI.Quantity.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd())
-                                {
-                                    siChanges["Quantity"] = (existingSI.Quantity.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd());
-                                }
-
-                                if (existingSI.UnitPrice.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
-                                {
-                                    siChanges["UnitPrice"] = (existingSI.UnitPrice.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd());
-                                }
-
-                                if (existingSI.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
-                                {
-                                    siChanges["Amount"] = (existingSI.Amount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd());
-                                }
-
-                                if (existingSI.Remarks.TrimStart().TrimEnd() != worksheet2.Cells[row, 5].Text.TrimStart().TrimEnd())
-                                {
-                                    siChanges["Remarks"] = (existingSI.Remarks.TrimStart().TrimEnd(), worksheet2.Cells[row, 5].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSI.Status.TrimStart().TrimEnd() != worksheet2.Cells[row, 6].Text.TrimStart().TrimEnd())
-                                {
-                                    siChanges["Status"] = (existingSI.Status.TrimStart().TrimEnd(), worksheet2.Cells[row, 6].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSI.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet2.Cells[row, 7].Text.TrimStart().TrimEnd())
-                                {
-                                    siChanges["TransactionDate"] = (existingSI.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet2.Cells[row, 7].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSI.Discount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd())
-                                {
-                                    siChanges["Discount"] = (existingSI.Discount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd());
-                                }
-
-                                if (existingSI.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet2.Cells[row, 13].Text.TrimStart().TrimEnd())
-                                {
-                                    siChanges["DueDate"] = (existingSI.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet2.Cells[row, 13].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSI.CreatedBy.TrimStart().TrimEnd() != worksheet2.Cells[row, 14].Text.TrimStart().TrimEnd())
-                                {
-                                    siChanges["CreatedBy"] = (existingSI.CreatedBy.TrimStart().TrimEnd(), worksheet2.Cells[row, 14].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSI.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet2.Cells[row, 15].Text.TrimStart().TrimEnd())
-                                {
-                                    siChanges["CreatedDate"] = (existingSI.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd(), worksheet2.Cells[row, 15].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if ((string.IsNullOrWhiteSpace(existingSI.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingSI.CancellationRemarks.TrimStart().TrimEnd()) != worksheet2.Cells[row, 16].Text.TrimStart().TrimEnd())
-                                {
-                                    siChanges["CancellationRemarks"] = (existingSI.CancellationRemarks?.TrimStart().TrimEnd(), worksheet2.Cells[row, 16].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSI.OriginalSeriesNumber.TrimStart().TrimEnd() != worksheet2.Cells[row, 21].Text.TrimStart().TrimEnd())
-                                {
-                                    siChanges["OriginalSeriesNumber"] = (existingSI.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet2.Cells[row, 21].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSI.OriginalDocumentId.ToString().TrimStart().TrimEnd() != worksheet2.Cells[row, 22].Text.TrimStart().TrimEnd())
-                                {
-                                    siChanges["OriginalDocumentId"] = (existingSI.OriginalDocumentId.ToString().TrimStart().TrimEnd(), worksheet2.Cells[row, 22].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (siChanges.Any())
-                                {
-                                    await _salesInvoiceRepo.LogChangesAsync(existingSI.OriginalDocumentId, siChanges, _userManager.GetUserName(this.User));
-                                }
-
-                                continue;
-                            }
-                            else
-                            {
-                                #region --Audit Trail Recording
-
-                                if (!invoice.CreatedBy.IsNullOrEmpty())
-                                {
-                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(invoice.CreatedBy, $"Create new invoice# {invoice.SalesInvoiceNo}", "Sales Invoice", ipAddress, invoice.CreatedDate);
-                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                                }
-                                if (!invoice.PostedBy.IsNullOrEmpty())
-                                {
-                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(invoice.PostedBy, $"Posted invoice# {invoice.SalesInvoiceNo}", "Sales Invoice", ipAddress, invoice.PostedDate);
-                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                                }
-
-                                #endregion --Audit Trail Recording
-                            }
-
-                            invoice.CustomerId = await _dbContext.Customers
-                                                     .Where(c => c.OriginalCustomerId == invoice.OriginalCustomerId)
-                                                     .Select(c => (int?)c.CustomerId)
-                                                     .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
-
-                            invoice.ProductId = await _dbContext.Products
-                                                    .Where(c => c.OriginalProductId == invoice.OriginalProductId)
-                                                    .Select(c => (int?)c.ProductId)
-                                                    .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the product master file first.");
-
-                            await _dbContext.SalesInvoices.AddAsync(invoice, cancellationToken);
-                        }
-
-                        await _dbContext.SaveChangesAsync(cancellationToken);
-
-                        #endregion -- Sales Invoice Import --
-
-                        #region -- Service Invoice Import --
-
-                        var svRowCount = worksheet3?.Dimension?.Rows ?? 0;
-                        var svDictionary = new Dictionary<string, bool>();
-                        var serviceInvoiceList = await _dbContext
-                            .ServiceInvoices
-                            .ToListAsync(cancellationToken);
-
-                        for (int row = 2; row <= svRowCount; row++)  // Assuming the first row is the header
-                        {
-                            if (worksheet3 == null || svRowCount == 0)
-                            {
-                                continue;
-                            }
-                            var serviceInvoice = new ServiceInvoice
-                            {
-                                ServiceInvoiceNo = worksheet3.Cells[row, 17].Text,
-                                DueDate = DateOnly.TryParse(worksheet3.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
-                                Period = DateOnly.TryParse(worksheet3.Cells[row, 2].Text, out DateOnly period) ? period : default,
-                                Amount = decimal.TryParse(worksheet3.Cells[row, 3].Text, out decimal amount) ? amount : 0,
-                                Total = decimal.TryParse(worksheet3.Cells[row, 4].Text, out decimal total) ? total : 0,
-                                Discount = decimal.TryParse(worksheet3.Cells[row, 5].Text, out decimal discount) ? discount : 0,
-                                CurrentAndPreviousAmount = decimal.TryParse(worksheet3.Cells[row, 6].Text, out decimal currentAndPreviousAmount) ? currentAndPreviousAmount : 0,
-                                UnearnedAmount = decimal.TryParse(worksheet3.Cells[row, 7].Text, out decimal unearnedAmount) ? unearnedAmount : 0,
-                                Status = worksheet3.Cells[row, 8].Text,
-                                // AmountPaid = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amountPaid) ? amountPaid : 0,
-                                // Balance = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal balance) ? balance : 0,
-                                Instructions = worksheet3.Cells[row, 11].Text,
-                                // IsPaid = bool.TryParse(worksheet.Cells[row, 12].Text, out bool isPaid) ? isPaid : false,
-                                CreatedBy = worksheet3.Cells[row, 13].Text,
-                                CreatedDate = DateTime.TryParse(worksheet3.Cells[row, 14].Text, out DateTime createdDate) ? createdDate : default,
-                                PostedBy = worksheet3.Cells[row, 20].Text,
-                                PostedDate = DateTime.TryParse(worksheet3.Cells[row, 21].Text, out DateTime postedDate) ? postedDate : default,
-                                CancellationRemarks = worksheet3.Cells[row, 15].Text,
-                                OriginalCustomerId = int.TryParse(worksheet3.Cells[row, 16].Text, out int originalCustomerId) ? originalCustomerId : 0,
-                                OriginalSeriesNumber = worksheet3.Cells[row, 17].Text,
-                                OriginalServicesId = int.TryParse(worksheet3.Cells[row, 18].Text, out int originalServicesId) ? originalServicesId : 0,
-                                OriginalDocumentId = int.TryParse(worksheet3.Cells[row, 19].Text, out int originalDocumentId) ? originalDocumentId : 0,
-                            };
-
-                            if (!svDictionary.TryAdd(serviceInvoice.OriginalSeriesNumber, true))
-                            {
-                                continue;
-                            }
-
-                            if (serviceInvoiceList.Any(sv => sv.OriginalDocumentId == serviceInvoice.OriginalDocumentId))
-                            {
-                                var svChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
-                                var existingSV = await _dbContext.ServiceInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == serviceInvoice.OriginalDocumentId, cancellationToken);
-
-                                if (existingSV.ServiceInvoiceNo.TrimStart().TrimEnd() != worksheet3.Cells[row, 17].Text.TrimStart().TrimEnd())
-                                {
-                                    svChanges["SvNo"] = (existingSV.ServiceInvoiceNo.TrimStart().TrimEnd(), worksheet3.Cells[row, 17].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSV.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet3.Cells[row, 1].Text.TrimStart().TrimEnd())
-                                {
-                                    svChanges["DueDate"] = (existingSV.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet3.Cells[row, 1].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSV.Period.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet3.Cells[row, 2].Text.TrimStart().TrimEnd())
-                                {
-                                    svChanges["Period"] = (existingSV.Period.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet3.Cells[row, 2].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSV.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
-                                {
-                                    svChanges["Amount"] = (existingSV.Amount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd());
-                                }
-
-                                if (existingSV.Total.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
-                                {
-                                    svChanges["Total"] = (existingSV.Total.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd());
-                                }
-
-                                if (existingSV.Discount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd())
-                                {
-                                    svChanges["Discount"] = (existingSV.Discount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd());
-                                }
-
-                                if (existingSV.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd())
-                                {
-                                    svChanges["CurrentAndPreviousAmount"] = (existingSV.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd());
-                                }
-
-                                if (existingSV.UnearnedAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 7].Text).ToString("F2").TrimStart().TrimEnd())
-                                {
-                                    svChanges["UnearnedAmount"] = (existingSV.UnearnedAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 7].Text).ToString("F2").TrimStart().TrimEnd());
-                                }
-
-                                if (existingSV.Status.TrimStart().TrimEnd() != worksheet3.Cells[row, 8].Text.TrimStart().TrimEnd())
-                                {
-                                    svChanges["Status"] = (existingSV.Status.TrimStart().TrimEnd(), worksheet3.Cells[row, 8].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSV.Instructions.TrimStart().TrimEnd() != worksheet3.Cells[row, 11].Text.TrimStart().TrimEnd())
-                                {
-                                    svChanges["Instructions"] = (existingSV.Instructions.TrimStart().TrimEnd(), worksheet3.Cells[row, 11].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSV.CreatedBy.TrimStart().TrimEnd() != worksheet3.Cells[row, 13].Text.TrimStart().TrimEnd())
-                                {
-                                    svChanges["CreatedBy"] = (existingSV.CreatedBy.TrimStart().TrimEnd(), worksheet3.Cells[row, 13].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSV.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet3.Cells[row, 14].Text.TrimStart().TrimEnd())
-                                {
-                                    svChanges["CreatedDate"] = (existingSV.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd(), worksheet3.Cells[row, 14].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if ((string.IsNullOrWhiteSpace(existingSV.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingSV.CancellationRemarks.TrimStart().TrimEnd()) != worksheet3.Cells[row, 15].Text.TrimStart().TrimEnd())
-                                {
-                                    svChanges["CancellationRemarks"] = (existingSV.CancellationRemarks?.TrimStart().TrimEnd(), worksheet3.Cells[row, 15].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSV.OriginalCustomerId.ToString().TrimStart().TrimEnd() != worksheet3.Cells[row, 16].Text.TrimStart().TrimEnd())
-                                {
-                                    svChanges["OriginalCustomerId"] = (existingSV.OriginalCustomerId.ToString().TrimStart().TrimEnd(), worksheet3.Cells[row, 16].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSV.OriginalSeriesNumber.TrimStart().TrimEnd() != worksheet3.Cells[row, 17].Text.TrimStart().TrimEnd())
-                                {
-                                    svChanges["OriginalSeriesNumber"] = (existingSV.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet3.Cells[row, 17].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSV.OriginalServicesId.ToString().TrimStart().TrimEnd() != worksheet3.Cells[row, 18].Text.TrimStart().TrimEnd())
-                                {
-                                    svChanges["OriginalServicesId"] = (existingSV.OriginalServicesId.ToString().TrimStart().TrimEnd(), worksheet3.Cells[row, 18].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingSV.OriginalDocumentId.ToString().TrimStart().TrimEnd() != worksheet3.Cells[row, 19].Text.TrimStart().TrimEnd())
-                                {
-                                    svChanges["OriginalDocumentId"] = (existingSV.OriginalDocumentId.ToString().TrimStart().TrimEnd(), worksheet3.Cells[row, 19].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (svChanges.Any())
-                                {
-                                    await _serviceInvoiceRepo.LogChangesAsync(existingSV.OriginalDocumentId, svChanges, _userManager.GetUserName(this.User));
-                                }
-
-                                continue;
-                            }
-                            else
-                            {
-                                #region --Audit Trail Recording
-
-                                if (!serviceInvoice.CreatedBy.IsNullOrEmpty())
-                                {
-                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(serviceInvoice.CreatedBy, $"Create new service invoice# {serviceInvoice.ServiceInvoiceNo}", "Service Invoice", ipAddress, serviceInvoice.CreatedDate);
-                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                                }
-                                if (!serviceInvoice.PostedBy.IsNullOrEmpty())
-                                {
-                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(serviceInvoice.PostedBy, $"Posted service invoice# {serviceInvoice.ServiceInvoiceNo}", "Service Invoice", ipAddress, serviceInvoice.PostedDate);
-                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                                }
-
-                                #endregion --Audit Trail Recording
-                            }
-
-                            serviceInvoice.CustomerId = await _dbContext.Customers
-                                .Where(sv => sv.OriginalCustomerId == serviceInvoice.OriginalCustomerId)
-                                .Select(sv => (int?)sv.CustomerId)
-                                .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
-
-                            serviceInvoice.ServicesId = await _dbContext.Services
-                                .Where(sv => sv.OriginalServiceId == serviceInvoice.OriginalServicesId)
-                                .Select(sv => (int?)sv.ServiceId)
-                                .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the service master file first.");
-
-                            await _dbContext.ServiceInvoices.AddAsync(serviceInvoice, cancellationToken);
-                        }
-                        await _dbContext.SaveChangesAsync(cancellationToken);
-
-                        #endregion -- Service Invoice Import --
-
-                        #region -- Credit Memo Import --
-
-                        var rowCount = worksheet.Dimension.Rows;
-                        var cmDictionary = new Dictionary<string, bool>();
-                        var creditMemoList = await _dbContext
-                            .CreditMemos
-                            .ToListAsync(cancellationToken);
-
-                        for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
-                        {
-                            var creditMemo = new CreditMemo
-                            {
-                                CreditMemoNo = worksheet.Cells[row, 17].Text,
-                                TransactionDate = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly transactionDate) ? transactionDate : default,
-                                CreditAmount = decimal.TryParse(worksheet.Cells[row, 2].Text, out decimal debitAmount) ? debitAmount : 0,
-                                Description = worksheet.Cells[row, 3].Text,
-                                AdjustedPrice = decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal adjustedPrice) ? adjustedPrice : 0,
-                                Quantity = decimal.TryParse(worksheet.Cells[row, 5].Text, out decimal quantity) ? quantity : 0,
-                                Source = worksheet.Cells[row, 6].Text,
-                                Remarks = worksheet.Cells[row, 7].Text,
-                                Period = DateOnly.TryParse(worksheet.Cells[row, 8].Text, out DateOnly period) ? period : default,
-                                Amount = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amount) ? amount : 0,
-                                CurrentAndPreviousAmount = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal currentAndPreviousAmount) ? currentAndPreviousAmount : 0,
-                                UnearnedAmount = decimal.TryParse(worksheet.Cells[row, 11].Text, out decimal unearnedAmount) ? unearnedAmount : 0,
-                                ServicesId = int.TryParse(worksheet.Cells[row, 12].Text, out int servicesId) ? servicesId : 0,
-                                CreatedBy = worksheet.Cells[row, 13].Text,
-                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 14].Text, out DateTime createdDate) ? createdDate : default,
-                                PostedBy = worksheet.Cells[row, 20].Text,
-                                PostedDate = DateTime.TryParse(worksheet.Cells[row, 21].Text, out DateTime postedDate) ? postedDate : default,
-                                CancellationRemarks = worksheet.Cells[row, 15].Text,
-                                OriginalSalesInvoiceId = int.TryParse(worksheet.Cells[row, 16].Text, out int originalSalesInvoiceId) ? originalSalesInvoiceId : 0,
-                                OriginalSeriesNumber = worksheet.Cells[row, 17].Text,
-                                OriginalServiceInvoiceId = int.TryParse(worksheet.Cells[row, 18].Text, out int originalServiceInvoiceId) ? originalServiceInvoiceId : 0,
-                                OriginalDocumentId = int.TryParse(worksheet.Cells[row, 19].Text, out int originalDocumentId) ? originalDocumentId : 0,
-                            };
-
-                            if (!cmDictionary.TryAdd(creditMemo.OriginalSeriesNumber, true))
-                            {
-                                continue;
-                            }
-
-                            if (creditMemoList.Any(cm => cm.OriginalDocumentId == creditMemo.OriginalDocumentId))
-                            {
-                                var cmChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
-                                var existingCM = await _dbContext.CreditMemos.FirstOrDefaultAsync(si => si.OriginalDocumentId == creditMemo.OriginalDocumentId, cancellationToken);
-
-                                if (existingCM.CreditMemoNo.TrimStart().TrimEnd() != worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())
-                                {
-                                    cmChanges["CMNo"] = (existingCM.CreditMemoNo.TrimStart().TrimEnd(), worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingCM.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())
-                                {
-                                    cmChanges["TransactionDate"] = (existingCM.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingCM.CreditAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd())
-                                {
-                                    cmChanges["CreditAmount"] = (existingCM.CreditAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingCM.Description.TrimStart().TrimEnd() != worksheet.Cells[row, 3].Text.TrimStart().TrimEnd())
-                                {
-                                    cmChanges["Description"] = (existingCM.Description.TrimStart().TrimEnd(), worksheet.Cells[row, 3].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if ((existingCM.AdjustedPrice != null ? existingCM.AdjustedPrice?.ToString("F2").TrimStart().TrimEnd() : 0.ToString("F2")) != decimal.Parse(worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() : 0.ToString("F2")).ToString("F2").TrimStart().TrimEnd())
-                                {
-                                    cmChanges["AdjustedPrice"] = (existingCM.AdjustedPrice?.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() : 0.ToString("F2")).ToString("F2").TrimStart().TrimEnd())!;
-                                }
-
-                                if ((existingCM.Quantity != null ? existingCM.Quantity?.ToString("F0").TrimStart().TrimEnd() : 0.ToString("F0")) != decimal.Parse(worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() : 0.ToString("F0")).ToString("F0").TrimStart().TrimEnd())
-                                {
-                                    cmChanges["Quantity"] = (existingCM.Quantity?.ToString("F0").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() : 0.ToString("F0")).ToString("F0").TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingCM.Source.TrimStart().TrimEnd() != worksheet.Cells[row, 6].Text.TrimStart().TrimEnd())
-                                {
-                                    cmChanges["Source"] = (existingCM.Source.TrimStart().TrimEnd(), worksheet.Cells[row, 6].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingCM.Remarks.TrimStart().TrimEnd() != worksheet.Cells[row, 7].Text.TrimStart().TrimEnd())
-                                {
-                                    cmChanges["Remarks"] = (existingCM.Remarks.TrimStart().TrimEnd(), worksheet.Cells[row, 7].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                string cellValue = worksheet.Cells[row, 8].Text.Trim();
-
-                                if (DateOnly.TryParse(cellValue, out DateOnly parsedDate))
-                                {
-                                    if (existingCM.Period.ToString("yyyy-MM") != parsedDate.ToString("yyyy-MM"))
-                                    {
-                                        cmChanges["Period"] = (existingCM.Period.ToString("yyyy-MM"), parsedDate.ToString("yyyy-MM"));
-                                    }
-                                }
-
-                                if ((existingCM.Amount != null ? existingCM.Amount?.ToString("F2").TrimStart().TrimEnd() : 0.ToString("F2")) != decimal.Parse(worksheet.Cells[row, 9].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 9].Text.TrimStart().TrimEnd() : 0.ToString("F2")).ToString("F2").TrimStart().TrimEnd())
-                                {
-                                    cmChanges["Amount"] = (existingCM.Amount?.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2").TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingCM.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 10].Text).ToString("F2").TrimStart().TrimEnd())
-                                {
-                                    cmChanges["CurrentAndPreviousAmount"] = (existingCM.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 10].Text).ToString("F2").TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingCM.UnearnedAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 11].Text).ToString("F2").TrimStart().TrimEnd())
-                                {
-                                    cmChanges["UnearnedAmount"] = (existingCM.UnearnedAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 11].Text).ToString("F2").TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingCM.ServicesId.ToString() != (worksheet.Cells[row, 12].Text == "" ? 0.ToString() : worksheet.Cells[row, 12].Text))
-                                {
-                                    cmChanges["ServicesId"] = (existingCM.ServicesId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 12].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 12].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingCM.CreatedBy.TrimStart().TrimEnd() != worksheet.Cells[row, 13].Text.TrimStart().TrimEnd())
-                                {
-                                    cmChanges["CreatedBy"] = (existingCM.CreatedBy.TrimStart().TrimEnd(), worksheet.Cells[row, 13].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingCM.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet.Cells[row, 14].Text.TrimStart().TrimEnd())
-                                {
-                                    cmChanges["CreatedDate"] = (existingCM.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd(), worksheet.Cells[row, 14].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if ((string.IsNullOrWhiteSpace(existingCM.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingCM.CancellationRemarks.TrimStart().TrimEnd()) != worksheet.Cells[row, 15].Text.TrimStart().TrimEnd())
-                                {
-                                    cmChanges["CancellationRemarks"] = (existingCM.CancellationRemarks?.TrimStart().TrimEnd(), worksheet.Cells[row, 15].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingCM.OriginalSalesInvoiceId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 16].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 16].Text.TrimStart().TrimEnd()))
-                                {
-                                    cmChanges["OriginalSalesInvoiceId"] = (existingCM.OriginalSalesInvoiceId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 16].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 16].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingCM.OriginalSeriesNumber.TrimStart().TrimEnd() != worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())
-                                {
-                                    cmChanges["OriginalSeriesNumber"] = (existingCM.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingCM.OriginalServiceInvoiceId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd()))
-                                {
-                                    cmChanges["OriginalServiceInvoiceId"] = (existingCM.OriginalServiceInvoiceId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingCM.OriginalDocumentId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 19].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 19].Text.TrimStart().TrimEnd()))
-                                {
-                                    cmChanges["OriginalDocumentId"] = (existingCM.OriginalDocumentId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 19].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 19].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (cmChanges.Any())
-                                {
-                                    await _creditMemoRepo.LogChangesAsync(existingCM.OriginalDocumentId, cmChanges, _userManager.GetUserName(this.User));
-                                }
-
-                                continue;
-                            }
-                            else
-                            {
-                                #region --Audit Trail Recording
-
-                                if (!creditMemo.CreatedBy.IsNullOrEmpty())
-                                {
-                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(creditMemo.CreatedBy, $"Create new credit memo# {creditMemo.CreditMemoNo}", "Credit Memo", ipAddress, creditMemo.CreatedDate);
-                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                                }
-                                if (!creditMemo.PostedBy.IsNullOrEmpty())
-                                {
-                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(creditMemo.PostedBy, $"Posted credit memo# {creditMemo.CreditMemoNo}", "Credit Memo", ipAddress, creditMemo.PostedDate);
-                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                                }
-
-                                #endregion --Audit Trail Recording
-                            }
-
-                            creditMemo.SalesInvoiceId = await _dbContext.SalesInvoices
-                                .Where(c => c.OriginalDocumentId == creditMemo.OriginalSalesInvoiceId)
-                                .Select(c => (int?)c.SalesInvoiceId)
-                                .FirstOrDefaultAsync(cancellationToken);
-
-                            creditMemo.ServiceInvoiceId = await _dbContext.ServiceInvoices
-                                .Where(c => c.OriginalDocumentId == creditMemo.OriginalServiceInvoiceId)
-                                .Select(c => (int?)c.ServiceInvoiceId)
-                                .FirstOrDefaultAsync(cancellationToken);
-
-                            if (creditMemo.SalesInvoiceId == null && creditMemo.ServiceInvoiceId == null)
-                            {
-                                throw new InvalidOperationException("Please upload the Excel file for the sales invoice or service invoice first.");
-                            }
-
-                            await _dbContext.CreditMemos.AddAsync(creditMemo, cancellationToken);
-                        }
-                        await _dbContext.SaveChangesAsync(cancellationToken);
-                        await transaction.CommitAsync(cancellationToken);
-
-                        var checkChangesOfRecord = await _dbContext.ImportExportLogs
-                            .Where(iel => iel.Action == string.Empty).ToListAsync(cancellationToken);
-                        if (checkChangesOfRecord.Any())
-                        {
-                            TempData["importChanges"] = "";
-                        }
-                        #endregion -- Credit Memo Import --
+                        TempData["error"] = "The Excel file contains no worksheets.";
+                        return RedirectToAction(nameof(Index), new { view = DynamicView.CreditMemo });
                     }
+                    if (worksheet.ToString() != nameof(DynamicView.CreditMemo))
+                    {
+                        TempData["error"] = "The Excel file is not related to credit memo.";
+                        return RedirectToAction(nameof(Index), new { view = DynamicView.CreditMemo });
+                    }
+
+                    #region -- Sales Invoice Import --
+
+                    var siRowCount = worksheet2?.Dimension?.Rows ?? 0;
+                    var siDictionary = new Dictionary<string, bool>();
+                    var invoiceList = await _dbContext
+                        .SalesInvoices
+                        .ToListAsync(cancellationToken);
+
+                    for (int row = 2; row <= siRowCount; row++) // Assuming the first row is the header
+                    {
+                        if (worksheet2 == null || siRowCount == 0)
+                        {
+                            continue;
+                        }
+                        var invoice = new SalesInvoice
+                        {
+                            SalesInvoiceNo = worksheet2.Cells[row, 21].Text,
+                            OtherRefNo = worksheet2.Cells[row, 1].Text,
+                            Quantity = decimal.TryParse(worksheet2.Cells[row, 2].Text, out decimal quantity)
+                                ? quantity
+                                : 0,
+                            UnitPrice = decimal.TryParse(worksheet2.Cells[row, 3].Text, out decimal unitPrice)
+                                ? unitPrice
+                                : 0,
+                            Amount =
+                                decimal.TryParse(worksheet2.Cells[row, 4].Text, out decimal amount) ? amount : 0,
+                            Remarks = worksheet2.Cells[row, 5].Text,
+                            Status = worksheet2.Cells[row, 6].Text,
+                            TransactionDate =
+                                DateOnly.TryParse(worksheet2.Cells[row, 7].Text, out DateOnly transactionDate)
+                                    ? transactionDate
+                                    : default,
+                            Discount = decimal.TryParse(worksheet2.Cells[row, 8].Text, out decimal discount)
+                                ? discount
+                                : 0,
+                            // AmountPaid = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amountPaid)
+                            //     ? amountPaid
+                            //     : 0,
+                            // Balance = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal balance)
+                            //     ? balance
+                            //     : 0,
+                            // IsPaid = bool.TryParse(worksheet.Cells[row, 11].Text, out bool isPaid) ? isPaid : false,
+                            // IsTaxAndVatPaid = bool.TryParse(worksheet.Cells[row, 12].Text, out bool isTaxAndVatPaid)
+                            //     ? isTaxAndVatPaid
+                            //     : false,
+                            DueDate = DateOnly.TryParse(worksheet2.Cells[row, 13].Text, out DateOnly dueDate)
+                                ? dueDate
+                                : default,
+                            CreatedBy = worksheet2.Cells[row, 14].Text,
+                            CreatedDate = DateTime.TryParse(worksheet2.Cells[row, 15].Text, out DateTime createdDate)
+                                ? createdDate
+                                : default,
+                            PostedBy = worksheet2.Cells[row, 23].Text,
+                            PostedDate = DateTime.TryParse(worksheet2.Cells[row, 24].Text, out DateTime postedDate)
+                                ? postedDate
+                                : default,
+                            CancellationRemarks = worksheet2.Cells[row, 16].Text != ""
+                                ? worksheet2.Cells[row, 16].Text
+                                : null,
+                            OriginalCustomerId = int.TryParse(worksheet2.Cells[row, 18].Text, out int customerId)
+                                ? customerId
+                                : 0,
+                            OriginalProductId = int.TryParse(worksheet2.Cells[row, 20].Text, out int productId)
+                                ? productId
+                                : 0,
+                            OriginalSeriesNumber = worksheet2.Cells[row, 21].Text,
+                            OriginalDocumentId =
+                                int.TryParse(worksheet2.Cells[row, 22].Text, out int originalDocumentId)
+                                    ? originalDocumentId
+                                    : 0,
+                        };
+
+                        if (!siDictionary.TryAdd(invoice.OriginalSeriesNumber, true))
+                        {
+                            continue;
+                        }
+
+                        if (invoiceList.Any(si => si.OriginalDocumentId == invoice.OriginalDocumentId))
+                        {
+                            var siChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                            var existingSi = await _dbContext.SalesInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == invoice.OriginalDocumentId, cancellationToken);
+
+                            if (existingSi!.SalesInvoiceNo!.TrimStart().TrimEnd() != worksheet2.Cells[row, 21].Text.TrimStart().TrimEnd())
+                            {
+                                siChanges["SiNo"] = (existingSi.SalesInvoiceNo.TrimStart().TrimEnd(), worksheet2.Cells[row, 21].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSi.OriginalCustomerId.ToString()!.TrimStart().TrimEnd() != worksheet2.Cells[row, 18].Text.TrimStart().TrimEnd())
+                            {
+                                siChanges["OriginalCustomerId"] = (existingSi.OriginalCustomerId.ToString()!.TrimStart().TrimEnd(), worksheet2.Cells[row, 18].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSi.OriginalProductId.ToString()!.TrimStart().TrimEnd() != worksheet2.Cells[row, 20].Text.TrimStart().TrimEnd())
+                            {
+                                siChanges["OriginalProductId"] = (existingSi.OriginalProductId.ToString()!.TrimStart().TrimEnd(), worksheet2.Cells[row, 20].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSi.OtherRefNo.TrimStart().TrimEnd() != worksheet2.Cells[row, 1].Text.TrimStart().TrimEnd())
+                            {
+                                siChanges["OtherRefNo"] = (existingSi.OtherRefNo.TrimStart().TrimEnd(), worksheet2.Cells[row, 1].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSi.Quantity.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                siChanges["Quantity"] = (existingSi.Quantity.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd());
+                            }
+
+                            if (existingSi.UnitPrice.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                siChanges["UnitPrice"] = (existingSi.UnitPrice.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd());
+                            }
+
+                            if (existingSi.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                siChanges["Amount"] = (existingSi.Amount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd());
+                            }
+
+                            if (existingSi.Remarks.TrimStart().TrimEnd() != worksheet2.Cells[row, 5].Text.TrimStart().TrimEnd())
+                            {
+                                siChanges["Remarks"] = (existingSi.Remarks.TrimStart().TrimEnd(), worksheet2.Cells[row, 5].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSi.Status.TrimStart().TrimEnd() != worksheet2.Cells[row, 6].Text.TrimStart().TrimEnd())
+                            {
+                                siChanges["Status"] = (existingSi.Status.TrimStart().TrimEnd(), worksheet2.Cells[row, 6].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSi.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet2.Cells[row, 7].Text.TrimStart().TrimEnd())
+                            {
+                                siChanges["TransactionDate"] = (existingSi.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet2.Cells[row, 7].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSi.Discount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                siChanges["Discount"] = (existingSi.Discount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd());
+                            }
+
+                            if (existingSi.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet2.Cells[row, 13].Text.TrimStart().TrimEnd())
+                            {
+                                siChanges["DueDate"] = (existingSi.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet2.Cells[row, 13].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSi.CreatedBy!.TrimStart().TrimEnd() != worksheet2.Cells[row, 14].Text.TrimStart().TrimEnd())
+                            {
+                                siChanges["CreatedBy"] = (existingSi.CreatedBy.TrimStart().TrimEnd(), worksheet2.Cells[row, 14].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSi.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet2.Cells[row, 15].Text.TrimStart().TrimEnd())
+                            {
+                                siChanges["CreatedDate"] = (existingSi.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd(), worksheet2.Cells[row, 15].Text.TrimStart().TrimEnd());
+                            }
+
+                            if ((string.IsNullOrWhiteSpace(existingSi.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingSi.CancellationRemarks.TrimStart().TrimEnd()) != worksheet2.Cells[row, 16].Text.TrimStart().TrimEnd())
+                            {
+                                siChanges["CancellationRemarks"] = (existingSi.CancellationRemarks?.TrimStart().TrimEnd(), worksheet2.Cells[row, 16].Text.TrimStart().TrimEnd())!;
+                            }
+
+                            if (existingSi.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet2.Cells[row, 21].Text.TrimStart().TrimEnd())
+                            {
+                                siChanges["OriginalSeriesNumber"] = (existingSi.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet2.Cells[row, 21].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSi.OriginalDocumentId.ToString().TrimStart().TrimEnd() != worksheet2.Cells[row, 22].Text.TrimStart().TrimEnd())
+                            {
+                                siChanges["OriginalDocumentId"] = (existingSi.OriginalDocumentId.ToString().TrimStart().TrimEnd(), worksheet2.Cells[row, 22].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (siChanges.Any())
+                            {
+                                await _salesInvoiceRepo.LogChangesAsync(existingSi.OriginalDocumentId, siChanges, _userManager.GetUserName(this.User));
+                            }
+
+                            continue;
+                        }
+                        else
+                        {
+                            #region --Audit Trail Recording
+
+                            if (!invoice.CreatedBy.IsNullOrEmpty())
+                            {
+                                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                AuditTrail auditTrailBook = new(invoice.CreatedBy, $"Create new invoice# {invoice.SalesInvoiceNo}", "Sales Invoice", ipAddress!, invoice.CreatedDate);
+                                await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                            }
+                            if (!invoice.PostedBy.IsNullOrEmpty())
+                            {
+                                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                AuditTrail auditTrailBook = new(invoice.PostedBy, $"Posted invoice# {invoice.SalesInvoiceNo}", "Sales Invoice", ipAddress!, invoice.PostedDate);
+                                await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                            }
+
+                            #endregion --Audit Trail Recording
+                        }
+
+                        invoice.CustomerId = await _dbContext.Customers
+                            .Where(c => c.OriginalCustomerId == invoice.OriginalCustomerId)
+                            .Select(c => (int?)c.CustomerId)
+                            .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
+
+                        invoice.ProductId = await _dbContext.Products
+                            .Where(c => c.OriginalProductId == invoice.OriginalProductId)
+                            .Select(c => (int?)c.ProductId)
+                            .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the product master file first.");
+
+                        await _dbContext.SalesInvoices.AddAsync(invoice, cancellationToken);
+                    }
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+
+                    #endregion -- Sales Invoice Import --
+
+                    #region -- Service Invoice Import --
+
+                    var svRowCount = worksheet3?.Dimension?.Rows ?? 0;
+                    var svDictionary = new Dictionary<string, bool>();
+                    var serviceInvoiceList = await _dbContext
+                        .ServiceInvoices
+                        .ToListAsync(cancellationToken);
+
+                    for (int row = 2; row <= svRowCount; row++)  // Assuming the first row is the header
+                    {
+                        if (worksheet3 == null || svRowCount == 0)
+                        {
+                            continue;
+                        }
+                        var serviceInvoice = new ServiceInvoice
+                        {
+                            ServiceInvoiceNo = worksheet3.Cells[row, 17].Text,
+                            DueDate = DateOnly.TryParse(worksheet3.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
+                            Period = DateOnly.TryParse(worksheet3.Cells[row, 2].Text, out DateOnly period) ? period : default,
+                            Amount = decimal.TryParse(worksheet3.Cells[row, 3].Text, out decimal amount) ? amount : 0,
+                            Total = decimal.TryParse(worksheet3.Cells[row, 4].Text, out decimal total) ? total : 0,
+                            Discount = decimal.TryParse(worksheet3.Cells[row, 5].Text, out decimal discount) ? discount : 0,
+                            CurrentAndPreviousAmount = decimal.TryParse(worksheet3.Cells[row, 6].Text, out decimal currentAndPreviousAmount) ? currentAndPreviousAmount : 0,
+                            UnearnedAmount = decimal.TryParse(worksheet3.Cells[row, 7].Text, out decimal unearnedAmount) ? unearnedAmount : 0,
+                            Status = worksheet3.Cells[row, 8].Text,
+                            // AmountPaid = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amountPaid) ? amountPaid : 0,
+                            // Balance = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal balance) ? balance : 0,
+                            Instructions = worksheet3.Cells[row, 11].Text,
+                            // IsPaid = bool.TryParse(worksheet.Cells[row, 12].Text, out bool isPaid) ? isPaid : false,
+                            CreatedBy = worksheet3.Cells[row, 13].Text,
+                            CreatedDate = DateTime.TryParse(worksheet3.Cells[row, 14].Text, out DateTime createdDate) ? createdDate : default,
+                            PostedBy = worksheet3.Cells[row, 20].Text,
+                            PostedDate = DateTime.TryParse(worksheet3.Cells[row, 21].Text, out DateTime postedDate) ? postedDate : default,
+                            CancellationRemarks = worksheet3.Cells[row, 15].Text,
+                            OriginalCustomerId = int.TryParse(worksheet3.Cells[row, 16].Text, out int originalCustomerId) ? originalCustomerId : 0,
+                            OriginalSeriesNumber = worksheet3.Cells[row, 17].Text,
+                            OriginalServicesId = int.TryParse(worksheet3.Cells[row, 18].Text, out int originalServicesId) ? originalServicesId : 0,
+                            OriginalDocumentId = int.TryParse(worksheet3.Cells[row, 19].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                        };
+
+                        if (!svDictionary.TryAdd(serviceInvoice.OriginalSeriesNumber, true))
+                        {
+                            continue;
+                        }
+
+                        if (serviceInvoiceList.Any(sv => sv.OriginalDocumentId == serviceInvoice.OriginalDocumentId))
+                        {
+                            var svChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                            var existingSv = await _dbContext.ServiceInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == serviceInvoice.OriginalDocumentId, cancellationToken);
+
+                            if (existingSv!.ServiceInvoiceNo!.TrimStart().TrimEnd() != worksheet3.Cells[row, 17].Text.TrimStart().TrimEnd())
+                            {
+                                svChanges["SvNo"] = (existingSv.ServiceInvoiceNo.TrimStart().TrimEnd(), worksheet3.Cells[row, 17].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSv.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet3.Cells[row, 1].Text.TrimStart().TrimEnd())
+                            {
+                                svChanges["DueDate"] = (existingSv.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet3.Cells[row, 1].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSv.Period.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet3.Cells[row, 2].Text.TrimStart().TrimEnd())
+                            {
+                                svChanges["Period"] = (existingSv.Period.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet3.Cells[row, 2].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSv.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                svChanges["Amount"] = (existingSv.Amount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd());
+                            }
+
+                            if (existingSv.Total.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                svChanges["Total"] = (existingSv.Total.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd());
+                            }
+
+                            if (existingSv.Discount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                svChanges["Discount"] = (existingSv.Discount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd());
+                            }
+
+                            if (existingSv.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                svChanges["CurrentAndPreviousAmount"] = (existingSv.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd());
+                            }
+
+                            if (existingSv.UnearnedAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 7].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                svChanges["UnearnedAmount"] = (existingSv.UnearnedAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 7].Text).ToString("F2").TrimStart().TrimEnd());
+                            }
+
+                            if (existingSv.Status.TrimStart().TrimEnd() != worksheet3.Cells[row, 8].Text.TrimStart().TrimEnd())
+                            {
+                                svChanges["Status"] = (existingSv.Status.TrimStart().TrimEnd(), worksheet3.Cells[row, 8].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSv.Instructions!.TrimStart().TrimEnd() != worksheet3.Cells[row, 11].Text.TrimStart().TrimEnd())
+                            {
+                                svChanges["Instructions"] = (existingSv.Instructions.TrimStart().TrimEnd(), worksheet3.Cells[row, 11].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSv.CreatedBy!.TrimStart().TrimEnd() != worksheet3.Cells[row, 13].Text.TrimStart().TrimEnd())
+                            {
+                                svChanges["CreatedBy"] = (existingSv.CreatedBy.TrimStart().TrimEnd(), worksheet3.Cells[row, 13].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSv.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet3.Cells[row, 14].Text.TrimStart().TrimEnd())
+                            {
+                                svChanges["CreatedDate"] = (existingSv.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd(), worksheet3.Cells[row, 14].Text.TrimStart().TrimEnd());
+                            }
+
+                            if ((string.IsNullOrWhiteSpace(existingSv.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingSv.CancellationRemarks.TrimStart().TrimEnd()) != worksheet3.Cells[row, 15].Text.TrimStart().TrimEnd())
+                            {
+                                svChanges["CancellationRemarks"] = (existingSv.CancellationRemarks?.TrimStart().TrimEnd(), worksheet3.Cells[row, 15].Text.TrimStart().TrimEnd())!;
+                            }
+
+                            if (existingSv.OriginalCustomerId.ToString()!.TrimStart().TrimEnd() != worksheet3.Cells[row, 16].Text.TrimStart().TrimEnd())
+                            {
+                                svChanges["OriginalCustomerId"] = (existingSv.OriginalCustomerId.ToString()!.TrimStart().TrimEnd(), worksheet3.Cells[row, 16].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSv.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet3.Cells[row, 17].Text.TrimStart().TrimEnd())
+                            {
+                                svChanges["OriginalSeriesNumber"] = (existingSv.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet3.Cells[row, 17].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSv.OriginalServicesId.ToString()!.TrimStart().TrimEnd() != worksheet3.Cells[row, 18].Text.TrimStart().TrimEnd())
+                            {
+                                svChanges["OriginalServicesId"] = (existingSv.OriginalServicesId.ToString()!.TrimStart().TrimEnd(), worksheet3.Cells[row, 18].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingSv.OriginalDocumentId.ToString().TrimStart().TrimEnd() != worksheet3.Cells[row, 19].Text.TrimStart().TrimEnd())
+                            {
+                                svChanges["OriginalDocumentId"] = (existingSv.OriginalDocumentId.ToString().TrimStart().TrimEnd(), worksheet3.Cells[row, 19].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (svChanges.Any())
+                            {
+                                await _serviceInvoiceRepo.LogChangesAsync(existingSv.OriginalDocumentId, svChanges, _userManager.GetUserName(this.User));
+                            }
+
+                            continue;
+                        }
+                        else
+                        {
+                            #region --Audit Trail Recording
+
+                            if (!serviceInvoice.CreatedBy.IsNullOrEmpty())
+                            {
+                                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                AuditTrail auditTrailBook = new(serviceInvoice.CreatedBy, $"Create new service invoice# {serviceInvoice.ServiceInvoiceNo}", "Service Invoice", ipAddress!, serviceInvoice.CreatedDate);
+                                await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                            }
+                            if (!serviceInvoice.PostedBy.IsNullOrEmpty())
+                            {
+                                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                AuditTrail auditTrailBook = new(serviceInvoice.PostedBy, $"Posted service invoice# {serviceInvoice.ServiceInvoiceNo}", "Service Invoice", ipAddress!, serviceInvoice.PostedDate);
+                                await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                            }
+
+                            #endregion --Audit Trail Recording
+                        }
+
+                        serviceInvoice.CustomerId = await _dbContext.Customers
+                            .Where(sv => sv.OriginalCustomerId == serviceInvoice.OriginalCustomerId)
+                            .Select(sv => (int?)sv.CustomerId)
+                            .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
+
+                        serviceInvoice.ServicesId = await _dbContext.Services
+                            .Where(sv => sv.OriginalServiceId == serviceInvoice.OriginalServicesId)
+                            .Select(sv => (int?)sv.ServiceId)
+                            .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the service master file first.");
+
+                        await _dbContext.ServiceInvoices.AddAsync(serviceInvoice, cancellationToken);
+                    }
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+
+                    #endregion -- Service Invoice Import --
+
+                    #region -- Credit Memo Import --
+
+                    var rowCount = worksheet.Dimension.Rows;
+                    var cmDictionary = new Dictionary<string, bool>();
+                    var creditMemoList = await _dbContext
+                        .CreditMemos
+                        .ToListAsync(cancellationToken);
+
+                    for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                    {
+                        var creditMemo = new CreditMemo
+                        {
+                            CreditMemoNo = worksheet.Cells[row, 17].Text,
+                            TransactionDate = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly transactionDate) ? transactionDate : default,
+                            CreditAmount = decimal.TryParse(worksheet.Cells[row, 2].Text, out decimal debitAmount) ? debitAmount : 0,
+                            Description = worksheet.Cells[row, 3].Text,
+                            AdjustedPrice = decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal adjustedPrice) ? adjustedPrice : 0,
+                            Quantity = decimal.TryParse(worksheet.Cells[row, 5].Text, out decimal quantity) ? quantity : 0,
+                            Source = worksheet.Cells[row, 6].Text,
+                            Remarks = worksheet.Cells[row, 7].Text,
+                            Period = DateOnly.TryParse(worksheet.Cells[row, 8].Text, out DateOnly period) ? period : default,
+                            Amount = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amount) ? amount : 0,
+                            CurrentAndPreviousAmount = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal currentAndPreviousAmount) ? currentAndPreviousAmount : 0,
+                            UnearnedAmount = decimal.TryParse(worksheet.Cells[row, 11].Text, out decimal unearnedAmount) ? unearnedAmount : 0,
+                            ServicesId = int.TryParse(worksheet.Cells[row, 12].Text, out int servicesId) ? servicesId : 0,
+                            CreatedBy = worksheet.Cells[row, 13].Text,
+                            CreatedDate = DateTime.TryParse(worksheet.Cells[row, 14].Text, out DateTime createdDate) ? createdDate : default,
+                            PostedBy = worksheet.Cells[row, 20].Text,
+                            PostedDate = DateTime.TryParse(worksheet.Cells[row, 21].Text, out DateTime postedDate) ? postedDate : default,
+                            CancellationRemarks = worksheet.Cells[row, 15].Text,
+                            OriginalSalesInvoiceId = int.TryParse(worksheet.Cells[row, 16].Text, out int originalSalesInvoiceId) ? originalSalesInvoiceId : 0,
+                            OriginalSeriesNumber = worksheet.Cells[row, 17].Text,
+                            OriginalServiceInvoiceId = int.TryParse(worksheet.Cells[row, 18].Text, out int originalServiceInvoiceId) ? originalServiceInvoiceId : 0,
+                            OriginalDocumentId = int.TryParse(worksheet.Cells[row, 19].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                        };
+
+                        if (!cmDictionary.TryAdd(creditMemo.OriginalSeriesNumber, true))
+                        {
+                            continue;
+                        }
+
+                        if (creditMemoList.Any(cm => cm.OriginalDocumentId == creditMemo.OriginalDocumentId))
+                        {
+                            var cmChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                            var existingCm = await _dbContext.CreditMemos.FirstOrDefaultAsync(si => si.OriginalDocumentId == creditMemo.OriginalDocumentId, cancellationToken);
+
+                            if (existingCm!.CreditMemoNo!.TrimStart().TrimEnd() != worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())
+                            {
+                                cmChanges["CMNo"] = (existingCm.CreditMemoNo.TrimStart().TrimEnd(), worksheet.Cells[row, 17].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingCm.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())
+                            {
+                                cmChanges["TransactionDate"] = (existingCm.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet.Cells[row, 1].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingCm.CreditAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                cmChanges["CreditAmount"] = (existingCm.CreditAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd());
+                            }
+
+                            if (existingCm.Description.TrimStart().TrimEnd() != worksheet.Cells[row, 3].Text.TrimStart().TrimEnd())
+                            {
+                                cmChanges["Description"] = (existingCm.Description.TrimStart().TrimEnd(), worksheet.Cells[row, 3].Text.TrimStart().TrimEnd());
+                            }
+
+                            if ((existingCm.AdjustedPrice != null ? existingCm.AdjustedPrice?.ToString("F2").TrimStart().TrimEnd() : 0.ToString("F2")) != decimal.Parse(worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() : 0.ToString("F2")).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                cmChanges["AdjustedPrice"] = (existingCm.AdjustedPrice?.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() : 0.ToString("F2")).ToString("F2").TrimStart().TrimEnd())!;
+                            }
+
+                            if ((existingCm.Quantity != null ? existingCm.Quantity?.ToString("F0").TrimStart().TrimEnd() : 0.ToString("F0")) != decimal.Parse(worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() : 0.ToString("F0")).ToString("F0").TrimStart().TrimEnd())
+                            {
+                                cmChanges["Quantity"] = (existingCm.Quantity?.ToString("F0").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() : 0.ToString("F0")).ToString("F0").TrimStart().TrimEnd())!;
+                            }
+
+                            if (existingCm.Source.TrimStart().TrimEnd() != worksheet.Cells[row, 6].Text.TrimStart().TrimEnd())
+                            {
+                                cmChanges["Source"] = (existingCm.Source.TrimStart().TrimEnd(), worksheet.Cells[row, 6].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingCm.Remarks!.TrimStart().TrimEnd() != worksheet.Cells[row, 7].Text.TrimStart().TrimEnd())
+                            {
+                                cmChanges["Remarks"] = (existingCm.Remarks.TrimStart().TrimEnd(), worksheet.Cells[row, 7].Text.TrimStart().TrimEnd());
+                            }
+
+                            string cellValue = worksheet.Cells[row, 8].Text.Trim();
+
+                            if (DateOnly.TryParse(cellValue, out DateOnly parsedDate))
+                            {
+                                if (existingCm.Period.ToString("yyyy-MM") != parsedDate.ToString("yyyy-MM"))
+                                {
+                                    cmChanges["Period"] = (existingCm.Period.ToString("yyyy-MM"), parsedDate.ToString("yyyy-MM"));
+                                }
+                            }
+
+                            if ((existingCm.Amount != null ? existingCm.Amount?.ToString("F2").TrimStart().TrimEnd() : 0.ToString("F2")) != decimal.Parse(worksheet.Cells[row, 9].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 9].Text.TrimStart().TrimEnd() : 0.ToString("F2")).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                cmChanges["Amount"] = (existingCm.Amount?.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2").TrimStart().TrimEnd())!;
+                            }
+
+                            if (existingCm.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 10].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                cmChanges["CurrentAndPreviousAmount"] = (existingCm.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 10].Text).ToString("F2").TrimStart().TrimEnd());
+                            }
+
+                            if (existingCm.UnearnedAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 11].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                cmChanges["UnearnedAmount"] = (existingCm.UnearnedAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 11].Text).ToString("F2").TrimStart().TrimEnd());
+                            }
+
+                            if (existingCm.ServicesId.ToString() != (worksheet.Cells[row, 12].Text == "" ? 0.ToString() : worksheet.Cells[row, 12].Text))
+                            {
+                                cmChanges["ServicesId"] = (existingCm.ServicesId.ToString()!.TrimStart().TrimEnd(), worksheet.Cells[row, 12].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 12].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingCm.CreatedBy!.TrimStart().TrimEnd() != worksheet.Cells[row, 13].Text.TrimStart().TrimEnd())
+                            {
+                                cmChanges["CreatedBy"] = (existingCm.CreatedBy.TrimStart().TrimEnd(), worksheet.Cells[row, 13].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingCm.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet.Cells[row, 14].Text.TrimStart().TrimEnd())
+                            {
+                                cmChanges["CreatedDate"] = (existingCm.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd(), worksheet.Cells[row, 14].Text.TrimStart().TrimEnd());
+                            }
+
+                            if ((string.IsNullOrWhiteSpace(existingCm.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingCm.CancellationRemarks.TrimStart().TrimEnd()) != worksheet.Cells[row, 15].Text.TrimStart().TrimEnd())
+                            {
+                                cmChanges["CancellationRemarks"] = (existingCm.CancellationRemarks?.TrimStart().TrimEnd(), worksheet.Cells[row, 15].Text.TrimStart().TrimEnd())!;
+                            }
+
+                            if (existingCm.OriginalSalesInvoiceId.ToString()!.TrimStart().TrimEnd() != (worksheet.Cells[row, 16].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 16].Text.TrimStart().TrimEnd()))
+                            {
+                                cmChanges["OriginalSalesInvoiceId"] = (existingCm.OriginalSalesInvoiceId.ToString()!.TrimStart().TrimEnd(), worksheet.Cells[row, 16].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 16].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingCm.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())
+                            {
+                                cmChanges["OriginalSeriesNumber"] = (existingCm.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet.Cells[row, 17].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingCm.OriginalServiceInvoiceId.ToString()!.TrimStart().TrimEnd() != (worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd()))
+                            {
+                                cmChanges["OriginalServiceInvoiceId"] = (existingCm.OriginalServiceInvoiceId.ToString()!.TrimStart().TrimEnd(), worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingCm.OriginalDocumentId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 19].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 19].Text.TrimStart().TrimEnd()))
+                            {
+                                cmChanges["OriginalDocumentId"] = (existingCm.OriginalDocumentId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 19].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 19].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (cmChanges.Any())
+                            {
+                                await _creditMemoRepo.LogChangesAsync(existingCm.OriginalDocumentId, cmChanges, _userManager.GetUserName(this.User));
+                            }
+
+                            continue;
+                        }
+                        else
+                        {
+                            #region --Audit Trail Recording
+
+                            if (!creditMemo.CreatedBy.IsNullOrEmpty())
+                            {
+                                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                AuditTrail auditTrailBook = new(creditMemo.CreatedBy, $"Create new credit memo# {creditMemo.CreditMemoNo}", "Credit Memo", ipAddress!, creditMemo.CreatedDate);
+                                await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                            }
+                            if (!creditMemo.PostedBy.IsNullOrEmpty())
+                            {
+                                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                AuditTrail auditTrailBook = new(creditMemo.PostedBy, $"Posted credit memo# {creditMemo.CreditMemoNo}", "Credit Memo", ipAddress!, creditMemo.PostedDate);
+                                await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                            }
+
+                            #endregion --Audit Trail Recording
+                        }
+
+                        creditMemo.SalesInvoiceId = await _dbContext.SalesInvoices
+                            .Where(c => c.OriginalDocumentId == creditMemo.OriginalSalesInvoiceId)
+                            .Select(c => (int?)c.SalesInvoiceId)
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        creditMemo.ServiceInvoiceId = await _dbContext.ServiceInvoices
+                            .Where(c => c.OriginalDocumentId == creditMemo.OriginalServiceInvoiceId)
+                            .Select(c => (int?)c.ServiceInvoiceId)
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        if (creditMemo.SalesInvoiceId == null && creditMemo.ServiceInvoiceId == null)
+                        {
+                            throw new InvalidOperationException("Please upload the Excel file for the sales invoice or service invoice first.");
+                        }
+
+                        await _dbContext.CreditMemos.AddAsync(creditMemo, cancellationToken);
+                    }
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+
+                    var checkChangesOfRecord = await _dbContext.ImportExportLogs
+                        .Where(iel => iel.Action == string.Empty).ToListAsync(cancellationToken);
+                    if (checkChangesOfRecord.Any())
+                    {
+                        TempData["importChanges"] = "";
+                    }
+                    #endregion -- Credit Memo Import --
                 }
                 catch (OperationCanceledException oce)
                 {

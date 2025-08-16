@@ -19,13 +19,13 @@ namespace Accounting_System.Repository
         {
             return await _dbContext.DebitMemos
                 .Include(dm => dm.SalesInvoice)
-                .ThenInclude(s => s.Customer)
+                .ThenInclude(s => s!.Customer)
                 .Include(dm => dm.SalesInvoice)
-                .ThenInclude(s => s.Product)
+                .ThenInclude(s => s!.Product)
                 .Include(dm => dm.ServiceInvoice)
-                .ThenInclude(sv => sv.Customer)
+                .ThenInclude(sv => sv!.Customer)
                 .Include(dm => dm.ServiceInvoice)
-                .ThenInclude(sv => sv.Service)
+                .ThenInclude(sv => sv!.Service)
                 .ToListAsync(cancellationToken);
         }
 
@@ -55,13 +55,13 @@ namespace Accounting_System.Repository
             var debitMemo = await _dbContext
                 .DebitMemos
                 .Include(s => s.SalesInvoice)
-                .ThenInclude(s => s.Customer)
+                .ThenInclude(s => s!.Customer)
                 .Include(s => s.SalesInvoice)
-                .ThenInclude(s => s.Product)
+                .ThenInclude(s => s!.Product)
                 .Include(soa => soa.ServiceInvoice)
-                .ThenInclude(soa => soa.Customer)
+                .ThenInclude(soa => soa!.Customer)
                 .Include(c => c.ServiceInvoice)
-                .ThenInclude(soa => soa.Service)
+                .ThenInclude(soa => soa!.Service)
                 .FirstOrDefaultAsync(debitMemo => debitMemo.DebitMemoId == id, cancellationToken);
 
             if (debitMemo != null)

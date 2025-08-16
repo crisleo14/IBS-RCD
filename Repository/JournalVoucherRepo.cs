@@ -17,7 +17,7 @@ namespace Accounting_System.Repository
         {
             return await _dbContext.JournalVoucherHeaders
                 .Include(j => j.CheckVoucherHeader)
-                .ThenInclude(cv => cv.Supplier)
+                .ThenInclude(cv => cv!.Supplier)
                 .ToListAsync(cancellationToken);
         }
 
@@ -72,7 +72,7 @@ namespace Accounting_System.Repository
                 {
                     Id = Guid.NewGuid(),
                     TableName = "JournalVoucherDetails",
-                    DocumentRecordId = id.Value,
+                    DocumentRecordId = id!.Value,
                     ColumnName = change.Key,
                     Module = "Journal Voucher Details",
                     OriginalValue = change.Value.OriginalValue,

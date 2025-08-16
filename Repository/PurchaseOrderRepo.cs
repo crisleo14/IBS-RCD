@@ -28,7 +28,7 @@ namespace Accounting_System.Repository
         {
             var purchaseOrder = await _dbContext
                 .PurchaseOrders
-                .Where(po => !po.PurchaseOrderNo.StartsWith("POBEG"))
+                .Where(po => !po.PurchaseOrderNo!.StartsWith("POBEG"))
                 .OrderByDescending(s => s.PurchaseOrderNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -53,7 +53,7 @@ namespace Accounting_System.Repository
                 var supplier = await _dbContext
                                 .Suppliers
                                 .FirstOrDefaultAsync(s => s.SupplierId == id, cancellationToken);
-                return supplier.Number;
+                return supplier!.Number;
             }
             else
             {
@@ -68,12 +68,10 @@ namespace Accounting_System.Repository
                 var product = await _dbContext
                                 .Products
                                 .FirstOrDefaultAsync(s => s.ProductId == id, cancellationToken);
-                return product.ProductCode;
+                return product!.ProductCode!;
             }
-            else
-            {
-                throw new ArgumentException("No record found in supplier.");
-            }
+
+            throw new ArgumentException("No record found in supplier.");
         }
 
         public async Task<PurchaseOrder> FindPurchaseOrder(int? id, CancellationToken cancellationToken = default)

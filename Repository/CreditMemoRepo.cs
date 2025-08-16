@@ -43,12 +43,10 @@ namespace Accounting_System.Repository
                 var si = await _dbContext
                                 .SalesInvoices
                                 .FirstOrDefaultAsync(po => po.SalesInvoiceId == id, cancellationToken);
-                return si.SalesInvoiceNo;
+                return si!.SalesInvoiceNo!;
             }
-            else
-            {
-                throw new ArgumentException("No record found in supplier.");
-            }
+
+            throw new ArgumentException("No record found in supplier.");
         }
 
         public async Task<string> GetSVNoAsync(int? id, CancellationToken cancellationToken = default)
@@ -58,12 +56,10 @@ namespace Accounting_System.Repository
                 var sv = await _dbContext
                                 .ServiceInvoices
                                 .FirstOrDefaultAsync(po => po.ServiceInvoiceId == id, cancellationToken);
-                return sv.ServiceInvoiceNo;
+                return sv!.ServiceInvoiceNo!;
             }
-            else
-            {
-                throw new ArgumentException("No record found in supplier.");
-            }
+
+            throw new ArgumentException("No record found in supplier.");
         }
 
         public async Task<CreditMemo> FindCM(int id, CancellationToken cancellationToken = default)
@@ -71,13 +67,13 @@ namespace Accounting_System.Repository
             var creditMemo = await _dbContext
                 .CreditMemos
                 .Include(c => c.SalesInvoice)
-                .ThenInclude(s => s.Product)
+                .ThenInclude(s => s!.Product)
                 .Include(c => c.SalesInvoice)
-                .ThenInclude(s => s.Customer)
+                .ThenInclude(s => s!.Customer)
                 .Include(c => c.ServiceInvoice)
-                .ThenInclude(sv => sv.Customer)
+                .ThenInclude(sv => sv!.Customer)
                 .Include(c => c.ServiceInvoice)
-                .ThenInclude(sv => sv.Service)
+                .ThenInclude(sv => sv!.Service)
                 .FirstOrDefaultAsync(creditMemo => creditMemo.CreditMemoId == id, cancellationToken);
 
             if (creditMemo != null)
@@ -109,13 +105,13 @@ namespace Accounting_System.Repository
         {
             return await _dbContext.CreditMemos
                 .Include(cm => cm.SalesInvoice)
-                .ThenInclude(s => s.Customer)
+                .ThenInclude(s => s!.Customer)
                 .Include(cm => cm.SalesInvoice)
-                .ThenInclude(s => s.Product)
+                .ThenInclude(s => s!.Product)
                 .Include(cm => cm.ServiceInvoice)
-                .ThenInclude(sv => sv.Customer)
+                .ThenInclude(sv => sv!.Customer)
                 .Include(cm => cm.ServiceInvoice)
-                .ThenInclude(sv => sv.Service)
+                .ThenInclude(sv => sv!.Service)
                 .ToListAsync(cancellationToken);
         }
 

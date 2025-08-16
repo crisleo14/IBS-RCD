@@ -98,7 +98,7 @@
                                     <tr>
                                         <td><p style="height: 9px; margin-left:8%;"><b>Vatable Sales: </b></p></td>
                                         <td class="text-end">
-                                            @if (Model.SalesInvoice.Customer.CustomerType == "Vatable")
+                                            @if (Model.SalesInvoice.Customer!.CustomerType == "Vatable")
                                             {
                                                 <p style="height: 9px;">@Html.DisplayFor(model => netOfVatAmount)</p>
                                             }

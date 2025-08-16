@@ -1,13 +1,10 @@
 ﻿using System.Globalization;
 using Accounting_System.Data;
-using Accounting_System.Models;
-using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.MasterFile;
 using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
 using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
@@ -19,14 +16,11 @@ namespace Accounting_System.Controllers
     {
         private readonly ApplicationDbContext _dbContext;
 
-        private readonly UserManager<IdentityUser> _userManager;
-
         private readonly ProductRepository _productRepository;
 
-        public ProductController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, ProductRepository productRepository)
+        public ProductController(ApplicationDbContext dbContext, ProductRepository productRepository)
         {
             _dbContext = dbContext;
-            _userManager = userManager;
             _productRepository = productRepository;
         }
 
@@ -65,7 +59,7 @@ namespace Accounting_System.Controllers
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    if (await _productRepository.IsProductCodeExist(product.ProductCode, cancellationToken))
+                    if (await _productRepository.IsProductCodeExist(product.ProductCode!, cancellationToken))
                     {
                         ModelState.AddModelError("Code", "Product code already exist!");
                         return View(product);
@@ -77,14 +71,14 @@ namespace Accounting_System.Controllers
                         return View(product);
                     }
 
-                    product.CreatedBy = _userManager.GetUserName(this.User).ToUpper();
+                    product.CreatedBy = User.Identity!.Name!.ToUpper();
 
                     #region --Audit Trail Recording
 
                     if (product.OriginalProductId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(product.CreatedBy, $"Created new product {product.ProductName}", "Product", ipAddress);
+                        AuditTrail auditTrailBook = new(product.CreatedBy, $"Created new product {product.ProductName}", "Product", ipAddress!);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -108,12 +102,12 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Edit(int? id, CancellationToken cancellationToken)
         {
-            if (id == null || _dbContext.Products == null)
+            if (id == null || !_dbContext.Products.Any())
             {
                 return NotFound();
             }
 
-            var product = await _dbContext.Products.FindAsync(id, cancellationToken);
+            var product = await _dbContext.Products.FirstOrDefaultAsync(x => x.ProductId == id, cancellationToken);
             if (product == null)
             {
                 return NotFound();
@@ -135,8 +129,8 @@ namespace Accounting_System.Controllers
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    var existingProduct = await _dbContext.Products.FindAsync(product.ProductId, cancellationToken);
-                    existingProduct.ProductCode = product.ProductCode;
+                    var existingProduct = await _dbContext.Products.FirstOrDefaultAsync(x => x.ProductId == product.ProductId, cancellationToken);
+                    existingProduct!.ProductCode = product.ProductCode;
                     existingProduct.ProductName = product.ProductName;
                     existingProduct.ProductUnit = product.ProductUnit;
                     existingProduct.ProductId = product.ProductId;
@@ -150,7 +144,7 @@ namespace Accounting_System.Controllers
                         if (product.OriginalProductId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Updated product {product.ProductName}", "Product", ipAddress);
+                            AuditTrail auditTrailBook = new(User.Identity!.Name!, $"Updated product {product.ProductName}", "Product", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -191,7 +185,7 @@ namespace Accounting_System.Controllers
 
         private bool ProductExists(int id)
         {
-            return (_dbContext.Products?.Any(e => e.ProductId == id)).GetValueOrDefault();
+            return _dbContext.Products != null! && _dbContext.Products.Any(e => e.ProductId == id);
         }
 
         //Download as .xlsx file.(Export)
@@ -215,7 +209,7 @@ namespace Accounting_System.Controllers
                 var selectedList = await _dbContext.Products
                     .Where(p => recordIds.Contains(p.ProductId))
                     .OrderBy(p => p.ProductId)
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken: cancellationToken);
 
                 // Create the Excel package
                 using var package = new ExcelPackage();
@@ -244,7 +238,7 @@ namespace Accounting_System.Controllers
                 }
 
                 // Convert the Excel package to a byte array
-                var excelBytes = await package.GetAsByteArrayAsync();
+                var excelBytes = await package.GetAsByteArrayAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
                 return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ProductList.xlsx");
             }
@@ -265,60 +259,58 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
-            if (file == null || file.Length == 0)
+            if (file.Length == 0)
             {
                 return RedirectToAction(nameof(Index));
             }
 
             using (var stream = new MemoryStream())
             {
-                await file.CopyToAsync(stream);
+                await file.CopyToAsync(stream, cancellationToken);
                 stream.Position = 0;
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
                 try
                 {
-                    using (var package = new ExcelPackage(stream))
+                    using var package = new ExcelPackage(stream);
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null)
                     {
-                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                        if (worksheet == null)
-                        {
-                            TempData["error"] = "The Excel file contains no worksheets.";
-                            return RedirectToAction(nameof(Index), new { view = DynamicView.Product });
-                        }
-                        if (worksheet.ToString() != nameof(DynamicView.Product))
-                        {
-                            TempData["error"] = "The Excel file is not related to product master file.";
-                            return RedirectToAction(nameof(Index), new { view = DynamicView.Product });
-                        }
-
-                        var rowCount = worksheet.Dimension.Rows;
-                        var productList = await _dbContext
-                            .Products
-                            .ToListAsync(cancellationToken);
-
-                        for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
-                        {
-                            var product = new Product
-                            {
-                                ProductCode = worksheet.Cells[row, 1].Text,
-                                ProductName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(worksheet.Cells[row, 2].Text.ToLower()),
-                                ProductUnit = worksheet.Cells[row, 3].Text,
-                                CreatedBy = worksheet.Cells[row, 4].Text,
-                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 5].Text, out DateTime createdDate) ? createdDate : default,
-                                OriginalProductId = int.TryParse(worksheet.Cells[row, 6].Text, out int originalProductId) ? originalProductId : 0,
-                            };
-
-                            if (productList.Any(p => p.OriginalProductId == product.OriginalProductId))
-                            {
-                                continue;
-                            }
-
-                            await _dbContext.Products.AddAsync(product, cancellationToken);
-                        }
-                        await _dbContext.SaveChangesAsync(cancellationToken);
-                        await transaction.CommitAsync(cancellationToken);
+                        TempData["error"] = "The Excel file contains no worksheets.";
+                        return RedirectToAction(nameof(Index), new { view = DynamicView.Product });
                     }
+                    if (worksheet.ToString() != nameof(DynamicView.Product))
+                    {
+                        TempData["error"] = "The Excel file is not related to product master file.";
+                        return RedirectToAction(nameof(Index), new { view = DynamicView.Product });
+                    }
+
+                    var rowCount = worksheet.Dimension.Rows;
+                    var productList = await _dbContext
+                        .Products
+                        .ToListAsync(cancellationToken);
+
+                    for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                    {
+                        var product = new Product
+                        {
+                            ProductCode = worksheet.Cells[row, 1].Text,
+                            ProductName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(worksheet.Cells[row, 2].Text.ToLower()),
+                            ProductUnit = worksheet.Cells[row, 3].Text,
+                            CreatedBy = worksheet.Cells[row, 4].Text,
+                            CreatedDate = DateTime.TryParse(worksheet.Cells[row, 5].Text, out DateTime createdDate) ? createdDate : default,
+                            OriginalProductId = int.TryParse(worksheet.Cells[row, 6].Text, out int originalProductId) ? originalProductId : 0,
+                        };
+
+                        if (productList.Any(p => p.OriginalProductId == product.OriginalProductId))
+                        {
+                            continue;
+                        }
+
+                        await _dbContext.Products.AddAsync(product, cancellationToken);
+                    }
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
                 }
                 catch (OperationCanceledException oce)
                 {

@@ -1,12 +1,9 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
-using Accounting_System.Models.AccountsReceivable;
-using Accounting_System.Models.MasterFile;
 using Accounting_System.Models.Reports;
 using Accounting_System.Repository;
 using Accounting_System.Utility;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -19,14 +16,11 @@ namespace Accounting_System.Controllers
     {
         private readonly ApplicationDbContext _dbContext;
 
-        private readonly UserManager<IdentityUser> _userManager;
-
         private readonly ServiceRepo _serviceRepo;
 
-        public ServiceController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, ServiceRepo serviceRepo)
+        public ServiceController(ApplicationDbContext dbContext, ServiceRepo serviceRepo)
         {
             _dbContext = dbContext;
-            _userManager = userManager;
             _serviceRepo = serviceRepo;
         }
 
@@ -53,27 +47,27 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
-            var viewModel = new Services();
-
-            viewModel.CurrentAndPreviousTitles = await _dbContext.ChartOfAccounts
-                .Where(coa => !coa.HasChildren)
-                .OrderBy(coa => coa.AccountId)
-                .Select(s => new SelectListItem
-                {
-                    Value = s.AccountId.ToString(),
-                    Text = s.AccountNumber + " " + s.AccountName
-                })
-                .ToListAsync(cancellationToken);
-
-            viewModel.UnearnedTitles = await _dbContext.ChartOfAccounts
-                .Where(coa => !coa.HasChildren)
-                .OrderBy(coa => coa.AccountId)
-                .Select(s => new SelectListItem
-                {
-                    Value = s.AccountId.ToString(),
-                    Text = s.AccountNumber + " " + s.AccountName
-                })
-                .ToListAsync(cancellationToken);
+            var viewModel = new Services
+            {
+                CurrentAndPreviousTitles = await _dbContext.ChartOfAccounts
+                    .Where(coa => !coa.HasChildren)
+                    .OrderBy(coa => coa.AccountId)
+                    .Select(s => new SelectListItem
+                    {
+                        Value = s.AccountId.ToString(),
+                        Text = s.AccountNumber + " " + s.AccountName
+                    })
+                    .ToListAsync(cancellationToken),
+                UnearnedTitles = await _dbContext.ChartOfAccounts
+                    .Where(coa => !coa.HasChildren)
+                    .OrderBy(coa => coa.AccountId)
+                    .Select(s => new SelectListItem
+                    {
+                        Value = s.AccountId.ToString(),
+                        Text = s.AccountNumber + " " + s.AccountName
+                    })
+                    .ToListAsync(cancellationToken)
+            };
 
             return View(viewModel);
         }
@@ -120,18 +114,18 @@ namespace Accounting_System.Controllers
                     }
 
                     var currentAndPrevious = await _dbContext.ChartOfAccounts
-                        .FindAsync(services.CurrentAndPreviousId, cancellationToken);
+                        .FirstOrDefaultAsync(x => x.AccountId == services.CurrentAndPreviousId, cancellationToken);
 
                     var unearned = await _dbContext.ChartOfAccounts
-                        .FindAsync(services.UnearnedId, cancellationToken);
+                        .FirstOrDefaultAsync(x => x.AccountId == services.UnearnedId, cancellationToken);
 
-                    services.CurrentAndPreviousNo = currentAndPrevious.AccountNumber;
+                    services.CurrentAndPreviousNo = currentAndPrevious!.AccountNumber;
                     services.CurrentAndPreviousTitle = currentAndPrevious.AccountName;
 
-                    services.UnearnedNo = unearned.AccountNumber;
+                    services.UnearnedNo = unearned!.AccountNumber;
                     services.UnearnedTitle = unearned.AccountName;
 
-                    services.CreatedBy = _userManager.GetUserName(this.User).ToUpper();
+                    services.CreatedBy = User.Identity!.Name!.ToUpper();
                     services.ServiceNo = await _serviceRepo.GetLastNumber(cancellationToken);
 
                     #region --Audit Trail Recording
@@ -139,7 +133,7 @@ namespace Accounting_System.Controllers
                     if (services.OriginalServiceId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(services.CreatedBy, $"Created new service {services.Name}", "Service", ipAddress);
+                        AuditTrail auditTrailBook = new(services.CreatedBy, $"Created new service {services.Name}", "Service", ipAddress!);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -163,12 +157,12 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Edit(int? id, CancellationToken cancellationToken)
         {
-            if (id == null || _dbContext.Services == null)
+            if (id == null || !_dbContext.Services.Any())
             {
                 return NotFound();
             }
 
-            var services = await _dbContext.Services.FindAsync(id, cancellationToken);
+            var services = await _dbContext.Services.FirstOrDefaultAsync(x => x.ServiceId == id, cancellationToken);
             if (services == null)
             {
                 return NotFound();
@@ -196,8 +190,8 @@ namespace Accounting_System.Controllers
                 try
                 {
 
-                    var existingServices = await _dbContext.Services.FindAsync(services.ServiceId, cancellationToken);
-                    existingServices.Name = services.Name;
+                    var existingServices = await _dbContext.Services.FirstOrDefaultAsync(x => x.ServiceId == services.ServiceId, cancellationToken);
+                    existingServices!.Name = services.Name;
                     existingServices.Percent = services.Percent;
 
                     if (_dbContext.ChangeTracker.HasChanges())
@@ -207,7 +201,7 @@ namespace Accounting_System.Controllers
                         if (services.OriginalServiceId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Update service {services.Name}", "Service", ipAddress);
+                            AuditTrail auditTrailBook = new(User.Identity!.Name!, $"Update service {services.Name}", "Service", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -247,7 +241,7 @@ namespace Accounting_System.Controllers
 
         private bool ServicesExists(int id)
         {
-            return (_dbContext.Services?.Any(e => e.ServiceId == id)).GetValueOrDefault();
+            return _dbContext.Services != null! && _dbContext.Services.Any(e => e.ServiceId == id);
         }
 
         //Download as .xlsx file.(Export)
@@ -271,7 +265,7 @@ namespace Accounting_System.Controllers
                 var selectedList = await _dbContext.Services
                     .Where(service => recordIds.Contains(service.ServiceId))
                     .OrderBy(service => service.ServiceId)
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken: cancellationToken);
 
                 // Create the Excel package
                 using var package = new ExcelPackage();
@@ -306,7 +300,7 @@ namespace Accounting_System.Controllers
                 }
 
                 // Convert the Excel package to a byte array
-                var excelBytes = await package.GetAsByteArrayAsync();
+                var excelBytes = await package.GetAsByteArrayAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
                 return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ServiceList.xlsx");
 		    }
@@ -326,64 +320,62 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
-            if (file == null || file.Length == 0)
+            if (file.Length == 0)
             {
                 return RedirectToAction(nameof(Index));
             }
 
             using (var stream = new MemoryStream())
             {
-                await file.CopyToAsync(stream);
+                await file.CopyToAsync(stream, cancellationToken);
                 stream.Position = 0;
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
                 try
                 {
-                    using (var package = new ExcelPackage(stream))
+                    using var package = new ExcelPackage(stream);
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null)
                     {
-                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                        if (worksheet == null)
-                        {
-                            TempData["error"] = "The Excel file contains no worksheets.";
-                            return RedirectToAction(nameof(Index), new { view = DynamicView.Service });
-                        }
-                        if (worksheet.ToString() != "Services")
-                        {
-                            TempData["error"] = "The Excel file is not related to service master file.";
-                            return RedirectToAction(nameof(Index), new { view = DynamicView.Service });
-                        }
-
-                        var rowCount = worksheet.Dimension.Rows;
-                        var servicesList = await _dbContext
-                            .Services
-                            .ToListAsync(cancellationToken);
-
-                        for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
-                        {
-                            var services = new Services
-                            {
-                                ServiceNo = await _serviceRepo.GetLastNumber(),
-                                CurrentAndPreviousTitle = worksheet.Cells[row, 1].Text,
-                                UnearnedTitle = worksheet.Cells[row, 2].Text,
-                                Name = worksheet.Cells[row, 3].Text,
-                                Percent = int.TryParse(worksheet.Cells[row, 4].Text, out int percent) ? percent : 0,
-                                CreatedBy = worksheet.Cells[row, 5].Text,
-                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 6].Text, out DateTime createdDate) ? createdDate : default,
-                                CurrentAndPreviousNo = worksheet.Cells[row, 7].Text,
-                                UnearnedNo = worksheet.Cells[row, 8].Text,
-                                OriginalServiceId = int.TryParse(worksheet.Cells[row, 9].Text, out int originalServiceId) ? originalServiceId : 0,
-                            };
-
-                            if (servicesList.Any(s => s.OriginalServiceId == services.OriginalServiceId))
-                            {
-                                continue;
-                            }
-
-                            await _dbContext.Services.AddAsync(services, cancellationToken);
-                            await _dbContext.SaveChangesAsync(cancellationToken);
-                        }
-                        await transaction.CommitAsync(cancellationToken);
+                        TempData["error"] = "The Excel file contains no worksheets.";
+                        return RedirectToAction(nameof(Index), new { view = DynamicView.Service });
                     }
+                    if (worksheet.ToString() != "Services")
+                    {
+                        TempData["error"] = "The Excel file is not related to service master file.";
+                        return RedirectToAction(nameof(Index), new { view = DynamicView.Service });
+                    }
+
+                    var rowCount = worksheet.Dimension.Rows;
+                    var servicesList = await _dbContext
+                        .Services
+                        .ToListAsync(cancellationToken);
+
+                    for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                    {
+                        var services = new Services
+                        {
+                            ServiceNo = await _serviceRepo.GetLastNumber(cancellationToken),
+                            CurrentAndPreviousTitle = worksheet.Cells[row, 1].Text,
+                            UnearnedTitle = worksheet.Cells[row, 2].Text,
+                            Name = worksheet.Cells[row, 3].Text,
+                            Percent = int.TryParse(worksheet.Cells[row, 4].Text, out int percent) ? percent : 0,
+                            CreatedBy = worksheet.Cells[row, 5].Text,
+                            CreatedDate = DateTime.TryParse(worksheet.Cells[row, 6].Text, out DateTime createdDate) ? createdDate : default,
+                            CurrentAndPreviousNo = worksheet.Cells[row, 7].Text,
+                            UnearnedNo = worksheet.Cells[row, 8].Text,
+                            OriginalServiceId = int.TryParse(worksheet.Cells[row, 9].Text, out int originalServiceId) ? originalServiceId : 0,
+                        };
+
+                        if (servicesList.Any(s => s.OriginalServiceId == services.OriginalServiceId))
+                        {
+                            continue;
+                        }
+
+                        await _dbContext.Services.AddAsync(services, cancellationToken);
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                    }
+                    await transaction.CommitAsync(cancellationToken);
                 }
                 catch (OperationCanceledException oce)
                 {

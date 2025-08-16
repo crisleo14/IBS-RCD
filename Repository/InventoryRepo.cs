@@ -71,7 +71,7 @@ namespace Accounting_System.Repository
         public async Task AddPurchaseToInventoryAsync(ReceivingReport receivingReport, ClaimsPrincipal user, CancellationToken cancellationToken = default)
         {
             var sortedInventory = await _dbContext.Inventories
-            .Where(i => i.ProductId == receivingReport.PurchaseOrder.Product.ProductId)
+            .Where(i => i.ProductId == receivingReport.PurchaseOrder!.Product!.ProductId)
             .OrderBy(i => i.Date)
             .ThenBy(i => i.Id)
             .ToListAsync(cancellationToken);
@@ -84,9 +84,9 @@ namespace Accounting_System.Repository
 
             var previousInventory = sortedInventory.FirstOrDefault();
 
-            decimal total = receivingReport.QuantityReceived * Math.Round(receivingReport.PurchaseOrder.Price / 1.12m, 2);
-            decimal inventoryBalance = lastIndex >= 0 ? previousInventory.InventoryBalance + receivingReport.QuantityReceived : receivingReport.QuantityReceived;
-            decimal totalBalance = lastIndex >= 0 ? previousInventory.TotalBalance + total : total;
+            decimal total = receivingReport.QuantityReceived * Math.Round(receivingReport.PurchaseOrder!.Price / 1.12m, 2);
+            decimal inventoryBalance = lastIndex >= 0 ? previousInventory!.InventoryBalance + receivingReport.QuantityReceived : receivingReport.QuantityReceived;
+            decimal totalBalance = lastIndex >= 0 ? previousInventory!.TotalBalance + total : total;
             decimal averageCost = totalBalance / inventoryBalance;
 
             Inventory inventory = new()
@@ -109,7 +109,6 @@ namespace Accounting_System.Repository
 
             foreach (var transaction in sortedInventory.Skip(1))
             {
-                var costOfGoodsSold = 0m;
                 if (transaction.Particular == "Sales")
                 {
                     transaction.Cost = averageCost;
@@ -117,7 +116,7 @@ namespace Accounting_System.Repository
                     transaction.TotalBalance = totalBalance != 0 ? totalBalance - transaction.Total : transaction.Total;
                     transaction.InventoryBalance = inventoryBalance != 0 ? inventoryBalance - transaction.Quantity : transaction.Quantity;
                     transaction.AverageCost = transaction.TotalBalance / transaction.InventoryBalance;
-                    costOfGoodsSold = transaction.AverageCost * transaction.Quantity;
+                    var costOfGoodsSold = transaction.AverageCost * transaction.Quantity;
 
                     averageCost = transaction.AverageCost;
                     totalBalance = transaction.TotalBalance;
@@ -174,7 +173,7 @@ namespace Accounting_System.Repository
         public async Task AddSalesToInventoryAsync(SalesInvoice salesInvoice, ClaimsPrincipal user, CancellationToken cancellationToken = default)
         {
             var sortedInventory = await _dbContext.Inventories
-            .Where(i => i.ProductId == salesInvoice.Product.ProductId)
+            .Where(i => i.ProductId == salesInvoice.Product!.ProductId)
             .OrderBy(i => i.Date)
             .ThenBy(i => i.Id)
             .ToListAsync(cancellationToken);
@@ -186,7 +185,7 @@ namespace Accounting_System.Repository
             }
             else
             {
-                throw new ArgumentException($"Beginning inventory for {salesInvoice.Product.ProductName} not found!");
+                throw new ArgumentException($"Beginning inventory for {salesInvoice.Product!.ProductName} not found!");
             }
 
             var previousInventory = sortedInventory.FirstOrDefault();
@@ -195,7 +194,7 @@ namespace Accounting_System.Repository
             {
                 if (previousInventory.InventoryBalance < salesInvoice.Quantity)
                 {
-                    throw new InvalidOperationException($"The quantity exceeds the available inventory of '{salesInvoice.Product.ProductName}'.");
+                    throw new InvalidOperationException($"The quantity exceeds the available inventory of '{salesInvoice.Product!.ProductName}'.");
                 }
 
                 decimal total = salesInvoice.Quantity * previousInventory.AverageCost;
@@ -206,7 +205,7 @@ namespace Accounting_System.Repository
                 Inventory inventory = new()
                 {
                     Date = salesInvoice.TransactionDate,
-                    ProductId = salesInvoice.Product.ProductId,
+                    ProductId = salesInvoice.Product!.ProductId,
                     Particular = "Sales",
                     Reference = salesInvoice.SalesInvoiceNo,
                     Quantity = salesInvoice.Quantity,
@@ -223,7 +222,6 @@ namespace Accounting_System.Repository
 
                 foreach (var transaction in sortedInventory.Skip(1))
                 {
-                    var costOfGoodsSold = 0m;
                     if (transaction.Particular == "Sales")
                     {
                         transaction.Cost = averageCost;
@@ -231,7 +229,7 @@ namespace Accounting_System.Repository
                         transaction.TotalBalance = totalBalance != 0 ? totalBalance - transaction.Total : transaction.Total;
                         transaction.InventoryBalance = inventoryBalance != 0 ? inventoryBalance - transaction.Quantity : transaction.Quantity;
                         transaction.AverageCost = transaction.TotalBalance == 0 && transaction.InventoryBalance == 0 ? previousInventory.AverageCost : transaction.TotalBalance / transaction.InventoryBalance;
-                        costOfGoodsSold = transaction.AverageCost * transaction.Quantity;
+                        var costOfGoodsSold = transaction.AverageCost * transaction.Quantity;
 
                         averageCost = transaction.AverageCost;
                         totalBalance = transaction.TotalBalance;
@@ -285,7 +283,7 @@ namespace Accounting_System.Repository
                     new GeneralLedgerBook
                     {
                         Date = salesInvoice.TransactionDate,
-                        Reference = salesInvoice.SalesInvoiceNo,
+                        Reference = salesInvoice.SalesInvoiceNo!,
                         Description = salesInvoice.Product.ProductName,
                         AccountNo = salesInvoice.Product.ProductCode == "PET001" ? "501010100" : salesInvoice.Product.ProductCode == "PET002" ? "501010200" : "501010300",
                         AccountTitle = salesInvoice.Product.ProductCode == "PET001" ? "COGS - Biodiesel" : salesInvoice.Product.ProductCode == "PET002" ? "COGS - Econogas" : "COGS - Envirogas",
@@ -297,7 +295,7 @@ namespace Accounting_System.Repository
                     new GeneralLedgerBook
                     {
                         Date = salesInvoice.TransactionDate,
-                        Reference = salesInvoice.SalesInvoiceNo,
+                        Reference = salesInvoice.SalesInvoiceNo!,
                         Description = salesInvoice.Product.ProductName,
                         AccountNo = salesInvoice.Product.ProductCode == "PET001" ? "101040100" : salesInvoice.Product.ProductCode == "PET002" ? "101040200" : "101040300",
                         AccountTitle = salesInvoice.Product.ProductCode == "PET001" ? "Inventory - Biodiesel" : salesInvoice.Product.ProductCode == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
@@ -325,7 +323,7 @@ namespace Accounting_System.Repository
             }
             else
             {
-                throw new InvalidOperationException($"Beginning inventory for this product '{salesInvoice.Product.ProductName}' not found!");
+                throw new InvalidOperationException($"Beginning inventory for this product '{salesInvoice.Product!.ProductName}' not found!");
             }
         }
 
@@ -384,39 +382,39 @@ namespace Accounting_System.Repository
 
         public async Task ChangePriceToInventoryAsync(PurchaseChangePriceViewModel purchaseChangePriceViewModel, ClaimsPrincipal user, CancellationToken cancellationToken = default)
         {
-            var existingPO = await _dbContext.PurchaseOrders
-            .Include(po => po.Supplier)
-            .FirstOrDefaultAsync(po => po.PurchaseOrderId == purchaseChangePriceViewModel.POId, cancellationToken);
+            var existingPo = await _dbContext.PurchaseOrders
+                .Include(po => po.Supplier).Include(purchaseOrder => purchaseOrder.Product)
+                .FirstOrDefaultAsync(po => po.PurchaseOrderId == purchaseChangePriceViewModel.POId, cancellationToken);
 
 
             var previousInventory = await _dbContext.Inventories
-                .Where(i => i.ProductId == existingPO.ProductId)
+                .Where(i => i.ProductId == existingPo!.ProductId)
                 .OrderByDescending(i => i.Date)
                 .ThenByDescending(i => i.Id)
                 .Include(i => i.Product)
                 .FirstOrDefaultAsync(cancellationToken);
 
             var previousInventoryList = await _dbContext.Inventories
-                .Where(i => i.ProductId == existingPO.ProductId)
+                .Where(i => i.ProductId == existingPo!.ProductId)
                 .OrderByDescending(i => i.Date)
                 .ThenByDescending(i => i.Id)
-                .ToListAsync();
+                .ToListAsync(cancellationToken: cancellationToken);
 
-            var findRR = await _dbContext.ReceivingReports
-                .Where(rr => rr.PurchaseOrder.ProductId == previousInventory.ProductId)
+            var findRr = await _dbContext.ReceivingReports
+                .Where(rr => rr.PurchaseOrder!.ProductId == previousInventory!.ProductId)
                 .ToListAsync(cancellationToken);
             if (previousInventory != null && previousInventoryList.Any())
             {
                 #region -- Inventory Entry --
 
-                var generateJVNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken);
+                var generateJvNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken);
 
                 Inventory inventory = new()
                 {
                     Date = DateOnly.FromDateTime(DateTime.Now),
-                    ProductId = existingPO.ProductId,
+                    ProductId = existingPo!.ProductId,
                     Particular = "Change Price",
-                    Reference = generateJVNo,
+                    Reference = generateJvNo,
                     Quantity = 0,
                     Cost = 0,
                     IsValidated = true,
@@ -432,11 +430,11 @@ namespace Accounting_System.Repository
                 inventory.TotalBalance = previousInventory.TotalBalance + newTotal;
                 inventory.AverageCost = inventory.TotalBalance / inventory.InventoryBalance;
 
-                decimal computeRRTotalAmount = findRR.Sum(rr => rr.Amount);
-                decimal productAmount = newTotal < 0 ? newTotal / 1.12m : (computeRRTotalAmount + newTotal) / 1.12m;
+                decimal computeRrTotalAmount = findRr.Sum(rr => rr.Amount);
+                decimal productAmount = newTotal < 0 ? newTotal / 1.12m : (computeRrTotalAmount + newTotal) / 1.12m;
                 decimal vatInput = productAmount * 0.12m;
                 decimal wht = productAmount * 0.01m;
-                decimal apTradePayable = newTotal < 0 ? newTotal - wht : (computeRRTotalAmount + newTotal) - wht;
+                decimal apTradePayable = newTotal < 0 ? newTotal - wht : (computeRrTotalAmount + newTotal) - wht;
 
                 #endregion -- Inventory Entry --
 
@@ -447,9 +445,9 @@ namespace Accounting_System.Repository
                     new JournalVoucherHeader
                     {
                         Date = DateOnly.FromDateTime(DateTime.Now),
-                        JournalVoucherHeaderNo = generateJVNo,
+                        JournalVoucherHeaderNo = generateJvNo,
                         References = "",
-                        Particulars = $"Change price of {existingPO.PurchaseOrderNo} from {existingPO.Price} to {existingPO.FinalPrice }",
+                        Particulars = $"Change price of {existingPo.PurchaseOrderNo} from {existingPo.Price} to {existingPo.FinalPrice }",
                         CRNo = "",
                         JVReason = "Change Price",
                         CreatedBy = _userManager.GetUserName(user),
@@ -471,7 +469,7 @@ namespace Accounting_System.Repository
                         {
                             AccountNo = previousInventory.Product.ProductCode == "PET001" ? "101040100" : previousInventory.Product.ProductCode == "PET002" ? "101040200" : "101040300",
                             AccountName = previousInventory.Product.ProductCode == "PET001" ? "Inventory - Biodiesel" : previousInventory.Product.ProductCode == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
-                            TransactionNo = generateJVNo,
+                            TransactionNo = generateJvNo,
                             Debit = Math.Abs(productAmount),
                             Credit = 0
                         },
@@ -479,7 +477,7 @@ namespace Accounting_System.Repository
                         {
                             AccountNo = "101060200",
                             AccountName = "Vat - Input",
-                            TransactionNo = generateJVNo,
+                            TransactionNo = generateJvNo,
                             Debit = Math.Abs(vatInput),
                             Credit = 0
                         },
@@ -487,7 +485,7 @@ namespace Accounting_System.Repository
                         {
                             AccountNo = "201030210",
                             AccountName = "Expanded Withholding Tax 1%",
-                            TransactionNo = generateJVNo,
+                            TransactionNo = generateJvNo,
                             Debit = 0,
                             Credit = Math.Abs(wht)
                         },
@@ -495,7 +493,7 @@ namespace Accounting_System.Repository
                         {
                             AccountNo = "202010100",
                             AccountName = "AP-Trade Payable",
-                            TransactionNo = generateJVNo,
+                            TransactionNo = generateJvNo,
                             Debit = 0,
                             Credit = Math.Abs(apTradePayable)
                         }
@@ -515,7 +513,7 @@ namespace Accounting_System.Repository
                         {
                             AccountNo = previousInventory.Product.ProductCode == "PET001" ? "101040100" : previousInventory.Product.ProductCode == "PET002" ? "101040200" : "101040300",
                             AccountName = previousInventory.Product.ProductCode == "PET001" ? "Inventory - Biodiesel" : previousInventory.Product.ProductCode == "PET002" ? "Inventory - Econogas" : "Inventory - Envirogas",
-                            TransactionNo = generateJVNo,
+                            TransactionNo = generateJvNo,
                             Debit = 0,
                             Credit = Math.Abs(productAmount)
                         },
@@ -523,7 +521,7 @@ namespace Accounting_System.Repository
                         {
                             AccountNo = "101060200",
                             AccountName = "Vat - Input",
-                            TransactionNo = generateJVNo,
+                            TransactionNo = generateJvNo,
                             Debit = 0,
                             Credit = Math.Abs(vatInput)
                         },
@@ -531,7 +529,7 @@ namespace Accounting_System.Repository
                         {
                             AccountNo = "201030210",
                             AccountName = "Expanded Withholding Tax 1%",
-                            TransactionNo = generateJVNo,
+                            TransactionNo = generateJvNo,
                             Debit = Math.Abs(wht),
                             Credit = 0
                         },
@@ -539,7 +537,7 @@ namespace Accounting_System.Repository
                         {
                             AccountNo = "202010100",
                             AccountName = "AP-Trade Payable",
-                            TransactionNo = generateJVNo,
+                            TransactionNo = generateJvNo,
                             Debit = Math.Abs(apTradePayable),
                             Credit = 0
                         }
@@ -566,7 +564,7 @@ namespace Accounting_System.Repository
                     {
                         new JournalBook
                         {
-                            Date = existingPO.Date,
+                            Date = existingPo.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
                             AccountTitle = previousInventory.Product.ProductCode == "PET001" ? "101040100 Inventory - Biodiesel" : previousInventory.Product.ProductCode == "PET002" ? "101040200 Inventory - Econogas" : "101040300 Inventory - Envirogas",
@@ -577,7 +575,7 @@ namespace Accounting_System.Repository
                         },
                         new JournalBook
                         {
-                            Date = existingPO.Date,
+                            Date = existingPo.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
                             AccountTitle = "101060200 Vat - Input",
@@ -588,7 +586,7 @@ namespace Accounting_System.Repository
                         },
                         new JournalBook
                         {
-                            Date = existingPO.Date,
+                            Date = existingPo.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
                             AccountTitle = "201030210 Expanded Withholding Tax 1%",
@@ -599,7 +597,7 @@ namespace Accounting_System.Repository
                         },
                         new JournalBook
                         {
-                            Date = existingPO.Date,
+                            Date = existingPo.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
                             AccountTitle = "202010100 AP-Trade Payable",
@@ -621,7 +619,7 @@ namespace Accounting_System.Repository
                     {
                         new JournalBook
                         {
-                            Date = existingPO.Date,
+                            Date = existingPo.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
                             AccountTitle = previousInventory.Product.ProductCode == "PET001" ? "101040100 Inventory - Biodiesel" : previousInventory.Product.ProductCode == "PET002" ? "101040200 Inventory - Econogas" : "101040300 Inventory - Envirogas",
@@ -632,7 +630,7 @@ namespace Accounting_System.Repository
                         },
                         new JournalBook
                         {
-                            Date = existingPO.Date,
+                            Date = existingPo.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
                             AccountTitle = "101060200 Vat - Input",
@@ -643,7 +641,7 @@ namespace Accounting_System.Repository
                         },
                         new JournalBook
                         {
-                            Date = existingPO.Date,
+                            Date = existingPo.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
                             AccountTitle = "201030210 Expanded Withholding Tax 1%",
@@ -654,7 +652,7 @@ namespace Accounting_System.Repository
                         },
                         new JournalBook
                         {
-                            Date = existingPO.Date,
+                            Date = existingPo.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
                             AccountTitle = "202010100 AP-Trade Payable",
@@ -677,18 +675,18 @@ namespace Accounting_System.Repository
                     {
                         new PurchaseJournalBook
                         {
-                            Date = existingPO.Date,
-                            SupplierName = existingPO.Supplier.SupplierName,
-                            SupplierTin = existingPO.Supplier.SupplierTin,
-                            SupplierAddress = existingPO.Supplier.SupplierAddress,
+                            Date = existingPo.Date,
+                            SupplierName = existingPo.Supplier!.SupplierName,
+                            SupplierTin = existingPo.Supplier.SupplierTin,
+                            SupplierAddress = existingPo.Supplier.SupplierAddress,
                             DocumentNo = "",
-                            Description = existingPO.Product.ProductName,
+                            Description = existingPo.Product!.ProductName,
                             Discount = 0,
                             VatAmount = inventory.Total * 0.12m,
                             Amount = newTotal,
                             WhtAmount = inventory.Total * 0.01m,
                             NetPurchases = inventory.Total,
-                            PONo = existingPO.PurchaseOrderNo,
+                            PONo = existingPo.PurchaseOrderNo!,
                             DueDate = DateOnly.FromDateTime(DateTime.MinValue),
                             CreatedBy = _userManager.GetUserName(user),
                             CreatedDate = DateTime.Now
@@ -707,7 +705,7 @@ namespace Accounting_System.Repository
                     {
                         new GeneralLedgerBook
                         {
-                            Date = existingPO.Date,
+                            Date = existingPo.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
                             AccountNo = previousInventory.Product.ProductCode == "PET001" ? "101040100" : previousInventory.Product.ProductCode == "PET002" ? "101040200" : "101040300",
@@ -719,7 +717,7 @@ namespace Accounting_System.Repository
                         },
                         new GeneralLedgerBook
                         {
-                            Date = existingPO.Date,
+                            Date = existingPo.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
                             AccountNo = "101060200",
@@ -731,7 +729,7 @@ namespace Accounting_System.Repository
                         },
                         new GeneralLedgerBook
                         {
-                            Date = existingPO.Date,
+                            Date = existingPo.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
                             AccountNo = "201030210",
@@ -743,7 +741,7 @@ namespace Accounting_System.Repository
                         },
                         new GeneralLedgerBook
                         {
-                            Date = existingPO.Date,
+                            Date = existingPo.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
                             AccountNo = "202010100",
@@ -766,7 +764,7 @@ namespace Accounting_System.Repository
                     {
                         new GeneralLedgerBook
                         {
-                            Date = existingPO.Date,
+                            Date = existingPo.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
                             AccountNo = previousInventory.Product.ProductCode == "PET001" ? "101040100" : previousInventory.Product.ProductCode == "PET002" ? "101040200" : "101040300",
@@ -778,7 +776,7 @@ namespace Accounting_System.Repository
                         },
                         new GeneralLedgerBook
                         {
-                            Date = existingPO.Date,
+                            Date = existingPo.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
                             AccountNo = "101060200",
@@ -790,7 +788,7 @@ namespace Accounting_System.Repository
                         },
                         new GeneralLedgerBook
                         {
-                            Date = existingPO.Date,
+                            Date = existingPo.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
                             AccountNo = "201030210",
@@ -802,7 +800,7 @@ namespace Accounting_System.Repository
                         },
                         new GeneralLedgerBook
                         {
-                            Date = existingPO.Date,
+                            Date = existingPo.Date,
                             Reference = inventory.Reference,
                             Description = "Change Price",
                             AccountNo = "202010100",
@@ -826,7 +824,7 @@ namespace Accounting_System.Repository
             }
             else
             {
-                throw new InvalidOperationException($"Beginning inventory for this product '{existingPO.Product.ProductName}' not found!");
+                throw new InvalidOperationException($"Beginning inventory for this product '{existingPo!.Product!.ProductName}' not found!");
             }
         }
 
@@ -844,14 +842,12 @@ namespace Accounting_System.Repository
             {
                 var previousInventory = sortedInventory.FirstOrDefault();
 
-                decimal total = previousInventory.Total;
-                decimal inventoryBalance = previousInventory.InventoryBalance;
+                decimal inventoryBalance = previousInventory!.InventoryBalance;
                 decimal totalBalance = previousInventory.TotalBalance;
                 decimal averageCost = inventoryBalance == 0 && totalBalance == 0 ? previousInventory.AverageCost : totalBalance / inventoryBalance;
 
                 foreach (var transaction in sortedInventory.Skip(1))
                 {
-                    var costOfGoodsSold = 0m;
                     if (transaction.Particular == "Sales")
                     {
                         transaction.Cost = averageCost;
@@ -859,7 +855,7 @@ namespace Accounting_System.Repository
                         transaction.TotalBalance = totalBalance - transaction.Total;
                         transaction.InventoryBalance = inventoryBalance - transaction.Quantity;
                         transaction.AverageCost = transaction.TotalBalance == 0 && transaction.InventoryBalance == 0 ? previousInventory.AverageCost : transaction.TotalBalance / transaction.InventoryBalance;
-                        costOfGoodsSold = transaction.AverageCost * transaction.Quantity;
+                        var costOfGoodsSold = transaction.AverageCost * transaction.Quantity;
 
                         averageCost = transaction.AverageCost;
                         totalBalance = transaction.TotalBalance;

@@ -1,8 +1,4 @@
 using Accounting_System.Data;
-using Accounting_System.Models;
-using Accounting_System.Models.AccountsPayable;
-using Accounting_System.Repository;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,15 +8,9 @@ namespace Accounting_System.Controllers
     {
         private readonly ApplicationDbContext _dbContext;
 
-        private readonly UserManager<IdentityUser> _userManager;
-
-        private readonly GeneralRepo _generalRepo;
-
-        public ImportExportLogsController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, GeneralRepo generalRepo)
+        public ImportExportLogsController(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
-            _userManager = userManager;
-            _generalRepo = generalRepo;
         }
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
@@ -32,7 +22,12 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> ImportAction(Guid id, string procedure, string tableName, string columnName, CancellationToken cancellationToken)
         {
-            var importRecord = await _dbContext.ImportExportLogs.FindAsync(id, cancellationToken);
+            var importRecord = await _dbContext.ImportExportLogs.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+            if (importRecord == null)
+            {
+                return NotFound();
+            }
+
             if (procedure == "Modify")
             {
                 #region -- Accounts Receivable --
@@ -41,75 +36,81 @@ namespace Accounting_System.Controllers
 
                 if (tableName == "SalesInvoice")
                 {
-                    var existingSI = await _dbContext.SalesInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+                    var existingSalesInvoice = await _dbContext.SalesInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+
+                    if (existingSalesInvoice == null || importRecord.AdjustedValue == null)
+                    {
+                        return NotFound();
+                    }
 
                     if (columnName == "SINo")
                     {
-                        existingSI.SalesInvoiceNo = importRecord.AdjustedValue;
+                        existingSalesInvoice.SalesInvoiceNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "OriginalCustomerId")
                     {
-                        existingSI.OriginalCustomerId = int.Parse(importRecord.AdjustedValue);
+
+                        existingSalesInvoice.OriginalCustomerId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "OriginalProductId")
                     {
-                        existingSI.OriginalProductId = int.Parse(importRecord.AdjustedValue);
+                        existingSalesInvoice.OriginalProductId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "OtherRefNo")
                     {
-                        existingSI.OtherRefNo = importRecord.AdjustedValue;
+                        existingSalesInvoice.OtherRefNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "Quantity")
                     {
-                        existingSI.Quantity = decimal.Parse(importRecord.AdjustedValue);
+                        existingSalesInvoice.Quantity = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "UnitPrice")
                     {
-                        existingSI.UnitPrice = decimal.Parse(importRecord.AdjustedValue);
+                        existingSalesInvoice.UnitPrice = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "Amount")
                     {
-                        existingSI.Amount = decimal.Parse(importRecord.AdjustedValue);
+                        existingSalesInvoice.Amount = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "Remarks")
                     {
-                        existingSI.Remarks = importRecord.AdjustedValue;
+                        existingSalesInvoice.Remarks = importRecord.AdjustedValue;
                     }
                     if (columnName == "Status")
                     {
-                        existingSI.Status = importRecord.AdjustedValue;
+                        existingSalesInvoice.Status = importRecord.AdjustedValue;
                     }
                     if (columnName == "TransactionDate")
                     {
-                        existingSI.TransactionDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                        existingSalesInvoice.TransactionDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                     }
                     if (columnName == "Discount")
                     {
-                        existingSI.Discount = decimal.Parse(importRecord.AdjustedValue);
+                        existingSalesInvoice.Discount = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "DueDate")
                     {
-                        existingSI.DueDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                        existingSalesInvoice.DueDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                     }
                     if (columnName == "CreatedBy")
                     {
-                        existingSI.CreatedBy = importRecord.AdjustedValue;
+                        existingSalesInvoice.CreatedBy = importRecord.AdjustedValue;
                     }
                     if (columnName == "CreatedDate")
                     {
-                        existingSI.CreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
+                        existingSalesInvoice.CreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
                     }
                     if (columnName == "CancellationRemarks")
                     {
-                        existingSI.CancellationRemarks = importRecord.AdjustedValue;
+                        existingSalesInvoice.CancellationRemarks = importRecord.AdjustedValue;
                     }
                     if (columnName == "OriginalSeriesNumber")
                     {
-                        existingSI.OriginalSeriesNumber = importRecord.AdjustedValue;
+                        existingSalesInvoice.OriginalSeriesNumber = importRecord.AdjustedValue;
                     }
                     if (columnName == "OriginalDocumentId")
                     {
-                        existingSI.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
+                        existingSalesInvoice.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
                     }
                 }
 
@@ -119,75 +120,80 @@ namespace Accounting_System.Controllers
 
                 if (tableName == "ServiceInvoice")
                 {
-                    var existingSV = await _dbContext.ServiceInvoices.FirstOrDefaultAsync(sv => sv.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+                    var existingServiceInvoice = await _dbContext.ServiceInvoices.FirstOrDefaultAsync(sv => sv.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+
+                    if (existingServiceInvoice == null || importRecord.AdjustedValue == null)
+                    {
+                        return NotFound();
+                    }
 
                     if (columnName == "SVNo")
                     {
-                        existingSV.ServiceInvoiceNo = importRecord.AdjustedValue;
+                        existingServiceInvoice.ServiceInvoiceNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "DueDate")
                     {
-                        existingSV.DueDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                        existingServiceInvoice.DueDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                     }
                     if (columnName == "Period")
                     {
-                        existingSV.Period = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                        existingServiceInvoice.Period = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                     }
                     if (columnName == "Amount")
                     {
-                        existingSV.Amount = decimal.Parse(importRecord.AdjustedValue);
+                        existingServiceInvoice.Amount = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "Total")
                     {
-                        existingSV.Total = decimal.Parse(importRecord.AdjustedValue);
+                        existingServiceInvoice.Total = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "Discount")
                     {
-                        existingSV.Discount = decimal.Parse(importRecord.AdjustedValue);
+                        existingServiceInvoice.Discount = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "CurrentAndPreviousAmount")
                     {
-                        existingSV.CurrentAndPreviousAmount = decimal.Parse(importRecord.AdjustedValue);
+                        existingServiceInvoice.CurrentAndPreviousAmount = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "UnearnedAmount")
                     {
-                        existingSV.UnearnedAmount = decimal.Parse(importRecord.AdjustedValue);
+                        existingServiceInvoice.UnearnedAmount = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "Status")
                     {
-                        existingSV.Status = importRecord.AdjustedValue;
+                        existingServiceInvoice.Status = importRecord.AdjustedValue;
                     }
                     if (columnName == "Instructions")
                     {
-                        existingSV.Instructions = importRecord.AdjustedValue;
+                        existingServiceInvoice.Instructions = importRecord.AdjustedValue;
                     }
                     if (columnName == "CreatedBy")
                     {
-                        existingSV.CreatedBy = importRecord.AdjustedValue;
+                        existingServiceInvoice.CreatedBy = importRecord.AdjustedValue;
                     }
                     if (columnName == "CreatedDate")
                     {
-                        existingSV.CreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
+                        existingServiceInvoice.CreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
                     }
                     if (columnName == "CancellationRemarks")
                     {
-                        existingSV.CancellationRemarks = importRecord.AdjustedValue;
+                        existingServiceInvoice.CancellationRemarks = importRecord.AdjustedValue;
                     }
                     if (columnName == "OriginalCustomerId")
                     {
-                        existingSV.OriginalCustomerId = int.Parse(importRecord.AdjustedValue);
+                        existingServiceInvoice.OriginalCustomerId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "OriginalSeriesNumber")
                     {
-                        existingSV.OriginalSeriesNumber = importRecord.AdjustedValue;
+                        existingServiceInvoice.OriginalSeriesNumber = importRecord.AdjustedValue;
                     }
                     if (columnName == "OriginalServicesId")
                     {
-                        existingSV.OriginalServicesId = int.Parse(importRecord.AdjustedValue);
+                        existingServiceInvoice.OriginalServicesId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "OriginalDocumentId")
                     {
-                        existingSV.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
+                        existingServiceInvoice.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
                     }
                 }
 
@@ -197,139 +203,144 @@ namespace Accounting_System.Controllers
 
                     if (tableName == "CollectionReceipt")
                     {
-                        var existingCR = await _dbContext.CollectionReceipts.FirstOrDefaultAsync(cr => cr.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+                        var existingCollectionReceipt = await _dbContext.CollectionReceipts.FirstOrDefaultAsync(cr => cr.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+
+                        if (existingCollectionReceipt == null || importRecord.AdjustedValue == null)
+                        {
+                            return NotFound();
+                        }
 
                         if (columnName == "CRNo")
                         {
-                            existingCR.CollectionReceiptNo = importRecord.AdjustedValue;
+                            existingCollectionReceipt.CollectionReceiptNo = importRecord.AdjustedValue;
                         }
                         if (columnName == "TransactionDate")
                         {
-                            existingCR.TransactionDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                            existingCollectionReceipt.TransactionDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                         }
                         if (columnName == "ReferenceNo")
                         {
-                            existingCR.ReferenceNo = importRecord.AdjustedValue;
+                            existingCollectionReceipt.ReferenceNo = importRecord.AdjustedValue;
                         }
                         if (columnName == "Remarks")
                         {
-                            existingCR.Remarks = importRecord.AdjustedValue;
+                            existingCollectionReceipt.Remarks = importRecord.AdjustedValue;
                         }
                         if (columnName == "CashAmount")
                         {
-                            existingCR.CashAmount = decimal.Parse(importRecord.AdjustedValue);
+                            existingCollectionReceipt.CashAmount = decimal.Parse(importRecord.AdjustedValue);
                         }
                         if (columnName == "CheckDate")
                         {
-                            existingCR.CheckDate = importRecord.AdjustedValue;
+                            existingCollectionReceipt.CheckDate = importRecord.AdjustedValue;
                         }
                         if (columnName == "CheckNo")
                         {
-                            existingCR.CheckNo = importRecord.AdjustedValue;
+                            existingCollectionReceipt.CheckNo = importRecord.AdjustedValue;
                         }
                         if (columnName == "CheckBank")
                         {
-                            existingCR.CheckBank = importRecord.AdjustedValue;
+                            existingCollectionReceipt.CheckBank = importRecord.AdjustedValue;
                         }
                         if (columnName == "CheckBranch")
                         {
-                            existingCR.CheckBranch = importRecord.AdjustedValue;
+                            existingCollectionReceipt.CheckBranch = importRecord.AdjustedValue;
                         }
                         if (columnName == "CheckAmount")
                         {
-                            existingCR.CheckAmount = decimal.Parse(importRecord.AdjustedValue);
+                            existingCollectionReceipt.CheckAmount = decimal.Parse(importRecord.AdjustedValue);
                         }
                         if (columnName == "ManagerCheckDate")
                         {
-                            existingCR.ManagerCheckDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                            existingCollectionReceipt.ManagerCheckDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                         }
                         if (columnName == "ManagerCheckNo")
                         {
-                            existingCR.ManagerCheckNo = importRecord.AdjustedValue;
+                            existingCollectionReceipt.ManagerCheckNo = importRecord.AdjustedValue;
                         }
                         if (columnName == "ManagerCheckBank")
                         {
-                            existingCR.ManagerCheckBank = importRecord.AdjustedValue;
+                            existingCollectionReceipt.ManagerCheckBank = importRecord.AdjustedValue;
                         }
                         if (columnName == "ManagerCheckBranch")
                         {
-                            existingCR.ManagerCheckBranch = importRecord.AdjustedValue;
+                            existingCollectionReceipt.ManagerCheckBranch = importRecord.AdjustedValue;
                         }
                         if (columnName == "ManagerCheckAmount")
                         {
-                            existingCR.ManagerCheckAmount = decimal.Parse(importRecord.AdjustedValue);
+                            existingCollectionReceipt.ManagerCheckAmount = decimal.Parse(importRecord.AdjustedValue);
                         }
                         if (columnName == "EWT")
                         {
-                            existingCR.EWT = decimal.Parse(importRecord.AdjustedValue);
+                            existingCollectionReceipt.EWT = decimal.Parse(importRecord.AdjustedValue);
                         }
                         if (columnName == "WVAT")
                         {
-                            existingCR.WVAT = decimal.Parse(importRecord.AdjustedValue);
+                            existingCollectionReceipt.WVAT = decimal.Parse(importRecord.AdjustedValue);
                         }
                         if (columnName == "Total")
                         {
-                            existingCR.Total = decimal.Parse(importRecord.AdjustedValue);
+                            existingCollectionReceipt.Total = decimal.Parse(importRecord.AdjustedValue);
                         }
                         if (columnName == "IsCertificateUpload")
                         {
-                            existingCR.IsCertificateUpload = bool.Parse(importRecord.AdjustedValue);
+                            existingCollectionReceipt.IsCertificateUpload = bool.Parse(importRecord.AdjustedValue);
                         }
                         if (columnName == "F2306FilePath")
                         {
-                            existingCR.F2306FilePath = importRecord.AdjustedValue;
+                            existingCollectionReceipt.F2306FilePath = importRecord.AdjustedValue;
                         }
                         if (columnName == "F2307FilePath")
                         {
-                            existingCR.F2307FilePath = importRecord.AdjustedValue;
+                            existingCollectionReceipt.F2307FilePath = importRecord.AdjustedValue;
                         }
                         if (columnName == "CreatedBy")
                         {
-                            existingCR.CreatedBy = importRecord.AdjustedValue;
+                            existingCollectionReceipt.CreatedBy = importRecord.AdjustedValue;
                         }
                         if (columnName == "CreatedDate")
                         {
-                            existingCR.CreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
+                            existingCollectionReceipt.CreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
                         }
                         if (columnName == "CancellationRemarks")
                         {
-                            existingCR.CancellationRemarks = importRecord.AdjustedValue;
+                            existingCollectionReceipt.CancellationRemarks = importRecord.AdjustedValue;
                         }
                         if (columnName == "MultipleSI")
                         {
-                            existingCR.MultipleSI = [importRecord.AdjustedValue];
+                            existingCollectionReceipt.MultipleSI = [importRecord.AdjustedValue];
                         }
                         if (columnName == "MultipleSIId")
                         {
-                            existingCR.MultipleSIId = [int.Parse(importRecord.AdjustedValue)];
+                            existingCollectionReceipt.MultipleSIId = [int.Parse(importRecord.AdjustedValue)];
                         }
                         if (columnName == "SIMultipleAmount")
                         {
-                            existingCR.SIMultipleAmount = [decimal.Parse(importRecord.AdjustedValue)];
+                            existingCollectionReceipt.SIMultipleAmount = [decimal.Parse(importRecord.AdjustedValue)];
                         }
                         if (columnName == "MultipleTransactionDate")
                         {
-                            existingCR.MultipleTransactionDate = [DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd")];
+                            existingCollectionReceipt.MultipleTransactionDate = [DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd")];
                         }
                         if (columnName == "OriginalCustomerId")
                         {
-                            existingCR.OriginalCustomerId = int.Parse(importRecord.AdjustedValue);
+                            existingCollectionReceipt.OriginalCustomerId = int.Parse(importRecord.AdjustedValue);
                         }
                         if (columnName == "OriginalSalesInvoiceId")
                         {
-                            existingCR.OriginalSalesInvoiceId = int.Parse(importRecord.AdjustedValue);
+                            existingCollectionReceipt.OriginalSalesInvoiceId = int.Parse(importRecord.AdjustedValue);
                         }
                         if (columnName == "OriginalSeriesNumber")
                         {
-                            existingCR.OriginalSeriesNumber = importRecord.AdjustedValue;
+                            existingCollectionReceipt.OriginalSeriesNumber = importRecord.AdjustedValue;
                         }
                         if (columnName == "OriginalServiceInvoiceId")
                         {
-                            existingCR.OriginalServiceInvoiceId = int.Parse(importRecord.AdjustedValue);
+                            existingCollectionReceipt.OriginalServiceInvoiceId = int.Parse(importRecord.AdjustedValue);
                         }
                         if (columnName == "OriginalDocumentId")
                         {
-                            existingCR.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
+                            existingCollectionReceipt.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
                         }
                     }
 
@@ -339,8 +350,19 @@ namespace Accounting_System.Controllers
 
                 if (tableName == "Offsetting")
                 {
-                    var existingCR = await _dbContext.CollectionReceipts.FirstOrDefaultAsync(cr => cr.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
-                    var existingOffset = await _dbContext.Offsettings.FirstOrDefaultAsync(offset => offset.Reference == existingCR.OriginalSeriesNumber, cancellationToken);
+                    var existingCollectionReceipt = await _dbContext.CollectionReceipts.FirstOrDefaultAsync(cr => cr.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+
+                    if (existingCollectionReceipt == null)
+                    {
+                        return NotFound();
+                    }
+
+                    var existingOffset = await _dbContext.Offsettings.FirstOrDefaultAsync(offset => offset.Reference == existingCollectionReceipt.OriginalSeriesNumber, cancellationToken);
+
+                    if (existingOffset == null || importRecord.AdjustedValue == null)
+                    {
+                        return NotFound();
+                    }
 
                     if (columnName == "AccountNo")
                     {
@@ -382,87 +404,92 @@ namespace Accounting_System.Controllers
 
                 if (tableName == "DebitMemo")
                 {
-                    var existingDM = await _dbContext.DebitMemos.FirstOrDefaultAsync(dm => dm.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+                    var existingDebitMemo = await _dbContext.DebitMemos.FirstOrDefaultAsync(dm => dm.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+
+                    if (existingDebitMemo == null || importRecord.AdjustedValue == null)
+                    {
+                        return NotFound();
+                    }
 
                     if (columnName == "DMNo")
                     {
-                        existingDM.DebitMemoNo = importRecord.AdjustedValue;
+                        existingDebitMemo.DebitMemoNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "TransactionDate")
                     {
-                        existingDM.TransactionDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                        existingDebitMemo.TransactionDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                     }
                     if (columnName == "DebitAmount")
                     {
-                        existingDM.DebitAmount = decimal.Parse(importRecord.AdjustedValue);
+                        existingDebitMemo.DebitAmount = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "Description")
                     {
-                        existingDM.Description = importRecord.AdjustedValue;
+                        existingDebitMemo.Description = importRecord.AdjustedValue;
                     }
                     if (columnName == "AdjustedPrice")
                     {
-                        existingDM.AdjustedPrice = decimal.Parse(importRecord.AdjustedValue);
+                        existingDebitMemo.AdjustedPrice = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "Quantity")
                     {
-                        existingDM.Quantity = decimal.Parse(importRecord.AdjustedValue);
+                        existingDebitMemo.Quantity = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "Source")
                     {
-                        existingDM.Source = importRecord.AdjustedValue;
+                        existingDebitMemo.Source = importRecord.AdjustedValue;
                     }
                     if (columnName == "Remarks")
                     {
-                        existingDM.Remarks = importRecord.AdjustedValue;
+                        existingDebitMemo.Remarks = importRecord.AdjustedValue;
                     }
                     if (columnName == "Period")
                     {
-                        existingDM.Period = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                        existingDebitMemo.Period = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                     }
                     if (columnName == "Amount")
                     {
-                        existingDM.Amount = decimal.Parse(importRecord.AdjustedValue);
+                        existingDebitMemo.Amount = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "CurrentAndPreviousAmount")
                     {
-                        existingDM.CurrentAndPreviousAmount = decimal.Parse(importRecord.AdjustedValue);
+                        existingDebitMemo.CurrentAndPreviousAmount = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "UnearnedAmount")
                     {
-                        existingDM.UnearnedAmount = decimal.Parse(importRecord.AdjustedValue);
+                        existingDebitMemo.UnearnedAmount = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "ServicesId")
                     {
-                        existingDM.ServicesId = int.Parse(importRecord.AdjustedValue);
+                        existingDebitMemo.ServicesId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "CreatedBy")
                     {
-                        existingDM.CreatedBy = importRecord.AdjustedValue;
+                        existingDebitMemo.CreatedBy = importRecord.AdjustedValue;
                     }
                     if (columnName == "CreatedDate")
                     {
-                        existingDM.CreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
+                        existingDebitMemo.CreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
                     }
                     if (columnName == "CancellationRemarks")
                     {
-                        existingDM.CancellationRemarks = importRecord.AdjustedValue;
+                        existingDebitMemo.CancellationRemarks = importRecord.AdjustedValue;
                     }
                     if (columnName == "OriginalSalesInvoiceId")
                     {
-                        existingDM.OriginalSalesInvoiceId = int.Parse(importRecord.AdjustedValue);
+                        existingDebitMemo.OriginalSalesInvoiceId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "OriginalSeriesNumber")
                     {
-                        existingDM.OriginalSeriesNumber = importRecord.AdjustedValue;
+                        existingDebitMemo.OriginalSeriesNumber = importRecord.AdjustedValue;
                     }
                     if (columnName == "OriginalServiceInvoiceId")
                     {
-                        existingDM.OriginalServiceInvoiceId = int.Parse(importRecord.AdjustedValue);
+                        existingDebitMemo.OriginalServiceInvoiceId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "OriginalDocumentId")
                     {
-                        existingDM.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
+                        existingDebitMemo.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
                     }
                 }
 
@@ -472,87 +499,92 @@ namespace Accounting_System.Controllers
 
                 if (tableName == "CreditMemo")
                 {
-                    var existingCM = await _dbContext.CreditMemos.FirstOrDefaultAsync(cm => cm.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+                    var existingCreditMemo = await _dbContext.CreditMemos.FirstOrDefaultAsync(cm => cm.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+
+                    if (existingCreditMemo == null || importRecord.AdjustedValue == null)
+                    {
+                        return NotFound();
+                    }
 
                     if (columnName == "CMNo")
                     {
-                        existingCM.CreditMemoNo = importRecord.AdjustedValue;
+                        existingCreditMemo.CreditMemoNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "TransactionDate")
                     {
-                        existingCM.TransactionDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                        existingCreditMemo.TransactionDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                     }
                     if (columnName == "CreditAmount")
                     {
-                        existingCM.CreditAmount = decimal.Parse(importRecord.AdjustedValue);
+                        existingCreditMemo.CreditAmount = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "Description")
                     {
-                        existingCM.Description = importRecord.AdjustedValue;
+                        existingCreditMemo.Description = importRecord.AdjustedValue;
                     }
                     if (columnName == "AdjustedPrice")
                     {
-                        existingCM.AdjustedPrice = decimal.Parse(importRecord.AdjustedValue);
+                        existingCreditMemo.AdjustedPrice = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "Quantity")
                     {
-                        existingCM.Quantity = decimal.Parse(importRecord.AdjustedValue);
+                        existingCreditMemo.Quantity = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "Source")
                     {
-                        existingCM.Source = importRecord.AdjustedValue;
+                        existingCreditMemo.Source = importRecord.AdjustedValue;
                     }
                     if (columnName == "Remarks")
                     {
-                        existingCM.Remarks = importRecord.AdjustedValue;
+                        existingCreditMemo.Remarks = importRecord.AdjustedValue;
                     }
                     if (columnName == "Period")
                     {
-                        existingCM.Period = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                        existingCreditMemo.Period = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                     }
                     if (columnName == "Amount")
                     {
-                        existingCM.Amount = decimal.Parse(importRecord.AdjustedValue);
+                        existingCreditMemo.Amount = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "CurrentAndPreviousAmount")
                     {
-                        existingCM.CurrentAndPreviousAmount = decimal.Parse(importRecord.AdjustedValue);
+                        existingCreditMemo.CurrentAndPreviousAmount = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "UnearnedAmount")
                     {
-                        existingCM.UnearnedAmount = decimal.Parse(importRecord.AdjustedValue);
+                        existingCreditMemo.UnearnedAmount = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "ServicesId")
                     {
-                        existingCM.ServicesId = int.Parse(importRecord.AdjustedValue);
+                        existingCreditMemo.ServicesId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "CreatedBy")
                     {
-                        existingCM.CreatedBy = importRecord.AdjustedValue;
+                        existingCreditMemo.CreatedBy = importRecord.AdjustedValue;
                     }
                     if (columnName == "CreatedDate")
                     {
-                        existingCM.CreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
+                        existingCreditMemo.CreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
                     }
                     if (columnName == "CancellationRemarks")
                     {
-                        existingCM.CancellationRemarks = importRecord.AdjustedValue;
+                        existingCreditMemo.CancellationRemarks = importRecord.AdjustedValue;
                     }
                     if (columnName == "OriginalSalesInvoiceId")
                     {
-                        existingCM.OriginalSalesInvoiceId = int.Parse(importRecord.AdjustedValue);
+                        existingCreditMemo.OriginalSalesInvoiceId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "OriginalSeriesNumber")
                     {
-                        existingCM.OriginalSeriesNumber = importRecord.AdjustedValue;
+                        existingCreditMemo.OriginalSeriesNumber = importRecord.AdjustedValue;
                     }
                     if (columnName == "OriginalServiceInvoiceId")
                     {
-                        existingCM.OriginalServiceInvoiceId = int.Parse(importRecord.AdjustedValue);
+                        existingCreditMemo.OriginalServiceInvoiceId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "OriginalDocumentId")
                     {
-                        existingCM.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
+                        existingCreditMemo.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
                     }
                 }
 
@@ -566,71 +598,76 @@ namespace Accounting_System.Controllers
 
                 if (tableName == "PurchaseOrder")
                 {
-                    var existingPO = await _dbContext.PurchaseOrders.FirstOrDefaultAsync(po => po.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+                    var existingPurchaseOrder = await _dbContext.PurchaseOrders.FirstOrDefaultAsync(po => po.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+
+                    if (existingPurchaseOrder == null || importRecord.AdjustedValue == null)
+                    {
+                        return NotFound();
+                    }
 
                     if (columnName == "PONo")
                     {
-                        existingPO.PurchaseOrderNo = importRecord.AdjustedValue;
+                        existingPurchaseOrder.PurchaseOrderNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "Date")
                     {
-                        existingPO.Date = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                        existingPurchaseOrder.Date = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                     }
                     if (columnName == "Terms")
                     {
-                        existingPO.Terms = importRecord.AdjustedValue;
+                        existingPurchaseOrder.Terms = importRecord.AdjustedValue;
                     }
                     if (columnName == "Quantity")
                     {
-                        existingPO.Quantity = decimal.Parse(importRecord.AdjustedValue);
+                        existingPurchaseOrder.Quantity = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "Price")
                     {
-                        existingPO.Price = decimal.Parse(importRecord.AdjustedValue);
+                        existingPurchaseOrder.Price = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "Amount")
                     {
-                        existingPO.Amount = decimal.Parse(importRecord.AdjustedValue);
+                        existingPurchaseOrder.Amount = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "FinalPrice")
                     {
-                        existingPO.FinalPrice = decimal.Parse(importRecord.AdjustedValue);
+                        existingPurchaseOrder.FinalPrice = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "Remarks")
                     {
-                        existingPO.Remarks = importRecord.AdjustedValue;
+                        existingPurchaseOrder.Remarks = importRecord.AdjustedValue;
                     }
                     if (columnName == "CreatedBy")
                     {
-                        existingPO.CreatedBy = importRecord.AdjustedValue;
+                        existingPurchaseOrder.CreatedBy = importRecord.AdjustedValue;
                     }
                     if (columnName == "CreatedDate")
                     {
-                        existingPO.CreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
+                        existingPurchaseOrder.CreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
                     }
                     if (columnName == "IsClosed")
                     {
-                        existingPO.IsClosed = bool.Parse(importRecord.AdjustedValue);
+                        existingPurchaseOrder.IsClosed = bool.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "CancellationRemarks")
                     {
-                        existingPO.CancellationRemarks = importRecord.AdjustedValue;
+                        existingPurchaseOrder.CancellationRemarks = importRecord.AdjustedValue;
                     }
                     if (columnName == "OriginalProductId")
                     {
-                        existingPO.OriginalProductId = int.Parse(importRecord.AdjustedValue);
+                        existingPurchaseOrder.OriginalProductId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "OriginalSeriesNumber")
                     {
-                        existingPO.OriginalSeriesNumber = importRecord.AdjustedValue;
+                        existingPurchaseOrder.OriginalSeriesNumber = importRecord.AdjustedValue;
                     }
                     if (columnName == "OriginalSupplierId")
                     {
-                        existingPO.OriginalSupplierId = int.Parse(importRecord.AdjustedValue);
+                        existingPurchaseOrder.OriginalSupplierId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "OriginalDocumentId")
                     {
-                        existingPO.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
+                        existingPurchaseOrder.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
                     }
                 }
 
@@ -640,83 +677,88 @@ namespace Accounting_System.Controllers
 
                 if (tableName == "ReceivingReport")
                 {
-                    var existingRR = await _dbContext.ReceivingReports.FirstOrDefaultAsync(rr => rr.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+                    var existingReceivingReport = await _dbContext.ReceivingReports.FirstOrDefaultAsync(rr => rr.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+
+                    if (existingReceivingReport == null || importRecord.AdjustedValue == null)
+                    {
+                        return NotFound();
+                    }
 
                     if (columnName == "RRNo")
                     {
-                        existingRR.ReceivingReportNo = importRecord.AdjustedValue;
+                        existingReceivingReport.ReceivingReportNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "Date")
                     {
-                        existingRR.Date = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                        existingReceivingReport.Date = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                     }
                     if (columnName == "DueDate")
                     {
-                        existingRR.DueDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                        existingReceivingReport.DueDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                     }
                     if (columnName == "SupplierInvoiceNumber")
                     {
-                        existingRR.SupplierInvoiceNumber = importRecord.AdjustedValue;
+                        existingReceivingReport.SupplierInvoiceNumber = importRecord.AdjustedValue;
                     }
                     if (columnName == "SupplierInvoiceDate")
                     {
-                        existingRR.SupplierInvoiceDate = importRecord.AdjustedValue;
+                        existingReceivingReport.SupplierInvoiceDate = importRecord.AdjustedValue;
                     }
                     if (columnName == "TruckOrVessels")
                     {
-                        existingRR.TruckOrVessels = importRecord.AdjustedValue;
+                        existingReceivingReport.TruckOrVessels = importRecord.AdjustedValue;
                     }
                     if (columnName == "QuantityDelivered")
                     {
-                        existingRR.QuantityDelivered = decimal.Parse(importRecord.AdjustedValue);
+                        existingReceivingReport.QuantityDelivered = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "QuantityReceived")
                     {
-                        existingRR.QuantityReceived = decimal.Parse(importRecord.AdjustedValue);
+                        existingReceivingReport.QuantityReceived = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "GainOrLoss")
                     {
-                        existingRR.GainOrLoss = decimal.Parse(importRecord.AdjustedValue);
+                        existingReceivingReport.GainOrLoss = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "Amount")
                     {
-                        existingRR.Amount = decimal.Parse(importRecord.AdjustedValue);
+                        existingReceivingReport.Amount = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "OtherRef")
                     {
-                        existingRR.OtherRef = importRecord.AdjustedValue;
+                        existingReceivingReport.OtherRef = importRecord.AdjustedValue;
                     }
                     if (columnName == "Remarks")
                     {
-                        existingRR.Remarks = importRecord.AdjustedValue;
+                        existingReceivingReport.Remarks = importRecord.AdjustedValue;
                     }
                     if (columnName == "CreatedBy")
                     {
-                        existingRR.CreatedBy = importRecord.AdjustedValue;
+                        existingReceivingReport.CreatedBy = importRecord.AdjustedValue;
                     }
                     if (columnName == "CreatedDate")
                     {
-                        existingRR.CreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
+                        existingReceivingReport.CreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
                     }
                     if (columnName == "CancellationRemarks")
                     {
-                        existingRR.CancellationRemarks = importRecord.AdjustedValue;
+                        existingReceivingReport.CancellationRemarks = importRecord.AdjustedValue;
                     }
                     if (columnName == "ReceivedDate")
                     {
-                        existingRR.ReceivedDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                        existingReceivingReport.ReceivedDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                     }
                     if (columnName == "OriginalPOId")
                     {
-                        existingRR.OriginalPOId = int.Parse(importRecord.AdjustedValue);
+                        existingReceivingReport.OriginalPOId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "OriginalSeriesNumber")
                     {
-                        existingRR.OriginalSeriesNumber = importRecord.AdjustedValue;
+                        existingReceivingReport.OriginalSeriesNumber = importRecord.AdjustedValue;
                     }
                     if (columnName == "OriginalDocumentId")
                     {
-                        existingRR.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
+                        existingReceivingReport.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
                     }
                 }
 
@@ -726,135 +768,140 @@ namespace Accounting_System.Controllers
 
                 if (tableName == "CheckVoucherHeader")
                 {
-                    var existingCVH = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cv => cv.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+                    var existingCheckVoucherHeader = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cv => cv.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+
+                    if (existingCheckVoucherHeader == null || importRecord.AdjustedValue == null)
+                    {
+                        return NotFound();
+                    }
 
                     if (columnName == "CVNo")
                     {
-                        existingCVH.CheckVoucherHeaderNo = importRecord.AdjustedValue;
+                        existingCheckVoucherHeader.CheckVoucherHeaderNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "Date")
                     {
-                        existingCVH.Date = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                        existingCheckVoucherHeader.Date = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                     }
                     if (columnName == "RRNo")
                     {
-                        existingCVH.RRNo = [importRecord.AdjustedValue];
+                        existingCheckVoucherHeader.RRNo = [importRecord.AdjustedValue];
                     }
                     if (columnName == "SINo")
                     {
-                        existingCVH.SINo = [importRecord.AdjustedValue];
+                        existingCheckVoucherHeader.SINo = [importRecord.AdjustedValue];
                     }
                     if (columnName == "PONo")
                     {
-                        existingCVH.PONo = [importRecord.AdjustedValue];
+                        existingCheckVoucherHeader.PONo = [importRecord.AdjustedValue];
                     }
                     if (columnName == "Particulars")
                     {
-                        existingCVH.Particulars = importRecord.AdjustedValue;
+                        existingCheckVoucherHeader.Particulars = importRecord.AdjustedValue;
                     }
                     if (columnName == "CheckNo")
                     {
-                        existingCVH.CheckNo = importRecord.AdjustedValue;
+                        existingCheckVoucherHeader.CheckNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "Category")
                     {
-                        existingCVH.Category = importRecord.AdjustedValue;
+                        existingCheckVoucherHeader.Category = importRecord.AdjustedValue;
                     }
                     if (columnName == "Payee")
                     {
-                        existingCVH.Payee = importRecord.AdjustedValue;
+                        existingCheckVoucherHeader.Payee = importRecord.AdjustedValue;
                     }
                     if (columnName == "CheckDate")
                     {
-                        existingCVH.CheckDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                        existingCheckVoucherHeader.CheckDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                     }
                     if (columnName == "StartDate")
                     {
-                        existingCVH.StartDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                        existingCheckVoucherHeader.StartDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                     }
                     if (columnName == "EndDate")
                     {
-                        existingCVH.EndDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                        existingCheckVoucherHeader.EndDate = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                     }
                     if (columnName == "NumberOfMonths")
                     {
-                        existingCVH.NumberOfMonths = int.Parse(importRecord.AdjustedValue);
+                        existingCheckVoucherHeader.NumberOfMonths = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "NumberOfMonthsCreated")
                     {
-                        existingCVH.NumberOfMonthsCreated = int.Parse(importRecord.AdjustedValue);
+                        existingCheckVoucherHeader.NumberOfMonthsCreated = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "LastCreatedDate")
                     {
-                        existingCVH.LastCreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
+                        existingCheckVoucherHeader.LastCreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
                     }
                     if (columnName == "AmountPerMonth")
                     {
-                        existingCVH.AmountPerMonth = decimal.Parse(importRecord.AdjustedValue);
+                        existingCheckVoucherHeader.AmountPerMonth = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "IsComplete")
                     {
-                        existingCVH.IsComplete = bool.Parse(importRecord.AdjustedValue);
+                        existingCheckVoucherHeader.IsComplete = bool.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "AccruedType")
                     {
-                        existingCVH.AccruedType = importRecord.AdjustedValue;
+                        existingCheckVoucherHeader.AccruedType = importRecord.AdjustedValue;
                     }
-                    if (columnName == "Reference" && existingCVH.CvType == "Payment")
+                    if (columnName == "Reference" && existingCheckVoucherHeader.CvType == "Payment")
                     {
-                        existingCVH.Reference = importRecord.AdjustedValue;
+                        existingCheckVoucherHeader.Reference = importRecord.AdjustedValue;
                     }
                     if (columnName == "CreatedBy")
                     {
-                        existingCVH.CreatedBy = importRecord.AdjustedValue;
+                        existingCheckVoucherHeader.CreatedBy = importRecord.AdjustedValue;
                     }
                     if (columnName == "CreatedDate")
                     {
-                        existingCVH.CreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
+                        existingCheckVoucherHeader.CreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
                     }
                     if (columnName == "Total")
                     {
-                        existingCVH.Total = decimal.Parse(importRecord.AdjustedValue);
+                        existingCheckVoucherHeader.Total = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "Amount")
                     {
-                        existingCVH.Amount = [decimal.Parse(importRecord.AdjustedValue)];
+                        existingCheckVoucherHeader.Amount = [decimal.Parse(importRecord.AdjustedValue)];
                     }
                     if (columnName == "CheckAmount")
                     {
-                        existingCVH.CheckAmount = decimal.Parse(importRecord.AdjustedValue);
+                        existingCheckVoucherHeader.CheckAmount = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "CvType")
                     {
-                        existingCVH.CvType = importRecord.AdjustedValue;
+                        existingCheckVoucherHeader.CvType = importRecord.AdjustedValue;
                     }
                     if (columnName == "AmountPaid")
                     {
-                        existingCVH.AmountPaid = decimal.Parse(importRecord.AdjustedValue);
+                        existingCheckVoucherHeader.AmountPaid = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "IsPaid")
                     {
-                        existingCVH.IsPaid = bool.Parse(importRecord.AdjustedValue);
+                        existingCheckVoucherHeader.IsPaid = bool.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "CancellationRemarks")
                     {
-                        existingCVH.CancellationRemarks = importRecord.AdjustedValue;
+                        existingCheckVoucherHeader.CancellationRemarks = importRecord.AdjustedValue;
                     }
                     if (columnName == "OriginalBankId")
                     {
-                        existingCVH.OriginalBankId = int.Parse(importRecord.AdjustedValue);
+                        existingCheckVoucherHeader.OriginalBankId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "OriginalSeriesNumber")
                     {
-                        existingCVH.OriginalSeriesNumber = importRecord.AdjustedValue;
+                        existingCheckVoucherHeader.OriginalSeriesNumber = importRecord.AdjustedValue;
                     }
                     if (columnName == "OriginalSupplierId")
                     {
-                        existingCVH.OriginalSupplierId = int.Parse(importRecord.AdjustedValue);
+                        existingCheckVoucherHeader.OriginalSupplierId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "OriginalDocumentId")
                     {
-                        existingCVH.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
+                        existingCheckVoucherHeader.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
                     }
                 }
 
@@ -864,35 +911,40 @@ namespace Accounting_System.Controllers
 
                 if (tableName == "CheckVoucherDetails")
                 {
-                    var existingCVD = await _dbContext.CheckVoucherDetails.FirstOrDefaultAsync(cv => cv.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+                    var existingCheckVoucherDetail = await _dbContext.CheckVoucherDetails.FirstOrDefaultAsync(cv => cv.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+
+                    if (existingCheckVoucherDetail == null || importRecord.AdjustedValue == null)
+                    {
+                        return NotFound();
+                    }
 
                     if (columnName == "AccountNo")
                     {
-                        existingCVD.AccountNo = importRecord.AdjustedValue;
+                        existingCheckVoucherDetail.AccountNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "AccountName")
                     {
-                        existingCVD.AccountName = importRecord.AdjustedValue;
+                        existingCheckVoucherDetail.AccountName = importRecord.AdjustedValue;
                     }
                     if (columnName == "Debit")
                     {
-                        existingCVD.Debit = decimal.Parse(importRecord.AdjustedValue);
+                        existingCheckVoucherDetail.Debit = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "Credit")
                     {
-                        existingCVD.Credit = decimal.Parse(importRecord.AdjustedValue);
+                        existingCheckVoucherDetail.Credit = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "OriginalDocumentId")
                     {
-                        existingCVD.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
+                        existingCheckVoucherDetail.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "CVHeaderId")
                     {
-                        existingCVD.CheckVoucherHeaderId = int.Parse(importRecord.AdjustedValue);
+                        existingCheckVoucherDetail.CheckVoucherHeaderId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "TransactionNo")
                     {
-                        existingCVD.TransactionNo = importRecord.AdjustedValue;
+                        existingCheckVoucherDetail.TransactionNo = importRecord.AdjustedValue;
                     }
                 }
 
@@ -902,55 +954,60 @@ namespace Accounting_System.Controllers
 
                 if (tableName == "JournalVoucherHeader")
                 {
-                    var existingJVH = await _dbContext.JournalVoucherHeaders.FirstOrDefaultAsync(jv => jv.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+                    var existingJournalVoucherHeader = await _dbContext.JournalVoucherHeaders.FirstOrDefaultAsync(jv => jv.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+
+                    if (existingJournalVoucherHeader == null || importRecord.AdjustedValue == null)
+                    {
+                        return NotFound();
+                    }
 
                     if (columnName == "JVNo")
                     {
-                        existingJVH.JournalVoucherHeaderNo = importRecord.AdjustedValue;
+                        existingJournalVoucherHeader.JournalVoucherHeaderNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "Date")
                     {
-                        existingJVH.Date = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
+                        existingJournalVoucherHeader.Date = DateOnly.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd");
                     }
                     if (columnName == "References")
                     {
-                        existingJVH.References = importRecord.AdjustedValue;
+                        existingJournalVoucherHeader.References = importRecord.AdjustedValue;
                     }
                     if (columnName == "Particulars")
                     {
-                        existingJVH.Particulars = importRecord.AdjustedValue;
+                        existingJournalVoucherHeader.Particulars = importRecord.AdjustedValue;
                     }
                     if (columnName == "CRNo")
                     {
-                        existingJVH.CRNo = importRecord.AdjustedValue;
+                        existingJournalVoucherHeader.CRNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "JVReason")
                     {
-                        existingJVH.JVReason = importRecord.AdjustedValue;
+                        existingJournalVoucherHeader.JVReason = importRecord.AdjustedValue;
                     }
                     if (columnName == "CreatedBy")
                     {
-                        existingJVH.CreatedBy = importRecord.AdjustedValue;
+                        existingJournalVoucherHeader.CreatedBy = importRecord.AdjustedValue;
                     }
                     if (columnName == "CreatedDate")
                     {
-                        existingJVH.CreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
+                        existingJournalVoucherHeader.CreatedDate = DateTime.ParseExact(importRecord.AdjustedValue, "yyyy-MM-dd hh:mm:ss.ffffff", null);
                     }
                     if (columnName == "CancellationRemarks")
                     {
-                        existingJVH.CancellationRemarks = importRecord.AdjustedValue;
+                        existingJournalVoucherHeader.CancellationRemarks = importRecord.AdjustedValue;
                     }
                     if (columnName == "OriginalCVId")
                     {
-                        existingJVH.OriginalCVId = int.Parse(importRecord.AdjustedValue);
+                        existingJournalVoucherHeader.OriginalCVId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "OriginalSeriesNumber")
                     {
-                        existingJVH.OriginalSeriesNumber = importRecord.AdjustedValue;
+                        existingJournalVoucherHeader.OriginalSeriesNumber = importRecord.AdjustedValue;
                     }
                     if (columnName == "OriginalDocumentId")
                     {
-                        existingJVH.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
+                        existingJournalVoucherHeader.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
                     }
                 }
 
@@ -960,35 +1017,40 @@ namespace Accounting_System.Controllers
 
                 if (tableName == "JournalVoucherDetails")
                 {
-                    var existingJVD = await _dbContext.JournalVoucherDetails.FirstOrDefaultAsync(jv => jv.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+                    var existingJournalVoucherDetail = await _dbContext.JournalVoucherDetails.FirstOrDefaultAsync(jv => jv.OriginalDocumentId == importRecord.DocumentRecordId, cancellationToken);
+
+                    if (existingJournalVoucherDetail == null || importRecord.AdjustedValue == null)
+                    {
+                        return NotFound();
+                    }
 
                     if (columnName == "AccountNo")
                     {
-                        existingJVD.AccountNo = importRecord.AdjustedValue;
+                        existingJournalVoucherDetail.AccountNo = importRecord.AdjustedValue;
                     }
                     if (columnName == "AccountName")
                     {
-                        existingJVD.AccountName = importRecord.AdjustedValue;
+                        existingJournalVoucherDetail.AccountName = importRecord.AdjustedValue;
                     }
                     if (columnName == "Debit")
                     {
-                        existingJVD.Debit = decimal.Parse(importRecord.AdjustedValue);
+                        existingJournalVoucherDetail.Debit = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "Credit")
                     {
-                        existingJVD.Credit = decimal.Parse(importRecord.AdjustedValue);
+                        existingJournalVoucherDetail.Credit = decimal.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "OriginalDocumentId")
                     {
-                        existingJVD.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
+                        existingJournalVoucherDetail.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "JVHeaderId")
                     {
-                        existingJVD.JournalVoucherHeaderId = int.Parse(importRecord.AdjustedValue);
+                        existingJournalVoucherDetail.JournalVoucherHeaderId = int.Parse(importRecord.AdjustedValue);
                     }
                     if (columnName == "TransactionNo")
                     {
-                        existingJVD.TransactionNo = importRecord.AdjustedValue;
+                        existingJournalVoucherDetail.TransactionNo = importRecord.AdjustedValue;
                     }
                 }
 
@@ -1000,12 +1062,9 @@ namespace Accounting_System.Controllers
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
             try
             {
-                if (importRecord != null)
-                {
-                    importRecord.Action = procedure;
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    await transaction.CommitAsync(cancellationToken);
-                }
+                importRecord.Action = procedure;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
             }
             catch (Exception ex)
             {

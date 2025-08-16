@@ -33,7 +33,7 @@ namespace Accounting_System.Repository
 
             if (serviceInvoice != null)
             {
-                string lastSeries = serviceInvoice.ServiceInvoiceNo;
+                string lastSeries = serviceInvoice.ServiceInvoiceNo!;
                 string numericPart = lastSeries.Substring(2);
                 int incrementedNumber = int.Parse(numericPart) + 1;
 

@@ -82,7 +82,7 @@ namespace Accounting_System.Controllers
                     if (customer.OriginalCustomerId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(customer.CreatedBy, $"Created new customer {customer.CustomerName}", "Customer", ipAddress);
+                        AuditTrail auditTrailBook = new(customer.CreatedBy!, $"Created new customer {customer.CustomerName}", "Customer", ipAddress!);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -113,10 +113,10 @@ namespace Accounting_System.Controllers
         {
             try
             {
-                var customers = await _dbContext.Customers.FindAsync(id, cancellationToken);
+                var customers = await _dbContext.Customers.FirstOrDefaultAsync(x => x.CustomerId == id, cancellationToken);
                 return View(customers);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, "An error occurred. Please try again later.");
             }
@@ -154,7 +154,7 @@ namespace Accounting_System.Controllers
                         if (customer.OriginalCustomerId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Updated customer {customer.CustomerName}", "Customer", ipAddress);
+                            AuditTrail auditTrailBook = new(User.Identity!.Name!, $"Updated customer {customer.CustomerName}", "Customer", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -203,7 +203,7 @@ namespace Accounting_System.Controllers
                 var selectedList = await _dbContext.Customers
                     .Where(c => recordIds.Contains(c.CustomerId))
                     .OrderBy(c => c.CustomerId)
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken: cancellationToken);
 
                 // Create the Excel package
                 using var package = new ExcelPackage();
@@ -246,7 +246,7 @@ namespace Accounting_System.Controllers
                 }
 
                 // Convert the Excel package to a byte array
-                var excelBytes = await package.GetAsByteArrayAsync();
+                var excelBytes = await package.GetAsByteArrayAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
                 return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "CustomerList.xlsx");
 		    }
@@ -267,70 +267,66 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
-            if (file == null || file.Length == 0)
+            if (file.Length == 0)
             {
                 return RedirectToAction(nameof(Index));
             }
 
-            var customers = new List<Customer>();
-
             using (var stream = new MemoryStream())
             {
-                await file.CopyToAsync(stream);
+                await file.CopyToAsync(stream, cancellationToken);
                 stream.Position = 0;
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
                 try
                 {
-                    using (var package = new ExcelPackage(stream))
+                    using var package = new ExcelPackage(stream);
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null)
                     {
-                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                        if (worksheet == null)
-                        {
-                            TempData["error"] = "The Excel file contains no worksheets.";
-                            return RedirectToAction(nameof(Index), new { view = DynamicView.Customer });
-                        }
-                        if (worksheet.ToString() != "Customers")
-                        {
-                            TempData["error"] = "The Excel file is not related to customer master file.";
-                            return RedirectToAction(nameof(Index), new { view = DynamicView.Customer });
-                        }
-
-                        var rowCount = worksheet.Dimension.Rows;
-                        var customerList = await _dbContext
-                            .Customers
-                            .ToListAsync(cancellationToken);
-
-                        for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
-                        {
-                            var customer = new Customer
-                            {
-                                Number = await _customerRepo.GetLastNumber(),
-                                CustomerName = worksheet.Cells[row, 1].Text,
-                                CustomerAddress = worksheet.Cells[row, 2].Text,
-                                ZipCode = worksheet.Cells[row, 3].Text,
-                                CustomerTin = worksheet.Cells[row, 4].Text,
-                                BusinessStyle = worksheet.Cells[row, 5].Text,
-                                CustomerTerms = worksheet.Cells[row, 6].Text,
-                                CustomerType = worksheet.Cells[row, 7].Text,
-                                WithHoldingVat = bool.TryParse(worksheet.Cells[row, 8].Text, out bool withHoldingVat) ? withHoldingVat : false,
-                                WithHoldingTax = bool.TryParse(worksheet.Cells[row, 9].Text, out bool withHoldingTax) ? withHoldingTax : false,
-                                CreatedBy = worksheet.Cells[row, 10].Text,
-                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 11].Text, out DateTime createdDate) ? createdDate : default,
-                                OriginalCustomerId = int.TryParse(worksheet.Cells[row, 12].Text, out int customerId) ? customerId : 0,
-                                OriginalCustomerNumber = worksheet.Cells[row, 13].Text,
-                            };
-
-                            if (customerList.Any(c => c.OriginalCustomerId == customer.OriginalCustomerId))
-                            {
-                                continue;
-                            }
-
-                            await _dbContext.Customers.AddAsync(customer, cancellationToken);
-                            await _dbContext.SaveChangesAsync(cancellationToken);
-                        }
-                        await transaction.CommitAsync(cancellationToken);
+                        TempData["error"] = "The Excel file contains no worksheets.";
+                        return RedirectToAction(nameof(Index), new { view = DynamicView.Customer });
                     }
+                    if (worksheet.ToString() != "Customers")
+                    {
+                        TempData["error"] = "The Excel file is not related to customer master file.";
+                        return RedirectToAction(nameof(Index), new { view = DynamicView.Customer });
+                    }
+
+                    var rowCount = worksheet.Dimension.Rows;
+                    var customerList = await _dbContext
+                        .Customers
+                        .ToListAsync(cancellationToken);
+
+                    for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                    {
+                        var customer = new Customer
+                        {
+                            Number = await _customerRepo.GetLastNumber(cancellationToken),
+                            CustomerName = worksheet.Cells[row, 1].Text,
+                            CustomerAddress = worksheet.Cells[row, 2].Text,
+                            ZipCode = worksheet.Cells[row, 3].Text,
+                            CustomerTin = worksheet.Cells[row, 4].Text,
+                            BusinessStyle = worksheet.Cells[row, 5].Text,
+                            CustomerTerms = worksheet.Cells[row, 6].Text,
+                            CustomerType = worksheet.Cells[row, 7].Text,
+                            WithHoldingVat = bool.TryParse(worksheet.Cells[row, 8].Text, out bool withHoldingVat) && withHoldingVat,
+                            WithHoldingTax = bool.TryParse(worksheet.Cells[row, 9].Text, out bool withHoldingTax) && withHoldingTax,
+                            CreatedBy = worksheet.Cells[row, 10].Text,
+                            CreatedDate = DateTime.TryParse(worksheet.Cells[row, 11].Text, out DateTime createdDate) ? createdDate : default,
+                            OriginalCustomerId = int.TryParse(worksheet.Cells[row, 12].Text, out int customerId) ? customerId : 0,
+                            OriginalCustomerNumber = worksheet.Cells[row, 13].Text,
+                        };
+
+                        if (customerList.Any(c => c.OriginalCustomerId == customer.OriginalCustomerId))
+                        {
+                            continue;
+                        }
+
+                        await _dbContext.Customers.AddAsync(customer, cancellationToken);
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                    }
+                    await transaction.CommitAsync(cancellationToken);
                 }
                 catch (OperationCanceledException oce)
                 {

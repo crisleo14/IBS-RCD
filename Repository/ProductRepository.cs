@@ -15,7 +15,7 @@ namespace Accounting_System.Repository
         public async Task<bool> IsProductCodeExist(string productCode, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Products
-                .AnyAsync(p => p.ProductCode.ToUpper() == productCode.ToUpper(), cancellationToken);
+                .AnyAsync(p => p.ProductCode!.ToUpper() == productCode.ToUpper(), cancellationToken);
         }
 
         public async Task<bool> IsProductNameExist(string productName, CancellationToken cancellationToken = default)

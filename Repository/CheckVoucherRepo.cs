@@ -1,7 +1,6 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Models.AccountsPayable;
-using Accounting_System.Utility;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Repository
@@ -37,16 +36,14 @@ namespace Accounting_System.Repository
 
                 return lastSeries.Substring(0, 2) + incrementedNumber.ToString("D10");
             }
-            else
-            {
-                return $"CV{1.ToString("D10")}";
-            }
+
+            return $"CV{1.ToString("D10")}";
         }
 
         public async Task UpdateInvoicingVoucher(decimal paymentAmount, int invoiceVoucherId, CancellationToken cancellationToken = default)
         {
             var invoiceVoucher = await _dbContext.CheckVoucherHeaders
-                .FindAsync(invoiceVoucherId, cancellationToken);
+                .FirstOrDefaultAsync(x => x.CheckVoucherHeaderId == invoiceVoucherId, cancellationToken);
 
             if (invoiceVoucher != null)
             {
@@ -93,7 +90,7 @@ namespace Accounting_System.Repository
                 {
                     Id = Guid.NewGuid(),
                     TableName = "CheckVoucherDetails",
-                    DocumentRecordId = id.Value,
+                    DocumentRecordId = id!.Value,
                     ColumnName = change.Key,
                     Module = "Check Voucher Details",
                     OriginalValue = change.Value.OriginalValue,

@@ -37,16 +37,17 @@ namespace Accounting_System.Controllers
         [HttpGet]
         public async Task<IActionResult> BeginningInventory(CancellationToken cancellationToken)
         {
-            BeginningInventoryViewModel? viewModel = new();
-
-            viewModel.ProductList = await _dbContext.Products
-                .OrderBy(p => p.ProductCode)
-                .Select(p => new SelectListItem
-                {
-                    Value = p.ProductId.ToString(),
-                    Text = $"{p.ProductCode} {p.ProductName}"
-                })
-                .ToListAsync(cancellationToken);
+            BeginningInventoryViewModel viewModel = new()
+            {
+                ProductList = await _dbContext.Products
+                    .OrderBy(p => p.ProductCode)
+                    .Select(p => new SelectListItem
+                    {
+                        Value = p.ProductId.ToString(),
+                        Text = $"{p.ProductCode} {p.ProductName}"
+                    })
+                    .ToListAsync(cancellationToken)
+            };
 
             return View(viewModel);
         }
@@ -104,16 +105,17 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> InventoryReport(CancellationToken cancellationToken)
         {
-            InventoryReportViewModel viewModel = new InventoryReportViewModel();
-
-            viewModel.Products = await _dbContext.Products
-                .OrderBy(p => p.ProductCode)
-                .Select(p => new SelectListItem
-                {
-                    Value = p.ProductId.ToString(),
-                    Text = $"{p.ProductCode} {p.ProductName}"
-                })
-                .ToListAsync(cancellationToken);
+            InventoryReportViewModel viewModel = new InventoryReportViewModel
+            {
+                Products = await _dbContext.Products
+                    .OrderBy(p => p.ProductCode)
+                    .Select(p => new SelectListItem
+                    {
+                        Value = p.ProductId.ToString(),
+                        Text = $"{p.ProductCode} {p.ProductName}"
+                    })
+                    .ToListAsync(cancellationToken)
+            };
 
             return View(viewModel);
         }
@@ -131,7 +133,7 @@ namespace Accounting_System.Controllers
                     .ThenBy(e => e.Id)
                     .LastOrDefaultAsync(e => e.Date.Month == previousMonth, cancellationToken);
 
-                List<Inventory> inventories = new List<Inventory>();
+                List<Inventory> inventories;
                 if (endingBalance != null)
                 {
                     inventories = await _dbContext.Inventories
@@ -146,9 +148,9 @@ namespace Accounting_System.Controllers
                 }
 
                 var product = await _dbContext.Products
-                    .FindAsync(viewModel.ProductId, cancellationToken);
+                    .FirstOrDefaultAsync(x => x.ProductId == viewModel.ProductId, cancellationToken);
 
-                ViewData["Product"] = product.ProductName;
+                ViewData["Product"] = product!.ProductName;
                 ViewBag.ProductId = viewModel.ProductId;
 
                 return View(inventories);
@@ -169,9 +171,9 @@ namespace Accounting_System.Controllers
                         .ToListAsync(cancellationToken);
 
                 var product = await _dbContext.Products
-                    .FindAsync(viewModel.ProductId, cancellationToken);
+                    .FirstOrDefaultAsync(x => x.ProductId == viewModel.ProductId, cancellationToken);
 
-                ViewData["Product"] = product.ProductName;
+                ViewData["Product"] = product!.ProductName;
                 ViewBag.ProductId = viewModel.ProductId;
 
                 return View(inventories);
@@ -183,25 +185,25 @@ namespace Accounting_System.Controllers
         [HttpGet]
         public async Task<IActionResult> ActualInventory(CancellationToken cancellationToken)
         {
-            ActualInventoryViewModel? viewModel = new();
-
-            viewModel.ProductList = await _dbContext.Products
-                .OrderBy(p => p.ProductCode)
-                .Select(p => new SelectListItem
-                {
-                    Value = p.ProductId.ToString(),
-                    Text = $"{p.ProductCode} {p.ProductName}"
-                })
-                .ToListAsync(cancellationToken);
-
-            viewModel.COA = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 && (coa.AccountName.StartsWith("AR-Non Trade Receivable") || coa.AccountName.StartsWith("COGS") || coa.AccountNumber.StartsWith("6010103")))
-                .Select(s => new SelectListItem
-                {
-                    Value = s.AccountNumber,
-                    Text = s.AccountNumber + " " + s.AccountName
-                })
-                .ToListAsync(cancellationToken);
+            ActualInventoryViewModel viewModel = new()
+            {
+                ProductList = await _dbContext.Products
+                    .OrderBy(p => p.ProductCode)
+                    .Select(p => new SelectListItem
+                    {
+                        Value = p.ProductId.ToString(),
+                        Text = $"{p.ProductCode} {p.ProductName}"
+                    })
+                    .ToListAsync(cancellationToken),
+                COA = await _dbContext.ChartOfAccounts
+                    .Where(coa => coa.Level == 4 && (coa.AccountName.StartsWith("AR-Non Trade Receivable") || coa.AccountName.StartsWith("COGS") || coa.AccountNumber!.StartsWith("6010103")))
+                    .Select(s => new SelectListItem
+                    {
+                        Value = s.AccountNumber,
+                        Text = s.AccountNumber + " " + s.AccountName
+                    })
+                    .ToListAsync(cancellationToken)
+            };
 
             return View(viewModel);
         }
@@ -219,7 +221,7 @@ namespace Accounting_System.Controllers
 
                 if (getPerBook != null)
                 {
-                    return Json(new { InventoryBalance = getPerBook.InventoryBalance, AverageCost = getPerBook.AverageCost, TotalBalance = getPerBook.TotalBalance });
+                    return Json(new { getPerBook.InventoryBalance, getPerBook.AverageCost, getPerBook.TotalBalance });
                 }
             }
             return Json(new { InventoryBalance = 0.00, AverageCost = 0.00, TotalBalance = 0.00 });
@@ -251,7 +253,7 @@ namespace Accounting_System.Controllers
                         .ToListAsync(cancellationToken);
 
                     viewModel.COA = await _dbContext.ChartOfAccounts
-                        .Where(coa => coa.Level == 4 && (coa.AccountName.StartsWith("AR-Non Trade Receivable") || coa.AccountName.StartsWith("COGS") || coa.AccountNumber.StartsWith("6010103")))
+                        .Where(coa => coa.Level == 4 && (coa.AccountName.StartsWith("AR-Non Trade Receivable") || coa.AccountName.StartsWith("COGS") || coa.AccountNumber!.StartsWith("6010103")))
                         .Select(s => new SelectListItem
                         {
                             Value = s.AccountNumber,
@@ -274,7 +276,7 @@ namespace Accounting_System.Controllers
                 .ToListAsync(cancellationToken);
 
             viewModel.COA = await _dbContext.ChartOfAccounts
-                .Where(coa => coa.Level == 4 && (coa.AccountName.StartsWith("AR-Non Trade Receivable") || coa.AccountName.StartsWith("COGS") || coa.AccountNumber.StartsWith("6010103")))
+                .Where(coa => coa.Level == 4 && (coa.AccountName.StartsWith("AR-Non Trade Receivable") || coa.AccountName.StartsWith("COGS") || coa.AccountNumber!.StartsWith("6010103")))
                 .Select(s => new SelectListItem
                 {
                     Value = s.AccountNumber,
@@ -299,11 +301,11 @@ namespace Accounting_System.Controllers
                 Inventory? inventory = await _dbContext.Inventories
                     .FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
 
-                IEnumerable<GeneralLedgerBook>? ledgerEntries = await _dbContext.GeneralLedgerBooks
-                    .Where(l => l.Reference == inventory.Id.ToString())
+                IEnumerable<GeneralLedgerBook> ledgerEntries = await _dbContext.GeneralLedgerBooks
+                    .Where(l => l.Reference == inventory!.Id.ToString())
                     .ToListAsync(cancellationToken);
 
-                if (inventory != null || ledgerEntries != null)
+                if (inventory != null || ledgerEntries.Any())
                 {
                     #region -- Journal Voucher entry --
 
@@ -311,7 +313,7 @@ namespace Accounting_System.Controllers
                         {
                             JournalVoucherHeaderNo = await _journalVoucherRepo.GenerateJVNo(cancellationToken),
                             JVReason = "Actual Inventory",
-                            Particulars = inventory.Particular,
+                            Particulars = inventory!.Particular,
                             Date = inventory.Date,
                             CreatedBy = _userManager.GetUserName(this.User),
                             CreatedDate = DateTime.Now,

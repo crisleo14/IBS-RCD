@@ -1,6 +1,5 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
-using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -42,16 +41,14 @@ namespace Accounting_System.Repository
 
             if (lastAccount != null)
             {
-                var accountNo = Int32.Parse(lastAccount.AccountNumber);
+                var accountNo = Int32.Parse(lastAccount.AccountNumber!);
 
                 var generatedNo = accountNo + 1;
 
                 return generatedNo.ToString();
             }
-            else
-            {
-                return parent + "01";
-            }
+
+            return parent + "01";
         }
 
         public IEnumerable<ChartOfAccountSummary> GetSummaryReportView(CancellationToken cancellationToken = default)
@@ -59,7 +56,8 @@ namespace Accounting_System.Repository
             var query = from c in _dbContext.ChartOfAccounts
                         join gl in _dbContext.GeneralLedgerBooks on c.AccountNumber equals gl.AccountNo into glGroup
                         from gl in glGroup.DefaultIfEmpty()
-                        group new { c, gl } by new { Level = c.Level, AccountNumber = c.AccountNumber, AccountName = c.AccountName, AccountType = c.AccountType, Parent = c.Parent } into g
+                        group new { c, gl } by new { c.Level, c.AccountNumber, c.AccountName, c.AccountType,
+                            c.Parent } into g
                         select new ChartOfAccountSummary
                         {
                             Level = g.Key.Level,
@@ -88,7 +86,7 @@ namespace Accounting_System.Repository
                         parentAccount.Debit += account.Value.Debit;
                         parentAccount.Credit += account.Value.Credit;
                         parentAccount.Balance += account.Value.Balance;
-                        parentAccount.Children.Add(account.Value);
+                        parentAccount.Children!.Add(account.Value);
                     }
                 }
             }
