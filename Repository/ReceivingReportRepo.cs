@@ -243,12 +243,12 @@ namespace Accounting_System.Repository
                 .ThenInclude(prod => prod!.Product)
                 .ToListAsync(cancellationToken);
 
-            if (rr.Any())
+            if (rr.Any() && rr.Count > 0)
             {
                 return rr;
             }
 
-            throw new ArgumentException("Error in get data of rr's.");
+            return new List<ReceivingReport>();
         }
 
         public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy)
