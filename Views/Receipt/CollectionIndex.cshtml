@@ -76,7 +76,7 @@
                         }
                     },
                     {
-                        "data": null,
+                        "data": "siNo",
                         "render": function (data, type, row) {
                             if (row.salesInvoiceId != null) {
                                 return row.siNo;
@@ -98,7 +98,7 @@
                     },
                     { "data": "createdBy" },
                     {
-                        "data": null,
+                        "data": "isPosted",
                         "render": function (data, type, row) {
                             let status = row.isPosted && !row.isVoided && !row.isCanceled
                                 ? "Posted"
@@ -116,7 +116,7 @@
                         }     
                     },
                     {
-                        "data": null,
+                        "data": "collectionReceiptId",
                         "orderable": false,
                         "render": function (data, type, row) {
                             let dropdownHtml = `

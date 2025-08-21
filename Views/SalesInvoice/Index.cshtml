@@ -83,7 +83,7 @@
                     },
                     { data: 'createdBy' },
                     {
-                        "data": null,
+                        "data": "isPosted",
                         "render": function (data, type, row) {
                             let status = row.isPosted && !row.isVoided && !row.isCanceled
                                 ? "Posted"
@@ -102,7 +102,7 @@
                     }
 ,
                     {
-                        "data": null,
+                        "data": "salesInvoiceId",
                         "render": function (data, type, row) {
                             let dropdown = `<div class="dropdown" style="${row.isVoided || row.isCanceled ? 'display:none;' : ''}">`;
                             dropdown += `<button class="btn btn-light dropdown-toggle" type="button" id="actionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">Actions</button>`;
