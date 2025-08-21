@@ -66,7 +66,7 @@ namespace Accounting_System.Repository
 
         public DateOnly ComputeDueDateAsync(string customerTerms, DateOnly date, CancellationToken cancellationToken = default)
         {
-            if (customerTerms.IsNullOrEmpty())
+            if (!customerTerms.IsNullOrEmpty())
             {
                 DateOnly dueDate;
 

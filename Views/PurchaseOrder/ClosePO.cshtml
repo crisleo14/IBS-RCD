@@ -73,7 +73,7 @@
                         unPostedQuantity += rrNotPosted.QuantityReceived;
                     }
 
-                    var totalUnPostedQuantity = (Model.Quantity - unPostedQuantity) - postedQuantity;
+                    var totalUnPostedQuantity = unPostedQuantity + postedQuantity;
                     <tr>
                         <th class="text-end">Total Quantity(Posted and Unposted):</th>
                         <td>@totalUnPostedQuantity</td>

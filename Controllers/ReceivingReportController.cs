@@ -1151,8 +1151,8 @@ namespace Accounting_System.Controllers
                             .Where(po => po.OriginalDocumentId == receivingReport.OriginalPOId)
                             .FirstOrDefaultAsync(cancellationToken);
 
-                        receivingReport.POId = getPo!.PurchaseOrderId;
-                        receivingReport.PONo = getPo.PurchaseOrderNo;
+                        receivingReport.POId = getPo?.PurchaseOrderId;
+                        receivingReport.PONo = getPo?.PurchaseOrderNo;
 
                         await _dbContext.ReceivingReports.AddAsync(receivingReport, cancellationToken);
                     }

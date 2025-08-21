@@ -161,7 +161,7 @@
                                 } else {
                                     dropdown += `<li><button class="dropdown-item" disabled readonly>Void</button></li>`;
                                 }
-                                dropdown += `<li><a href="@Url.Action("ClosePO", "PurchaseOrder")/${row.id}" class="dropdown-item">Close</a></li>`;
+                                dropdown += `<li><a href="@Url.Action("ClosePO", "PurchaseOrder")/${row.purchaseOrderId}" class="dropdown-item">Close</a></li>`;
                             }
                             dropdown += `</ul></div>`;
                             return dropdown;

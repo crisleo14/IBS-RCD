@@ -1353,7 +1353,7 @@ namespace Accounting_System.Controllers
                .ToListAsync(cancellationToken);
 
             existingModel.SalesInvoices = await _dbContext.SalesInvoices
-                .Where(si => !si.IsPaid && si.CustomerId == existingModel.CustomerId)
+                .Where(si => !si.IsPaid && existingModel.MultipleSIId.Contains(si.SalesInvoiceId))
                 .OrderBy(si => si.SalesInvoiceId)
                 .Select(s => new SelectListItem
                 {
@@ -1512,7 +1512,7 @@ namespace Accounting_System.Controllers
                             existingModel.IsCertificateUpload = true;
                         }
 
-                        #endregion --Saving default value
+                    #endregion --Saving default value
 
                     #region --Offsetting function
 
@@ -1702,17 +1702,23 @@ namespace Accounting_System.Controllers
                     model.PostedDate = DateTime.Now;
 
                     List<Offsetting>? offset;
-                    decimal offsetAmount;
+                    decimal offsetAmount = 0;
 
                     if (model.SalesInvoiceId != null)
                     {
                         offset = await _receiptRepo.GetOffsettingAsync(model.CollectionReceiptNo!, model.SINo!, cancellationToken);
-                        offsetAmount = offset.Sum(o => o.Amount);
+                        if (offset.Any())
+                        {
+                            offsetAmount = offset.Sum(o => o.Amount);
+                        }
                     }
                     else
                     {
                         offset = await _receiptRepo.GetOffsettingAsync(model.CollectionReceiptNo!, model.SVNo!, cancellationToken);
-                        offsetAmount = offset.Sum(o => o.Amount);
+                        if (offset.Any())
+                        {
+                            offsetAmount = offset.Sum(o => o.Amount);
+                        }
                     }
 
                     await _receiptRepo.PostAsync(model, offset, cancellationToken);
@@ -1815,6 +1821,8 @@ namespace Accounting_System.Controllers
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     await transaction.CommitAsync(cancellationToken);
                     TempData["success"] = "Collection Receipt has been Voided.";
+
+                    return RedirectToAction(nameof(CollectionIndex));
                 }
                 catch (Exception ex)
                 {

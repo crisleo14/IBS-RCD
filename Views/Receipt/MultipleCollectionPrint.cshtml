@@ -190,7 +190,7 @@
                 <td class="text-center">
                     @if (Model.CheckDate != null)
                     {
-                        <p style="height: 9px;">@Model.CheckDate</p>
+                        <p style="height: 9px;">@Html.DisplayFor(x => x.CheckDate)</p>
                     }
                     else
                     {
@@ -244,7 +244,7 @@
                 <td class="text-center">
                     @if (Model.ManagerCheckDate != null)
                     {
-                        <p style="height: 9px;">@Model.ManagerCheckDate?.ToString("MM/dd/yyyy")</p>
+                        <p style="height: 9px;">@Html.DisplayFor(x => x.ManagerCheckDate)</p>
                     }
                     else
                     {

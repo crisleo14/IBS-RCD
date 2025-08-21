@@ -260,7 +260,7 @@ namespace Accounting_System.Repository
                 return result;
             }
 
-            throw new ArgumentException("Invalid id value. The id must be greater than 0.");
+            return new List<Offsetting>();
         }
 
         public async Task RemoveMultipleSIPayment(int[] id, decimal[] paidAmount, decimal offsetAmount, CancellationToken cancellationToken = default)
