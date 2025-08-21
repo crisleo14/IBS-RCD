@@ -232,7 +232,7 @@ namespace Accounting_System.Controllers
                         }
                         if (columnName == "CheckDate")
                         {
-                            existingCollectionReceipt.CheckDate = importRecord.AdjustedValue;
+                            existingCollectionReceipt.CheckDate = DateOnly.Parse(importRecord.AdjustedValue);
                         }
                         if (columnName == "CheckNo")
                         {

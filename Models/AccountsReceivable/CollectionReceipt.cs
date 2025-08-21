@@ -79,7 +79,7 @@ namespace Accounting_System.Models.AccountsReceivable
         public decimal CashAmount { get; set; }
 
         //Check
-        public string? CheckDate { get; set; }
+        public DateOnly? CheckDate { get; set; }
 
         [StringLength(50)]
         public string? CheckNo { get; set; }

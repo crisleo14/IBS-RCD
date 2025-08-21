@@ -1352,15 +1352,18 @@ namespace Accounting_System.Controllers
                })
                .ToListAsync(cancellationToken);
 
-            existingModel.SalesInvoices = await _dbContext.SalesInvoices
-                .Where(si => !si.IsPaid && existingModel.MultipleSIId.Contains(si.SalesInvoiceId))
-                .OrderBy(si => si.SalesInvoiceId)
-                .Select(s => new SelectListItem
-                {
-                    Value = s.SalesInvoiceId.ToString(),
-                    Text = s.SalesInvoiceNo
-                })
-                .ToListAsync(cancellationToken);
+            if (existingModel.MultipleSIId != null)
+            {
+                existingModel.SalesInvoices = await _dbContext.SalesInvoices
+                    .Where(si => !si.IsPaid && existingModel.MultipleSIId.Contains(si.SalesInvoiceId))
+                    .OrderBy(si => si.SalesInvoiceId)
+                    .Select(s => new SelectListItem
+                    {
+                        Value = s.SalesInvoiceId.ToString(),
+                        Text = s.SalesInvoiceNo
+                    })
+                    .ToListAsync(cancellationToken);
+            }
 
             existingModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
                 .Where(coa => !coa.HasChildren)
@@ -2655,7 +2658,7 @@ namespace Accounting_System.Controllers
                             ReferenceNo = worksheet.Cells[row, 2].Text,
                             Remarks = worksheet.Cells[row, 3].Text,
                             CashAmount = decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal cashAmount) ? cashAmount : 0,
-                            CheckDate = worksheet.Cells[row, 5].Text,
+                            CheckDate = DateOnly.TryParse(worksheet.Cells[row, 5].Text, out DateOnly checkDate) ? checkDate : default,
                             CheckNo = worksheet.Cells[row, 6].Text,
                             CheckBank = worksheet.Cells[row, 7].Text,
                             CheckBranch = worksheet.Cells[row, 8].Text,
@@ -2722,9 +2725,9 @@ namespace Accounting_System.Controllers
                                 crChanges["CashAmount"] = (existingCollectionReceipt.CashAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd());
                             }
 
-                            if (existingCollectionReceipt.CheckDate!.TrimStart().TrimEnd() != worksheet.Cells[row, 5].Text.TrimStart().TrimEnd())
+                            if (existingCollectionReceipt.CheckDate != DateOnly.Parse(worksheet.Cells[row, 5].Text))
                             {
-                                crChanges["CheckDate"] = (existingCollectionReceipt.CheckDate.TrimStart().TrimEnd(), worksheet.Cells[row, 5].Text.TrimStart().TrimEnd());
+                                crChanges["CheckDate"] = (existingCollectionReceipt.CheckDate!.ToString(), worksheet.Cells[row, 5].Text);
                             }
 
                             if (existingCollectionReceipt.CheckNo!.TrimStart().TrimEnd() != worksheet.Cells[row, 6].Text.TrimStart().TrimEnd())

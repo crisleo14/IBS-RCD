@@ -188,7 +188,7 @@
             <tr>
                 <td style="padding-left:20px;">Check</td>
                 <td class="text-center">
-                    @if (Model.CheckDate != null)
+                    @if (Model.CheckDate != default)
                     {
                         <p style="height: 9px;">@Html.DisplayFor(x => x.CheckDate)</p>
                     }
