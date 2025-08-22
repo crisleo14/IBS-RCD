@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using OfficeOpenXml;
 
 namespace Accounting_System.Controllers
@@ -58,7 +59,7 @@ namespace Accounting_System.Controllers
                     .Where(coa => coa.IsMain)
                     .Select(s => new SelectListItem
                     {
-                        Value = s.AccountNumber,
+                        Value = s.AccountId.ToString(),
                         Text = s.AccountNumber + " " + s.AccountName
                     })
                     .ToListAsync(cancellationToken)
@@ -222,7 +223,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetChartOfAccount(string number, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetChartOfAccount(int number, CancellationToken cancellationToken)
         {
             return Json(await _coaRepo.FindAccountsAsync(number, cancellationToken));
         }
@@ -286,14 +287,14 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 4].Value = item.AccountType;
                     worksheet.Cells[row, 5].Value = item.NormalBalance;
                     worksheet.Cells[row, 6].Value = item.Level;
-                    worksheet.Cells[row, 6].Value = item.Parent;
-                    worksheet.Cells[row, 7].Value = item.CreatedBy;
-                    worksheet.Cells[row, 8].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet.Cells[row, 9].Value = item.EditedBy;
-                    worksheet.Cells[row, 10].Value = item.EditedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet.Cells[row, 11].Value = item.HasChildren;
-                    worksheet.Cells[row, 12].Value = item.ParentAccountId;
-                    worksheet.Cells[row, 13].Value = item.AccountId;
+                    worksheet.Cells[row, 7].Value = item.Parent;
+                    worksheet.Cells[row, 8].Value = item.CreatedBy;
+                    worksheet.Cells[row, 9].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 10].Value = item.EditedBy;
+                    worksheet.Cells[row, 11].Value = item.EditedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 12].Value = item.HasChildren;
+                    worksheet.Cells[row, 13].Value = item.ParentAccountId;
+                    worksheet.Cells[row, 14].Value = item.AccountId;
 
                     row++;
                 }
@@ -353,6 +354,11 @@ namespace Accounting_System.Controllers
 
                     for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                     {
+                        ChartOfAccount? getParent = null;
+                        if (!worksheet.Cells[row, 12].Text.IsNullOrEmpty())
+                        {
+                             getParent = await _dbContext.ChartOfAccounts.FirstOrDefaultAsync(x => x.ParentAccountId == int.Parse(worksheet.Cells[row, 12].Text), cancellationToken);
+                        }
                         var coa = new ChartOfAccount
                         {
                             IsMain = bool.TryParse(worksheet.Cells[row, 1].Text, out bool isMain) && isMain,
@@ -366,7 +372,7 @@ namespace Accounting_System.Controllers
                             EditedBy = worksheet.Cells[row, 9].Text,
                             EditedDate = DateTime.TryParse(worksheet.Cells[row, 10].Text, out DateTime editedDate) ? editedDate : default,
                             HasChildren = bool.TryParse(worksheet.Cells[row, 11].Text, out bool hasChildren) && hasChildren,
-                            ParentAccountId = null,
+                            ParentAccountId = getParent?.AccountId ?? null,
                             OriginalChartOfAccountId = int.TryParse(worksheet.Cells[row, 13].Text, out int originalChartOfAccountId) ? originalChartOfAccountId : 0,
                             Parent = worksheet.Cells[row, 14].Text ?? string.Empty,
                         };
@@ -377,8 +383,9 @@ namespace Accounting_System.Controllers
                         }
 
                         await _dbContext.ChartOfAccounts.AddAsync(coa, cancellationToken);
+                        await _dbContext.SaveChangesAsync(cancellationToken);
                     }
-                    await _dbContext.SaveChangesAsync(cancellationToken);
+
 
                     //refresh data set
                     chartOfAccountList = await _dbContext.ChartOfAccounts.ToListAsync(cancellationToken);

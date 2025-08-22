@@ -15,17 +15,17 @@ namespace Accounting_System.Repository
             _dbContext = dbContext;
         }
 
-        public async Task<List<SelectListItem>> FindAccountsAsync(string accountNo, CancellationToken cancellationToken = default)
+        public async Task<List<SelectListItem>> FindAccountsAsync(int parentAccountId, CancellationToken cancellationToken = default)
         {
             var coa = await _dbContext
                 .ChartOfAccounts
-                .Where(coa => coa.Parent == accountNo)
+                .Where(coa => coa.ParentAccountId == parentAccountId)
                 .OrderBy(coa => coa.AccountId)
                 .ToListAsync(cancellationToken);
 
             var list = coa.Select(s => new SelectListItem
             {
-                Value = s.AccountNumber,
+                Value = s.AccountId.ToString(),
                 Text = s.AccountNumber + " " + s.AccountName
             }).ToList();
 
