@@ -129,7 +129,7 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 // Replace with the actual URL that you want to redirect to
-                window.open('/ImportExportLogs/Index', '_blank');
+                window.open('@Url.Action("Index", "ImportExportLogs")', '_blank');
             }
         })
     </script>
