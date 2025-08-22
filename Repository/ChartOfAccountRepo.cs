@@ -32,23 +32,28 @@ namespace Accounting_System.Repository
             return list;
         }
 
-        public async Task<string> GenerateNumberAsync(string parent, CancellationToken cancellationToken = default)
+        public async Task<string> GenerateNumberAsync(int parentAccountId, CancellationToken cancellationToken = default)
         {
             var lastAccount = await _dbContext
                 .ChartOfAccounts
                 .OrderBy(coa => coa.AccountId)
-                .LastOrDefaultAsync(coa => coa.Parent == parent, cancellationToken);
+                .LastOrDefaultAsync(coa => coa.ParentAccountId == parentAccountId, cancellationToken);
 
             if (lastAccount != null)
             {
-                var accountNo = Int32.Parse(lastAccount.AccountNumber!);
+                var accountNo = long.Parse(lastAccount.AccountNumber!);
 
                 var generatedNo = accountNo + 1;
 
                 return generatedNo.ToString();
             }
 
-            return parent + "01";
+            var newAccount = await _dbContext
+                .ChartOfAccounts
+                .OrderBy(coa => coa.AccountId)
+                .LastOrDefaultAsync(coa => coa.AccountId == parentAccountId, cancellationToken);
+
+            return newAccount?.AccountNumber + "01";
         }
 
         public IEnumerable<ChartOfAccountSummary> GetSummaryReportView(CancellationToken cancellationToken = default)

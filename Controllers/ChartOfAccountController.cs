@@ -84,7 +84,7 @@ namespace Accounting_System.Controllers
                         var existingCoa = await _dbContext
                             .ChartOfAccounts
                             .OrderBy(coa => coa.AccountId)
-                            .FirstOrDefaultAsync(coa => coa.AccountNumber == thirdLevel, cancellationToken);
+                            .FirstOrDefaultAsync(coa => coa.AccountId == int.Parse(thirdLevel), cancellationToken);
 
                         if (existingCoa == null)
                         {
@@ -94,14 +94,14 @@ namespace Accounting_System.Controllers
                         chartOfAccount.AccountType = existingCoa.AccountType;
                         chartOfAccount.NormalBalance = existingCoa.NormalBalance;
                         chartOfAccount.Level = existingCoa.Level + 1;
-                        chartOfAccount.Parent = thirdLevel;
+                        chartOfAccount.ParentAccountId = int.Parse(thirdLevel);
                     }
                     else
                     {
                         var existingCoa = await _dbContext
                             .ChartOfAccounts
                             .OrderBy(coa => coa.AccountId)
-                            .FirstOrDefaultAsync(coa => coa.AccountNumber == fourthLevel, cancellationToken);
+                            .FirstOrDefaultAsync(coa => coa.AccountId == int.Parse(fourthLevel), cancellationToken);
 
                         if (existingCoa == null)
                         {
@@ -111,7 +111,7 @@ namespace Accounting_System.Controllers
                         chartOfAccount.AccountType = existingCoa.AccountType;
                         chartOfAccount.NormalBalance = existingCoa.NormalBalance;
                         chartOfAccount.Level = existingCoa.Level + 1;
-                        chartOfAccount.Parent = fourthLevel;
+                        chartOfAccount.ParentAccountId = int.Parse(fourthLevel);
                     }
 
                     await _dbContext.AddAsync(chartOfAccount, cancellationToken);
@@ -229,7 +229,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GenerateNumber(string parent, CancellationToken cancellationToken)
+        public async Task<IActionResult> GenerateNumber(int parent, CancellationToken cancellationToken)
         {
             return Json(await _coaRepo.GenerateNumberAsync(parent, cancellationToken));
         }
