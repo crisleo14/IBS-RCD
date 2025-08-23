@@ -55,7 +55,7 @@ namespace Accounting_System.Repository
                     Module = "Journal Voucher Header",
                     OriginalValue = change.Value.OriginalValue,
                     AdjustedValue = change.Value.NewValue,
-                    TimeStamp = DateTime.UtcNow.AddHours(8),
+                    TimeStamp = DateTime.Now,
                     UploadedBy = modifiedBy,
                     Action = string.Empty,
                     Executed = false
@@ -77,7 +77,7 @@ namespace Accounting_System.Repository
                     Module = "Journal Voucher Details",
                     OriginalValue = change.Value.OriginalValue,
                     AdjustedValue = change.Value.NewValue,
-                    TimeStamp = DateTime.UtcNow.AddHours(8),
+                    TimeStamp = DateTime.Now,
                     UploadedBy = modifiedBy,
                     Action = string.Empty,
                     Executed = false,

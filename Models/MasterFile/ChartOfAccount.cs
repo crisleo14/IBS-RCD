@@ -48,13 +48,15 @@ namespace Accounting_System.Models
         public string? CreatedBy { get; set; }
 
         [Display(Name = "Created Date")]
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow.AddHours(8);
+        [Column(TypeName = "timestamp without time zone")]
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         [Display(Name = "Edited By")]
         [StringLength(50)]
         public string? EditedBy { get; set; }
 
         [Display(Name = "Edited Date")]
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime EditedDate { get; set; }
 
         public int? OriginalChartOfAccountId { get; set; }

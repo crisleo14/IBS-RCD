@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Net;
 
 namespace Accounting_System.Models.Reports
@@ -9,6 +10,8 @@ namespace Accounting_System.Models.Reports
 
         [StringLength(100)]
         public string Username { get; set; }
+
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime Date { get; set; }
 
         [StringLength(500)]

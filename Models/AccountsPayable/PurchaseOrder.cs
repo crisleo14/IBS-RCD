@@ -72,6 +72,7 @@ namespace Accounting_System.Models.AccountsPayable
 
         public bool IsReceived { get; set; }
 
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime ReceivedDate { get; set; }
 
         [Required]

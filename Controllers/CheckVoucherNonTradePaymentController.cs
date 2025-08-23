@@ -179,7 +179,7 @@ namespace Accounting_System.Controllers
                     if (!modelHeader.IsPosted)
                     {
                         modelHeader.PostedBy = _userManager.GetUserName(this.User);
-                        modelHeader.PostedDate = DateTime.UtcNow.AddHours(8);
+                        modelHeader.PostedDate = DateTime.Now;
                         modelHeader.IsPosted = true;
                         //modelHeader.Status = nameof(CheckVoucherPaymentStatus.Posted);
 
@@ -301,7 +301,7 @@ namespace Accounting_System.Controllers
                 if (existingHeaderModel != null)
                 {
                     existingHeaderModel.CanceledBy = _userManager.GetUserName(this.User);
-                    existingHeaderModel.CanceledDate = DateTime.UtcNow.AddHours(8);
+                    existingHeaderModel.CanceledDate = DateTime.Now;
                     existingHeaderModel.IsCanceled = true;
                     //existingHeaderModel.Status = nameof(CheckVoucherPaymentStatus.Canceled);
                     existingHeaderModel.CancellationRemarks = cancellationRemarks;
@@ -422,7 +422,7 @@ namespace Accounting_System.Controllers
 
                     existingHeaderModel.IsPosted = false;
                     existingHeaderModel.VoidedBy = _userManager.GetUserName(this.User);
-                    existingHeaderModel.VoidedDate = DateTime.UtcNow.AddHours(8);
+                    existingHeaderModel.VoidedDate = DateTime.Now;
                     existingHeaderModel.IsVoided = true;
                     //existingHeaderModel.Status = nameof(CheckVoucherPaymentStatus.Voided);
 

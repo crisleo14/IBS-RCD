@@ -173,7 +173,7 @@ namespace Accounting_System.Controllers
                         if (_dbContext.ChangeTracker.HasChanges())
                         {
                             existingModel.EditedBy = _userManager.GetUserName(this.User);
-                            existingModel.EditedDate = DateTime.UtcNow.AddHours(8);
+                            existingModel.EditedDate = DateTime.Now;
 
                             #region --Audit Trail Recording
 

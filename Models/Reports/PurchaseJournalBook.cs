@@ -59,6 +59,7 @@ namespace Accounting_System.Models.Reports
         public string? CreatedBy { get; set; }
 
         [Display(Name = "Created Date")]
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         [Display(Name = "PO No.")]

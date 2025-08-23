@@ -96,6 +96,7 @@ namespace Accounting_System.Models.AccountsPayable
 
         public int NumberOfMonthsCreated { get; set; }
 
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime? LastCreatedDate { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]

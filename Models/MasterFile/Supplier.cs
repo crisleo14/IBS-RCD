@@ -46,7 +46,7 @@ namespace Accounting_System.Models.MasterFile
         public string? Validity { get; set; }
 
         [Display(Name = "Validity Date")]
-        [Column(TypeName = "date")]
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime? ValidityDate { get; set; }
 
         [StringLength(2000)]

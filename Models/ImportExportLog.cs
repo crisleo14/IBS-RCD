@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Accounting_System.Models
 {
@@ -31,6 +32,7 @@ namespace Accounting_System.Models
         public string? AdjustedValue { get; set; }
 
         [Display(Name = "Time Stamp")]
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime TimeStamp { get; set; }
 
         [Display(Name = "Uploaded By")]

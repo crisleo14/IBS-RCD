@@ -91,7 +91,7 @@ namespace Accounting_System.Models
         [StringLength(20)]
         public string? ValidatedBy { get; set; }
 
-        [Column(TypeName = "timestamp with time zone")]
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime? ValidatedDate { get; set; }
 
         //Ibs records
