@@ -6,15 +6,19 @@ namespace Accounting_System.Models.AccountsReceivable
 {
     public class CollectionReceipt : BaseEntity
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int CollectionReceiptId { get; set; }
+
         [Display(Name = "Collection Receipt No.")]
-        [Column(TypeName = "varchar(12)")]
-        public string? CRNo { get; set; }
+        [StringLength(13)]
+        public string? CollectionReceiptNo { get; set; }
 
         //Sales Invoice Property
         public int? SalesInvoiceId { get; set; }
 
         [Display(Name = "Sales Invoice No.")]
-        [Column(TypeName = "varchar(12)")]
+        [StringLength(13)]
         public string? SINo { get; set; }
 
         public int[]? MultipleSIId { get; set; }
@@ -22,7 +26,7 @@ namespace Accounting_System.Models.AccountsReceivable
         [Display(Name = "Sales Invoice No.")]
         public string[]? MultipleSI { get; set; }
 
-        [ForeignKey("SalesInvoiceId")]
+        [ForeignKey(nameof(SalesInvoiceId))]
         public SalesInvoice? SalesInvoice { get; set; }
 
         [NotMapped]
@@ -32,17 +36,17 @@ namespace Accounting_System.Models.AccountsReceivable
         public int? ServiceInvoiceId { get; set; }
 
         [Display(Name = "Sales Invoice No.")]
-        [Column(TypeName = "varchar(12)")]
+        [StringLength(13)]
         public string? SVNo { get; set; }
 
-        [ForeignKey("ServiceInvoiceId")]
+        [ForeignKey(nameof(ServiceInvoiceId))]
         public ServiceInvoice? ServiceInvoice { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? ServiceInvoices { get; set; }
 
         //Customer Property
-        [ForeignKey("CustomerId")]
+        [ForeignKey(nameof(CustomerId))]
         public Customer? Customer { get; set; }
 
         [NotMapped]
@@ -63,10 +67,10 @@ namespace Accounting_System.Models.AccountsReceivable
 
         [Display(Name = "Reference No")]
         [Required]
-        [Column(TypeName = "varchar(20)")]
+        [StringLength(50)]
         public string ReferenceNo { get; set; }
 
-        [Column(TypeName = "varchar(100)")]
+        [StringLength(1000)]
         public string? Remarks { get; set; }
 
         //Cash
@@ -75,15 +79,15 @@ namespace Accounting_System.Models.AccountsReceivable
         public decimal CashAmount { get; set; }
 
         //Check
-        public string? CheckDate { get; set; }
+        public DateOnly? CheckDate { get; set; }
 
-        [Column(TypeName = "varchar(20)")]
+        [StringLength(50)]
         public string? CheckNo { get; set; }
 
-        [Column(TypeName = "varchar(20)")]
+        [StringLength(50)]
         public string? CheckBank { get; set; }
 
-        [Column(TypeName = "varchar(20)")]
+        [StringLength(50)]
         public string? CheckBranch { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
@@ -94,13 +98,13 @@ namespace Accounting_System.Models.AccountsReceivable
         [Column(TypeName = "date")]
         public DateOnly? ManagerCheckDate { get; set; }
 
-        [Column(TypeName = "varchar(20)")]
+        [StringLength(50)]
         public string? ManagerCheckNo { get; set; }
 
-        [Column(TypeName = "varchar(20)")]
+        [StringLength(50)]
         public string? ManagerCheckBank { get; set; }
 
-        [Column(TypeName = "varchar(20)")]
+        [StringLength(50)]
         public string? ManagerCheckBranch { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
@@ -121,10 +125,10 @@ namespace Accounting_System.Models.AccountsReceivable
 
         public bool IsCertificateUpload { get; set; }
 
-        [Column(TypeName = "varchar(200)")]
+        [StringLength(200)]
         public string? F2306FilePath { get; set; }
 
-        [Column(TypeName = "varchar(200)")]
+        [StringLength(200)]
         public string? F2307FilePath { get; set; }
 
         [Column(TypeName = "numeric(18,4)[]")]

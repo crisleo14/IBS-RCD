@@ -7,34 +7,40 @@ namespace Accounting_System.Models
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+        public int CustomerId { get; set; }
 
         [Display(Name = "Customer No")]
         public int Number { get; set; }
 
         [Required]
         [Display(Name = "Customer Name")]
-        public string Name { get; set; }
+        [StringLength(100)]
+        public string CustomerName { get; set; }
 
         [Required]
         [Display(Name = "Customer Address")]
-        public string Address { get; set; }
+        [StringLength(200)]
+        public string CustomerAddress { get; set; }
 
         [Required]
         [Display(Name = "TIN No")]
         [RegularExpression(@"\d{3}-\d{3}-\d{3}-\d{5}", ErrorMessage = "Invalid TIN number format.")]
-        public string TinNo { get; set; }
+        [StringLength(20)]
+        public string CustomerTin { get; set; }
 
         [Required]
         [Display(Name = "Business Style")]
+        [StringLength(100)]
         public string BusinessStyle { get; set; }
 
         [Required]
         [Display(Name = "Payment Terms")]
-        public string Terms { get; set; }
+        [StringLength(10)]
+        public string CustomerTerms { get; set; }
 
         [Required]
         [Display(Name = "Customer Type")]
+        [StringLength(20)]
         public string CustomerType { get; set; }
 
         [Required]
@@ -46,18 +52,21 @@ namespace Accounting_System.Models
         public bool WithHoldingTax { get; set; }
 
         [Display(Name = "Created By")]
-        [Column(TypeName = "varchar(50)")]
+        [StringLength(50)]
         public string? CreatedBy { get; set; }
 
         [Display(Name = "Created Date")]
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         public int OriginalCustomerId { get; set; }
+
+        [StringLength(13)]
         public string? OriginalCustomerNumber { get; set; }
 
         [Required]
         [Display(Name = "Zip Code")]
-        [Column(TypeName = "varchar(10)")]
+        [StringLength(10)]
         public string ZipCode { get; set; } = String.Empty;
     }
 }

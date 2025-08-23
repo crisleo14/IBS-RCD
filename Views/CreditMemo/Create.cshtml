@@ -1,5 +1,4 @@
-﻿@using System.ComponentModel.DataAnnotations;
-@using Accounting_System.Models.AccountsReceivable;
+﻿@using Accounting_System.Models.AccountsReceivable;
 @model CreditMemo
 
 @{
@@ -110,8 +109,8 @@
     }
     <script>
         window.onload = function () {
-            var inlineRadio1 = document.getElementById('inlineRadio1');
-            var inlineRadio2 = document.getElementById('inlineRadio2');
+            let inlineRadio1 = document.getElementById('inlineRadio1');
+            let inlineRadio2 = document.getElementById('inlineRadio2');
 
             // Check the default radio button on page load
             if (inlineRadio1.checked) {
@@ -124,10 +123,11 @@
         };
 
         function toggleSelect(id) {
-            var siList = document.getElementById('siList');
-            var svList = document.getElementById('svList');
-            var inlineRadio1 = document.getElementById('inlineRadio1');
-            var inlineRadio2 = document.getElementById('inlineRadio2');
+            let siList = document.getElementById('siList');
+            let svList = document.getElementById('svList');
+            let inlineRadio1 = document.getElementById('inlineRadio1');
+            let inlineRadio2 = document.getElementById('inlineRadio2');
+            let period = $(".period");
 
             if (id === 'siList') {
                 siList.style.display = 'block';
@@ -136,8 +136,8 @@
                 inlineRadio2.checked = false;
                 $(".amount").val("");
                 $(".js-select2").val(null).trigger('change');
-                $(".period").prop('defaultValue', '0001-01');
-                $(".period").val($(".period").prop('defaultValue'));
+                period.prop('defaultValue', '0001-01');
+                period.val(period.prop('defaultValue'));
             } else if (id === 'svList') {
                 siList.style.display = 'none';
                 svList.style.display = 'block';
@@ -151,8 +151,7 @@
     </script>
     <script>
         $("#ServiceInvoiceId").change(function () {
-            var svId = $(this).val();
-            console.log(svId); // Add this line for debugging
+            let svId = $(this).val();
             if (svId !== "") {
                 // Make an AJAX request to get the customer details based on the selected CustomerId
                 $.ajax({
@@ -161,7 +160,7 @@
                     data: { svId: svId },
                     success: function (data) {
                         if (data) {
-                            var forrmattedDate = formatDateToMonth(data.period);
+                            let forrmattedDate = formatDateToMonth(data.period);
                             $("#Period").val(forrmattedDate);
                         } else {
                             $("#Period").empty();

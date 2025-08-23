@@ -68,9 +68,9 @@ namespace Accounting_System.Data
 
             builder.Entity<CheckVoucherDetail>(cvd =>
             {
-                cvd.HasOne(cvh => cvh.Header)
+                cvd.HasOne(cvh => cvh.CheckVoucherHeader)
                 .WithMany(cvd => cvd.Details)
-                .HasForeignKey(cv => cv.CVHeaderId)
+                .HasForeignKey(cv => cv.CheckVoucherHeaderId)
                 .OnDelete(DeleteBehavior.Restrict);
             });
 
@@ -80,9 +80,9 @@ namespace Accounting_System.Data
 
             builder.Entity<JournalVoucherDetail>(cvd =>
             {
-                cvd.HasOne(cvh => cvh.Header)
+                cvd.HasOne(cvh => cvh.JournalVoucherHeader)
                 .WithMany(cvd => cvd.Details)
-                .HasForeignKey(cv => cv.JVHeaderId)
+                .HasForeignKey(cv => cv.JournalVoucherHeaderId)
                 .OnDelete(DeleteBehavior.Restrict);
             });
 

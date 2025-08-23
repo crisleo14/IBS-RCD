@@ -115,19 +115,21 @@
         setTransactionDate();
     </script>
     <script>
+        let getQuantity = $(".quantity");
+        let getPrice = $(".price");
         $(document).ready(function () {
             function updateTotalDebitAndCredit() {
-                var quantity = parseFloat($(".quantity").val().replace(/,/g, '')) || 0;
-                var price = parseFloat($(".price").val().replace(/,/g, '')) || 0;
+                var quantity = parseFloat(getQuantity.val().replace(/,/g, '')) || 0;
+                var price = parseFloat(getPrice.val().replace(/,/g, '')) || 0;
                 var total = quantity * price;
                 $(".total").val(total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
             }
 
-            $(".quantity").on("input", function () {
+            getQuantity.on("input", function () {
                 updateTotalDebitAndCredit();
             });
 
-            $(".price").on("input", function () {
+            getPrice.on("input", function () {
                 updateTotalDebitAndCredit();
             });
         });

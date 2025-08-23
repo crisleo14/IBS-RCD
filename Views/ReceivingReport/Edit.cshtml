@@ -20,10 +20,10 @@
     <div class="card-body p-4">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input asp-for="Id" type="hidden" />
+            <input asp-for="ReceivingReportId" type="hidden" />
             <div class="form-group mb-3">
                 <label asp-for="Date" class="control-label">Date</label>
-                <input asp-for="Date" type="date" class="form-control bg-light" readonly="@Model.IsPosted" />
+                <input asp-for="Date" type="date" class="@(Model.IsPosted ? "form-control bg-light" : "form-control")" readonly="@Model.IsPosted" />
                 <span asp-validation-for="Date" class="text-danger"></span>
             </div>
             <div class="form-group mb-3">

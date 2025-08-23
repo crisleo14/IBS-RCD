@@ -24,7 +24,7 @@ namespace Accounting_System.Repository
         {
             var customer = await _dbContext
                 .Customers
-                .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(c => c.CustomerId == id, cancellationToken);
 
             if (customer != null)
             {
@@ -39,20 +39,20 @@ namespace Accounting_System.Repository
         public async Task<bool> IsCustomerExist(string name, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Customers.
-                AnyAsync(c => c.Name.ToUpper() == name.ToUpper(), cancellationToken);
+                AnyAsync(c => c.CustomerName.ToUpper() == name.ToUpper(), cancellationToken);
         }
 
         public async Task<bool> IsTinNoExist(string tin, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Customers.
-                AnyAsync(c => c.TinNo.ToUpper() == tin.ToUpper(), cancellationToken);
+                AnyAsync(c => c.CustomerTin.ToUpper() == tin.ToUpper(), cancellationToken);
         }
 
         public async Task<int> GetLastNumber(CancellationToken cancellationToken = default)
         {
             var lastNumber = await _dbContext
                 .Customers
-                .OrderByDescending(s => s.Id)
+                .OrderByDescending(s => s.CustomerId)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (lastNumber != null)

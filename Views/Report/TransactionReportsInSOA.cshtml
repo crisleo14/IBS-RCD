@@ -1,20 +1,15 @@
 ﻿@model IEnumerable<Accounting_System.Models.SalesBook>
 @using Microsoft.AspNetCore.Identity
 @using Accounting_System.Utility
-@inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 @{
     ViewData["Title"] = "Purchase Journal Book";
-    var dateFrom = ViewBag.DateFrom;
-    var dateTo = ViewBag.DateTo;
-    var lastRecord = ViewBag.LastRecord;
-
-    DateTime now = DateTime.Now;
+    
     decimal total = 0;
 }
 <style>
     body {
-        margin: 0 100 0 0;
+        margin: 0 100px 0 0;
         padding: 0;
     }
 
@@ -89,7 +84,7 @@ Date Issued: @CS.DateIssued
             <br />
             <b>Version :</b> @CS.Version
             <br />
-            <b>Printed By :</b> @UserManager.GetUserName(User).ToUpper()
+            <b>Printed By :</b> @UserManager.GetUserName(User)!.ToUpper()
             <br />
             <b>Date & Time Printed :</b> @DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")
         </em>
@@ -107,16 +102,16 @@ Date Issued: @CS.DateIssued
     </script>
     <script>
         // Get the first row in the table body
-        var firstRow = document.querySelector('tbody tr:first-child');
+        let firstRow = document.querySelector('tbody tr:first-child');
 
         // Get all cells in the first row
-        var cells = firstRow.querySelectorAll('td');
+        let cells = firstRow.querySelectorAll('td');
 
         // Initialize total character count
-        var totalCharacters = 0;
+        let totalCharacters = 0;
 
         // Get the pre tag element
-        var resultPre = document.getElementById('resultPre');
+        let resultPre = document.getElementById('resultPre');
 
         // Append the header for the fields
         resultPre.textContent += 'Field Name          Description         From     To     Length      Example\n';
@@ -124,16 +119,16 @@ Date Issued: @CS.DateIssued
         // Iterate through each cell in the first row
         cells.forEach(function (cell, index) {
             // Calculate the starting and ending character positions for each cell
-            var cellHtml = cell.innerHTML;
+            let cellHtml = cell.innerHTML;
 
             // Exclude spaces from both 'START' and 'END' counts
-            var startChar = totalCharacters + 1;
-            var endChar = startChar + cellHtml.replace(/\s/g, '').length - 1;
+            let startChar = totalCharacters + 1;
+            let endChar = startChar + cellHtml.replace(/\s/g, '').length - 1;
 
             // Update the total character count
             totalCharacters = endChar + 1; // Add 1 to include the space in the next cell
 
-            var content = cellHtml.trim();
+            let content = cellHtml.trim();
 
             // Append the result to the pre tag based on the row index
             switch (index) {
@@ -244,10 +239,10 @@ Date Issued: @CS.DateIssued
 
     <script>
         // Get all <tr> elements in the table body (excluding the header row)
-        var allTrElements = document.querySelectorAll('tbody tr');
+        let allTrElements = document.querySelectorAll('tbody tr');
 
         // Get the pre tag element
-        var resultPre = document.getElementById('resultPre');
+        let resultPre = document.getElementById('resultPre');
 
     </script>
 

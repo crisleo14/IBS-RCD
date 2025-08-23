@@ -7,17 +7,21 @@ namespace Accounting_System.Models.MasterFile
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+        public int ProductId { get; set; }
 
-        public string? Code { get; set; }
-        public string Name { get; set; }
-        public string Unit { get; set; }
+        [StringLength(10)]
+        public string? ProductCode { get; set; }
+        [StringLength(50)]
+        public string ProductName { get; set; }
+        [StringLength(2)]
+        public string ProductUnit { get; set; }
 
         [Display(Name = "Created By")]
-        [Column(TypeName = "varchar(50)")]
+        [StringLength(50)]
         public string? CreatedBy { get; set; }
 
         [Display(Name = "Created Date")]
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         public int OriginalProductId { get; set; }

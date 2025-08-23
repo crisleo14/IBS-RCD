@@ -1,4 +1,3 @@
-@using Accounting_System.Utility
 @model Accounting_System.Models.ViewModels.CheckVoucherNonTradeInvoicingViewModel
 
 @{
@@ -23,7 +22,7 @@
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="form-group mb-3">
                     <label asp-for="TransactionDate" class="control-label"></label><span class="required">*</span>
-                    <input asp-for="TransactionDate" type="Date" class="form-control" value="@DateTime.UtcNow.ToString("yyyy-MM-dd")" />
+                    <input asp-for="TransactionDate" type="Date" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
                     <span asp-validation-for="TransactionDate" class="text-danger"></span>
                 </div>
                 <div class="form-group mb-3">
@@ -92,26 +91,26 @@
                                 <tbody>
                                 <tr>
                                     <td>
-                                        <select asp-for="AccountingEntries[0].AccountTitle"
+                                        <select asp-for="AccountingEntries![0].AccountTitle"
                                                 class="form-select form-select-sm chart-of-accounts default-expense js-select2 w-100"
                                                 style="width: 100%" required>
                                             <option value="">-- Select Account --</option>
-                                            @foreach (var account in Model.ChartOfAccounts)
+                                            @foreach (var account in Model.ChartOfAccounts!)
                                             {
                                                 <option value="@account.Value">@account.Text</option>
                                             }
                                         </select>
-                                        <span asp-validation-for="AccountingEntries[0].AccountTitle" class="text-danger"></span>
+                                        <span asp-validation-for="AccountingEntries![0].AccountTitle" class="text-danger"></span>
                                     </td>
                                     <td>
-                                        <input type="number" asp-for="AccountingEntries[0].Amount" class="form-control form-control-sm text-end amount" value="0" />
+                                        <input type="number" asp-for="AccountingEntries![0].Amount" class="form-control form-control-sm text-end amount" value="0" />
                                     </td>
                                     <td class="text-center">
-                                        <input type="checkbox" asp-for="AccountingEntries[0].Vatable" class="form-check-input vatable default-vatable" />
+                                        <input type="checkbox" asp-for="AccountingEntries![0].Vatable" class="form-check-input vatable default-vatable" />
                                     </td>
                                     <td>
-                                        <select asp-for="AccountingEntries[0].TaxPercentage" class="form-select form-select-sm taxable">
-                                            <option value="0" selected="">0%</option>
+                                        <select asp-for="AccountingEntries![0].TaxPercentage" class="form-select form-select-sm taxable">
+                                            <option value="0">0%</option>
                                             <option value="0.01">1%</option>
                                             <option value="0.02">2%</option>
                                             <option value="0.05">5%</option>
@@ -119,13 +118,13 @@
                                         </select>
                                     </td>
                                     <td>
-                                        <input type="number" asp-for="AccountingEntries[0].VatAmount" class="form-control form-control-sm text-end vat-amount" readonly />
+                                        <input type="number" asp-for="AccountingEntries![0].VatAmount" class="form-control form-control-sm text-end vat-amount" readonly />
                                     </td>
                                     <td>
-                                        <input type="number" asp-for="AccountingEntries[0].TaxAmount" class="form-control form-control-sm text-end tax-amount" readonly />
+                                        <input type="number" asp-for="AccountingEntries![0].TaxAmount" class="form-control form-control-sm text-end tax-amount" readonly />
                                     </td>
                                     <td>
-                                        <input type="number" asp-for="AccountingEntries[0].NetOfVatAmount" class="form-control form-control-sm text-end net-of-vat" readonly />
+                                        <input type="number" asp-for="AccountingEntries![0].NetOfVatAmount" class="form-control form-control-sm text-end net-of-vat" readonly />
                                     </td>
                                     <td class="text-center">
                                         <button class="btn btn-danger btn-sm" disabled>
@@ -166,7 +165,7 @@
     }
     <script>
         $("#AccountNo").change(function () {
-            var accountNumber = $(this).val();
+            let accountNumber = $(this).val();
             if (accountNumber.startsWith("10201") || accountNumber.startsWith("10105")) {
                 // Close the modal
                 $("#AddAccEntry").modal("hide");
@@ -206,8 +205,8 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // Result contains an array with the start date and number of years
-                        var startDate = result.value[0];
-                        var numYears = result.value[1];
+                        let startDate = result.value[0];
+                        let numYears = result.value[1];
                         // Assign the values to hidden inputs in your form
                         $("#StartDate").val(startDate);
                         $("#NumberOfYears").val(numYears);
@@ -274,7 +273,6 @@
             const taxPercentage = parseFloat(row.querySelector(".taxable").value) || 0;
             const isVatable = vatableField.checked;
             const accountTitle = accountField.options[accountField.selectedIndex]?.text || '';
-            const accountCode = accountField.value;
 
             // Calculate net of VAT
             const netOfVat = isVatable ? amount / VAT_INCLUDED_PRICE_MULTIPLIER : amount;
@@ -476,10 +474,11 @@
             recalculateAllRows();
         });
 
+        let supplier = $('.supplier');
         $(document).ready(function () {
             // Attach event listener to the select field
-            $('.supplier').on('change', function () {
-                var supplierId = $(this).val();
+            supplier.on('change', function () {
+                let supplierId = $(this).val();
 
                 fetchSupplierDetails(supplierId, function (data) {
                     $("#SupplierName").val(data.name);
@@ -499,8 +498,8 @@
                 });
             });
 
-            $('.supplier').each(function () {
-                var supplierId = $(this).val();
+            supplier.each(function () {
+                let supplierId = $(this).val();
                 if (supplierId) {
                     fetchSupplierDetails(supplierId, function (data) {
                         $(this).closest('.form-group').find('.supplier-address').val(data.address);
@@ -541,7 +540,7 @@
                         onSuccessCallback(data);
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function () {
                     // Handle any errors
                     alert('Error fetching supplier details');
                 }

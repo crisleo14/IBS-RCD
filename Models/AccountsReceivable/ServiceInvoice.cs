@@ -6,14 +6,18 @@ namespace Accounting_System.Models.AccountsReceivable
 {
     public class ServiceInvoice : BaseEntity
     {
-        [Column(TypeName = "varchar(12)")]
-        public string? SVNo { get; set; }
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int ServiceInvoiceId { get; set; }
+
+        [StringLength(13)]
+        public string? ServiceInvoiceNo { get; set; }
 
         [Display(Name = "Customer")]
         [Required(ErrorMessage = "The Customer is required.")]
         public int? CustomerId { get; set; }
 
-        [ForeignKey("CustomerId")]
+        [ForeignKey(nameof(CustomerId))]
         public Customer? Customer { get; set; }
 
         [NotMapped]
@@ -23,7 +27,7 @@ namespace Accounting_System.Models.AccountsReceivable
         [Display(Name = "Particulars")]
         public int? ServicesId { get; set; }
 
-        [ForeignKey("ServicesId")]
+        [ForeignKey(nameof(ServicesId))]
         public Services? Service { get; set; }
 
         public int ServiceNo { get; set; }
@@ -61,7 +65,7 @@ namespace Accounting_System.Models.AccountsReceivable
         [Column(TypeName = "numeric(18,4)")]
         public decimal UnearnedAmount { get; set; }
 
-        [Column(TypeName = "varchar(20)")]
+        [StringLength(50)]
         public string Status { get; set; } = "Pending";
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
@@ -72,7 +76,7 @@ namespace Accounting_System.Models.AccountsReceivable
         [Column(TypeName = "numeric(18,4)")]
         public decimal Balance { get; set; }
 
-        [Column(TypeName = "varchar(200)")]
+        [StringLength(1000)]
         public string? Instructions { get; set; }
 
         public bool IsPaid { get; set; }

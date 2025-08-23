@@ -29,6 +29,7 @@ namespace Accounting_System.Models.ViewModels
         [Display(Name = "Transaction Date")]
         public DateOnly TransactionDate { get; set; }
 
+        [StringLength(1000)]
         public string Particulars { get; set; }
 
         public decimal Total { get; set; }

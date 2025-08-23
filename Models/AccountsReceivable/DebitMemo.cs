@@ -6,10 +6,14 @@ namespace Accounting_System.Models.AccountsReceivable
 {
     public class DebitMemo : BaseEntity
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int DebitMemoId { get; set; }
+
         [Display(Name = "SI No")]
         public int? SalesInvoiceId { get; set; }
 
-        [ForeignKey("SalesInvoiceId")]
+        [ForeignKey(nameof(SalesInvoiceId))]
         public SalesInvoice? SalesInvoice { get; set; }
 
         [NotMapped]
@@ -18,13 +22,14 @@ namespace Accounting_System.Models.AccountsReceivable
         [Display(Name = "SV No")]
         public int? ServiceInvoiceId { get; set; }
 
-        [ForeignKey("ServiceInvoiceId")]
+        [ForeignKey(nameof(ServiceInvoiceId))]
         public ServiceInvoice? ServiceInvoice { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? ServiceInvoices { get; set; }
 
-        public string? DMNo { get; set; }
+        [StringLength(13)]
+        public string? DebitMemoNo { get; set; }
 
         [Column(TypeName = "date")]
         [Display(Name = "Transaction Date")]
@@ -35,6 +40,7 @@ namespace Accounting_System.Models.AccountsReceivable
         [Column(TypeName = "numeric(18,4)")]
         public decimal DebitAmount { get; set; }
 
+        [StringLength(1000)]
         public string Description { get; set; }
 
         [Display(Name = "Price Adjustment")]
@@ -46,9 +52,11 @@ namespace Accounting_System.Models.AccountsReceivable
         [Column(TypeName = "numeric(18,4)")]
         public decimal? Quantity { get; set; }
 
+        [StringLength(20)]
         public string Source { get; set; }
 
         [Required]
+        [StringLength(1000)]
         public string? Remarks { get; set; }
 
         [Column(TypeName = "date")]

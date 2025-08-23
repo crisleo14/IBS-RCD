@@ -7,30 +7,39 @@ namespace Accounting_System.Models
 {
     public class JournalVoucherHeader : BaseEntity
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int JournalVoucherHeaderId { get; set; }
+
         [Display(Name = "JV No")]
-        public string? JVNo { get; set; }
+        [StringLength(13)]
+        public string? JournalVoucherHeaderNo { get; set; }
 
         [Display(Name = "Transaction Date")]
         [Column(TypeName = "date")]
         public DateOnly Date { get; set; }
 
+        [StringLength(100)]
         public string? References { get; set; }
 
         [Display(Name = "Check Voucher Id")]
         public int? CVId { get; set; }
 
-        [ForeignKey("CVId")]
+        [ForeignKey(nameof(CVId))]
         public CheckVoucherHeader? CheckVoucherHeader { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? CheckVoucherHeaders { get; set; }
 
+        [StringLength(1000)]
         public string Particulars { get; set; }
 
         [Display(Name = "CR No")]
+        [StringLength(100)]
         public string? CRNo { get; set; }
 
         [Display(Name = "JV Reason")]
+        [StringLength(1000)]
         public string JVReason { get; set; }
 
         [NotMapped]

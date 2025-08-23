@@ -71,7 +71,7 @@
                 </div>
                 <div class="form-group mb-3">
                     <label asp-for="TransactionDate" class="control-label"></label><span class="required">*</span>
-                    <input asp-for="TransactionDate" type="Date" class="form-control" value="@DateTime.UtcNow.ToString("yyyy-MM-dd")" />
+                    <input asp-for="TransactionDate" type="Date" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
                     <span asp-validation-for="TransactionDate" class="text-danger"></span>
                 </div>
 
@@ -89,7 +89,7 @@
                 </div>
                 <div class="form-group mb-3">
                     <label asp-for="CheckDate" class="control-label"></label><span class="required">*</span>
-                    <input asp-for="CheckDate" type="date" value="@DateTime.UtcNow.ToString("yyyy-MM-dd")" class="form-control" />
+                    <input asp-for="CheckDate" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" class="form-control" />
                     <span asp-validation-for="CheckDate" class="text-danger"></span>
                 </div>
                 <div class="form-floating mb-3">
@@ -168,13 +168,14 @@
         });
     </script>
     <script>
+        let supplier = $(".supplier");
         $(function () {
-            $(".supplier").each(function () {
-                var suppId = $(this).val();
+            supplier.each(function () {
+                let suppId = $(this).val();
                 computeDefaultEntry(suppId)
             });
-            $(".supplier").change(function () {
-                var suppId = $(this).val();
+            supplier.change(function () {
+                let suppId = $(this).val();
                 computeDefaultEntry(suppId)
             });
 
@@ -210,7 +211,7 @@
 
         $(function () {
             $(".GetPOList").change(function () {
-                var suppId = $(this).val();
+                let suppId = $(this).val();
                 if (suppId !== "") {
                     // Make an AJAX request to get the POs based on the selected SupplierId
                     $.ajax({
@@ -246,7 +247,7 @@
         });
 
         $(".GetRRList").change(function () {
-            var poNumber = $(this).val(); // Get all selected POIds
+            let poNumber = $(this).val(); // Get all selected POIds
             displayRecords(poNumber)
         });
 
@@ -265,7 +266,7 @@
                     tbody.empty();
 
                     if (data){
-                        data.forEach((rr, index) => {
+                        data.forEach((rr) => {
                             let balance = parseNumber(rr.netOfEwtAmount) - parseNumber(rr.amountPaid);
                             const tr = $(`
                                         <tr>
@@ -368,11 +369,11 @@
         });
 
         function updateAmounts() {
-            var amountInputs = document.querySelectorAll('.inputAmount');
-            var totalNetOfEWT = 0;
+            let amountInputs = document.querySelectorAll('.inputAmount');
+            let totalNetOfEWT = 0;
             amountInputs.forEach(function (input) {
-                var rawValue = input.value;
-                var rrAmount = parseNumber(rawValue);
+                let rawValue = input.value;
+                let rrAmount = parseNumber(rawValue);
 
                 totalNetOfEWT += rrAmount;
             });
@@ -382,19 +383,19 @@
         }
 
         function updateTotalDebitAndCredit() {
-            var totalDebit = 0;
-            var totalCredit = 0;
+            let totalDebit = 0;
+            let totalCredit = 0;
 
             // Loop through each row in the table body and sum up the debit values
             $("#accountingEntriesBody tr, .defaultEntry tr").each(function () {
-                var debitInput = $(this).find("td:eq(2) input").val();
-                var creditInput = $(this).find("td:eq(3) input").val();
+                let debitInput = $(this).find("td:eq(2) input").val();
+                let creditInput = $(this).find("td:eq(3) input").val();
                 // Ensure debitInput and creditInput are strings before using replace
                 debitInput = debitInput ? String(debitInput) : ""; // convert to string if not null/undefined
                 creditInput = creditInput ? String(creditInput) : "";
 
-                var debit = parseNumber(debitInput);
-                var credit = parseNumber(creditInput);
+                let debit = parseNumber(debitInput);
+                let credit = parseNumber(creditInput);
 
                 totalDebit += debit;
                 totalCredit += credit;
@@ -409,13 +410,13 @@
     </script>
     <script>
         function validateDebitAndCredit() {
-            console.log("Working");
-            var totalDebit = parseNumber($(".totalDebit").text());
-            var totalCredit = parseNumber($(".totalCredit").text());
-            var errorMessage = "";
-            var isValid = true;
+            let totalDebit = parseNumber($(".totalDebit").text());
+            let totalCredit = parseNumber($(".totalCredit").text());
+            let errorMessage = "";
+            let isValid = true;
+            let balanceErrorMessage = ($("#balance-error-message"));
 
-            if ($("#balance-error-message").length === 0) {
+            if (balanceErrorMessage.length === 0) {
                 $("#accountingEntriesBody").after('<div id="balance-error-message" class="text-danger mt-2"></div>');
             }
 
@@ -431,7 +432,7 @@
             }
 
             // Display or clear the error message
-            $("#balance-error-message").text(errorMessage);
+            balanceErrorMessage.text(errorMessage);
 
             // Optionally disable/enable the submit button based on validation
             $("button[type='submit']").prop("disabled", !isValid);

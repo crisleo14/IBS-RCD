@@ -16,13 +16,13 @@ namespace Accounting_System.Models
 
         public int? ProductId { get; set; }
 
-        [ForeignKey("ProductId")]
+        [ForeignKey(nameof(ProductId))]
         public Product Product { get; set; }
 
-        [Column(TypeName = "varchar(200)")]
+        [StringLength(200)]
         public string Particular { get; set; } // Beginning Inventory, Sales, Purchases
 
-        [Column(TypeName = "varchar(12)")]
+        [StringLength(13)]
         public string? Reference { get; set; }
 
         [Column(TypeName = "numeric(18,4)")]
@@ -83,15 +83,15 @@ namespace Accounting_System.Models
         [Display(Name = "Total Balance")]
         public decimal TotalBalance { get; set; }
 
-        [Column(TypeName = "varchar(2)")]
+        [StringLength(2)]
         public string Unit { get; set; } = "L";
 
         public bool IsValidated { get; set; }
 
-        [Column(TypeName = "varchar(20)")]
+        [StringLength(20)]
         public string? ValidatedBy { get; set; }
 
-        [Column(TypeName = "timestamp with time zone")]
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime? ValidatedDate { get; set; }
 
         //Ibs records

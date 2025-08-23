@@ -12,13 +12,11 @@ namespace Accounting_System.Controllers
     [Authorize]
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly ApplicationDbContext _dbContext;
 
-        public HomeController(ILogger<HomeController> logger, ApplicationDbContext dbContext, UserManager<IdentityUser> userManager)
+        public HomeController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager)
         {
-            _logger = logger;
             this._userManager = userManager;
             _dbContext = dbContext;
         }
@@ -37,7 +35,7 @@ namespace Accounting_System.Controllers
                 g.Count(i => i.IsCanceled),
                 g.Count(i => i.IsVoided)
                 })
-                .FirstOrDefaultAsync(cancellationToken) ?? new List<int> { 0, 0, 0 };
+                .FirstOrDefaultAsync(cancellationToken) ?? [0, 0, 0];
 
             var serviceInvoiceSummary = await _dbContext.ServiceInvoices
                 .GroupBy(i => 1)
@@ -47,7 +45,7 @@ namespace Accounting_System.Controllers
                 g.Count(i => i.IsCanceled),
                 g.Count(i => i.IsVoided)
                 })
-                .FirstOrDefaultAsync(cancellationToken) ?? new List<int> { 0, 0, 0 };
+                .FirstOrDefaultAsync(cancellationToken) ?? [0, 0, 0];
 
             var collectionReceiptSummary = await _dbContext.CollectionReceipts
                 .GroupBy(i => 1)
@@ -57,7 +55,7 @@ namespace Accounting_System.Controllers
                 g.Count(i => i.IsCanceled),
                 g.Count(i => i.IsVoided)
                 })
-                .FirstOrDefaultAsync(cancellationToken) ?? new List<int> { 0, 0, 0 };
+                .FirstOrDefaultAsync(cancellationToken) ?? [0, 0, 0];
 
             var debitMemoSummary = await _dbContext.DebitMemos
                 .GroupBy(i => 1)
@@ -67,7 +65,7 @@ namespace Accounting_System.Controllers
                 g.Count(i => i.IsCanceled),
                 g.Count(i => i.IsVoided)
                 })
-                .FirstOrDefaultAsync(cancellationToken) ?? new List<int> { 0, 0, 0 };
+                .FirstOrDefaultAsync(cancellationToken) ?? [0, 0, 0];
 
             var creditMemoSummary = await _dbContext.CreditMemos
                 .GroupBy(i => 1)
@@ -77,7 +75,7 @@ namespace Accounting_System.Controllers
                 g.Count(i => i.IsCanceled),
                 g.Count(i => i.IsVoided)
                 })
-                .FirstOrDefaultAsync(cancellationToken) ?? new List<int> { 0, 0, 0 };
+                .FirstOrDefaultAsync(cancellationToken) ?? [0, 0, 0];
 
             var purchaseOrderSummary = await _dbContext.PurchaseOrders
                 .GroupBy(i => 1)
@@ -87,7 +85,7 @@ namespace Accounting_System.Controllers
                 g.Count(i => i.IsCanceled),
                 g.Count(i => i.IsVoided)
                 })
-                .FirstOrDefaultAsync(cancellationToken) ?? new List<int> { 0, 0, 0 };
+                .FirstOrDefaultAsync(cancellationToken) ?? [0, 0, 0];
 
             var receivingReportSummary = await _dbContext.ReceivingReports
                 .GroupBy(i => 1)
@@ -97,7 +95,7 @@ namespace Accounting_System.Controllers
                 g.Count(i => i.IsCanceled),
                 g.Count(i => i.IsVoided)
                 })
-                .FirstOrDefaultAsync(cancellationToken) ?? new List<int> { 0, 0, 0 };
+                .FirstOrDefaultAsync(cancellationToken) ?? [0, 0, 0];
 
             var checkVoucherSummary = await _dbContext.CheckVoucherHeaders
                 .GroupBy(i => 1)
@@ -107,7 +105,7 @@ namespace Accounting_System.Controllers
                 g.Count(i => i.IsCanceled),
                 g.Count(i => i.IsVoided)
                 })
-                .FirstOrDefaultAsync(cancellationToken) ?? new List<int> { 0, 0, 0 };
+                .FirstOrDefaultAsync(cancellationToken) ?? [0, 0, 0];
 
             var journalVoucherSummary = await _dbContext.JournalVoucherHeaders
                 .GroupBy(i => 1)
@@ -117,7 +115,7 @@ namespace Accounting_System.Controllers
                 g.Count(i => i.IsCanceled),
                 g.Count(i => i.IsVoided)
                 })
-                .FirstOrDefaultAsync(cancellationToken) ?? new List<int> { 0, 0, 0 };
+                .FirstOrDefaultAsync(cancellationToken) ?? [0, 0, 0];
 
             #endregion -- Query to count how many in each document to show in graph --
 
@@ -125,25 +123,25 @@ namespace Accounting_System.Controllers
 
             var maxCountSalesInvoice = salesInvoiceSummary.Max();
             var maxCountServiceInvoice = serviceInvoiceSummary.Max();
-            var maxCountCR = collectionReceiptSummary.Max();
-            var maxCountDM = debitMemoSummary.Max();
-            var maxCountCM = creditMemoSummary.Max();
-            var maxCountPO = purchaseOrderSummary.Max();
-            var maxCountRR = receivingReportSummary.Max();
-            var maxCountCV = checkVoucherSummary.Max();
-            var maxCountJV = journalVoucherSummary.Max();
+            var maxCountCr = collectionReceiptSummary.Max();
+            var maxCountDm = debitMemoSummary.Max();
+            var maxCountCm = creditMemoSummary.Max();
+            var maxCountPo = purchaseOrderSummary.Max();
+            var maxCountRr = receivingReportSummary.Max();
+            var maxCountCv = checkVoucherSummary.Max();
+            var maxCountJv = journalVoucherSummary.Max();
 
             var maxCounts = new List<int>
             {
                 maxCountSalesInvoice,
                 maxCountServiceInvoice,
-                maxCountCR,
-                maxCountDM,
-                maxCountCM,
-                maxCountPO,
-                maxCountRR,
-                maxCountCV,
-                maxCountJV
+                maxCountCr,
+                maxCountDm,
+                maxCountCm,
+                maxCountPo,
+                maxCountRr,
+                maxCountCv,
+                maxCountJv
             };
 
             var overallMaxValue = maxCounts.Max();

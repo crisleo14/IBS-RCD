@@ -19,8 +19,8 @@ namespace Accounting_System.Repository
 
         public async Task<List<SalesBook>> GetSalesBooksAsync(DateOnly dateFrom, DateOnly dateTo, string? selectedDocument, CancellationToken cancellationToken = default)
         {
-            Expression<Func<SalesBook, bool>> query = null;
-            Expression<Func<SalesBook, object>> orderBy = null;
+            Expression<Func<SalesBook, bool>> query;
+            Expression<Func<SalesBook, object>> orderBy = null!;
 
             switch (selectedDocument)
             {
@@ -61,7 +61,7 @@ namespace Accounting_System.Repository
             var cashReceiptBooks = await _dbContext
              .CashReceiptBooks
              .Where(cr => cr.Date >= dateFrom && cr.Date <= dateTo)
-             .OrderBy(s => s.Id)
+             .OrderBy(s => s.CashReceiptBookId)
              .ToListAsync(cancellationToken);
 
             return cashReceiptBooks;
@@ -69,8 +69,6 @@ namespace Accounting_System.Repository
 
         public async Task<List<PurchaseJournalBook>> GetPurchaseBooks(DateOnly? dateFrom, DateOnly? dateTo, string? selectedFiltering, CancellationToken cancellationToken = default)
         {
-            List<PurchaseJournalBook> purchaseBook = new List<PurchaseJournalBook>();
-
             if (dateFrom > dateTo)
             {
                 throw new ArgumentException("Date From must be greater than Date To !");
@@ -90,7 +88,7 @@ namespace Accounting_System.Repository
 
                 case "POLiquidation":
                 case "UnpostedRR":
-                    orderBy = p => p.Id;
+                    orderBy = p => p.PurchaseBookId;
                     break;
 
                 default:
@@ -98,7 +96,7 @@ namespace Accounting_System.Repository
                     break;
             }
 
-            purchaseBook = await _dbContext
+            var purchaseBook = await _dbContext
                 .PurchaseJournalBooks
                 .Where(p => (selectedFiltering == "DueDate" || selectedFiltering == "POLiquidation" ? p.DueDate : p.Date) >= dateFrom &&
                             (selectedFiltering == "DueDate" || selectedFiltering == "POLiquidation" ? p.DueDate : p.Date) <= dateTo)
@@ -122,11 +120,11 @@ namespace Accounting_System.Repository
                 receivingReport = await _dbContext
                  .ReceivingReports
                  .Include(rr => rr.PurchaseOrder)
-                 .ThenInclude(po => po.Supplier)
+                 .ThenInclude(po => po!.Supplier)
                  .Include(rr => rr.PurchaseOrder)
-                 .ThenInclude(po => po.Product)
+                 .ThenInclude(po => po!.Product)
                  .Where(rr => rr.Date >= dateFrom && rr.Date <= dateTo && !rr.IsPosted)
-                 .OrderBy(rr => rr.Id)
+                 .OrderBy(rr => rr.ReceivingReportId)
                  .ToListAsync(cancellationToken);
             }
             else if (selectedFiltering == "POLiquidation")
@@ -134,11 +132,11 @@ namespace Accounting_System.Repository
                 receivingReport = await _dbContext
                  .ReceivingReports
                  .Include(rr => rr.PurchaseOrder)
-                 .ThenInclude(po => po.Supplier)
+                 .ThenInclude(po => po!.Supplier)
                  .Include(rr => rr.PurchaseOrder)
-                 .ThenInclude(po => po.Product)
+                 .ThenInclude(po => po!.Product)
                  .Where(rr => rr.DueDate >= dateFrom && rr.DueDate <= dateTo && rr.IsPosted)
-                 .OrderBy(rr => rr.Id)
+                 .OrderBy(rr => rr.ReceivingReportId)
                  .ToListAsync(cancellationToken);
             }
 
@@ -199,7 +197,7 @@ namespace Accounting_System.Repository
             var disbursementBooks = await _dbContext
              .DisbursementBooks
              .Where(d => d.Date >= dateFrom && d.Date <= dateTo)
-             .OrderBy(d => d.Id)
+             .OrderBy(d => d.DisbursementBookId)
              .ToListAsync();
 
             return disbursementBooks;
@@ -215,7 +213,7 @@ namespace Accounting_System.Repository
             var disbursementBooks = await _dbContext
              .JournalBooks
              .Where(d => d.Date >= dateFrom && d.Date <= dateTo)
-             .OrderBy(d => d.Id)
+             .OrderBy(d => d.JournalBookId)
              .ToListAsync(cancellationToken);
 
             return disbursementBooks;

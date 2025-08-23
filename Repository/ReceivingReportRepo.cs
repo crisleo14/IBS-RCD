@@ -4,7 +4,6 @@ using Accounting_System.Models;
 using Accounting_System.Models.AccountsPayable;
 using Accounting_System.Models.Reports;
 using Accounting_System.Utility;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Repository
@@ -17,27 +16,24 @@ namespace Accounting_System.Repository
 
         private readonly InventoryRepo _inventoryRepo;
 
-        private readonly UserManager<IdentityUser> _userManager;
-
-        public ReceivingReportRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo, InventoryRepo inventoryRepo, UserManager<IdentityUser> userManager)
+        public ReceivingReportRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo, InventoryRepo inventoryRepo)
         {
             _dbContext = dbContext;
             _generalRepo = generalRepo;
             _inventoryRepo = inventoryRepo;
-            _userManager = userManager;
         }
 
         public async Task<string> GenerateRRNo(CancellationToken cancellationToken = default)
         {
             var receivingReport = await _dbContext
                 .ReceivingReports
-                .Where(rr => !rr.RRNo.StartsWith("RRBEG"))
-                .OrderByDescending(s => s.RRNo)
+                .Where(rr => !rr.ReceivingReportNo!.StartsWith("RRBEG"))
+                .OrderByDescending(s => s.ReceivingReportNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (receivingReport != null)
             {
-                string lastSeries = receivingReport.RRNo ?? throw new InvalidOperationException("RRNo is null pls Contact MIS Enterprise");
+                string lastSeries = receivingReport.ReceivingReportNo ?? throw new InvalidOperationException("RRNo is null pls Contact MIS Enterprise");
                 string numericPart = lastSeries.Substring(2);
                 int incrementedNumber = int.Parse(numericPart) + 1;
 
@@ -55,8 +51,8 @@ namespace Accounting_System.Repository
             {
                 var po = await _dbContext
                                 .PurchaseOrders
-                                .FirstOrDefaultAsync(po => po.Id == id, cancellationToken);
-                return po.PONo;
+                                .FirstOrDefaultAsync(po => po.PurchaseOrderId == id, cancellationToken);
+                return po!.PurchaseOrderNo!;
             }
             else
             {
@@ -67,7 +63,7 @@ namespace Accounting_System.Repository
         public async Task UpdatePOAsync(int id, decimal quantityReceived, CancellationToken cancellationToken = default)
         {
             var po = await _dbContext.PurchaseOrders
-                    .FirstOrDefaultAsync(po => po.Id == id, cancellationToken);
+                    .FirstOrDefaultAsync(po => po.PurchaseOrderId == id, cancellationToken);
 
             if (po != null)
             {
@@ -94,13 +90,13 @@ namespace Accounting_System.Repository
         public async Task<int> RemoveQuantityReceived(int? id, decimal quantityReceived, CancellationToken cancellationToken = default)
         {
             var po = await _dbContext.PurchaseOrders
-                    .FirstOrDefaultAsync(po => po.Id == id, cancellationToken);
+                    .FirstOrDefaultAsync(po => po.PurchaseOrderId == id, cancellationToken);
 
             if (po != null)
             {
                 po.QuantityReceived -= quantityReceived;
 
-                if (po.IsReceived == true)
+                if (po.IsReceived)
                 {
                     po.IsReceived = false;
                     po.ReceivedDate = DateTime.MaxValue;
@@ -122,7 +118,7 @@ namespace Accounting_System.Repository
         {
             var po = await _dbContext
                 .PurchaseOrders
-                .FirstOrDefaultAsync(po => po.Id == poId, cancellationToken);
+                .FirstOrDefaultAsync(po => po.PurchaseOrderId == poId, cancellationToken);
 
             if (po != null)
             {
@@ -131,30 +127,30 @@ namespace Accounting_System.Repository
                 switch (po.Terms)
                 {
                     case "7D":
-                        return dueDate = rrDate.AddDays(7);
+                        return rrDate.AddDays(7);
 
                     case "10D":
-                        return dueDate = rrDate.AddDays(7);
+                        return rrDate.AddDays(7);
 
                     case "15D":
-                        return dueDate = rrDate.AddDays(15);
+                        return rrDate.AddDays(15);
 
                     case "30D":
-                        return dueDate = rrDate.AddDays(30);
+                        return rrDate.AddDays(30);
 
                     case "45D":
                     case "45PDC":
-                        return dueDate = rrDate.AddDays(45);
+                        return rrDate.AddDays(45);
 
                     case "60D":
                     case "60PDC":
-                        return dueDate = rrDate.AddDays(60);
+                        return rrDate.AddDays(60);
 
                     case "90D":
-                        return dueDate = rrDate.AddDays(90);
+                        return rrDate.AddDays(90);
 
                     case "M15":
-                        return dueDate = rrDate.AddMonths(1).AddDays(15 - rrDate.Day);
+                        return rrDate.AddMonths(1).AddDays(15 - rrDate.Day);
 
                     case "M30":
                         if (rrDate.Month == 1)
@@ -193,13 +189,11 @@ namespace Accounting_System.Repository
                         return dueDate;
 
                     default:
-                        return dueDate = rrDate;
+                        return rrDate;
                 }
             }
-            else
-            {
-                throw new ArgumentException("No record found.");
-            }
+
+            throw new ArgumentException("No record found.");
         }
 
         public async Task<ReceivingReport> FindRR(int id, CancellationToken cancellationToken = default)
@@ -207,10 +201,10 @@ namespace Accounting_System.Repository
             var rr = await _dbContext
                 .ReceivingReports
                 .Include(rr => rr.PurchaseOrder)
-                .ThenInclude(po => po.Product)
+                .ThenInclude(po => po!.Product)
                 .Include(rr => rr.PurchaseOrder)
-                .ThenInclude(po => po.Supplier)
-                .FirstOrDefaultAsync(rr => rr.Id == id, cancellationToken);
+                .ThenInclude(po => po!.Supplier)
+                .FirstOrDefaultAsync(rr => rr.ReceivingReportId == id, cancellationToken);
 
             if (rr != null)
             {
@@ -228,7 +222,7 @@ namespace Accounting_System.Repository
                 .PurchaseOrders
                 .Include(po => po.Product)
                 .Include(po => po.Supplier)
-                .FirstOrDefaultAsync(po => po.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(po => po.PurchaseOrderId == id, cancellationToken);
 
             if (po != null)
             {
@@ -244,22 +238,20 @@ namespace Accounting_System.Repository
         {
             var rr = await _dbContext.ReceivingReports
                 .Include(p => p.PurchaseOrder)
-                .ThenInclude(s => s.Supplier)
+                .ThenInclude(s => s!.Supplier)
                 .Include(p => p.PurchaseOrder)
-                .ThenInclude(prod => prod.Product)
+                .ThenInclude(prod => prod!.Product)
                 .ToListAsync(cancellationToken);
 
-            if (rr != null)
+            if (rr.Any() && rr.Count > 0)
             {
                 return rr;
             }
-            else
-            {
-                throw new ArgumentException("Error in get data of rr's.");
-            }
+
+            return new List<ReceivingReport>();
         }
 
-        public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy)
+        public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy, string seriesNumber)
         {
             foreach (var change in changes)
             {
@@ -272,10 +264,11 @@ namespace Accounting_System.Repository
                     Module = "Receiving Report",
                     OriginalValue = change.Value.OriginalValue,
                     AdjustedValue = change.Value.NewValue,
-                    TimeStamp = DateTime.UtcNow.AddHours(8),
+                    TimeStamp = DateTime.Now,
                     UploadedBy = modifiedBy,
                     Action = string.Empty,
-                    Executed = false
+                    Executed = false,
+                    DocumentNo = seriesNumber
                 };
                 await _dbContext.AddAsync(logReport);
             }
@@ -287,12 +280,12 @@ namespace Accounting_System.Repository
 
             var ledgers = new List<GeneralLedgerBook>();
 
-            decimal netOfVatAmount = 0;
+            decimal netOfVatAmount;
             decimal vatAmount = 0;
             decimal ewtAmount = 0;
-            decimal netOfEwtAmount = 0;
+            decimal netOfEwtAmount;
 
-            if (model.PurchaseOrder.Supplier.VatType == CS.VatType_Vatable)
+            if (model.PurchaseOrder!.Supplier!.VatType == CS.VatType_Vatable)
             {
                 netOfVatAmount = _generalRepo.ComputeNetOfVat(model.Amount);
                 vatAmount = _generalRepo.ComputeVatAmount(netOfVatAmount);
@@ -312,7 +305,7 @@ namespace Accounting_System.Repository
                 netOfEwtAmount = model.Amount;
             }
 
-            var (inventoryAcctNo, inventoryAcctTitle) = _generalRepo.GetInventoryAccountTitle(model.PurchaseOrder.Product.Code);
+            var (inventoryAcctNo, _) = _generalRepo.GetInventoryAccountTitle(model.PurchaseOrder.Product!.ProductCode!);
             var accountTitlesDto = await _generalRepo.GetListOfAccountTitleDto(cancellationToken);
             var vatInputTitle = accountTitlesDto.Find(c => c.AccountNumber == "101060200") ?? throw new ArgumentException("Account title '101060200' not found.");
             var ewtTitle = accountTitlesDto.Find(c => c.AccountNumber == "201030210") ?? throw new ArgumentException("Account title '201030200' not found.");
@@ -322,7 +315,7 @@ namespace Accounting_System.Repository
             ledgers.Add(new GeneralLedgerBook
             {
                 Date = model.Date,
-                Reference = model.RRNo,
+                Reference = model.ReceivingReportNo!,
                 Description = "Receipt of Goods",
                 AccountNo = inventoryTitle.AccountNumber,
                 AccountTitle = inventoryTitle.AccountName,
@@ -337,7 +330,7 @@ namespace Accounting_System.Repository
                 ledgers.Add(new GeneralLedgerBook
                 {
                     Date = model.Date,
-                    Reference = model.RRNo,
+                    Reference = model.ReceivingReportNo!,
                     Description = "Receipt of Goods",
                     AccountNo = vatInputTitle.AccountNumber,
                     AccountTitle = vatInputTitle.AccountName,
@@ -351,7 +344,7 @@ namespace Accounting_System.Repository
             ledgers.Add(new GeneralLedgerBook
             {
                 Date = model.Date,
-                Reference = model.RRNo,
+                Reference = model.ReceivingReportNo!,
                 Description = "Receipt of Goods",
                 AccountNo = apTradeTitle.AccountNumber,
                 AccountTitle = apTradeTitle.AccountName,
@@ -366,7 +359,7 @@ namespace Accounting_System.Repository
                 ledgers.Add(new GeneralLedgerBook
                 {
                     Date = model.Date,
-                    Reference = model.RRNo,
+                    Reference = model.ReceivingReportNo!,
                     Description = "Receipt of Goods",
                     AccountNo = ewtTitle.AccountNumber,
                     AccountTitle = ewtTitle.AccountName,
@@ -392,24 +385,24 @@ namespace Accounting_System.Repository
 
             #endregion
 
-            await UpdatePOAsync(model.PurchaseOrder.Id, model.QuantityReceived, cancellationToken);
+            await UpdatePOAsync(model.PurchaseOrder.PurchaseOrderId, model.QuantityReceived, cancellationToken);
 
             #region --Purchase Book Recording
 
             PurchaseJournalBook purchaseBook = new()
             {
                 Date = model.Date,
-                SupplierName = model.PurchaseOrder.Supplier.Name,
-                SupplierTin = model.PurchaseOrder.Supplier.TinNo,
-                SupplierAddress = model.PurchaseOrder.Supplier.Address,
-                DocumentNo = model.RRNo,
-                Description = model.PurchaseOrder.Product.Name,
+                SupplierName = model.PurchaseOrder.Supplier.SupplierName,
+                SupplierTin = model.PurchaseOrder.Supplier.SupplierTin,
+                SupplierAddress = model.PurchaseOrder.Supplier.SupplierAddress,
+                DocumentNo = model.ReceivingReportNo!,
+                Description = model.PurchaseOrder.Product.ProductName,
                 Amount = model.Amount,
                 VatAmount = vatAmount,
                 WhtAmount = ewtAmount,
                 NetPurchases = netOfVatAmount,
                 CreatedBy = model.CreatedBy,
-                PONo = model.PurchaseOrder.PONo,
+                PONo = model.PurchaseOrder.PurchaseOrderNo!,
                 DueDate = model.DueDate,
             };
 

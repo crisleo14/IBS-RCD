@@ -45,7 +45,8 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("DocumentType")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)")
                         .HasColumnName("document_type");
 
                     b.HasKey("Id")
@@ -57,17 +58,97 @@ namespace Accounting_System.Migrations
                     b.ToTable("cv_trade_payments", (string)null);
                 });
 
-            modelBuilder.Entity("Accounting_System.Models.AccountsPayable.CheckVoucherHeader", b =>
+            modelBuilder.Entity("Accounting_System.Models.AccountsPayable.CheckVoucherDetail", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("CheckVoucherDetailId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("check_voucher_detail_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CheckVoucherDetailId"));
+
+                    b.Property<string>("AccountName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("account_name");
+
+                    b.Property<string>("AccountNo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("account_no");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("amount");
+
+                    b.Property<decimal>("AmountPaid")
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("amount_paid");
+
+                    b.Property<int?>("CheckVoucherHeaderId")
+                        .HasColumnType("integer")
+                        .HasColumnName("check_voucher_header_id");
+
+                    b.Property<decimal>("Credit")
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("credit");
+
+                    b.Property<decimal>("Debit")
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("debit");
+
+                    b.Property<decimal>("EwtPercent")
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("ewt_percent");
+
+                    b.Property<bool>("IsUserSelected")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_user_selected");
+
+                    b.Property<bool>("IsVatable")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_vatable");
+
+                    b.Property<int?>("OriginalDocumentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("original_document_id");
+
+                    b.Property<int?>("SupplierId")
+                        .HasColumnType("integer")
+                        .HasColumnName("supplier_id");
+
+                    b.Property<string>("TransactionNo")
+                        .IsRequired()
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("transaction_no");
+
+                    b.HasKey("CheckVoucherDetailId")
+                        .HasName("pk_check_voucher_details");
+
+                    b.HasIndex("CheckVoucherHeaderId")
+                        .HasDatabaseName("ix_check_voucher_details_check_voucher_header_id");
+
+                    b.HasIndex("SupplierId")
+                        .HasDatabaseName("ix_check_voucher_details_supplier_id");
+
+                    b.ToTable("check_voucher_details", (string)null);
+                });
+
+            modelBuilder.Entity("Accounting_System.Models.AccountsPayable.CheckVoucherHeader", b =>
+                {
+                    b.Property<int>("CheckVoucherHeaderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("check_voucher_header_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CheckVoucherHeaderId"));
 
                     b.Property<string>("AccruedType")
-                        .HasColumnType("text")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("accrued_type");
 
                     b.Property<decimal[]>("Amount")
@@ -86,16 +167,13 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("bank_id");
 
-                    b.Property<string>("CVNo")
-                        .HasColumnType("text")
-                        .HasColumnName("cv_no");
-
                     b.Property<string>("CanceledBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("canceled_by");
 
                     b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("canceled_date");
 
                     b.Property<string>("CancellationRemarks")
@@ -104,7 +182,8 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Category")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("category");
 
                     b.Property<decimal>("CheckAmount")
@@ -116,19 +195,27 @@ namespace Accounting_System.Migrations
                         .HasColumnName("check_date");
 
                     b.Property<string>("CheckNo")
-                        .HasColumnType("text")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("check_no");
 
+                    b.Property<string>("CheckVoucherHeaderNo")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("check_voucher_header_no");
+
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<string>("CvType")
-                        .HasColumnType("varchar(10)")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
                         .HasColumnName("cv_type");
 
                     b.Property<DateOnly>("Date")
@@ -168,7 +255,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("is_voided");
 
                     b.Property<DateTime?>("LastCreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("last_created_date");
 
                     b.Property<int>("NumberOfMonths")
@@ -200,19 +287,22 @@ namespace Accounting_System.Migrations
                         .HasColumnName("po_no");
 
                     b.Property<string>("Particulars")
-                        .HasColumnType("text")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("particulars");
 
                     b.Property<string>("Payee")
-                        .HasColumnType("text")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
                         .HasColumnName("payee");
 
                     b.Property<string>("PostedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("posted_by");
 
                     b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("posted_date");
 
                     b.Property<string[]>("RRNo")
@@ -220,7 +310,8 @@ namespace Accounting_System.Migrations
                         .HasColumnName("rr_no");
 
                     b.Property<string>("Reference")
-                        .HasColumnType("text")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
                         .HasColumnName("reference");
 
                     b.Property<string[]>("SINo")
@@ -240,14 +331,15 @@ namespace Accounting_System.Migrations
                         .HasColumnName("total");
 
                     b.Property<string>("VoidedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("voided_by");
 
                     b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("voided_date");
 
-                    b.HasKey("Id")
+                    b.HasKey("CheckVoucherHeaderId")
                         .HasName("pk_check_voucher_headers");
 
                     b.HasIndex("BankId")
@@ -261,21 +353,23 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.AccountsPayable.JournalVoucherDetail", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("JournalVoucherDetailId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("journal_voucher_detail_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("JournalVoucherDetailId"));
 
                     b.Property<string>("AccountName")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("account_name");
 
                     b.Property<string>("AccountNo")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("account_no");
 
                     b.Property<decimal>("Credit")
@@ -286,9 +380,9 @@ namespace Accounting_System.Migrations
                         .HasColumnType("numeric(18,4)")
                         .HasColumnName("debit");
 
-                    b.Property<int>("JVHeaderId")
+                    b.Property<int>("JournalVoucherHeaderId")
                         .HasColumnType("integer")
-                        .HasColumnName("jv_header_id");
+                        .HasColumnName("journal_voucher_header_id");
 
                     b.Property<int?>("OriginalDocumentId")
                         .HasColumnType("integer")
@@ -296,14 +390,15 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("TransactionNo")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
                         .HasColumnName("transaction_no");
 
-                    b.HasKey("Id")
+                    b.HasKey("JournalVoucherDetailId")
                         .HasName("pk_journal_voucher_details");
 
-                    b.HasIndex("JVHeaderId")
-                        .HasDatabaseName("ix_journal_voucher_details_jv_header_id");
+                    b.HasIndex("JournalVoucherHeaderId")
+                        .HasDatabaseName("ix_journal_voucher_details_journal_voucher_header_id");
 
                     b.ToTable("journal_voucher_details", (string)null);
                 });
@@ -341,23 +436,24 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.AccountsPayable.PurchaseOrder", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("PurchaseOrderId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("purchase_order_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PurchaseOrderId"));
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount");
 
                     b.Property<string>("CanceledBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("canceled_by");
 
                     b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("canceled_date");
 
                     b.Property<string>("CancellationRemarks")
@@ -365,11 +461,12 @@ namespace Accounting_System.Migrations
                         .HasColumnName("cancellation_remarks");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<DateOnly>("Date")
@@ -420,16 +517,13 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("original_supplier_id");
 
-                    b.Property<string>("PONo")
-                        .HasColumnType("varchar(12)")
-                        .HasColumnName("po_no");
-
                     b.Property<string>("PostedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("posted_by");
 
                     b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("posted_date");
 
                     b.Property<decimal>("Price")
@@ -442,8 +536,14 @@ namespace Accounting_System.Migrations
                         .HasColumnName("product_id");
 
                     b.Property<string>("ProductNo")
-                        .HasColumnType("text")
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)")
                         .HasColumnName("product_no");
+
+                    b.Property<string>("PurchaseOrderNo")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("purchase_order_no");
 
                     b.Property<decimal>("Quantity")
                         .HasColumnType("numeric(18,4)")
@@ -454,12 +554,13 @@ namespace Accounting_System.Migrations
                         .HasColumnName("quantity_received");
 
                     b.Property<DateTime>("ReceivedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("received_date");
 
                     b.Property<string>("Remarks")
                         .IsRequired()
-                        .HasColumnType("varchar(200)")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("remarks");
 
                     b.Property<int?>("SupplierId")
@@ -473,18 +574,20 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Terms")
                         .IsRequired()
-                        .HasColumnType("varchar(10)")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
                         .HasColumnName("terms");
 
                     b.Property<string>("VoidedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("voided_by");
 
                     b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("voided_date");
 
-                    b.HasKey("Id")
+                    b.HasKey("PurchaseOrderId")
                         .HasName("pk_purchase_orders");
 
                     b.HasIndex("ProductId")
@@ -498,12 +601,12 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.AccountsPayable.ReceivingReport", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ReceivingReportId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("receiving_report_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ReceivingReportId"));
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric(18,4)")
@@ -514,11 +617,12 @@ namespace Accounting_System.Migrations
                         .HasColumnName("amount_paid");
 
                     b.Property<string>("CanceledBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("canceled_by");
 
                     b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("canceled_date");
 
                     b.Property<decimal>("CanceledQuantity")
@@ -530,11 +634,12 @@ namespace Accounting_System.Migrations
                         .HasColumnName("cancellation_remarks");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<DateOnly>("Date")
@@ -582,7 +687,8 @@ namespace Accounting_System.Migrations
                         .HasColumnName("original_series_number");
 
                     b.Property<string>("OtherRef")
-                        .HasColumnType("varchar(100)")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("other_ref");
 
                     b.Property<int?>("POId")
@@ -591,7 +697,8 @@ namespace Accounting_System.Migrations
                         .HasColumnName("po_id");
 
                     b.Property<string>("PONo")
-                        .HasColumnType("varchar(12)")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
                         .HasColumnName("po_no");
 
                     b.Property<DateTime>("PaidDate")
@@ -599,11 +706,12 @@ namespace Accounting_System.Migrations
                         .HasColumnName("paid_date");
 
                     b.Property<string>("PostedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("posted_by");
 
                     b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("posted_date");
 
                     b.Property<decimal>("QuantityDelivered")
@@ -614,17 +722,19 @@ namespace Accounting_System.Migrations
                         .HasColumnType("numeric(18,4)")
                         .HasColumnName("quantity_received");
 
-                    b.Property<string>("RRNo")
-                        .HasColumnType("varchar(12)")
-                        .HasColumnName("rr_no");
-
                     b.Property<DateOnly?>("ReceivedDate")
                         .HasColumnType("date")
                         .HasColumnName("received_date");
 
+                    b.Property<string>("ReceivingReportNo")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("receiving_report_no");
+
                     b.Property<string>("Remarks")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("remarks");
 
                     b.Property<string>("SupplierInvoiceDate")
@@ -632,23 +742,26 @@ namespace Accounting_System.Migrations
                         .HasColumnName("supplier_invoice_date");
 
                     b.Property<string>("SupplierInvoiceNumber")
-                        .HasColumnType("varchar(100)")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("supplier_invoice_number");
 
                     b.Property<string>("TruckOrVessels")
                         .IsRequired()
-                        .HasColumnType("varchar(100)")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("truck_or_vessels");
 
                     b.Property<string>("VoidedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("voided_by");
 
                     b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("voided_date");
 
-                    b.HasKey("Id")
+                    b.HasKey("ReceivingReportId")
                         .HasName("pk_receiving_reports");
 
                     b.HasIndex("POId")
@@ -659,23 +772,20 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.AccountsReceivable.CollectionReceipt", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("CollectionReceiptId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("collection_receipt_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CRNo")
-                        .HasColumnType("varchar(12)")
-                        .HasColumnName("cr_no");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CollectionReceiptId"));
 
                     b.Property<string>("CanceledBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("canceled_by");
 
                     b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("canceled_date");
 
                     b.Property<string>("CancellationRemarks")
@@ -691,27 +801,36 @@ namespace Accounting_System.Migrations
                         .HasColumnName("check_amount");
 
                     b.Property<string>("CheckBank")
-                        .HasColumnType("varchar(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("check_bank");
 
                     b.Property<string>("CheckBranch")
-                        .HasColumnType("varchar(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("check_branch");
 
-                    b.Property<string>("CheckDate")
-                        .HasColumnType("text")
+                    b.Property<DateOnly?>("CheckDate")
+                        .HasColumnType("date")
                         .HasColumnName("check_date");
 
                     b.Property<string>("CheckNo")
-                        .HasColumnType("varchar(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("check_no");
 
+                    b.Property<string>("CollectionReceiptNo")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("collection_receipt_no");
+
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<int?>("CustomerId")
@@ -724,11 +843,13 @@ namespace Accounting_System.Migrations
                         .HasColumnName("ewt");
 
                     b.Property<string>("F2306FilePath")
-                        .HasColumnType("varchar(200)")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("f2306file_path");
 
                     b.Property<string>("F2307FilePath")
-                        .HasColumnType("varchar(200)")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("f2307file_path");
 
                     b.Property<bool>("IsCanceled")
@@ -756,11 +877,13 @@ namespace Accounting_System.Migrations
                         .HasColumnName("manager_check_amount");
 
                     b.Property<string>("ManagerCheckBank")
-                        .HasColumnType("varchar(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("manager_check_bank");
 
                     b.Property<string>("ManagerCheckBranch")
-                        .HasColumnType("varchar(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("manager_check_branch");
 
                     b.Property<DateOnly?>("ManagerCheckDate")
@@ -768,7 +891,8 @@ namespace Accounting_System.Migrations
                         .HasColumnName("manager_check_date");
 
                     b.Property<string>("ManagerCheckNo")
-                        .HasColumnType("varchar(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("manager_check_no");
 
                     b.Property<string[]>("MultipleSI")
@@ -804,20 +928,23 @@ namespace Accounting_System.Migrations
                         .HasColumnName("original_service_invoice_id");
 
                     b.Property<string>("PostedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("posted_by");
 
                     b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("posted_date");
 
                     b.Property<string>("ReferenceNo")
                         .IsRequired()
-                        .HasColumnType("varchar(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("reference_no");
 
                     b.Property<string>("Remarks")
-                        .HasColumnType("varchar(100)")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("remarks");
 
                     b.Property<decimal[]>("SIMultipleAmount")
@@ -825,11 +952,13 @@ namespace Accounting_System.Migrations
                         .HasColumnName("si_multiple_amount");
 
                     b.Property<string>("SINo")
-                        .HasColumnType("varchar(12)")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
                         .HasColumnName("si_no");
 
                     b.Property<string>("SVNo")
-                        .HasColumnType("varchar(12)")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
                         .HasColumnName("sv_no");
 
                     b.Property<int?>("SalesInvoiceId")
@@ -849,18 +978,19 @@ namespace Accounting_System.Migrations
                         .HasColumnName("transaction_date");
 
                     b.Property<string>("VoidedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("voided_by");
 
                     b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("voided_date");
 
                     b.Property<decimal>("WVAT")
                         .HasColumnType("numeric(18,4)")
                         .HasColumnName("wvat");
 
-                    b.HasKey("Id")
+                    b.HasKey("CollectionReceiptId")
                         .HasName("pk_collection_receipts");
 
                     b.HasIndex("CustomerId")
@@ -877,12 +1007,12 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.AccountsReceivable.CreditMemo", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("CreditMemoId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("credit_memo_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CreditMemoId"));
 
                     b.Property<decimal?>("AdjustedPrice")
                         .HasColumnType("numeric(18,4)")
@@ -892,16 +1022,13 @@ namespace Accounting_System.Migrations
                         .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount");
 
-                    b.Property<string>("CMNo")
-                        .HasColumnType("text")
-                        .HasColumnName("cm_no");
-
                     b.Property<string>("CanceledBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("canceled_by");
 
                     b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("canceled_date");
 
                     b.Property<string>("CancellationRemarks")
@@ -909,16 +1036,22 @@ namespace Accounting_System.Migrations
                         .HasColumnName("cancellation_remarks");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("CreditAmount")
                         .HasColumnType("numeric(18,4)")
                         .HasColumnName("credit_amount");
+
+                    b.Property<string>("CreditMemoNo")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("credit_memo_no");
 
                     b.Property<decimal>("CurrentAndPreviousAmount")
                         .HasColumnType("numeric(18,4)")
@@ -926,7 +1059,8 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("description");
 
                     b.Property<bool>("IsCanceled")
@@ -966,11 +1100,12 @@ namespace Accounting_System.Migrations
                         .HasColumnName("period");
 
                     b.Property<string>("PostedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("posted_by");
 
                     b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("posted_date");
 
                     b.Property<decimal?>("Quantity")
@@ -978,7 +1113,8 @@ namespace Accounting_System.Migrations
                         .HasColumnName("quantity");
 
                     b.Property<string>("Remarks")
-                        .HasColumnType("text")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("remarks");
 
                     b.Property<int?>("SalesInvoiceId")
@@ -995,7 +1131,8 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Source")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("source");
 
                     b.Property<DateOnly>("TransactionDate")
@@ -1007,14 +1144,15 @@ namespace Accounting_System.Migrations
                         .HasColumnName("unearned_amount");
 
                     b.Property<string>("VoidedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("voided_by");
 
                     b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("voided_date");
 
-                    b.HasKey("Id")
+                    b.HasKey("CreditMemoId")
                         .HasName("pk_credit_memos");
 
                     b.HasIndex("SalesInvoiceId")
@@ -1028,12 +1166,12 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.AccountsReceivable.DebitMemo", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("DebitMemoId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("debit_memo_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DebitMemoId"));
 
                     b.Property<decimal?>("AdjustedPrice")
                         .HasColumnType("numeric(18,4)")
@@ -1044,11 +1182,12 @@ namespace Accounting_System.Migrations
                         .HasColumnName("amount");
 
                     b.Property<string>("CanceledBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("canceled_by");
 
                     b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("canceled_date");
 
                     b.Property<string>("CancellationRemarks")
@@ -1056,28 +1195,31 @@ namespace Accounting_System.Migrations
                         .HasColumnName("cancellation_remarks");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("CurrentAndPreviousAmount")
                         .HasColumnType("numeric(18,4)")
                         .HasColumnName("current_and_previous_amount");
 
-                    b.Property<string>("DMNo")
-                        .HasColumnType("text")
-                        .HasColumnName("dm_no");
-
                     b.Property<decimal>("DebitAmount")
                         .HasColumnType("numeric(18,4)")
                         .HasColumnName("debit_amount");
 
+                    b.Property<string>("DebitMemoNo")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("debit_memo_no");
+
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("description");
 
                     b.Property<bool>("IsCanceled")
@@ -1117,11 +1259,12 @@ namespace Accounting_System.Migrations
                         .HasColumnName("period");
 
                     b.Property<string>("PostedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("posted_by");
 
                     b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("posted_date");
 
                     b.Property<decimal?>("Quantity")
@@ -1130,7 +1273,8 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Remarks")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("remarks");
 
                     b.Property<int?>("SalesInvoiceId")
@@ -1147,7 +1291,8 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Source")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("source");
 
                     b.Property<DateOnly>("TransactionDate")
@@ -1159,14 +1304,15 @@ namespace Accounting_System.Migrations
                         .HasColumnName("unearned_amount");
 
                     b.Property<string>("VoidedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("voided_by");
 
                     b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("voided_date");
 
-                    b.HasKey("Id")
+                    b.HasKey("DebitMemoId")
                         .HasName("pk_debit_memos");
 
                     b.HasIndex("SalesInvoiceId")
@@ -1180,12 +1326,12 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.AccountsReceivable.SalesInvoice", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("SalesInvoiceId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("sales_invoice_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SalesInvoiceId"));
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric(18,4)")
@@ -1200,11 +1346,12 @@ namespace Accounting_System.Migrations
                         .HasColumnName("balance");
 
                     b.Property<string>("CanceledBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("canceled_by");
 
                     b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("canceled_date");
 
                     b.Property<string>("CancellationRemarks")
@@ -1212,11 +1359,12 @@ namespace Accounting_System.Migrations
                         .HasColumnName("cancellation_remarks");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<int?>("CustomerId")
@@ -1274,15 +1422,17 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("OtherRefNo")
                         .IsRequired()
-                        .HasColumnType("varchar(500)")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("other_ref_no");
 
                     b.Property<string>("PostedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("posted_by");
 
                     b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("posted_date");
 
                     b.Property<int?>("ProductId")
@@ -1296,16 +1446,19 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Remarks")
                         .IsRequired()
-                        .HasColumnType("varchar(500)")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("remarks");
 
-                    b.Property<string>("SINo")
-                        .HasColumnType("varchar(12)")
-                        .HasColumnName("si_no");
+                    b.Property<string>("SalesInvoiceNo")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("sales_invoice_no");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("status");
 
                     b.Property<DateOnly>("TransactionDate")
@@ -1317,14 +1470,15 @@ namespace Accounting_System.Migrations
                         .HasColumnName("unit_price");
 
                     b.Property<string>("VoidedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("voided_by");
 
                     b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("voided_date");
 
-                    b.HasKey("Id")
+                    b.HasKey("SalesInvoiceId")
                         .HasName("pk_sales_invoices");
 
                     b.HasIndex("CustomerId")
@@ -1338,12 +1492,12 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.AccountsReceivable.ServiceInvoice", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ServiceInvoiceId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("service_invoice_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ServiceInvoiceId"));
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric(18,4)")
@@ -1358,11 +1512,12 @@ namespace Accounting_System.Migrations
                         .HasColumnName("balance");
 
                     b.Property<string>("CanceledBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("canceled_by");
 
                     b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("canceled_date");
 
                     b.Property<string>("CancellationRemarks")
@@ -1370,11 +1525,12 @@ namespace Accounting_System.Migrations
                         .HasColumnName("cancellation_remarks");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("CurrentAndPreviousAmount")
@@ -1395,7 +1551,8 @@ namespace Accounting_System.Migrations
                         .HasColumnName("due_date");
 
                     b.Property<string>("Instructions")
-                        .HasColumnType("varchar(200)")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("instructions");
 
                     b.Property<bool>("IsCanceled")
@@ -1439,16 +1596,18 @@ namespace Accounting_System.Migrations
                         .HasColumnName("period");
 
                     b.Property<string>("PostedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("posted_by");
 
                     b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("posted_date");
 
-                    b.Property<string>("SVNo")
-                        .HasColumnType("varchar(12)")
-                        .HasColumnName("sv_no");
+                    b.Property<string>("ServiceInvoiceNo")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("service_invoice_no");
 
                     b.Property<int>("ServiceNo")
                         .HasColumnType("integer")
@@ -1461,7 +1620,8 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("status");
 
                     b.Property<decimal>("Total")
@@ -1473,14 +1633,15 @@ namespace Accounting_System.Migrations
                         .HasColumnName("unearned_amount");
 
                     b.Property<string>("VoidedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("voided_by");
 
                     b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("voided_date");
 
-                    b.HasKey("Id")
+                    b.HasKey("ServiceInvoiceId")
                         .HasName("pk_service_invoices");
 
                     b.HasIndex("CustomerId")
@@ -1503,31 +1664,36 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("AccountName")
                         .IsRequired()
-                        .HasColumnType("varchar(100)")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("account_name");
 
                     b.Property<string>("AccountNumber")
-                        .HasColumnType("varchar(15)")
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)")
                         .HasColumnName("account_number");
 
                     b.Property<string>("AccountType")
-                        .HasColumnType("varchar(25)")
+                        .HasMaxLength(25)
+                        .HasColumnType("character varying(25)")
                         .HasColumnName("account_type");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<string>("EditedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("edited_by");
 
                     b.Property<DateTime>("EditedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("edited_date");
 
                     b.Property<bool>("HasChildren")
@@ -1543,7 +1709,8 @@ namespace Accounting_System.Migrations
                         .HasColumnName("level");
 
                     b.Property<string>("NormalBalance")
-                        .HasColumnType("varchar(20)")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("normal_balance");
 
                     b.Property<int?>("OriginalChartOfAccountId")
@@ -1551,7 +1718,8 @@ namespace Accounting_System.Migrations
                         .HasColumnName("original_chart_of_account_id");
 
                     b.Property<string>("Parent")
-                        .HasColumnType("varchar(15)")
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)")
                         .HasColumnName("parent");
 
                     b.Property<int?>("ParentAccountId")
@@ -1567,118 +1735,59 @@ namespace Accounting_System.Migrations
                     b.ToTable("chart_of_accounts", (string)null);
                 });
 
-            modelBuilder.Entity("Accounting_System.Models.CheckVoucherDetail", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("account_name");
-
-                    b.Property<string>("AccountNo")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("account_no");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric(18,4)")
-                        .HasColumnName("amount");
-
-                    b.Property<decimal>("AmountPaid")
-                        .HasColumnType("numeric(18,4)")
-                        .HasColumnName("amount_paid");
-
-                    b.Property<int?>("CVHeaderId")
-                        .HasColumnType("integer")
-                        .HasColumnName("cv_header_id");
-
-                    b.Property<decimal>("Credit")
-                        .HasColumnType("numeric(18,4)")
-                        .HasColumnName("credit");
-
-                    b.Property<decimal>("Debit")
-                        .HasColumnType("numeric(18,4)")
-                        .HasColumnName("debit");
-
-                    b.Property<decimal>("EwtPercent")
-                        .HasColumnType("numeric")
-                        .HasColumnName("ewt_percent");
-
-                    b.Property<bool>("IsUserSelected")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_user_selected");
-
-                    b.Property<bool>("IsVatable")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_vatable");
-
-                    b.Property<int?>("OriginalDocumentId")
-                        .HasColumnType("integer")
-                        .HasColumnName("original_document_id");
-
-                    b.Property<int?>("SupplierId")
-                        .HasColumnType("integer")
-                        .HasColumnName("supplier_id");
-
-                    b.Property<string>("TransactionNo")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("transaction_no");
-
-                    b.HasKey("Id")
-                        .HasName("pk_check_voucher_details");
-
-                    b.HasIndex("CVHeaderId")
-                        .HasDatabaseName("ix_check_voucher_details_cv_header_id");
-
-                    b.HasIndex("SupplierId")
-                        .HasDatabaseName("ix_check_voucher_details_supplier_id");
-
-                    b.ToTable("check_voucher_details", (string)null);
-                });
-
             modelBuilder.Entity("Accounting_System.Models.Customer", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("CustomerId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("customer_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("address");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CustomerId"));
 
                     b.Property<string>("BusinessStyle")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("business_style");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
+
+                    b.Property<string>("CustomerAddress")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("customer_address");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("customer_name");
+
+                    b.Property<string>("CustomerTerms")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("customer_terms");
+
+                    b.Property<string>("CustomerTin")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("customer_tin");
 
                     b.Property<string>("CustomerType")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("customer_type");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("name");
 
                     b.Property<int>("Number")
                         .HasColumnType("integer")
@@ -1689,18 +1798,9 @@ namespace Accounting_System.Migrations
                         .HasColumnName("original_customer_id");
 
                     b.Property<string>("OriginalCustomerNumber")
-                        .HasColumnType("text")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
                         .HasColumnName("original_customer_number");
-
-                    b.Property<string>("Terms")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("terms");
-
-                    b.Property<string>("TinNo")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("tin_no");
 
                     b.Property<bool>("WithHoldingTax")
                         .HasColumnType("boolean")
@@ -1712,10 +1812,11 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("ZipCode")
                         .IsRequired()
-                        .HasColumnType("varchar(10)")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
                         .HasColumnName("zip_code");
 
-                    b.HasKey("Id")
+                    b.HasKey("CustomerId")
                         .HasName("pk_customers");
 
                     b.ToTable("customers", (string)null);
@@ -1730,17 +1831,26 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Action")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("action");
 
                     b.Property<string>("AdjustedValue")
-                        .HasColumnType("text")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
                         .HasColumnName("adjusted_value");
 
                     b.Property<string>("ColumnName")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("column_name");
+
+                    b.Property<string>("DocumentNo")
+                        .IsRequired()
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("document_no");
 
                     b.Property<int>("DocumentRecordId")
                         .HasColumnType("integer")
@@ -1752,24 +1862,28 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Module")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("module");
 
                     b.Property<string>("OriginalValue")
-                        .HasColumnType("text")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
                         .HasColumnName("original_value");
 
                     b.Property<string>("TableName")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("table_name");
 
                     b.Property<DateTime>("TimeStamp")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("time_stamp");
 
                     b.Property<string>("UploadedBy")
-                        .HasColumnType("text")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("uploaded_by");
 
                     b.HasKey("Id")
@@ -1813,7 +1927,8 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Particular")
                         .IsRequired()
-                        .HasColumnType("varchar(200)")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("particular");
 
                     b.Property<int?>("ProductId")
@@ -1825,7 +1940,8 @@ namespace Accounting_System.Migrations
                         .HasColumnName("quantity");
 
                     b.Property<string>("Reference")
-                        .HasColumnType("varchar(12)")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
                         .HasColumnName("reference");
 
                     b.Property<decimal>("Total")
@@ -1838,15 +1954,17 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Unit")
                         .IsRequired()
-                        .HasColumnType("varchar(2)")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
                         .HasColumnName("unit");
 
                     b.Property<string>("ValidatedBy")
-                        .HasColumnType("varchar(20)")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("validated_by");
 
                     b.Property<DateTime?>("ValidatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("validated_date");
 
                     b.HasKey("Id")
@@ -1860,15 +1978,16 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.JournalVoucherHeader", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("JournalVoucherHeaderId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("journal_voucher_header_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("JournalVoucherHeaderId"));
 
                     b.Property<string>("CRNo")
-                        .HasColumnType("text")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("cr_no");
 
                     b.Property<int?>("CVId")
@@ -1876,11 +1995,12 @@ namespace Accounting_System.Migrations
                         .HasColumnName("cv_id");
 
                     b.Property<string>("CanceledBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("canceled_by");
 
                     b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("canceled_date");
 
                     b.Property<string>("CancellationRemarks")
@@ -1888,11 +2008,12 @@ namespace Accounting_System.Migrations
                         .HasColumnName("cancellation_remarks");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<DateOnly>("Date")
@@ -1915,14 +2036,16 @@ namespace Accounting_System.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_voided");
 
-                    b.Property<string>("JVNo")
-                        .HasColumnType("text")
-                        .HasColumnName("jv_no");
-
                     b.Property<string>("JVReason")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("jv_reason");
+
+                    b.Property<string>("JournalVoucherHeaderNo")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("journal_voucher_header_no");
 
                     b.Property<int?>("OriginalCVId")
                         .HasColumnType("integer")
@@ -1938,30 +2061,34 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Particulars")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("particulars");
 
                     b.Property<string>("PostedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("posted_by");
 
                     b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("posted_date");
 
                     b.Property<string>("References")
-                        .HasColumnType("text")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("references");
 
                     b.Property<string>("VoidedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("voided_by");
 
                     b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("voided_date");
 
-                    b.HasKey("Id")
+                    b.HasKey("JournalVoucherHeaderId")
                         .HasName("pk_journal_voucher_headers");
 
                     b.HasIndex("CVId")
@@ -1972,36 +2099,39 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.MasterFile.BankAccount", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("BankAccountId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("bank_account_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("BankAccountId"));
 
                     b.Property<string>("AccountName")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("account_name");
 
-                    b.Property<string>("BankCode")
+                    b.Property<string>("Bank")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("bank_code");
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("bank");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<int?>("OriginalBankId")
                         .HasColumnType("integer")
                         .HasColumnName("original_bank_id");
 
-                    b.HasKey("Id")
+                    b.HasKey("BankAccountId")
                         .HasName("pk_bank_accounts");
 
                     b.ToTable("bank_accounts", (string)null);
@@ -2009,40 +2139,44 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.MasterFile.Product", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ProductId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("product_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Code")
-                        .HasColumnType("text")
-                        .HasColumnName("code");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ProductId"));
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("name");
 
                     b.Property<int>("OriginalProductId")
                         .HasColumnType("integer")
                         .HasColumnName("original_product_id");
 
-                    b.Property<string>("Unit")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("unit");
+                    b.Property<string>("ProductCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("product_code");
 
-                    b.HasKey("Id")
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("product_name");
+
+                    b.Property<string>("ProductUnit")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("product_unit");
+
+                    b.HasKey("ProductId")
                         .HasName("pk_products");
 
                     b.ToTable("products", (string)null);
@@ -2050,30 +2184,28 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.MasterFile.Supplier", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("SupplierId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("supplier_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("varchar(500)")
-                        .HasColumnName("address");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SupplierId"));
 
                     b.Property<string>("Branch")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("branch");
 
                     b.Property<string>("Category")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("category");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
@@ -2081,13 +2213,9 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_date");
 
                     b.Property<string>("DefaultExpenseNumber")
-                        .HasColumnType("text")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("default_expense_number");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("name");
 
                     b.Property<int>("Number")
                         .HasColumnType("integer")
@@ -2098,47 +2226,68 @@ namespace Accounting_System.Migrations
                         .HasColumnName("original_supplier_id");
 
                     b.Property<string>("ProofOfExemptionFilePath")
-                        .HasColumnType("varchar(500)")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
                         .HasColumnName("proof_of_exemption_file_path");
 
                     b.Property<string>("ProofOfRegistrationFilePath")
-                        .HasColumnType("varchar(500)")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
                         .HasColumnName("proof_of_registration_file_path");
 
                     b.Property<string>("ReasonOfExemption")
-                        .HasColumnType("varchar(200)")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("reason_of_exemption");
+
+                    b.Property<string>("SupplierAddress")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("supplier_address");
+
+                    b.Property<string>("SupplierName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("supplier_name");
+
+                    b.Property<string>("SupplierTerms")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("supplier_terms");
+
+                    b.Property<string>("SupplierTin")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("supplier_tin");
 
                     b.Property<string>("TaxType")
                         .IsRequired()
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("tax_type");
 
-                    b.Property<string>("Terms")
-                        .IsRequired()
-                        .HasColumnType("varchar(10)")
-                        .HasColumnName("terms");
-
-                    b.Property<string>("TinNo")
-                        .IsRequired()
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("tin_no");
-
                     b.Property<string>("TradeName")
-                        .HasColumnType("text")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
                         .HasColumnName("trade_name");
 
                     b.Property<string>("Validity")
-                        .HasColumnType("varchar(20)")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("validity");
 
                     b.Property<DateTime?>("ValidityDate")
-                        .HasColumnType("date")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("validity_date");
 
                     b.Property<string>("VatType")
                         .IsRequired()
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("vat_type");
 
                     b.Property<int?>("WithholdingTaxPercent")
@@ -2146,15 +2295,17 @@ namespace Accounting_System.Migrations
                         .HasColumnName("withholding_tax_percent");
 
                     b.Property<string>("WithholdingTaxtitle")
-                        .HasColumnType("text")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("withholding_taxtitle");
 
                     b.Property<string>("ZipCode")
                         .IsRequired()
-                        .HasColumnType("varchar(10)")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
                         .HasColumnName("zip_code");
 
-                    b.HasKey("Id")
+                    b.HasKey("SupplierId")
                         .HasName("pk_suppliers");
 
                     b.ToTable("suppliers", (string)null);
@@ -2171,12 +2322,14 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("AccountNo")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("account_no");
 
                     b.Property<string>("AccountTitle")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("account_title");
 
                     b.Property<decimal>("Amount")
@@ -2184,11 +2337,12 @@ namespace Accounting_System.Migrations
                         .HasColumnName("amount");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<bool>("IsRemoved")
@@ -2196,12 +2350,14 @@ namespace Accounting_System.Migrations
                         .HasColumnName("is_removed");
 
                     b.Property<string>("Reference")
-                        .HasColumnType("text")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
                         .HasColumnName("reference");
 
                     b.Property<string>("Source")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("source");
 
                     b.HasKey("Id")
@@ -2219,26 +2375,30 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Activity")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
                         .HasColumnName("activity");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("date");
 
                     b.Property<string>("DocumentType")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("document_type");
 
                     b.Property<string>("MachineName")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
                         .HasColumnName("machine_name");
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("username");
 
                     b.HasKey("Id")
@@ -2249,32 +2409,36 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.Reports.CashReceiptBook", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("CashReceiptBookId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("cash_receipt_book_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CashReceiptBookId"));
 
                     b.Property<string>("Bank")
-                        .HasColumnType("text")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("bank");
 
                     b.Property<string>("COA")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
                         .HasColumnName("coa");
 
                     b.Property<string>("CheckNo")
-                        .HasColumnType("text")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("check_no");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("Credit")
@@ -2283,7 +2447,8 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("CustomerName")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("customer_name");
 
                     b.Property<DateOnly>("Date")
@@ -2296,15 +2461,17 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Particulars")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("particulars");
 
                     b.Property<string>("RefNo")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("ref_no");
 
-                    b.HasKey("Id")
+                    b.HasKey("CashReceiptBookId")
                         .HasName("pk_cash_receipt_books");
 
                     b.ToTable("cash_receipt_books", (string)null);
@@ -2312,12 +2479,12 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.Reports.DisbursementBook", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("DisbursementBookId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("disbursement_book_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DisbursementBookId"));
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric(18,4)")
@@ -2325,17 +2492,20 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Bank")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("bank");
 
                     b.Property<string>("CVNo")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
                         .HasColumnName("cv_no");
 
                     b.Property<string>("ChartOfAccount")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
                         .HasColumnName("chart_of_account");
 
                     b.Property<string>("CheckDate")
@@ -2345,15 +2515,17 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("CheckNo")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("check_no");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("Credit")
@@ -2370,15 +2542,17 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Particulars")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("particulars");
 
                     b.Property<string>("Payee")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("payee");
 
-                    b.HasKey("Id")
+                    b.HasKey("DisbursementBookId")
                         .HasName("pk_disbursement_books");
 
                     b.ToTable("disbursement_books", (string)null);
@@ -2386,29 +2560,32 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.Reports.GeneralLedgerBook", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("GeneralLedgerBookId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("general_ledger_book_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("GeneralLedgerBookId"));
 
                     b.Property<string>("AccountNo")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("account_no");
 
                     b.Property<string>("AccountTitle")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
                         .HasColumnName("account_title");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("Credit")
@@ -2425,7 +2602,8 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("description");
 
                     b.Property<bool>("IsPosted")
@@ -2434,10 +2612,11 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Reference")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
                         .HasColumnName("reference");
 
-                    b.HasKey("Id")
+                    b.HasKey("GeneralLedgerBookId")
                         .HasName("pk_general_ledger_books");
 
                     b.ToTable("general_ledger_books", (string)null);
@@ -2445,24 +2624,26 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.Reports.JournalBook", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("JournalBookId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("journal_book_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("JournalBookId"));
 
                     b.Property<string>("AccountTitle")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
                         .HasColumnName("account_title");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("Credit")
@@ -2479,15 +2660,17 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("description");
 
                     b.Property<string>("Reference")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
                         .HasColumnName("reference");
 
-                    b.HasKey("Id")
+                    b.HasKey("JournalBookId")
                         .HasName("pk_journal_books");
 
                     b.ToTable("journal_books", (string)null);
@@ -2495,23 +2678,24 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.Reports.PurchaseJournalBook", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("PurchaseBookId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("purchase_book_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PurchaseBookId"));
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric(18,4)")
                         .HasColumnName("amount");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<DateOnly>("Date")
@@ -2520,7 +2704,8 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("description");
 
                     b.Property<decimal>("Discount")
@@ -2529,7 +2714,8 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("DocumentNo")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
                         .HasColumnName("document_no");
 
                     b.Property<DateOnly>("DueDate")
@@ -2542,22 +2728,26 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("PONo")
                         .IsRequired()
-                        .HasColumnType("varchar(12)")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
                         .HasColumnName("po_no");
 
                     b.Property<string>("SupplierAddress")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("supplier_address");
 
                     b.Property<string>("SupplierName")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("supplier_name");
 
                     b.Property<string>("SupplierTin")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("supplier_tin");
 
                     b.Property<decimal>("VatAmount")
@@ -2568,7 +2758,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("numeric(18,4)")
                         .HasColumnName("wht_amount");
 
-                    b.HasKey("Id")
+                    b.HasKey("PurchaseBookId")
                         .HasName("pk_purchase_journal_books");
 
                     b.ToTable("purchase_journal_books", (string)null);
@@ -2576,16 +2766,17 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.SalesBook", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("SalesBookId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("sales_book_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SalesBookId"));
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("address");
 
                     b.Property<decimal>("Amount")
@@ -2593,16 +2784,18 @@ namespace Accounting_System.Migrations
                         .HasColumnName("amount");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("description");
 
                     b.Property<decimal>("Discount")
@@ -2623,17 +2816,20 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("SerialNo")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("serial_no");
 
                     b.Property<string>("SoldTo")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("sold_to");
 
                     b.Property<string>("TinNo")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("tin_no");
 
                     b.Property<DateOnly>("TransactionDate")
@@ -2656,7 +2852,7 @@ namespace Accounting_System.Migrations
                         .HasColumnType("numeric(18,4)")
                         .HasColumnName("zero_rated");
 
-                    b.HasKey("Id")
+                    b.HasKey("SalesBookId")
                         .HasName("pk_sales_books");
 
                     b.ToTable("sales_books", (string)null);
@@ -2664,37 +2860,37 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.Services", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ServiceId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("service_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ServiceId"));
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<string>("CurrentAndPreviousNo")
-                        .HasColumnType("varchar(20)")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("current_and_previous_no");
 
                     b.Property<string>("CurrentAndPreviousTitle")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("current_and_previous_title");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("name");
-
-                    b.Property<int>("Number")
-                        .HasColumnType("integer")
-                        .HasColumnName("number");
 
                     b.Property<int?>("OriginalServiceId")
                         .HasColumnType("integer")
@@ -2704,15 +2900,21 @@ namespace Accounting_System.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("percent");
 
+                    b.Property<int>("ServiceNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("service_no");
+
                     b.Property<string>("UnearnedNo")
-                        .HasColumnType("varchar(20)")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("unearned_no");
 
                     b.Property<string>("UnearnedTitle")
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("unearned_title");
 
-                    b.HasKey("Id")
+                    b.HasKey("ServiceId")
                         .HasName("pk_services");
 
                     b.ToTable("services", (string)null);
@@ -2982,12 +3184,14 @@ namespace Accounting_System.Migrations
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("first_name");
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("last_name");
 
                     b.HasDiscriminator().HasValue("ApplicationUser");
@@ -3003,6 +3207,24 @@ namespace Accounting_System.Migrations
                         .HasConstraintName("fk_cv_trade_payments_check_voucher_headers_check_voucher_id");
 
                     b.Navigation("CV");
+                });
+
+            modelBuilder.Entity("Accounting_System.Models.AccountsPayable.CheckVoucherDetail", b =>
+                {
+                    b.HasOne("Accounting_System.Models.AccountsPayable.CheckVoucherHeader", "CheckVoucherHeader")
+                        .WithMany("Details")
+                        .HasForeignKey("CheckVoucherHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_check_voucher_details_check_voucher_headers_check_voucher_h");
+
+                    b.HasOne("Accounting_System.Models.MasterFile.Supplier", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .HasConstraintName("fk_check_voucher_details_suppliers_supplier_id");
+
+                    b.Navigation("CheckVoucherHeader");
+
+                    b.Navigation("Supplier");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.AccountsPayable.CheckVoucherHeader", b =>
@@ -3026,14 +3248,14 @@ namespace Accounting_System.Migrations
 
             modelBuilder.Entity("Accounting_System.Models.AccountsPayable.JournalVoucherDetail", b =>
                 {
-                    b.HasOne("Accounting_System.Models.JournalVoucherHeader", "Header")
+                    b.HasOne("Accounting_System.Models.JournalVoucherHeader", "JournalVoucherHeader")
                         .WithMany("Details")
-                        .HasForeignKey("JVHeaderId")
+                        .HasForeignKey("JournalVoucherHeaderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_journal_voucher_details_journal_voucher_headers_jv_header_id");
+                        .HasConstraintName("fk_journal_voucher_details_journal_voucher_headers_journal_vou");
 
-                    b.Navigation("Header");
+                    b.Navigation("JournalVoucherHeader");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.AccountsPayable.MultipleCheckVoucherPayment", b =>
@@ -3206,24 +3428,6 @@ namespace Accounting_System.Migrations
                         .HasConstraintName("fk_chart_of_accounts_chart_of_accounts_parent_account_id");
 
                     b.Navigation("ParentAccount");
-                });
-
-            modelBuilder.Entity("Accounting_System.Models.CheckVoucherDetail", b =>
-                {
-                    b.HasOne("Accounting_System.Models.AccountsPayable.CheckVoucherHeader", "Header")
-                        .WithMany("Details")
-                        .HasForeignKey("CVHeaderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_check_voucher_details_check_voucher_headers_cv_header_id");
-
-                    b.HasOne("Accounting_System.Models.MasterFile.Supplier", "Supplier")
-                        .WithMany()
-                        .HasForeignKey("SupplierId")
-                        .HasConstraintName("fk_check_voucher_details_suppliers_supplier_id");
-
-                    b.Navigation("Header");
-
-                    b.Navigation("Supplier");
                 });
 
             modelBuilder.Entity("Accounting_System.Models.Inventory", b =>

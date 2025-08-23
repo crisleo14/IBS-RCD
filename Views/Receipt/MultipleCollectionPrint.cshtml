@@ -1,7 +1,6 @@
 ﻿@model CollectionReceipt
 @using Accounting_System.Models.AccountsReceivable
 @using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 @using Humanizer
 @using Accounting_System.Utility
@@ -12,10 +11,12 @@
 
 <br />
 <div class="text-end">
-    <img src="~/img/Filpride.jpg" height="" width="130px" />
+    <img src="~/img/Filpride.jpg" height="" width="130px" alt=""/>
 </div>
 <div class="text-center">
-    <h2><u><b>&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b></u></h2>
+    <h2>
+        <b class="text-decoration-underline">&nbsp;FILPRIDE RESOURCES INC.&nbsp;</b>
+    </h2>
     <p style="line-height: 1; margin-top:-7px;">
         57 Westgate Office, Sampson Road, CBD, Subic Bay Freeport Zone,<br />
         Kalaklan, Olongapo City, 2200 Zambales, Philippines<br />
@@ -25,7 +26,7 @@
 
 <h3><span style="display: inline-block;"><b>COLLECTION RECEIPT</b></span></h3>
 <div class="text-end" style="margin-top:-50px;">
-    <h6><b>No.&nbsp;@Html.DisplayFor(model => model.CRNo)</b></h6>
+    <h6><b>No.&nbsp;@Html.DisplayFor(model => model.CollectionReceiptNo)</b></h6>
 </div>
 <br />
 
@@ -40,23 +41,23 @@
             <tr>
                 <td colspan="2" style="padding-left:10px;">
                     Received from: &nbsp;
-                    @Html.DisplayFor(model => model.Customer.Name)
+                    @Html.DisplayFor(model => model.Customer!.CustomerName)
                 </td>
             </tr>
             <tr>
                 <td colspan="2" class="w-50" style="padding-left:10px;">
                     Address: &nbsp;
-                    @Html.DisplayFor(model => model.Customer.Address)
+                    @Html.DisplayFor(model => model.Customer!.CustomerAddress)
                 </td>
             </tr>
             <tr>
                 <td style="padding-left:10px;">
                     TIN: &nbsp;
-                    @Html.DisplayFor(model => model.Customer.TinNo)
+                    @Html.DisplayFor(model => model.Customer!.CustomerTin)
                 </td>
                 <td style="padding-left:10px;">
                     Buss. Style: &nbsp;
-                    @Html.DisplayFor(model => model.Customer.BusinessStyle)
+                    @Html.DisplayFor(model => model.Customer!.BusinessStyle)
                 </td>
             </tr>
             @{
@@ -107,7 +108,7 @@
             <tr>
                 <td colspan="2" style="padding-left:10px;">
                     IN FULL/PARTIAL payment of:
-                    @for (int i = 0; i < Model.MultipleSI.Length; i++)
+                    @for (int i = 0; i < Model.MultipleSI!.Length; i++)
                     {
                         var siNo = $"{Model.MultipleSI[i]}, ";
                         @siNo
@@ -131,9 +132,9 @@
                 <td class="text-center" style="width:33%">INVOICE #</td>
                 <td class="text-center" style="width:33%">AMOUNT</td>
             </tr>
-            @for (int i = 0; i < Model.MultipleSI.Length; i++)
+            @for (var i = 0; i < Model.MultipleSI.Length; i++)
             {
-                var siAmount = $"{Model.SIMultipleAmount[i]}";
+                var siAmount = $"{Model.SIMultipleAmount![i]}";
                 var siNo = $"{Model.MultipleSI[i]}";
                 var siDate = $"{Model.MultipleTransactionDate?[i]}";
                 <tr class="text-center">
@@ -173,7 +174,7 @@
                 <td class="text-center"></td>
                 <td class="text-center"></td>
                 <td class="text-center">
-                    @if (Model.CashAmount != null)
+                    @if (Model.CashAmount > 0)
                     {
                         <p style="height: 9px;">@Html.DisplayFor(model => model.CashAmount)</p>
                     }
@@ -187,9 +188,9 @@
             <tr>
                 <td style="padding-left:20px;">Check</td>
                 <td class="text-center">
-                    @if (Model.CheckDate != null)
+                    @if (Model.CheckDate != default)
                     {
-                        <p style="height: 9px;">@Model.CheckDate</p>
+                        <p style="height: 9px;">@Html.DisplayFor(x => x.CheckDate)</p>
                     }
                     else
                     {
@@ -243,7 +244,7 @@
                 <td class="text-center">
                     @if (Model.ManagerCheckDate != null)
                     {
-                        <p style="height: 9px;">@Model.ManagerCheckDate?.ToString("MM/dd/yyyy")</p>
+                        <p style="height: 9px;">@Html.DisplayFor(x => x.ManagerCheckDate)</p>
                     }
                     else
                     {
@@ -367,7 +368,7 @@
             <br />
             <strong>Version :</strong> @CS.Version
             <br />
-            <strong>Printed By :</strong> @UserManager.GetUserName(User).ToUpper()
+            <strong>Printed By :</strong> @UserManager.GetUserName(User)!.ToUpper()
             <br />
             <strong>Date & Time Printed :</strong> @DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")
         </em>
@@ -388,21 +389,21 @@ else
 }
 @if (!Model.IsPosted)
 {
-    <a class="btn btn-success" onclick="confirmPost(@Model.Id)" style="margin-top: 25px;">Post</a>
+    <a class="btn btn-success" onclick="confirmPost(@Model.CollectionReceiptId)" style="margin-top: 25px;">Post</a>
 }
 else
 {
-    <a asp-action="PrintedMultipleCR" class="btn btn-success" asp-route-id="@Model.Id" onclick="printPage()" style="margin-top: 25px;" id="printButton">Print</a>
+    <a asp-action="PrintedMultipleCR" class="btn btn-success" asp-route-id="@Model.CollectionReceiptId" onclick="printPage()" style="margin-top: 25px;" id="printButton">Print</a>
 }
 <a asp-action="CollectionIndex" class="btn" style="margin-top: 25px;" id="otherButton">Back</a>
 
 @section Scripts {
     <script>
-        var originalFontSizes = [];
+        let originalFontSizes = [];
 
         function printPage() {
-            var printButton = document.getElementById("printButton");
-            var otherButton = document.getElementById("otherButton");
+            let printButton = document.getElementById("printButton");
+            let otherButton = document.getElementById("otherButton");
 
             // Hide the header and footer
             document.querySelector("header").style.display = "none";
@@ -416,10 +417,10 @@ else
             }
 
             // Get all paragraph elements
-            var paragraphs = document.querySelectorAll("p");
+            let paragraphs = document.querySelectorAll("p");
 
             // Store the original font sizes
-            for (var i = 0; i < paragraphs.length; i++) {
+            for (let i = 0; i < paragraphs.length; i++) {
                 originalFontSizes[i] = paragraphs[i].style.fontSize;
                 // Set the font size of all paragraph elements to 12px for printing
                 paragraphs[i].style.fontSize = "12px";
@@ -447,7 +448,6 @@ else
     </script>
     <script>
         function confirmPost(id) {
-            console.log(id);
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
@@ -459,8 +459,7 @@ else
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Replace with the actual URL that you want to redirect to
-                    var url = `@Url.Action("Post", "Receipt")/${id}`;
-                    window.location.href = url;
+                    window.location.href = `@Url.Action("Post", "Receipt")/${id}`;
                 }
             })
         }

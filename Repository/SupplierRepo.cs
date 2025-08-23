@@ -16,7 +16,7 @@ namespace Accounting_System.Repository
         {
             var lastNumber = await _dbContext
                 .Suppliers
-                .OrderByDescending(s => s.Id)
+                .OrderByDescending(s => s.SupplierId)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (lastNumber != null)
@@ -32,13 +32,13 @@ namespace Accounting_System.Repository
         public async Task<bool> IsSupplierNameExist(string supplierName, string category, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Suppliers
-                .AnyAsync(s => s.Name.ToUpper() == supplierName.ToUpper() && s.Category == category, cancellationToken);
+                .AnyAsync(s => s.SupplierName.ToUpper() == supplierName.ToUpper() && s.Category == category, cancellationToken);
         }
 
         public async Task<bool> IsSupplierTinExist(string supplierName, string category, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Suppliers
-                .AnyAsync(s => s.Name.ToUpper() == supplierName.ToUpper() && s.Category == category, cancellationToken);
+                .AnyAsync(s => s.SupplierName.ToUpper() == supplierName.ToUpper() && s.Category == category, cancellationToken);
         }
     }
 }

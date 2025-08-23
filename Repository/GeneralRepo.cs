@@ -3,8 +3,6 @@ using Accounting_System.Models.Reports;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-using Accounting_System.Models;
-using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.DTOs;
 
 namespace Accounting_System.Repository
@@ -33,28 +31,20 @@ namespace Accounting_System.Repository
                     entitySet.Remove(entity);
                 }
 
-                try
-                {
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    return entitiesToRemove.Count;
-                }
-                catch (Exception ex)
-                {
-                    throw;
-                }
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                return entitiesToRemove.Count;
             }
-            else
-            {
-                throw new ArgumentException($"No entities found with identifier value: '{predicate.Body.ToString}'");
-            }
+
+            throw new ArgumentException($"No entities found with identifier value: '{predicate.Body}'");
         }
 
         public bool IsJournalEntriesBalanced(IEnumerable<GeneralLedgerBook> ledgers)
         {
             try
             {
-                decimal totalDebit = Math.Round(ledgers.Sum(j => j.Debit), 2);
-                decimal totalCredit = Math.Round(ledgers.Sum(j => j.Credit), 2);
+                var generalLedgerBooks = ledgers.ToList();
+                var totalDebit = Math.Round(generalLedgerBooks.Sum(j => j.Debit), 2);
+                var totalCredit = Math.Round(generalLedgerBooks.Sum(j => j.Credit), 2);
 
                 return totalDebit == totalCredit;
             }
@@ -69,8 +59,8 @@ namespace Accounting_System.Repository
             return await _dbContext.Suppliers
                 .Select(supp => new SelectListItem
                 {
-                    Value = supp.Id.ToString(),
-                    Text = supp.Name
+                    Value = supp.SupplierId.ToString(),
+                    Text = supp.SupplierName
                 })
                 .ToListAsync(cancellationToken);
         }
@@ -80,8 +70,8 @@ namespace Accounting_System.Repository
             return await _dbContext.PurchaseOrders
                 .Select(po => new SelectListItem
                 {
-                    Value = po.PONo.ToString(),
-                    Text = po.PONo
+                    Value = po.PurchaseOrderNo!.ToString(),
+                    Text = po.PurchaseOrderNo
                 })
                 .ToListAsync(cancellationToken);
         }
@@ -91,12 +81,16 @@ namespace Accounting_System.Repository
             var rrNoHashSet = new HashSet<string>(rrNos);
 
             var rrList = await _dbContext.ReceivingReports
-                .OrderBy(rr => rrNoHashSet.Contains(rr.RRNo) ? Array.IndexOf(rrNos, rr.RRNo) : int.MaxValue) // Order by index in rrNos array if present in HashSet
-                .ThenBy(rr => rr.Id) // Secondary ordering by Id
+                .OrderBy(rr =>
+                    rrNoHashSet.Contains(rr.ReceivingReportNo!)
+                        // ReSharper disable once EntityFramework.UnsupportedServerSideFunctionCall
+                        ? Array.IndexOf(rrNos, rr.ReceivingReportNo)
+                        : int.MaxValue) // Order by index in rrNos array if present in HashSet
+                .ThenBy(rr => rr.ReceivingReportId) // Secondary ordering by Id
                 .Select(rr => new SelectListItem
                 {
-                    Value = rr.RRNo.ToString(),
-                    Text = rr.RRNo
+                    Value = rr.ReceivingReportNo!.ToString(),
+                    Text = rr.ReceivingReportNo
                 })
                 .ToListAsync(cancellationToken);
 
@@ -108,7 +102,7 @@ namespace Accounting_System.Repository
             return await _dbContext.BankAccounts
                 .Select(ba => new SelectListItem
                 {
-                    Value = ba.Id.ToString(),
+                    Value = ba.BankAccountId.ToString(),
                     Text = ba.AccountName
                 })
                 .ToListAsync(cancellationToken);
@@ -117,7 +111,7 @@ namespace Accounting_System.Repository
         public async Task<List<SelectListItem>> GetCOAListAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext.ChartOfAccounts
-                .Where(coa => !new[] { "202010200", "202010100", "101010100" }.Any(excludedNumber => coa.AccountNumber.Contains(excludedNumber)) && !coa.HasChildren)
+                .Where(coa => !new[] { "202010200", "202010100", "101010100" }.Any(excludedNumber => coa.AccountNumber!.Contains(excludedNumber)) && !coa.HasChildren)
                 .Select(s => new SelectListItem
                 {
                     Value = s.AccountNumber,
@@ -183,7 +177,7 @@ namespace Accounting_System.Repository
                 .Select(coa => new AccountTitleDto
                 {
                     AccountId = coa.AccountId,
-                    AccountNumber = coa.AccountNumber,
+                    AccountNumber = coa.AccountNumber!,
                     AccountName = coa.AccountName
                 })
                 .ToListAsync(cancellationToken);

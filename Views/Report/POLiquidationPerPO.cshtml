@@ -2,15 +2,9 @@
 @using Accounting_System.Models.AccountsPayable
 @using Microsoft.AspNetCore.Identity
 @using Accounting_System.Utility
-@inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 @{
     ViewData["Title"] = "Purchase Journal Book";
-    var dateFrom = ViewBag.DateFrom;
-    var dateTo = ViewBag.DateTo;
-    var lastRecord = ViewBag.LastRecord;
-
-    DateTime now = DateTime.Now;
 
     decimal totalAmount = 0;
     decimal totalVatableAmount = 0;
@@ -19,18 +13,17 @@
     decimal totalNetPurchases = 0;
     decimal totalQuantity = 0;
     decimal amount = 0;
-    decimal quantity = 0;
     decimal vatableAmount = 0;
     decimal wthAmount = 0;
     decimal netPurchases = 0;
-    decimal subTotalQTY = 0;
+    decimal subTotalQty = 0;
 
     int numberOfRecords = 0;
     decimal amountFieldControlTotal = 0;
 }
 <style>
     body {
-        margin: 0 100 0 0;
+        margin: 0 100px 0 0;
         padding: 0;
     }
 
@@ -71,7 +64,7 @@ Date Issued: @CS.DateIssued
                     @Html.DisplayNameFor(model => model.PONo)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.RRNo)
+                    @Html.DisplayNameFor(model => model.ReceivingReportNo)
                 </th>
                 <th>
                     RR Date
@@ -110,49 +103,49 @@ Date Issued: @CS.DateIssued
         </thead>
         <tbody>
             @{
-                    var distinctPO = Model.Select(purchase => purchase.PONo).Distinct().ToList();
-                    foreach (var poNumber in distinctPO)
+                    var distinctPo = Model.Select(purchase => purchase.PONo).Distinct().ToList();
+                    foreach (var poNumber in distinctPo)
                     {
-                    var purchasesWithSamePONo = Model.Where(purchase => purchase.PONo == poNumber).ToList();
+                    var purchasesWithSamePoNo = Model.Where(purchase => purchase.PONo == poNumber).ToList();
 
-                    foreach (var po in purchasesWithSamePONo)
+                    foreach (var po in purchasesWithSamePoNo)
                     {
-                        amount = purchasesWithSamePONo.Sum(po => po.Amount);
-                        quantity = po.QuantityDelivered > po.QuantityReceived ? po.QuantityReceived : po.QuantityDelivered;
-                        subTotalQTY = purchasesWithSamePONo.Sum(purchase => purchase.QuantityDelivered > purchase.QuantityReceived ? purchase.QuantityReceived : purchase.QuantityDelivered);
-                        vatableAmount = purchasesWithSamePONo.Sum(po => (po.Amount / 1.12m) * 0.12m);
-                        wthAmount = purchasesWithSamePONo.Sum(po => (po.Amount / 1.12m) * 0.01m);
-                        netPurchases = purchasesWithSamePONo.Sum(po => po.Amount / 1.12m);
+                        amount = purchasesWithSamePoNo.Sum(x => x.Amount);
+                        var quantity = po.QuantityDelivered > po.QuantityReceived ? po.QuantityReceived : po.QuantityDelivered;
+                        subTotalQty = purchasesWithSamePoNo.Sum(purchase => purchase.QuantityDelivered > purchase.QuantityReceived ? purchase.QuantityReceived : purchase.QuantityDelivered);
+                        vatableAmount = purchasesWithSamePoNo.Sum(x => (x.Amount / 1.12m) * 0.12m);
+                        wthAmount = purchasesWithSamePoNo.Sum(x => (x.Amount / 1.12m) * 0.01m);
+                        netPurchases = purchasesWithSamePoNo.Sum(x => x.Amount / 1.12m);
 
                         totalAmount += po.Amount;
-                        totalQuantity += subTotalQTY;
+                        totalQuantity += subTotalQty;
                         totalVatableAmount += (po.Amount / 1.12m) * 0.12m;
                         totalDefAmount += 0;
                         totalWthAmount += po.Amount * 0.01m;
                         totalNetPurchases += po.Amount / 1.12m;
 
                         <tr class="align-text-bottom">
-                            @if (po == purchasesWithSamePONo.First())
+                            @if (po == purchasesWithSamePoNo.First())
                             {
-                                <td rowspan="@purchasesWithSamePONo.Count"> @Html.DisplayFor(model => po.PONo) </td>
+                                <td rowspan="@purchasesWithSamePoNo.Count"> @Html.DisplayFor(model => po.PONo) </td>
                             }
                             <td>
-                                @Html.DisplayFor(model => po.RRNo)
+                                @Html.DisplayFor(model => po.ReceivingReportNo)
                             </td>
                             <td>
                                 @po.Date.ToString("MM/dd/yyyy")
                             </td>
                             <td>
-                                @Html.DisplayFor(model => po.PurchaseOrder.Supplier.Name)
+                                @Html.DisplayFor(model => po.PurchaseOrder!.Supplier!.SupplierName)
                             </td>
                             <td>
-                                @Html.DisplayFor(model => po.PurchaseOrder.Supplier.TinNo)
+                                @Html.DisplayFor(model => po.PurchaseOrder!.Supplier!.SupplierTin)
                             </td>
                             <td>
-                                @Html.DisplayFor(model => po.PurchaseOrder.Supplier.Address)
+                                @Html.DisplayFor(model => po.PurchaseOrder!.Supplier!.SupplierAddress)
                             </td>
                             <td>
-                                @Html.DisplayFor(model => po.PurchaseOrder.Product.Name)
+                                @Html.DisplayFor(model => po.PurchaseOrder!.Product!.ProductName)
                             </td>
                             <td class="text-end">
                                 @quantity.ToString("N0")
@@ -174,7 +167,7 @@ Date Issued: @CS.DateIssued
                             </td>
                         </tr>
                     }
-                    @if (purchasesWithSamePONo.Any())
+                    @if (purchasesWithSamePoNo.Any())
                     {
                         <tr>
                             <td></td>
@@ -184,7 +177,7 @@ Date Issued: @CS.DateIssued
                             <td></td>
                             <td></td>
                             <td class="text-center"><b>SUB TOTAL:</b></td>
-                            <td class="text-end">@subTotalQTY.ToString("N0")</td>
+                            <td class="text-end">@subTotalQty.ToString("N0")</td>
                             <td class="text-end">@amount.ToString("N2")</td>
                             <td class="text-end">@vatableAmount.ToString("N2")</td>
                             <td class="text-end">@totalDefAmount.ToString("N2")</td>
@@ -218,7 +211,7 @@ Date Issued: @CS.DateIssued
             <br />
             <b>Version :</b> @CS.Version
             <br />
-            <b>Printed By :</b> @UserManager.GetUserName(User).ToUpper()
+            <b>Printed By :</b> @UserManager.GetUserName(User)!.ToUpper()
             <br />
             <b>Date & Time Printed :</b> @DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")
         </em>
@@ -236,16 +229,16 @@ Date Issued: @CS.DateIssued
     </script>
     <script>
         // Get the first row in the table body
-        var firstRow = document.querySelector('tbody tr:first-child');
+        let firstRow = document.querySelector('tbody tr:first-child');
 
         // Get all cells in the first row
-        var cells = firstRow.querySelectorAll('td');
+        let cells = firstRow.querySelectorAll('td');
 
         // Initialize total character count
-        var totalCharacters = 0;
+        let totalCharacters = 0;
 
-        // Get the pre tag element
-        var resultPre = document.getElementById('resultPre');
+        // Get the pre-tag element
+        let resultPre = document.getElementById('resultPre');
 
         // Append the header for the fields
         resultPre.textContent += 'Field Name          Description         From     To     Length      Example\n';
@@ -253,18 +246,18 @@ Date Issued: @CS.DateIssued
         // Iterate through each cell in the first row
         cells.forEach(function (cell, index) {
             // Calculate the starting and ending character positions for each cell
-            var cellHtml = cell.innerHTML;
+            let cellHtml = cell.innerHTML;
 
             // Exclude spaces from both 'START' and 'END' counts
-            var startChar = totalCharacters + 1;
-            var endChar = startChar + cellHtml.replace(/\s/g, '').length - 1;
+            let startChar = totalCharacters + 1;
+            let endChar = startChar + cellHtml.replace(/\s/g, '').length - 1;
 
             // Update the total character count
             totalCharacters = endChar + 1; // Add 1 to include the space in the next cell
 
-            var content = cellHtml.trim();
+            let content = cellHtml.trim();
 
-            // Append the result to the pre tag based on the row index
+            // Append the result to the pre-tag based on the row index
             switch (index) {
                 case 0: // Transaction Date
                     resultPre.textContent += padToLength('Date', 20) +
@@ -373,12 +366,11 @@ Date Issued: @CS.DateIssued
 
     <script>
         // Get all <tr> elements in the table body (excluding the header row)
-        var allTrElements = document.querySelectorAll('tbody tr');
+        let allTrElements = document.querySelectorAll('tbody tr');
 
-        // Get the pre tag element
-        var resultPre = document.getElementById('resultPre');
+        // Get the pre-tag element
+        let resultPre = document.getElementById('resultPre');
 
-        console.log("@totalAmount");
         // Replace the placeholder in the HTML with the actual number of records
         resultPre.innerHTML = resultPre.innerHTML.replace('@numberOfRecords', (allTrElements.length - 1));
         resultPre.innerHTML = resultPre.innerHTML.replace('@amountFieldControlTotal', "@totalAmount");

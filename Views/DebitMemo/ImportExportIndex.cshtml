@@ -1,55 +1,11 @@
 ﻿@model IEnumerable<DebitMemo>
 @using Accounting_System.Models.AccountsReceivable
-@using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
-@inject UserManager<IdentityUser> UserManager
 @{
     ViewData["Title"] = "Debit Memo";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<style>
-    .container {
-        max-width: 100% !important;
-        width: 100% !important;
-    }
+<link rel="stylesheet" href="~/css/indexLayout.css" asp-append-version="true" />
 
-    /* Custom styles for professional look */
-    .table th {
-        font-weight: 600;
-        color: #374151;
-        text-transform: uppercase;
-        font-size: 0.85rem;
-        letter-spacing: 0.025em;
-    }
-
-    .table tbody tr {
-        transition: all 0.2s;
-    }
-
-    .table tbody tr:hover {
-        background-color: rgba(59, 130, 246, 0.05);
-    }
-
-    .table-loading {
-        position: relative;
-        opacity: 0.6;
-    }
-
-    .badge {
-        font-weight: 500;
-        padding: 0.35em 0.8em;
-        font-size: 0.75rem;
-    }
-
-    .actions-dropdown .dropdown-item {
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
-    }
-
-    .actions-dropdown .dropdown-item:hover {
-        background-color: #f3f4f6;
-    }
-</style>
 <div class="loader-container">
     <div class="loader"></div>
     <div class="loader-text">Loading...</div>
@@ -86,7 +42,7 @@
                     <input type="checkbox" class="text-center" id="selectAll" onclick="toggleSelectAll(this)">
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.DMNo)
+                    @Html.DisplayNameFor(model => model.DebitMemoNo)
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.TransactionDate)
@@ -113,10 +69,10 @@
                 {
                     <tr>
                         <td>
-                            <input type="checkbox" class="selectCheckbox text-center" value="@item.Id">
+                            <input type="checkbox" class="selectCheckbox text-center" value="@item.DebitMemoId">
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.DMNo)
+                            @Html.DisplayFor(modelItem => item.DebitMemoNo)
                         </td>
                         <td>
                             @item.TransactionDate.ToString("MM/dd/yyyy")
@@ -124,13 +80,13 @@
                         @if (item.Source == "Sales Invoice")
                         {
                             <td>
-                                @Html.DisplayFor(modelItem => item.SalesInvoice.SINo)
+                                @Html.DisplayFor(modelItem => item.SalesInvoice!.SalesInvoiceNo)
                             </td>
                         }
                         else
                         {
                             <td>
-                                @Html.DisplayFor(modelItem => item.ServiceInvoice.SVNo)
+                                @Html.DisplayFor(modelItem => item.ServiceInvoice!.ServiceInvoiceNo)
                             </td>
                         }
                         <td>

@@ -28,12 +28,12 @@ namespace Accounting_System.Repository
         {
             var serviceInvoice = await _dbContext
                 .ServiceInvoices
-                .OrderByDescending(s => s.SVNo)
+                .OrderByDescending(s => s.ServiceInvoiceNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (serviceInvoice != null)
             {
-                string lastSeries = serviceInvoice.SVNo;
+                string lastSeries = serviceInvoice.ServiceInvoiceNo!;
                 string numericPart = lastSeries.Substring(2);
                 int incrementedNumber = int.Parse(numericPart) + 1;
 
@@ -51,7 +51,7 @@ namespace Accounting_System.Repository
                 .ServiceInvoices
                 .Include(s => s.Customer)
                 .Include(s => s.Service)
-                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(s => s.ServiceInvoiceId == id, cancellationToken);
 
             if (serviceInvoice != null)
             {
@@ -67,7 +67,7 @@ namespace Accounting_System.Repository
         {
             var services = await _dbContext
                 .Services
-                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(s => s.ServiceId == id, cancellationToken);
 
             if (services != null)
             {
@@ -83,7 +83,7 @@ namespace Accounting_System.Repository
         {
             var customer = await _dbContext
                 .Customers
-                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(s => s.CustomerId == id, cancellationToken);
 
             if (customer != null)
             {
@@ -95,7 +95,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy)
+        public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy, string seriesNumber)
         {
             foreach (var change in changes)
             {
@@ -108,10 +108,11 @@ namespace Accounting_System.Repository
                     Module = "Service Invoice",
                     OriginalValue = change.Value.OriginalValue,
                     AdjustedValue = change.Value.NewValue,
-                    TimeStamp = DateTime.UtcNow.AddHours(8),
+                    TimeStamp = DateTime.Now,
                     UploadedBy = modifiedBy,
                     Action = string.Empty,
-                    Executed = false
+                    Executed = false,
+                    DocumentNo = seriesNumber
                 };
                 await _dbContext.AddAsync(logReport);
             }

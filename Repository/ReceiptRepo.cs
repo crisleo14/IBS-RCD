@@ -4,6 +4,7 @@ using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.Reports;
 using Accounting_System.Utility;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Accounting_System.Repository
 {
@@ -23,12 +24,12 @@ namespace Accounting_System.Repository
         {
             var collectionReceipt = await _dbContext
                 .CollectionReceipts
-                .OrderByDescending(s => s.CRNo)
+                .OrderByDescending(s => s.CollectionReceiptNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (collectionReceipt != null)
             {
-                string lastSeries = collectionReceipt.CRNo ?? throw new InvalidOperationException("CRNo is null pls Contact MIS Enterprise");
+                string lastSeries = collectionReceipt.CollectionReceiptNo ?? throw new InvalidOperationException("CRNo is null pls Contact MIS Enterprise");
                 string numericPart = lastSeries.Substring(2);
                 int incrementedNumber = int.Parse(numericPart) + 1;
 
@@ -46,13 +47,13 @@ namespace Accounting_System.Repository
                 .CollectionReceipts
                 .Include(cr => cr.Customer)
                 .Include(cr => cr.SalesInvoice)
-                .ThenInclude(s => s.Customer)
+                .ThenInclude(s => s!.Customer)
                 .Include(cr => cr.SalesInvoice)
-                .ThenInclude(s => s.Product)
+                .ThenInclude(s => s!.Product)
                 .Include(cr => cr.ServiceInvoice)
-                .ThenInclude(sv => sv.Customer)
+                .ThenInclude(sv => sv!.Customer)
                 .Include(cr => cr.ServiceInvoice)
-                .ThenInclude(sv => sv.Service)
+                .ThenInclude(sv => sv!.Service)
                 .ToListAsync(cancellationToken);
         }
 
@@ -62,14 +63,14 @@ namespace Accounting_System.Repository
                 .CollectionReceipts
                 .Include(cr => cr.Customer)
                 .Include(cr => cr.SalesInvoice)
-                .ThenInclude(s => s.Customer)
+                .ThenInclude(s => s!.Customer)
                 .Include(cr => cr.SalesInvoice)
-                .ThenInclude(s => s.Product)
+                .ThenInclude(s => s!.Product)
                 .Include(cr => cr.ServiceInvoice)
-                .ThenInclude(sv => sv.Customer)
+                .ThenInclude(sv => sv!.Customer)
                 .Include(cr => cr.ServiceInvoice)
-                .ThenInclude(sv => sv.Service)
-                .FirstOrDefaultAsync(collectionReceipt => collectionReceipt.Id == id, cancellationToken);
+                .ThenInclude(sv => sv!.Service)
+                .FirstOrDefaultAsync(collectionReceipt => collectionReceipt.CollectionReceiptId == id, cancellationToken);
 
             if (collectionReceipt != null)
             {
@@ -85,7 +86,7 @@ namespace Accounting_System.Repository
         {
             var si = await _dbContext
                 .SalesInvoices
-                .FirstOrDefaultAsync(si => si.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(si => si.SalesInvoiceId == id, cancellationToken);
 
             if (si != null)
             {
@@ -115,7 +116,7 @@ namespace Accounting_System.Repository
         }
         public async Task<int> UpdateMultipleInvoice(string[] siNo, decimal[] paidAmount, decimal offsetAmount, CancellationToken cancellationToken = default)
         {
-            if (siNo != null)
+            if (siNo.IsNullOrEmpty())
             {
                 var salesInvoice = new SalesInvoice();
                 for (int i = 0; i < siNo.Length; i++)
@@ -124,9 +125,9 @@ namespace Accounting_System.Repository
 
                     var siValue = siNo[i];
                     salesInvoice = await _dbContext.SalesInvoices
-                                .FirstOrDefaultAsync(p => p.SINo == siValue);
+                                .FirstOrDefaultAsync(p => p.SalesInvoiceNo == siValue);
 
-                    var amountPaid = salesInvoice.AmountPaid + paidAmount[i] + offsetAmount;
+                    var amountPaid = salesInvoice!.AmountPaid + paidAmount[i] + offsetAmount;
 
                     if (!salesInvoice.IsPaid)
                     {
@@ -167,7 +168,7 @@ namespace Accounting_System.Repository
         {
             var si = await _dbContext
                 .SalesInvoices
-                .FirstOrDefaultAsync(si => si.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(si => si.SalesInvoiceId == id, cancellationToken);
 
             if (si != null)
             {
@@ -177,7 +178,7 @@ namespace Accounting_System.Repository
                 si.AmountPaid -= total;
                 si.Balance -= netDiscount - total;
 
-                if (si.IsPaid == true && si.Status == "Paid" || si.IsPaid == true && si.Status == "OverPaid")
+                if (si.IsPaid && si.Status == "Paid" || si.IsPaid && si.Status == "OverPaid")
                 {
                     si.IsPaid = false;
                     si.Status = "Pending";
@@ -194,7 +195,7 @@ namespace Accounting_System.Repository
         {
             var sv = await _dbContext
                 .ServiceInvoices
-                .FirstOrDefaultAsync(si => si.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(si => si.ServiceInvoiceId == id, cancellationToken);
 
             if (sv != null)
             {
@@ -202,7 +203,7 @@ namespace Accounting_System.Repository
                 sv.AmountPaid -= total;
                 sv.Balance -= (sv.Total - sv.Discount) - total;
 
-                if (sv.IsPaid == true && sv.Status == "Paid" || sv.IsPaid == true && sv.Status == "OverPaid")
+                if (sv.IsPaid && sv.Status == "Paid" || sv.IsPaid && sv.Status == "OverPaid")
                 {
                     sv.IsPaid = false;
                     sv.Status = "Pending";
@@ -220,7 +221,7 @@ namespace Accounting_System.Repository
         {
             var sv = await _dbContext
                 .ServiceInvoices
-                .FirstOrDefaultAsync(si => si.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(si => si.ServiceInvoiceId == id, cancellationToken);
 
             if (sv != null)
             {
@@ -254,24 +255,22 @@ namespace Accounting_System.Repository
                 .Where(o => o.Source == source && o.Reference == reference)
                 .ToListAsync(cancellationToken);
 
-            if (result != null)
+            if (result.Any())
             {
                 return result;
             }
-            else
-            {
-                throw new ArgumentException("Invalid id value. The id must be greater than 0.");
-            }
+
+            return new List<Offsetting>();
         }
 
         public async Task RemoveMultipleSIPayment(int[] id, decimal[] paidAmount, decimal offsetAmount, CancellationToken cancellationToken = default)
         {
             var salesInvoices = await _dbContext
                 .SalesInvoices
-                .Where(si => id.Contains(si.Id))
+                .Where(si => id.Contains(si.SalesInvoiceId))
                 .ToListAsync(cancellationToken);
 
-            if (salesInvoices != null)
+            if (salesInvoices.Any())
             {
                 for (int i = 0; i < paidAmount.Length; i++)
                 {
@@ -279,7 +278,7 @@ namespace Accounting_System.Repository
                     salesInvoices[i].AmountPaid -= total;
                     salesInvoices[i].Balance += total;
 
-                    if (salesInvoices[i].IsPaid == true && salesInvoices[i].Status == "Paid" || salesInvoices[i].IsPaid == true && salesInvoices[i].Status == "OverPaid")
+                    if (salesInvoices[i].IsPaid && salesInvoices[i].Status == "Paid" || salesInvoices[i].IsPaid && salesInvoices[i].Status == "OverPaid")
                     {
                         salesInvoices[i].IsPaid = false;
                         salesInvoices[i].Status = "Pending";
@@ -290,7 +289,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy)
+        public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy, string seriesNumber)
         {
             foreach (var change in changes)
             {
@@ -303,10 +302,11 @@ namespace Accounting_System.Repository
                     Module = "Collection Receipt",
                     OriginalValue = change.Value.OriginalValue,
                     AdjustedValue = change.Value.NewValue,
-                    TimeStamp = DateTime.UtcNow.AddHours(8),
+                    TimeStamp = DateTime.Now,
                     UploadedBy = modifiedBy,
                     Action = string.Empty,
-                    Executed = false
+                    Executed = false,
+                    DocumentNo = seriesNumber
                 };
                 await _dbContext.AddAsync(logReport);
             }
@@ -330,7 +330,7 @@ namespace Accounting_System.Repository
                     new GeneralLedgerBook
                     {
                         Date = collectionReceipt.TransactionDate,
-                        Reference = collectionReceipt.CRNo,
+                        Reference = collectionReceipt.CollectionReceiptNo!,
                         Description = "Collection for Receivable",
                         AccountNo = cashInBankTitle.AccountNumber,
                         AccountTitle = cashInBankTitle.AccountName,
@@ -348,7 +348,7 @@ namespace Accounting_System.Repository
                     new GeneralLedgerBook
                     {
                         Date = collectionReceipt.TransactionDate,
-                        Reference = collectionReceipt.CRNo,
+                        Reference = collectionReceipt.CollectionReceiptNo!,
                         Description = "Collection for Receivable",
                         AccountNo = cwt.AccountNumber,
                         AccountTitle = cwt.AccountName,
@@ -366,7 +366,7 @@ namespace Accounting_System.Repository
                     new GeneralLedgerBook
                     {
                         Date = collectionReceipt.TransactionDate,
-                        Reference = collectionReceipt.CRNo,
+                        Reference = collectionReceipt.CollectionReceiptNo!,
                         Description = "Collection for Receivable",
                         AccountNo = cwv.AccountNumber,
                         AccountTitle = cwv.AccountName,
@@ -387,7 +387,7 @@ namespace Accounting_System.Repository
                     new GeneralLedgerBook
                     {
                         Date = collectionReceipt.TransactionDate,
-                        Reference = collectionReceipt.CRNo,
+                        Reference = collectionReceipt.CollectionReceiptNo!,
                         Description = "Collection for Receivable",
                         AccountNo = account.AccountNumber,
                         AccountTitle = account.AccountName,
@@ -407,7 +407,7 @@ namespace Accounting_System.Repository
                     new GeneralLedgerBook
                     {
                         Date = collectionReceipt.TransactionDate,
-                        Reference = collectionReceipt.CRNo,
+                        Reference = collectionReceipt.CollectionReceiptNo!,
                         Description = "Collection for Receivable",
                         AccountNo = arTradeTitle.AccountNumber,
                         AccountTitle = arTradeTitle.AccountName,
@@ -425,7 +425,7 @@ namespace Accounting_System.Repository
                     new GeneralLedgerBook
                     {
                         Date = collectionReceipt.TransactionDate,
-                        Reference = collectionReceipt.CRNo,
+                        Reference = collectionReceipt.CollectionReceiptNo!,
                         Description = "Collection for Receivable",
                         AccountNo = arTradeCwt.AccountNumber,
                         AccountTitle = arTradeCwt.AccountName,
@@ -443,7 +443,7 @@ namespace Accounting_System.Repository
                     new GeneralLedgerBook
                     {
                         Date = collectionReceipt.TransactionDate,
-                        Reference = collectionReceipt.CRNo,
+                        Reference = collectionReceipt.CollectionReceiptNo!,
                         Description = "Collection for Receivable",
                         AccountNo = arTradeCwv.AccountNumber,
                         AccountTitle = arTradeCwv.AccountName,
@@ -465,12 +465,12 @@ namespace Accounting_System.Repository
                 new CashReceiptBook
                 {
                     Date = collectionReceipt.TransactionDate,
-                    RefNo = collectionReceipt.CRNo,
-                    CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.Customer.Name : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer.Name : collectionReceipt.ServiceInvoice.Customer.Name,
+                    RefNo = collectionReceipt.CollectionReceiptNo!,
+                    CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice!.Customer!.CustomerName : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer!.CustomerName : collectionReceipt.ServiceInvoice!.Customer!.CustomerName,
                     Bank = collectionReceipt.CheckBank ?? (collectionReceipt.ManagerCheckBank ?? "--"),
                     CheckNo = collectionReceipt.CheckNo ?? (collectionReceipt.ManagerCheckNo ?? "--"),
                     COA = $"{cashInBankTitle.AccountNumber} {cashInBankTitle.AccountName}",
-                    Particulars = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.SINo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice.SVNo,
+                    Particulars = (collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice!.SalesInvoiceNo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI!.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice!.ServiceInvoiceNo)!,
                     Debit = collectionReceipt.CashAmount + collectionReceipt.CheckAmount + collectionReceipt.ManagerCheckAmount,
                     Credit = 0,
                     CreatedBy = collectionReceipt.CreatedBy,
@@ -485,12 +485,12 @@ namespace Accounting_System.Repository
                     new CashReceiptBook
                     {
                         Date = collectionReceipt.TransactionDate,
-                        RefNo = collectionReceipt.CRNo,
-                        CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.Customer.Name : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer.Name : collectionReceipt.ServiceInvoice.Customer.Name,
+                        RefNo = collectionReceipt.CollectionReceiptNo!,
+                        CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice!.Customer!.CustomerName : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer!.CustomerName : collectionReceipt.ServiceInvoice!.Customer!.CustomerName,
                         Bank = collectionReceipt.CheckBank ?? (collectionReceipt.ManagerCheckBank ?? "--"),
                         CheckNo = collectionReceipt.CheckNo ?? (collectionReceipt.ManagerCheckNo ?? "--"),
                         COA = $"{cwt.AccountNumber} {cwt.AccountName}",
-                        Particulars = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.SINo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice.SVNo,
+                        Particulars = (collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice!.SalesInvoiceNo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI!.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice!.ServiceInvoiceNo)!,
                         Debit = collectionReceipt.EWT,
                         Credit = 0,
                         CreatedBy = collectionReceipt.CreatedBy,
@@ -505,12 +505,12 @@ namespace Accounting_System.Repository
                     new CashReceiptBook
                     {
                         Date = collectionReceipt.TransactionDate,
-                        RefNo = collectionReceipt.CRNo,
-                        CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.Customer.Name : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer.Name : collectionReceipt.ServiceInvoice.Customer.Name,
+                        RefNo = collectionReceipt.CollectionReceiptNo!,
+                        CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice!.Customer!.CustomerName : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer!.CustomerName : collectionReceipt.ServiceInvoice!.Customer!.CustomerName,
                         Bank = collectionReceipt.CheckBank ?? (collectionReceipt.ManagerCheckBank ?? "--"),
                         CheckNo = collectionReceipt.CheckNo ?? (collectionReceipt.ManagerCheckNo ?? "--"),
                         COA = $"{cwv.AccountNumber} {cwv.AccountName}",
-                        Particulars = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.SINo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice.SVNo,
+                        Particulars = (collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice!.SalesInvoiceNo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI!.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice!.ServiceInvoiceNo)!,
                         Debit = collectionReceipt.WVAT,
                         Credit = 0,
                         CreatedBy = collectionReceipt.CreatedBy,
@@ -528,12 +528,12 @@ namespace Accounting_System.Repository
                     new CashReceiptBook
                     {
                         Date = collectionReceipt.TransactionDate,
-                        RefNo = collectionReceipt.CRNo,
-                        CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.Customer.Name : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer.Name : collectionReceipt.ServiceInvoice.Customer.Name,
+                        RefNo = collectionReceipt.CollectionReceiptNo!,
+                        CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice!.Customer!.CustomerName : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer!.CustomerName : collectionReceipt.ServiceInvoice!.Customer!.CustomerName,
                         Bank = collectionReceipt.CheckBank ?? (collectionReceipt.ManagerCheckBank ?? "--"),
                         CheckNo = collectionReceipt.CheckNo ?? (collectionReceipt.ManagerCheckNo ?? "--"),
                         COA = $"{account.AccountNumber} {account.AccountName}",
-                        Particulars = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.SINo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice.SVNo,
+                        Particulars = (collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice!.SalesInvoiceNo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI!.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice!.ServiceInvoiceNo)!,
                         Debit = item.Amount,
                         Credit = 0,
                         CreatedBy = collectionReceipt.CreatedBy,
@@ -546,12 +546,12 @@ namespace Accounting_System.Repository
                 new CashReceiptBook
                 {
                     Date = collectionReceipt.TransactionDate,
-                    RefNo = collectionReceipt.CRNo,
-                    CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.Customer.Name : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer.Name : collectionReceipt.ServiceInvoice.Customer.Name,
+                    RefNo = collectionReceipt.CollectionReceiptNo!,
+                    CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice!.Customer!.CustomerName : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer!.CustomerName : collectionReceipt.ServiceInvoice!.Customer!.CustomerName,
                     Bank = collectionReceipt.CheckBank ?? (collectionReceipt.ManagerCheckBank ?? "--"),
                     CheckNo = collectionReceipt.CheckNo ?? (collectionReceipt.ManagerCheckNo ?? "--"),
                     COA = $"{arTradeTitle.AccountNumber} {arTradeTitle.AccountName}",
-                    Particulars = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.SINo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice.SVNo,
+                    Particulars = (collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice!.SalesInvoiceNo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI!.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice!.ServiceInvoiceNo)!,
                     Debit = 0,
                     Credit = collectionReceipt.CashAmount + collectionReceipt.CheckAmount + collectionReceipt.ManagerCheckAmount + offsetAmount,
                     CreatedBy = collectionReceipt.CreatedBy,
@@ -565,12 +565,12 @@ namespace Accounting_System.Repository
                     new CashReceiptBook
                     {
                         Date = collectionReceipt.TransactionDate,
-                        RefNo = collectionReceipt.CRNo,
-                        CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.Customer.Name : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer.Name : collectionReceipt.ServiceInvoice.Customer.Name,
+                        RefNo = collectionReceipt.CollectionReceiptNo!,
+                        CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice!.Customer!.CustomerName : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer!.CustomerName : collectionReceipt.ServiceInvoice!.Customer!.CustomerName,
                         Bank = collectionReceipt.CheckBank ?? (collectionReceipt.ManagerCheckBank ?? "--"),
                         CheckNo = collectionReceipt.CheckNo ?? (collectionReceipt.ManagerCheckNo ?? "--"),
                         COA = $"{arTradeCwt.AccountNumber} {arTradeCwt.AccountName}",
-                        Particulars = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.SINo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice.SVNo,
+                        Particulars = (collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice!.SalesInvoiceNo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI!.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice!.ServiceInvoiceNo)!,
                         Debit = 0,
                         Credit = collectionReceipt.EWT,
                         CreatedBy = collectionReceipt.CreatedBy,
@@ -585,12 +585,12 @@ namespace Accounting_System.Repository
                     new CashReceiptBook
                     {
                         Date = collectionReceipt.TransactionDate,
-                        RefNo = collectionReceipt.CRNo,
-                        CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.Customer.Name : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer.Name : collectionReceipt.ServiceInvoice.Customer.Name,
+                        RefNo = collectionReceipt.CollectionReceiptNo!,
+                        CustomerName = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice!.Customer!.CustomerName : collectionReceipt.MultipleSIId != null ? collectionReceipt.Customer!.CustomerName : collectionReceipt.ServiceInvoice!.Customer!.CustomerName,
                         Bank = collectionReceipt.CheckBank ?? (collectionReceipt.ManagerCheckBank ?? "--"),
                         CheckNo = collectionReceipt.CheckNo ?? (collectionReceipt.ManagerCheckNo ?? "--"),
                         COA = $"{arTradeCwv.AccountNumber} {arTradeCwv.AccountName}",
-                        Particulars = collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice.SINo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice.SVNo,
+                        Particulars = (collectionReceipt.SalesInvoiceId != null ? collectionReceipt.SalesInvoice!.SalesInvoiceNo : collectionReceipt.MultipleSIId != null ? string.Join(", ", collectionReceipt.MultipleSI!.Select(si => si.ToString())) : collectionReceipt.ServiceInvoice!.ServiceInvoiceNo)!,
                         Debit = 0,
                         Credit = collectionReceipt.WVAT,
                         CreatedBy = collectionReceipt.CreatedBy,

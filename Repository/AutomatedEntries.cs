@@ -17,13 +17,13 @@ namespace Accounting_System.Repository
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromDays(1)); // Change interval as needed
+            _timer = new Timer(DoWork!, null, TimeSpan.Zero, TimeSpan.FromDays(1)); // Change interval as needed
             return Task.CompletedTask;
         }
 
         private async void DoWork(object state)
         {
-            if (31 == DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month))
+            if (DateTime.Now.Day == DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month))
             {
                 using (var scope = _serviceProvider.CreateScope())
                 {
@@ -39,7 +39,7 @@ namespace Accounting_System.Repository
                         foreach (var cv in cvList)
                         {
                             var accountEntries = await _dbContext.CheckVoucherDetails
-                                .Where(cvd => cvd.TransactionNo == cv.CVNo && (cvd.AccountNo.StartsWith("10201") || cvd.AccountNo.StartsWith("10105")))
+                                .Where(cvd => cvd.TransactionNo == cv.CheckVoucherHeaderNo && (cvd.AccountNo.StartsWith("10201") || cvd.AccountNo.StartsWith("10105")))
                                 .ToListAsync();
 
                             foreach (var accountEntry in accountEntries)
@@ -56,8 +56,8 @@ namespace Accounting_System.Repository
 
                                     var header = new JournalVoucherHeader
                                     {
-                                        JVNo = await _journalVoucherRepo.GenerateJVNo(),
-                                        CVId = cv.Id,
+                                        JournalVoucherHeaderNo = await _journalVoucherRepo.GenerateJVNo(),
+                                        CVId = cv.CheckVoucherHeaderId,
                                         JVReason = "Depreciation",
                                         Particulars = $"Depreciation of : CV Particulars {cv.Particulars} for the month of {DateTime.Now:MMMM yyyy}.",
                                         Date = DateOnly.FromDateTime(DateTime.Now),
@@ -71,7 +71,7 @@ namespace Accounting_System.Repository
                                     {
                                         AccountNo = "551010900",
                                         AccountName = "Depreciation Expense",
-                                        TransactionNo = header.JVNo,
+                                        TransactionNo = header.JournalVoucherHeaderNo,
                                         Debit = cv.AmountPerMonth,
                                         Credit = 0
                                     });
@@ -80,7 +80,7 @@ namespace Accounting_System.Repository
                                     {
                                         AccountNo = accountEntry.AccountName.Contains("Building") ? "102020100" : "102020200",
                                         AccountName = accountEntry.AccountName.Contains("Building") ? "Accummulated Depreciation - Building and improvements" : "Accummulated Depreciation - Equipment",
-                                        TransactionNo = header.JVNo,
+                                        TransactionNo = header.JournalVoucherHeaderNo,
                                         Debit = 0,
                                         Credit = cv.AmountPerMonth
                                     });
@@ -102,8 +102,8 @@ namespace Accounting_System.Repository
 
                                     var header = new JournalVoucherHeader
                                     {
-                                        JVNo = await _journalVoucherRepo.GenerateJVNo(),
-                                        CVId = cv.Id,
+                                        JournalVoucherHeaderNo = await _journalVoucherRepo.GenerateJVNo(),
+                                        CVId = cv.CheckVoucherHeaderId,
                                         JVReason = "Prepaid",
                                         Particulars = $"Prepaid: CV Particulars {cv.Particulars} for the month of {DateTime.Now:MMMM yyyy}.",
                                         Date = DateOnly.FromDateTime(DateTime.Now),
@@ -117,7 +117,7 @@ namespace Accounting_System.Repository
                                     {
                                         AccountNo = "5020115",
                                         AccountName = "Rental Expense",
-                                        TransactionNo = header.JVNo,
+                                        TransactionNo = header.JournalVoucherHeaderNo,
                                         Debit = cv.AmountPerMonth,
                                         Credit = 0
                                     });
@@ -126,7 +126,7 @@ namespace Accounting_System.Repository
                                     {
                                         AccountNo = "101050100",
                                         AccountName = "Prepaid Expenses - Rental",
-                                        TransactionNo = header.JVNo,
+                                        TransactionNo = header.JournalVoucherHeaderNo,
                                         Debit = 0,
                                         Credit = cv.AmountPerMonth
                                     });
@@ -135,10 +135,7 @@ namespace Accounting_System.Repository
                                     await _dbContext.AddRangeAsync(details);
                                     await _dbContext.SaveChangesAsync();
                                 }
-                                else
-                                {
-                                    //Accrued
-                                }
+                                //Accrued
                             }
                         }
                     }
@@ -148,13 +145,13 @@ namespace Accounting_System.Repository
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _timer?.Change(Timeout.Infinite, 0);
+            _timer.Change(Timeout.Infinite, 0);
             return Task.CompletedTask;
         }
 
         public void Dispose()
         {
-            _timer?.Dispose();
+            _timer.Dispose();
         }
     }
 }

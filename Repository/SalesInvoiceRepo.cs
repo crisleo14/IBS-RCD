@@ -3,6 +3,7 @@ using Accounting_System.Models;
 using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Utility;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Accounting_System.Repository
 {
@@ -28,12 +29,12 @@ namespace Accounting_System.Repository
         {
             var salesInvoice = await _dbContext
                 .SalesInvoices
-                .OrderByDescending(s => s.SINo)
+                .OrderByDescending(s => s.SalesInvoiceNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (salesInvoice != null)
             {
-                string lastSeries = salesInvoice.SINo;
+                string lastSeries = salesInvoice.SalesInvoiceNo!;
                 string numericPart = lastSeries.Substring(2);
                 int incrementedNumber = int.Parse(numericPart) + 1;
 
@@ -51,7 +52,7 @@ namespace Accounting_System.Repository
                 .SalesInvoices
                 .Include(c => c.Customer)
                 .Include(s => s.Product)
-                .FirstOrDefaultAsync(invoice => invoice.Id == id);
+                .FirstOrDefaultAsync(invoice => invoice.SalesInvoiceId == id);
 
             if (invoice != null)
             {
@@ -65,37 +66,37 @@ namespace Accounting_System.Repository
 
         public DateOnly ComputeDueDateAsync(string customerTerms, DateOnly date, CancellationToken cancellationToken = default)
         {
-            if (customerTerms != null)
+            if (!customerTerms.IsNullOrEmpty())
             {
                 DateOnly dueDate;
 
                 switch (customerTerms)
                 {
                     case "7D":
-                        return dueDate = date.AddDays(7);
+                        return date.AddDays(7);
 
                     case "10D":
-                        return dueDate = date.AddDays(7);
+                        return date.AddDays(7);
 
                     case "15D":
-                        return dueDate = date.AddDays(15);
+                        return date.AddDays(15);
 
                     case "30D":
-                        return dueDate = date.AddDays(30);
+                        return date.AddDays(30);
 
                     case "45D":
                     case "45PDC":
-                        return dueDate = date.AddDays(45);
+                        return date.AddDays(45);
 
                     case "60D":
                     case "60PDC":
-                        return dueDate = date.AddDays(60);
+                        return date.AddDays(60);
 
                     case "90D":
-                        return dueDate = date.AddDays(90);
+                        return date.AddDays(90);
 
                     case "M15":
-                        return dueDate = date.AddMonths(1).AddDays(15 - date.Day);
+                        return date.AddMonths(1).AddDays(15 - date.Day);
 
                     case "M30":
                         if (date.Month == 1)
@@ -134,16 +135,14 @@ namespace Accounting_System.Repository
                         return dueDate;
 
                     default:
-                        return dueDate = date;
+                        return date;
                 }
             }
-            else
-            {
-                throw new ArgumentException("No record found.");
-            }
+
+            throw new ArgumentException("No record found.");
         }
 
-        public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy)
+        public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy, string seriesNumber)
         {
             foreach (var change in changes)
             {
@@ -156,10 +155,11 @@ namespace Accounting_System.Repository
                     Module = "Sales Invoice",
                     OriginalValue = change.Value.OriginalValue,
                     AdjustedValue = change.Value.NewValue,
-                    TimeStamp = DateTime.UtcNow.AddHours(8),
+                    TimeStamp = DateTime.Now,
                     UploadedBy = modifiedBy,
                     Action = string.Empty,
-                    Executed = false
+                    Executed = false,
+                    DocumentNo = seriesNumber
                 };
                 await _dbContext.AddAsync(logReport);
             }

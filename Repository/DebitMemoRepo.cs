@@ -19,13 +19,13 @@ namespace Accounting_System.Repository
         {
             return await _dbContext.DebitMemos
                 .Include(dm => dm.SalesInvoice)
-                .ThenInclude(s => s.Customer)
+                .ThenInclude(s => s!.Customer)
                 .Include(dm => dm.SalesInvoice)
-                .ThenInclude(s => s.Product)
+                .ThenInclude(s => s!.Product)
                 .Include(dm => dm.ServiceInvoice)
-                .ThenInclude(sv => sv.Customer)
+                .ThenInclude(sv => sv!.Customer)
                 .Include(dm => dm.ServiceInvoice)
-                .ThenInclude(sv => sv.Service)
+                .ThenInclude(sv => sv!.Service)
                 .ToListAsync(cancellationToken);
         }
 
@@ -33,12 +33,12 @@ namespace Accounting_System.Repository
         {
             var debitMemo = await _dbContext
                 .DebitMemos
-                .OrderByDescending(s => s.DMNo)
+                .OrderByDescending(s => s.DebitMemoNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (debitMemo != null)
             {
-                string lastSeries = debitMemo.DMNo ?? throw new InvalidOperationException("DMNo is null pls Contact MIS Enterprise");
+                string lastSeries = debitMemo.DebitMemoNo ?? throw new InvalidOperationException("DMNo is null pls Contact MIS Enterprise");
                 string numericPart = lastSeries.Substring(2);
                 int incrementedNumber = int.Parse(numericPart) + 1;
 
@@ -55,14 +55,14 @@ namespace Accounting_System.Repository
             var debitMemo = await _dbContext
                 .DebitMemos
                 .Include(s => s.SalesInvoice)
-                .ThenInclude(s => s.Customer)
+                .ThenInclude(s => s!.Customer)
                 .Include(s => s.SalesInvoice)
-                .ThenInclude(s => s.Product)
+                .ThenInclude(s => s!.Product)
                 .Include(soa => soa.ServiceInvoice)
-                .ThenInclude(soa => soa.Customer)
+                .ThenInclude(soa => soa!.Customer)
                 .Include(c => c.ServiceInvoice)
-                .ThenInclude(soa => soa.Service)
-                .FirstOrDefaultAsync(debitMemo => debitMemo.Id == id, cancellationToken);
+                .ThenInclude(soa => soa!.Service)
+                .FirstOrDefaultAsync(debitMemo => debitMemo.DebitMemoId == id, cancellationToken);
 
             if (debitMemo != null)
             {
@@ -78,7 +78,7 @@ namespace Accounting_System.Repository
         {
             var services = await _dbContext
                 .Services
-                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(s => s.ServiceId == id, cancellationToken);
 
             if (services != null)
             {
@@ -90,7 +90,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy)
+        public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy, string seriesNumber)
         {
             foreach (var change in changes)
             {
@@ -103,10 +103,11 @@ namespace Accounting_System.Repository
                     Module = "Debit Memo",
                     OriginalValue = change.Value.OriginalValue,
                     AdjustedValue = change.Value.NewValue,
-                    TimeStamp = DateTime.UtcNow.AddHours(8),
+                    TimeStamp = DateTime.Now,
                     UploadedBy = modifiedBy,
                     Action = string.Empty,
-                    Executed = false
+                    Executed = false,
+                    DocumentNo = seriesNumber
                 };
                 await _dbContext.AddAsync(logReport);
             }

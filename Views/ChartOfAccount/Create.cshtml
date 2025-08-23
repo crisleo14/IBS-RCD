@@ -47,7 +47,7 @@
             </div>
 
             <div class="form-group mb-3">
-                <label for="Number">Account Number</label>
+                <label>Account Number</label>
                 <input asp-for="AccountNumber" class="form-control" readonly />
             </div>
 
@@ -75,28 +75,30 @@
     <script>
         $(document).ready(function () {
             $("#mainLevel").change(function () {
-                var main = $(this).val();
-                console.log(main);
+                let main = $(this).val();
                 $.ajax({
                     url: '@Url.Action("GetChartOfAccount", "ChartOfAccount")',
                     type: "GET",
                     data: { number: main },
                     success: function (data) {
-                        console.log(data);
+                        let secondLevel = $("#secondLevel");
+                        let thirdLevel = $("#thirdLevel");
+                        let fourthLevel = $("#fourthLevel");
+                        
                         // Check if data is an array and not null
                         if (Array.isArray(data) && data.length > 0) {
 
-                            $("#secondLevel").empty();
+                            secondLevel.empty();
 
-                            $("#secondLevel").append('<option>');
+                            secondLevel.append('<option>');
 
-                            $("#thirdLevel").empty();
+                            thirdLevel.empty();
 
-                            $("#thirdLevel").append('<option>');
+                            thirdLevel.append('<option>');
 
-                            $("#fourthLevel").empty();
+                            fourthLevel.empty();
 
-                            $("#fourthLevel").append('<option>');
+                            fourthLevel.append('<option>');
 
                             // Iterate over the array and append options
                             $.each(data, function (index, item) {
@@ -114,24 +116,24 @@
             });
 
             $("#secondLevel").change(function () {
-                var second = $(this).val();
-                console.log(second);
+                let second = $(this).val();
                 $.ajax({
                     url: '@Url.Action("GetChartOfAccount", "ChartOfAccount")',
                     type: "GET",
                     data: { number: second },
                     success: function (data) {
-                        console.log(data);
+                        let thirdLevel = $("#thirdLevel");
+                        
                         // Check if data is an array and not null
                         if (Array.isArray(data) && data.length > 0) {
 
-                            $("#thirdLevel").empty();
+                            thirdLevel.empty();
 
-                            $("#thirdLevel").append('<option>');
+                            thirdLevel.append('<option>');
 
                             // Iterate over the array and append options
                             $.each(data, function (index, item) {
-                                $("#thirdLevel").append($('<option>', {
+                                thirdLevel.append($('<option>', {
                                     value: item.value,   // Use the correct property for value
                                     text: item.text      // Use the correct property for text
                                 }));
@@ -145,21 +147,21 @@
             });
 
             $("#thirdLevel").change(function () {
-                var third = $(this).val();
-                console.log(third);
+                let third = $(this).val();
                 $.ajax({
                     url: '@Url.Action("GetChartOfAccount", "ChartOfAccount")',
                     type: "GET",
                     data: { number: third },
                     success: function (data) {
-                        console.log(data.term);
                         if (Array.isArray(data) && data.length > 0) {
+                            let fourthLevel = $("#fourthLevel");
+                            
                             $("#fourthLevelDiv").show();
-                            $("#fourthLevel").empty();
-                            $("#fourthLevel").append('<option>');
-                            $("#fourthLevel").append('<option value="create-new">\u2795 Add New</option>');
+                            fourthLevel.empty();
+                            fourthLevel.append('<option>');
+                            fourthLevel.append('<option value="create-new">\u2795 Add New</option>');
                             $.each(data, function (index, item) {
-                                $("#fourthLevel").append($('<option>', {
+                                fourthLevel.append($('<option>', {
                                     value: item.value,
                                     text: item.text
                                 }));
@@ -174,11 +176,10 @@
             });
 
             $("#fourthLevel").change(function () {
-                var fourth = $(this).val();
-                console.log(fourth);
+                let fourth = $(this).val();
 
                 if (fourth != null) {
-                    if (fourth == "create-new") {
+                    if (fourth === "create-new") {
                         generateAccountNo($("#thirdLevel").val());  // Use thirdLevel directly
                     } else {
                         generateAccountNo(fourth);
@@ -193,11 +194,10 @@
     <script>
         function generateAccountNo (parent){
             $.ajax({
-                url: "/ChartOfAccount/GenerateNumber",
+                url: '@Url.Action("GenerateNumber", "ChartOfAccount")',
                 type: "GET",
                 data: { parent: parent },
                 success: function (data) {
-                    console.log(data);
 
                     $("#AccountNumber").val(data);
                 }

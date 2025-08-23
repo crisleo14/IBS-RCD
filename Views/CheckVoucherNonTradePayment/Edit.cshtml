@@ -173,7 +173,7 @@
 
         $(function () {
             $(".GetCVList").change(function () {
-                var suppId = $(this).val();
+                let suppId = $(this).val();
                 let paymentId = $("#CvId").val();
 
                 if (suppId !== "") {
@@ -236,7 +236,7 @@
                                 if (data.cvBalances && data.cvBalances.length > 0) {
                                     data.cvBalances.forEach(function(cv, index) {
                                         // Add row to table
-                                        var cvRow = `<tr>
+                                        let cvRow = `<tr>
                                                         <td class="text-center">${cv.cvNumber}</td>
                                                         <td class="text-center">${formatNumber(cv.balance)}</td>
                                                         <input type="hidden" name="PaymentDetails[${index}].CVId" value="${cv.cvId}" />
@@ -249,7 +249,7 @@
 
                                 // Add new rows based on the data returned by the controller
                                 data.journalEntries.forEach(function (entry) {
-                                    var newRow = `<tr>
+                                    let newRow = `<tr>
                                             <td><input type="text" name="AccountNumber" value="${entry.accountNumber}" class="w-100" style='border:none' readonly /></td>
                                             <td><input name='AccountTitle' value='${entry.accountTitle}' class="w-100" style='border:none' readonly /></td>
                                             <td><input name="Debit" value='${formatNumber(entry.debit)}' class="w-100 debit" style='border:none' readonly /></td>
@@ -286,12 +286,13 @@
     </script>
     <script>
         function validateDebitAndCredit() {
-            var totalDebit = parseNumber($(".totalDebit").text());
-            var totalCredit = parseNumber($(".totalCredit").text());
-            var errorMessage = "";
-            var isValid = true;
-
-            if ($("#balance-error-message").length === 0) {
+            let totalDebit = parseNumber($(".totalDebit").text());
+            let totalCredit = parseNumber($(".totalCredit").text());
+            let errorMessage = "";
+            let isValid = true;
+            let balanceErrorMessage = $("#balance-error-message");
+            
+            if (balanceErrorMessage.length === 0) {
                 $("#accountingEntriesBody").after('<div id="balance-error-message" class="text-danger mt-2"></div>');
             }
 
@@ -307,7 +308,7 @@
             }
 
             // Display or clear the error message
-            $("#balance-error-message").text(errorMessage);
+            balanceErrorMessage.text(errorMessage);
 
             // Optionally disable/enable the submit button based on validation
             $("button[type='submit']").prop("disabled", !isValid);

@@ -1,55 +1,10 @@
-﻿@using Accounting_System.Models.AccountsPayable
-@model IEnumerable<JournalVoucherHeader>
-@using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
-@inject UserManager<IdentityUser> UserManager
+﻿@model IEnumerable<JournalVoucherHeader>
 @{
     ViewData["Title"] = "Journal Voucher";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<style>
-    .container {
-        max-width: 100% !important;
-        width: 100% !important;
-    }
+<link rel="stylesheet" href="~/css/indexLayout.css" asp-append-version="true" />
 
-    /* Custom styles for professional look */
-    .table th {
-        font-weight: 600;
-        color: #374151;
-        text-transform: uppercase;
-        font-size: 0.85rem;
-        letter-spacing: 0.025em;
-    }
-
-    .table tbody tr {
-        transition: all 0.2s;
-    }
-
-    .table tbody tr:hover {
-        background-color: rgba(59, 130, 246, 0.05);
-    }
-
-    .table-loading {
-        position: relative;
-        opacity: 0.6;
-    }
-
-    .badge {
-        font-weight: 500;
-        padding: 0.35em 0.8em;
-        font-size: 0.75rem;
-    }
-
-    .actions-dropdown .dropdown-item {
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
-    }
-
-    .actions-dropdown .dropdown-item:hover {
-        background-color: #f3f4f6;
-    }
-</style>
 <div class="card shadow border-0 mt-4">
     <div class="card-header bg-secondary bg-gradient ml-0 py-3">
         <div class="row">
@@ -71,9 +26,9 @@
         <table class="table table-bordered table-hover" id="journalVoucherTable">
             <thead class="table-secondary">
                 <tr>
-                    <th>@Html.DisplayNameFor(model => model.JVNo)</th>
+                    <th>@Html.DisplayNameFor(model => model.JournalVoucherHeaderNo)</th>
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
-                    <th>@Html.DisplayNameFor(model => model.CheckVoucherHeader.CVNo)</th>
+                    <th>@Html.DisplayNameFor(model => model.CheckVoucherHeader!.CheckVoucherHeaderNo)</th>
                     <th>@Html.DisplayNameFor(model => model.CRNo)</th>
                     <th>@Html.DisplayNameFor(model => model.JVReason)</th>
                     <th>@Html.DisplayNameFor(model => model.CreatedBy)</th>
@@ -99,56 +54,56 @@
                             __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
                         });
                     },
-                    error: function (xhr, error, thrown) {
+                    error: function (xhr) {
                         console.log(xhr.responseText);
                     }
                 },
                 columns: [
-                    { data: 'jvNo' },
+                    { data: 'journalVoucherHeaderNo' },
                     {
                         "data": "date",
                         "name": "date",
-                        "render": function (data, type, row) {
+                        "render": function (data) {
                             // Assuming 'Date' is in ISO format like "2024-07-12T00:00:00"
-                            var date = new Date(data);
+                            let date = new Date(data);
                             return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
                         }
                     },
-                    { data: 'checkVoucherHeader.cvNo' },
+                    { data: 'checkVoucherHeader.checkVoucherHeaderNo' },
                     { data: 'crNo' },
                     { data: 'jvReason' },
                     { data: 'createdBy' },
                     {
-                        "data": null,
+                        "data": "isPosted",
                         "render": function (data, type, row) {
-                            var status = row.isPosted && !row.isVoided && !row.isCanceled
+                            let status = row.isPosted && !row.isVoided && !row.isCanceled
                                 ? "Posted"
                                 : row.isVoided
                                     ? "Voided"
                                     : row.isCanceled
                                         ? "Cancelled"
                                         : "Pending";
-                            var statusClass = status == "Posted" ? "bg-info" :
-                                status == "Voided" ? "bg-danger" :
-                                    status == "Cancelled" ? "bg-warning" : "";
+                            let statusClass = status === "Posted" ? "bg-info" :
+                                status === "Voided" ? "bg-danger" :
+                                    status === "Cancelled" ? "bg-warning" : "";
                             return `<span class="badge rounded-pill ${statusClass}">${status}</span>`;
                         }
                     }
 ,
                     {
-                        "data": null,
+                        "data": "journalVoucherHeaderId",
                         "render": function (data, type, row) {
                             let dropdown = `<div class="dropdown" style="${row.isVoided || row.isCanceled ? 'display:none;' : ''}">`;
                             dropdown += `<button class="btn btn-light dropdown-toggle" type="button" id="actionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">Actions</button>`;
                             dropdown += `<ul class="dropdown-menu" aria-labelledby="actionsDropdown">`;
                             if (!row.isPosted && !row.isVoided && !row.isCanceled) {
-                                dropdown += `<li><a href="@Url.Action("Edit", "JournalVoucher")/${row.id}" class="dropdown-item">Edit</a></li>`;
-                                dropdown += `<li><a href="@Url.Action("Print", "JournalVoucher")/${row.id}" class="dropdown-item">Preview</a></li>`;
-                                dropdown += `<li><a class="dropdown-item" onclick="confirmCancel(${row.id})">Cancel</a></li>`;
+                                dropdown += `<li><a href="@Url.Action("Edit", "JournalVoucher")/${row.journalVoucherHeaderId}" class="dropdown-item">Edit</a></li>`;
+                                dropdown += `<li><a href="@Url.Action("Print", "JournalVoucher")/${row.journalVoucherHeaderId}" class="dropdown-item">Preview</a></li>`;
+                                dropdown += `<li><a class="dropdown-item" onclick="confirmCancel(${row.journalVoucherHeaderId})">Cancel</a></li>`;
                             }
                             if (row.isPosted && !row.isVoided && !row.isCanceled) {
-                                dropdown += `<li><a href="@Url.Action("Print", "JournalVoucher")/${row.id}" class="dropdown-item">Print</a></li>`;
-                                dropdown += `<li><a class="dropdown-item" onclick="confirmVoid(${row.id})">Void</a></li>`;
+                                dropdown += `<li><a href="@Url.Action("Print", "JournalVoucher")/${row.journalVoucherHeaderId}" class="dropdown-item">Print</a></li>`;
+                                dropdown += `<li><a class="dropdown-item" onclick="confirmVoid(${row.journalVoucherHeaderId})">Void</a></li>`;
                             }
                             dropdown += `</ul></div>`;
                             return dropdown;
@@ -161,7 +116,6 @@
     </script>
     <script>
         function confirmVoid(id) {
-            console.log(id);
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
@@ -173,15 +127,14 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Replace with the actual URL that you want to redirect to
-                    var url = `@Url.Action("Void", "JournalVoucher")/${id}`;
-                    window.location.href = url;
+                    
+                    window.location.href = `@Url.Action("Void", "JournalVoucher")/${id}`;
                 }
             })
         }
     </script>
     <script>
-        function confirmCancel(Id) {
-            console.log(Id);
+        function confirmCancel(id) {
             Swal.fire({
                 title: "Please Input Remarks",
                 html:
@@ -196,12 +149,12 @@
                 confirmButtonText: 'Yes'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    var cancellationRemarks = $("#cancellationRemarks").val();
+                    let cancellationRemarks = $("#cancellationRemarks").val();
                     // Encode the cancellationRemarks to make it URL safe
-                    var encodedRemarks = encodeURIComponent(cancellationRemarks);
+                    let encodedRemarks = encodeURIComponent(cancellationRemarks);
                     // Append the encoded remarks as a parameter in the URL
-                    var url = `@Url.Action("Cancel", "JournalVoucher")/${id}?cancellationRemarks=${encodedRemarks}`;
-                    window.location.href = url;
+                    
+                    window.location.href = `@Url.Action("Cancel", "JournalVoucher")/${id}?cancellationRemarks=${encodedRemarks}`;
                 }
             })
         }

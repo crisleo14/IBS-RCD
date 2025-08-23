@@ -1,7 +1,7 @@
-﻿using Accounting_System.Data;
+﻿using System.Globalization;
+using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Models.AccountsPayable;
-using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.Reports;
 using Accounting_System.Models.ViewModels;
 using Accounting_System.Repository;
@@ -55,19 +55,19 @@ namespace Accounting_System.Controllers
             {
                 var purchaseOrders = await _purchaseOrderRepo.GetPurchaseOrderAsync(cancellationToken);
                 // Search filter
-                if (!string.IsNullOrEmpty(parameters.Search?.Value))
+                if (!string.IsNullOrEmpty(parameters.Search.Value))
                 {
                     var searchValue = parameters.Search.Value.ToLower();
                     purchaseOrders = purchaseOrders
                         .Where(po =>
-                            po.PONo.ToLower().Contains(searchValue) ||
+                            po.PurchaseOrderNo!.ToLower().Contains(searchValue) ||
                             po.Date.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
-                            po.Supplier.Name.ToLower().Contains(searchValue) ||
-                            po.Product.Name.ToLower().Contains(searchValue) ||
-                            po.Amount.ToString().Contains(searchValue) ||
-                            po.Quantity.ToString().Contains(searchValue) ||
+                            po.Supplier!.SupplierName.ToLower().Contains(searchValue) ||
+                            po.Product!.ProductName.ToLower().Contains(searchValue) ||
+                            po.Amount.ToString(CultureInfo.InvariantCulture).Contains(searchValue) ||
+                            po.Quantity.ToString(CultureInfo.InvariantCulture).Contains(searchValue) ||
                             po.Remarks.ToLower().Contains(searchValue) ||
-                            po.CreatedBy.ToLower().Contains(searchValue)
+                            po.CreatedBy!.ToLower().Contains(searchValue)
                             )
                         .ToList();
                 }
@@ -106,7 +106,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GetAllPurchaseOrderIds(CancellationToken cancellationToken)
         {
             var purchaseOrderIds = await _dbContext.PurchaseOrders
-                                     .Select(po => po.Id) // Assuming Id is the primary key
+                                     .Select(po => po.PurchaseOrderId) // Assuming Id is the primary key
                                      .ToListAsync(cancellationToken);
             return Json(purchaseOrderIds);
         }
@@ -114,22 +114,23 @@ namespace Accounting_System.Controllers
         [HttpGet]
         public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
-            var viewModel = new PurchaseOrder();
-            viewModel.Suppliers = await _dbContext.Suppliers
-                .Select(s => new SelectListItem
-                {
-                    Value = s.Id.ToString(),
-                    Text = s.Name
-                })
-                .ToListAsync(cancellationToken);
-
-            viewModel.Products = await _dbContext.Products
-                .Select(s => new SelectListItem
-                {
-                    Value = s.Id.ToString(),
-                    Text = s.Name
-                })
-                .ToListAsync(cancellationToken);
+            var viewModel = new PurchaseOrder
+            {
+                Suppliers = await _dbContext.Suppliers
+                    .Select(s => new SelectListItem
+                    {
+                        Value = s.SupplierId.ToString(),
+                        Text = s.SupplierName
+                    })
+                    .ToListAsync(cancellationToken),
+                Products = await _dbContext.Products
+                    .Select(s => new SelectListItem
+                    {
+                        Value = s.ProductId.ToString(),
+                        Text = s.ProductName
+                    })
+                    .ToListAsync(cancellationToken)
+            };
 
             return View(viewModel);
         }
@@ -141,16 +142,16 @@ namespace Accounting_System.Controllers
             model.Suppliers = await _dbContext.Suppliers
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Id.ToString(),
-                    Text = s.Name
+                    Value = s.SupplierId.ToString(),
+                    Text = s.SupplierName
                 })
                 .ToListAsync(cancellationToken);
 
             model.Products = await _dbContext.Products
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Id.ToString(),
-                    Text = s.Name
+                    Value = s.ProductId.ToString(),
+                    Text = s.ProductName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -177,11 +178,11 @@ namespace Accounting_System.Controllers
                         TempData["success"] = "Purchase Order created successfully";
                     }
 
-                    model.PONo = generatedPo;
-                    model.CreatedBy = _userManager.GetUserName(this.User);
+                    model.PurchaseOrderNo = generatedPo;
+                    model.CreatedBy = User.Identity!.Name;
                     model.Amount = model.Quantity * model.Price;
-                    model.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model?.SupplierId, cancellationToken);
-                    model.ProductNo = await _purchaseOrderRepo.GetProductNoAsync(model?.ProductId, cancellationToken);
+                    model.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model.SupplierId, cancellationToken);
+                    model.ProductNo = await _purchaseOrderRepo.GetProductNoAsync(model.ProductId, cancellationToken);
 
                     await _dbContext.AddAsync(model, cancellationToken);
 
@@ -190,7 +191,7 @@ namespace Accounting_System.Controllers
                     if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(model.CreatedBy, $"Create new purchase order# {model.PONo}", "Purchase Order", ipAddress);
+                        AuditTrail auditTrailBook = new(model.CreatedBy!, $"Create new purchase order# {model.PurchaseOrderNo}", "Purchase Order", ipAddress!);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -217,30 +218,26 @@ namespace Accounting_System.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int? id, CancellationToken cancellationToken)
         {
-            if (id == null || _dbContext.PurchaseOrders == null)
+            if (id == null || !_dbContext.PurchaseOrders.Any())
             {
                 return NotFound();
             }
 
             var purchaseOrder = await _purchaseOrderRepo.FindPurchaseOrder(id, cancellationToken);
-            if (purchaseOrder == null)
-            {
-                return NotFound();
-            }
 
             purchaseOrder.Suppliers = await _dbContext.Suppliers
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Id.ToString(),
-                    Text = s.Name
+                    Value = s.SupplierId.ToString(),
+                    Text = s.SupplierName
                 })
                 .ToListAsync(cancellationToken);
 
             purchaseOrder.Products = await _dbContext.Products
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Id.ToString(),
-                    Text = s.Name
+                    Value = s.ProductId.ToString(),
+                    Text = s.ProductName
                 })
                 .ToListAsync(cancellationToken);
 
@@ -252,7 +249,7 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(PurchaseOrder model, CancellationToken cancellationToken)
         {
-            var existingModel = await _dbContext.PurchaseOrders.FindAsync(model.Id, cancellationToken);
+            var existingModel = await _dbContext.PurchaseOrders.FirstOrDefaultAsync(x => x.PurchaseOrderId == model.PurchaseOrderId, cancellationToken);
             if (ModelState.IsValid)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
@@ -271,8 +268,8 @@ namespace Accounting_System.Controllers
                     existingModel.Amount = model.Quantity * model.Price;
                     existingModel.Remarks = model.Remarks;
                     existingModel.Terms = model.Terms;
-                    existingModel.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model?.SupplierId, cancellationToken);
-                    existingModel.ProductNo = await _purchaseOrderRepo.GetProductNoAsync(model?.ProductId, cancellationToken);
+                    existingModel.SupplierNo = await _purchaseOrderRepo.GetSupplierNoAsync(model.SupplierId, cancellationToken);
+                    existingModel.ProductNo = await _purchaseOrderRepo.GetProductNoAsync(model.ProductId, cancellationToken);
 
                     if (_dbContext.ChangeTracker.HasChanges())
                     {
@@ -281,7 +278,7 @@ namespace Accounting_System.Controllers
                         if (existingModel.OriginalSeriesNumber.IsNullOrEmpty() && existingModel.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Edit purchase order# {existingModel.PONo}", "Purchase Order", ipAddress);
+                            AuditTrail auditTrailBook = new(existingModel.CreatedBy!, $"Edit purchase order# {existingModel.PurchaseOrderNo}", "Purchase Order", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -301,19 +298,19 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                  await transaction.RollbackAsync(cancellationToken);
-                 existingModel.Suppliers = await _dbContext.Suppliers
+                 existingModel!.Suppliers = await _dbContext.Suppliers
                      .Select(s => new SelectListItem
                      {
-                         Value = s.Id.ToString(),
-                         Text = s.Name
+                         Value = s.SupplierId.ToString(),
+                         Text = s.SupplierName
                      })
                      .ToListAsync(cancellationToken);
 
                  existingModel.Products = await _dbContext.Products
                      .Select(s => new SelectListItem
                      {
-                         Value = s.Id.ToString(),
-                         Text = s.Name
+                         Value = s.ProductId.ToString(),
+                         Text = s.ProductName
                      })
                      .ToListAsync(cancellationToken);
                  TempData["error"] = ex.Message;
@@ -321,19 +318,19 @@ namespace Accounting_System.Controllers
                 }
             }
 
-            existingModel.Suppliers = await _dbContext.Suppliers
+            existingModel!.Suppliers = await _dbContext.Suppliers
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Id.ToString(),
-                    Text = s.Name
+                    Value = s.SupplierId.ToString(),
+                    Text = s.SupplierName
                 })
                 .ToListAsync(cancellationToken);
 
             existingModel.Products = await _dbContext.Products
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Id.ToString(),
-                    Text = s.Name
+                    Value = s.ProductId.ToString(),
+                    Text = s.ProductName
                 })
                 .ToListAsync(cancellationToken);
             return View(existingModel);
@@ -342,24 +339,20 @@ namespace Accounting_System.Controllers
         [HttpGet]
         public async Task<IActionResult> Print(int? id, CancellationToken cancellationToken)
         {
-            if (id == null || _dbContext.ReceivingReports == null)
+            if (id == null || !_dbContext.ReceivingReports.Any())
             {
                 return NotFound();
             }
 
             var purchaseOrder = await _purchaseOrderRepo
                 .FindPurchaseOrder(id, cancellationToken);
-            if (purchaseOrder == null)
-            {
-                return NotFound();
-            }
 
             return View(purchaseOrder);
         }
 
         public async Task<IActionResult> Printed(int id, CancellationToken cancellationToken)
         {
-            var po = await _dbContext.PurchaseOrders.FindAsync(id, cancellationToken);
+            var po = await _dbContext.PurchaseOrders.FirstOrDefaultAsync(x => x.PurchaseOrderId == id, cancellationToken);
             if (po != null && !po.IsPrinted)
             {
 
@@ -368,8 +361,8 @@ namespace Accounting_System.Controllers
                 if (po.OriginalSeriesNumber.IsNullOrEmpty() && po.OriginalDocumentId == 0)
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    var printedBy = _userManager.GetUserName(this.User);
-                    AuditTrail auditTrailBook = new(printedBy, $"Printed original copy of po# {po.PONo}", "Purchase Order", ipAddress);
+                    var printedBy = User.Identity!.Name;
+                    AuditTrail auditTrailBook = new(printedBy!, $"Printed original copy of po# {po.PurchaseOrderNo}", "Purchase Order", ipAddress!);
                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                 }
 
@@ -383,7 +376,7 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.PurchaseOrders.FindAsync(id, cancellationToken);
+            var model = await _dbContext.PurchaseOrders.FirstOrDefaultAsync(x => x.PurchaseOrderId == id, cancellationToken);
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             try
@@ -401,7 +394,7 @@ namespace Accounting_System.Controllers
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(model.PostedBy, $"Posted purchase order# {model.PONo}", "Purchase Order", ipAddress);
+                            AuditTrail auditTrailBook = new(model.PostedBy!, $"Posted purchase order# {model.PurchaseOrderNo}", "Purchase Order", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -411,7 +404,7 @@ namespace Accounting_System.Controllers
                         await transaction.CommitAsync(cancellationToken);
                         TempData["success"] = "Purchase Order has been Posted.";
                     }
-                    return RedirectToAction(nameof(Print), new { id = id });
+                    return RedirectToAction(nameof(Print), new { id });
                 }
             }
             catch (Exception ex)
@@ -426,7 +419,7 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.PurchaseOrders.FindAsync(id, cancellationToken);
+            var model = await _dbContext.PurchaseOrders.FirstOrDefaultAsync(x => x.PurchaseOrderId == id, cancellationToken);
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             try
@@ -449,7 +442,7 @@ namespace Accounting_System.Controllers
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(model.VoidedBy, $"Voided purchase order# {model.PONo}", "Purchase Order", ipAddress);
+                            AuditTrail auditTrailBook = new(model.VoidedBy!, $"Voided purchase order# {model.PurchaseOrderNo}", "Purchase Order", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -474,7 +467,7 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Cancel(int id, string cancellationRemarks, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.PurchaseOrders.FindAsync(id, cancellationToken);
+            var model = await _dbContext.PurchaseOrders.FirstOrDefaultAsync(x => x.PurchaseOrderId == id, cancellationToken);
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             try
@@ -493,7 +486,7 @@ namespace Accounting_System.Controllers
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(model.CanceledBy, $"Cancelled purchase order# {model.PONo}", "Purchase Order", ipAddress);
+                            AuditTrail auditTrailBook = new(model.CanceledBy!, $"Cancelled purchase order# {model.PurchaseOrderNo}", "Purchase Order", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -519,16 +512,17 @@ namespace Accounting_System.Controllers
         [HttpGet]
         public async Task<IActionResult> ChangePrice(CancellationToken cancellationToken)
         {
-            PurchaseChangePriceViewModel po = new();
-
-            po.PO = await _dbContext.PurchaseOrders
-                .Where(po => po.FinalPrice == 0 || po.FinalPrice == null && po.IsPosted && po.QuantityReceived != 0)
-                .Select(s => new SelectListItem
-                {
-                    Value = s.Id.ToString(),
-                    Text = s.PONo
-                })
-                .ToListAsync(cancellationToken);
+            PurchaseChangePriceViewModel po = new()
+            {
+                PO = await _dbContext.PurchaseOrders
+                    .Where(po => po.FinalPrice == 0 || po.FinalPrice == null && po.IsPosted && po.QuantityReceived != 0)
+                    .Select(s => new SelectListItem
+                    {
+                        Value = s.PurchaseOrderId.ToString(),
+                        Text = s.PurchaseOrderNo
+                    })
+                    .ToListAsync(cancellationToken)
+            };
 
             return View(po);
         }
@@ -541,9 +535,9 @@ namespace Accounting_System.Controllers
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    var existingModel = await _dbContext.PurchaseOrders.FindAsync(model.POId, cancellationToken);
+                    var existingModel = await _dbContext.PurchaseOrders.FirstOrDefaultAsync(x => x.PurchaseOrderId == model.POId, cancellationToken);
 
-                    existingModel.FinalPrice = model.FinalPrice;
+                    existingModel!.FinalPrice = model.FinalPrice;
 
                     #region--Inventory Recording
 
@@ -556,7 +550,7 @@ namespace Accounting_System.Controllers
                     if (existingModel.OriginalSeriesNumber.IsNullOrEmpty() && existingModel.OriginalDocumentId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(existingModel.CreatedBy, $"Change price, purchase order# {existingModel.PONo}", "Purchase Order", ipAddress);
+                        AuditTrail auditTrailBook = new(existingModel.CreatedBy!, $"Change price, purchase order# {existingModel.PurchaseOrderNo}", "Purchase Order", ipAddress!);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -574,8 +568,8 @@ namespace Accounting_System.Controllers
                         .Where(po => po.FinalPrice == 0 || po.FinalPrice == null && po.IsPosted && po.QuantityReceived != 0)
                         .Select(s => new SelectListItem
                         {
-                            Value = s.Id.ToString(),
-                            Text = s.PONo
+                            Value = s.PurchaseOrderId.ToString(),
+                            Text = s.PurchaseOrderNo
                         })
                         .ToListAsync(cancellationToken);
 
@@ -588,8 +582,8 @@ namespace Accounting_System.Controllers
                 .Where(po => po.FinalPrice == 0 || po.FinalPrice == null && po.IsPosted)
                 .Select(s => new SelectListItem
                 {
-                    Value = s.Id.ToString(),
-                    Text = s.PONo
+                    Value = s.PurchaseOrderId.ToString(),
+                    Text = s.PurchaseOrderNo
                 })
                 .ToListAsync(cancellationToken);
 
@@ -600,12 +594,12 @@ namespace Accounting_System.Controllers
         [HttpGet]
         public async Task<IActionResult> ClosePO(int id, CancellationToken cancellationToken)
         {
-            var purchaseOrder = await _dbContext.PurchaseOrders.FindAsync(id, cancellationToken);
+            var purchaseOrder = await _dbContext.PurchaseOrders.FirstOrDefaultAsync(x => x.PurchaseOrderId == id, cancellationToken);
 
             if (purchaseOrder != null)
             {
                 var rrList = await _dbContext.ReceivingReports
-                    .Where(rr => rr.PONo == purchaseOrder.PONo)
+                    .Where(rr => rr.PONo == purchaseOrder.PurchaseOrderNo)
                     .ToListAsync(cancellationToken);
 
                 purchaseOrder.RrList = rrList;
@@ -619,7 +613,7 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> ClosePO(PurchaseOrder model, CancellationToken cancellationToken)
         {
-            var purchaseOrder = await _dbContext.PurchaseOrders.FindAsync(model.Id, cancellationToken);
+            var purchaseOrder = await _dbContext.PurchaseOrders.FirstOrDefaultAsync(x => x.PurchaseOrderId == model.PurchaseOrderId, cancellationToken);
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             try
@@ -635,7 +629,7 @@ namespace Accounting_System.Controllers
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(_userManager.GetUserName(this.User), $"Closed purchase order# {model.PONo}", "Purchase Order", ipAddress);
+                            AuditTrail auditTrailBook = new(User.Identity!.Name!, $"Closed purchase order# {model.PurchaseOrderNo}", "Purchase Order", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -677,9 +671,9 @@ namespace Accounting_System.Controllers
 
                 // Retrieve the selected invoices from the database
                 var selectedList = await _dbContext.PurchaseOrders
-                    .Where(po => recordIds.Contains(po.Id))
-                    .OrderBy(po => po.PONo)
-                    .ToListAsync();
+                    .Where(po => recordIds.Contains(po.PurchaseOrderId))
+                    .OrderBy(po => po.PurchaseOrderNo)
+                    .ToListAsync(cancellationToken: cancellationToken);
 
                 // Create the Excel package
                 using var package = new ExcelPackage();
@@ -717,22 +711,22 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 6].Value = item.FinalPrice;
                     worksheet.Cells[row, 7].Value = item.QuantityReceived;
                     worksheet.Cells[row, 8].Value = item.IsReceived;
-                    worksheet.Cells[row, 9].Value = item.ReceivedDate != default ? item.ReceivedDate.ToString("yyyy-MM-dd HH:mm:ss.ffffff zzz") : default;
+                    worksheet.Cells[row, 9].Value = item.ReceivedDate != default ? item.ReceivedDate.ToString("yyyy-MM-dd HH:mm:ss.ffffff zzz") : null;
                     worksheet.Cells[row, 10].Value = item.Remarks;
                     worksheet.Cells[row, 11].Value = item.CreatedBy;
                     worksheet.Cells[row, 12].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
                     worksheet.Cells[row, 13].Value = item.IsClosed;
                     worksheet.Cells[row, 14].Value = item.CancellationRemarks;
                     worksheet.Cells[row, 15].Value = item.ProductId;
-                    worksheet.Cells[row, 16].Value = item.PONo;
+                    worksheet.Cells[row, 16].Value = item.PurchaseOrderNo;
                     worksheet.Cells[row, 17].Value = item.SupplierId;
-                    worksheet.Cells[row, 18].Value = item.Id;
+                    worksheet.Cells[row, 18].Value = item.PurchaseOrderId;
 
                     row++;
                 }
 
                 // Convert the Excel package to a byte array
-                var excelBytes = await package.GetAsByteArrayAsync();
+                var excelBytes = await package.GetAsByteArrayAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
                 return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "PurchaseOrderList.xlsx");
 		    }
@@ -753,224 +747,222 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
         {
-            if (file == null || file.Length == 0)
+            if (file.Length == 0)
             {
                 return RedirectToAction(nameof(Index));
             }
 
             using (var stream = new MemoryStream())
             {
-                await file.CopyToAsync(stream);
+                await file.CopyToAsync(stream, cancellationToken);
                 stream.Position = 0;
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
                 try
                 {
-                    using (var package = new ExcelPackage(stream))
+                    using var package = new ExcelPackage(stream);
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null)
                     {
-                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                        if (worksheet == null)
+                        TempData["error"] = "The Excel file contains no worksheets.";
+                        return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
+                    }
+                    if (worksheet.ToString() != nameof(DynamicView.PurchaseOrder))
+                    {
+                        TempData["error"] = "The Excel file is not related to purchase order.";
+                        return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
+                    }
+
+                    var rowCount = worksheet.Dimension.Rows;
+                    var poDictionary = new Dictionary<string, bool>();
+                    var purchaseOrderList = await _dbContext
+                        .PurchaseOrders
+                        .ToListAsync(cancellationToken);
+
+                    for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                    {
+                        var purchaseOrder = new PurchaseOrder
                         {
-                            TempData["error"] = "The Excel file contains no worksheets.";
-                            return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
-                        }
-                        if (worksheet.ToString() != nameof(DynamicView.PurchaseOrder))
+                            PurchaseOrderNo = worksheet.Cells[row, 16].Text,
+                            Date = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
+                            Terms = worksheet.Cells[row, 2].Text,
+                            Quantity = decimal.TryParse(worksheet.Cells[row, 3].Text, out decimal quantity) ? quantity : 0,
+                            Price = decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal price) ? price : 0,
+                            Amount = decimal.TryParse(worksheet.Cells[row, 5].Text, out decimal amount) ? amount : 0,
+                            FinalPrice = decimal.TryParse(worksheet.Cells[row, 6].Text, out decimal finalPrice) ? finalPrice : 0,
+                            // QuantityReceived = decimal.TryParse(worksheet.Cells[row, 7].Text, out decimal quantityReceived) ? quantityReceived : 0,
+                            // IsReceived = bool.TryParse(worksheet.Cells[row, 8].Text, out bool isReceived) ? isReceived : default,
+                            // ReceivedDate = DateTime.TryParse(worksheet.Cells[row, 9].Text, out DateTime receivedDate) ? receivedDate : default,
+                            Remarks = worksheet.Cells[row, 10].Text,
+                            CreatedBy = worksheet.Cells[row, 11].Text,
+                            CreatedDate = DateTime.TryParse(worksheet.Cells[row, 12].Text, out DateTime createdDate) ? createdDate : default,
+                            PostedBy = worksheet.Cells[row, 19].Text,
+                            PostedDate = DateTime.TryParse(worksheet.Cells[row, 20].Text, out DateTime postedDate) ? postedDate : default,
+                            IsClosed = bool.TryParse(worksheet.Cells[row, 13].Text, out bool isClosed) && isClosed,
+                            CancellationRemarks = worksheet.Cells[row, 14].Text != "" ? worksheet.Cells[row, 14].Text : null,
+                            OriginalProductId = int.TryParse(worksheet.Cells[row, 15].Text, out int originalProductId) ? originalProductId : 0,
+                            OriginalSeriesNumber = worksheet.Cells[row, 16].Text,
+                            OriginalSupplierId = int.TryParse(worksheet.Cells[row, 17].Text, out int originalSupplierId) ? originalSupplierId : 0,
+                            OriginalDocumentId = int.TryParse(worksheet.Cells[row, 18].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                        };
+
+                        if (!poDictionary.TryAdd(purchaseOrder.OriginalSeriesNumber, true))
                         {
-                            TempData["error"] = "The Excel file is not related to purchase order.";
-                            return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
+                            continue;
                         }
 
-                        var rowCount = worksheet.Dimension.Rows;
-                        var poDictionary = new Dictionary<string, bool>();
-                        var purchaseOrderList = await _dbContext
-                            .PurchaseOrders
-                            .ToListAsync(cancellationToken);
-
-                        for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                        if (purchaseOrderList.Any(po => po.OriginalDocumentId == purchaseOrder.OriginalDocumentId))
                         {
-                            var purchaseOrder = new PurchaseOrder
-                            {
-                                PONo = worksheet.Cells[row, 16].Text,
-                                Date = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
-                                Terms = worksheet.Cells[row, 2].Text,
-                                Quantity = decimal.TryParse(worksheet.Cells[row, 3].Text, out decimal quantity) ? quantity : 0,
-                                Price = decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal price) ? price : 0,
-                                Amount = decimal.TryParse(worksheet.Cells[row, 5].Text, out decimal amount) ? amount : 0,
-                                FinalPrice = decimal.TryParse(worksheet.Cells[row, 6].Text, out decimal finalPrice) ? finalPrice : 0,
-                                // QuantityReceived = decimal.TryParse(worksheet.Cells[row, 7].Text, out decimal quantityReceived) ? quantityReceived : 0,
-                                // IsReceived = bool.TryParse(worksheet.Cells[row, 8].Text, out bool isReceived) ? isReceived : default,
-                                // ReceivedDate = DateTime.TryParse(worksheet.Cells[row, 9].Text, out DateTime receivedDate) ? receivedDate : default,
-                                Remarks = worksheet.Cells[row, 10].Text,
-                                CreatedBy = worksheet.Cells[row, 11].Text,
-                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 12].Text, out DateTime createdDate) ? createdDate : default,
-                                PostedBy = worksheet.Cells[row, 19].Text,
-                                PostedDate = DateTime.TryParse(worksheet.Cells[row, 20].Text, out DateTime postedDate) ? postedDate : default,
-                                IsClosed = bool.TryParse(worksheet.Cells[row, 13].Text, out bool isClosed) ? isClosed : default,
-                                CancellationRemarks = worksheet.Cells[row, 14].Text != "" ? worksheet.Cells[row, 14].Text : null,
-                                OriginalProductId = int.TryParse(worksheet.Cells[row, 15].Text, out int originalProductId) ? originalProductId : 0,
-                                OriginalSeriesNumber = worksheet.Cells[row, 16].Text,
-                                OriginalSupplierId = int.TryParse(worksheet.Cells[row, 17].Text, out int originalSupplierId) ? originalSupplierId : 0,
-                                OriginalDocumentId = int.TryParse(worksheet.Cells[row, 18].Text, out int originalDocumentId) ? originalDocumentId : 0,
-                            };
+                            var poChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                            var existingPo = await _dbContext.PurchaseOrders.FirstOrDefaultAsync(si => si.OriginalDocumentId == purchaseOrder.OriginalDocumentId, cancellationToken);
 
-                            if (!poDictionary.TryAdd(purchaseOrder.OriginalSeriesNumber, true))
+                            if (existingPo!.PurchaseOrderNo!.TrimStart().TrimEnd() != worksheet.Cells[row, 16].Text.TrimStart().TrimEnd())
                             {
-                                continue;
+                                poChanges["PONo"] = (existingPo.PurchaseOrderNo.TrimStart().TrimEnd(), worksheet.Cells[row, 16].Text.TrimStart().TrimEnd());
                             }
 
-                            if (purchaseOrderList.Any(po => po.OriginalDocumentId == purchaseOrder.OriginalDocumentId))
+                            if (existingPo.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())
                             {
-                                var poChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
-                                var existingPO = await _dbContext.PurchaseOrders.FirstOrDefaultAsync(si => si.OriginalDocumentId == purchaseOrder.OriginalDocumentId, cancellationToken);
-
-                                if (existingPO.PONo.TrimStart().TrimEnd() != worksheet.Cells[row, 16].Text.TrimStart().TrimEnd())
-                                {
-                                    poChanges["PONo"] = (existingPO.PONo.TrimStart().TrimEnd(), worksheet.Cells[row, 16].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingPO.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())
-                                {
-                                    poChanges["Date"] = (existingPO.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingPO.Terms.TrimStart().TrimEnd() != worksheet.Cells[row, 2].Text.TrimStart().TrimEnd())
-                                {
-                                    poChanges["Terms"] = (existingPO.Terms.TrimStart().TrimEnd(), worksheet.Cells[row, 2].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingPO.Quantity.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
-                                {
-                                    poChanges["Quantity"] = (existingPO.Quantity.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingPO.Price.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
-                                {
-                                    poChanges["Price"] = (existingPO.Price.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingPO.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd())
-                                {
-                                    poChanges["Amount"] = (existingPO.Amount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingPO.FinalPrice?.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd())
-                                {
-                                    poChanges["FinalPrice"] = (existingPO.FinalPrice?.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingPO.Remarks.TrimStart().TrimEnd() != worksheet.Cells[row, 10].Text.TrimStart().TrimEnd())
-                                {
-                                    poChanges["Remarks"] = (existingPO.Remarks.TrimStart().TrimEnd(), worksheet.Cells[row, 10].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingPO.CreatedBy.TrimStart().TrimEnd() != worksheet.Cells[row, 11].Text.TrimStart().TrimEnd())
-                                {
-                                    poChanges["CreatedBy"] = (existingPO.CreatedBy.TrimStart().TrimEnd(), worksheet.Cells[row, 11].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingPO.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet.Cells[row, 12].Text.TrimStart().TrimEnd())
-                                {
-                                    poChanges["CreatedDate"] = (existingPO.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd(), worksheet.Cells[row, 12].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingPO.IsClosed.ToString().ToUpper().TrimStart().TrimEnd() != worksheet.Cells[row, 13].Text.TrimStart().TrimEnd())
-                                {
-                                    poChanges["IsClosed"] = (existingPO.IsClosed.ToString().ToUpper().TrimStart().TrimEnd(), worksheet.Cells[row, 13].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if ((string.IsNullOrWhiteSpace(existingPO.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingPO.CancellationRemarks.TrimStart().TrimEnd()) != worksheet.Cells[row, 14].Text.TrimStart().TrimEnd())
-                                {
-                                    poChanges["CancellationRemarks"] = (existingPO.CancellationRemarks?.TrimStart().TrimEnd(), worksheet.Cells[row, 14].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingPO.OriginalProductId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 15].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 15].Text.TrimStart().TrimEnd()))
-                                {
-                                    poChanges["OriginalProductId"] = (existingPO.OriginalProductId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 15].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 15].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingPO.OriginalSeriesNumber.TrimStart().TrimEnd() != worksheet.Cells[row, 16].Text.TrimStart().TrimEnd())
-                                {
-                                    poChanges["OriginalSeriesNumber"] = (existingPO.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet.Cells[row, 16].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingPO.OriginalSupplierId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 17].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 17].Text.TrimStart().TrimEnd()))
-                                {
-                                    poChanges["SupplierId"] = (existingPO.SupplierId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 17].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (existingPO.OriginalDocumentId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd()))
-                                {
-                                    poChanges["OriginalDocumentId"] = (existingPO.OriginalDocumentId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd())!;
-                                }
-
-                                if (poChanges.Any())
-                                {
-                                    await _purchaseOrderRepo.LogChangesAsync(existingPO.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User));
-                                }
-
-                                continue;
-                            }
-                            else
-                            {
-                                #region --Audit Trail Recording
-
-                                if (!purchaseOrder.CreatedBy.IsNullOrEmpty())
-                                {
-                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(purchaseOrder.CreatedBy, $"Create new purchase order# {purchaseOrder.PONo}", "Purchase Order", ipAddress, purchaseOrder.CreatedDate);
-                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                                }
-                                if (!purchaseOrder.PostedBy.IsNullOrEmpty())
-                                {
-                                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                    AuditTrail auditTrailBook = new(purchaseOrder.PostedBy, $"Posted purchase order# {purchaseOrder.PONo}", "Purchase Order", ipAddress, purchaseOrder.PostedDate);
-                                    await _dbContext.AddAsync(auditTrailBook, cancellationToken);
-                                }
-
-                                #endregion --Audit Trail Recording
+                                poChanges["Date"] = (existingPo.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet.Cells[row, 1].Text.TrimStart().TrimEnd());
                             }
 
-                            var getProduct = await _dbContext.Products
-                                .Where(p => p.OriginalProductId == purchaseOrder.OriginalProductId)
-                                .FirstOrDefaultAsync(cancellationToken);
-
-                            if (getProduct != null)
+                            if (existingPo.Terms.TrimStart().TrimEnd() != worksheet.Cells[row, 2].Text.TrimStart().TrimEnd())
                             {
-                                purchaseOrder.ProductId = getProduct.Id;
-
-                                purchaseOrder.ProductNo = getProduct.Code;
-                            }
-                            else
-                            {
-                                throw new InvalidOperationException("Please upload the Excel file for the product master file first.");
+                                poChanges["Terms"] = (existingPo.Terms.TrimStart().TrimEnd(), worksheet.Cells[row, 2].Text.TrimStart().TrimEnd());
                             }
 
-                            var getSupplier = await _dbContext.Suppliers
-                                .Where(c => c.OriginalSupplierId == purchaseOrder.OriginalSupplierId)
-                                .FirstOrDefaultAsync(cancellationToken);
-
-                            if (getSupplier != null)
+                            if (existingPo.Quantity.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
                             {
-                                purchaseOrder.SupplierId = getSupplier.Id;
-
-                                purchaseOrder.SupplierNo = getSupplier.Number;
-                            }
-                            else
-                            {
-                                throw new InvalidOperationException("Please upload the Excel file for the supplier master file first.");
+                                poChanges["Quantity"] = (existingPo.Quantity.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd());
                             }
 
-                            await _dbContext.PurchaseOrders.AddAsync(purchaseOrder, cancellationToken);
+                            if (existingPo.Price.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                poChanges["Price"] = (existingPo.Price.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd());
+                            }
+
+                            if (existingPo.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                poChanges["Amount"] = (existingPo.Amount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd());
+                            }
+
+                            if (existingPo.FinalPrice?.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                poChanges["FinalPrice"] = (existingPo.FinalPrice?.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd())!;
+                            }
+
+                            if (existingPo.Remarks.TrimStart().TrimEnd() != worksheet.Cells[row, 10].Text.TrimStart().TrimEnd())
+                            {
+                                poChanges["Remarks"] = (existingPo.Remarks.TrimStart().TrimEnd(), worksheet.Cells[row, 10].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingPo.CreatedBy!.TrimStart().TrimEnd() != worksheet.Cells[row, 11].Text.TrimStart().TrimEnd())
+                            {
+                                poChanges["CreatedBy"] = (existingPo.CreatedBy.TrimStart().TrimEnd(), worksheet.Cells[row, 11].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingPo.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet.Cells[row, 12].Text.TrimStart().TrimEnd())
+                            {
+                                poChanges["CreatedDate"] = (existingPo.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd(), worksheet.Cells[row, 12].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingPo.IsClosed.ToString().ToUpper().TrimStart().TrimEnd() != worksheet.Cells[row, 13].Text.TrimStart().TrimEnd())
+                            {
+                                poChanges["IsClosed"] = (existingPo.IsClosed.ToString().ToUpper().TrimStart().TrimEnd(), worksheet.Cells[row, 13].Text.TrimStart().TrimEnd());
+                            }
+
+                            if ((string.IsNullOrWhiteSpace(existingPo.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingPo.CancellationRemarks.TrimStart().TrimEnd()) != worksheet.Cells[row, 14].Text.TrimStart().TrimEnd())
+                            {
+                                poChanges["CancellationRemarks"] = (existingPo.CancellationRemarks?.TrimStart().TrimEnd(), worksheet.Cells[row, 14].Text.TrimStart().TrimEnd())!;
+                            }
+
+                            if (existingPo.OriginalProductId.ToString()!.TrimStart().TrimEnd() != (worksheet.Cells[row, 15].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 15].Text.TrimStart().TrimEnd()))
+                            {
+                                poChanges["OriginalProductId"] = (existingPo.OriginalProductId.ToString()!.TrimStart().TrimEnd(), worksheet.Cells[row, 15].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 15].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingPo.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet.Cells[row, 16].Text.TrimStart().TrimEnd())
+                            {
+                                poChanges["OriginalSeriesNumber"] = (existingPo.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet.Cells[row, 16].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingPo.OriginalSupplierId.ToString()!.TrimStart().TrimEnd() != (worksheet.Cells[row, 17].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 17].Text.TrimStart().TrimEnd()))
+                            {
+                                poChanges["SupplierId"] = (existingPo.SupplierId.ToString()!.TrimStart().TrimEnd(), worksheet.Cells[row, 17].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 17].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (existingPo.OriginalDocumentId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd()))
+                            {
+                                poChanges["OriginalDocumentId"] = (existingPo.OriginalDocumentId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd());
+                            }
+
+                            if (poChanges.Any())
+                            {
+                                await _purchaseOrderRepo.LogChangesAsync(existingPo.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User), existingPo.PurchaseOrderNo);
+                            }
+
+                            continue;
                         }
-                        await _dbContext.SaveChangesAsync(cancellationToken);
-                        await transaction.CommitAsync(cancellationToken);
-
-                        var checkChangesOfRecord = await _dbContext.ImportExportLogs
-                            .Where(iel => iel.Action == string.Empty).ToListAsync(cancellationToken);
-                        if (checkChangesOfRecord.Any())
+                        else
                         {
-                            TempData["importChanges"] = "";
+                            #region --Audit Trail Recording
+
+                            if (!purchaseOrder.CreatedBy.IsNullOrEmpty())
+                            {
+                                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                AuditTrail auditTrailBook = new(purchaseOrder.CreatedBy, $"Create new purchase order# {purchaseOrder.PurchaseOrderNo}", "Purchase Order", ipAddress!, purchaseOrder.CreatedDate);
+                                await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                            }
+                            if (!purchaseOrder.PostedBy.IsNullOrEmpty())
+                            {
+                                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                AuditTrail auditTrailBook = new(purchaseOrder.PostedBy, $"Posted purchase order# {purchaseOrder.PurchaseOrderNo}", "Purchase Order", ipAddress!, purchaseOrder.PostedDate);
+                                await _dbContext.AddAsync(auditTrailBook, cancellationToken);
+                            }
+
+                            #endregion --Audit Trail Recording
                         }
+
+                        var getProduct = await _dbContext.Products
+                            .Where(p => p.OriginalProductId == purchaseOrder.OriginalProductId)
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        if (getProduct != null)
+                        {
+                            purchaseOrder.ProductId = getProduct.ProductId;
+
+                            purchaseOrder.ProductNo = getProduct.ProductCode;
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException("Please upload the Excel file for the product master file first.");
+                        }
+
+                        var getSupplier = await _dbContext.Suppliers
+                            .Where(c => c.OriginalSupplierId == purchaseOrder.OriginalSupplierId)
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        if (getSupplier != null)
+                        {
+                            purchaseOrder.SupplierId = getSupplier.SupplierId;
+
+                            purchaseOrder.SupplierNo = getSupplier.Number;
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException("Please upload the Excel file for the supplier master file first.");
+                        }
+
+                        await _dbContext.PurchaseOrders.AddAsync(purchaseOrder, cancellationToken);
+                    }
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+
+                    var checkChangesOfRecord = await _dbContext.ImportExportLogs
+                        .Where(iel => iel.Action == string.Empty).ToListAsync(cancellationToken);
+                    if (checkChangesOfRecord.Any())
+                    {
+                        TempData["importChanges"] = "";
                     }
                 }
                 catch (OperationCanceledException oce)

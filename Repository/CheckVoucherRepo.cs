@@ -1,7 +1,6 @@
 ﻿using Accounting_System.Data;
 using Accounting_System.Models;
 using Accounting_System.Models.AccountsPayable;
-using Accounting_System.Utility;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accounting_System.Repository
@@ -26,27 +25,25 @@ namespace Accounting_System.Repository
         {
             var checkVoucher = await _dbContext
                 .CheckVoucherHeaders
-                .OrderByDescending(s => s.CVNo)
+                .OrderByDescending(s => s.CheckVoucherHeaderNo)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (checkVoucher != null)
             {
-                string lastSeries = checkVoucher.CVNo ?? throw new InvalidOperationException("CVNo is null pls Contact MIS Enterprise");
+                string lastSeries = checkVoucher.CheckVoucherHeaderNo ?? throw new InvalidOperationException("CVNo is null pls Contact MIS Enterprise");
                 string numericPart = lastSeries.Substring(2);
                 int incrementedNumber = int.Parse(numericPart) + 1;
 
                 return lastSeries.Substring(0, 2) + incrementedNumber.ToString("D10");
             }
-            else
-            {
-                return $"CV{1.ToString("D10")}";
-            }
+
+            return $"CV{1.ToString("D10")}";
         }
 
         public async Task UpdateInvoicingVoucher(decimal paymentAmount, int invoiceVoucherId, CancellationToken cancellationToken = default)
         {
             var invoiceVoucher = await _dbContext.CheckVoucherHeaders
-                .FindAsync(invoiceVoucherId, cancellationToken);
+                .FirstOrDefaultAsync(x => x.CheckVoucherHeaderId == invoiceVoucherId, cancellationToken);
 
             if (invoiceVoucher != null)
             {
@@ -63,7 +60,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy)
+        public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy, string seriesNumber)
         {
             foreach (var change in changes)
             {
@@ -76,7 +73,7 @@ namespace Accounting_System.Repository
                     Module = "Check Voucher Header",
                     OriginalValue = change.Value.OriginalValue,
                     AdjustedValue = change.Value.NewValue,
-                    TimeStamp = DateTime.UtcNow.AddHours(8),
+                    TimeStamp = DateTime.Now,
                     UploadedBy = modifiedBy,
                     Action = string.Empty,
                     Executed = false
@@ -85,7 +82,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task LogChangesForCVDAsync(int? id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy)
+        public async Task LogChangesForCVDAsync(int? id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy, string seriesNumber)
         {
             foreach (var change in changes)
             {
@@ -93,15 +90,16 @@ namespace Accounting_System.Repository
                 {
                     Id = Guid.NewGuid(),
                     TableName = "CheckVoucherDetails",
-                    DocumentRecordId = id.Value,
+                    DocumentRecordId = id!.Value,
                     ColumnName = change.Key,
                     Module = "Check Voucher Details",
                     OriginalValue = change.Value.OriginalValue,
                     AdjustedValue = change.Value.NewValue,
-                    TimeStamp = DateTime.UtcNow.AddHours(8),
+                    TimeStamp = DateTime.Now,
                     UploadedBy = modifiedBy,
                     Action = string.Empty,
-                    Executed = false
+                    Executed = false,
+                    DocumentNo = seriesNumber
                 };
                 await _dbContext.AddAsync(logReport);
             }

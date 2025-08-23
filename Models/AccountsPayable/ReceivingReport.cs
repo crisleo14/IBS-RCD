@@ -6,9 +6,13 @@ namespace Accounting_System.Models.AccountsPayable
 {
     public class ReceivingReport : BaseEntity
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int ReceivingReportId { get; set; }
+
         [Display(Name = "RR No")]
-        [Column(TypeName = "varchar(12)")]
-        public string? RRNo { get; set; }
+        [StringLength(13)]
+        public string? ReceivingReportNo { get; set; }
 
         [Required]
         [Column(TypeName = "date")]
@@ -22,18 +26,18 @@ namespace Accounting_System.Models.AccountsPayable
         [Required]
         public int? POId { get; set; }
 
-        [ForeignKey("POId")]
+        [ForeignKey(nameof(POId))]
         public PurchaseOrder? PurchaseOrder { get; set; }
 
         [NotMapped]
         public List<SelectListItem>? PurchaseOrders { get; set; }
 
         [Display(Name = "PO No")]
-        [Column(TypeName = "varchar(12)")]
+        [StringLength(13)]
         public string? PONo { get; set; }
 
         [Display(Name = "Supplier Invoice#")]
-        [Column(TypeName = "varchar(100)")]
+        [StringLength(100)]
         public string? SupplierInvoiceNumber { get; set; }
 
         [Display(Name = "Supplier Invoice Date")]
@@ -41,7 +45,7 @@ namespace Accounting_System.Models.AccountsPayable
 
         [Required]
         [Display(Name = "Truck/Vessels")]
-        [Column(TypeName = "varchar(100)")]
+        [StringLength(100)]
         public string TruckOrVessels { get; set; }
 
         [Required]
@@ -66,10 +70,11 @@ namespace Accounting_System.Models.AccountsPayable
         public decimal Amount { get; set; }
 
         [Display(Name = "Other Reference")]
-        [Column(TypeName = "varchar(100)")]
+        [StringLength(1000)]
         public string? OtherRef { get; set; }
 
         [Required]
+        [StringLength(1000)]
         public string Remarks { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]

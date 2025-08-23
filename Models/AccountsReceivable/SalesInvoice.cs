@@ -8,9 +8,13 @@ namespace Accounting_System.Models.AccountsReceivable
 {
     public class SalesInvoice : BaseEntity
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int SalesInvoiceId { get; set; }
+
         [Display(Name = "SI No")]
-        [Column(TypeName = "varchar(12)")]
-        public string? SINo { get; set; }
+        [StringLength(13)]
+        public string? SalesInvoiceNo { get; set; }
 
         #region-- Customer properties
 
@@ -18,7 +22,7 @@ namespace Accounting_System.Models.AccountsReceivable
         [Display(Name = "Customer No")]
         public int? CustomerId { get; set; }
 
-        [ForeignKey("CustomerId")]
+        [ForeignKey(nameof(CustomerId))]
         public Customer? Customer { get; set; }
 
         [NotMapped]
@@ -35,12 +39,12 @@ namespace Accounting_System.Models.AccountsReceivable
         [Display(Name = "Product No")]
         public int? ProductId { get; set; }
 
-        [ForeignKey("ProductId")]
+        [ForeignKey(nameof(ProductId))]
         public Product? Product { get; set; }
 
         #endregion
 
-        [Column(TypeName = "varchar(500)")]
+        [StringLength(100)]
         [Display(Name = "Other Ref No")]
         public string OtherRefNo { get; set; }
 
@@ -60,10 +64,10 @@ namespace Accounting_System.Models.AccountsReceivable
         public decimal Amount { get; set; }
 
         [Required]
-        [Column(TypeName = "varchar(500)")]
+        [StringLength(1000)]
         public string Remarks { get; set; }
 
-        [Column(TypeName = "varchar(20)")]
+        [StringLength(50)]
         public string Status { get; set; } = "Pending";
 
         [Required]
