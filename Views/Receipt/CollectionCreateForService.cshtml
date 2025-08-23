@@ -212,7 +212,7 @@ Balance:        <span id="balance"></span>
                 var customerNo = $(this).val();
 
                 $.ajax({
-                    url: "/Receipt/GetServiceInvoices",
+                    url: '@Url.Action("GetServiceInvoices", "Receipt")',
                     type: "GET",
                     data: { customerNo: customerNo },
                     success: function (data) {
@@ -303,7 +303,7 @@ Balance:        <span id="balance"></span>
 
             if (invoiceNo != "") {
                 $.ajax({
-                    url: "/Receipt/GetInvoiceDetails",
+                    url: '@Url.Action("GetInvoiceDetails", "Receipt")',
                     type: "GET",
                     data: {
                         invoiceNo: invoiceNo,

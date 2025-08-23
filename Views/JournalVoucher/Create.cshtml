@@ -342,7 +342,7 @@
                 var cvId = $(this).val();
                 if (cvId !== "") {
                     $.ajax({
-                        url: "/JournalVoucher/GetCV",
+                        url: '@Url.Action("GetCV", "JournalVoucher")',
                         method: "GET",
                         data: { id: cvId },
                         success: function (data) {

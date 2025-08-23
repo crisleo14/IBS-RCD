@@ -152,13 +152,13 @@
                             let dropdown = `<div class="dropdown" style="${row.isVoided || row.isCanceled ? 'display:none;' : ''}">`;
                             dropdown += `<button class="btn btn-light dropdown-toggle" type="button" id="actionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">Actions</button>`;
                             dropdown += `<ul class="dropdown-menu" aria-labelledby="actionsDropdown">`;
-                            dropdown += `<li><a href="/ReceivingReport/Edit?id=${row.id}" class="dropdown-item">Edit</a></li>`;
+                            dropdown += `<li><a href="@Url.Action("Edit", "ReceivingReport")/${row.id}" class="dropdown-item">Edit</a></li>`;
                             if (!row.isPosted && !row.isVoided && !row.isCanceled) {
-                                dropdown += `<li><a href="/ReceivingReport/Print?id=${row.id}" class="dropdown-item">Preview</a></li>`;
+                                dropdown += `<li><a href="@Url.Action("Print", "ReceivingReport")/${row.id}" class="dropdown-item">Preview</a></li>`;
                                 dropdown += `<li><a class="dropdown-item" onclick="confirmCancel(${row.id})">Cancel</a></li>`;
                             }
                             if (row.isPosted && !row.isVoided && !row.isCanceled) {
-                                dropdown += `<li><a href="/ReceivingReport/Print?id=${row.id}" class="dropdown-item">Print</a></li>`;
+                                dropdown += `<li><a href="@Url.Action("Print", "ReceivingReport")/${row.id}" class="dropdown-item">Print</a></li>`;
                                 if (row.amountPaid === 0) {
                                     dropdown += `<li><a class="dropdown-item" onclick="confirmVoid(${row.id})">Void</a></li>`;
                                 } else {
@@ -188,7 +188,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Replace with the actual URL that you want to redirect to
-                    var url = `/ReceivingReport/Void?id=${id}`;
+                    var url = `@Url.Action("Void", "ReceivingReport")/${id}`;
                     window.location.href = url;
                 }
             })
@@ -215,7 +215,7 @@
                     // Encode the cancellationRemarks to make it URL safe
                     var encodedRemarks = encodeURIComponent(cancellationRemarks);
                     // Append the encoded remarks as a parameter in the URL
-                    var url = `/ReceivingReport/Cancel?id=${id}&cancellationRemarks=${encodedRemarks}`;
+                    var url = `@Url.Action("Cancel", "ReceivingReport")/${id}?cancellationRemarks=${encodedRemarks}`;
                     window.location.href = url;
                 }
             })

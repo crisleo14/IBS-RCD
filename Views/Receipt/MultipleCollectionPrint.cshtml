@@ -446,8 +446,8 @@ else
         }
     </script>
     <script>
-        function confirmPost(itemId) {
-            console.log(itemId);
+        function confirmPost(id) {
+            console.log(id);
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
@@ -459,7 +459,7 @@ else
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Replace with the actual URL that you want to redirect to
-                    var url = `/Receipt/Post?itemId=${itemId}`;
+                    var url = `@Url.Action("Post", "Receipt")/${id}`;
                     window.location.href = url;
                 }
             })

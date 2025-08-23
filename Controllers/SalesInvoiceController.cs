@@ -475,9 +475,9 @@ namespace Accounting_System.Controllers
             return RedirectToAction(nameof(PrintInvoice), new { id });
         }
 
-        public async Task<IActionResult> Post(int invoiceId, CancellationToken cancellationToken)
+        public async Task<IActionResult> Post(int id, CancellationToken cancellationToken)
         {
-            var model = await _salesInvoiceRepo.FindSalesInvoice(invoiceId, cancellationToken);
+            var model = await _salesInvoiceRepo.FindSalesInvoice(id, cancellationToken);
 
             if (model != null)
             {
@@ -659,7 +659,7 @@ namespace Accounting_System.Controllers
                         await _dbContext.SaveChangesAsync(cancellationToken);
                         await transaction.CommitAsync(cancellationToken);
                         TempData["success"] = "Sales Invoice has been Posted.";
-                        return RedirectToAction(nameof(PrintInvoice), new { id = invoiceId });
+                        return RedirectToAction(nameof(PrintInvoice), new { id = id });
                     }
                 }
                 catch (Exception ex)
@@ -673,9 +673,9 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Void(int invoiceId, CancellationToken cancellationToken)
+        public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.SalesInvoices.FindAsync(invoiceId, cancellationToken);
+            var model = await _dbContext.SalesInvoices.FindAsync(id, cancellationToken);
 
             var existingInventory = await _dbContext.Inventories
                 .Include(i => i.Product)
@@ -729,9 +729,9 @@ namespace Accounting_System.Controllers
             return NotFound();
         }
 
-        public async Task<IActionResult> Cancel(int invoiceId, string cancellationRemarks, CancellationToken cancellationToken)
+        public async Task<IActionResult> Cancel(int id, string cancellationRemarks, CancellationToken cancellationToken)
         {
-            var model = await _dbContext.SalesInvoices.FindAsync(invoiceId, cancellationToken);
+            var model = await _dbContext.SalesInvoices.FindAsync(id, cancellationToken);
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             try

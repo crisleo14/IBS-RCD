@@ -208,8 +208,8 @@
 
     </script>
     <script>
-        function confirmVoid(itemId) {
-            console.log(itemId);
+        function confirmVoid(id) {
+            console.log(id);
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
@@ -221,15 +221,15 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Replace with the actual URL that you want to redirect to
-                    var url = `/Receipt/Void?itemId=${itemId}`;
+                    var url = `@Url.Action("Void", "Receipt")/${id}`;
                     window.location.href = url;
                 }
             })
         }
     </script>
     <script>
-        function confirmCancel(itemId) {
-            console.log(itemId);
+        function confirmCancel(id) {
+            console.log(id);
             Swal.fire({
                 title: "Please Input Remarks",
                 html:
@@ -248,7 +248,7 @@
                     // Encode the cancellationRemarks to make it URL safe
                     var encodedRemarks = encodeURIComponent(cancellationRemarks);
                     // Append the encoded remarks as a parameter in the URL
-                    var url = `/Receipt/Cancel?itemId=${itemId}&cancellationRemarks=${encodedRemarks}`;
+                    var url = `@Url.Action("Cancel", "Receipt")/${id}?cancellationRemarks=${encodedRemarks}`;
                     window.location.href = url;
                 }
             })
