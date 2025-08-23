@@ -1288,7 +1288,7 @@ namespace Accounting_System.Controllers
                 var excelBytes = await package.GetAsByteArrayAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
                 return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    "CreditMemoList.xlsx");
+                    $"CreditMemoList_IBS-RCD_{DateTime.Now:yyyyddMMHHmmss}.xlsx");
             }
             catch (Exception ex)
             {

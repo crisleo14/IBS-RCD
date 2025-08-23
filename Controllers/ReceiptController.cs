@@ -2200,7 +2200,7 @@ namespace Accounting_System.Controllers
                 // Convert the Excel package to a byte array
                 var excelBytes = await package.GetAsByteArrayAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
-                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "CollectionReceiptList.xlsx");
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"CollectionReceiptList_IBS-RCD_{DateTime.Now:yyyyddMMHHmmss}.xlsx");
             }
             catch (Exception ex)
             {
