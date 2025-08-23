@@ -29,4 +29,7 @@
   <ItemGroup>
     <_ContentIncludedByDefault Remove="Pages\CheckVoucherNonTradeInvoice\Index.cshtml" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="wwwroot\svg\" />
+  </ItemGroup>
 </Project>
