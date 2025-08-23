@@ -32,6 +32,9 @@
                     @Html.DisplayNameFor(model => model.DocumentRecordId)
                 </th>
                 <th>
+                    Series Number
+                </th>
+                <th>
                     @Html.DisplayNameFor(model => model.TableName)
                 </th>
                 <th>
@@ -61,6 +64,9 @@
                     </td>
                     <td>
                         @Html.DisplayFor(model => item.DocumentRecordId)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => item.DocumentNo)
                     </td>
                     <td class="table-name">
                         @Html.DisplayFor(model => item.TableName)

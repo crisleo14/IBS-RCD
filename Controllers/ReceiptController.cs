@@ -2421,7 +2421,7 @@ namespace Accounting_System.Controllers
 
                             if (siChanges.Any())
                             {
-                                await _salesInvoiceRepo.LogChangesAsync(existingSalesInvoice.OriginalDocumentId, siChanges, _userManager.GetUserName(this.User));
+                                await _salesInvoiceRepo.LogChangesAsync(existingSalesInvoice.OriginalDocumentId, siChanges, _userManager.GetUserName(this.User), existingSalesInvoice.SalesInvoiceNo);
                             }
 
                             continue;
@@ -2600,7 +2600,7 @@ namespace Accounting_System.Controllers
 
                             if (svChanges.Any())
                             {
-                                await _serviceInvoiceRepo.LogChangesAsync(existingServiceInvoice.OriginalDocumentId, svChanges, _userManager.GetUserName(this.User));
+                                await _serviceInvoiceRepo.LogChangesAsync(existingServiceInvoice.OriginalDocumentId, svChanges, _userManager.GetUserName(this.User), existingServiceInvoice.ServiceInvoiceNo);
                             }
 
                             continue;
@@ -2882,7 +2882,7 @@ namespace Accounting_System.Controllers
 
                             if (crChanges.Any())
                             {
-                                await _receiptRepo.LogChangesAsync(existingCollectionReceipt.OriginalDocumentId, crChanges, _userManager.GetUserName(this.User));
+                                await _receiptRepo.LogChangesAsync(existingCollectionReceipt.OriginalDocumentId, crChanges, _userManager.GetUserName(this.User), existingCollectionReceipt.CollectionReceiptNo);
                             }
 
                             continue;

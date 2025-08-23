@@ -1448,7 +1448,7 @@ namespace Accounting_System.Controllers
 
                             if (poChanges.Any())
                             {
-                                await _purchaseOrderRepo.LogChangesAsync(existingPurchaseOrder.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User));
+                                await _purchaseOrderRepo.LogChangesAsync(existingPurchaseOrder.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User), existingPurchaseOrder.PurchaseOrderNo);
                             }
 
                             continue;
@@ -1659,7 +1659,7 @@ namespace Accounting_System.Controllers
 
                             if (rrChanges.Any())
                             {
-                                await _receivingReportRepo.LogChangesAsync(existingReceivingReport.OriginalDocumentId, rrChanges, _userManager.GetUserName(this.User));
+                                await _receivingReportRepo.LogChangesAsync(existingReceivingReport.OriginalDocumentId, rrChanges, _userManager.GetUserName(this.User), existingReceivingReport.ReceivingReportNo);
                             }
 
                             continue;
@@ -1972,7 +1972,7 @@ namespace Accounting_System.Controllers
 
                             if (cvChanges.Any())
                             {
-                                await _checkVoucherRepo.LogChangesAsync(existingCv.OriginalDocumentId, cvChanges, _userManager.GetUserName(this.User));
+                                await _checkVoucherRepo.LogChangesAsync(existingCv.OriginalDocumentId, cvChanges, _userManager.GetUserName(this.User), existingCv.CheckVoucherHeaderNo);
                             }
 
                             continue;
@@ -2097,7 +2097,7 @@ namespace Accounting_System.Controllers
 
                                 if (cvdChanges.Any())
                                 {
-                                    await _checkVoucherRepo.LogChangesForCVDAsync(existingCheckVoucherDetails.OriginalDocumentId, cvdChanges, _userManager.GetUserName(this.User));
+                                    await _checkVoucherRepo.LogChangesForCVDAsync(existingCheckVoucherDetails.OriginalDocumentId, cvdChanges, _userManager.GetUserName(this.User), existingCheckVoucherDetails.TransactionNo);
                                 }
                             }
                         }
@@ -2205,7 +2205,7 @@ namespace Accounting_System.Controllers
 
                             if (jvChanges.Any())
                             {
-                                await _journalVoucherRepo.LogChangesAsync(existingJournalVoucher.OriginalDocumentId, jvChanges, _userManager.GetUserName(this.User));
+                                await _journalVoucherRepo.LogChangesAsync(existingJournalVoucher.OriginalDocumentId, jvChanges, _userManager.GetUserName(this.User), existingJournalVoucher.JournalVoucherHeaderNo);
                             }
 
                             continue;
@@ -2316,7 +2316,7 @@ namespace Accounting_System.Controllers
 
                                     if (jvdChanges.Any())
                                     {
-                                        await _journalVoucherRepo.LogChangesForJVDAsync(existingJournalVoucherDetails.OriginalDocumentId, jvdChanges, _userManager.GetUserName(this.User));
+                                        await _journalVoucherRepo.LogChangesForJVDAsync(existingJournalVoucherDetails.OriginalDocumentId, jvdChanges, _userManager.GetUserName(this.User), existingJournalVoucherDetails.TransactionNo);
                                     }
                                 }
                             }

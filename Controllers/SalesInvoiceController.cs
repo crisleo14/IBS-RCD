@@ -1082,7 +1082,7 @@ namespace Accounting_System.Controllers
 
                             if (siChanges.Any())
                             {
-                                await _salesInvoiceRepo.LogChangesAsync(existingSi.OriginalDocumentId, siChanges, _userManager.GetUserName(this.User));
+                                await _salesInvoiceRepo.LogChangesAsync(existingSi.OriginalDocumentId, siChanges, _userManager.GetUserName(this.User), existingSi.SalesInvoiceNo);
                             }
 
                             continue;

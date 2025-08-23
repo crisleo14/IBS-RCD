@@ -898,7 +898,7 @@ namespace Accounting_System.Controllers
 
                             if (poChanges.Any())
                             {
-                                await _purchaseOrderRepo.LogChangesAsync(existingPo.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User));
+                                await _purchaseOrderRepo.LogChangesAsync(existingPo.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User), existingPo.PurchaseOrderNo);
                             }
 
                             continue;

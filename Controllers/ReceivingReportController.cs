@@ -913,7 +913,7 @@ namespace Accounting_System.Controllers
 
                             if (poChanges.Any())
                             {
-                                await _purchaseOrderRepo.LogChangesAsync(existingPo.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User));
+                                await _purchaseOrderRepo.LogChangesAsync(existingPo.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User), existingPo.PurchaseOrderNo);
                             }
 
                             continue;
@@ -1121,7 +1121,7 @@ namespace Accounting_System.Controllers
 
                             if (rrChanges.Any())
                             {
-                                await _receivingReportRepo.LogChangesAsync(existingRr.OriginalDocumentId, rrChanges, _userManager.GetUserName(this.User));
+                                await _receivingReportRepo.LogChangesAsync(existingRr.OriginalDocumentId, rrChanges, _userManager.GetUserName(this.User), existingRr.ReceivingReportNo);
                             }
 
                             continue;

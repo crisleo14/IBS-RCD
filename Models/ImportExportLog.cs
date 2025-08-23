@@ -41,5 +41,8 @@ namespace Accounting_System.Models
         public string Action { get; set; }
 
         public bool Executed { get; set; }
+
+        [StringLength(13)]
+        public string DocumentNo { get; set; }
     }
 }

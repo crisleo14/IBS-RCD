@@ -1740,7 +1740,7 @@ namespace Accounting_System.Controllers
 
                             if (poChanges.Any())
                             {
-                                await _purchaseOrderRepo.LogChangesAsync(existingPo.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User));
+                                await _purchaseOrderRepo.LogChangesAsync(existingPo.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User), existingPo.PurchaseOrderNo);
                             }
 
                             continue;
@@ -1952,7 +1952,7 @@ namespace Accounting_System.Controllers
 
                             if (rrChanges.Any())
                             {
-                                await _receivingReportRepo.LogChangesAsync(existingRr.OriginalDocumentId, rrChanges, _userManager.GetUserName(this.User));
+                                await _receivingReportRepo.LogChangesAsync(existingRr.OriginalDocumentId, rrChanges, _userManager.GetUserName(this.User), existingRr.ReceivingReportNo);
                             }
 
                             continue;
@@ -2267,7 +2267,7 @@ namespace Accounting_System.Controllers
 
                             if (cvChanges.Any())
                             {
-                                await _checkVoucherRepo.LogChangesAsync(existingCv.OriginalDocumentId, cvChanges, _userManager.GetUserName(this.User));
+                                await _checkVoucherRepo.LogChangesAsync(existingCv.OriginalDocumentId, cvChanges, _userManager.GetUserName(this.User), existingCv.CheckVoucherHeaderNo);
                             }
 
                             continue;
@@ -2482,7 +2482,7 @@ namespace Accounting_System.Controllers
 
                                 if (cvdChanges.Any())
                                 {
-                                    await _checkVoucherRepo.LogChangesForCVDAsync(existingCvd.OriginalDocumentId, cvdChanges, _userManager.GetUserName(this.User));
+                                    await _checkVoucherRepo.LogChangesForCVDAsync(existingCvd.OriginalDocumentId, cvdChanges, _userManager.GetUserName(this.User), existingCvd.TransactionNo);
                                 }
                             }
                         }
