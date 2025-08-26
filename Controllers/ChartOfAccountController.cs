@@ -275,7 +275,6 @@ namespace Accounting_System.Controllers
                 worksheet.Cells["K1"].Value = "HasChildren";
                 worksheet.Cells["L1"].Value = "ParentAccountId";
                 worksheet.Cells["M1"].Value = "OriginalChartOfAccount";
-                worksheet.Cells["N1"].Value = "Parent";
 
                 int row = 2;
 
@@ -287,14 +286,13 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 4].Value = item.AccountType;
                     worksheet.Cells[row, 5].Value = item.NormalBalance;
                     worksheet.Cells[row, 6].Value = item.Level;
-                    worksheet.Cells[row, 7].Value = item.Parent;
-                    worksheet.Cells[row, 8].Value = item.CreatedBy;
-                    worksheet.Cells[row, 9].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet.Cells[row, 10].Value = item.EditedBy;
-                    worksheet.Cells[row, 11].Value = item.EditedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet.Cells[row, 12].Value = item.HasChildren;
-                    worksheet.Cells[row, 13].Value = item.ParentAccountId;
-                    worksheet.Cells[row, 14].Value = item.AccountId;
+                    worksheet.Cells[row, 7].Value = item.CreatedBy;
+                    worksheet.Cells[row, 8].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 9].Value = item.EditedBy;
+                    worksheet.Cells[row, 10].Value = item.EditedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 11].Value = item.HasChildren;
+                    worksheet.Cells[row, 12].Value = item.ParentAccountId;
+                    worksheet.Cells[row, 13].Value = item.AccountId;
 
                     row++;
                 }
