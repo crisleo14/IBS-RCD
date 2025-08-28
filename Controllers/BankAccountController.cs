@@ -16,16 +16,19 @@ namespace Accounting_System.Controllers
     {
         private readonly ApplicationDbContext _dbContext;
 
+        private readonly AasDbContext _aasDbContext;
+
         private readonly UserManager<IdentityUser> _userManager;
 
         private readonly BankAccountRepo _bankAccountRepo;
 
         public BankAccountController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager,
-            BankAccountRepo bankAccountRepo)
+            BankAccountRepo bankAccountRepo, AasDbContext aasDbContext)
         {
             _dbContext = dbContext;
             this._userManager = userManager;
             _bankAccountRepo = bankAccountRepo;
+            _aasDbContext = aasDbContext;
         }
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
@@ -227,7 +230,7 @@ namespace Accounting_System.Controllers
 
         //Upload as .xlsx file.(Import)
 
-        #region -- import xlsx record --
+        #region -- import xlsx record from IBS --
 
         [HttpPost]
         public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
@@ -287,6 +290,88 @@ namespace Accounting_System.Controllers
                     }
 
                     await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                }
+                catch (OperationCanceledException oce)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
+                }
+            }
+
+            TempData["success"] = "Uploading Success!";
+            return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
+        }
+
+        #endregion -- import xlsx record --
+
+        #region -- import xlsx record to AAS --
+
+        [HttpPost]
+        public async Task<IActionResult> AasImport(IFormFile file, CancellationToken cancellationToken)
+        {
+            if (file.Length == 0)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream, cancellationToken);
+                stream.Position = 0;
+                await using var transaction = await _aasDbContext.Database.BeginTransactionAsync(cancellationToken);
+                try
+                {
+                    using var package = new ExcelPackage(stream);
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null)
+                    {
+                        TempData["error"] = "The Excel file contains no worksheets.";
+                        return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
+                    }
+
+                    if (worksheet.ToString() != nameof(DynamicView.BankAccount))
+                    {
+                        TempData["error"] = "The Excel file is not related to bank account master file.";
+                        return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
+                    }
+
+                    var rowCount = worksheet.Dimension.Rows;
+                    var bankAccountList = await _aasDbContext
+                        .BankAccounts
+                        .ToListAsync(cancellationToken);
+
+                    for (int row = 2; row <= rowCount; row++) // Assuming the first row is the header
+                    {
+                        var bankAccount = new BankAccount
+                        {
+                            Bank = worksheet.Cells[row, 6].Text,
+                            AccountName = worksheet.Cells[row, 4].Text,
+                            CreatedBy = worksheet.Cells[row, 2].Text,
+                            CreatedDate = DateTime.TryParse(worksheet.Cells[row, 3].Text, out DateTime createdDate)
+                                ? createdDate
+                                : default,
+                            OriginalBankId = int.TryParse(worksheet.Cells[row, 7].Text, out int originalBankId)
+                                ? originalBankId
+                                : 0,
+                        };
+
+                        if (bankAccountList.Any(ba => ba.OriginalBankId == bankAccount.OriginalBankId))
+                        {
+                            continue;
+                        }
+
+                        await _aasDbContext.BankAccounts.AddAsync(bankAccount, cancellationToken);
+                    }
+
+                    await _aasDbContext.SaveChangesAsync(cancellationToken);
                     await transaction.CommitAsync(cancellationToken);
                 }
                 catch (OperationCanceledException oce)
