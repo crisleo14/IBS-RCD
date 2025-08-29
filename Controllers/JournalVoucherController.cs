@@ -2141,66 +2141,153 @@ namespace Accounting_System.Controllers
 
                         if (jvhList)
                         {
+                            var existingJvInLogs = await _dbContext.ImportExportLogs
+                                .Where(x => x.DocumentNo == existingJournalVoucher.JournalVoucherHeaderNo)
+                                .ToListAsync(cancellationToken);
                             var jvChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
 
                             if (existingJournalVoucher!.JournalVoucherHeaderNo!.TrimStart().TrimEnd() != worksheet.Cells[row, 10].Text.TrimStart().TrimEnd())
                             {
-                                jvChanges["JVNo"] = (existingJournalVoucher.JournalVoucherHeaderNo.TrimStart().TrimEnd(), worksheet.Cells[row, 10].Text.TrimStart().TrimEnd());
+                                var originalValue = existingJournalVoucher.JournalVoucherHeaderNo.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 10].Text.TrimStart().TrimEnd();
+                                var find  = existingJvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    jvChanges["JVNo"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingJournalVoucher.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())
                             {
-                                jvChanges["Date"] = (existingJournalVoucher.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet.Cells[row, 1].Text.TrimStart().TrimEnd());
+                                var originalValue = existingJournalVoucher.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 1].Text.TrimStart().TrimEnd();
+                                var find  = existingJvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    jvChanges["Date"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingJournalVoucher.References!.TrimStart().TrimEnd() != worksheet.Cells[row, 2].Text.TrimStart().TrimEnd())
                             {
-                                jvChanges["References"] = (existingJournalVoucher.References.TrimStart().TrimEnd(), worksheet.Cells[row, 2].Text.TrimStart().TrimEnd());
+                                var originalValue = existingJournalVoucher.References.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 2].Text.TrimStart().TrimEnd();
+                                var find  = existingJvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    jvChanges["References"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingJournalVoucher.Particulars.TrimStart().TrimEnd() != worksheet.Cells[row, 3].Text.TrimStart().TrimEnd())
                             {
-                                jvChanges["Particulars"] = (existingJournalVoucher.Particulars.TrimStart().TrimEnd(), worksheet.Cells[row, 3].Text.TrimStart().TrimEnd());
+                                var originalValue = existingJournalVoucher.Particulars.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 3].Text.TrimStart().TrimEnd();
+                                var find  = existingJvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    jvChanges["Particulars"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingJournalVoucher.CRNo!.TrimStart().TrimEnd() != worksheet.Cells[row, 4].Text.TrimStart().TrimEnd())
                             {
-                                jvChanges["CRNo"] = (existingJournalVoucher.CRNo.TrimStart().TrimEnd(), worksheet.Cells[row, 4].Text.TrimStart().TrimEnd());
+                                var originalValue = existingJournalVoucher.CRNo.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 4].Text.TrimStart().TrimEnd();
+                                var find  = existingJvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    jvChanges["CRNo"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingJournalVoucher.JVReason.TrimStart().TrimEnd() != worksheet.Cells[row, 5].Text.TrimStart().TrimEnd())
                             {
-                                jvChanges["JVReason"] = (existingJournalVoucher.JVReason.TrimStart().TrimEnd(), worksheet.Cells[row, 5].Text.TrimStart().TrimEnd());
+                                var originalValue = existingJournalVoucher.JVReason.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 5].Text.TrimStart().TrimEnd();
+                                var find  = existingJvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    jvChanges["JVReason"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingJournalVoucher.CreatedBy!.TrimStart().TrimEnd() != worksheet.Cells[row, 6].Text.TrimStart().TrimEnd())
                             {
-                                jvChanges["CreatedBy"] = (existingJournalVoucher.CreatedBy.TrimStart().TrimEnd(), worksheet.Cells[row, 6].Text.TrimStart().TrimEnd());
+                                var originalValue = existingJournalVoucher.CreatedBy.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 6].Text.TrimStart().TrimEnd();
+                                var find  = existingJvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    jvChanges["CreatedBy"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingJournalVoucher.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet.Cells[row, 7].Text.TrimStart().TrimEnd())
                             {
-                                jvChanges["CreatedDate"] = (existingJournalVoucher.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd(), worksheet.Cells[row, 7].Text.TrimStart().TrimEnd());
+                                var originalValue = existingJournalVoucher.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 7].Text.TrimStart().TrimEnd();
+                                var find  = existingJvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    jvChanges["CreatedDate"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if ((string.IsNullOrWhiteSpace(existingJournalVoucher.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingJournalVoucher.CancellationRemarks.TrimStart().TrimEnd()) != worksheet.Cells[row, 8].Text.TrimStart().TrimEnd())
                             {
-                                jvChanges["CancellationRemarks"] = (existingJournalVoucher.CancellationRemarks?.TrimStart().TrimEnd(), worksheet.Cells[row, 8].Text.TrimStart().TrimEnd())!;
+                                var originalValue = existingJournalVoucher.CancellationRemarks?.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 8].Text.TrimStart().TrimEnd();
+                                var find  = existingJvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    jvChanges["CancellationRemarks"] = (originalValue, adjustedValue)!;
+                                }
                             }
 
                             if (existingJournalVoucher.OriginalCVId.ToString()!.TrimStart().TrimEnd() != worksheet.Cells[row, 9].Text.TrimStart().TrimEnd())
                             {
-                                jvChanges["OriginalCVId"] = (existingJournalVoucher.OriginalCVId.ToString()!.TrimStart().TrimEnd(), worksheet.Cells[row, 9].Text.TrimStart().TrimEnd());
+                                var originalValue = existingJournalVoucher.OriginalCVId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 9].Text.TrimStart().TrimEnd();
+                                var find  = existingJvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    jvChanges["OriginalCVId"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingJournalVoucher.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet.Cells[row, 10].Text.TrimStart().TrimEnd())
                             {
-                                jvChanges["OriginalSeriesNumber"] = (existingJournalVoucher.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet.Cells[row, 10].Text.TrimStart().TrimEnd());
+                                var originalValue = existingJournalVoucher.OriginalSeriesNumber.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 10].Text.TrimStart().TrimEnd();
+                                var find  = existingJvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    jvChanges["OriginalSeriesNumber"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingJournalVoucher.OriginalDocumentId.ToString().TrimStart().TrimEnd() != worksheet.Cells[row, 11].Text.TrimStart().TrimEnd())
                             {
-                                jvChanges["OriginalDocumentId"] = (existingJournalVoucher.OriginalDocumentId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 11].Text.TrimStart().TrimEnd());
+                                var originalValue = existingJournalVoucher.OriginalDocumentId.ToString().TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 11].Text.TrimStart().TrimEnd();
+                                var find  = existingJvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    jvChanges["OriginalDocumentId"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (jvChanges.Any())
@@ -2280,38 +2367,82 @@ namespace Accounting_System.Controllers
                                 var existingJournalVoucherDetails = await _dbContext.JournalVoucherDetails
                                     .Include(cvd => cvd.JournalVoucherHeader)
                                     .FirstOrDefaultAsync(cvd => cvd.OriginalDocumentId == journalVoucherDetails.OriginalDocumentId, cancellationToken);
+                                var existingJvdInLogs = await _dbContext.ImportExportLogs
+                                    .Where(x => x.DocumentRecordId == existingJournalVoucherDetails.JournalVoucherDetailId)
+                                    .ToListAsync(cancellationToken);
 
                                 if (existingJournalVoucherDetails != null)
                                 {
                                     if (existingJournalVoucherDetails.AccountNo.TrimStart().TrimEnd() != worksheet2.Cells[jvdRow, 1].Text.TrimStart().TrimEnd())
                                     {
-                                        jvdChanges["AccountNo"] = (existingJournalVoucherDetails.AccountNo.TrimStart().TrimEnd(),
-                                            worksheet2.Cells[jvdRow, 1].Text.TrimStart().TrimEnd());
+                                        var originalValue = existingJournalVoucherDetails.AccountNo.TrimStart().TrimEnd();
+                                        var adjustedValue = worksheet2.Cells[jvdRow, 1].Text.TrimStart().TrimEnd();
+                                        var find  = existingJvdInLogs
+                                            .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                        if (!find.Any())
+                                        {
+                                            jvdChanges["AccountNo"] = (originalValue, adjustedValue);
+                                        }
                                     }
 
                                     if (existingJournalVoucherDetails.AccountName.TrimStart().TrimEnd() != worksheet2.Cells[jvdRow, 2].Text.TrimStart().TrimEnd())
                                     {
-                                        jvdChanges["AccountName"] = (existingJournalVoucherDetails.AccountName.TrimStart().TrimEnd(), worksheet2.Cells[jvdRow, 2].Text.TrimStart().TrimEnd());
+                                        var originalValue = existingJournalVoucherDetails.AccountName.TrimStart().TrimEnd();
+                                        var adjustedValue = worksheet2.Cells[jvdRow, 2].Text.TrimStart().TrimEnd();
+                                        var find  = existingJvdInLogs
+                                            .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                        if (!find.Any())
+                                        {
+                                            jvdChanges["AccountName"] = (originalValue, adjustedValue);
+                                        }
                                     }
 
                                     if (existingJournalVoucherDetails.JournalVoucherHeader.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet2.Cells[jvdRow, 3].Text.TrimStart().TrimEnd())
                                     {
-                                        jvdChanges["TransactionNo"] = (existingJournalVoucherDetails.JournalVoucherHeader.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet2.Cells[jvdRow, 3].Text.TrimStart().TrimEnd());
+                                        var originalValue = existingJournalVoucherDetails.JournalVoucherHeader.OriginalSeriesNumber.TrimStart().TrimEnd();
+                                        var adjustedValue = worksheet2.Cells[jvdRow, 3].Text.TrimStart().TrimEnd();
+                                        var find  = existingJvdInLogs
+                                            .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                        if (!find.Any())
+                                        {
+                                            jvdChanges["TransactionNo"] = (originalValue, adjustedValue);
+                                        }
                                     }
 
                                     if (existingJournalVoucherDetails.Debit.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[jvdRow, 4].Text).ToString("F2").TrimStart().TrimEnd())
                                     {
-                                        jvdChanges["Debit"] = (existingJournalVoucherDetails.Debit.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[jvdRow, 4].Text).ToString("F2").TrimStart().TrimEnd());
+                                        var originalValue = existingJournalVoucherDetails.Debit.ToString("F2").TrimStart().TrimEnd();
+                                        var adjustedValue = decimal.Parse(worksheet2.Cells[jvdRow, 4].Text).ToString("F2").TrimStart().TrimEnd();
+                                        var find  = existingJvdInLogs
+                                            .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                        if (!find.Any())
+                                        {
+                                            jvdChanges["Debit"] = (originalValue, adjustedValue);
+                                        }
                                     }
 
                                     if (existingJournalVoucherDetails.Credit.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[jvdRow, 5].Text).ToString("F2").TrimStart().TrimEnd())
                                     {
-                                        jvdChanges["Credit"] = (existingJournalVoucherDetails.Credit.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[jvdRow, 5].Text).ToString("F2").TrimStart().TrimEnd());
+                                        var originalValue = existingJournalVoucherDetails.Credit.ToString("F2").TrimStart().TrimEnd();
+                                        var adjustedValue = decimal.Parse(worksheet2.Cells[jvdRow, 5].Text).ToString("F2").TrimStart().TrimEnd();
+                                        var find  = existingJvdInLogs
+                                            .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                        if (!find.Any())
+                                        {
+                                            jvdChanges["Credit"] = (originalValue, adjustedValue);
+                                        }
                                     }
 
                                     if (existingJournalVoucherDetails.JournalVoucherHeader.OriginalDocumentId.ToString("F0").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[jvdRow, 6].Text).ToString("F0").TrimStart().TrimEnd())
                                     {
-                                        jvdChanges["JVHeaderId"] = (existingJournalVoucherDetails.JournalVoucherHeader.OriginalDocumentId.ToString("F0").TrimStart().TrimEnd(), decimal.Parse(worksheet2.Cells[jvdRow, 6].Text).ToString("F0").TrimStart().TrimEnd());
+                                        var originalValue = existingJournalVoucherDetails.JournalVoucherHeader.OriginalDocumentId.ToString("F0").TrimStart().TrimEnd();
+                                        var adjustedValue = decimal.Parse(worksheet2.Cells[jvdRow, 6].Text).ToString("F0").TrimStart().TrimEnd();
+                                        var find  = existingJvdInLogs
+                                            .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                        if (!find.Any())
+                                        {
+                                            jvdChanges["JVHeaderId"] = (originalValue, adjustedValue);
+                                        }
                                     }
 
                                     if (jvdChanges.Any())

@@ -1772,45 +1772,110 @@ namespace Accounting_System.Controllers
                         {
                             var cmChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
                             var existingCm = await _dbContext.CreditMemos.FirstOrDefaultAsync(si => si.OriginalDocumentId == creditMemo.OriginalDocumentId, cancellationToken);
+                            var existingCmInLogs = await _dbContext.ImportExportLogs
+                                .Where(x => x.DocumentNo == existingCm.CreditMemoNo)
+                                .ToListAsync(cancellationToken);
 
                             if (existingCm!.CreditMemoNo!.TrimStart().TrimEnd() != worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())
                             {
-                                cmChanges["CMNo"] = (existingCm.CreditMemoNo.TrimStart().TrimEnd(), worksheet.Cells[row, 17].Text.TrimStart().TrimEnd());
+                                var originalValue = existingCm.CreditMemoNo.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 17].Text.TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["CMNo"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingCm.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())
                             {
-                                cmChanges["TransactionDate"] = (existingCm.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet.Cells[row, 1].Text.TrimStart().TrimEnd());
+                                var originalValue = existingCm.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 1].Text.TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["TransactionDate"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingCm.CreditAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd())
                             {
-                                cmChanges["CreditAmount"] = (existingCm.CreditAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd());
+                                var originalValue = existingCm.CreditAmount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["CreditAmount"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingCm.Description.TrimStart().TrimEnd() != worksheet.Cells[row, 3].Text.TrimStart().TrimEnd())
                             {
-                                cmChanges["Description"] = (existingCm.Description.TrimStart().TrimEnd(), worksheet.Cells[row, 3].Text.TrimStart().TrimEnd());
+                                var originalValue = existingCm.Description.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 3].Text.TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["Description"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if ((existingCm.AdjustedPrice != null ? existingCm.AdjustedPrice?.ToString("F2").TrimStart().TrimEnd() : 0.ToString("F2")) != decimal.Parse(worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() : 0.ToString("F2")).ToString("F2").TrimStart().TrimEnd())
                             {
-                                cmChanges["AdjustedPrice"] = (existingCm.AdjustedPrice?.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() : 0.ToString("F2")).ToString("F2").TrimStart().TrimEnd())!;
+                                var originalValue = existingCm.AdjustedPrice?.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal
+                                    .Parse(worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() != ""
+                                        ? worksheet.Cells[row, 4].Text.TrimStart().TrimEnd()
+                                        : 0.ToString("F2")).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["AdjustedPrice"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if ((existingCm.Quantity != null ? existingCm.Quantity?.ToString("F0").TrimStart().TrimEnd() : 0.ToString("F0")) != decimal.Parse(worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() : 0.ToString("F0")).ToString("F0").TrimStart().TrimEnd())
                             {
-                                cmChanges["Quantity"] = (existingCm.Quantity?.ToString("F0").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() : 0.ToString("F0")).ToString("F0").TrimStart().TrimEnd())!;
+                                var originalValue = existingCm.Quantity?.ToString("F0").TrimStart().TrimEnd();
+                                var adjustedValue = decimal
+                                    .Parse(worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() != ""
+                                        ? worksheet.Cells[row, 5].Text.TrimStart().TrimEnd()
+                                        : 0.ToString("F0")).ToString("F0").TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["Quantity"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingCm.Source.TrimStart().TrimEnd() != worksheet.Cells[row, 6].Text.TrimStart().TrimEnd())
                             {
-                                cmChanges["Source"] = (existingCm.Source.TrimStart().TrimEnd(), worksheet.Cells[row, 6].Text.TrimStart().TrimEnd());
+                                var originalValue = existingCm.Source.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 6].Text.TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["Source"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingCm.Remarks!.TrimStart().TrimEnd() != worksheet.Cells[row, 7].Text.TrimStart().TrimEnd())
                             {
-                                cmChanges["Remarks"] = (existingCm.Remarks.TrimStart().TrimEnd(), worksheet.Cells[row, 7].Text.TrimStart().TrimEnd());
+                                var originalValue = existingCm.Remarks.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 7].Text.TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["Remarks"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             string cellValue = worksheet.Cells[row, 8].Text.Trim();
@@ -1819,63 +1884,155 @@ namespace Accounting_System.Controllers
                             {
                                 if (existingCm.Period.ToString("yyyy-MM") != parsedDate.ToString("yyyy-MM"))
                                 {
-                                    cmChanges["Period"] = (existingCm.Period.ToString("yyyy-MM"), parsedDate.ToString("yyyy-MM"));
+                                    var originalValue = existingCm.Period.ToString("yyyy-MM");
+                                    var adjustedValue = parsedDate.ToString("yyyy-MM");
+                                    var find  = existingCmInLogs
+                                        .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    if (!find.Any())
+                                    {
+                                        cmChanges["Period"] = (originalValue, adjustedValue);
+                                    }
                                 }
                             }
 
                             if ((existingCm.Amount != null ? existingCm.Amount?.ToString("F2").TrimStart().TrimEnd() : 0.ToString("F2")) != decimal.Parse(worksheet.Cells[row, 9].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 9].Text.TrimStart().TrimEnd() : 0.ToString("F2")).ToString("F2").TrimStart().TrimEnd())
                             {
-                                cmChanges["Amount"] = (existingCm.Amount?.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2").TrimStart().TrimEnd())!;
+                                var originalValue = existingCm.Amount?.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["Amount"] = (originalValue, adjustedValue)!;
+                                }
                             }
 
                             if (existingCm.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 10].Text).ToString("F2").TrimStart().TrimEnd())
                             {
-                                cmChanges["CurrentAndPreviousAmount"] = (existingCm.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 10].Text).ToString("F2").TrimStart().TrimEnd());
+                                var originalValue = existingCm.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 10].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["CurrentAndPreviousAmount"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingCm.UnearnedAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 11].Text).ToString("F2").TrimStart().TrimEnd())
                             {
-                                cmChanges["UnearnedAmount"] = (existingCm.UnearnedAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 11].Text).ToString("F2").TrimStart().TrimEnd());
+                                var originalValue = existingCm.UnearnedAmount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 11].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["UnearnedAmount"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingCm.ServicesId.ToString() != (worksheet.Cells[row, 12].Text == "" ? 0.ToString() : worksheet.Cells[row, 12].Text))
                             {
-                                cmChanges["ServicesId"] = (existingCm.ServicesId.ToString()!.TrimStart().TrimEnd(), worksheet.Cells[row, 12].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 12].Text.TrimStart().TrimEnd());
+                                var originalValue = existingCm.ServicesId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 12].Text.TrimStart().TrimEnd() == ""
+                                    ? 0.ToString()
+                                    : worksheet.Cells[row, 12].Text.TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["ServicesId"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingCm.CreatedBy!.TrimStart().TrimEnd() != worksheet.Cells[row, 13].Text.TrimStart().TrimEnd())
                             {
-                                cmChanges["CreatedBy"] = (existingCm.CreatedBy.TrimStart().TrimEnd(), worksheet.Cells[row, 13].Text.TrimStart().TrimEnd());
+                                var originalValue = existingCm.CreatedBy.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 13].Text.TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["CreatedBy"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingCm.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet.Cells[row, 14].Text.TrimStart().TrimEnd())
                             {
-                                cmChanges["CreatedDate"] = (existingCm.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd(), worksheet.Cells[row, 14].Text.TrimStart().TrimEnd());
+                                var originalValue = existingCm.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 14].Text.TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["CreatedDate"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if ((string.IsNullOrWhiteSpace(existingCm.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingCm.CancellationRemarks.TrimStart().TrimEnd()) != worksheet.Cells[row, 15].Text.TrimStart().TrimEnd())
                             {
-                                cmChanges["CancellationRemarks"] = (existingCm.CancellationRemarks?.TrimStart().TrimEnd(), worksheet.Cells[row, 15].Text.TrimStart().TrimEnd())!;
+                                var originalValue = existingCm.CancellationRemarks?.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 15].Text.TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["CancellationRemarks"] = (originalValue, adjustedValue)!;
+                                }
                             }
 
                             if (existingCm.OriginalSalesInvoiceId.ToString()!.TrimStart().TrimEnd() != (worksheet.Cells[row, 16].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 16].Text.TrimStart().TrimEnd()))
                             {
-                                cmChanges["OriginalSalesInvoiceId"] = (existingCm.OriginalSalesInvoiceId.ToString()!.TrimStart().TrimEnd(), worksheet.Cells[row, 16].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 16].Text.TrimStart().TrimEnd());
+                                var originalValue = existingCm.OriginalSalesInvoiceId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 16].Text.TrimStart().TrimEnd() == ""
+                                    ? 0.ToString()
+                                    : worksheet.Cells[row, 16].Text.TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["OriginalSalesInvoiceId"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingCm.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())
                             {
-                                cmChanges["OriginalSeriesNumber"] = (existingCm.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet.Cells[row, 17].Text.TrimStart().TrimEnd());
+                                var originalValue = existingCm.OriginalSeriesNumber.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 17].Text.TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["OriginalSeriesNumber"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingCm.OriginalServiceInvoiceId.ToString()!.TrimStart().TrimEnd() != (worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd()))
                             {
-                                cmChanges["OriginalServiceInvoiceId"] = (existingCm.OriginalServiceInvoiceId.ToString()!.TrimStart().TrimEnd(), worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd());
+                                var originalValue = existingCm.OriginalServiceInvoiceId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == ""
+                                    ? 0.ToString()
+                                    : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["OriginalServiceInvoiceId"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingCm.OriginalDocumentId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 19].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 19].Text.TrimStart().TrimEnd()))
                             {
-                                cmChanges["OriginalDocumentId"] = (existingCm.OriginalDocumentId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 19].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 19].Text.TrimStart().TrimEnd());
+                                var originalValue = existingCm.OriginalDocumentId.ToString().TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 19].Text.TrimStart().TrimEnd() == ""
+                                    ? 0.ToString()
+                                    : worksheet.Cells[row, 19].Text.TrimStart().TrimEnd();
+                                var find  = existingCmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    cmChanges["OriginalDocumentId"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (cmChanges.Any())

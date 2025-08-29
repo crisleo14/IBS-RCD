@@ -1770,45 +1770,110 @@ namespace Accounting_System.Controllers
                         {
                             var dmChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
                             var existingDm = await _dbContext.DebitMemos.FirstOrDefaultAsync(si => si.OriginalDocumentId == debitMemo.OriginalDocumentId, cancellationToken);
+                            var existingDmInLogs = await _dbContext.ImportExportLogs
+                                .Where(x => x.DocumentNo == existingDm.DebitMemoNo)
+                                .ToListAsync(cancellationToken);
 
                             if (existingDm!.DebitMemoNo!.TrimStart().TrimEnd() != worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())
                             {
-                                dmChanges["DMNo"] = (existingDm.DebitMemoNo.TrimStart().TrimEnd(), worksheet.Cells[row, 17].Text.TrimStart().TrimEnd());
+                                var originalValue = existingDm.DebitMemoNo.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 17].Text.TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["DMNo"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingDm.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())
                             {
-                                dmChanges["TransactionDate"] = (existingDm.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet.Cells[row, 1].Text.TrimStart().TrimEnd());
+                                var originalValue = existingDm.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 1].Text.TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["TransactionDate"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingDm.DebitAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd())
                             {
-                                dmChanges["DebitAmount"] = (existingDm.DebitAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd());
+                                var originalValue = existingDm.DebitAmount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["DebitAmount"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingDm.Description.TrimStart().TrimEnd() != worksheet.Cells[row, 3].Text.TrimStart().TrimEnd())
                             {
-                                dmChanges["Description"] = (existingDm.Description.TrimStart().TrimEnd(), worksheet.Cells[row, 3].Text.TrimStart().TrimEnd());
+                                var originalValue = existingDm.Description.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 3].Text.TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["Description"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if ((existingDm.AdjustedPrice != null ? existingDm.AdjustedPrice?.ToString("F2").TrimStart().TrimEnd() : 0.ToString("F2")) != decimal.Parse(worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() : 0.ToString("F2")).ToString("F2").TrimStart().TrimEnd())
                             {
-                                dmChanges["AdjustedPrice"] = (existingDm.AdjustedPrice?.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() : 0.ToString("F2")).ToString("F2").TrimStart().TrimEnd())!;
+                                var originalValue = existingDm.AdjustedPrice?.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal
+                                    .Parse(worksheet.Cells[row, 4].Text.TrimStart().TrimEnd() != ""
+                                        ? worksheet.Cells[row, 4].Text.TrimStart().TrimEnd()
+                                        : 0.ToString("F2")).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["AdjustedPrice"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if ((existingDm.Quantity != null ? existingDm.Quantity?.ToString("F0").TrimStart().TrimEnd() : 0.ToString("F0")) != decimal.Parse(worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() : 0.ToString("F0")).ToString("F0").TrimStart().TrimEnd())
                             {
-                                dmChanges["Quantity"] = (existingDm.Quantity?.ToString("F0").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() : 0.ToString("F0")).ToString("F0").TrimStart().TrimEnd())!;
+                                var originalValue = existingDm.Quantity?.ToString("F0").TrimStart().TrimEnd();
+                                var adjustedValue = decimal
+                                    .Parse(worksheet.Cells[row, 5].Text.TrimStart().TrimEnd() != ""
+                                        ? worksheet.Cells[row, 5].Text.TrimStart().TrimEnd()
+                                        : 0.ToString("F0")).ToString("F0").TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["Quantity"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingDm.Source.TrimStart().TrimEnd() != worksheet.Cells[row, 6].Text.TrimStart().TrimEnd())
                             {
-                                dmChanges["Source"] = (existingDm.Source.TrimStart().TrimEnd(), worksheet.Cells[row, 6].Text.TrimStart().TrimEnd());
+                                var originalValue = existingDm.Source.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 6].Text.TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["Source"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingDm.Remarks!.TrimStart().TrimEnd() != worksheet.Cells[row, 7].Text.TrimStart().TrimEnd())
                             {
-                                dmChanges["Remarks"] = (existingDm.Remarks.TrimStart().TrimEnd(), worksheet.Cells[row, 7].Text.TrimStart().TrimEnd());
+                                var originalValue = existingDm.Remarks.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 7].Text.TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["Remarks"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             string cellValue = worksheet.Cells[row, 8].Text.Trim();
@@ -1817,63 +1882,155 @@ namespace Accounting_System.Controllers
                             {
                                 if (existingDm.Period.ToString("yyyy-MM") != parsedDate.ToString("yyyy-MM"))
                                 {
-                                    dmChanges["Period"] = (existingDm.Period.ToString("yyyy-MM"), parsedDate.ToString("yyyy-MM"));
+                                    var originalValue = existingDm.Period.ToString("yyyy-MM");
+                                    var adjustedValue = parsedDate.ToString("yyyy-MM");
+                                    var find  = existingDmInLogs
+                                        .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    if (!find.Any())
+                                    {
+                                        dmChanges["Period"] = (originalValue, adjustedValue);
+                                    }
                                 }
                             }
 
                             if ((existingDm.Amount != null ? existingDm.Amount?.ToString("F2").TrimStart().TrimEnd() : 0.ToString("F2")) != decimal.Parse(worksheet.Cells[row, 9].Text.TrimStart().TrimEnd() != "" ? worksheet.Cells[row, 9].Text.TrimStart().TrimEnd() : 0.ToString("F2")).ToString("F2").TrimStart().TrimEnd())
                             {
-                                dmChanges["Amount"] = (existingDm.Amount?.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2").TrimStart().TrimEnd())!;
+                                var originalValue = existingDm.Amount?.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["Amount"] = (originalValue, adjustedValue)!;
+                                }
                             }
 
                             if (existingDm.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 10].Text).ToString("F2").TrimStart().TrimEnd())
                             {
-                                dmChanges["CurrentAndPreviousAmount"] = (existingDm.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 10].Text).ToString("F2").TrimStart().TrimEnd());
+                                var originalValue = existingDm.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 10].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["CurrentAndPreviousAmount"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingDm.UnearnedAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 11].Text).ToString("F2").TrimStart().TrimEnd())
                             {
-                                dmChanges["UnearnedAmount"] = (existingDm.UnearnedAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 11].Text).ToString("F2").TrimStart().TrimEnd());
+                                var originalValue = existingDm.UnearnedAmount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 11].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["UnearnedAmount"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingDm.ServicesId.ToString()!.TrimStart().TrimEnd() != (worksheet.Cells[row, 12].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 12].Text.TrimStart().TrimEnd()))
                             {
-                                dmChanges["ServicesId"] = (existingDm.ServicesId.ToString()!.TrimStart().TrimEnd(), worksheet.Cells[row, 12].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 12].Text.TrimStart().TrimEnd());
+                                var originalValue = existingDm.ServicesId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 12].Text.TrimStart().TrimEnd() == ""
+                                    ? 0.ToString()
+                                    : worksheet.Cells[row, 12].Text.TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["ServicesId"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingDm.CreatedBy!.TrimStart().TrimEnd() != worksheet.Cells[row, 13].Text.TrimStart().TrimEnd())
                             {
-                                dmChanges["CreatedBy"] = (existingDm.CreatedBy.TrimStart().TrimEnd(), worksheet.Cells[row, 13].Text.TrimStart().TrimEnd());
+                                var originalValue = existingDm.CreatedBy.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 13].Text.TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["CreatedBy"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingDm.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet.Cells[row, 14].Text.TrimStart().TrimEnd())
                             {
-                                dmChanges["CreatedDate"] = (existingDm.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd(), worksheet.Cells[row, 14].Text.TrimStart().TrimEnd());
+                                var originalValue = existingDm.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 14].Text.TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["CreatedDate"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if ((string.IsNullOrWhiteSpace(existingDm.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingDm.CancellationRemarks.TrimStart().TrimEnd()) != worksheet.Cells[row, 15].Text.TrimStart().TrimEnd())
                             {
-                                dmChanges["CancellationRemarks"] = (existingDm.CancellationRemarks?.TrimStart().TrimEnd(), worksheet.Cells[row, 15].Text.TrimStart().TrimEnd())!;
+                                var originalValue = existingDm.CancellationRemarks?.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 15].Text.TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["CancellationRemarks"] = (originalValue, adjustedValue)!;
+                                }
                             }
 
                             if (existingDm.OriginalSalesInvoiceId.ToString()!.TrimStart().TrimEnd() != (worksheet.Cells[row, 16].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 16].Text.TrimStart().TrimEnd()))
                             {
-                                dmChanges["OriginalSalesInvoiceId"] = (existingDm.OriginalSalesInvoiceId.ToString()!.TrimStart().TrimEnd(), worksheet.Cells[row, 16].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 16].Text.TrimStart().TrimEnd());
+                                var originalValue = existingDm.OriginalSalesInvoiceId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 16].Text.TrimStart().TrimEnd() == ""
+                                    ? 0.ToString()
+                                    : worksheet.Cells[row, 16].Text.TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["OriginalSalesInvoiceId"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingDm.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())
                             {
-                                dmChanges["OriginalSeriesNumber"] = (existingDm.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet.Cells[row, 17].Text.TrimStart().TrimEnd());
+                                var originalValue = existingDm.OriginalSeriesNumber.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 17].Text.TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["OriginalSeriesNumber"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingDm.OriginalServiceInvoiceId.ToString()!.TrimStart().TrimEnd() != (worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd()))
                             {
-                                dmChanges["OriginalServiceInvoiceId"] = (existingDm.OriginalServiceInvoiceId.ToString()!.TrimStart().TrimEnd(), worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd());
+                                var originalValue = existingDm.OriginalServiceInvoiceId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == ""
+                                    ? 0.ToString()
+                                    : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["OriginalServiceInvoiceId"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (existingDm.OriginalDocumentId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 19].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 19].Text.TrimStart().TrimEnd()))
                             {
-                                dmChanges["OriginalDocumentId"] = (existingDm.OriginalDocumentId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 19].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 19].Text.TrimStart().TrimEnd());
+                                var originalValue = existingDm.OriginalDocumentId.ToString().TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 19].Text.TrimStart().TrimEnd() == ""
+                                    ? 0.ToString()
+                                    : worksheet.Cells[row, 19].Text.TrimStart().TrimEnd();
+                                var find  = existingDmInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    dmChanges["OriginalDocumentId"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (dmChanges.Any())

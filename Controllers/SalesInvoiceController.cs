@@ -1000,171 +1000,205 @@ namespace Accounting_System.Controllers
 
                             if (existingSi!.SalesInvoiceNo!.TrimStart().TrimEnd() != worksheet.Cells[row, 21].Text.TrimStart().TrimEnd())
                             {
+                                var originalValue = existingSi.SalesInvoiceNo.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 21].Text.TrimStart().TrimEnd();
                                 var find  = existingSiInLogs
-                                    .Where(x => x.OriginalValue == existingSi.SalesInvoiceNo && x.AdjustedValue == worksheet.Cells[row, 21].Text);
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
-                                    siChanges["SiNo"] = (existingSi.SalesInvoiceNo.TrimStart().TrimEnd(), worksheet.Cells[row, 21].Text.TrimStart().TrimEnd());
+                                    siChanges["SiNo"] = (originalValue, adjustedValue);
                                 }
                             }
 
                             if (existingSi.OriginalCustomerId.ToString()!.TrimStart().TrimEnd() != worksheet.Cells[row, 18].Text.TrimStart().TrimEnd())
                             {
+                                var originalValue = existingSi.OriginalCustomerId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 18].Text.TrimStart().TrimEnd();
                                 var find  = existingSiInLogs
-                                    .Where(x => x.OriginalValue == existingSi.OriginalCustomerId.ToString() && x.AdjustedValue == worksheet.Cells[row, 18].Text);
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
-                                    siChanges["OriginalCustomerId"] = (existingSi.OriginalCustomerId.ToString()!.TrimStart().TrimEnd(), worksheet.Cells[row, 18].Text.TrimStart().TrimEnd());
+                                    siChanges["OriginalCustomerId"] = (originalValue, adjustedValue);
                                 }
                             }
 
                             if (existingSi.OriginalProductId.ToString()!.TrimStart().TrimEnd() != worksheet.Cells[row, 20].Text.TrimStart().TrimEnd())
                             {
+                                var originalValue = existingSi.OriginalProductId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 20].Text.TrimStart().TrimEnd();
                                 var find  = existingSiInLogs
-                                    .Where(x => x.OriginalValue == existingSi.OriginalProductId.ToString() && x.AdjustedValue == worksheet.Cells[row, 20].Text);
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
-                                    siChanges["OriginalProductId"] = (existingSi.OriginalProductId.ToString()!.TrimStart().TrimEnd(), worksheet.Cells[row, 20].Text.TrimStart().TrimEnd());
+                                    siChanges["OriginalProductId"] = (originalValue, adjustedValue);
                                 }
                             }
 
                             if (existingSi.OtherRefNo.TrimStart().TrimEnd() != worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())
                             {
+                                var originalValue = existingSi.OtherRefNo.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 1].Text.TrimStart().TrimEnd();
                                 var find  = existingSiInLogs
-                                    .Where(x => x.OriginalValue == existingSi.OtherRefNo && x.AdjustedValue == worksheet.Cells[row, 1].Text);
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
-                                    siChanges["OtherRefNo"] = (existingSi.OtherRefNo.TrimStart().TrimEnd(), worksheet.Cells[row, 1].Text.TrimStart().TrimEnd());
+                                    siChanges["OtherRefNo"] = (originalValue, adjustedValue);
                                 }
                             }
 
                             if (existingSi.Quantity.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd())
                             {
+                                var originalValue = existingSi.Quantity.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd();
                                 var find  = existingSiInLogs
-                                    .Where(x => x.OriginalValue == existingSi.Quantity.ToString() && x.AdjustedValue == worksheet.Cells[row, 2].Text);
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
-                                    siChanges["Quantity"] = (existingSi.Quantity.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd());
+                                    siChanges["Quantity"] = (originalValue, adjustedValue);
                                 }
                             }
 
                             if (existingSi.UnitPrice.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
                             {
+                                var originalValue = existingSi.UnitPrice.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd();
                                 var find  = existingSiInLogs
-                                    .Where(x => x.OriginalValue == existingSi.UnitPrice.ToString() && x.AdjustedValue == worksheet.Cells[row, 3].Text);
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
-                                    siChanges["UnitPrice"] = (existingSi.UnitPrice.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd());
+                                    siChanges["UnitPrice"] = (originalValue, adjustedValue);
                                 }
                             }
 
                             if (existingSi.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
                             {
+                                var originalValue = existingSi.Amount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd();
                                 var find  = existingSiInLogs
-                                    .Where(x => x.OriginalValue == existingSi.Amount.ToString() && x.AdjustedValue == worksheet.Cells[row, 4].Text);
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
-                                    siChanges["Amount"] = (existingSi.Amount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd());
+                                    siChanges["Amount"] = (originalValue, adjustedValue);
                                 }
                             }
 
                             if (existingSi.Remarks.TrimStart().TrimEnd() != worksheet.Cells[row, 5].Text.TrimStart().TrimEnd())
                             {
+                                var originalValue = existingSi.Remarks.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 5].Text.TrimStart().TrimEnd();
                                 var find  = existingSiInLogs
-                                    .Where(x => x.OriginalValue == existingSi.Remarks && x.AdjustedValue == worksheet.Cells[row, 5].Text);
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
-                                    siChanges["Remarks"] = (existingSi.Remarks.TrimStart().TrimEnd(), worksheet.Cells[row, 5].Text.TrimStart().TrimEnd());
+                                    siChanges["Remarks"] = (originalValue, adjustedValue);
                                 }
                             }
 
                             if (existingSi.Status.TrimStart().TrimEnd() != worksheet.Cells[row, 6].Text.TrimStart().TrimEnd())
                             {
+                                var originalValue = existingSi.Status.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 6].Text.TrimStart().TrimEnd();
                                 var find  = existingSiInLogs
-                                    .Where(x => x.OriginalValue == existingSi.SalesInvoiceNo && x.AdjustedValue == worksheet.Cells[row, 6].Text);
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
-                                    siChanges["Status"] = (existingSi.Status.TrimStart().TrimEnd(), worksheet.Cells[row, 6].Text.TrimStart().TrimEnd());
+                                    siChanges["Status"] = (originalValue, adjustedValue);
                                 }
                             }
 
                             if (existingSi.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 7].Text.TrimStart().TrimEnd())
                             {
+                                var originalValue = existingSi.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 7].Text.TrimStart().TrimEnd();
                                 var find  = existingSiInLogs
-                                    .Where(x => x.OriginalValue == existingSi.TransactionDate.ToString() && x.AdjustedValue == worksheet.Cells[row, 7].Text);
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
-                                    siChanges["TransactionDate"] = (existingSi.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet.Cells[row, 7].Text.TrimStart().TrimEnd());
+                                    siChanges["TransactionDate"] = (originalValue, adjustedValue);
                                 }
                             }
 
                             if (existingSi.Discount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd())
                             {
+                                var originalValue = existingSi.Discount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd();
                                 var find  = existingSiInLogs
-                                    .Where(x => x.OriginalValue == existingSi.Discount.ToString() && x.AdjustedValue == worksheet.Cells[row, 8].Text);
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
-                                    siChanges["Discount"] = (existingSi.Discount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd());
+                                    siChanges["Discount"] = (originalValue, adjustedValue);
                                 }
                             }
 
                             if (existingSi.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 13].Text.TrimStart().TrimEnd())
                             {
+                                var originalValue = existingSi.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 13].Text.TrimStart().TrimEnd();
                                 var find  = existingSiInLogs
-                                    .Where(x => x.OriginalValue == existingSi.DueDate.ToString() && x.AdjustedValue == worksheet.Cells[row, 13].Text);
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
-                                    siChanges["DueDate"] = (existingSi.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet.Cells[row, 13].Text.TrimStart().TrimEnd());
+                                    siChanges["DueDate"] = (originalValue, adjustedValue);
                                 }
                             }
 
                             if (existingSi.CreatedBy!.TrimStart().TrimEnd() != worksheet.Cells[row, 14].Text.TrimStart().TrimEnd())
                             {
+                                var originalValue = existingSi.CreatedBy.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 14].Text.TrimStart().TrimEnd();
                                 var find  = existingSiInLogs
-                                    .Where(x => x.OriginalValue == existingSi.CreatedBy && x.AdjustedValue == worksheet.Cells[row, 14].Text);
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
-                                    siChanges["CreatedBy"] = (existingSi.CreatedBy.TrimStart().TrimEnd(), worksheet.Cells[row, 14].Text.TrimStart().TrimEnd());
+                                    siChanges["CreatedBy"] = (originalValue, adjustedValue);
                                 }
                             }
 
                             if (existingSi.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet.Cells[row, 15].Text.TrimStart().TrimEnd())
                             {
+                                var originalValue = existingSi.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 15].Text.TrimStart().TrimEnd();
                                 var find  = existingSiInLogs
-                                    .Where(x => x.OriginalValue == existingSi.CreatedDate.ToString() && x.AdjustedValue == worksheet.Cells[row, 15].Text);
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
-                                    siChanges["CreatedDate"] = (existingSi.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd(), worksheet.Cells[row, 15].Text.TrimStart().TrimEnd());
+                                    siChanges["CreatedDate"] = (originalValue, adjustedValue);
                                 }
                             }
 
                             if ((string.IsNullOrWhiteSpace(existingSi.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingSi.CancellationRemarks.TrimStart().TrimEnd()) != worksheet.Cells[row, 16].Text.TrimStart().TrimEnd())
                             {
+                                var originalValue = existingSi.CancellationRemarks?.TrimStart().TrimEnd() ?? String.Empty;
+                                var adjustedValue = worksheet.Cells[row, 16].Text.TrimStart().TrimEnd();
                                 var find  = existingSiInLogs
-                                    .Where(x => x.OriginalValue == existingSi.CancellationRemarks && x.AdjustedValue == worksheet.Cells[row, 16].Text);
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
-                                    siChanges["CancellationRemarks"] = (existingSi.CancellationRemarks!.TrimStart().TrimEnd(), worksheet.Cells[row, 16].Text.TrimStart().TrimEnd());
+                                    siChanges["CancellationRemarks"] = (originalValue, adjustedValue);
                                 }
                             }
 
                             if (existingSi.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet.Cells[row, 21].Text.TrimStart().TrimEnd())
                             {
+                                var originalValue = existingSi.OriginalSeriesNumber.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 21].Text.TrimStart().TrimEnd();
                                 var find  = existingSiInLogs
-                                    .Where(x => x.OriginalValue == existingSi.OriginalSeriesNumber && x.AdjustedValue == worksheet.Cells[row, 21].Text);
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
-                                    siChanges["OriginalSeriesNumber"] = (existingSi.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet.Cells[row, 21].Text.TrimStart().TrimEnd());
+                                    siChanges["OriginalSeriesNumber"] = (originalValue, adjustedValue);
                                 }
                             }
 
                             if (existingSi.OriginalDocumentId.ToString().TrimStart().TrimEnd() != worksheet.Cells[row, 22].Text.TrimStart().TrimEnd())
                             {
+                                var originalValue = existingSi.OriginalDocumentId.ToString().TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 22].Text.TrimStart().TrimEnd();
                                 var find  = existingSiInLogs
-                                    .Where(x => x.OriginalValue == existingSi.OriginalDocumentId.ToString() && x.AdjustedValue == worksheet.Cells[row, 22].Text);
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
-                                    siChanges["OriginalDocumentId"] = (existingSi.OriginalDocumentId.ToString().TrimStart().TrimEnd(), worksheet.Cells[row, 22].Text.TrimStart().TrimEnd());
+                                    siChanges["OriginalDocumentId"] = (originalValue, adjustedValue);
                                 }
                             }
 
