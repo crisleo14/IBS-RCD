@@ -1312,28 +1312,47 @@ namespace Accounting_System.Controllers
 
                 #endregion -- Check Voucher Details Table Header --
 
-                #region -- Check Voucher Header Export (Trade and Invoicing) --
+                #region -- Check Voucher Trade Payments Table Header --
+
+                var worksheet5 = package.Workbook.Worksheets.Add("CheckVoucherTradePayments");
+
+                worksheet5.Cells["A1"].Value = "Id";
+                worksheet5.Cells["B1"].Value = "DocumentId";
+                worksheet5.Cells["C1"].Value = "DocumentType";
+                worksheet5.Cells["D1"].Value = "CheckVoucherId";
+                worksheet5.Cells["E1"].Value = "AmountPaid";
+
+                #endregion -- Check Voucher Header Table Header --
+
+                #region -- Check Voucher Multiple Payment Table Header --
+
+                var worksheet6 = package.Workbook.Worksheets.Add("MultipleCheckVoucherPayments");
+
+                worksheet6.Cells["A1"].Value = "Id";
+                worksheet6.Cells["B1"].Value = "CheckVoucherHeaderPaymentId";
+                worksheet6.Cells["C1"].Value = "CheckVoucherHeaderInvoiceId";
+                worksheet6.Cells["D1"].Value = "AmountPaid";
+
+                #endregion
+
+                #region -- Check Voucher Header Export (Trade and Invoicing)--
 
                 int row = 2;
+
                 foreach (var item in selectedList)
                 {
                     worksheet.Cells[row, 1].Value = item.Date.ToString("yyyy-MM-dd");
                     if (item.RRNo != null && !item.RRNo.Contains(null))
                     {
-                        worksheet.Cells[row, 2].Value =
-                            string.Join(", ", item.RRNo.Select(rrNo => rrNo.ToString()));
+                        worksheet.Cells[row, 2].Value = string.Join(", ", item.RRNo.Select(rrNo => rrNo.ToString()));
                     }
-
                     if (item.SINo != null && !item.SINo.Contains(null))
                     {
-                        worksheet.Cells[row, 3].Value =
-                            string.Join(", ", item.SINo.Select(siNo => siNo.ToString()));
+                        worksheet.Cells[row, 3].Value = string.Join(", ", item.SINo.Select(siNo => siNo.ToString()));
                     }
-
                     if (item.PONo != null && !item.PONo.Contains(null))
                     {
-                        worksheet.Cells[row, 4].Value =
-                            string.Join(", ", item.PONo.Select(poNo => poNo.ToString()));
+                        worksheet.Cells[row, 4].Value = string.Join(", ", item.PONo.Select(poNo => poNo.ToString()));
                     }
 
                     worksheet.Cells[row, 5].Value = item.Particulars;
@@ -1355,10 +1374,8 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 21].Value = item.Total;
                     if (item.Amount != null)
                     {
-                        worksheet.Cells[row, 22].Value =
-                            string.Join(" ", item.Amount.Select(amount => amount.ToString("N2")));
+                        worksheet.Cells[row, 22].Value = string.Join(" ", item.Amount.Select(amount => amount.ToString("N4")));
                     }
-
                     worksheet.Cells[row, 23].Value = item.CheckAmount;
                     worksheet.Cells[row, 24].Value = item.CvType;
                     worksheet.Cells[row, 25].Value = item.AmountPaid;
@@ -1368,8 +1385,26 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 29].Value = item.CheckVoucherHeaderNo;
                     worksheet.Cells[row, 30].Value = item.SupplierId;
                     worksheet.Cells[row, 31].Value = item.CheckVoucherHeaderId;
+                    worksheet.Cells[row, 32].Value = item.PostedBy;
+                    worksheet.Cells[row, 33].Value = item.PostedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff") ?? null;
 
                     row++;
+                }
+
+                var getCheckVoucherTradePayment = await _dbContext.CVTradePayments
+                    .Where(cv => recordIds.Contains(cv.CheckVoucherId) && cv.DocumentType == "RR")
+                    .ToListAsync();
+
+                int cvRow = 2;
+                foreach (var payment in getCheckVoucherTradePayment)
+                {
+                    worksheet5.Cells[cvRow, 1].Value = payment.Id;
+                    worksheet5.Cells[cvRow, 2].Value = payment.DocumentId;
+                    worksheet5.Cells[cvRow, 3].Value = payment.DocumentType;
+                    worksheet5.Cells[cvRow, 4].Value = payment.CheckVoucherId;
+                    worksheet5.Cells[cvRow, 5].Value = payment.AmountPaid;
+
+                    cvRow++;
                 }
 
                 #endregion -- Check Voucher Header Export (Trade and Invoicing) --
@@ -1379,15 +1414,27 @@ namespace Accounting_System.Controllers
                 var cvNos = selectedList.Select(item => item.CheckVoucherHeaderNo).ToList();
 
                 var checkVoucherPayment = await _dbContext.CheckVoucherHeaders
-                    .Where(cvh => cvh.Reference != null && cvNos.Contains(cvh.Reference))
+                    .Where(cvh => cvh.Reference != null
+                                  && cvNos.Any(cvNo =>
+                                      EF.Functions.Like("," + cvh.Reference + ",", "%," + cvNo + ",%")))
                     .ToListAsync(cancellationToken);
 
                 foreach (var item in checkVoucherPayment)
                 {
                     worksheet.Cells[row, 1].Value = item.Date.ToString("yyyy-MM-dd");
-                    worksheet.Cells[row, 2].Value = item.RRNo;
-                    worksheet.Cells[row, 3].Value = item.SINo;
-                    worksheet.Cells[row, 4].Value = item.PONo;
+                    if (item.RRNo != null && !item.RRNo.Contains(null))
+                    {
+                        worksheet.Cells[row, 2].Value = string.Join(", ", item.RRNo.Select(rrNo => rrNo.ToString()));
+                    }
+                    if (item.SINo != null && !item.SINo.Contains(null))
+                    {
+                        worksheet.Cells[row, 3].Value = string.Join(", ", item.SINo.Select(siNo => siNo.ToString()));
+                    }
+                    if (item.PONo != null && !item.PONo.Contains(null))
+                    {
+                        worksheet.Cells[row, 4].Value = string.Join(", ", item.PONo.Select(poNo => poNo.ToString()));
+                    }
+
                     worksheet.Cells[row, 5].Value = item.Particulars;
                     worksheet.Cells[row, 6].Value = item.CheckNo;
                     worksheet.Cells[row, 7].Value = item.Category;
@@ -1405,7 +1452,10 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 19].Value = item.CreatedBy;
                     worksheet.Cells[row, 20].Value = item.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
                     worksheet.Cells[row, 21].Value = item.Total;
-                    worksheet.Cells[row, 22].Value = item.Amount != null ? string.Join(" ", item.Amount.Select(amount => amount.ToString("N2"))) : 0.00;
+                    if (item.Amount != null)
+                    {
+                        worksheet.Cells[row, 22].Value = string.Join(" ", item.Amount.Select(amount => amount.ToString("N4")));
+                    }
                     worksheet.Cells[row, 23].Value = item.CheckAmount;
                     worksheet.Cells[row, 24].Value = item.CvType;
                     worksheet.Cells[row, 25].Value = item.AmountPaid;
@@ -1415,8 +1465,26 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 29].Value = item.CheckVoucherHeaderNo;
                     worksheet.Cells[row, 30].Value = item.SupplierId;
                     worksheet.Cells[row, 31].Value = item.CheckVoucherHeaderId;
+                    worksheet.Cells[row, 32].Value = item.PostedBy;
+                    worksheet.Cells[row, 33].Value = item.PostedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff") ?? null;
 
                     row++;
+                }
+
+                var cvPaymentId = checkVoucherPayment.Select(cvn => cvn.CheckVoucherHeaderId).ToList();
+                var getCheckVoucherMultiplePayment = await _dbContext.MultipleCheckVoucherPayments
+                    .Where(cv => cvPaymentId.Contains(cv.CheckVoucherHeaderPaymentId))
+                    .ToListAsync();
+
+                int cvn = 2;
+                foreach (var payment in getCheckVoucherMultiplePayment)
+                {
+                    worksheet6.Cells[cvn, 1].Value = payment.Id;
+                    worksheet6.Cells[cvn, 2].Value = payment.CheckVoucherHeaderPaymentId;
+                    worksheet6.Cells[cvn, 3].Value = payment.CheckVoucherHeaderInvoiceId;
+                    worksheet6.Cells[cvn, 4].Value = payment.AmountPaid;
+
+                    cvn++;
                 }
 
                 #endregion -- Check Voucher Header Export (Payment) --
@@ -1425,10 +1493,10 @@ namespace Accounting_System.Controllers
 
                 var getCvDetails = await _dbContext.CheckVoucherDetails
                     .Where(cvd => cvNos.Contains(cvd.TransactionNo))
-                    .OrderBy(cvd => cvd.CheckVoucherDetailId)
-                    .ToListAsync(cancellationToken);
+                    .OrderBy(cvd => cvd.CheckVoucherHeaderId)
+                    .ToListAsync();
 
-                int cvdRow = 2;
+                var cvdRow = 2;
 
                 foreach (var item in getCvDetails)
                 {
@@ -1439,6 +1507,12 @@ namespace Accounting_System.Controllers
                     worksheet2.Cells[cvdRow, 5].Value = item.Credit;
                     worksheet2.Cells[cvdRow, 6].Value = item.CheckVoucherHeaderId;
                     worksheet2.Cells[cvdRow, 7].Value = item.CheckVoucherDetailId;
+                    worksheet2.Cells[cvdRow, 8].Value = item.Amount;
+                    worksheet2.Cells[cvdRow, 9].Value = item.AmountPaid;
+                    worksheet2.Cells[cvdRow, 10].Value = item.SupplierId;
+                    worksheet2.Cells[cvdRow, 11].Value = item.EwtPercent;
+                    worksheet2.Cells[cvdRow, 12].Value = item.IsUserSelected;
+                    worksheet2.Cells[cvdRow, 13].Value = item.IsVatable;
 
                     cvdRow++;
                 }
@@ -1449,8 +1523,8 @@ namespace Accounting_System.Controllers
 
                 var getCvPaymentDetails = await _dbContext.CheckVoucherDetails
                     .Where(cvd => checkVoucherPayment.Select(cvh => cvh.CheckVoucherHeaderNo).Contains(cvd.TransactionNo))
-                    .OrderBy(cvd => cvd.CheckVoucherDetailId)
-                    .ToListAsync(cancellationToken);
+                    .OrderBy(cvd => cvd.CheckVoucherHeaderId)
+                    .ToListAsync();
 
                 foreach (var item in getCvPaymentDetails)
                 {
@@ -1461,6 +1535,12 @@ namespace Accounting_System.Controllers
                     worksheet2.Cells[cvdRow, 5].Value = item.Credit;
                     worksheet2.Cells[cvdRow, 6].Value = item.CheckVoucherHeaderId;
                     worksheet2.Cells[cvdRow, 7].Value = item.CheckVoucherDetailId;
+                    worksheet2.Cells[cvdRow, 8].Value = item.Amount;
+                    worksheet2.Cells[cvdRow, 9].Value = item.AmountPaid;
+                    worksheet2.Cells[cvdRow, 10].Value = item.SupplierId;
+                    worksheet2.Cells[cvdRow, 11].Value = item.EwtPercent;
+                    worksheet2.Cells[cvdRow, 12].Value = item.IsUserSelected;
+                    worksheet2.Cells[cvdRow, 13].Value = item.IsVatable;
 
                     cvdRow++;
                 }
@@ -1469,11 +1549,17 @@ namespace Accounting_System.Controllers
 
                 #region -- Receiving Report Export --
 
-                var getReceivingReport = _dbContext.ReceivingReports
-                    .AsEnumerable()
-                    .Where(rr => selectedList.Select(item => item.RRNo).Any(rrs => rrs?.Contains(rr.ReceivingReportNo) == true))
-                    .OrderBy(rr => rr.ReceivingReportNo)
-                    .ToList();
+                var selectedIds = selectedList.Select(item => item.CheckVoucherHeaderId).ToList();
+
+                var cvTradePaymentList = await _dbContext.CVTradePayments
+                    .Where(p => selectedIds.Contains(p.CheckVoucherId))
+                    .ToListAsync();
+
+                var rrIds = cvTradePaymentList.Select(item => item.DocumentId).ToList();
+
+                var getReceivingReport = await _dbContext.ReceivingReports
+                    .Where(rr => rrIds.Contains(rr.ReceivingReportId))
+                    .ToListAsync(cancellationToken);
 
                 var rrRow = 2;
 
