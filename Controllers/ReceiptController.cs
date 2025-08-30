@@ -2332,96 +2332,218 @@ namespace Accounting_System.Controllers
                         if (invoiceList.Any(si => si.OriginalDocumentId == invoice.OriginalDocumentId))
                         {
                             var siChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
-                            var existingSalesInvoice = await _dbContext.SalesInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == invoice.OriginalDocumentId, cancellationToken);
+                            var existingSi = await _dbContext.SalesInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == invoice.OriginalDocumentId, cancellationToken);
+                            var existingSiInLogs = await _dbContext.ImportExportLogs
+                                .Where(x => x.DocumentNo == existingSi.SalesInvoiceNo)
+                                .ToListAsync(cancellationToken);
 
-                            if (existingSalesInvoice!.SalesInvoiceNo!.TrimStart().TrimEnd() != worksheet3.Cells[row, 21].Text.TrimStart().TrimEnd())
+                            if (existingSi!.SalesInvoiceNo!.TrimStart().TrimEnd() != worksheet3.Cells[row, 21].Text.TrimStart().TrimEnd())
                             {
-                                siChanges["SiNo"] = (existingSalesInvoice.SalesInvoiceNo.TrimStart().TrimEnd(), worksheet3.Cells[row, 21].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSi.SalesInvoiceNo.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 21].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["SiNo"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingSalesInvoice.OriginalCustomerId.ToString()!.TrimStart().TrimEnd() != worksheet3.Cells[row, 18].Text.TrimStart().TrimEnd())
+                            if (existingSi.OriginalCustomerId.ToString()!.TrimStart().TrimEnd() != worksheet3.Cells[row, 18].Text.TrimStart().TrimEnd())
                             {
-                                siChanges["OriginalCustomerId"] = (existingSalesInvoice.OriginalCustomerId.ToString()!.TrimStart().TrimEnd(), worksheet3.Cells[row, 18].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSi.OriginalCustomerId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 18].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["OriginalCustomerId"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingSalesInvoice.OriginalProductId.ToString()!.TrimStart().TrimEnd() != worksheet3.Cells[row, 20].Text.TrimStart().TrimEnd())
+                            if (existingSi.OriginalProductId.ToString()!.TrimStart().TrimEnd() != worksheet3.Cells[row, 20].Text.TrimStart().TrimEnd())
                             {
-                                siChanges["OriginalProductId"] = (existingSalesInvoice.OriginalProductId.ToString()!.TrimStart().TrimEnd(), worksheet3.Cells[row, 20].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSi.OriginalProductId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 20].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["OriginalProductId"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingSalesInvoice.OtherRefNo.TrimStart().TrimEnd() != worksheet3.Cells[row, 1].Text.TrimStart().TrimEnd())
+                            if (existingSi.OtherRefNo.TrimStart().TrimEnd() != worksheet3.Cells[row, 1].Text.TrimStart().TrimEnd())
                             {
-                                siChanges["OtherRefNo"] = (existingSalesInvoice.OtherRefNo.TrimStart().TrimEnd(), worksheet3.Cells[row, 1].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSi.OtherRefNo.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 1].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["OtherRefNo"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingSalesInvoice.Quantity.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingSi.Quantity.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd())
                             {
-                                siChanges["Quantity"] = (existingSalesInvoice.Quantity.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 2].Text.TrimStart().TrimEnd()).ToString("F2"));
+                                var originalValue = existingSi.Quantity.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet3.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["Quantity"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingSalesInvoice.UnitPrice.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingSi.UnitPrice.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
                             {
-                                siChanges["UnitPrice"] = (existingSalesInvoice.UnitPrice.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd());
+                                var originalValue = existingSi.UnitPrice.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet3.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["UnitPrice"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingSalesInvoice.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingSi.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
                             {
-                                siChanges["Amount"] = (existingSalesInvoice.Amount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd());
+                                var originalValue = existingSi.Amount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet3.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["Amount"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingSalesInvoice.Remarks.TrimStart().TrimEnd() != worksheet3.Cells[row, 5].Text.TrimStart().TrimEnd())
+                            if (existingSi.Remarks.TrimStart().TrimEnd() != worksheet3.Cells[row, 5].Text.TrimStart().TrimEnd())
                             {
-                                siChanges["Remarks"] = (existingSalesInvoice.Remarks.TrimStart().TrimEnd(), worksheet3.Cells[row, 5].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSi.Remarks.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 5].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["Remarks"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingSalesInvoice.Status.TrimStart().TrimEnd() != worksheet3.Cells[row, 6].Text.TrimStart().TrimEnd())
+                            if (existingSi.Status.TrimStart().TrimEnd() != worksheet3.Cells[row, 6].Text.TrimStart().TrimEnd())
                             {
-                                siChanges["Status"] = (existingSalesInvoice.Status.TrimStart().TrimEnd(), worksheet3.Cells[row, 6].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSi.Status.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 6].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["Status"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingSalesInvoice.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet3.Cells[row, 7].Text.TrimStart().TrimEnd())
+                            if (existingSi.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet3.Cells[row, 7].Text.TrimStart().TrimEnd())
                             {
-                                siChanges["TransactionDate"] = (existingSalesInvoice.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet3.Cells[row, 7].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSi.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 7].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["TransactionDate"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingSalesInvoice.Discount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingSi.Discount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd())
                             {
-                                siChanges["Discount"] = (existingSalesInvoice.Discount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet3.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd());
+                                var originalValue = existingSi.Discount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet3.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["Discount"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingSalesInvoice.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet3.Cells[row, 13].Text.TrimStart().TrimEnd())
+                            if (existingSi.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet3.Cells[row, 13].Text.TrimStart().TrimEnd())
                             {
-                                siChanges["DueDate"] = (existingSalesInvoice.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet3.Cells[row, 13].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSi.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 13].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["DueDate"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingSalesInvoice.CreatedBy!.TrimStart().TrimEnd() != worksheet3.Cells[row, 14].Text.TrimStart().TrimEnd())
+                            if (existingSi.CreatedBy!.TrimStart().TrimEnd() != worksheet3.Cells[row, 14].Text.TrimStart().TrimEnd())
                             {
-                                siChanges["CreatedBy"] = (existingSalesInvoice.CreatedBy.TrimStart().TrimEnd(), worksheet3.Cells[row, 14].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSi.CreatedBy.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 14].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["CreatedBy"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingSalesInvoice.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet3.Cells[row, 15].Text.TrimStart().TrimEnd())
+                            if (existingSi.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet3.Cells[row, 15].Text.TrimStart().TrimEnd())
                             {
-                                siChanges["CreatedDate"] = (existingSalesInvoice.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd(), worksheet3.Cells[row, 15].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSi.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 15].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["CreatedDate"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if ((string.IsNullOrWhiteSpace(existingSalesInvoice.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingSalesInvoice.CancellationRemarks.TrimStart().TrimEnd()) != worksheet3.Cells[row, 16].Text.TrimStart().TrimEnd())
+                            if ((string.IsNullOrWhiteSpace(existingSi.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingSi.CancellationRemarks.TrimStart().TrimEnd()) != worksheet3.Cells[row, 16].Text.TrimStart().TrimEnd())
                             {
-                                siChanges["CancellationRemarks"] = (existingSalesInvoice.CancellationRemarks?.TrimStart().TrimEnd(), worksheet3.Cells[row, 16].Text.TrimStart().TrimEnd())!;
+                                var originalValue = existingSi.CancellationRemarks?.TrimStart().TrimEnd() ?? String.Empty;
+                                var adjustedValue = worksheet3.Cells[row, 16].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["CancellationRemarks"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingSalesInvoice.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet3.Cells[row, 21].Text.TrimStart().TrimEnd())
+                            if (existingSi.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet3.Cells[row, 21].Text.TrimStart().TrimEnd())
                             {
-                                siChanges["OriginalSeriesNumber"] = (existingSalesInvoice.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet3.Cells[row, 21].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSi.OriginalSeriesNumber.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 21].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["OriginalSeriesNumber"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingSalesInvoice.OriginalDocumentId.ToString().TrimStart().TrimEnd() != worksheet3.Cells[row, 22].Text.TrimStart().TrimEnd())
+                            if (existingSi.OriginalDocumentId.ToString().TrimStart().TrimEnd() != worksheet3.Cells[row, 22].Text.TrimStart().TrimEnd())
                             {
-                                siChanges["OriginalDocumentId"] = (existingSalesInvoice.OriginalDocumentId.ToString().TrimStart().TrimEnd(), worksheet3.Cells[row, 22].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSi.OriginalDocumentId.ToString().TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 22].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["OriginalDocumentId"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (siChanges.Any())
                             {
-                                await _salesInvoiceRepo.LogChangesAsync(existingSalesInvoice.OriginalDocumentId, siChanges, _userManager.GetUserName(this.User), existingSalesInvoice.SalesInvoiceNo);
+                                await _salesInvoiceRepo.LogChangesAsync(existingSi.OriginalDocumentId, siChanges, _userManager.GetUserName(this.User), existingSi.SalesInvoiceNo);
                             }
 
                             continue;
@@ -2511,96 +2633,218 @@ namespace Accounting_System.Controllers
                         if (serviceInvoiceList.Any(sv => sv.OriginalDocumentId == serviceInvoice.OriginalDocumentId))
                         {
                             var svChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
-                            var existingServiceInvoice = await _dbContext.ServiceInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == serviceInvoice.OriginalDocumentId, cancellationToken);
+                            var existingSv = await _dbContext.ServiceInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == serviceInvoice.OriginalDocumentId, cancellationToken);
+                            var existingSvInLogs = await _dbContext.ImportExportLogs
+                                .Where(x => x.DocumentNo == existingSv.ServiceInvoiceNo)
+                                .ToListAsync(cancellationToken);
 
-                            if (existingServiceInvoice!.ServiceInvoiceNo!.TrimStart().TrimEnd() != worksheet4.Cells[row, 17].Text.TrimStart().TrimEnd())
+                            if (existingSv!.ServiceInvoiceNo!.TrimStart().TrimEnd() != worksheet4.Cells[row, 17].Text.TrimStart().TrimEnd())
                             {
-                                svChanges["SvNo"] = (existingServiceInvoice.ServiceInvoiceNo.TrimStart().TrimEnd(), worksheet4.Cells[row, 17].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSv.ServiceInvoiceNo.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 17].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["SvNo"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingServiceInvoice.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet4.Cells[row, 1].Text.TrimStart().TrimEnd())
+                            if (existingSv.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet4.Cells[row, 1].Text.TrimStart().TrimEnd())
                             {
-                                svChanges["DueDate"] = (existingServiceInvoice.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet4.Cells[row, 1].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSv.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 1].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["DueDate"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingServiceInvoice.Period.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet4.Cells[row, 2].Text.TrimStart().TrimEnd())
+                            if (existingSv.Period.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet4.Cells[row, 2].Text.TrimStart().TrimEnd())
                             {
-                                svChanges["Period"] = (existingServiceInvoice.Period.ToString("yyyy-MM-dd").TrimStart().TrimEnd(), worksheet4.Cells[row, 2].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSv.Period.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 2].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["Period"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingServiceInvoice.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet4.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingSv.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet4.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
                             {
-                                svChanges["Amount"] = (existingServiceInvoice.Amount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet4.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd());
+                                var originalValue = existingSv.Amount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet4.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["Amount"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingServiceInvoice.Total.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet4.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingSv.Total.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet4.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
                             {
-                                svChanges["Total"] = (existingServiceInvoice.Total.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet4.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd());
+                                var originalValue = existingSv.Total.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet4.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["Total"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingServiceInvoice.Discount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet4.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingSv.Discount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet4.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd())
                             {
-                                svChanges["Discount"] = (existingServiceInvoice.Discount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet4.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd());
+                                var originalValue = existingSv.Discount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet4.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["Discount"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingServiceInvoice.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet4.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingSv.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet4.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd())
                             {
-                                svChanges["CurrentAndPreviousAmount"] = (existingServiceInvoice.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet4.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd());
+                                var originalValue = existingSv.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet4.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["CurrentAndPreviousAmount"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingServiceInvoice.UnearnedAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet4.Cells[row, 7].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingSv.UnearnedAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet4.Cells[row, 7].Text).ToString("F2").TrimStart().TrimEnd())
                             {
-                                svChanges["UnearnedAmount"] = (existingServiceInvoice.UnearnedAmount.ToString("F2").TrimStart().TrimEnd(), decimal.Parse(worksheet4.Cells[row, 7].Text).ToString("F2").TrimStart().TrimEnd());
+                                var originalValue = existingSv.UnearnedAmount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet4.Cells[row, 7].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["UnearnedAmount"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingServiceInvoice.Status.TrimStart().TrimEnd() != worksheet4.Cells[row, 8].Text.TrimStart().TrimEnd())
+                            if (existingSv.Status.TrimStart().TrimEnd() != worksheet4.Cells[row, 8].Text.TrimStart().TrimEnd())
                             {
-                                svChanges["Status"] = (existingServiceInvoice.Status.TrimStart().TrimEnd(), worksheet4.Cells[row, 8].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSv.Status.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 8].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["Status"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingServiceInvoice.Instructions!.TrimStart().TrimEnd() != worksheet4.Cells[row, 11].Text.TrimStart().TrimEnd())
+                            if (existingSv.Instructions!.TrimStart().TrimEnd() != worksheet4.Cells[row, 11].Text.TrimStart().TrimEnd())
                             {
-                                svChanges["Instructions"] = (existingServiceInvoice.Instructions.TrimStart().TrimEnd(), worksheet4.Cells[row, 11].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSv.Instructions.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 11].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["Instructions"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingServiceInvoice.CreatedBy!.TrimStart().TrimEnd() != worksheet4.Cells[row, 13].Text.TrimStart().TrimEnd())
+                            if (existingSv.CreatedBy!.TrimStart().TrimEnd() != worksheet4.Cells[row, 13].Text.TrimStart().TrimEnd())
                             {
-                                svChanges["CreatedBy"] = (existingServiceInvoice.CreatedBy.TrimStart().TrimEnd(), worksheet4.Cells[row, 13].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSv.CreatedBy.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 13].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["CreatedBy"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingServiceInvoice.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet4.Cells[row, 14].Text.TrimStart().TrimEnd())
+                            if (existingSv.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet4.Cells[row, 14].Text.TrimStart().TrimEnd())
                             {
-                                svChanges["CreatedDate"] = (existingServiceInvoice.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd(), worksheet4.Cells[row, 14].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSv.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 14].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["CreatedDate"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if ((string.IsNullOrWhiteSpace(existingServiceInvoice.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingServiceInvoice.CancellationRemarks.TrimStart().TrimEnd()) != worksheet4.Cells[row, 15].Text.TrimStart().TrimEnd())
+                            if ((string.IsNullOrWhiteSpace(existingSv.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingSv.CancellationRemarks.TrimStart().TrimEnd()) != worksheet4.Cells[row, 15].Text.TrimStart().TrimEnd())
                             {
-                                svChanges["CancellationRemarks"] = (existingServiceInvoice.CancellationRemarks?.TrimStart().TrimEnd(), worksheet4.Cells[row, 15].Text.TrimStart().TrimEnd())!;
+                                var originalValue = existingSv.CancellationRemarks?.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 15].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["CancellationRemarks"] = (originalValue, adjustedValue)!;
+                                }
                             }
 
-                            if (existingServiceInvoice.OriginalCustomerId.ToString()!.TrimStart().TrimEnd() != worksheet4.Cells[row, 16].Text.TrimStart().TrimEnd())
+                            if (existingSv.OriginalCustomerId.ToString()!.TrimStart().TrimEnd() != worksheet4.Cells[row, 16].Text.TrimStart().TrimEnd())
                             {
-                                svChanges["OriginalCustomerId"] = (existingServiceInvoice.OriginalCustomerId.ToString()!.TrimStart().TrimEnd(), worksheet4.Cells[row, 16].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSv.OriginalCustomerId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 16].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["OriginalCustomerId"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingServiceInvoice.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet4.Cells[row, 17].Text.TrimStart().TrimEnd())
+                            if (existingSv.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet4.Cells[row, 17].Text.TrimStart().TrimEnd())
                             {
-                                svChanges["OriginalSeriesNumber"] = (existingServiceInvoice.OriginalSeriesNumber.TrimStart().TrimEnd(), worksheet4.Cells[row, 17].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSv.OriginalSeriesNumber.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 17].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["OriginalSeriesNumber"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingServiceInvoice.OriginalServicesId.ToString()!.TrimStart().TrimEnd() != worksheet4.Cells[row, 18].Text.TrimStart().TrimEnd())
+                            if (existingSv.OriginalServicesId.ToString()!.TrimStart().TrimEnd() != worksheet4.Cells[row, 18].Text.TrimStart().TrimEnd())
                             {
-                                svChanges["OriginalServicesId"] = (existingServiceInvoice.OriginalServicesId.ToString()!.TrimStart().TrimEnd(), worksheet4.Cells[row, 18].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSv.OriginalServicesId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 18].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["OriginalServicesId"] = (originalValue, adjustedValue);
+                                }
                             }
 
-                            if (existingServiceInvoice.OriginalDocumentId.ToString().TrimStart().TrimEnd() != worksheet4.Cells[row, 19].Text.TrimStart().TrimEnd())
+                            if (existingSv.OriginalDocumentId.ToString().TrimStart().TrimEnd() != worksheet4.Cells[row, 19].Text.TrimStart().TrimEnd())
                             {
-                                svChanges["OriginalDocumentId"] = (existingServiceInvoice.OriginalDocumentId.ToString().TrimStart().TrimEnd(), worksheet4.Cells[row, 19].Text.TrimStart().TrimEnd());
+                                var originalValue = existingSv.OriginalDocumentId.ToString().TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 19].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["OriginalDocumentId"] = (originalValue, adjustedValue);
+                                }
                             }
 
                             if (svChanges.Any())
                             {
-                                await _serviceInvoiceRepo.LogChangesAsync(existingServiceInvoice.OriginalDocumentId, svChanges, _userManager.GetUserName(this.User), existingServiceInvoice.ServiceInvoiceNo);
+                                await _serviceInvoiceRepo.LogChangesAsync(existingSv.OriginalDocumentId, svChanges, _userManager.GetUserName(this.User), existingSv.ServiceInvoiceNo);
                             }
 
                             continue;
