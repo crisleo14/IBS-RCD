@@ -45,6 +45,6 @@ namespace Accounting_System.Models
         public bool Executed { get; set; }
 
         [StringLength(13)]
-        public string DocumentNo { get; set; }
+        public string DocumentNo { get; set; } = string.Empty;
     }
 }

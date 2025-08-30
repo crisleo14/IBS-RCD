@@ -1404,6 +1404,8 @@ namespace Accounting_System.Controllers
 
                     var worksheet6 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "CheckVoucherDetails");
 
+                    var worksheet7 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "MultipleCheckVoucherPayments");
+
                     if (worksheet == null)
                     {
                         TempData["error"] = "The Excel file contains no worksheets of journal voucher header.";
@@ -2626,6 +2628,50 @@ namespace Accounting_System.Controllers
                     }
 
                     #endregion -- Check Voucher Header Import --
+
+                    #region -- Check Voucher Multiple Payment Import --
+
+                    var cvMultiplePaymentRowCount = worksheet7!.Dimension.Rows;
+                    var cvMultiplePaymentList = await _dbContext
+                        .MultipleCheckVoucherPayments
+                        .Include(cvmp => cvmp.CheckVoucherHeaderPayment)
+                        .Include(cvmp => cvmp.CheckVoucherHeaderInvoice)
+                        .ToListAsync(cancellationToken);
+
+                    for (int cvMultiplePaymentRow = 2; cvMultiplePaymentRow <= cvMultiplePaymentRowCount; cvMultiplePaymentRow++)
+                    {
+                        var paymentId = int.TryParse(worksheet7.Cells[cvMultiplePaymentRow, 2].Text, out int cvnId)
+                            ? cvnId
+                            : 0;
+                        var invoiceId = int.TryParse(worksheet7.Cells[cvMultiplePaymentRow, 3].Text, out int invId)
+                            ? invId
+                            : 0;
+                        var getPayment = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(rr => rr.OriginalDocumentId == paymentId, cancellationToken: cancellationToken);
+                        var getInvoice = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cv => cv.OriginalDocumentId == invoiceId, cancellationToken: cancellationToken);
+
+                        if (getInvoice != null && getPayment != null)
+                        {
+                            var cvMultiplePayment = new MultipleCheckVoucherPayment
+                            {
+                                Id = Guid.NewGuid(),
+                                CheckVoucherHeaderPaymentId = getPayment.CheckVoucherHeaderId, // Guaranteed non-null
+                                CheckVoucherHeaderInvoiceId = getInvoice.CheckVoucherHeaderId, // Guaranteed non-null
+                                AmountPaid = decimal.TryParse(worksheet7.Cells[cvMultiplePaymentRow, 4]?.Text,
+                                    out decimal amountPaid)
+                                    ? amountPaid
+                                    : 0,
+                            };
+
+                            if (!cvMultiplePaymentList.Select(cv => cv.CheckVoucherHeaderPayment!.OriginalDocumentId).Contains(paymentId))
+                            {
+                                await _dbContext.MultipleCheckVoucherPayments.AddAsync(cvMultiplePayment, cancellationToken);
+                            }
+                        }
+                    }
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+
+                    #endregion -- Check Voucher Multiple Payment Import --
 
                     #region -- Check Voucher Details Import --
 
