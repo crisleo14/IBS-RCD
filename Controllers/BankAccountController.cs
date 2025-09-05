@@ -310,7 +310,7 @@ namespace Accounting_System.Controllers
             return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
         }
 
-        #endregion -- import xlsx record --
+        #endregion
 
         #region -- import xlsx record to AAS --
 
@@ -392,6 +392,6 @@ namespace Accounting_System.Controllers
             return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
         }
 
-        #endregion -- import xlsx record --
+        #endregion
     }
 }

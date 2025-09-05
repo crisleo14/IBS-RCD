@@ -544,6 +544,6 @@ namespace Accounting_System.Controllers
             return RedirectToAction(nameof(Index), new { view = DynamicView.ChartOfAccount });
         }
 
-        #endregion -- import xlsx record --
+        #endregion
     }
 }
