@@ -22,18 +22,21 @@ namespace Accounting_System.Controllers
     {
         private readonly ApplicationDbContext _dbContext;
 
+        private readonly AasDbContext _aasDbContext;
+
         private readonly PurchaseOrderRepo _purchaseOrderRepo;
 
         private readonly UserManager<IdentityUser> _userManager;
 
         private readonly InventoryRepo _inventoryRepo;
 
-        public PurchaseOrderController(ApplicationDbContext dbContext, PurchaseOrderRepo purchaseOrderRepo, UserManager<IdentityUser> userManager, InventoryRepo inventoryRepo)
+        public PurchaseOrderController(ApplicationDbContext dbContext, PurchaseOrderRepo purchaseOrderRepo, UserManager<IdentityUser> userManager, InventoryRepo inventoryRepo, AasDbContext aasDbContext)
         {
             _dbContext = dbContext;
             _purchaseOrderRepo = purchaseOrderRepo;
             _userManager = userManager;
             _inventoryRepo = inventoryRepo;
+            _aasDbContext = aasDbContext;
         }
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
@@ -742,7 +745,7 @@ namespace Accounting_System.Controllers
         #endregion -- export xlsx record --
 
         //Upload as .xlsx file.(Import)
-        #region -- import xlsx record --
+        #region -- import xlsx record from IBS --
 
         [HttpPost]
         public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
@@ -1110,6 +1113,377 @@ namespace Accounting_System.Controllers
             return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
         }
 
-        #endregion -- import xlsx record --
+        #endregion
+
+        //Upload as .xlsx file.(Import)
+        #region -- import xlsx record to AAS --
+
+        [HttpPost]
+        public async Task<IActionResult> AasImport(IFormFile file, CancellationToken cancellationToken)
+        {
+            if (file.Length == 0)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream, cancellationToken);
+                stream.Position = 0;
+                await using var transaction = await _aasDbContext.Database.BeginTransactionAsync(cancellationToken);
+
+                try
+                {
+                    using var package = new ExcelPackage(stream);
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null)
+                    {
+                        TempData["error"] = "The Excel file contains no worksheets.";
+                        return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
+                    }
+                    if (worksheet.ToString() != nameof(DynamicView.PurchaseOrder))
+                    {
+                        TempData["error"] = "The Excel file is not related to purchase order.";
+                        return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
+                    }
+
+                    var rowCount = worksheet.Dimension.Rows;
+                    var poDictionary = new Dictionary<string, bool>();
+                    var purchaseOrderList = await _aasDbContext
+                        .PurchaseOrders
+                        .ToListAsync(cancellationToken);
+
+                    for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                    {
+                        var purchaseOrder = new PurchaseOrder
+                        {
+                            PurchaseOrderNo = worksheet.Cells[row, 16].Text,
+                            Date = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
+                            Terms = worksheet.Cells[row, 2].Text,
+                            Quantity = decimal.TryParse(worksheet.Cells[row, 3].Text, out decimal quantity) ? quantity : 0,
+                            Price = decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal price) ? price : 0,
+                            Amount = decimal.TryParse(worksheet.Cells[row, 5].Text, out decimal amount) ? amount : 0,
+                            FinalPrice = decimal.TryParse(worksheet.Cells[row, 6].Text, out decimal finalPrice) ? finalPrice : 0,
+                            // QuantityReceived = decimal.TryParse(worksheet.Cells[row, 7].Text, out decimal quantityReceived) ? quantityReceived : 0,
+                            // IsReceived = bool.TryParse(worksheet.Cells[row, 8].Text, out bool isReceived) ? isReceived : default,
+                            // ReceivedDate = DateTime.TryParse(worksheet.Cells[row, 9].Text, out DateTime receivedDate) ? receivedDate : default,
+                            Remarks = worksheet.Cells[row, 10].Text,
+                            CreatedBy = worksheet.Cells[row, 11].Text,
+                            CreatedDate = DateTime.TryParse(worksheet.Cells[row, 12].Text, out DateTime createdDate) ? createdDate : default,
+                            PostedBy = worksheet.Cells[row, 19].Text,
+                            PostedDate = DateTime.TryParse(worksheet.Cells[row, 20].Text, out DateTime postedDate) ? postedDate : default,
+                            IsClosed = bool.TryParse(worksheet.Cells[row, 13].Text, out bool isClosed) && isClosed,
+                            CancellationRemarks = worksheet.Cells[row, 14].Text != "" ? worksheet.Cells[row, 14].Text : null,
+                            OriginalProductId = int.TryParse(worksheet.Cells[row, 15].Text, out int originalProductId) ? originalProductId : 0,
+                            OriginalSeriesNumber = worksheet.Cells[row, 16].Text,
+                            OriginalSupplierId = int.TryParse(worksheet.Cells[row, 17].Text, out int originalSupplierId) ? originalSupplierId : 0,
+                            OriginalDocumentId = int.TryParse(worksheet.Cells[row, 18].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                        };
+
+                        if (!poDictionary.TryAdd(purchaseOrder.OriginalSeriesNumber, true))
+                        {
+                            continue;
+                        }
+
+                        if (purchaseOrderList.Any(po => po.OriginalDocumentId == purchaseOrder.OriginalDocumentId))
+                        {
+                            var poChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                            var existingPo = await _aasDbContext.PurchaseOrders.FirstOrDefaultAsync(si => si.OriginalDocumentId == purchaseOrder.OriginalDocumentId, cancellationToken);
+                            var existingPoInLogs = await _dbContext.ImportExportLogs
+                                .Where(x => x.DocumentNo == existingPo.PurchaseOrderNo)
+                                .ToListAsync(cancellationToken);
+
+
+                            if (existingPo!.PurchaseOrderNo!.TrimStart().TrimEnd() != worksheet.Cells[row, 16].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingPo.PurchaseOrderNo.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 16].Text.TrimStart().TrimEnd();
+                                var find  = existingPoInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    poChanges["PONo"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingPo.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingPo.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 1].Text.TrimStart().TrimEnd();
+                                var find  = existingPoInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    poChanges["Date"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingPo.Terms.TrimStart().TrimEnd() != worksheet.Cells[row, 2].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingPo.Terms.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 2].Text.TrimStart().TrimEnd();
+                                var find  = existingPoInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    poChanges["Terms"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingPo.Quantity.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingPo.Quantity.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingPoInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    poChanges["Quantity"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingPo.Price.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingPo.Price.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingPoInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    poChanges["Price"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingPo.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingPo.Amount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingPoInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    poChanges["Amount"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingPo.FinalPrice?.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingPo.FinalPrice?.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingPoInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    poChanges["FinalPrice"] = (originalValue, adjustedValue)!;
+                                }
+                            }
+
+                            if (existingPo.Remarks.TrimStart().TrimEnd() != worksheet.Cells[row, 10].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingPo.Remarks.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 10].Text.TrimStart().TrimEnd();
+                                var find  = existingPoInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    poChanges["Remarks"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingPo.CreatedBy!.TrimStart().TrimEnd() != worksheet.Cells[row, 11].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingPo.CreatedBy.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 11].Text.TrimStart().TrimEnd();
+                                var find  = existingPoInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    poChanges["CreatedBy"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingPo.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet.Cells[row, 12].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingPo.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 12].Text.TrimStart().TrimEnd();
+                                var find  = existingPoInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    poChanges["CreatedDate"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingPo.IsClosed.ToString().ToUpper().TrimStart().TrimEnd() != worksheet.Cells[row, 13].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingPo.IsClosed.ToString().ToUpper().TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 13].Text.TrimStart().TrimEnd();
+                                var find  = existingPoInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    poChanges["IsClosed"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if ((string.IsNullOrWhiteSpace(existingPo.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingPo.CancellationRemarks.TrimStart().TrimEnd()) != worksheet.Cells[row, 14].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingPo.CancellationRemarks?.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 14].Text.TrimStart().TrimEnd();
+                                var find  = existingPoInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    poChanges["CancellationRemarks"] = (originalValue, adjustedValue)!;
+                                }
+                            }
+
+                            if (existingPo.OriginalProductId.ToString()!.TrimStart().TrimEnd() != (worksheet.Cells[row, 15].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 15].Text.TrimStart().TrimEnd()))
+                            {
+                                var originalValue = existingPo.OriginalProductId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 15].Text.TrimStart().TrimEnd() == ""
+                                    ? 0.ToString()
+                                    : worksheet.Cells[row, 15].Text.TrimStart().TrimEnd();
+                                var find  = existingPoInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    poChanges["OriginalProductId"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingPo.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet.Cells[row, 16].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingPo.OriginalSeriesNumber.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 16].Text.TrimStart().TrimEnd();
+                                var find  = existingPoInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    poChanges["OriginalSeriesNumber"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingPo.OriginalSupplierId.ToString()!.TrimStart().TrimEnd() != (worksheet.Cells[row, 17].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 17].Text.TrimStart().TrimEnd()))
+                            {
+                                var originalValue = existingPo.SupplierId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 17].Text.TrimStart().TrimEnd() == ""
+                                    ? 0.ToString()
+                                    : worksheet.Cells[row, 17].Text.TrimStart().TrimEnd();
+                                var find  = existingPoInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    poChanges["SupplierId"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingPo.OriginalDocumentId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd()))
+                            {
+                                var originalValue = existingPo.OriginalDocumentId.ToString().TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 18].Text.TrimStart().TrimEnd() == ""
+                                    ? 0.ToString()
+                                    : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd();
+                                var find  = existingPoInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    poChanges["OriginalDocumentId"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (poChanges.Any())
+                            {
+                                await _purchaseOrderRepo.LogChangesAsync(existingPo.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User), existingPo.PurchaseOrderNo);
+                            }
+
+                            continue;
+                        }
+                        else
+                        {
+                            #region --Audit Trail Recording
+
+                            if (!purchaseOrder.CreatedBy.IsNullOrEmpty())
+                            {
+                                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                AuditTrail auditTrailBook = new(purchaseOrder.CreatedBy, $"Create new purchase order# {purchaseOrder.PurchaseOrderNo}", "Purchase Order", ipAddress!, purchaseOrder.CreatedDate);
+                                await _aasDbContext.AddAsync(auditTrailBook, cancellationToken);
+                            }
+                            if (!purchaseOrder.PostedBy.IsNullOrEmpty())
+                            {
+                                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                AuditTrail auditTrailBook = new(purchaseOrder.PostedBy, $"Posted purchase order# {purchaseOrder.PurchaseOrderNo}", "Purchase Order", ipAddress!, purchaseOrder.PostedDate);
+                                await _aasDbContext.AddAsync(auditTrailBook, cancellationToken);
+                            }
+
+                            #endregion --Audit Trail Recording
+                        }
+
+                        var getProduct = await _aasDbContext.Products
+                            .Where(p => p.OriginalProductId == purchaseOrder.OriginalProductId)
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        if (getProduct != null)
+                        {
+                            purchaseOrder.ProductId = getProduct.ProductId;
+
+                            purchaseOrder.ProductNo = getProduct.ProductCode;
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException("Please upload the Excel file for the product master file first.");
+                        }
+
+                        var getSupplier = await _aasDbContext.Suppliers
+                            .Where(c => c.OriginalSupplierId == purchaseOrder.OriginalSupplierId)
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        if (getSupplier != null)
+                        {
+                            purchaseOrder.SupplierId = getSupplier.SupplierId;
+
+                            purchaseOrder.SupplierNo = getSupplier.Number;
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException("Please upload the Excel file for the supplier master file first.");
+                        }
+
+                        await _aasDbContext.PurchaseOrders.AddAsync(purchaseOrder, cancellationToken);
+                    }
+                    await _aasDbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+
+                    var checkChangesOfRecord = await _dbContext.ImportExportLogs
+                        .Where(iel => iel.Action == string.Empty).ToListAsync(cancellationToken);
+                    if (checkChangesOfRecord.Any())
+                    {
+                        TempData["importChanges"] = "";
+                    }
+                }
+                catch (OperationCanceledException oce)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
+                }
+                catch (InvalidOperationException ioe)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    TempData["warning"] = ioe.Message;
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
+                }
+            }
+            TempData["success"] = "Uploading Success!";
+            return RedirectToAction(nameof(Index), new { view = DynamicView.PurchaseOrder });
+        }
+
+        #endregion
     }
 }
