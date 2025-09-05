@@ -21,6 +21,8 @@ namespace Accounting_System.Controllers
     {
         private readonly ApplicationDbContext _dbContext;
 
+        private readonly AasDbContext _aasDbContext;
+
         private readonly UserManager<IdentityUser> _userManager;
 
         private readonly ReceiptRepo _receiptRepo;
@@ -33,7 +35,7 @@ namespace Accounting_System.Controllers
 
         private readonly GeneralRepo _generalRepo;
 
-        public ReceiptController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, ReceiptRepo receiptRepo, IWebHostEnvironment webHostEnvironment, GeneralRepo generalRepo, SalesInvoiceRepo salesInvoiceRepo, ServiceInvoiceRepo serviceInvoiceRepo)
+        public ReceiptController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, ReceiptRepo receiptRepo, IWebHostEnvironment webHostEnvironment, GeneralRepo generalRepo, SalesInvoiceRepo salesInvoiceRepo, ServiceInvoiceRepo serviceInvoiceRepo, AasDbContext aasDbContext)
         {
             _dbContext = dbContext;
             this._userManager = userManager;
@@ -42,6 +44,7 @@ namespace Accounting_System.Controllers
             _generalRepo = generalRepo;
             _salesInvoiceRepo = salesInvoiceRepo;
             _serviceInvoiceRepo = serviceInvoiceRepo;
+            _aasDbContext = aasDbContext;
         }
 
         public async Task<IActionResult> CollectionIndex(string? view, CancellationToken cancellationToken)
@@ -2026,7 +2029,7 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 2].Value = item.ReferenceNo;
                     worksheet.Cells[row, 3].Value = item.Remarks;
                     worksheet.Cells[row, 4].Value = item.CashAmount;
-                    worksheet.Cells[row, 5].Value = item.CheckDate;
+                    worksheet.Cells[row, 5].Value = item.CheckDate?.ToString("yyyy-MM-dd") ?? default;
                     worksheet.Cells[row, 6].Value = item.CheckNo;
                     worksheet.Cells[row, 7].Value = item.CheckBank;
                     worksheet.Cells[row, 8].Value = item.CheckBranch;
@@ -2214,7 +2217,7 @@ namespace Accounting_System.Controllers
         #endregion -- export xlsx record --
 
         //Upload as .xlsx file.(Import)
-        #region -- import xlsx record --
+        #region -- import xlsx record from IBS --
 
         [HttpPost]
         public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
@@ -3504,6 +3507,1299 @@ namespace Accounting_System.Controllers
             return RedirectToAction(nameof(CollectionIndex), new { view = DynamicView.CollectionReceipt });
         }
 
-        #endregion -- import xlsx record --
+        #endregion
+
+        //Upload as .xlsx file.(Import)
+        #region -- import xlsx record to AAS --
+
+        [HttpPost]
+        public async Task<IActionResult> AasImport(IFormFile file, CancellationToken cancellationToken)
+        {
+            if (file.Length == 0)
+            {
+                return RedirectToAction(nameof(CollectionIndex));
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream, cancellationToken);
+                stream.Position = 0;
+                await using var transaction = await _aasDbContext.Database.BeginTransactionAsync(cancellationToken);
+
+                try
+                {
+                    using var package = new ExcelPackage(stream);
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "CollectionReceipt");
+
+                    var worksheet2 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "Offsetting");
+
+                    var worksheet3 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "SalesInvoice");
+
+                    var worksheet4 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "ServiceInvoice");
+
+                    if (worksheet == null)
+                    {
+                        TempData["error"] = "The Excel file contains no worksheets.";
+                        return RedirectToAction(nameof(CollectionIndex), new { view = DynamicView.CollectionReceipt });
+                    }
+                    if (worksheet.ToString() != "CollectionReceipt")
+                    {
+                        TempData["error"] = "The Excel file is not related to collection receipt.";
+                        return RedirectToAction(nameof(CollectionIndex), new { view = DynamicView.CollectionReceipt });
+                    }
+
+                    #region -- Sales Invoice Import --
+
+                    var siRowCount = worksheet3?.Dimension?.Rows ?? 0;
+                    var siDictionary = new Dictionary<string, bool>();
+                    var invoiceList = await _aasDbContext
+                        .SalesInvoices
+                        .ToListAsync(cancellationToken);
+
+                    for (int row = 2; row <= siRowCount; row++) // Assuming the first row is the header
+                    {
+                        if (worksheet3 == null || siRowCount == 0)
+                        {
+                            continue;
+                        }
+                        var invoice = new SalesInvoice
+                        {
+                            SalesInvoiceNo = worksheet3.Cells[row, 21].Text,
+                            OtherRefNo = worksheet3.Cells[row, 1].Text,
+                            Quantity = decimal.TryParse(worksheet3.Cells[row, 2].Text, out decimal quantity)
+                                ? quantity
+                                : 0,
+                            UnitPrice = decimal.TryParse(worksheet3.Cells[row, 3].Text, out decimal unitPrice)
+                                ? unitPrice
+                                : 0,
+                            Amount =
+                                decimal.TryParse(worksheet3.Cells[row, 4].Text, out decimal amount) ? amount : 0,
+                            Remarks = worksheet3.Cells[row, 5].Text,
+                            Status = worksheet3.Cells[row, 6].Text,
+                            TransactionDate =
+                                DateOnly.TryParse(worksheet3.Cells[row, 7].Text, out DateOnly transactionDate)
+                                    ? transactionDate
+                                    : default,
+                            Discount = decimal.TryParse(worksheet3.Cells[row, 8].Text, out decimal discount)
+                                ? discount
+                                : 0,
+                            // AmountPaid = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amountPaid)
+                            //     ? amountPaid
+                            //     : 0,
+                            // Balance = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal balance)
+                            //     ? balance
+                            //     : 0,
+                            // IsPaid = bool.TryParse(worksheet.Cells[row, 11].Text, out bool isPaid) ? isPaid : false,
+                            // IsTaxAndVatPaid = bool.TryParse(worksheet.Cells[row, 12].Text, out bool isTaxAndVatPaid)
+                            //     ? isTaxAndVatPaid
+                            //     : false,
+                            DueDate = DateOnly.TryParse(worksheet3.Cells[row, 13].Text, out DateOnly dueDate)
+                                ? dueDate
+                                : default,
+                            CreatedBy = worksheet3.Cells[row, 14].Text,
+                            CreatedDate = DateTime.TryParse(worksheet3.Cells[row, 15].Text, out DateTime createdDate)
+                                ? createdDate
+                                : default,
+                            PostedBy = worksheet3.Cells[row, 23].Text,
+                            PostedDate = DateTime.TryParse(worksheet3.Cells[row, 24].Text, out DateTime postedDate)
+                                ? postedDate
+                                : default,
+                            CancellationRemarks = worksheet3.Cells[row, 16].Text != ""
+                                ? worksheet3.Cells[row, 16].Text
+                                : null,
+                            OriginalCustomerId = int.TryParse(worksheet3.Cells[row, 18].Text, out int customerId)
+                                ? customerId
+                                : 0,
+                            OriginalProductId = int.TryParse(worksheet3.Cells[row, 20].Text, out int productId)
+                                ? productId
+                                : 0,
+                            OriginalSeriesNumber = worksheet3.Cells[row, 21].Text,
+                            OriginalDocumentId =
+                                int.TryParse(worksheet3.Cells[row, 22].Text, out int originalDocumentId)
+                                    ? originalDocumentId
+                                    : 0,
+                        };
+
+                        if (!siDictionary.TryAdd(invoice.OriginalSeriesNumber, true))
+                        {
+                            continue;
+                        }
+
+                        if (invoiceList.Any(si => si.OriginalDocumentId == invoice.OriginalDocumentId))
+                        {
+                            var siChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                            var existingSi = await _aasDbContext.SalesInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == invoice.OriginalDocumentId, cancellationToken);
+                            var existingSiInLogs = await _dbContext.ImportExportLogs
+                                .Where(x => x.DocumentNo == existingSi.SalesInvoiceNo)
+                                .ToListAsync(cancellationToken);
+
+                            if (existingSi!.SalesInvoiceNo!.TrimStart().TrimEnd() != worksheet3.Cells[row, 21].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSi.SalesInvoiceNo.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 21].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["SiNo"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSi.OriginalCustomerId.ToString()!.TrimStart().TrimEnd() != worksheet3.Cells[row, 18].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSi.OriginalCustomerId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 18].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["OriginalCustomerId"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSi.OriginalProductId.ToString()!.TrimStart().TrimEnd() != worksheet3.Cells[row, 20].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSi.OriginalProductId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 20].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["OriginalProductId"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSi.OtherRefNo.TrimStart().TrimEnd() != worksheet3.Cells[row, 1].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSi.OtherRefNo.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 1].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["OtherRefNo"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSi.Quantity.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSi.Quantity.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet3.Cells[row, 2].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["Quantity"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSi.UnitPrice.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSi.UnitPrice.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet3.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["UnitPrice"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSi.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSi.Amount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet3.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["Amount"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSi.Remarks.TrimStart().TrimEnd() != worksheet3.Cells[row, 5].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSi.Remarks.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 5].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["Remarks"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSi.Status.TrimStart().TrimEnd() != worksheet3.Cells[row, 6].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSi.Status.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 6].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["Status"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSi.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet3.Cells[row, 7].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSi.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 7].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["TransactionDate"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSi.Discount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet3.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSi.Discount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet3.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["Discount"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSi.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet3.Cells[row, 13].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSi.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 13].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["DueDate"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSi.CreatedBy!.TrimStart().TrimEnd() != worksheet3.Cells[row, 14].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSi.CreatedBy.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 14].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["CreatedBy"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSi.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet3.Cells[row, 15].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSi.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 15].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["CreatedDate"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if ((string.IsNullOrWhiteSpace(existingSi.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingSi.CancellationRemarks.TrimStart().TrimEnd()) != worksheet3.Cells[row, 16].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSi.CancellationRemarks?.TrimStart().TrimEnd() ?? String.Empty;
+                                var adjustedValue = worksheet3.Cells[row, 16].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["CancellationRemarks"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSi.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet3.Cells[row, 21].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSi.OriginalSeriesNumber.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 21].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["OriginalSeriesNumber"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSi.OriginalDocumentId.ToString().TrimStart().TrimEnd() != worksheet3.Cells[row, 22].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSi.OriginalDocumentId.ToString().TrimStart().TrimEnd();
+                                var adjustedValue = worksheet3.Cells[row, 22].Text.TrimStart().TrimEnd();
+                                var find  = existingSiInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    siChanges["OriginalDocumentId"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (siChanges.Any())
+                            {
+                                await _salesInvoiceRepo.LogChangesAsync(existingSi.OriginalDocumentId, siChanges, _userManager.GetUserName(this.User), existingSi.SalesInvoiceNo);
+                            }
+
+                            continue;
+                        }
+                        else
+                        {
+                            #region --Audit Trail Recording
+
+                            if (!invoice.CreatedBy.IsNullOrEmpty())
+                            {
+                                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                AuditTrail auditTrailBook = new(invoice.CreatedBy, $"Create new invoice# {invoice.SalesInvoiceNo}", "Sales Invoice", ipAddress!, invoice.CreatedDate);
+                                await _aasDbContext.AddAsync(auditTrailBook, cancellationToken);
+                            }
+                            if (!invoice.PostedBy.IsNullOrEmpty())
+                            {
+                                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                AuditTrail auditTrailBook = new(invoice.PostedBy, $"Posted invoice# {invoice.SalesInvoiceNo}", "Sales Invoice", ipAddress!, invoice.PostedDate);
+                                await _aasDbContext.AddAsync(auditTrailBook, cancellationToken);
+                            }
+
+                            #endregion --Audit Trail Recording
+                        }
+
+                        invoice.CustomerId = await _aasDbContext.Customers
+                            .Where(c => c.OriginalCustomerId == invoice.OriginalCustomerId)
+                            .Select(c => (int?)c.CustomerId)
+                            .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
+
+                        invoice.ProductId = await _aasDbContext.Products
+                            .Where(c => c.OriginalProductId == invoice.OriginalProductId)
+                            .Select(c => (int?)c.ProductId)
+                            .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the product master file first.");
+
+                        await _aasDbContext.SalesInvoices.AddAsync(invoice, cancellationToken);
+                    }
+
+                    await _aasDbContext.SaveChangesAsync(cancellationToken);
+
+                    #endregion -- Sales Invoice Import --
+
+                    #region -- Service Invoice Import --
+
+                    var svRowCount = worksheet4?.Dimension?.Rows ?? 0;
+                    var svDictionary = new Dictionary<string, bool>();
+                    var serviceInvoiceList = await _aasDbContext
+                        .ServiceInvoices
+                        .ToListAsync(cancellationToken);
+
+                    for (int row = 2; row <= svRowCount; row++)  // Assuming the first row is the header
+                    {
+                        if (worksheet4 == null || svRowCount == 0)
+                        {
+                            continue;
+                        }
+                        var serviceInvoice = new ServiceInvoice
+                        {
+                            ServiceInvoiceNo = worksheet4.Cells[row, 17].Text,
+                            DueDate = DateOnly.TryParse(worksheet4.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
+                            Period = DateOnly.TryParse(worksheet4.Cells[row, 2].Text, out DateOnly period) ? period : default,
+                            Amount = decimal.TryParse(worksheet4.Cells[row, 3].Text, out decimal amount) ? amount : 0,
+                            Total = decimal.TryParse(worksheet4.Cells[row, 4].Text, out decimal total) ? total : 0,
+                            Discount = decimal.TryParse(worksheet4.Cells[row, 5].Text, out decimal discount) ? discount : 0,
+                            CurrentAndPreviousAmount = decimal.TryParse(worksheet4.Cells[row, 6].Text, out decimal currentAndPreviousAmount) ? currentAndPreviousAmount : 0,
+                            UnearnedAmount = decimal.TryParse(worksheet4.Cells[row, 7].Text, out decimal unearnedAmount) ? unearnedAmount : 0,
+                            Status = worksheet4.Cells[row, 8].Text,
+                            // AmountPaid = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amountPaid) ? amountPaid : 0,
+                            // Balance = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal balance) ? balance : 0,
+                            Instructions = worksheet4.Cells[row, 11].Text,
+                            // IsPaid = bool.TryParse(worksheet.Cells[row, 12].Text, out bool isPaid) ? isPaid : false,
+                            CreatedBy = worksheet4.Cells[row, 13].Text,
+                            CreatedDate = DateTime.TryParse(worksheet4.Cells[row, 14].Text, out DateTime createdDate) ? createdDate : default,
+                            PostedBy = worksheet4.Cells[row, 20].Text,
+                            PostedDate = DateTime.TryParse(worksheet4.Cells[row, 21].Text, out DateTime postedDate) ? postedDate : default,
+                            CancellationRemarks = worksheet4.Cells[row, 15].Text,
+                            OriginalCustomerId = int.TryParse(worksheet4.Cells[row, 16].Text, out int originalCustomerId) ? originalCustomerId : 0,
+                            OriginalSeriesNumber = worksheet4.Cells[row, 17].Text,
+                            OriginalServicesId = int.TryParse(worksheet4.Cells[row, 18].Text, out int originalServicesId) ? originalServicesId : 0,
+                            OriginalDocumentId = int.TryParse(worksheet4.Cells[row, 19].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                        };
+
+                        if (!svDictionary.TryAdd(serviceInvoice.OriginalSeriesNumber, true))
+                        {
+                            continue;
+                        }
+
+                        if (serviceInvoiceList.Any(sv => sv.OriginalDocumentId == serviceInvoice.OriginalDocumentId))
+                        {
+                            var svChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                            var existingSv = await _aasDbContext.ServiceInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == serviceInvoice.OriginalDocumentId, cancellationToken);
+                            var existingSvInLogs = await _dbContext.ImportExportLogs
+                                .Where(x => x.DocumentNo == existingSv.ServiceInvoiceNo)
+                                .ToListAsync(cancellationToken);
+
+                            if (existingSv!.ServiceInvoiceNo!.TrimStart().TrimEnd() != worksheet4.Cells[row, 17].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSv.ServiceInvoiceNo.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 17].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["SvNo"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSv.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet4.Cells[row, 1].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSv.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 1].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["DueDate"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSv.Period.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet4.Cells[row, 2].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSv.Period.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 2].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["Period"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSv.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet4.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSv.Amount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet4.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["Amount"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSv.Total.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet4.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSv.Total.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet4.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["Total"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSv.Discount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet4.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSv.Discount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet4.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["Discount"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSv.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet4.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSv.CurrentAndPreviousAmount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet4.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["CurrentAndPreviousAmount"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSv.UnearnedAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet4.Cells[row, 7].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSv.UnearnedAmount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet4.Cells[row, 7].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["UnearnedAmount"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSv.Status.TrimStart().TrimEnd() != worksheet4.Cells[row, 8].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSv.Status.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 8].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["Status"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSv.Instructions!.TrimStart().TrimEnd() != worksheet4.Cells[row, 11].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSv.Instructions.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 11].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["Instructions"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSv.CreatedBy!.TrimStart().TrimEnd() != worksheet4.Cells[row, 13].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSv.CreatedBy.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 13].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["CreatedBy"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSv.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet4.Cells[row, 14].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSv.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 14].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["CreatedDate"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if ((string.IsNullOrWhiteSpace(existingSv.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingSv.CancellationRemarks.TrimStart().TrimEnd()) != worksheet4.Cells[row, 15].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSv.CancellationRemarks?.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 15].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["CancellationRemarks"] = (originalValue, adjustedValue)!;
+                                }
+                            }
+
+                            if (existingSv.OriginalCustomerId.ToString()!.TrimStart().TrimEnd() != worksheet4.Cells[row, 16].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSv.OriginalCustomerId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 16].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["OriginalCustomerId"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSv.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet4.Cells[row, 17].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSv.OriginalSeriesNumber.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 17].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["OriginalSeriesNumber"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSv.OriginalServicesId.ToString()!.TrimStart().TrimEnd() != worksheet4.Cells[row, 18].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSv.OriginalServicesId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 18].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["OriginalServicesId"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingSv.OriginalDocumentId.ToString().TrimStart().TrimEnd() != worksheet4.Cells[row, 19].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingSv.OriginalDocumentId.ToString().TrimStart().TrimEnd();
+                                var adjustedValue = worksheet4.Cells[row, 19].Text.TrimStart().TrimEnd();
+                                var find  = existingSvInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    svChanges["OriginalDocumentId"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (svChanges.Any())
+                            {
+                                await _serviceInvoiceRepo.LogChangesAsync(existingSv.OriginalDocumentId, svChanges, _userManager.GetUserName(this.User), existingSv.ServiceInvoiceNo);
+                            }
+
+                            continue;
+                        }
+                        else
+                        {
+                            #region --Audit Trail Recording
+
+                            if (!serviceInvoice.CreatedBy.IsNullOrEmpty())
+                            {
+                                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                AuditTrail auditTrailBook = new(serviceInvoice.CreatedBy, $"Create new service invoice# {serviceInvoice.ServiceInvoiceNo}", "Service Invoice", ipAddress!, serviceInvoice.CreatedDate);
+                                await _aasDbContext.AddAsync(auditTrailBook, cancellationToken);
+                            }
+                            if (!serviceInvoice.PostedBy.IsNullOrEmpty())
+                            {
+                                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                AuditTrail auditTrailBook = new(serviceInvoice.PostedBy, $"Posted service invoice# {serviceInvoice.ServiceInvoiceNo}", "Service Invoice", ipAddress!, serviceInvoice.PostedDate);
+                                await _aasDbContext.AddAsync(auditTrailBook, cancellationToken);
+                            }
+
+                            #endregion --Audit Trail Recording
+                        }
+
+                        serviceInvoice.CustomerId = await _aasDbContext.Customers
+                            .Where(sv => sv.OriginalCustomerId == serviceInvoice.OriginalCustomerId)
+                            .Select(sv => (int?)sv.CustomerId)
+                            .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
+
+                        serviceInvoice.ServicesId = await _aasDbContext.Services
+                            .Where(sv => sv.OriginalServiceId == serviceInvoice.OriginalServicesId)
+                            .Select(sv => (int?)sv.ServiceId)
+                            .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the service master file first.");
+
+                        await _aasDbContext.ServiceInvoices.AddAsync(serviceInvoice, cancellationToken);
+                    }
+                    await _aasDbContext.SaveChangesAsync(cancellationToken);
+
+                    #endregion -- Service Invoice Import --
+
+                    #region -- Collection Receipt Import --
+
+                    var rowCount = worksheet.Dimension.Rows;
+                    var crDictionary = new Dictionary<string, bool>();
+                    var collectionReceiptList = await _aasDbContext
+                        .CollectionReceipts
+                        .ToListAsync(cancellationToken);
+
+                    for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                    {
+                        var collectionReceipt = new CollectionReceipt
+                        {
+                            CollectionReceiptNo = worksheet.Cells[row, 30].Text,
+                            TransactionDate = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly transactionDate) ? transactionDate : default,
+                            ReferenceNo = worksheet.Cells[row, 2].Text,
+                            Remarks = worksheet.Cells[row, 3].Text,
+                            CashAmount = decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal cashAmount) ? cashAmount : 0,
+                            CheckDate = DateOnly.TryParse(worksheet.Cells[row, 5].Text, out DateOnly checkDate) ? checkDate : default,
+                            CheckNo = worksheet.Cells[row, 6].Text,
+                            CheckBank = worksheet.Cells[row, 7].Text,
+                            CheckBranch = worksheet.Cells[row, 8].Text,
+                            CheckAmount = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal checkAmount) ? checkAmount : 0,
+                            ManagerCheckDate = DateOnly.TryParse(worksheet.Cells[row, 10].Text, out DateOnly managerCheckDate) ? managerCheckDate : null,
+                            ManagerCheckNo = worksheet.Cells[row, 11].Text,
+                            ManagerCheckBank = worksheet.Cells[row, 12].Text,
+                            ManagerCheckBranch = worksheet.Cells[row, 13].Text,
+                            ManagerCheckAmount = decimal.TryParse(worksheet.Cells[row, 14].Text, out decimal managerCheckAmount) ? managerCheckAmount : 0,
+                            EWT = decimal.TryParse(worksheet.Cells[row, 15].Text, out decimal ewt) ? ewt : 0,
+                            WVAT = decimal.TryParse(worksheet.Cells[row, 16].Text, out decimal wvat) ? wvat : 0,
+                            Total = decimal.TryParse(worksheet.Cells[row, 17].Text, out decimal total) ? total : 0,
+                            IsCertificateUpload = bool.TryParse(worksheet.Cells[row, 18].Text, out bool isCertificateUpload) && isCertificateUpload,
+                            F2306FilePath = worksheet.Cells[row, 19].Text,
+                            F2307FilePath = worksheet.Cells[row, 20].Text,
+                            CreatedBy = worksheet.Cells[row, 21].Text,
+                            CreatedDate = DateTime.TryParse(worksheet.Cells[row, 22].Text, out DateTime createdDate) ? createdDate : default,
+                            PostedBy = worksheet.Cells[row, 33].Text,
+                            PostedDate = DateTime.TryParse(worksheet.Cells[row, 34].Text, out DateTime postedDate) ? postedDate : default,
+                            CancellationRemarks = worksheet.Cells[row, 23].Text,
+                            MultipleSI = worksheet.Cells[row, 24].Text.Split(',').Select(si => si.Trim()).ToArray(),
+                            MultipleSIId = worksheet.Cells[row, 25].Text.Split(',').Select(multipleId => int.TryParse(multipleId.Trim(), out int multipleSiId) ? multipleSiId : 0).ToArray(),
+                            SIMultipleAmount = worksheet.Cells[row, 26].Text.Split(' ').Select(multipleAmount => decimal.TryParse(multipleAmount.Trim(), out decimal siMultipleAmount) ? siMultipleAmount : 0).ToArray(),
+                            MultipleTransactionDate = worksheet.Cells[row, 27].Text.Split(',').Select(date => DateOnly.TryParse(date.Trim(), out DateOnly parsedDate) ? parsedDate : default).ToArray(),
+                            OriginalCustomerId = int.TryParse(worksheet.Cells[row, 28].Text, out int originalCustomerId) ? originalCustomerId : 0,
+                            OriginalSalesInvoiceId = int.TryParse(worksheet.Cells[row, 29].Text, out int originalSalesInvoiceId) ? originalSalesInvoiceId : 0,
+                            OriginalSeriesNumber = worksheet.Cells[row, 30].Text,
+                            OriginalServiceInvoiceId = int.TryParse(worksheet.Cells[row, 31].Text, out int originalServiceInvoiceId) ? originalServiceInvoiceId : 0,
+                            OriginalDocumentId = int.TryParse(worksheet.Cells[row, 32].Text, out int originalDocumentId) ? originalDocumentId : 0,
+                        };
+
+                        if (!crDictionary.TryAdd(collectionReceipt.OriginalSeriesNumber, true))
+                        {
+                            continue;
+                        }
+
+                        if (collectionReceiptList.Any(cr => cr.OriginalDocumentId == collectionReceipt.OriginalDocumentId))
+                        {
+                            var crChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                            var existingCollectionReceipt = await _aasDbContext.CollectionReceipts.FirstOrDefaultAsync(si => si.OriginalDocumentId == collectionReceipt.OriginalDocumentId, cancellationToken);
+                            var existingCrInLogs = await _dbContext.ImportExportLogs
+                                .Where(x => x.DocumentNo == existingCollectionReceipt.CollectionReceiptNo)
+                                .ToListAsync(cancellationToken);
+
+                            if (existingCollectionReceipt!.CollectionReceiptNo!.TrimStart().TrimEnd() != worksheet.Cells[row, 30].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.CollectionReceiptNo.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 30].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["CrNo"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.TransactionDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 1].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["TransactionDate"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.ReferenceNo.TrimStart().TrimEnd() != worksheet.Cells[row, 2].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.ReferenceNo.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 2].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["ReferenceNo"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.Remarks!.TrimStart().TrimEnd() != worksheet.Cells[row, 3].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.Remarks.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 3].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["Remarks"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.CashAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.CashAmount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["CashAmount"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.CheckDate != DateOnly.Parse(worksheet.Cells[row, 5].Text ?? default))
+                            {
+                                var originalValue = existingCollectionReceipt.CheckDate!.ToString();
+                                var adjustedValue = worksheet.Cells[row, 5].Text;
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["CheckDate"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.CheckNo!.TrimStart().TrimEnd() != worksheet.Cells[row, 6].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.CheckNo.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 6].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["CheckNo"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.CheckBank!.TrimStart().TrimEnd() != worksheet.Cells[row, 7].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.CheckBank.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 7].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["CheckBank"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.CheckBranch!.TrimStart().TrimEnd() != worksheet.Cells[row, 8].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.CheckBranch.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 8].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["CheckBranch"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.CheckAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.CheckAmount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["CheckAmount"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.ManagerCheckDate.ToString()!.TrimStart().TrimEnd() != worksheet.Cells[row, 10].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.ManagerCheckDate.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 10].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["ManagerCheckDate"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.ManagerCheckNo!.TrimStart().TrimEnd() != worksheet.Cells[row, 11].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.ManagerCheckNo.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 11].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["ManagerCheckNo"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.ManagerCheckBank!.TrimStart().TrimEnd() != worksheet.Cells[row, 12].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.ManagerCheckBank.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 12].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["ManagerCheckBank"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.ManagerCheckBranch!.TrimStart().TrimEnd() != worksheet.Cells[row, 13].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.ManagerCheckBranch.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 13].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["ManagerCheckBranch"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.ManagerCheckAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 14].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.ManagerCheckAmount.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 14].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["ManagerCheckAmount"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.EWT.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 15].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.EWT.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 15].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["EWT"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.WVAT.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 16].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.WVAT.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 16].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["WVAT"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.Total.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 17].Text).ToString("F2").TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.Total.ToString("F2").TrimStart().TrimEnd();
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 17].Text).ToString("F2").TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["Total"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.IsCertificateUpload.ToString().ToUpper().TrimStart().TrimEnd() != worksheet.Cells[row, 18].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.IsCertificateUpload.ToString().TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 18].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["IsCertificateUpload"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.F2306FilePath!.TrimStart().TrimEnd() != worksheet.Cells[row, 19].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.F2306FilePath.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 19].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["F2306FilePath"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.F2307FilePath!.TrimStart().TrimEnd() != worksheet.Cells[row, 20].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.F2307FilePath.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 20].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["F2307FilePath"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.CreatedBy!.TrimStart().TrimEnd() != worksheet.Cells[row, 21].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.CreatedBy.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 21].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["CreatedBy"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff".TrimStart().TrimEnd()) != worksheet.Cells[row, 22].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 22].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["CreatedDate"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if ((string.IsNullOrWhiteSpace(existingCollectionReceipt.CancellationRemarks) ? "" : existingCollectionReceipt.CancellationRemarks.TrimStart().TrimEnd()) != worksheet.Cells[row, 23].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.CancellationRemarks!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 23].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["CancellationRemarks"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            var multipleSiId = existingCollectionReceipt.MultipleSIId != null
+                                ? string.Join(", ", existingCollectionReceipt.MultipleSIId.Select(si => si.ToString()))
+                                : null;
+                            if (multipleSiId != null && multipleSiId.TrimStart().TrimEnd() != worksheet.Cells[row, 25].Text.TrimStart().TrimEnd())
+                            {
+                                var multipleSi = existingCollectionReceipt.MultipleSI != null
+                                    ? string.Join(", ", existingCollectionReceipt.MultipleSI.Select(si => si.ToString()))
+                                    : null;
+                                if (multipleSi != null && multipleSi.TrimStart().TrimEnd() != worksheet.Cells[row, 24].Text.TrimStart().TrimEnd())
+                                {
+                                    var originalValue = multipleSi.TrimStart().TrimEnd();
+                                    var adjustedValue = worksheet.Cells[row, 24].Text.TrimStart().TrimEnd();
+                                    var find  = existingCrInLogs
+                                        .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    if (!find.Any())
+                                    {
+                                        crChanges["MultipleSI"] = (originalValue, adjustedValue);
+                                    }
+                                }
+
+                                if (multipleSiId.TrimStart().TrimEnd() != worksheet.Cells[row, 25].Text.TrimStart().TrimEnd())
+                                {
+                                    var originalValue = multipleSiId.TrimStart().TrimEnd();
+                                    var adjustedValue = worksheet.Cells[row, 25].Text.TrimStart().TrimEnd();
+                                    var find  = existingCrInLogs
+                                        .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    if (!find.Any())
+                                    {
+                                        crChanges["MultipleSIId"] = (originalValue, adjustedValue);
+                                    }
+                                }
+
+                                var siMultipleAmount = existingCollectionReceipt.SIMultipleAmount != null
+                                    ? string.Join(" ", existingCollectionReceipt.SIMultipleAmount.Select(si => si.ToString("N4")))
+                                    : null;
+                                if (siMultipleAmount != null && siMultipleAmount.TrimStart().TrimEnd() != worksheet.Cells[row, 26].Text.TrimStart().TrimEnd())
+                                {
+                                    var originalValue = siMultipleAmount.TrimStart().TrimEnd();
+                                    var adjustedValue = worksheet.Cells[row, 26].Text.TrimStart().TrimEnd();
+                                    var find  = existingCrInLogs
+                                        .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    if (!find.Any())
+                                    {
+                                        crChanges["SIMultipleAmount"] = (originalValue, adjustedValue);
+                                    }
+                                }
+
+                                var multipleTransactionDate = existingCollectionReceipt.MultipleTransactionDate != null
+                                    ? string.Join(", ", existingCollectionReceipt.MultipleTransactionDate.Select(multipleTransactionDate => multipleTransactionDate.ToString("yyyy-MM-dd")))
+                                    : null;
+                                if (multipleTransactionDate != null && multipleTransactionDate.TrimStart().TrimEnd() != worksheet.Cells[row, 27].Text.TrimStart().TrimEnd())
+                                {
+                                    var originalValue = multipleTransactionDate.TrimStart().TrimEnd();
+                                    var adjustedValue = worksheet.Cells[row, 27].Text.TrimStart().TrimEnd();
+                                    var find  = existingCrInLogs
+                                        .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    if (!find.Any())
+                                    {
+                                        crChanges["MultipleTransactionDate"] = (originalValue, adjustedValue);
+                                    }
+                                }
+                            }
+
+                            if (existingCollectionReceipt.OriginalCustomerId.ToString()!.TrimStart().TrimEnd() != (worksheet.Cells[row, 28].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 28].Text.TrimStart().TrimEnd()))
+                            {
+                                var originalValue = existingCollectionReceipt.OriginalCustomerId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 28].Text.TrimStart().TrimEnd() == ""
+                                    ? 0.ToString()
+                                    : worksheet.Cells[row, 28].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["OriginalCustomerId"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.OriginalSalesInvoiceId.ToString()!.TrimStart().TrimEnd() != (worksheet.Cells[row, 29].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 29].Text.TrimStart().TrimEnd()))
+                            {
+                                var originalValue = existingCollectionReceipt.OriginalSalesInvoiceId.ToString();
+                                var adjustedValue = worksheet.Cells[row, 29].Text.TrimStart().TrimEnd() == ""
+                                    ? 0.ToString()
+                                    : worksheet.Cells[row, 29].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["OriginalSalesInvoiceId"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet.Cells[row, 30].Text.TrimStart().TrimEnd())
+                            {
+                                var originalValue = existingCollectionReceipt.OriginalSeriesNumber.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 30].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["OriginalSeriesNumber"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.OriginalServiceInvoiceId.ToString()!.TrimStart().TrimEnd() != (worksheet.Cells[row, 31].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 31].Text.TrimStart().TrimEnd()))
+                            {
+                                var originalValue = existingCollectionReceipt.OriginalServiceInvoiceId.ToString()!.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 31].Text.TrimStart().TrimEnd() == ""
+                                    ? 0.ToString()
+                                    : worksheet.Cells[row, 31].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["OriginalServiceInvoiceId"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (existingCollectionReceipt.OriginalDocumentId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 32].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 32].Text.TrimStart().TrimEnd()))
+                            {
+                                var originalValue = existingCollectionReceipt.OriginalDocumentId.ToString().TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 32].Text.TrimStart().TrimEnd() == ""
+                                    ? 0.ToString()
+                                    : worksheet.Cells[row, 32].Text.TrimStart().TrimEnd();
+                                var find  = existingCrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crChanges["OriginalDocumentId"] = (originalValue, adjustedValue);
+                                }
+                            }
+
+                            if (crChanges.Any())
+                            {
+                                await _receiptRepo.LogChangesAsync(existingCollectionReceipt.OriginalDocumentId, crChanges, _userManager.GetUserName(this.User), existingCollectionReceipt.CollectionReceiptNo);
+                            }
+
+                            continue;
+                        }
+                        else
+                        {
+                            #region --Audit Trail Recording
+
+                            if (!collectionReceipt.CreatedBy.IsNullOrEmpty())
+                            {
+                                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                AuditTrail auditTrailBook = new(collectionReceipt.CreatedBy, $"Create new collection receipt# {collectionReceipt.CollectionReceiptNo}", "Collection Receipt", ipAddress!, collectionReceipt.CreatedDate);
+                                await _aasDbContext.AddAsync(auditTrailBook, cancellationToken);
+                            }
+                            if (!collectionReceipt.PostedBy.IsNullOrEmpty())
+                            {
+                                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                                AuditTrail auditTrailBook = new(collectionReceipt.PostedBy, $"Posted collection receipt# {collectionReceipt.CollectionReceiptNo}", "Collection Receipt", ipAddress!, collectionReceipt.PostedDate);
+                                await _aasDbContext.AddAsync(auditTrailBook, cancellationToken);
+                            }
+
+                            #endregion --Audit Trail Recording
+                        }
+
+                        collectionReceipt.CustomerId = await _aasDbContext.Customers
+                            .Where(c => c.OriginalCustomerId == collectionReceipt.OriginalCustomerId)
+                            .Select(c => (int?)c.CustomerId)
+                            .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
+
+                        var getSi = await _aasDbContext.SalesInvoices
+                            .Where(si => si.OriginalDocumentId == collectionReceipt.OriginalSalesInvoiceId)
+                            .Select(si => new { si.SalesInvoiceId, SINo = si.SalesInvoiceNo })
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        collectionReceipt.SalesInvoiceId = getSi?.SalesInvoiceId;
+                        collectionReceipt.SINo = getSi?.SINo;
+
+                        var getSv = await _aasDbContext.ServiceInvoices
+                            .Where(sv => sv.OriginalDocumentId == collectionReceipt.OriginalServiceInvoiceId)
+                            .Select(sv => new { sv.ServiceInvoiceId, SVNo = sv.ServiceInvoiceNo })
+                            .FirstOrDefaultAsync(cancellationToken);
+
+                        collectionReceipt.ServiceInvoiceId = getSv?.ServiceInvoiceId;
+                        collectionReceipt.SVNo = getSv?.SVNo;
+
+                        if((getSv == null && !collectionReceipt.OriginalSalesInvoiceId.HasValue) &&
+                           (getSi == null && !collectionReceipt.OriginalServiceInvoiceId.HasValue))
+                        {
+                            throw new InvalidOperationException("Please upload the Excel file for the sales invoice or service invoice first.");
+                        }
+
+                        foreach (var item in collectionReceipt.MultipleSIId)
+                        {
+                            if (item == 0)
+                            {
+                                collectionReceipt.MultipleSIId = null;
+                            }
+                        }
+                        foreach (var item in collectionReceipt.SIMultipleAmount)
+                        {
+                            if (item == 0)
+                            {
+                                collectionReceipt.SIMultipleAmount = null;
+                            }
+                        }
+
+                        await _aasDbContext.CollectionReceipts.AddAsync(collectionReceipt, cancellationToken);
+                    }
+                    await _aasDbContext.SaveChangesAsync(cancellationToken);
+
+                    #endregion -- Collection Receipt Import --
+
+                    #region -- Offsetting Import --
+
+                    var offsetRowCount = worksheet2?.Dimension?.Rows ?? 0;
+
+                    for (int offsetRow = 2; offsetRow <= offsetRowCount; offsetRow++)
+                    {
+                        if (worksheet2 == null || offsetRowCount == 0)
+                        {
+                            continue;
+                        }
+
+                        var offsettingRow = offsetRow;
+                        var offsetting = new Offsetting
+                        {
+                            AccountNo = worksheet2.Cells[offsetRow, 1].Text,
+                            Reference = worksheet2.Cells[offsetRow, 3].Text,
+                            IsRemoved = bool.TryParse(worksheet2.Cells[offsetRow, 4].Text, out bool isRemoved) && isRemoved,
+                            Amount = decimal.TryParse(worksheet2.Cells[offsetRow, 5].Text, out decimal amount) ? amount : 0,
+                            CreatedBy = worksheet2.Cells[offsetRow, 6].Text,
+                            CreatedDate = DateTime.TryParse(worksheet2.Cells[offsetRow, 7].Text, out DateTime createdDate) ? createdDate : default,
+                            AccountTitle = worksheet2.Cells[offsetRow, 8].Text,
+                            Source = await _dbContext.CollectionReceipts
+                                .Where(cr => cr.OriginalSeriesNumber == worksheet2.Cells[offsettingRow, 2].Text)
+                                .Select(cr => cr.CollectionReceiptNo)
+                                .FirstOrDefaultAsync(cancellationToken) ?? String.Empty
+                        };
+
+                        await _aasDbContext.Offsettings.AddAsync(offsetting, cancellationToken);
+                    }
+                    await _aasDbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+
+                    var checkChangesOfRecord = await _dbContext.ImportExportLogs
+                        .Where(iel => iel.Action == string.Empty).ToListAsync(cancellationToken);
+                    if (checkChangesOfRecord.Any())
+                    {
+                        TempData["importChanges"] = "";
+                    }
+                    #endregion -- Offsetting Import --
+                }
+                catch (OperationCanceledException oce)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(CollectionIndex), new { view = DynamicView.CollectionReceipt });
+                }
+                catch (InvalidOperationException ioe)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    TempData["warning"] = ioe.Message;
+                    return RedirectToAction(nameof(CollectionIndex), new { view = DynamicView.CollectionReceipt });
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(CollectionIndex), new { view = DynamicView.CollectionReceipt });
+                }
+            }
+            TempData["success"] = "Uploading Success!";
+            return RedirectToAction(nameof(CollectionIndex), new { view = DynamicView.CollectionReceipt });
+        }
+
+        #endregion
     }
 }
