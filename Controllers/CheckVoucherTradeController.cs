@@ -3160,7 +3160,7 @@ namespace Accounting_System.Controllers
             {
                 await file.CopyToAsync(stream, cancellationToken);
                 stream.Position = 0;
-                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                await using var transaction = await _aasDbContext.Database.BeginTransactionAsync(cancellationToken);
 
                 try
                 {

@@ -17,13 +17,16 @@ namespace Accounting_System.Controllers
         private readonly CustomerRepo _customerRepo;
         private readonly ApplicationDbContext _dbContext;
 
+        private readonly AasDbContext _aasDbContext;
+
         private readonly UserManager<IdentityUser> _userManager;
 
-        public CustomerController(ApplicationDbContext dbContext, CustomerRepo customerRepo, UserManager<IdentityUser> userManager)
+        public CustomerController(ApplicationDbContext dbContext, CustomerRepo customerRepo, UserManager<IdentityUser> userManager, AasDbContext aasDbContext)
         {
             _dbContext = dbContext;
             _customerRepo = customerRepo;
             this._userManager = userManager;
+            _aasDbContext = aasDbContext;
         }
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
@@ -262,7 +265,7 @@ namespace Accounting_System.Controllers
 
         //Upload as .xlsx file.(Import)
 
-        #region -- import xlsx record --
+        #region -- import xlsx record from IBS --
 
         [HttpPost]
         public async Task<IActionResult> Import(IFormFile file, CancellationToken cancellationToken)
@@ -325,6 +328,91 @@ namespace Accounting_System.Controllers
 
                         await _dbContext.Customers.AddAsync(customer, cancellationToken);
                         await _dbContext.SaveChangesAsync(cancellationToken);
+                    }
+                    await transaction.CommitAsync(cancellationToken);
+                }
+                catch (OperationCanceledException oce)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    TempData["error"] = oce.Message;
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.Customer });
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.Customer });
+                }
+            }
+            TempData["success"] = "Uploading Success!";
+            return RedirectToAction(nameof(Index), new { view = DynamicView.Customer });
+        }
+
+        #endregion
+
+        #region -- import xlsx record to AAS --
+
+        [HttpPost]
+        public async Task<IActionResult> AasImport(IFormFile file, CancellationToken cancellationToken)
+        {
+            if (file.Length == 0)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream, cancellationToken);
+                stream.Position = 0;
+                await using var transaction = await _aasDbContext.Database.BeginTransactionAsync(cancellationToken);
+
+                try
+                {
+                    using var package = new ExcelPackage(stream);
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null)
+                    {
+                        TempData["error"] = "The Excel file contains no worksheets.";
+                        return RedirectToAction(nameof(Index), new { view = DynamicView.Customer });
+                    }
+                    if (worksheet.ToString() != "Customers")
+                    {
+                        TempData["error"] = "The Excel file is not related to customer master file.";
+                        return RedirectToAction(nameof(Index), new { view = DynamicView.Customer });
+                    }
+
+                    var rowCount = worksheet.Dimension.Rows;
+                    var customerList = await _aasDbContext
+                        .Customers
+                        .ToListAsync(cancellationToken);
+
+                    for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                    {
+                        var customer = new Customer
+                        {
+                            Number = await _customerRepo.GetLastNumber(cancellationToken),
+                            CustomerName = worksheet.Cells[row, 1].Text,
+                            CustomerAddress = worksheet.Cells[row, 2].Text,
+                            ZipCode = worksheet.Cells[row, 3].Text,
+                            CustomerTin = worksheet.Cells[row, 4].Text,
+                            BusinessStyle = worksheet.Cells[row, 5].Text,
+                            CustomerTerms = worksheet.Cells[row, 6].Text,
+                            CustomerType = worksheet.Cells[row, 7].Text,
+                            WithHoldingVat = bool.TryParse(worksheet.Cells[row, 8].Text, out bool withHoldingVat) && withHoldingVat,
+                            WithHoldingTax = bool.TryParse(worksheet.Cells[row, 9].Text, out bool withHoldingTax) && withHoldingTax,
+                            CreatedBy = worksheet.Cells[row, 10].Text,
+                            CreatedDate = DateTime.TryParse(worksheet.Cells[row, 11].Text, out DateTime createdDate) ? createdDate : default,
+                            OriginalCustomerId = int.TryParse(worksheet.Cells[row, 12].Text, out int customerId) ? customerId : 0,
+                            OriginalCustomerNumber = worksheet.Cells[row, 13].Text,
+                        };
+
+                        if (customerList.Any(c => c.OriginalCustomerId == customer.OriginalCustomerId))
+                        {
+                            continue;
+                        }
+
+                        await _aasDbContext.Customers.AddAsync(customer, cancellationToken);
+                        await _aasDbContext.SaveChangesAsync(cancellationToken);
                     }
                     await transaction.CommitAsync(cancellationToken);
                 }
