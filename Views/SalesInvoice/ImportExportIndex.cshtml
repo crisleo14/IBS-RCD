@@ -24,15 +24,31 @@
             <div class="col-6">
                 <form asp-action="Import" method="post" enctype="multipart/form-data">
                     <div class="row">
-                        <div class="col"><input class="form-control form-control-sm" name="file" type='file' required></div>
-                        <div class="col"><button type="submit" class="btn btn-primary">Upload</button></div>
+                        <div class="col">
+                            <label class="control-label">Import downloaded excel</label>
+                            <input class="form-control form-control-sm" name="file" type='file' required>
+                        </div>
+                        <div class="col mt-4">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </div>
+                </form>
+                <form asp-action="AasImport" method="post" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col">
+                            <label class="control-label">Export to AAS</label>
+                            <input class="form-control form-control-sm" name="file" type='file' required>
+                        </div>
+                        <div class="col mt-4">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
                     </div>
                 </form>
             </div>
             <div class="col-6 text-end">
                 <p>
-                    <button type="button" class="btn btn-primary" onclick="exportToCsv()">Export Selected to CSV</button>
-                    <a asp-action="SalesReport" asp-controller="SalesInvoice" type="button" class="btn btn-primary">Generate Sales Report</a>
+                    <button type="button" class="btn btn-primary" onclick="exportToCsv()">Save to Excel</button>
+                    <a asp-action="SalesInvoiceReport" asp-controller="SalesInvoice" type="button" class="btn btn-primary">Generate Sales Invoice Report</a>
                 </p>
             </div>
         </div>
