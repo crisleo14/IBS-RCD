@@ -2379,7 +2379,9 @@ namespace Accounting_System.Controllers
 
                 try
                 {
-                    using var package = new ExcelPackage(stream);
+                    if (file.FileName.Contains(CS.Name))
+                    {
+                        using var package = new ExcelPackage(stream);
                     var worksheet = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "DebitMemo");
 
                     var worksheet2 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "SalesInvoice");
@@ -3429,6 +3431,11 @@ namespace Accounting_System.Controllers
                         TempData["importChanges"] = "";
                     }
                     #endregion -- Debit Memo Import --
+                    }
+                    else
+                    {
+                        TempData["warning"] = "The Uploaded Excel file is not related to AAS.";
+                    }
                 }
                 catch (OperationCanceledException oce)
                 {

@@ -6,6 +6,7 @@
         public const string DateIssued = "06/10/2024";
         public const string Version = "v1.1";
         public const string AAS = "Accounting Administration System (AAS)";
+        public const string Name = "IBS-RCD";
 
         #region Terms
 

@@ -3164,7 +3164,9 @@ namespace Accounting_System.Controllers
 
                 try
                 {
-                    using var package = new ExcelPackage(stream);
+                    if (file.FileName.Contains(CS.Name))
+                    {
+                        using var package = new ExcelPackage(stream);
                     var worksheet = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "CheckVoucherHeader");
 
                     var worksheet2 = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name == "CheckVoucherDetails");
@@ -4615,6 +4617,11 @@ namespace Accounting_System.Controllers
                     }
 
                     #endregion -- Check Voucher Details Import --
+                    }
+                    else
+                    {
+                        TempData["warning"] = "The Uploaded Excel file is not related to AAS.";
+                    }
                 }
                 catch (OperationCanceledException oce)
                 {

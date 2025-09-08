@@ -450,7 +450,9 @@ namespace Accounting_System.Controllers
 
                 try
                 {
-                    using var package = new ExcelPackage(stream);
+                    if (file.FileName.Contains(CS.Name))
+                    {
+                        using var package = new ExcelPackage(stream);
                     var worksheet = package.Workbook.Worksheets.FirstOrDefault();
                     if (worksheet == null)
                     {
@@ -526,6 +528,11 @@ namespace Accounting_System.Controllers
 
                     await _aasDbContext.SaveChangesAsync(cancellationToken);
                     await transaction.CommitAsync(cancellationToken);
+                    }
+                    else
+                    {
+                        TempData["warning"] = "The Uploaded Excel file is not related to AAS.";
+                    }
                 }
                 catch (OperationCanceledException oce)
                 {
