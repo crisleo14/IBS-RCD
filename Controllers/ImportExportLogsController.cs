@@ -1,6 +1,10 @@
+using System.Drawing;
 using Accounting_System.Data;
+using Accounting_System.Utility;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
 
 namespace Accounting_System.Controllers
 {
@@ -1075,5 +1079,93 @@ namespace Accounting_System.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+        #region -- save as excel sales invoice report --
+
+        public async Task<IActionResult> GenerateLogReport(CancellationToken cancellationToken)
+        {
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            try
+		    {
+                var extractedBy = User.Identity!.Name;
+                // Retrieve the selected invoices from the database
+                var importExportLogList = await _dbContext.ImportExportLogs
+                    .OrderBy(invoice => invoice.TimeStamp)
+                    .ToListAsync(cancellationToken: cancellationToken);
+
+                // Create the Excel package
+                using var package = new ExcelPackage();
+                // Add a new worksheet to the Excel package
+                var worksheet = package.Workbook.Worksheets.Add("Import/Export Log");
+
+                var mergedCells = worksheet.Cells["A1:C1"];
+                mergedCells.Merge = true;
+                    mergedCells.Value = "IMPORT/EXPORT LOG REPORT";
+                mergedCells.Style.Font.Size = 13;
+
+                worksheet.Cells["A2"].Value = "Extracted By:";
+                worksheet.Cells["A3"].Value = "Company:";
+
+                worksheet.Cells["B2"].Value = $"{extractedBy}";
+                worksheet.Cells["B3"].Value = "FILPRIDE";
+
+                worksheet.Cells["A7"].Value = "DOCUMENT RECORD ID";
+                worksheet.Cells["B7"].Value = "SERIES NUMBER";
+                worksheet.Cells["C7"].Value = "TABLE NAME";
+                worksheet.Cells["D7"].Value = "COLUMN NAME";
+                worksheet.Cells["E7"].Value = "ORIGINAL VALUE";
+                worksheet.Cells["F7"].Value = "ADJUSTED VALUE";
+                worksheet.Cells["G7"].Value = "TIME STAMP";
+                worksheet.Cells["H7"].Value = "UPLOADED BY";
+                worksheet.Cells["I7"].Value = "STATUS";
+
+                // Apply styling to the header row
+                using (var range = worksheet.Cells["A7:I7"])
+                {
+                    range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                    range.Style.Font.Bold = true;
+                    range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    range.Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+                    range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                    range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                    range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                    range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                }
+
+                int row = 8;
+
+                foreach (var item in importExportLogList)
+                {
+                    worksheet.Cells[row, 1].Value = item.DocumentRecordId;
+                    worksheet.Cells[row, 2].Value = item.DocumentNo;
+                    worksheet.Cells[row, 3].Value = item.TableName;
+                    worksheet.Cells[row, 4].Value = item.ColumnName;
+                    worksheet.Cells[row, 5].Value = item.OriginalValue;
+                    worksheet.Cells[row, 6].Value = item.AdjustedValue;
+                    worksheet.Cells[row, 7].Value = item.TimeStamp.ToString("MM/dd/yyyy HH:mm:ss tt");
+                    worksheet.Cells[row, 8].Value = item.UploadedBy;
+                    worksheet.Cells[row, 9].Value = item.Action;
+
+                    row++;
+                }
+
+                worksheet.Cells.AutoFitColumns();
+                worksheet.View.FreezePanes(8, 1);
+
+                // Convert the Excel package to a byte array
+                var excelBytes = await package.GetAsByteArrayAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"ImportExportLogReport_IBS-RCD_{DateTime.Now:yyyyddMMHHmmss}.xlsx");
+		    }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index), new { view = DynamicView.BankAccount });
+            }
+
+        }
+
+        #endregion
     }
 }
