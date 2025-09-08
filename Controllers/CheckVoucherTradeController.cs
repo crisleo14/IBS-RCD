@@ -3856,7 +3856,7 @@ namespace Accounting_System.Controllers
                     {
                         var checkVoucherHeader = new CheckVoucherHeader
                         {
-                            CheckVoucherHeaderNo = await _checkVoucherRepo.GenerateCVNo(cancellationToken),
+                            CheckVoucherHeaderNo = await _checkVoucherRepo.GenerateAasCvNo(cancellationToken),
                             Date = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly date)
                                 ? date
                                 : default,

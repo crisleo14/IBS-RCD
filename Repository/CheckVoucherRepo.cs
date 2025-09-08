@@ -9,9 +9,12 @@ namespace Accounting_System.Repository
     {
         private readonly ApplicationDbContext _dbContext;
 
-        public CheckVoucherRepo(ApplicationDbContext dbContext)
+        private readonly AasDbContext _aasDbContext;
+
+        public CheckVoucherRepo(ApplicationDbContext dbContext, AasDbContext aasDbContext)
         {
             _dbContext = dbContext;
+            _aasDbContext = aasDbContext;
         }
 
         public async Task<List<CheckVoucherHeader>> GetCheckVouchersAsync(CancellationToken cancellationToken = default)
@@ -24,6 +27,25 @@ namespace Accounting_System.Repository
         public async Task<string> GenerateCVNo(CancellationToken cancellationToken = default)
         {
             var checkVoucher = await _dbContext
+                .CheckVoucherHeaders
+                .OrderByDescending(s => s.CheckVoucherHeaderNo)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (checkVoucher != null)
+            {
+                string lastSeries = checkVoucher.CheckVoucherHeaderNo ?? throw new InvalidOperationException("CVNo is null pls Contact MIS Enterprise");
+                string numericPart = lastSeries.Substring(2);
+                int incrementedNumber = int.Parse(numericPart) + 1;
+
+                return lastSeries.Substring(0, 2) + incrementedNumber.ToString("D10");
+            }
+
+            return $"CV{1.ToString("D10")}";
+        }
+
+        public async Task<string> GenerateAasCvNo(CancellationToken cancellationToken = default)
+        {
+            var checkVoucher = await _aasDbContext
                 .CheckVoucherHeaders
                 .OrderByDescending(s => s.CheckVoucherHeaderNo)
                 .FirstOrDefaultAsync(cancellationToken);
