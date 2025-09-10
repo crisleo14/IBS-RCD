@@ -2942,6 +2942,62 @@ namespace Accounting_System.Controllers
                             continue;
                         }
 
+                        var crInSiChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                        var crInLogs = await _dbContext.ImportExportLogs
+                            .Where(x => x.DocumentNo == collectionReceipt.CollectionReceiptNo)
+                            .ToListAsync(cancellationToken);
+
+                        if (worksheet.Cells[row, 24].Text != string.Empty || worksheet.Cells[row, 26].Text != string.Empty)
+                        {
+                            var salesInvoiceNoArray = worksheet.Cells[row, 24].Text.Split(", ");
+                            var worksheetInvoiceAmountArray = worksheet.Cells[row, 26].Text.Split(' ');
+
+                            var max = Math.Min(salesInvoiceNoArray.Length, worksheetInvoiceAmountArray.Length);
+
+                            for (int i = 0; i < max; i++)
+                            {
+                                if (salesInvoiceNoArray[i] != string.Empty)
+                                {
+                                    var salesInvoiceNo = salesInvoiceNoArray[i];
+                                    var originalValue = worksheetInvoiceAmountArray[i];
+                                    var salesInvoice = await _dbContext.SalesInvoices.FirstOrDefaultAsync(x => x.OriginalSeriesNumber == salesInvoiceNo, cancellationToken);
+                                    var salesInvoiceAmount = salesInvoice?.Amount;
+                                    var adjustedValue = salesInvoiceAmount?.ToString("N2") ?? 0.ToString("N2");
+                                    var originalDecimal = decimal.TryParse(originalValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var result) ? result : 0m;
+
+                                    if (adjustedValue != originalValue && originalDecimal > salesInvoiceAmount)
+                                    {
+                                        var find  = crInLogs
+                                            .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                        if (!find.Any())
+                                        {
+                                            crInSiChanges[$"MultipleSalesInvoiceAmount({salesInvoice?.SalesInvoiceNo})"] = (originalValue, adjustedValue);
+                                        }
+                                    }
+                                }
+                            }
+                            await _receiptRepo.LogChangesAsync(collectionReceipt.OriginalDocumentId, crInSiChanges, _userManager.GetUserName(this.User), collectionReceipt.CollectionReceiptNo);
+                        }
+
+                        if (collectionReceipt.OriginalSalesInvoiceId != 0)
+                        {
+                            var originalValue = collectionReceipt.CashAmount != 0 ? collectionReceipt.CashAmount : collectionReceipt.CheckAmount != 0 ? collectionReceipt.CheckAmount : collectionReceipt.ManagerCheckAmount;
+                            var salesInvoice = await _dbContext.SalesInvoices.FirstOrDefaultAsync(x => x.OriginalDocumentId == collectionReceipt.OriginalSalesInvoiceId, cancellationToken);
+                            var salesInvoiceAmount = salesInvoice?.Amount;
+                            var adjustedValue = salesInvoiceAmount?.ToString("N2") ?? 0.ToString("N2");
+
+                            if (adjustedValue != originalValue.ToString("N2") && originalValue > salesInvoiceAmount)
+                            {
+                                var find  = crInLogs
+                                    .Where(x => x.OriginalValue == originalValue.ToString("N2") && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crInSiChanges[$"SingleSalesInvoiceAmount({salesInvoice?.SalesInvoiceNo})"] = (originalValue.ToString("N2"), adjustedValue);
+                                }
+                            }
+                            await _receiptRepo.LogChangesAsync(collectionReceipt.OriginalDocumentId, crInSiChanges, _userManager.GetUserName(this.User), collectionReceipt.CollectionReceiptNo);
+                        }
+
                         if (collectionReceiptList.Any(cr => cr.OriginalDocumentId == collectionReceipt.OriginalDocumentId))
                         {
                             var crChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
@@ -3010,7 +3066,8 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingCollectionReceipt.CheckDate != DateOnly.Parse(worksheet.Cells[row, 5].Text))
+                            var crCheckDate = worksheet.Cells[row, 5].Text != string.Empty ? DateOnly.Parse(worksheet.Cells[row, 5].Text) : default;
+                            if (existingCollectionReceipt.CheckDate != crCheckDate)
                             {
                                 var originalValue = existingCollectionReceipt.CheckDate!.ToString();
                                 var adjustedValue = worksheet.Cells[row, 5].Text;
@@ -3118,7 +3175,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingCollectionReceipt.ManagerCheckAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 14].Text).ToString("F2").TrimStart().TrimEnd())
+                            var crManagerCheckAmount = worksheet.Cells[row, 14].Text != string.Empty
+                                ? decimal.Parse(worksheet.Cells[row, 14].Text).ToString("F2").TrimStart().TrimEnd()
+                                : 0.ToString("F2");
+                            if (existingCollectionReceipt.ManagerCheckAmount.ToString("F2").TrimStart().TrimEnd() != crManagerCheckAmount)
                             {
                                 var originalValue = existingCollectionReceipt.ManagerCheckAmount.ToString("F2").TrimStart().TrimEnd();
                                 var adjustedValue = decimal.Parse(worksheet.Cells[row, 14].Text).ToString("F2").TrimStart().TrimEnd();

@@ -346,6 +346,52 @@ namespace Accounting_System.Controllers
                         {
                             existingCollectionReceipt.OriginalDocumentId = int.Parse(importRecord.AdjustedValue);
                         }
+                        if (columnName.Contains("SingleSalesInvoiceAmount"))
+                        {
+                            if (existingCollectionReceipt.CashAmount != 0)
+                            {
+                                existingCollectionReceipt.CashAmount = decimal.Parse(importRecord.AdjustedValue) - (existingCollectionReceipt.EWT + existingCollectionReceipt.WVAT);
+                            }
+                            if (existingCollectionReceipt.CheckAmount != 0)
+                            {
+                                existingCollectionReceipt.CheckAmount = decimal.Parse(importRecord.AdjustedValue) - (existingCollectionReceipt.EWT + existingCollectionReceipt.WVAT);
+                            }
+                            if (existingCollectionReceipt.ManagerCheckAmount != 0)
+                            {
+                                existingCollectionReceipt.ManagerCheckAmount = decimal.Parse(importRecord.AdjustedValue) - (existingCollectionReceipt.EWT + existingCollectionReceipt.WVAT);
+                            }
+                            existingCollectionReceipt.Total = decimal.Parse(importRecord.AdjustedValue);
+                        }
+                        if (columnName.Contains("MultipleSalesInvoiceAmount"))
+                        {
+                            int start = columnName.IndexOf('(') + 1;
+                            int end = columnName.IndexOf(')', start);
+                            string salesInvoiceNo = columnName.Substring(start, end - start);
+                            int index = Array.FindIndex(
+                                existingCollectionReceipt.MultipleSI,
+                                x => x != null && x.Contains(salesInvoiceNo, StringComparison.OrdinalIgnoreCase)
+                            );
+                            var MultipleSalesInvoiceAmount = existingCollectionReceipt.SIMultipleAmount[index];
+                            var ajustedValue = decimal.Parse(importRecord.AdjustedValue);
+                            var siMultipleAmount = MultipleSalesInvoiceAmount - ajustedValue;
+                            var totalAmount = existingCollectionReceipt.Total - siMultipleAmount;
+
+                            existingCollectionReceipt.SIMultipleAmount[index] = ajustedValue;
+                            existingCollectionReceipt.Total = totalAmount;
+
+                            if (existingCollectionReceipt.CashAmount != 0)
+                            {
+                                existingCollectionReceipt.CashAmount = totalAmount - (existingCollectionReceipt.EWT + existingCollectionReceipt.WVAT);
+                            }
+                            if (existingCollectionReceipt.CheckAmount != 0)
+                            {
+                                existingCollectionReceipt.CheckAmount = totalAmount - (existingCollectionReceipt.EWT + existingCollectionReceipt.WVAT);
+                            }
+                            if (existingCollectionReceipt.ManagerCheckAmount != 0)
+                            {
+                                existingCollectionReceipt.ManagerCheckAmount = totalAmount - (existingCollectionReceipt.EWT + existingCollectionReceipt.WVAT);
+                            }
+                        }
                     }
 
                 #endregion -- Collection Receipt --
