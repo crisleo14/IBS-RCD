@@ -1951,7 +1951,7 @@ namespace Accounting_System.Controllers
 
                             if (poChanges.Any())
                             {
-                                await _purchaseOrderRepo.LogChangesAsync(existingPo.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User), existingPo.PurchaseOrderNo);
+                                await _purchaseOrderRepo.LogChangesAsync(existingPo.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User), existingPo.PurchaseOrderNo, "IBS-RCD");
                             }
 
                             continue;
@@ -2305,7 +2305,7 @@ namespace Accounting_System.Controllers
 
                             if (rrChanges.Any())
                             {
-                                await _receivingReportRepo.LogChangesAsync(existingRr.OriginalDocumentId, rrChanges, _userManager.GetUserName(this.User), existingRr.ReceivingReportNo);
+                                await _receivingReportRepo.LogChangesAsync(existingRr.OriginalDocumentId, rrChanges, _userManager.GetUserName(this.User), existingRr.ReceivingReportNo, "IBS-RCD");
                             }
 
                             continue;
@@ -2547,9 +2547,9 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingCv.CheckDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != (worksheet.Cells[row, 9].Text.TrimStart().TrimEnd() == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd").TrimStart().TrimEnd() : worksheet.Cells[row, 9].Text.TrimStart().TrimEnd()))
+                            if ((existingCv.CheckDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() ?? DateOnly.MinValue.ToString("yyyy-MM-dd")) != (worksheet.Cells[row, 9].Text.TrimStart().TrimEnd() == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd").TrimStart().TrimEnd() : worksheet.Cells[row, 9].Text.TrimStart().TrimEnd()))
                             {
-                                var originalValue = existingCv.CheckDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var originalValue = existingCv.CheckDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() ?? DateOnly.MinValue.ToString("yyyy-MM-dd");
                                 var adjustedValue = worksheet.Cells[row, 9].Text.TrimStart().TrimEnd() == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd").TrimStart().TrimEnd() : worksheet.Cells[row, 9].Text.TrimStart().TrimEnd();
                                 var find  = existingCvInLogs
                                     .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
@@ -2559,9 +2559,9 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingCv.StartDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != (worksheet.Cells[row, 10].Text.TrimStart().TrimEnd() == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet.Cells[row, 10].Text).TrimStart().TrimEnd())
+                            if ((existingCv.StartDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() ?? DateOnly.MinValue.ToString("yyyy-MM-dd")) != (worksheet.Cells[row, 10].Text.TrimStart().TrimEnd() == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet.Cells[row, 10].Text).TrimStart().TrimEnd())
                             {
-                                var originalValue = existingCv.StartDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var originalValue = existingCv.StartDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() ?? DateOnly.MinValue.ToString("yyyy-MM-dd");
                                 var adjustedValue = worksheet.Cells[row, 10].Text.TrimStart().TrimEnd() == ""
                                     ? DateOnly.MinValue.ToString("yyyy-MM-dd")
                                     : worksheet.Cells[row, 10].Text.TrimStart().TrimEnd();
@@ -2573,9 +2573,9 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingCv.EndDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != (worksheet.Cells[row, 11].Text.TrimStart().TrimEnd() == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet.Cells[row, 11].Text.TrimStart().TrimEnd()))
+                            if ((existingCv.EndDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() ?? DateOnly.MinValue.ToString("yyyy-MM-dd")) != (worksheet.Cells[row, 11].Text.TrimStart().TrimEnd() == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet.Cells[row, 11].Text.TrimStart().TrimEnd()))
                             {
-                                var originalValue = existingCv.EndDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var originalValue = existingCv.EndDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() ?? DateOnly.MinValue.ToString("yyyy-MM-dd");
                                 var adjustedValue = worksheet.Cells[row, 11].Text.TrimStart().TrimEnd() == ""
                                     ? DateOnly.MinValue.ToString("yyyy-MM-dd").TrimStart().TrimEnd()
                                     : worksheet.Cells[row, 11].Text.TrimStart().TrimEnd();
@@ -2848,7 +2848,7 @@ namespace Accounting_System.Controllers
 
                             if (cvChanges.Any())
                             {
-                                await _checkVoucherRepo.LogChangesAsync(existingCv.OriginalDocumentId, cvChanges, _userManager.GetUserName(this.User), existingCv.CheckVoucherHeaderNo);
+                                await _checkVoucherRepo.LogChangesAsync(existingCv.OriginalDocumentId, cvChanges, _userManager.GetUserName(this.User), existingCv.CheckVoucherHeaderNo, "IBS-RCD");
                             }
 
                             continue;
@@ -3450,7 +3450,7 @@ namespace Accounting_System.Controllers
 
                             if (poChanges.Any())
                             {
-                                await _purchaseOrderRepo.LogChangesAsync(existingPo.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User), existingPo.PurchaseOrderNo);
+                                await _purchaseOrderRepo.LogChangesAsync(existingPo.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User), existingPo.PurchaseOrderNo, "AAS");
                             }
 
                             continue;
@@ -3804,7 +3804,7 @@ namespace Accounting_System.Controllers
 
                             if (rrChanges.Any())
                             {
-                                await _receivingReportRepo.LogChangesAsync(existingRr.OriginalDocumentId, rrChanges, _userManager.GetUserName(this.User), existingRr.ReceivingReportNo);
+                                await _receivingReportRepo.LogChangesAsync(existingRr.OriginalDocumentId, rrChanges, _userManager.GetUserName(this.User), existingRr.ReceivingReportNo, "AAS");
                             }
 
                             continue;
@@ -4046,9 +4046,9 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingCv.CheckDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != (worksheet.Cells[row, 9].Text.TrimStart().TrimEnd() == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd").TrimStart().TrimEnd() : worksheet.Cells[row, 9].Text.TrimStart().TrimEnd()))
+                            if ((existingCv.CheckDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() ?? DateOnly.MinValue.ToString("yyyy-MM-dd")) != (worksheet.Cells[row, 9].Text.TrimStart().TrimEnd() == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd").TrimStart().TrimEnd() : worksheet.Cells[row, 9].Text.TrimStart().TrimEnd()))
                             {
-                                var originalValue = existingCv.CheckDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var originalValue = existingCv.CheckDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() ?? DateOnly.MinValue.ToString("yyyy-MM-dd");
                                 var adjustedValue = worksheet.Cells[row, 9].Text.TrimStart().TrimEnd() == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd").TrimStart().TrimEnd() : worksheet.Cells[row, 9].Text.TrimStart().TrimEnd();
                                 var find  = existingCvInLogs
                                     .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
@@ -4058,9 +4058,9 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingCv.StartDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != (worksheet.Cells[row, 10].Text.TrimStart().TrimEnd() == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet.Cells[row, 10].Text).TrimStart().TrimEnd())
+                            if ((existingCv.StartDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() ?? DateOnly.MinValue.ToString("yyyy-MM-dd")) != (worksheet.Cells[row, 10].Text.TrimStart().TrimEnd() == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet.Cells[row, 10].Text).TrimStart().TrimEnd())
                             {
-                                var originalValue = existingCv.StartDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var originalValue = existingCv.StartDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() ?? DateOnly.MinValue.ToString("yyyy-MM-dd");
                                 var adjustedValue = worksheet.Cells[row, 10].Text.TrimStart().TrimEnd() == ""
                                     ? DateOnly.MinValue.ToString("yyyy-MM-dd")
                                     : worksheet.Cells[row, 10].Text.TrimStart().TrimEnd();
@@ -4072,9 +4072,9 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingCv.EndDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != (worksheet.Cells[row, 11].Text.TrimStart().TrimEnd() == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet.Cells[row, 11].Text.TrimStart().TrimEnd()))
+                            if ((existingCv.EndDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() ?? DateOnly.MinValue.ToString("yyyy-MM-dd")) != (worksheet.Cells[row, 11].Text.TrimStart().TrimEnd() == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd") : worksheet.Cells[row, 11].Text.TrimStart().TrimEnd()))
                             {
-                                var originalValue = existingCv.EndDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
+                                var originalValue = existingCv.EndDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() ?? DateOnly.MinValue.ToString("yyyy-MM-dd");
                                 var adjustedValue = worksheet.Cells[row, 11].Text.TrimStart().TrimEnd() == ""
                                     ? DateOnly.MinValue.ToString("yyyy-MM-dd").TrimStart().TrimEnd()
                                     : worksheet.Cells[row, 11].Text.TrimStart().TrimEnd();
@@ -4347,7 +4347,7 @@ namespace Accounting_System.Controllers
 
                             if (cvChanges.Any())
                             {
-                                await _checkVoucherRepo.LogChangesAsync(existingCv.OriginalDocumentId, cvChanges, _userManager.GetUserName(this.User), existingCv.CheckVoucherHeaderNo);
+                                await _checkVoucherRepo.LogChangesAsync(existingCv.OriginalDocumentId, cvChanges, _userManager.GetUserName(this.User), existingCv.CheckVoucherHeaderNo, "AAS");
                             }
 
                             continue;

@@ -42,7 +42,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy, string seriesNumber)
+        public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy, string seriesNumber, string databaseName)
         {
             foreach (var change in changes)
             {
@@ -58,7 +58,8 @@ namespace Accounting_System.Repository
                     TimeStamp = DateTime.Now,
                     UploadedBy = modifiedBy,
                     Action = string.Empty,
-                    Executed = false
+                    Executed = false,
+                    DatabaseName = databaseName
                 };
                 await _dbContext.AddAsync(logReport);
             }

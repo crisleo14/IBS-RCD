@@ -46,5 +46,8 @@ namespace Accounting_System.Models
 
         [StringLength(13)]
         public string DocumentNo { get; set; } = string.Empty;
+
+        [StringLength(10)]
+        public string DatabaseName { get; set; } = string.Empty;
     }
 }
