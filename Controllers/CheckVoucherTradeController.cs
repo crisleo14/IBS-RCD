@@ -640,7 +640,9 @@ namespace Accounting_System.Controllers
                 {
                     #region --CV Details Entry
 
-                    var existingDetailsModel = await _dbContext.CheckVoucherDetails.Where(d => d.CheckVoucherHeaderId == existingHeaderModel!.CheckVoucherHeaderId).ToListAsync(cancellationToken: cancellationToken);
+                    var existingDetailsModel = await _dbContext.CheckVoucherDetails
+                        .Where(d => d.CheckVoucherHeaderId == existingHeaderModel!.CheckVoucherHeaderId)
+                        .ToListAsync(cancellationToken: cancellationToken);
 
                     _dbContext.RemoveRange(existingDetailsModel);
                     await _dbContext.SaveChangesAsync(cancellationToken);
@@ -651,6 +653,8 @@ namespace Accounting_System.Controllers
                     for (int i = 0; i < viewModel.AccountTitle.Length; i++)
                     {
                         cashInBank = viewModel.Credit[1];
+                        var getOriginalDocumentId =
+                            existingDetailsModel.FirstOrDefault(x => x.AccountName == viewModel.AccountTitle[i]);
 
                         details.Add(new CheckVoucherDetail
                         {
@@ -660,7 +664,8 @@ namespace Accounting_System.Controllers
                             Credit = viewModel.Credit[i],
                             TransactionNo = existingHeaderModel!.CheckVoucherHeaderNo!,
                             CheckVoucherHeaderId = viewModel.CVId,
-                            SupplierId = i == 0 ? viewModel.SupplierId : null
+                            SupplierId = i == 0 ? viewModel.SupplierId : null,
+                            OriginalDocumentId = getOriginalDocumentId!.OriginalDocumentId
                         });
                     }
 
