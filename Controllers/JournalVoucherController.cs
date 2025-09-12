@@ -2868,9 +2868,9 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingJournalVoucher.References!.TrimStart().TrimEnd() != worksheet.Cells[row, 2].Text.TrimStart().TrimEnd())
+                            if ((existingJournalVoucher.References?.TrimStart().TrimEnd() ?? string.Empty) != worksheet.Cells[row, 2].Text.TrimStart().TrimEnd())
                             {
-                                var originalValue = existingJournalVoucher.References.TrimStart().TrimEnd();
+                                var originalValue = existingJournalVoucher.References?.TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 2].Text.TrimStart().TrimEnd();
                                 var find  = existingJvInLogs
                                     .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
@@ -2892,9 +2892,9 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingJournalVoucher.CRNo!.TrimStart().TrimEnd() != worksheet.Cells[row, 4].Text.TrimStart().TrimEnd())
+                            if ((existingJournalVoucher.CRNo?.TrimStart().TrimEnd() ?? string.Empty) != worksheet.Cells[row, 4].Text.TrimStart().TrimEnd())
                             {
-                                var originalValue = existingJournalVoucher.CRNo.TrimStart().TrimEnd();
+                                var originalValue = existingJournalVoucher.CRNo?.TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 4].Text.TrimStart().TrimEnd();
                                 var find  = existingJvInLogs
                                     .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
