@@ -86,7 +86,7 @@ namespace Accounting_System.Repository
         {
             foreach (var change in changes)
             {
-                var logReport = new ImportExportLog()
+                var logReport = new ImportExportLog
                 {
                     Id = Guid.NewGuid(),
                     TableName = "CheckVoucherHeader",
@@ -99,7 +99,8 @@ namespace Accounting_System.Repository
                     UploadedBy = modifiedBy,
                     Action = string.Empty,
                     Executed = false,
-                    DatabaseName = databaseName
+                    DatabaseName = databaseName,
+                    DocumentNo = seriesNumber
                 };
                 await _dbContext.AddAsync(logReport);
             }
