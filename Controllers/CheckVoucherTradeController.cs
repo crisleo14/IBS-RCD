@@ -4558,7 +4558,7 @@ namespace Accounting_System.Controllers
                                 .Include(cvd => cvd.CheckVoucherHeader)
                                 .FirstOrDefaultAsync(cvd => cvd.OriginalDocumentId == checkVoucherDetails.OriginalDocumentId, cancellationToken);
                             var existingCvdInLogs = await _dbContext.ImportExportLogs
-                                .Where(x => x.DocumentRecordId == existingCvd.CheckVoucherDetailId)
+                                .Where(x => x.DocumentRecordId == existingCvd.OriginalDocumentId)
                                 .ToListAsync(cancellationToken);
 
                             if (existingCvd != null)
