@@ -2504,10 +2504,20 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingCv.Particulars!.TrimStart().TrimEnd() != worksheet.Cells[row, 5].Text.TrimStart().TrimEnd())
+                            var trimmedParticulars = existingCv.Particulars!.Trim().ReplaceLineEndings(" ");
+                            var parts = trimmedParticulars.Split(" Payment for");
+                            var particulars = parts.Length > 1
+                                ? parts[0].Trim()
+                                : trimmedParticulars;
+                            var trimmedExcelParticulars = worksheet.Cells[row, 5].Text.Trim().ReplaceLineEndings(" ");
+                            var split = trimmedExcelParticulars.Split(" Payment for");
+                            var excelParticulars = split.Length > 1
+                                ? split[0].Trim()
+                                : trimmedExcelParticulars;
+                            if (particulars != excelParticulars)
                             {
-                                var originalValue = existingCv.Particulars.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 5].Text.TrimStart().TrimEnd();
+                                var originalValue = particulars;
+                                var adjustedValue = excelParticulars;
                                 var find  = existingCvInLogs
                                     .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
