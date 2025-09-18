@@ -1176,6 +1176,18 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
+                            if (existingRr.PurchaseOrder?.OriginalDocumentId.ToString().Trim() != worksheet.Cells[row, 20].Text.Trim())
+                            {
+                                var originalValue = existingRr.PurchaseOrder?.OriginalDocumentId.ToString().Trim();
+                                var adjustedValue = worksheet.Cells[row, 20].Text.TrimStart().TrimEnd();
+                                var find  = existingRrInLogs
+                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    rrChanges["SuppliersPoId"] = (originalValue, adjustedValue);
+                                }
+                            }
+
                             if (existingRr.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 2].Text.TrimStart().TrimEnd())
                             {
                                 var originalValue = existingRr.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
