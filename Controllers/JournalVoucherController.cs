@@ -2230,7 +2230,7 @@ namespace Accounting_System.Controllers
                             var particulars = parts.Length > 1
                                 ? parts[0].Trim()
                                 : trimmedParticulars;
-                            var trimmedExcelParticulars = worksheet.Cells[row, 5].Text.Trim().ReplaceLineEndings(" ");
+                            var trimmedExcelParticulars = worksheet5.Cells[row, 5].Text.Trim().ReplaceLineEndings(" ");
                             var split = trimmedExcelParticulars.Split(" Payment for");
                             var excelParticulars = split.Length > 1
                                 ? split[0].Trim()
@@ -4056,7 +4056,7 @@ namespace Accounting_System.Controllers
                             var particulars = parts.Length > 1
                                 ? parts[0].Trim()
                                 : trimmedParticulars;
-                            var trimmedExcelParticulars = worksheet.Cells[row, 5].Text.Trim().ReplaceLineEndings(" ");
+                            var trimmedExcelParticulars = worksheet5.Cells[row, 5].Text.Trim().ReplaceLineEndings(" ");
                             var split = trimmedExcelParticulars.Split(" Payment for");
                             var excelParticulars = split.Length > 1
                                 ? split[0].Trim()
