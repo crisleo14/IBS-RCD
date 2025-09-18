@@ -2225,10 +2225,20 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingCv.Particulars!.TrimStart().TrimEnd() != worksheet5.Cells[row, 5].Text.TrimStart().TrimEnd())
+                            var trimmedParticulars = existingCv.Particulars!.Trim().ReplaceLineEndings(" ");
+                            var parts = trimmedParticulars.Split(" Payment for");
+                            var particulars = parts.Length > 1
+                                ? parts[0].Trim()
+                                : trimmedParticulars;
+                            var trimmedExcelParticulars = worksheet.Cells[row, 5].Text.Trim().ReplaceLineEndings(" ");
+                            var split = trimmedExcelParticulars.Split(" Payment for");
+                            var excelParticulars = split.Length > 1
+                                ? split[0].Trim()
+                                : trimmedExcelParticulars;
+                            if (particulars != excelParticulars)
                             {
-                                var originalValue = existingCv.Particulars.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet5.Cells[row, 5].Text.TrimStart().TrimEnd();
+                                var originalValue = particulars;
+                                var adjustedValue = excelParticulars;
                                 var find  = existingCvInLogs
                                     .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -2728,7 +2738,7 @@ namespace Accounting_System.Controllers
                                 .Include(cvd => cvd.CheckVoucherHeader)
                                 .FirstOrDefaultAsync(cvd => cvd.OriginalDocumentId == checkVoucherDetails.OriginalDocumentId, cancellationToken);
                             var existingCvdInLogs = await _dbContext.ImportExportLogs
-                                .Where(x => x.DocumentRecordId == existingCvd.CheckVoucherDetailId)
+                                .Where(x => x.DocumentRecordId == existingCvd.OriginalDocumentId)
                                 .ToListAsync(cancellationToken);
 
                             if (existingCvd != null)
@@ -3066,7 +3076,7 @@ namespace Accounting_System.Controllers
                                     .Include(cvd => cvd.JournalVoucherHeader)
                                     .FirstOrDefaultAsync(cvd => cvd.OriginalDocumentId == journalVoucherDetails.OriginalDocumentId, cancellationToken);
                                 var existingJvdInLogs = await _dbContext.ImportExportLogs
-                                    .Where(x => x.DocumentRecordId == existingJournalVoucherDetails.JournalVoucherDetailId)
+                                    .Where(x => x.DocumentRecordId == existingJournalVoucherDetails.OriginalDocumentId)
                                     .ToListAsync(cancellationToken);
 
                                 if (existingJournalVoucherDetails != null)

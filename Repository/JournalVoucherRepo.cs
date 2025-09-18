@@ -59,7 +59,8 @@ namespace Accounting_System.Repository
                     UploadedBy = modifiedBy,
                     Action = string.Empty,
                     Executed = false,
-                    DatabaseName = databaseName
+                    DatabaseName = databaseName,
+                    DocumentNo = seriesNumber
                 };
                 await _dbContext.AddAsync(logReport);
             }
