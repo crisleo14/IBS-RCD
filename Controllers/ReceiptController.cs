@@ -3103,9 +3103,9 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingCollectionReceipt.CheckBranch!.TrimStart().TrimEnd() != worksheet.Cells[row, 8].Text.TrimStart().TrimEnd())
+                            if ((existingCollectionReceipt.CheckBranch?.TrimStart().TrimEnd() ?? string.Empty) != worksheet.Cells[row, 8].Text.TrimStart().TrimEnd())
                             {
-                                var originalValue = existingCollectionReceipt.CheckBranch.TrimStart().TrimEnd();
+                                var originalValue = existingCollectionReceipt.CheckBranch?.TrimStart().TrimEnd() ?? string.Empty;
                                 var adjustedValue = worksheet.Cells[row, 8].Text.TrimStart().TrimEnd();
                                 var find  = existingCrInLogs
                                     .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
@@ -4401,9 +4401,9 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingCollectionReceipt.CheckBranch!.TrimStart().TrimEnd() != worksheet.Cells[row, 8].Text.TrimStart().TrimEnd())
+                            if ((existingCollectionReceipt.CheckBranch?.TrimStart().TrimEnd() ?? string.Empty) != worksheet.Cells[row, 8].Text.TrimStart().TrimEnd())
                             {
-                                var originalValue = existingCollectionReceipt.CheckBranch.TrimStart().TrimEnd();
+                                var originalValue = existingCollectionReceipt.CheckBranch?.TrimStart().TrimEnd() ?? string.Empty;
                                 var adjustedValue = worksheet.Cells[row, 8].Text.TrimStart().TrimEnd();
                                 var find  = existingCrInLogs
                                     .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
