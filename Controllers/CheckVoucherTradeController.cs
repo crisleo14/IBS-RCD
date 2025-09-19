@@ -3116,7 +3116,7 @@ namespace Accounting_System.Controllers
 
                                 if (cvdChanges.Any())
                                 {
-                                    await _checkVoucherRepo.LogChangesForCVDAsync(existingCvd.OriginalDocumentId, cvdChanges, _userManager.GetUserName(this.User), existingCvd.TransactionNo);
+                                    await _checkVoucherRepo.LogChangesForCVDAsync(existingCvd.OriginalDocumentId, cvdChanges, _userManager.GetUserName(this.User), existingCvd.TransactionNo, "IBS-RCD");
                                 }
                             }
                         }
@@ -4625,7 +4625,7 @@ namespace Accounting_System.Controllers
 
                                 if (cvdChanges.Any())
                                 {
-                                    await _checkVoucherRepo.LogChangesForCVDAsync(existingCvd.OriginalDocumentId, cvdChanges, _userManager.GetUserName(this.User), existingCvd.TransactionNo);
+                                    await _checkVoucherRepo.LogChangesForCVDAsync(existingCvd.OriginalDocumentId, cvdChanges, _userManager.GetUserName(this.User), existingCvd.TransactionNo, "AAS");
                                 }
                             }
                         }

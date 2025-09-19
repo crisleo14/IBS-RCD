@@ -66,7 +66,7 @@ namespace Accounting_System.Repository
             }
         }
 
-        public async Task LogChangesForJVDAsync(int? id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy, string seriesNumber)
+        public async Task LogChangesForJVDAsync(int? id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy, string seriesNumber, string databaseName)
         {
             foreach (var change in changes)
             {
@@ -83,6 +83,7 @@ namespace Accounting_System.Repository
                     UploadedBy = modifiedBy,
                     Action = string.Empty,
                     Executed = false,
+                    DatabaseName = databaseName,
                     DocumentNo = seriesNumber
                 };
                 await _dbContext.AddAsync(logReport);
