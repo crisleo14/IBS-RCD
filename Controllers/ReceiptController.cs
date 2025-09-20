@@ -4297,6 +4297,62 @@ namespace Accounting_System.Controllers
                             continue;
                         }
 
+                        var crInSiChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
+                        var crInLogs = await _dbContext.ImportExportLogs
+                            .Where(x => x.DocumentNo == collectionReceipt.CollectionReceiptNo)
+                            .ToListAsync(cancellationToken);
+
+                        if (worksheet.Cells[row, 24].Text != string.Empty || worksheet.Cells[row, 26].Text != string.Empty)
+                        {
+                            var salesInvoiceNoArray = worksheet.Cells[row, 24].Text.Split(", ");
+                            var worksheetInvoiceAmountArray = worksheet.Cells[row, 26].Text.Split(' ');
+
+                            var max = Math.Min(salesInvoiceNoArray.Length, worksheetInvoiceAmountArray.Length);
+
+                            for (int i = 0; i < max; i++)
+                            {
+                                if (salesInvoiceNoArray[i] != string.Empty)
+                                {
+                                    var salesInvoiceNo = salesInvoiceNoArray[i];
+                                    var originalValue = worksheetInvoiceAmountArray[i];
+                                    var salesInvoice = await _aasDbContext.SalesInvoices.FirstOrDefaultAsync(x => x.OriginalSeriesNumber == salesInvoiceNo, cancellationToken);
+                                    var salesInvoiceAmount = salesInvoice?.Amount;
+                                    var adjustedValue = salesInvoiceAmount?.ToString("N2") ?? 0.ToString("N2");
+                                    var originalDecimal = decimal.TryParse(originalValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var result) ? result : 0m;
+
+                                    if (adjustedValue != originalValue && originalDecimal > salesInvoiceAmount)
+                                    {
+                                        var find  = crInLogs
+                                            .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                        if (!find.Any())
+                                        {
+                                            crInSiChanges[$"MultipleSalesInvoiceAmount({salesInvoice?.SalesInvoiceNo})"] = (originalValue, adjustedValue);
+                                        }
+                                    }
+                                }
+                            }
+                            await _receiptRepo.LogChangesAsync(collectionReceipt.OriginalDocumentId, crInSiChanges, _userManager.GetUserName(this.User), collectionReceipt.CollectionReceiptNo, "AAS");
+                        }
+
+                        if (collectionReceipt.OriginalSalesInvoiceId != 0)
+                        {
+                            var originalValue = collectionReceipt.CashAmount != 0 ? collectionReceipt.CashAmount : collectionReceipt.CheckAmount != 0 ? collectionReceipt.CheckAmount : collectionReceipt.ManagerCheckAmount;
+                            var salesInvoice = await _aasDbContext.SalesInvoices.FirstOrDefaultAsync(x => x.OriginalDocumentId == collectionReceipt.OriginalSalesInvoiceId, cancellationToken);
+                            var salesInvoiceAmount = salesInvoice?.Amount;
+                            var adjustedValue = salesInvoiceAmount?.ToString("N2") ?? 0.ToString("N2");
+
+                            if (adjustedValue != originalValue.ToString("N2") && originalValue > salesInvoiceAmount)
+                            {
+                                var find  = crInLogs
+                                    .Where(x => x.OriginalValue == originalValue.ToString("N2") && x.AdjustedValue == adjustedValue);
+                                if (!find.Any())
+                                {
+                                    crInSiChanges[$"SingleSalesInvoiceAmount({salesInvoice?.SalesInvoiceNo})"] = (originalValue.ToString("N2"), adjustedValue);
+                                }
+                            }
+                            await _receiptRepo.LogChangesAsync(collectionReceipt.OriginalDocumentId, crInSiChanges, _userManager.GetUserName(this.User), collectionReceipt.CollectionReceiptNo, "AAS");
+                        }
+
                         if (collectionReceiptList.Any(cr => cr.OriginalDocumentId == collectionReceipt.OriginalDocumentId))
                         {
                             var crChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
