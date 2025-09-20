@@ -1514,6 +1514,7 @@ namespace Accounting_System.Controllers
                         await _aasDbContext.ServiceInvoices.AddAsync(serviceInvoice, cancellationToken);
                     }
                     await _aasDbContext.SaveChangesAsync(cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     await transaction.CommitAsync(cancellationToken);
 
                     var checkChangesOfRecord = await _dbContext.ImportExportLogs

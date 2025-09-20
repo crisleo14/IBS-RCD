@@ -2186,6 +2186,7 @@ namespace Accounting_System.Controllers
                 #endregion -- Journal Voucher Details --
 
                 #endregion -- Accounts Payable --
+                await _aasDbContext.SaveChangesAsync(cancellationToken);
             }
 
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);

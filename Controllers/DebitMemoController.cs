@@ -2730,6 +2730,7 @@ namespace Accounting_System.Controllers
                     }
 
                     await _aasDbContext.SaveChangesAsync(cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
 
                     #endregion -- Sales Invoice Import --
 
@@ -3030,6 +3031,7 @@ namespace Accounting_System.Controllers
                         await _aasDbContext.ServiceInvoices.AddAsync(serviceInvoice, cancellationToken);
                     }
                     await _aasDbContext.SaveChangesAsync(cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
 
                     #endregion -- Service Invoice Import --
 
@@ -3422,6 +3424,7 @@ namespace Accounting_System.Controllers
                         await _aasDbContext.DebitMemos.AddAsync(debitMemo, cancellationToken);
                     }
                     await _aasDbContext.SaveChangesAsync(cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     await transaction.CommitAsync(cancellationToken);
 
                     var checkChangesOfRecord = await _dbContext.ImportExportLogs

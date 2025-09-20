@@ -3524,6 +3524,7 @@ namespace Accounting_System.Controllers
                     }
 
                     await _aasDbContext.SaveChangesAsync(cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
 
                     #endregion -- Purchase Order Import --
 
@@ -3856,6 +3857,7 @@ namespace Accounting_System.Controllers
                     }
 
                     await _aasDbContext.SaveChangesAsync(cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
 
                     #endregion -- Receiving Report Import --
 
@@ -4426,6 +4428,7 @@ namespace Accounting_System.Controllers
 
                         await _aasDbContext.CheckVoucherHeaders.AddAsync(checkVoucherHeader, cancellationToken);
                         await _aasDbContext.SaveChangesAsync(cancellationToken);
+                        await _dbContext.SaveChangesAsync(cancellationToken);
                     }
 
                     #endregion -- Check Voucher Header Import --
@@ -4459,6 +4462,7 @@ namespace Accounting_System.Controllers
                     }
 
                     await _aasDbContext.SaveChangesAsync(cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
 
                     #endregion -- Check Voucher Trade Payment Import --
 
@@ -4503,6 +4507,7 @@ namespace Accounting_System.Controllers
                     }
 
                     await _aasDbContext.SaveChangesAsync(cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
 
                     #endregion -- Check Voucher Multiple Payment Import --
 
@@ -4632,6 +4637,7 @@ namespace Accounting_System.Controllers
                     }
 
                     await _aasDbContext.SaveChangesAsync(cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     await transaction.CommitAsync(cancellationToken);
 
                     var checkChangesOfRecord = await _dbContext.ImportExportLogs
