@@ -4421,7 +4421,8 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingCollectionReceipt.CheckDate != DateOnly.Parse(worksheet.Cells[row, 5].Text ?? default))
+                            var crCheckDate = worksheet.Cells[row, 5].Text != string.Empty ? DateOnly.Parse(worksheet.Cells[row, 5].Text) : default;
+                            if (existingCollectionReceipt.CheckDate != crCheckDate)
                             {
                                 var originalValue = existingCollectionReceipt.CheckDate!.ToString();
                                 var adjustedValue = worksheet.Cells[row, 5].Text;
@@ -4529,7 +4530,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingCollectionReceipt.ManagerCheckAmount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 14].Text).ToString("F2").TrimStart().TrimEnd())
+                            var crManagerCheckAmount = worksheet.Cells[row, 14].Text != string.Empty
+                                ? decimal.Parse(worksheet.Cells[row, 14].Text).ToString("F2").TrimStart().TrimEnd()
+                                : 0.ToString("F2");
+                            if (existingCollectionReceipt.ManagerCheckAmount.ToString("F2").TrimStart().TrimEnd() != crManagerCheckAmount)
                             {
                                 var originalValue = existingCollectionReceipt.ManagerCheckAmount.ToString("F2").TrimStart().TrimEnd();
                                 var adjustedValue = decimal.Parse(worksheet.Cells[row, 14].Text).ToString("F2").TrimStart().TrimEnd();
