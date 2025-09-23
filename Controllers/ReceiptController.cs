@@ -2898,6 +2898,10 @@ namespace Accounting_System.Controllers
 
                     for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                     {
+                        if(!worksheet.Cells[row, 25].Text.IsNullOrEmpty() && worksheet.Cells[row, 26].Text.IsNullOrEmpty())
+                        {
+                            continue;
+                        }
                         var collectionReceipt = new CollectionReceipt
                         {
                             CollectionReceiptNo = worksheet.Cells[row, 30].Text,
@@ -4255,6 +4259,10 @@ namespace Accounting_System.Controllers
 
                     for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                     {
+                        if(!worksheet.Cells[row, 25].Text.IsNullOrEmpty() && worksheet.Cells[row, 26].Text.IsNullOrEmpty())
+                        {
+                            continue;
+                        }
                         var collectionReceipt = new CollectionReceipt
                         {
                             CollectionReceiptNo = worksheet.Cells[row, 30].Text,
