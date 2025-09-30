@@ -828,7 +828,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.PurchaseOrderNo.TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 16].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "PONo" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["PONo"] = (originalValue, adjustedValue);
@@ -840,7 +840,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 1].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "Date" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["Date"] = (originalValue, adjustedValue);
@@ -852,7 +852,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.Terms.TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 2].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "Terms" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["Terms"] = (originalValue, adjustedValue);
@@ -864,7 +864,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.Quantity.ToString("F2").TrimStart().TrimEnd();
                                 var adjustedValue = decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "Quantity" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["Quantity"] = (originalValue, adjustedValue);
@@ -876,7 +876,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.Price.ToString("F2").TrimStart().TrimEnd();
                                 var adjustedValue = decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "Price" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["Price"] = (originalValue, adjustedValue);
@@ -888,7 +888,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.Amount.ToString("F2").TrimStart().TrimEnd();
                                 var adjustedValue = decimal.Parse(worksheet.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "Amount" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["Amount"] = (originalValue, adjustedValue);
@@ -900,7 +900,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.FinalPrice?.ToString("F2").TrimStart().TrimEnd();
                                 var adjustedValue = decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "FinalPrice" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["FinalPrice"] = (originalValue, adjustedValue)!;
@@ -912,7 +912,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.Remarks.TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 10].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "Remarks" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["Remarks"] = (originalValue, adjustedValue);
@@ -924,7 +924,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.CreatedBy.TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 11].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "CreatedBy" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["CreatedBy"] = (originalValue, adjustedValue);
@@ -936,7 +936,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 12].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "CreatedDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["CreatedDate"] = (originalValue, adjustedValue);
@@ -948,7 +948,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.IsClosed.ToString().ToUpper().TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 13].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "IsClosed" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["IsClosed"] = (originalValue, adjustedValue);
@@ -960,7 +960,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.CancellationRemarks?.TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 14].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "CancellationRemarks" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["CancellationRemarks"] = (originalValue, adjustedValue)!;
@@ -974,7 +974,7 @@ namespace Accounting_System.Controllers
                                     ? 0.ToString()
                                     : worksheet.Cells[row, 15].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "OriginalProductId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["OriginalProductId"] = (originalValue, adjustedValue);
@@ -986,7 +986,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.OriginalSeriesNumber.TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 16].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "OriginalSeriesNumber" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["OriginalSeriesNumber"] = (originalValue, adjustedValue);
@@ -1000,7 +1000,7 @@ namespace Accounting_System.Controllers
                                     ? 0.ToString()
                                     : worksheet.Cells[row, 17].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "SupplierId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["SupplierId"] = (originalValue, adjustedValue);
@@ -1014,7 +1014,7 @@ namespace Accounting_System.Controllers
                                     ? 0.ToString()
                                     : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "OriginalDocumentId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["OriginalDocumentId"] = (originalValue, adjustedValue);
@@ -1201,7 +1201,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.PurchaseOrderNo.TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 16].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "PONo" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["PONo"] = (originalValue, adjustedValue);
@@ -1213,7 +1213,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 1].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "Date" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["Date"] = (originalValue, adjustedValue);
@@ -1225,7 +1225,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.Terms.TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 2].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "Terms" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["Terms"] = (originalValue, adjustedValue);
@@ -1237,7 +1237,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.Quantity.ToString("F2").TrimStart().TrimEnd();
                                 var adjustedValue = decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "Quantity" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["Quantity"] = (originalValue, adjustedValue);
@@ -1249,7 +1249,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.Price.ToString("F2").TrimStart().TrimEnd();
                                 var adjustedValue = decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "Price" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["Price"] = (originalValue, adjustedValue);
@@ -1261,7 +1261,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.Amount.ToString("F2").TrimStart().TrimEnd();
                                 var adjustedValue = decimal.Parse(worksheet.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "Amount" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["Amount"] = (originalValue, adjustedValue);
@@ -1273,7 +1273,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.FinalPrice?.ToString("F2").TrimStart().TrimEnd();
                                 var adjustedValue = decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "FinalPrice" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["FinalPrice"] = (originalValue, adjustedValue)!;
@@ -1285,7 +1285,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.Remarks.TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 10].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "Remarks" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["Remarks"] = (originalValue, adjustedValue);
@@ -1297,7 +1297,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.CreatedBy.TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 11].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "CreatedBy" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["CreatedBy"] = (originalValue, adjustedValue);
@@ -1309,7 +1309,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 12].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "CreatedDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["CreatedDate"] = (originalValue, adjustedValue);
@@ -1321,7 +1321,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.IsClosed.ToString().ToUpper().TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 13].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "IsClosed" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["IsClosed"] = (originalValue, adjustedValue);
@@ -1333,7 +1333,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.CancellationRemarks?.TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 14].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "CancellationRemarks" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["CancellationRemarks"] = (originalValue, adjustedValue)!;
@@ -1347,7 +1347,7 @@ namespace Accounting_System.Controllers
                                     ? 0.ToString()
                                     : worksheet.Cells[row, 15].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "OriginalProductId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["OriginalProductId"] = (originalValue, adjustedValue);
@@ -1359,7 +1359,7 @@ namespace Accounting_System.Controllers
                                 var originalValue = existingPo.OriginalSeriesNumber.TrimStart().TrimEnd();
                                 var adjustedValue = worksheet.Cells[row, 16].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "OriginalSeriesNumber" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["OriginalSeriesNumber"] = (originalValue, adjustedValue);
@@ -1373,7 +1373,7 @@ namespace Accounting_System.Controllers
                                     ? 0.ToString()
                                     : worksheet.Cells[row, 17].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "SupplierId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["SupplierId"] = (originalValue, adjustedValue);
@@ -1387,7 +1387,7 @@ namespace Accounting_System.Controllers
                                     ? 0.ToString()
                                     : worksheet.Cells[row, 18].Text.TrimStart().TrimEnd();
                                 var find  = existingPoInLogs
-                                    .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
+                                    .Where(x => x.ColumnName == "OriginalDocumentId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
                                 {
                                     poChanges["OriginalDocumentId"] = (originalValue, adjustedValue);
