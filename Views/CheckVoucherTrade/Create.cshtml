@@ -50,8 +50,8 @@
                             </tr>
                             <tr>
                                 <th><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
+                                <th>PO No's</th>
                                 <th>RR No's</th>
-                                <th>Payment</th>
                                 <th class="text-end">Amount</th>
                                 <th class="text-end">Amount Paid</th>
                                 <th class="text-end">Balance</th>
@@ -247,8 +247,9 @@
         });
 
         $(".GetRRList").change(function () {
-            let poNumber = $(this).val(); // Get all selected POIds
-            displayRecords(poNumber)
+            var poNumber = $(this).val(); // Get all selected POIds
+            displayRecords(poNumber);
+            displayAdvances(poNumber);
         });
 
         function displayRecords(poNumber) {
@@ -262,43 +263,63 @@
                     let totalGross = 0;
                     let totalAmountPaid = 0;
                     let totalBalance = 0;
+                    let subTotalGross = 0;
 
                     tbody.empty();
 
-                    if (data){
-                        data.forEach((rr) => {
-                            let balance = parseNumber(rr.netOfEwtAmount) - parseNumber(rr.amountPaid);
+                    if (data) {
+                        let currentPO = null;
+
+                        data.forEach((rr, index) => {
+                            currentPO = rr.purchaseOrderNo;
+
                             const tr = $(`
-                                        <tr>
-                                            <td><input type="checkbox" value="${rr.id}" class="selectCheckbox"></td>
-                                            <td>${rr.receivingReportNo}</td>
-                                            <td><input type="text" class="paymentAmount" readonly style="display: none"></td>
-                                            <td class="text-end">${formatNumber(rr.netOfEwtAmount)}</td>
-                                            <td class="text-end">${formatNumber(rr.amountPaid)}</td>
-                                            <td class="text-end balance">${formatNumber(balance)}</td>
-                                        </tr>
-                                    `);
+                                <tr data-po="${rr.purchaseOrderNo}">
+                                    <td><input type="checkbox" value="${rr.id}" class="selectCheckbox"></td>
+                                    <td>${rr.purchaseOrderNo}</td>
+                                    <td>${rr.receivingReportNo}</td>
+                                    <td class="text-end grossAmount">${formatNumberToFour(rr.netOfEwtAmount)}</td>
+                                    <td class="text-end"><input type="text" class="paymentAmount text-end" readonly style="display: none"></td>
+                                    <td class="text-end balance">${formatNumberToFour(parseNumber(rr.netOfEwtAmount) - parseNumber(rr.amountPaid))}</td>
+                                </tr>
+                            `);
+
+                            subTotalGross += parseNumber(rr.netOfEwtAmount);
+                            totalGross += parseNumber(rr.netOfEwtAmount);
+
                             tbody.append(tr);
 
-                            totalGross += parseNumber(rr.netOfEwtAmount);
-                            totalAmountPaid += parseNumber(rr.amountPaid);
-                            totalBalance += balance;
+                            // Append subtotal ONLY when last row of this PO group
+                            if (index === data.length - 1 || data[index + 1].purchaseOrderNo !== currentPO) {
+                                const subTotal = $(`
+                                <tr class="fw-bold bg-light subtotalRow" data-po="${currentPO}">
+                                    <td colspan="2"></td>
+                                    <td class="fw-bold text-end">Subtotal (${rr.purchaseOrderNo}):</td>
+                                    <td class="text-end subTotalGross">${formatNumber(subTotalGross)}</td>
+                                    <td class="text-end subTotalAmountPaid">0.00</td>
+                                    <td class="text-end subTotalBalance">0.00</td>
+                                </tr>
+                            `);
+                                tbody.append(subTotal);
+                                subTotalGross = 0;
+                            }
                         });
                     }
 
+
                     // Append Grand Total Rows
                     const totalRow = $(`
-                <tr style="border-bottom:double;" class="sticky-lg-bottom">
-                    <td colspan="7" class="pt-1"></td>
-                </tr>
-                <tr class="sticky-bottom bg-white">
-                    <td colspan="2"></td>
-                    <td class="fw-bold text-end p-2">Grand Total:</td>
-                    <td class="text-end" id="grandTotalRRAmount">${formatNumber(totalGross)}</td>
-                    <td class="text-end" id="grandTotalNetAmount">${formatNumber(totalAmountPaid)}</td>
-                    <td class="text-end" id="grandTotalNetOfEWT">${formatNumber(totalBalance)}</td>
-                </tr>
-            `);
+                        <tr style="border-bottom:double;" class="sticky-lg-bottom">
+                            <td colspan="7" class="pt-1"></td>
+                        </tr>
+                        <tr class="sticky-bottom bg-white">
+                            <td colspan="2"></td>
+                            <td class="fw-bold text-end p-2">Grand Total:</td>
+                            <td class="text-end grandTotalGross" id="grandTotalRRAmount">${formatNumber(totalGross)}</td>
+                            <td class="text-end grandTotalAmountPaid" id="grandTotalNetAmount">0.00</td>
+                            <td class="text-end grandTotalBalance" id="grandTotalNetOfEWT">${formatNumber(totalBalance)}</td>
+                        </tr>
+                    `);
                     tbody.append(totalRow);
                 },
                 error: function (xhr, status, error) {
@@ -311,73 +332,96 @@
         let allRecordsSelected = false;  // Flag to check if "Select All" is toggled across all pages
 
         function toggleSelectAll(selectAllCheckbox) {
-            const checkboxes = document.querySelectorAll('.selectCheckbox');
             const isChecked = selectAllCheckbox.checked;
 
-            checkboxes.forEach((checkbox, index) => {
-                const row = checkbox.closest('tr'); // Get the row
-
-                if (isChecked) {
-                    checkbox.checked = true;
-                    selectedRecords.add(checkbox.value);
-
-                    if (row) {
-                        const inputField = $(row).find('.paymentAmount');
-                        const balance = parseNumber($(row).find('.balance').text().trim());
-
-                        inputField.val(balance).attr("name", `RRs[${index}].Amount`).addClass("inputAmount").show();
-                        $(checkbox).attr("name", `RRs[${index}].Id`);
-                        updateAmounts()
-                    }
-                } else {
-                    checkbox.checked = false;
-                    selectedRecords.delete(checkbox.value);
-
-                    if (row) {
-                        const inputField = $(row).find('.paymentAmount');
-                        inputField.removeAttr("name").hide().val(''); // Hide and clear input
-                        $(checkbox).removeAttr("name");
-                        updateAmounts()
-                    }
+            $(".selectCheckbox").each(function () {
+                if (isChecked && !this.checked) {
+                    // Check unchecked ones only
+                    $(this).prop("checked", true).trigger("change");
+                } else if (!isChecked && this.checked) {
+                    // Uncheck checked ones only
+                    $(this).prop("checked", false).trigger("change");
                 }
             });
 
             allRecordsSelected = isChecked;
         }
 
-        // Event listener to show/hide input field on checkbox toggle
         $(document).on('change', '.selectCheckbox', function () {
             const row = $(this).closest('tr');
             const inputField = row.find('.paymentAmount');
             const balance = parseNumber(row.find('.balance').text().trim());
+            const grossAmount = parseNumber(row.find('.grossAmount').text());
 
             if (this.checked) {
                 selectedRecords.add(this.value);
-                inputField.val(balance).attr("name", `RRs[${selectedRecords.size - 1}].Amount`).addClass("inputAmount").show();
-                row.find('.selectCheckbox').attr("name", `RRs[${selectedRecords.size - 1}].Id`);
-                updateAmounts()
+                inputField.val(balance).addClass("inputAmount").show();
+                row.find('.balance').text(formatNumberToFour(grossAmount - balance));
             } else {
                 selectedRecords.delete(this.value);
                 inputField.removeAttr("name").hide().val('');
                 row.find('.selectCheckbox').removeAttr("name");
-                updateAmounts()
+                row.find('.balance').text(formatNumberToFour(grossAmount));
             }
+
+            reindexSelected();
+            updateAmounts();
         });
+
+        function reindexSelected() {
+            $(".selectCheckbox:checked").each(function (i) {
+                const row = $(this).closest('tr');
+                const inputField = row.find('.paymentAmount');
+
+                $(this).attr("name", `RRs[${i}].Id`);
+                inputField.attr("name", `RRs[${i}].Amount`);
+            });
+        }
 
         $(document).on('input', '.inputAmount', function () {
             updateAmounts();
         });
 
         function updateAmounts() {
-            let amountInputs = document.querySelectorAll('.inputAmount');
-            let totalNetOfEWT = 0;
-            amountInputs.forEach(function (input) {
-                let rawValue = input.value;
-                let rrAmount = parseNumber(rawValue);
+            var totalNetOfEWT = 0;
 
-                totalNetOfEWT += rrAmount;
+            $(".subtotalRow").each(function () {
+                const po = $(this).data("po");
+                let amountInputs = document.querySelectorAll(`tr[data-po='${po}'] .inputAmount`);
+                let subTotalAmountPaid = 0;
+
+                amountInputs.forEach(function (input) {
+                    let rawValue = input.value;
+                    let rrAmount = parseNumber(rawValue);
+
+                    totalNetOfEWT += rrAmount;
+                    subTotalAmountPaid += rrAmount;
+                });
+
+                let subTotalGross = parseNumber($(this).find(".subTotalGross").text());
+                $(this).find(".subTotalAmountPaid").text(formatNumber(subTotalAmountPaid));
+                $(this).find(".subTotalBalance").text(formatNumber(Math.abs(subTotalGross - subTotalAmountPaid)));
             });
+
             $(".totalNetOfEWT").val(formatNumber(totalNetOfEWT));
+            $(".grandTotalAmountPaid").text(formatNumber(totalNetOfEWT));
+            let grandTotalGross = parseNumber($(".grandTotalGross").text());
+            $(".grandTotalBalance").text(formatNumber(Math.abs(grandTotalGross - totalNetOfEWT)));
+
+            // Check if advances row is visible
+            var hasAdvances = $("#advancesRow").is(":visible");
+            var advancesAmount = hasAdvances ? parseNumber($("#advancesCredit").val()) : 0;
+
+            // Adjust the Cash in Bank (Credit) - deduct advances if present
+            var cashInBankAmount = totalNetOfEWT;
+            if (hasAdvances) {
+                cashInBankAmount = totalNetOfEWT - advancesAmount;
+                if (cashInBankAmount < 0) cashInBankAmount = 0; // Prevent negative values
+            }
+
+            // Update the Cash in Bank amount
+            $(".cib-credit").val(formatNumber(cashInBankAmount));
+
             updateTotalDebitAndCredit();
             validateDebitAndCredit();
         }
