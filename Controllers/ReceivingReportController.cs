@@ -837,10 +837,10 @@ namespace Accounting_System.Controllers
                                 .Where(x => x.DocumentNo == existingPo.PurchaseOrderNo)
                                 .ToListAsync(cancellationToken);
 
-                            if (existingPo!.PurchaseOrderNo!.TrimStart().TrimEnd() != worksheet2.Cells[row, 16].Text.TrimStart().TrimEnd())
+                            if (existingPo!.PurchaseOrderNo!.Trim().ReplaceLineEndings(" ") != worksheet2.Cells[row, 16].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.PurchaseOrderNo.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 16].Text.TrimStart().TrimEnd();
+                                var originalValue = existingPo.PurchaseOrderNo.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 16].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "PONo" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -849,10 +849,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet2.Cells[row, 1].Text.TrimStart().TrimEnd())
+                            if (existingPo.Date.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ") != worksheet2.Cells[row, 1].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 1].Text.TrimStart().TrimEnd();
+                                var originalValue = existingPo.Date.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 1].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "Date" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -861,10 +861,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.Terms.TrimStart().TrimEnd() != worksheet2.Cells[row, 2].Text.TrimStart().TrimEnd())
+                            if (existingPo.Terms.Trim().ReplaceLineEndings(" ") != worksheet2.Cells[row, 2].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.Terms.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 2].Text.TrimStart().TrimEnd();
+                                var originalValue = existingPo.Terms.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 2].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "Terms" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -873,10 +873,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.Quantity.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingPo.Quantity.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.Quantity.ToString("F2").TrimStart().TrimEnd();
-                                var adjustedValue = decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd();
+                                var originalValue = existingPo.Quantity.ToString("F2").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "Quantity" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -885,10 +885,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.Price.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingPo.Price.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.Price.ToString("F2").TrimStart().TrimEnd();
-                                var adjustedValue = decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd();
+                                var originalValue = existingPo.Price.ToString("F2").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "Price" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -897,10 +897,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingPo.Amount.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet2.Cells[row, 5].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.Amount.ToString("F2").TrimStart().TrimEnd();
-                                var adjustedValue = decimal.Parse(worksheet2.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd();
+                                var originalValue = existingPo.Amount.ToString("F2").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = decimal.Parse(worksheet2.Cells[row, 5].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "Amount" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -909,10 +909,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.FinalPrice?.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingPo.FinalPrice?.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet2.Cells[row, 6].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.FinalPrice?.ToString("F2").TrimStart().TrimEnd();
-                                var adjustedValue = decimal.Parse(worksheet2.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd();
+                                var originalValue = existingPo.FinalPrice?.ToString("F2").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = decimal.Parse(worksheet2.Cells[row, 6].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "FinalPrice" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -921,10 +921,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.Remarks.TrimStart().TrimEnd() != worksheet2.Cells[row, 10].Text.TrimStart().TrimEnd())
+                            if (existingPo.Remarks.Trim().ReplaceLineEndings(" ") != worksheet2.Cells[row, 10].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.Remarks.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 10].Text.TrimStart().TrimEnd();
+                                var originalValue = existingPo.Remarks.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 10].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "Remarks" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -933,10 +933,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.CreatedBy!.TrimStart().TrimEnd() != worksheet2.Cells[row, 11].Text.TrimStart().TrimEnd())
+                            if (existingPo.CreatedBy!.Trim().ReplaceLineEndings(" ") != worksheet2.Cells[row, 11].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.CreatedBy.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 11].Text.TrimStart().TrimEnd();
+                                var originalValue = existingPo.CreatedBy.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 11].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "CreatedBy" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -945,10 +945,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet2.Cells[row, 12].Text.TrimStart().TrimEnd())
+                            if (existingPo.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").Trim().ReplaceLineEndings(" ") != worksheet2.Cells[row, 12].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 12].Text.TrimStart().TrimEnd();
+                                var originalValue = existingPo.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 12].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "CreatedDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -957,10 +957,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.IsClosed.ToString().ToUpper().TrimStart().TrimEnd() != worksheet2.Cells[row, 13].Text.TrimStart().TrimEnd())
+                            if (existingPo.IsClosed.ToString().ToUpper().Trim().ReplaceLineEndings(" ") != worksheet2.Cells[row, 13].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.IsClosed.ToString().ToUpper().TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 13].Text.TrimStart().TrimEnd();
+                                var originalValue = existingPo.IsClosed.ToString().ToUpper().Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 13].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "IsClosed" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -969,10 +969,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if ((string.IsNullOrWhiteSpace(existingPo.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingPo.CancellationRemarks.TrimStart().TrimEnd()) != worksheet2.Cells[row, 14].Text.TrimStart().TrimEnd())
+                            if ((string.IsNullOrWhiteSpace(existingPo.CancellationRemarks?.Trim().ReplaceLineEndings(" ")) ? "" : existingPo.CancellationRemarks.Trim().ReplaceLineEndings(" ")) != worksheet2.Cells[row, 14].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.CancellationRemarks?.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 14].Text.TrimStart().TrimEnd();
+                                var originalValue = existingPo.CancellationRemarks?.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 14].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "CancellationRemarks" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -981,12 +981,12 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.OriginalProductId.ToString()!.TrimStart().TrimEnd() != (worksheet2.Cells[row, 15].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet2.Cells[row, 15].Text.TrimStart().TrimEnd()))
+                            if (existingPo.OriginalProductId.ToString()!.Trim().ReplaceLineEndings(" ") != (worksheet2.Cells[row, 15].Text.Trim().ReplaceLineEndings(" ") == "" ? 0.ToString() : worksheet2.Cells[row, 15].Text.Trim().ReplaceLineEndings(" ")))
                             {
-                                var originalValue = existingPo.OriginalProductId.ToString()!.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 15].Text.TrimStart().TrimEnd() == ""
+                                var originalValue = existingPo.OriginalProductId.ToString()!.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 15].Text.Trim().ReplaceLineEndings(" ") == ""
                                     ? 0.ToString()
-                                    : worksheet2.Cells[row, 15].Text.TrimStart().TrimEnd();
+                                    : worksheet2.Cells[row, 15].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "OriginalProductId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -995,10 +995,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet2.Cells[row, 16].Text.TrimStart().TrimEnd())
+                            if (existingPo.OriginalSeriesNumber!.Trim().ReplaceLineEndings(" ") != worksheet2.Cells[row, 16].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.OriginalSeriesNumber.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 16].Text.TrimStart().TrimEnd();
+                                var originalValue = existingPo.OriginalSeriesNumber.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 16].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "OriginalSeriesNumber" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1007,12 +1007,12 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.OriginalSupplierId.ToString()!.TrimStart().TrimEnd() != (worksheet2.Cells[row, 17].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet2.Cells[row, 17].Text.TrimStart().TrimEnd()))
+                            if (existingPo.OriginalSupplierId.ToString()!.Trim().ReplaceLineEndings(" ") != (worksheet2.Cells[row, 17].Text.Trim().ReplaceLineEndings(" ") == "" ? 0.ToString() : worksheet2.Cells[row, 17].Text.Trim().ReplaceLineEndings(" ")))
                             {
-                                var originalValue = existingPo.SupplierId.ToString()!.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 17].Text.TrimStart().TrimEnd() == ""
+                                var originalValue = existingPo.SupplierId.ToString()!.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 17].Text.Trim().ReplaceLineEndings(" ") == ""
                                     ? 0.ToString()
-                                    : worksheet2.Cells[row, 17].Text.TrimStart().TrimEnd();
+                                    : worksheet2.Cells[row, 17].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "SupplierId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1021,12 +1021,12 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.OriginalDocumentId.ToString().TrimStart().TrimEnd() != (worksheet2.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet2.Cells[row, 18].Text.TrimStart().TrimEnd()))
+                            if (existingPo.OriginalDocumentId.ToString().Trim().ReplaceLineEndings(" ") != (worksheet2.Cells[row, 18].Text.Trim().ReplaceLineEndings(" ") == "" ? 0.ToString() : worksheet2.Cells[row, 18].Text.Trim().ReplaceLineEndings(" ")))
                             {
-                                var originalValue = existingPo.OriginalDocumentId.ToString().TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 18].Text.TrimStart().TrimEnd() == ""
+                                var originalValue = existingPo.OriginalDocumentId.ToString().Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 18].Text.Trim().ReplaceLineEndings(" ") == ""
                                     ? 0.ToString()
-                                    : worksheet2.Cells[row, 18].Text.TrimStart().TrimEnd();
+                                    : worksheet2.Cells[row, 18].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "OriginalDocumentId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1151,10 +1151,10 @@ namespace Accounting_System.Controllers
                                 .Where(x => x.DocumentNo == existingRr.ReceivingReportNo)
                                 .ToListAsync(cancellationToken);
 
-                            if (existingRr!.ReceivingReportNo!.TrimStart().TrimEnd() != worksheet.Cells[row, 21].Text.TrimStart().TrimEnd())
+                            if (existingRr!.ReceivingReportNo!.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 21].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.ReceivingReportNo.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 21].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.ReceivingReportNo.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 21].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "RRNo" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1163,10 +1163,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())
+                            if (existingRr.Date.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 1].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 1].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.Date.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 1].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "Date" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1178,7 +1178,7 @@ namespace Accounting_System.Controllers
                             if (existingRr.PurchaseOrder?.OriginalDocumentId.ToString().Trim() != worksheet.Cells[row, 20].Text.Trim())
                             {
                                 var originalValue = existingRr.PurchaseOrder?.OriginalDocumentId.ToString().Trim();
-                                var adjustedValue = worksheet.Cells[row, 20].Text.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 20].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "SuppliersPoId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1187,10 +1187,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 2].Text.TrimStart().TrimEnd())
+                            if (existingRr.DueDate.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 2].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 2].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.DueDate.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 2].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "DueDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1199,12 +1199,12 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.SupplierInvoiceNumber?.TrimStart().TrimEnd() != (worksheet.Cells[row, 3].Text.TrimStart().TrimEnd() == "" ? null : worksheet.Cells[row, 3].Text.TrimStart().TrimEnd()))
+                            if (existingRr.SupplierInvoiceNumber?.Trim().ReplaceLineEndings(" ") != (worksheet.Cells[row, 3].Text.Trim().ReplaceLineEndings(" ") == "" ? null : worksheet.Cells[row, 3].Text.Trim().ReplaceLineEndings(" ")))
                             {
-                                var originalValue = existingRr.SupplierInvoiceNumber?.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 3].Text.TrimStart().TrimEnd() == ""
+                                var originalValue = existingRr.SupplierInvoiceNumber?.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 3].Text.Trim().ReplaceLineEndings(" ") == ""
                                     ? null
-                                    : worksheet.Cells[row, 3].Text.TrimStart().TrimEnd();
+                                    : worksheet.Cells[row, 3].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "SupplierInvoiceNumber" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1213,10 +1213,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.SupplierInvoiceDate?.TrimStart().TrimEnd() != worksheet.Cells[row, 4].Text.TrimStart().TrimEnd())
+                            if ((string.IsNullOrWhiteSpace(existingRr.SupplierInvoiceDate?.Trim().ReplaceLineEndings(" ")) ? null : existingRr.SupplierInvoiceDate?.Trim().ReplaceLineEndings(" ")) != (string.IsNullOrWhiteSpace(worksheet.Cells[row, 4].Text) ? null : worksheet.Cells[row, 4].Text.Trim().ReplaceLineEndings(" ")))
                             {
-                                var originalValue = existingRr.SupplierInvoiceDate?.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 4].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.SupplierInvoiceDate?.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 4].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "SupplierInvoiceDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1225,10 +1225,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.TruckOrVessels.TrimStart().TrimEnd() != worksheet.Cells[row, 5].Text.TrimStart().TrimEnd())
+                            if (existingRr.TruckOrVessels.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 5].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.TruckOrVessels.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 5].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.TruckOrVessels.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 5].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "TruckOrVessels" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1237,10 +1237,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.QuantityDelivered.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingRr.QuantityDelivered.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.QuantityDelivered.ToString("F2").TrimStart().TrimEnd();
-                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd();
+                                var originalValue = existingRr.QuantityDelivered.ToString("F2").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "QuantityDelivered" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1249,10 +1249,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.QuantityReceived.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 7].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingRr.QuantityReceived.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet.Cells[row, 7].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.QuantityReceived.ToString("F2").TrimStart().TrimEnd();
-                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 7].Text).ToString("F2").TrimStart().TrimEnd();
+                                var originalValue = existingRr.QuantityReceived.ToString("F2").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 7].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "QuantityReceived" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1261,10 +1261,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.GainOrLoss.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingRr.GainOrLoss.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet.Cells[row, 8].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.GainOrLoss.ToString("F2").TrimStart().TrimEnd();
-                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd();
+                                var originalValue = existingRr.GainOrLoss.ToString("F2").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 8].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "GainOrLoss" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1273,10 +1273,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingRr.Amount.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.Amount.ToString("F2").TrimStart().TrimEnd();
-                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2").TrimStart().TrimEnd();
+                                var originalValue = existingRr.Amount.ToString("F2").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "Amount" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1285,12 +1285,12 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.OtherRef?.TrimStart().TrimEnd() != (worksheet.Cells[row, 10].Text.TrimStart().TrimEnd() == "" ? null : worksheet.Cells[row, 10].Text.TrimStart().TrimEnd()))
+                            if (existingRr.OtherRef?.Trim().ReplaceLineEndings(" ") != (worksheet.Cells[row, 10].Text.Trim().ReplaceLineEndings(" ") == "" ? null : worksheet.Cells[row, 10].Text.Trim().ReplaceLineEndings(" ")))
                             {
-                                var originalValue = existingRr.OtherRef?.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 10].Text.TrimStart().TrimEnd() == ""
+                                var originalValue = existingRr.OtherRef?.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 10].Text.Trim().ReplaceLineEndings(" ") == ""
                                     ? null
-                                    : worksheet.Cells[row, 10].Text.TrimStart().TrimEnd();
+                                    : worksheet.Cells[row, 10].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "OtherRef" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1299,10 +1299,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.Remarks.TrimStart().TrimEnd() != worksheet.Cells[row, 11].Text.TrimStart().TrimEnd())
+                            if (existingRr.Remarks.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 11].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.Remarks.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 11].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.Remarks.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 11].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "Remarks" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1311,10 +1311,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.CreatedBy?.TrimStart().TrimEnd() != worksheet.Cells[row, 16].Text.TrimStart().TrimEnd())
+                            if (existingRr.CreatedBy?.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 16].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.CreatedBy?.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 16].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.CreatedBy?.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 16].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "CreatedBy" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1323,10 +1323,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())
+                            if (existingRr.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 17].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 17].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 17].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "CreatedDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1335,10 +1335,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if ((string.IsNullOrWhiteSpace(existingRr.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingRr.CancellationRemarks.TrimStart().TrimEnd()) != worksheet.Cells[row, 18].Text.TrimStart().TrimEnd())
+                            if ((string.IsNullOrWhiteSpace(existingRr.CancellationRemarks?.Trim().ReplaceLineEndings(" ")) ? "" : existingRr.CancellationRemarks.Trim().ReplaceLineEndings(" ")) != worksheet.Cells[row, 18].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.CancellationRemarks?.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 18].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.CancellationRemarks?.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 18].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "CancellationRemarks" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1347,10 +1347,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.ReceivedDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != (worksheet.Cells[row, 19].Text.TrimStart().TrimEnd() == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd").TrimStart().TrimEnd() : worksheet.Cells[row, 19].Text.TrimStart().TrimEnd()))
+                            if (existingRr.ReceivedDate?.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ") != (worksheet.Cells[row, 19].Text.Trim().ReplaceLineEndings(" ") == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ") : worksheet.Cells[row, 19].Text.Trim().ReplaceLineEndings(" ")))
                             {
-                                var originalValue = existingRr.ReceivedDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 19].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.ReceivedDate?.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 19].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "ReceivedDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1359,10 +1359,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.OriginalPOId?.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 20].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 20].Text.TrimStart().TrimEnd()))
+                            if (existingRr.OriginalPOId?.ToString().Trim().ReplaceLineEndings(" ") != (worksheet.Cells[row, 20].Text.Trim().ReplaceLineEndings(" ") == "" ? 0.ToString() : worksheet.Cells[row, 20].Text.Trim().ReplaceLineEndings(" ")))
                             {
-                                var originalValue = existingRr.OriginalPOId?.ToString().TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 20].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 20].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.OriginalPOId?.ToString().Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 20].Text.Trim().ReplaceLineEndings(" ") == "" ? 0.ToString() : worksheet.Cells[row, 20].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "OriginalPOId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1371,10 +1371,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.OriginalSeriesNumber?.TrimStart().TrimEnd() != worksheet.Cells[row, 21].Text.TrimStart().TrimEnd())
+                            if (existingRr.OriginalSeriesNumber?.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 21].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.OriginalSeriesNumber?.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 21].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.OriginalSeriesNumber?.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 21].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "OriginalSeriesNumber" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1383,12 +1383,12 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.OriginalDocumentId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 22].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 22].Text.TrimStart().TrimEnd()))
+                            if (existingRr.OriginalDocumentId.ToString().Trim().ReplaceLineEndings(" ") != (worksheet.Cells[row, 22].Text.Trim().ReplaceLineEndings(" ") == "" ? 0.ToString() : worksheet.Cells[row, 22].Text.Trim().ReplaceLineEndings(" ")))
                             {
-                                var originalValue = existingRr.OriginalDocumentId.ToString().TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 22].Text.TrimStart().TrimEnd() == ""
+                                var originalValue = existingRr.OriginalDocumentId.ToString().Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 22].Text.Trim().ReplaceLineEndings(" ") == ""
                                     ? 0.ToString()
-                                    : worksheet.Cells[row, 22].Text.TrimStart().TrimEnd();
+                                    : worksheet.Cells[row, 22].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "OriginalDocumentId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1562,10 +1562,10 @@ namespace Accounting_System.Controllers
                                 .Where(x => x.DocumentNo == existingPo.PurchaseOrderNo)
                                 .ToListAsync(cancellationToken);
 
-                            if (existingPo!.PurchaseOrderNo!.TrimStart().TrimEnd() != worksheet2.Cells[row, 16].Text.TrimStart().TrimEnd())
+                            if (existingPo!.PurchaseOrderNo!.Trim().ReplaceLineEndings(" ") != worksheet2.Cells[row, 16].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.PurchaseOrderNo.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 16].Text.TrimStart().TrimEnd();
+                                var originalValue = existingPo.PurchaseOrderNo.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 16].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "PONo" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1574,10 +1574,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet2.Cells[row, 1].Text.TrimStart().TrimEnd())
+                            if (existingPo.Date.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ") != worksheet2.Cells[row, 1].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 1].Text.TrimStart().TrimEnd();
+                                var originalValue = existingPo.Date.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 1].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "Date" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1586,10 +1586,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.Terms.TrimStart().TrimEnd() != worksheet2.Cells[row, 2].Text.TrimStart().TrimEnd())
+                            if (existingPo.Terms.Trim().ReplaceLineEndings(" ") != worksheet2.Cells[row, 2].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.Terms.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 2].Text.TrimStart().TrimEnd();
+                                var originalValue = existingPo.Terms.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 2].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "Terms" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1598,10 +1598,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.Quantity.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingPo.Quantity.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.Quantity.ToString("F2").TrimStart().TrimEnd();
-                                var adjustedValue = decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2").TrimStart().TrimEnd();
+                                var originalValue = existingPo.Quantity.ToString("F2").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = decimal.Parse(worksheet2.Cells[row, 3].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "Quantity" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1610,10 +1610,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.Price.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingPo.Price.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.Price.ToString("F2").TrimStart().TrimEnd();
-                                var adjustedValue = decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2").TrimStart().TrimEnd();
+                                var originalValue = existingPo.Price.ToString("F2").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = decimal.Parse(worksheet2.Cells[row, 4].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "Price" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1622,10 +1622,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingPo.Amount.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet2.Cells[row, 5].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.Amount.ToString("F2").TrimStart().TrimEnd();
-                                var adjustedValue = decimal.Parse(worksheet2.Cells[row, 5].Text).ToString("F2").TrimStart().TrimEnd();
+                                var originalValue = existingPo.Amount.ToString("F2").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = decimal.Parse(worksheet2.Cells[row, 5].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "Amount" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1634,10 +1634,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.FinalPrice?.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet2.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingPo.FinalPrice?.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet2.Cells[row, 6].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.FinalPrice?.ToString("F2").TrimStart().TrimEnd();
-                                var adjustedValue = decimal.Parse(worksheet2.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd();
+                                var originalValue = existingPo.FinalPrice?.ToString("F2").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = decimal.Parse(worksheet2.Cells[row, 6].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "FinalPrice" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1646,10 +1646,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.Remarks.TrimStart().TrimEnd() != worksheet2.Cells[row, 10].Text.TrimStart().TrimEnd())
+                            if (existingPo.Remarks.Trim().ReplaceLineEndings(" ") != worksheet2.Cells[row, 10].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.Remarks.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 10].Text.TrimStart().TrimEnd();
+                                var originalValue = existingPo.Remarks.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 10].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "Remarks" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1658,10 +1658,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.CreatedBy!.TrimStart().TrimEnd() != worksheet2.Cells[row, 11].Text.TrimStart().TrimEnd())
+                            if (existingPo.CreatedBy!.Trim().ReplaceLineEndings(" ") != worksheet2.Cells[row, 11].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.CreatedBy.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 11].Text.TrimStart().TrimEnd();
+                                var originalValue = existingPo.CreatedBy.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 11].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "CreatedBy" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1670,10 +1670,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet2.Cells[row, 12].Text.TrimStart().TrimEnd())
+                            if (existingPo.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").Trim().ReplaceLineEndings(" ") != worksheet2.Cells[row, 12].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 12].Text.TrimStart().TrimEnd();
+                                var originalValue = existingPo.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 12].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x =>x.ColumnName == "CreatedDate" &&  x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1682,10 +1682,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.IsClosed.ToString().ToUpper().TrimStart().TrimEnd() != worksheet2.Cells[row, 13].Text.TrimStart().TrimEnd())
+                            if (existingPo.IsClosed.ToString().ToUpper().Trim().ReplaceLineEndings(" ") != worksheet2.Cells[row, 13].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.IsClosed.ToString().ToUpper().TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 13].Text.TrimStart().TrimEnd();
+                                var originalValue = existingPo.IsClosed.ToString().ToUpper().Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 13].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "IsClosed" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1694,10 +1694,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if ((string.IsNullOrWhiteSpace(existingPo.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingPo.CancellationRemarks.TrimStart().TrimEnd()) != worksheet2.Cells[row, 14].Text.TrimStart().TrimEnd())
+                            if ((string.IsNullOrWhiteSpace(existingPo.CancellationRemarks?.Trim().ReplaceLineEndings(" ")) ? "" : existingPo.CancellationRemarks.Trim().ReplaceLineEndings(" ")) != worksheet2.Cells[row, 14].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.CancellationRemarks?.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 14].Text.TrimStart().TrimEnd();
+                                var originalValue = existingPo.CancellationRemarks?.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 14].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "CancellationRemarks" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1706,12 +1706,12 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.OriginalProductId.ToString()!.TrimStart().TrimEnd() != (worksheet2.Cells[row, 15].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet2.Cells[row, 15].Text.TrimStart().TrimEnd()))
+                            if (existingPo.OriginalProductId.ToString()!.Trim().ReplaceLineEndings(" ") != (worksheet2.Cells[row, 15].Text.Trim().ReplaceLineEndings(" ") == "" ? 0.ToString() : worksheet2.Cells[row, 15].Text.Trim().ReplaceLineEndings(" ")))
                             {
-                                var originalValue = existingPo.OriginalProductId.ToString()!.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 15].Text.TrimStart().TrimEnd() == ""
+                                var originalValue = existingPo.OriginalProductId.ToString()!.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 15].Text.Trim().ReplaceLineEndings(" ") == ""
                                     ? 0.ToString()
-                                    : worksheet2.Cells[row, 15].Text.TrimStart().TrimEnd();
+                                    : worksheet2.Cells[row, 15].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "OriginalProductId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1720,10 +1720,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.OriginalSeriesNumber!.TrimStart().TrimEnd() != worksheet2.Cells[row, 16].Text.TrimStart().TrimEnd())
+                            if (existingPo.OriginalSeriesNumber!.Trim().ReplaceLineEndings(" ") != worksheet2.Cells[row, 16].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingPo.OriginalSeriesNumber.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 16].Text.TrimStart().TrimEnd();
+                                var originalValue = existingPo.OriginalSeriesNumber.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 16].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "OriginalSeriesNumber" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1732,12 +1732,12 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.OriginalSupplierId.ToString()!.TrimStart().TrimEnd() != (worksheet2.Cells[row, 17].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet2.Cells[row, 17].Text.TrimStart().TrimEnd()))
+                            if (existingPo.OriginalSupplierId.ToString()!.Trim().ReplaceLineEndings(" ") != (worksheet2.Cells[row, 17].Text.Trim().ReplaceLineEndings(" ") == "" ? 0.ToString() : worksheet2.Cells[row, 17].Text.Trim().ReplaceLineEndings(" ")))
                             {
-                                var originalValue = existingPo.SupplierId.ToString()!.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 17].Text.TrimStart().TrimEnd() == ""
+                                var originalValue = existingPo.SupplierId.ToString()!.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 17].Text.Trim().ReplaceLineEndings(" ") == ""
                                     ? 0.ToString()
-                                    : worksheet2.Cells[row, 17].Text.TrimStart().TrimEnd();
+                                    : worksheet2.Cells[row, 17].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "SupplierId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1746,12 +1746,12 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingPo.OriginalDocumentId.ToString().TrimStart().TrimEnd() != (worksheet2.Cells[row, 18].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet2.Cells[row, 18].Text.TrimStart().TrimEnd()))
+                            if (existingPo.OriginalDocumentId.ToString().Trim().ReplaceLineEndings(" ") != (worksheet2.Cells[row, 18].Text.Trim().ReplaceLineEndings(" ") == "" ? 0.ToString() : worksheet2.Cells[row, 18].Text.Trim().ReplaceLineEndings(" ")))
                             {
-                                var originalValue = existingPo.OriginalDocumentId.ToString().TrimStart().TrimEnd();
-                                var adjustedValue = worksheet2.Cells[row, 18].Text.TrimStart().TrimEnd() == ""
+                                var originalValue = existingPo.OriginalDocumentId.ToString().Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet2.Cells[row, 18].Text.Trim().ReplaceLineEndings(" ") == ""
                                     ? 0.ToString()
-                                    : worksheet2.Cells[row, 18].Text.TrimStart().TrimEnd();
+                                    : worksheet2.Cells[row, 18].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingPoInLogs
                                     .Where(x => x.ColumnName == "OriginalDocumentId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1877,10 +1877,10 @@ namespace Accounting_System.Controllers
                                 .Where(x => x.DocumentNo == existingRr.ReceivingReportNo)
                                 .ToListAsync(cancellationToken);
 
-                            if (existingRr!.ReceivingReportNo!.TrimStart().TrimEnd() != worksheet.Cells[row, 21].Text.TrimStart().TrimEnd())
+                            if (existingRr!.ReceivingReportNo!.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 21].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.ReceivingReportNo.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 21].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.ReceivingReportNo.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 21].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "RRNo" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1889,10 +1889,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 1].Text.TrimStart().TrimEnd())
+                            if (existingRr.Date.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 1].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.Date.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 1].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.Date.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 1].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "Date" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1904,7 +1904,7 @@ namespace Accounting_System.Controllers
                             if (existingRr.PurchaseOrder?.OriginalDocumentId.ToString().Trim() != worksheet.Cells[row, 20].Text.Trim())
                             {
                                 var originalValue = existingRr.PurchaseOrder?.OriginalDocumentId.ToString().Trim();
-                                var adjustedValue = worksheet.Cells[row, 20].Text.TrimStart().TrimEnd();
+                                var adjustedValue = worksheet.Cells[row, 20].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "SuppliersPoId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1913,10 +1913,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != worksheet.Cells[row, 2].Text.TrimStart().TrimEnd())
+                            if (existingRr.DueDate.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 2].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.DueDate.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 2].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.DueDate.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 2].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "DueDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1925,12 +1925,12 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.SupplierInvoiceNumber?.TrimStart().TrimEnd() != (worksheet.Cells[row, 3].Text.TrimStart().TrimEnd() == "" ? null : worksheet.Cells[row, 3].Text.TrimStart().TrimEnd()))
+                            if (existingRr.SupplierInvoiceNumber?.Trim().ReplaceLineEndings(" ") != (worksheet.Cells[row, 3].Text.Trim().ReplaceLineEndings(" ") == "" ? null : worksheet.Cells[row, 3].Text.Trim().ReplaceLineEndings(" ")))
                             {
-                                var originalValue = existingRr.SupplierInvoiceNumber?.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 3].Text.TrimStart().TrimEnd() == ""
+                                var originalValue = existingRr.SupplierInvoiceNumber?.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 3].Text.Trim().ReplaceLineEndings(" ") == ""
                                     ? null
-                                    : worksheet.Cells[row, 3].Text.TrimStart().TrimEnd();
+                                    : worksheet.Cells[row, 3].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "SupplierInvoiceNumber" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1939,10 +1939,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.SupplierInvoiceDate?.TrimStart().TrimEnd() != worksheet.Cells[row, 4].Text.TrimStart().TrimEnd())
+                            if ((string.IsNullOrWhiteSpace(existingRr.SupplierInvoiceDate?.Trim().ReplaceLineEndings(" ")) ? null : existingRr.SupplierInvoiceDate?.Trim().ReplaceLineEndings(" ")) != (string.IsNullOrWhiteSpace(worksheet.Cells[row, 4].Text) ? null : worksheet.Cells[row, 4].Text.Trim().ReplaceLineEndings(" ")))
                             {
-                                var originalValue = existingRr.SupplierInvoiceDate?.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 4].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.SupplierInvoiceDate?.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 4].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "SupplierInvoiceDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1951,10 +1951,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.TruckOrVessels.TrimStart().TrimEnd() != worksheet.Cells[row, 5].Text.TrimStart().TrimEnd())
+                            if (existingRr.TruckOrVessels.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 5].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.TruckOrVessels.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 5].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.TruckOrVessels.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 5].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "TruckOrVessels" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1963,10 +1963,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.QuantityDelivered.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingRr.QuantityDelivered.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.QuantityDelivered.ToString("F2").TrimStart().TrimEnd();
-                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").TrimStart().TrimEnd();
+                                var originalValue = existingRr.QuantityDelivered.ToString("F2").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "QuantityDelivered" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1975,10 +1975,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.QuantityReceived.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 7].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingRr.QuantityReceived.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet.Cells[row, 7].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.QuantityReceived.ToString("F2").TrimStart().TrimEnd();
-                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 7].Text).ToString("F2").TrimStart().TrimEnd();
+                                var originalValue = existingRr.QuantityReceived.ToString("F2").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 7].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "QuantityReceived" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1987,10 +1987,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.GainOrLoss.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingRr.GainOrLoss.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet.Cells[row, 8].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.GainOrLoss.ToString("F2").TrimStart().TrimEnd();
-                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 8].Text).ToString("F2").TrimStart().TrimEnd();
+                                var originalValue = existingRr.GainOrLoss.ToString("F2").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 8].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "GainOrLoss" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -1999,10 +1999,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.Amount.ToString("F2").TrimStart().TrimEnd() != decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2").TrimStart().TrimEnd())
+                            if (existingRr.Amount.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.Amount.ToString("F2").TrimStart().TrimEnd();
-                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2").TrimStart().TrimEnd();
+                                var originalValue = existingRr.Amount.ToString("F2").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 9].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "Amount" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -2011,12 +2011,12 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.OtherRef?.TrimStart().TrimEnd() != (worksheet.Cells[row, 10].Text.TrimStart().TrimEnd() == "" ? null : worksheet.Cells[row, 10].Text.TrimStart().TrimEnd()))
+                            if (existingRr.OtherRef?.Trim().ReplaceLineEndings(" ") != (worksheet.Cells[row, 10].Text.Trim().ReplaceLineEndings(" ") == "" ? null : worksheet.Cells[row, 10].Text.Trim().ReplaceLineEndings(" ")))
                             {
-                                var originalValue = existingRr.OtherRef?.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 10].Text.TrimStart().TrimEnd() == ""
+                                var originalValue = existingRr.OtherRef?.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 10].Text.Trim().ReplaceLineEndings(" ") == ""
                                     ? null
-                                    : worksheet.Cells[row, 10].Text.TrimStart().TrimEnd();
+                                    : worksheet.Cells[row, 10].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "OtherRef" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -2025,10 +2025,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.Remarks.TrimStart().TrimEnd() != worksheet.Cells[row, 11].Text.TrimStart().TrimEnd())
+                            if (existingRr.Remarks.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 11].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.Remarks.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 11].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.Remarks.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 11].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "Remarks" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -2037,10 +2037,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.CreatedBy?.TrimStart().TrimEnd() != worksheet.Cells[row, 16].Text.TrimStart().TrimEnd())
+                            if (existingRr.CreatedBy?.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 16].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.CreatedBy?.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 16].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.CreatedBy?.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 16].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "CreatedBy" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -2049,10 +2049,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd() != worksheet.Cells[row, 17].Text.TrimStart().TrimEnd())
+                            if (existingRr.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 17].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 17].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 17].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "CreatedDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -2061,10 +2061,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if ((string.IsNullOrWhiteSpace(existingRr.CancellationRemarks?.TrimStart().TrimEnd()) ? "" : existingRr.CancellationRemarks.TrimStart().TrimEnd()) != worksheet.Cells[row, 18].Text.TrimStart().TrimEnd())
+                            if ((string.IsNullOrWhiteSpace(existingRr.CancellationRemarks?.Trim().ReplaceLineEndings(" ")) ? "" : existingRr.CancellationRemarks.Trim().ReplaceLineEndings(" ")) != worksheet.Cells[row, 18].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.CancellationRemarks?.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 18].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.CancellationRemarks?.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 18].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "CancellationRemarks" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -2073,10 +2073,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.ReceivedDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd() != (worksheet.Cells[row, 19].Text.TrimStart().TrimEnd() == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd").TrimStart().TrimEnd() : worksheet.Cells[row, 19].Text.TrimStart().TrimEnd()))
+                            if (existingRr.ReceivedDate?.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ") != (worksheet.Cells[row, 19].Text.Trim().ReplaceLineEndings(" ") == "" ? DateOnly.MinValue.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ") : worksheet.Cells[row, 19].Text.Trim().ReplaceLineEndings(" ")))
                             {
-                                var originalValue = existingRr.ReceivedDate?.ToString("yyyy-MM-dd").TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 19].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.ReceivedDate?.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 19].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "ReceivedDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -2085,10 +2085,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.OriginalPOId?.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 20].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 20].Text.TrimStart().TrimEnd()))
+                            if (existingRr.OriginalPOId?.ToString().Trim().ReplaceLineEndings(" ") != (worksheet.Cells[row, 20].Text.Trim().ReplaceLineEndings(" ") == "" ? 0.ToString() : worksheet.Cells[row, 20].Text.Trim().ReplaceLineEndings(" ")))
                             {
-                                var originalValue = existingRr.OriginalPOId?.ToString().TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 20].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 20].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.OriginalPOId?.ToString().Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 20].Text.Trim().ReplaceLineEndings(" ") == "" ? 0.ToString() : worksheet.Cells[row, 20].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "OriginalPOId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -2097,10 +2097,10 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.OriginalSeriesNumber?.TrimStart().TrimEnd() != worksheet.Cells[row, 21].Text.TrimStart().TrimEnd())
+                            if (existingRr.OriginalSeriesNumber?.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 21].Text.Trim().ReplaceLineEndings(" "))
                             {
-                                var originalValue = existingRr.OriginalSeriesNumber?.TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 21].Text.TrimStart().TrimEnd();
+                                var originalValue = existingRr.OriginalSeriesNumber?.Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 21].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.ColumnName == "OriginalSeriesNumber" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
@@ -2109,12 +2109,12 @@ namespace Accounting_System.Controllers
                                 }
                             }
 
-                            if (existingRr.OriginalDocumentId.ToString().TrimStart().TrimEnd() != (worksheet.Cells[row, 22].Text.TrimStart().TrimEnd() == "" ? 0.ToString() : worksheet.Cells[row, 22].Text.TrimStart().TrimEnd()))
+                            if (existingRr.OriginalDocumentId.ToString().Trim().ReplaceLineEndings(" ") != (worksheet.Cells[row, 22].Text.Trim().ReplaceLineEndings(" ") == "" ? 0.ToString() : worksheet.Cells[row, 22].Text.Trim().ReplaceLineEndings(" ")))
                             {
-                                var originalValue = existingRr.OriginalDocumentId.ToString().TrimStart().TrimEnd();
-                                var adjustedValue = worksheet.Cells[row, 22].Text.TrimStart().TrimEnd() == ""
+                                var originalValue = existingRr.OriginalDocumentId.ToString().Trim().ReplaceLineEndings(" ");
+                                var adjustedValue = worksheet.Cells[row, 22].Text.Trim().ReplaceLineEndings(" ") == ""
                                     ? 0.ToString()
-                                    : worksheet.Cells[row, 22].Text.TrimStart().TrimEnd();
+                                    : worksheet.Cells[row, 22].Text.Trim().ReplaceLineEndings(" ");
                                 var find  = existingRrInLogs
                                     .Where(x => x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
                                 if (!find.Any())
