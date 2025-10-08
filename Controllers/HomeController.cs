@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using Accounting_System.Repository;
 
 namespace Accounting_System.Controllers
 {
@@ -13,12 +14,16 @@ namespace Accounting_System.Controllers
     public class HomeController : Controller
     {
         private readonly UserManager<IdentityUser> _userManager;
+
         private readonly ApplicationDbContext _dbContext;
 
-        public HomeController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager)
+        private readonly GeneralRepo _generalRepo;
+
+        public HomeController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager, GeneralRepo generalRepo)
         {
             this._userManager = userManager;
             _dbContext = dbContext;
+            this._generalRepo = generalRepo;
         }
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)

@@ -1,5 +1,6 @@
 using System.Drawing;
 using Accounting_System.Data;
+using Accounting_System.Repository;
 using Accounting_System.Utility;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,10 +15,13 @@ namespace Accounting_System.Controllers
 
         private readonly AasDbContext _aasDbContext;
 
-        public ImportExportLogsController(ApplicationDbContext dbContext, AasDbContext aasDbContext)
+        private readonly GeneralRepo _generalRepo;
+
+        public ImportExportLogsController(ApplicationDbContext dbContext, AasDbContext aasDbContext, GeneralRepo generalRepo)
         {
             _dbContext = dbContext;
             _aasDbContext = aasDbContext;
+            _generalRepo = generalRepo;
         }
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {

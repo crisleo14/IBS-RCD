@@ -20,11 +20,14 @@ namespace Accounting_System.Controllers
 
         private readonly ServiceRepo _serviceRepo;
 
-        public ServiceController(ApplicationDbContext dbContext, ServiceRepo serviceRepo, AasDbContext aasDbContext)
+        private readonly GeneralRepo _generalRepo;
+
+        public ServiceController(ApplicationDbContext dbContext, ServiceRepo serviceRepo, AasDbContext aasDbContext, GeneralRepo generalRepo)
         {
             _dbContext = dbContext;
             _serviceRepo = serviceRepo;
             _aasDbContext = aasDbContext;
+            _generalRepo = generalRepo;
 
         }
 

@@ -30,13 +30,16 @@ namespace Accounting_System.Controllers
 
         private readonly InventoryRepo _inventoryRepo;
 
-        public PurchaseOrderController(ApplicationDbContext dbContext, PurchaseOrderRepo purchaseOrderRepo, UserManager<IdentityUser> userManager, InventoryRepo inventoryRepo, AasDbContext aasDbContext)
+        private readonly GeneralRepo _generalRepo;
+
+        public PurchaseOrderController(ApplicationDbContext dbContext, PurchaseOrderRepo purchaseOrderRepo, UserManager<IdentityUser> userManager, InventoryRepo inventoryRepo, AasDbContext aasDbContext, GeneralRepo generalRepo)
         {
             _dbContext = dbContext;
             _purchaseOrderRepo = purchaseOrderRepo;
             _userManager = userManager;
             _inventoryRepo = inventoryRepo;
             _aasDbContext = aasDbContext;
+            _generalRepo = generalRepo;
         }
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)

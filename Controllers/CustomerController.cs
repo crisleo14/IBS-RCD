@@ -15,18 +15,22 @@ namespace Accounting_System.Controllers
     public class CustomerController : Controller
     {
         private readonly CustomerRepo _customerRepo;
+
         private readonly ApplicationDbContext _dbContext;
 
         private readonly AasDbContext _aasDbContext;
 
         private readonly UserManager<IdentityUser> _userManager;
 
-        public CustomerController(ApplicationDbContext dbContext, CustomerRepo customerRepo, UserManager<IdentityUser> userManager, AasDbContext aasDbContext)
+        private readonly GeneralRepo _generalRepo;
+
+        public CustomerController(ApplicationDbContext dbContext, CustomerRepo customerRepo, UserManager<IdentityUser> userManager, AasDbContext aasDbContext, GeneralRepo generalRepo)
         {
             _dbContext = dbContext;
             _customerRepo = customerRepo;
             this._userManager = userManager;
             _aasDbContext = aasDbContext;
+            _generalRepo = generalRepo;
         }
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)

@@ -22,13 +22,16 @@ namespace Accounting_System.Controllers
 
         private readonly BankAccountRepo _bankAccountRepo;
 
+        private readonly GeneralRepo _generalRepo;
+
         public BankAccountController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager,
-            BankAccountRepo bankAccountRepo, AasDbContext aasDbContext)
+            BankAccountRepo bankAccountRepo, AasDbContext aasDbContext, GeneralRepo generalRepo)
         {
             _dbContext = dbContext;
             this._userManager = userManager;
             _bankAccountRepo = bankAccountRepo;
             _aasDbContext = aasDbContext;
+            _generalRepo = generalRepo;
         }
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
