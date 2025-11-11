@@ -88,6 +88,7 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     if (await _supplierRepo.IsSupplierNameExist(supplier.SupplierName, supplier.Category, cancellationToken))
@@ -132,7 +133,7 @@ namespace Accounting_System.Controllers
                         return View(supplier);
                     }
 
-                    supplier.CreatedBy = User.Identity!.Name;
+                    supplier.CreatedBy = createdBy;
                     supplier.Number = await _supplierRepo.GetLastNumber(cancellationToken);
                     if (supplier.WithholdingTaxtitle != null && supplier.WithholdingTaxPercent != 0)
                     {
@@ -206,7 +207,7 @@ namespace Accounting_System.Controllers
                     if (supplier.OriginalSupplierId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(supplier.CreatedBy!, $"Create new supplier {supplier.SupplierName}", "Supplier Master File", ipAddress!);
+                        AuditTrail auditTrailBook = new(createdBy, $"Create new supplier {supplier.SupplierName}", "Supplier Master File", ipAddress!);
                         await _context.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -270,6 +271,7 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     var existingModel = await _context.Suppliers.FirstOrDefaultAsync(x => x.SupplierId == supplier.SupplierId, cancellationToken);
@@ -326,7 +328,7 @@ namespace Accounting_System.Controllers
                         if (supplier.OriginalSupplierId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(User.Identity!.Name!, $"Update supplier {supplier.SupplierName}", "Supplier Master File", ipAddress!);
+                            AuditTrail auditTrailBook = new(createdBy, $"Update supplier {supplier.SupplierName}", "Supplier Master File", ipAddress!);
                             await _context.AddAsync(auditTrailBook, cancellationToken);
                         }
 

@@ -178,6 +178,7 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     #region --Validating series
@@ -207,7 +208,7 @@ namespace Accounting_System.Controllers
 
                     //JV Header Entry
                     model.Header.JournalVoucherHeaderNo = generateJvNo;
-                    model.Header.CreatedBy = _userManager.GetUserName(this.User);
+                    model.Header.CreatedBy = createdBy;
 
                     await _dbContext.AddAsync(model.Header, cancellationToken);
                     await _dbContext.SaveChangesAsync(cancellationToken);
@@ -257,7 +258,7 @@ namespace Accounting_System.Controllers
                     if (model.Header.OriginalSeriesNumber.IsNullOrEmpty() && model.Header.OriginalDocumentId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(model.Header.CreatedBy!, $"Create new journal voucher# {model.Header.JournalVoucherHeaderNo}", "Journal Voucher", ipAddress!);
+                        AuditTrail auditTrailBook = new(createdBy, $"Create new journal voucher# {model.Header.JournalVoucherHeaderNo}", "Journal Voucher", ipAddress!);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
 
@@ -363,6 +364,7 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Printed(int id, CancellationToken cancellationToken)
         {
             var jv = await _dbContext.JournalVoucherHeaders.FirstOrDefaultAsync(x => x.JournalVoucherHeaderId == id, cancellationToken);
+            var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
             if (jv != null && !jv.IsPrinted)
             {
 
@@ -371,8 +373,7 @@ namespace Accounting_System.Controllers
                 if (jv.OriginalSeriesNumber.IsNullOrEmpty() && jv.OriginalDocumentId == 0)
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    var printedBy = _userManager.GetUserName(this.User);
-                    AuditTrail auditTrailBook = new(printedBy!, $"Printed original copy of jv# {jv.JournalVoucherHeaderNo}", "Journal Voucher", ipAddress!);
+                    AuditTrail auditTrailBook = new(createdBy, $"Printed original copy of jv# {jv.JournalVoucherHeaderNo}", "Journal Voucher", ipAddress!);
                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                 }
 
@@ -391,13 +392,14 @@ namespace Accounting_System.Controllers
             if (modelHeader != null)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     var modelDetails = await _dbContext.JournalVoucherDetails.Where(jvd => jvd.TransactionNo == modelHeader.JournalVoucherHeaderNo).ToListAsync(cancellationToken);
                     if (!modelHeader.IsPosted)
                     {
                         modelHeader.IsPosted = true;
-                        modelHeader.PostedBy = _userManager.GetUserName(this.User);
+                        modelHeader.PostedBy = createdBy;
                         modelHeader.PostedDate = DateTime.Now;
 
                         #region --General Ledger Book Recording(GL)--
@@ -461,7 +463,7 @@ namespace Accounting_System.Controllers
                         if (modelHeader.OriginalSeriesNumber.IsNullOrEmpty() && modelHeader.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(modelHeader.PostedBy!, $"Posted journal voucher# {modelHeader.JournalVoucherHeaderNo}", "Journal Voucher", ipAddress!);
+                            AuditTrail auditTrailBook = new(createdBy, $"Posted journal voucher# {modelHeader.JournalVoucherHeaderNo}", "Journal Voucher", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -490,6 +492,7 @@ namespace Accounting_System.Controllers
             var findJournalVoucherInJournalBook = await _dbContext.JournalBooks.Where(jb => jb.Reference == model!.JournalVoucherHeaderNo).ToListAsync(cancellationToken);
             var findJournalVoucherInGeneralLedger = await _dbContext.GeneralLedgerBooks.Where(jb => jb.Reference == model!.JournalVoucherHeaderNo).ToListAsync(cancellationToken);
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
             try
             {
@@ -503,7 +506,7 @@ namespace Accounting_System.Controllers
                         }
 
                         model.IsVoided = true;
-                        model.VoidedBy = _userManager.GetUserName(this.User);
+                        model.VoidedBy = createdBy;
                         model.VoidedDate = DateTime.Now;
 
                         if (findJournalVoucherInJournalBook.Any())
@@ -520,7 +523,7 @@ namespace Accounting_System.Controllers
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(model.VoidedBy!, $"Voided journal voucher# {model.JournalVoucherHeaderNo}", "Journal Voucher", ipAddress!);
+                            AuditTrail auditTrailBook = new(createdBy, $"Voided journal voucher# {model.JournalVoucherHeaderNo}", "Journal Voucher", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -547,6 +550,7 @@ namespace Accounting_System.Controllers
         {
             var model = await _dbContext.JournalVoucherHeaders.FirstOrDefaultAsync(x => x.JournalVoucherHeaderId == id, cancellationToken);
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
             try
             {
@@ -555,7 +559,7 @@ namespace Accounting_System.Controllers
                     if (!model.IsCanceled)
                     {
                         model.IsCanceled = true;
-                        model.CanceledBy = _userManager.GetUserName(this.User);
+                        model.CanceledBy = createdBy;
                         model.CanceledDate = DateTime.Now;
                         model.CancellationRemarks = cancellationRemarks;
 
@@ -564,7 +568,7 @@ namespace Accounting_System.Controllers
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(model.CanceledBy!, $"Cancelled journal voucher# {model.JournalVoucherHeaderNo}", "Journal Voucher", ipAddress!);
+                            AuditTrail auditTrailBook = new(createdBy, $"Cancelled journal voucher# {model.JournalVoucherHeaderNo}", "Journal Voucher", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 
@@ -655,6 +659,7 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     #region --Saving the default entries
@@ -749,7 +754,7 @@ namespace Accounting_System.Controllers
                         if (existingModel.OriginalSeriesNumber.IsNullOrEmpty() && existingModel.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(User.Identity!.Name!, $"Edit journal voucher# {viewModel.JVNo}", "Journal Voucher", ipAddress!);
+                            AuditTrail auditTrailBook = new(createdBy, $"Edit journal voucher# {viewModel.JVNo}", "Journal Voucher", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
 

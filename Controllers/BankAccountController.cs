@@ -67,6 +67,8 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
+
                 try
                 {
                     if (await _bankAccountRepo.IsBankAccountNameExist(model.AccountName, cancellationToken))
@@ -75,14 +77,14 @@ namespace Accounting_System.Controllers
                         return View(model);
                     }
 
-                    model.CreatedBy = _userManager.GetUserName(this.User);
+                    model.CreatedBy = createdBy;
 
                     #region --Audit Trail Recording
 
                     if (model.OriginalBankId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(model.CreatedBy!, $"Created new bank {model.AccountName}",
+                        AuditTrail auditTrailBook = new(createdBy, $"Created new bank {model.AccountName}",
                             "Bank Account", ipAddress!);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
@@ -124,6 +126,8 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
+
                 try
                 {
                     existingModel.AccountName = model.AccountName;
@@ -136,7 +140,7 @@ namespace Accounting_System.Controllers
                         if (model.OriginalBankId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(User.Identity!.Name!,
+                            AuditTrail auditTrailBook = new(createdBy,
                                 $"Updated bank {model.AccountName}", "Bank Account", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }

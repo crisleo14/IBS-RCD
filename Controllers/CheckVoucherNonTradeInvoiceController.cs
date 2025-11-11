@@ -172,6 +172,7 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
                 try
                 {
@@ -188,7 +189,7 @@ namespace Accounting_System.Controllers
                         SINo = viewModel.SiNo is not null ? [viewModel.SiNo] : [],
                         SupplierId = viewModel.SupplierId,
                         Particulars = viewModel.Particulars,
-                        CreatedBy = _userManager.GetUserName(this.User),
+                        CreatedBy = createdBy,
                         Category = "Non-Trade",
                         CvType = nameof(CVType.Invoicing),
                         Total = viewModel.Total
@@ -398,7 +399,7 @@ namespace Accounting_System.Controllers
                     if (checkVoucherHeader.OriginalSeriesNumber.IsNullOrEmpty() && checkVoucherHeader.OriginalDocumentId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(checkVoucherHeader.CreatedBy!,
+                        AuditTrail auditTrailBook = new(createdBy,
                             $"Create new check voucher# {checkVoucherHeader.CheckVoucherHeaderNo}", "Check Voucher Non Trade Invoice", ipAddress!);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
@@ -413,7 +414,7 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to create invoice check vouchers. Error: {ErrorMessage}, Stack: {StackTrace}. Created by: {UserName}",
-                        ex.Message, ex.StackTrace, _userManager.GetUserName(User));
+                        ex.Message, ex.StackTrace, createdBy);
                     viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
                         .Where(coa => !coa.HasChildren)
                         .OrderBy(coa => coa.AccountNumber)
@@ -496,6 +497,7 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
                 try
                 {
@@ -513,7 +515,7 @@ namespace Accounting_System.Controllers
                         SupplierId = null,
                         Particulars = viewModel.Particulars,
                         Total = viewModel.Total,
-                        CreatedBy = _userManager.GetUserName(this.User),
+                        CreatedBy = createdBy,
                         Category = "Non-Trade",
                         CvType = nameof(CVType.Invoicing),
                         InvoiceAmount = viewModel.Total
@@ -580,7 +582,7 @@ namespace Accounting_System.Controllers
                     if (checkVoucherHeader.OriginalSeriesNumber.IsNullOrEmpty() && checkVoucherHeader.OriginalDocumentId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(checkVoucherHeader.CreatedBy!,
+                        AuditTrail auditTrailBook = new(createdBy,
                             $"Create new check voucher# {checkVoucherHeader.CheckVoucherHeaderNo}", "Check Voucher Non Trade Payroll Invoice", ipAddress!);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
@@ -595,7 +597,7 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to create payroll invoice check vouchers. Error: {ErrorMessage}, Stack: {StackTrace}. Created by: {UserName}",
-                        ex.Message, ex.StackTrace, _userManager.GetUserName(User));
+                        ex.Message, ex.StackTrace, createdBy);
                     viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
                         .Where(coa => !coa.HasChildren)
                         .OrderBy(coa => coa.AccountNumber)
@@ -710,6 +712,7 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
                 try
                 {
@@ -994,7 +997,7 @@ namespace Accounting_System.Controllers
                     if (existingModel.OriginalSeriesNumber.IsNullOrEmpty() && existingModel.OriginalDocumentId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(existingModel.CreatedBy!,
+                        AuditTrail auditTrailBook = new(createdBy,
                             $"Edited check voucher# {existingModel.CheckVoucherHeaderNo}", "Check Voucher Non Trade Invoice", ipAddress!);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
@@ -1009,7 +1012,7 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to edit invoice check vouchers. Error: {ErrorMessage}, Stack: {StackTrace}. Edited by: {UserName}",
-                        ex.Message, ex.StackTrace, _userManager.GetUserName(User));
+                        ex.Message, ex.StackTrace, createdBy);
                     viewModel.Suppliers = await _dbContext.Suppliers
                     .Select(sup => new SelectListItem
                     {
@@ -1109,12 +1112,13 @@ namespace Accounting_System.Controllers
             if (modelHeader != null)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
                 try
                 {
                     if (!modelHeader.IsPosted)
                     {
-                        modelHeader.PostedBy = _userManager.GetUserName(this.User);
+                        modelHeader.PostedBy = createdBy;
                         modelHeader.PostedDate = DateTime.Now;
                         modelHeader.IsPosted = true;
                         //modelHeader.Status = nameof(CheckVoucherInvoiceStatus.ForPayment);
@@ -1156,7 +1160,7 @@ namespace Accounting_System.Controllers
                         if (modelHeader.OriginalSeriesNumber.IsNullOrEmpty() && modelHeader.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(modelHeader.CreatedBy!,
+                            AuditTrail auditTrailBook = new(createdBy,
                                 $"Posted check voucher# {modelHeader.CheckVoucherHeaderNo}", "Check Voucher Non Trade Invoice", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
@@ -1172,7 +1176,7 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to post invoice check vouchers. Error: {ErrorMessage}, Stack: {StackTrace}. Posted by: {UserName}",
-                        ex.Message, ex.StackTrace, _userManager.GetUserName(User));
+                        ex.Message, ex.StackTrace, createdBy);
                     await transaction.RollbackAsync(cancellationToken);
 
                     TempData["error"] = ex.Message;
@@ -1188,6 +1192,7 @@ namespace Accounting_System.Controllers
             var model = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(x => x.CheckVoucherHeaderId == id, cancellationToken);
 
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
             try
             {
@@ -1195,7 +1200,7 @@ namespace Accounting_System.Controllers
                 {
                     if (!model.IsCanceled)
                     {
-                        model.CanceledBy = _userManager.GetUserName(this.User);
+                        model.CanceledBy = createdBy;
                         model.CanceledDate = DateTime.Now;
                         model.IsCanceled = true;
                         //model.Status = nameof(CheckVoucherInvoiceStatus.Canceled);
@@ -1206,7 +1211,7 @@ namespace Accounting_System.Controllers
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(model.CreatedBy!,
+                            AuditTrail auditTrailBook = new(createdBy,
                                 $"Canceled check voucher# {model.CheckVoucherHeaderNo}", "Check Voucher Non Trade Invoice", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
@@ -1225,7 +1230,7 @@ namespace Accounting_System.Controllers
             {
                 await transaction.RollbackAsync(cancellationToken);
                 _logger.LogError(ex, "Failed to cancel invoice check vouchers. Error: {ErrorMessage}, Stack: {StackTrace}. Canceled by: {UserName}",
-                    ex.Message, ex.StackTrace, _userManager.GetUserName(User));
+                    ex.Message, ex.StackTrace, createdBy);
                 TempData["error"] = $"Error: '{ex.Message}'";
                 return RedirectToAction(nameof(Index));
             }
@@ -1240,6 +1245,7 @@ namespace Accounting_System.Controllers
             if (model != null)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
                 try
                 {
@@ -1250,7 +1256,7 @@ namespace Accounting_System.Controllers
                             model.IsPosted = false;
                         }
 
-                        model.VoidedBy = _userManager.GetUserName(this.User);
+                        model.VoidedBy = createdBy;
                         model.VoidedDate = DateTime.Now;
                         model.IsVoided = true;
                         //model.Status = nameof(CheckVoucherInvoiceStatus.Voided);
@@ -1265,7 +1271,7 @@ namespace Accounting_System.Controllers
                         if (model.OriginalSeriesNumber.IsNullOrEmpty() && model.OriginalDocumentId == 0)
                         {
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                            AuditTrail auditTrailBook = new(model.CreatedBy!,
+                            AuditTrail auditTrailBook = new(createdBy,
                                 $"Voided check voucher# {model.CheckVoucherHeaderNo}", "Check Voucher Non Trade Invoice", ipAddress!);
                             await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                         }
@@ -1282,7 +1288,7 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to void invoice check vouchers. Error: {ErrorMessage}, Stack: {StackTrace}. Voided by: {UserName}",
-                        ex.Message, ex.StackTrace, _userManager.GetUserName(User));
+                        ex.Message, ex.StackTrace, createdBy);
                     await transaction.RollbackAsync(cancellationToken);
                     TempData["error"] = ex.Message;
                     return RedirectToAction(nameof(Index));
@@ -1295,6 +1301,8 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Printed(int id, int? supplierId, CancellationToken cancellationToken)
         {
             var cv = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(x => x.CheckVoucherHeaderId == id, cancellationToken);
+            var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
+
             if (!cv!.IsPrinted)
             {
                 #region --Audit Trail Recording
@@ -1302,7 +1310,7 @@ namespace Accounting_System.Controllers
                 if (cv.OriginalSeriesNumber.IsNullOrEmpty() && cv.OriginalDocumentId == 0)
                 {
                     var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    AuditTrail auditTrailBook = new(cv.CreatedBy!,
+                    AuditTrail auditTrailBook = new(createdBy,
                         $"Printed original copy of check voucher# {cv.CheckVoucherHeaderNo}", "Check Voucher Non Trade Invoice", ipAddress!);
                     await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                 }
@@ -1397,6 +1405,7 @@ namespace Accounting_System.Controllers
             if (ModelState.IsValid)
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
                 try
                 {
@@ -1520,7 +1529,7 @@ namespace Accounting_System.Controllers
                     if (existingHeaderModel!.OriginalSeriesNumber.IsNullOrEmpty() && existingHeaderModel.OriginalDocumentId == 0)
                     {
                         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                        AuditTrail auditTrailBook = new(existingHeaderModel.CreatedBy!,
+                        AuditTrail auditTrailBook = new(createdBy,
                             $"Edited check voucher# {existingHeaderModel.CheckVoucherHeaderNo}", "Check Voucher Non Trade Invoice", ipAddress!);
                         await _dbContext.AddAsync(auditTrailBook, cancellationToken);
                     }
@@ -1535,7 +1544,7 @@ namespace Accounting_System.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to edit payroll invoice check vouchers. Error: {ErrorMessage}, Stack: {StackTrace}. Edited by: {UserName}",
-                        ex.Message, ex.StackTrace, _userManager.GetUserName(User));
+                        ex.Message, ex.StackTrace, createdBy);
                     viewModel.ChartOfAccounts = await _dbContext.ChartOfAccounts
                         .Where(coa => !coa.HasChildren)
                         .OrderBy(coa => coa.AccountNumber)
