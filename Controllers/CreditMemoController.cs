@@ -1328,7 +1328,7 @@ namespace Accounting_System.Controllers
                 await file.CopyToAsync(stream, cancellationToken);
                 stream.Position = 0;
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     using var package = new ExcelPackage(stream);
@@ -1640,7 +1640,7 @@ namespace Accounting_System.Controllers
 
                             if (siChanges.Any())
                             {
-                                await _salesInvoiceRepo.LogChangesAsync(existingSi.OriginalDocumentId, siChanges, _userManager.GetUserName(this.User), existingSi.SalesInvoiceNo, "IBS-RCD");
+                                await _salesInvoiceRepo.LogChangesAsync(existingSi.OriginalDocumentId, siChanges, createdBy, existingSi.SalesInvoiceNo, "IBS-RCD");
                             }
 
                             continue;
@@ -1941,7 +1941,7 @@ namespace Accounting_System.Controllers
 
                             if (svChanges.Any())
                             {
-                                await _serviceInvoiceRepo.LogChangesAsync(existingSv.OriginalDocumentId, svChanges, _userManager.GetUserName(this.User), existingSv.ServiceInvoiceNo, "IBS-RCD");
+                                await _serviceInvoiceRepo.LogChangesAsync(existingSv.OriginalDocumentId, svChanges, createdBy, existingSv.ServiceInvoiceNo, "IBS-RCD");
                             }
 
                             continue;
@@ -2292,7 +2292,7 @@ namespace Accounting_System.Controllers
 
                             if (cmChanges.Any())
                             {
-                                await _creditMemoRepo.LogChangesAsync(existingCm.OriginalDocumentId, cmChanges, _userManager.GetUserName(this.User), existingCm.CreditMemoNo, "IBS-RCD");
+                                await _creditMemoRepo.LogChangesAsync(existingCm.OriginalDocumentId, cmChanges, createdBy, existingCm.CreditMemoNo, "IBS-RCD");
                             }
 
                             continue;
@@ -2386,7 +2386,7 @@ namespace Accounting_System.Controllers
                 await file.CopyToAsync(stream, cancellationToken);
                 stream.Position = 0;
                 await using var transaction = await _aasDbContext.Database.BeginTransactionAsync(cancellationToken);
-
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     if (file.FileName.Contains(CS.Name))
@@ -2700,7 +2700,7 @@ namespace Accounting_System.Controllers
 
                             if (siChanges.Any())
                             {
-                                await _salesInvoiceRepo.LogChangesAsync(existingSi.OriginalDocumentId, siChanges, _userManager.GetUserName(this.User), existingSi.SalesInvoiceNo, "AAS");
+                                await _salesInvoiceRepo.LogChangesAsync(existingSi.OriginalDocumentId, siChanges, createdBy, existingSi.SalesInvoiceNo, "AAS");
                             }
 
                             continue;
@@ -3002,7 +3002,7 @@ namespace Accounting_System.Controllers
 
                             if (svChanges.Any())
                             {
-                                await _serviceInvoiceRepo.LogChangesAsync(existingSv.OriginalDocumentId, svChanges, _userManager.GetUserName(this.User), existingSv.ServiceInvoiceNo, "AAS");
+                                await _serviceInvoiceRepo.LogChangesAsync(existingSv.OriginalDocumentId, svChanges, createdBy, existingSv.ServiceInvoiceNo, "AAS");
                             }
 
                             continue;
@@ -3354,7 +3354,7 @@ namespace Accounting_System.Controllers
 
                             if (cmChanges.Any())
                             {
-                                await _creditMemoRepo.LogChangesAsync(existingCm.OriginalDocumentId, cmChanges, _userManager.GetUserName(this.User), existingCm.CreditMemoNo, "AAS");
+                                await _creditMemoRepo.LogChangesAsync(existingCm.OriginalDocumentId, cmChanges, createdBy, existingCm.CreditMemoNo, "AAS");
                             }
 
                             continue;

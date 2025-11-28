@@ -2215,9 +2215,10 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> GenerateLogReport(CancellationToken cancellationToken)
         {
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
             try
 		    {
-                var extractedBy = User.Identity!.Name;
+                var extractedBy = createdBy;
                 // Retrieve the selected invoices from the database
                 var importExportLogList = await _dbContext.ImportExportLogs
                     .OrderBy(invoice => invoice.TimeStamp)

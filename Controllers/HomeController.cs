@@ -28,7 +28,8 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
-            ViewData["Id"] = _userManager.GetUserName(this.User);
+            var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
+            ViewData["Id"] = createdBy;
 
             #region -- Query to count how many in each document to show in graph --
 

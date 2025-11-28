@@ -2243,7 +2243,7 @@ namespace Accounting_System.Controllers
                 await file.CopyToAsync(stream, cancellationToken);
                 stream.Position = 0;
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     using var package = new ExcelPackage(stream);
@@ -2557,7 +2557,7 @@ namespace Accounting_System.Controllers
 
                             if (siChanges.Any())
                             {
-                                await _salesInvoiceRepo.LogChangesAsync(existingSi.OriginalDocumentId, siChanges, _userManager.GetUserName(this.User), existingSi.SalesInvoiceNo, "IBS-RCD");
+                                await _salesInvoiceRepo.LogChangesAsync(existingSi.OriginalDocumentId, siChanges, createdBy, existingSi.SalesInvoiceNo, "IBS-RCD");
                             }
 
                             continue;
@@ -2858,7 +2858,7 @@ namespace Accounting_System.Controllers
 
                             if (svChanges.Any())
                             {
-                                await _serviceInvoiceRepo.LogChangesAsync(existingSv.OriginalDocumentId, svChanges, _userManager.GetUserName(this.User), existingSv.ServiceInvoiceNo, "IBS-RCD");
+                                await _serviceInvoiceRepo.LogChangesAsync(existingSv.OriginalDocumentId, svChanges, createdBy, existingSv.ServiceInvoiceNo, "IBS-RCD");
                             }
 
                             continue;
@@ -2991,7 +2991,7 @@ namespace Accounting_System.Controllers
                                     }
                                 }
                             }
-                            await _receiptRepo.LogChangesAsync(collectionReceipt.OriginalDocumentId, crInSiChanges, _userManager.GetUserName(this.User), collectionReceipt.CollectionReceiptNo, "IBS-RCD");
+                            await _receiptRepo.LogChangesAsync(collectionReceipt.OriginalDocumentId, crInSiChanges, createdBy, collectionReceipt.CollectionReceiptNo, "IBS-RCD");
                         }
 
                         if (collectionReceipt.OriginalSalesInvoiceId != 0)
@@ -3010,7 +3010,7 @@ namespace Accounting_System.Controllers
                                     crInSiChanges[$"SingleSalesInvoiceAmount({salesInvoice?.SalesInvoiceNo})"] = (originalValue.ToString("N2"), adjustedValue);
                                 }
                             }
-                            await _receiptRepo.LogChangesAsync(collectionReceipt.OriginalDocumentId, crInSiChanges, _userManager.GetUserName(this.User), collectionReceipt.CollectionReceiptNo, "IBS-RCD");
+                            await _receiptRepo.LogChangesAsync(collectionReceipt.OriginalDocumentId, crInSiChanges, createdBy, collectionReceipt.CollectionReceiptNo, "IBS-RCD");
                         }
 
                         if (collectionReceiptList.Any(cr => cr.OriginalDocumentId == collectionReceipt.OriginalDocumentId))
@@ -3446,7 +3446,7 @@ namespace Accounting_System.Controllers
 
                             if (crChanges.Any())
                             {
-                                await _receiptRepo.LogChangesAsync(existingCollectionReceipt.OriginalDocumentId, crChanges, _userManager.GetUserName(this.User), existingCollectionReceipt.CollectionReceiptNo, "IBS-RCD");
+                                await _receiptRepo.LogChangesAsync(existingCollectionReceipt.OriginalDocumentId, crChanges, createdBy, existingCollectionReceipt.CollectionReceiptNo, "IBS-RCD");
                             }
 
                             continue;
@@ -3600,7 +3600,7 @@ namespace Accounting_System.Controllers
                 await file.CopyToAsync(stream, cancellationToken);
                 stream.Position = 0;
                 await using var transaction = await _aasDbContext.Database.BeginTransactionAsync(cancellationToken);
-
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     if (file.FileName.Contains(CS.Name))
@@ -3916,7 +3916,7 @@ namespace Accounting_System.Controllers
 
                             if (siChanges.Any())
                             {
-                                await _salesInvoiceRepo.LogChangesAsync(existingSi.OriginalDocumentId, siChanges, _userManager.GetUserName(this.User), existingSi.SalesInvoiceNo, "AAS");
+                                await _salesInvoiceRepo.LogChangesAsync(existingSi.OriginalDocumentId, siChanges, createdBy, existingSi.SalesInvoiceNo, "AAS");
                             }
 
                             continue;
@@ -4218,7 +4218,7 @@ namespace Accounting_System.Controllers
 
                             if (svChanges.Any())
                             {
-                                await _serviceInvoiceRepo.LogChangesAsync(existingSv.OriginalDocumentId, svChanges, _userManager.GetUserName(this.User), existingSv.ServiceInvoiceNo, "AAS");
+                                await _serviceInvoiceRepo.LogChangesAsync(existingSv.OriginalDocumentId, svChanges, createdBy, existingSv.ServiceInvoiceNo, "AAS");
                             }
 
                             continue;
@@ -4352,7 +4352,7 @@ namespace Accounting_System.Controllers
                                     }
                                 }
                             }
-                            await _receiptRepo.LogChangesAsync(collectionReceipt.OriginalDocumentId, crInSiChanges, _userManager.GetUserName(this.User), collectionReceipt.CollectionReceiptNo, "AAS");
+                            await _receiptRepo.LogChangesAsync(collectionReceipt.OriginalDocumentId, crInSiChanges, createdBy, collectionReceipt.CollectionReceiptNo, "AAS");
                         }
 
                         if (collectionReceipt.OriginalSalesInvoiceId != 0)
@@ -4371,7 +4371,7 @@ namespace Accounting_System.Controllers
                                     crInSiChanges[$"SingleSalesInvoiceAmount({salesInvoice?.SalesInvoiceNo})"] = (originalValue.ToString("N2"), adjustedValue);
                                 }
                             }
-                            await _receiptRepo.LogChangesAsync(collectionReceipt.OriginalDocumentId, crInSiChanges, _userManager.GetUserName(this.User), collectionReceipt.CollectionReceiptNo, "AAS");
+                            await _receiptRepo.LogChangesAsync(collectionReceipt.OriginalDocumentId, crInSiChanges, createdBy, collectionReceipt.CollectionReceiptNo, "AAS");
                         }
 
                         if (collectionReceiptList.Any(cr => cr.OriginalDocumentId == collectionReceipt.OriginalDocumentId))
@@ -4807,7 +4807,7 @@ namespace Accounting_System.Controllers
 
                             if (crChanges.Any())
                             {
-                                await _receiptRepo.LogChangesAsync(existingCollectionReceipt.OriginalDocumentId, crChanges, _userManager.GetUserName(this.User), existingCollectionReceipt.CollectionReceiptNo, "AAS");
+                                await _receiptRepo.LogChangesAsync(existingCollectionReceipt.OriginalDocumentId, crChanges, createdBy, existingCollectionReceipt.CollectionReceiptNo, "AAS");
                             }
 
                             continue;

@@ -772,7 +772,7 @@ namespace Accounting_System.Controllers
                 await file.CopyToAsync(stream, cancellationToken);
                 stream.Position = 0;
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     using var package = new ExcelPackage(stream);
@@ -1035,7 +1035,7 @@ namespace Accounting_System.Controllers
 
                             if (poChanges.Any())
                             {
-                                await _purchaseOrderRepo.LogChangesAsync(existingPo.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User), existingPo.PurchaseOrderNo, "IBS-RCD");
+                                await _purchaseOrderRepo.LogChangesAsync(existingPo.OriginalDocumentId, poChanges, createdBy, existingPo.PurchaseOrderNo, "IBS-RCD");
                             }
 
                             continue;
@@ -1143,7 +1143,7 @@ namespace Accounting_System.Controllers
                 await file.CopyToAsync(stream, cancellationToken);
                 stream.Position = 0;
                 await using var transaction = await _aasDbContext.Database.BeginTransactionAsync(cancellationToken);
-
+                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     if (file.FileName.Contains(CS.Name))
@@ -1408,7 +1408,7 @@ namespace Accounting_System.Controllers
 
                             if (poChanges.Any())
                             {
-                                await _purchaseOrderRepo.LogChangesAsync(existingPo.OriginalDocumentId, poChanges, _userManager.GetUserName(this.User), existingPo.PurchaseOrderNo, "AAS");
+                                await _purchaseOrderRepo.LogChangesAsync(existingPo.OriginalDocumentId, poChanges, createdBy, existingPo.PurchaseOrderNo, "AAS");
                             }
 
                             continue;
