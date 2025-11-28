@@ -457,12 +457,11 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     var dateFrom = model.DateFrom;
                     var dateTo = model.DateTo;
-                    var extractedBy = createdBy;
+                    var extractedBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                     var auditTrail = await _reportRepo.GetAuditTrails(model.DateFrom, model.DateTo, cancellationToken);
                     if (auditTrail.Count == 0)
                     {
@@ -546,12 +545,11 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     var dateFrom = model.DateFrom;
                     var dateTo = model.DateTo;
-                    var extractedBy = createdBy;
+                    var extractedBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
                     var disbursementBooks = await _reportRepo.GetDisbursementBooks(model.DateFrom, model.DateTo, cancellationToken);
                     if (disbursementBooks.Count == 0)
@@ -650,12 +648,11 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     var dateFrom = model.DateFrom;
                     var dateTo = model.DateTo;
-                    var extractedBy = createdBy;
+                    var extractedBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
                     var cashReceiptBooks = await _reportRepo.GetCashReceiptBooks(model.DateFrom, model.DateTo, cancellationToken);
                     if (cashReceiptBooks.Count == 0)
@@ -752,12 +749,11 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     var dateFrom = model.DateFrom;
                     var dateTo = model.DateTo;
-                    var extractedBy = createdBy;
+                    var extractedBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
                     var generalBooks = await _reportRepo.GetGeneralLedgerBooks(model.DateFrom, model.DateTo, cancellationToken);
                     if (generalBooks.Count == 0)
@@ -847,12 +843,11 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     var dateTo = model.DateTo;
                     var dateFrom = dateTo.AddDays(-dateTo.Day + 1);
-                    var extractedBy = createdBy;
+                    var extractedBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
                     var inventoryBooks = await _reportRepo.GetInventoryBooks(dateFrom, dateTo, cancellationToken);
                     if (inventoryBooks.Count == 0)
@@ -955,12 +950,11 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     var dateFrom = model.DateFrom;
                     var dateTo = model.DateTo;
-                    var extractedBy = createdBy;
+                    var extractedBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
                     var journalBooks = await _reportRepo.GetJournalBooks(model.DateFrom, model.DateTo, cancellationToken);
                     if (journalBooks.Count == 0)
@@ -1051,12 +1045,11 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     var dateFrom = model.DateFrom;
                     var dateTo = model.DateTo;
-                    var extractedBy = createdBy;
+                    var extractedBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
                     if (poListFrom != null && poListTo != null)
                     {
@@ -1177,12 +1170,11 @@ namespace Accounting_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
                 try
                 {
                     var dateFrom = model.DateFrom;
                     var dateTo = model.DateTo;
-                    var extractedBy = createdBy;
+                    var extractedBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
                     if (soaList != null || siList != null)
                     {
@@ -1297,10 +1289,9 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> GenerateDisbursementBookCsvFile(ViewModelBook model, CancellationToken cancellationToken)
         {
-            var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
             var dateFrom = model.DateFrom;
             var dateTo = model.DateTo;
-            var extractedBy = createdBy;
+            var extractedBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
             var disbursementBooks = await _reportRepo.GetDisbursementBooks(model.DateFrom, model.DateTo, cancellationToken);
             if (disbursementBooks.Count == 0)
@@ -1413,10 +1404,9 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> GenerateCashReceiptBookCsvFile(ViewModelBook model, CancellationToken cancellationToken)
         {
-            var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
             var dateFrom = model.DateFrom;
             var dateTo = model.DateTo;
-            var extractedBy = createdBy;
+            var extractedBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
             var cashReceiptBooks = await _reportRepo.GetCashReceiptBooks(model.DateFrom, model.DateTo, cancellationToken);
             if (cashReceiptBooks.Count == 0)
@@ -1527,10 +1517,9 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> GenerateGeneralLedgerBookCsvFile(ViewModelBook model, CancellationToken cancellationToken)
         {
-            var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
             var dateFrom = model.DateFrom;
             var dateTo = model.DateTo;
-            var extractedBy = createdBy;
+            var extractedBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
             var generalBooks = await _reportRepo.GetGeneralLedgerBooks(model.DateFrom, model.DateTo, cancellationToken);
             if (generalBooks.Count == 0)
@@ -1635,10 +1624,9 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> GenerateInventoryBookCsvFile(ViewModelBook model, CancellationToken cancellationToken)
         {
-            var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
             var dateTo = model.DateTo;
             var dateFrom = dateTo.AddDays(-dateTo.Day + 1);
-            var extractedBy = createdBy;
+            var extractedBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
             var inventoryBooks = await _reportRepo.GetInventoryBooks(dateFrom, dateTo, cancellationToken);
             if (inventoryBooks.Count == 0)
@@ -1758,10 +1746,9 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> GenerateJournalBookCsvFile(ViewModelBook model, CancellationToken cancellationToken)
         {
-            var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
             var dateFrom = model.DateFrom;
             var dateTo = model.DateTo;
-            var extractedBy = createdBy;
+            var extractedBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
             var journalBooks = await _reportRepo.GetJournalBooks(model.DateFrom, model.DateTo, cancellationToken);
             if (journalBooks.Count == 0)
@@ -1866,10 +1853,9 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> GeneratePurchaseBookCsvFile(ViewModelBook model, string? selectedFiltering, string? poListFrom, string? poListTo, CancellationToken cancellationToken)
         {
-            var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
             var dateFrom = model.DateFrom;
             var dateTo = model.DateTo;
-            var extractedBy = createdBy;
+            var extractedBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
             if (poListFrom != null && poListTo != null)
             {
@@ -2011,10 +1997,9 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> GenerateSalesBookCsvFile(ViewModelBook model, string? selectedDocument, string? soaList, string? siList, CancellationToken cancellationToken)
         {
-            var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
             var dateFrom = model.DateFrom;
             var dateTo = model.DateTo;
-            var extractedBy = createdBy;
+            var extractedBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
 
             if (soaList != null || siList != null)
             {
