@@ -46,6 +46,30 @@ namespace Accounting_System.Controllers
             return View(chartOfAccounts);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> GetChartOfAccountSaveToExcelIndex(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var chartOfAccounts = await _coaRepo.GetChartOfAccountAsync(cancellationToken);
+
+                foreach (var item in chartOfAccounts)
+                {
+                    item.ParentAccount = null;
+                }
+
+                return Json(new
+                {
+                    data = chartOfAccounts
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetAllChartOfAccountIds(CancellationToken cancellationToken)
         {

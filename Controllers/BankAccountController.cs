@@ -170,25 +170,11 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetBankAccountSaveToExcelIndex([FromForm] string searchValue, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetBankAccountSaveToExcelIndex(CancellationToken cancellationToken)
         {
             try
             {
                 var bankAccounts = await _bankAccountRepo.GetBankAccountAsync(cancellationToken);
-                // Search filter
-                if (!string.IsNullOrEmpty(searchValue))
-                {
-                    searchValue = searchValue.ToLower();
-
-                    bankAccounts = bankAccounts
-                        .Where(x =>
-                            x.AccountName.ToLower().Contains(searchValue) ||
-                            x.Bank.ToLower().Contains(searchValue) ||
-                            x.CreatedBy!.ToLower().Contains(searchValue) ||
-                            x.CreatedDate.ToString("MMM dd, yyyy").ToLower().Contains(searchValue)
-                        )
-                        .ToList();
-                }
 
                 return Json(new
                 {

@@ -800,33 +800,11 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetSalesInvoicesSaveToExcelIndex([FromForm] string searchValue, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetSalesInvoicesSaveToExcelIndex(CancellationToken cancellationToken)
         {
             try
             {
                 var salesInvoices = await _salesInvoiceRepo.GetSalesInvoicesAsync(cancellationToken);
-                // Search filter
-                if (!string.IsNullOrEmpty(searchValue))
-                {
-                    searchValue = searchValue.ToLower();
-
-                    salesInvoices = salesInvoices
-                        .Where(s =>
-                            s.SalesInvoiceNo!.ToLower().Contains(searchValue) ||
-                            s.Customer!.CustomerName.ToLower().Contains(searchValue) ||
-                            s.Customer.CustomerTerms.ToLower().Contains(searchValue) ||
-                            s.Product!.ProductCode!.ToLower().Contains(searchValue) ||
-                            s.Product.ProductName.ToLower().Contains(searchValue) ||
-                            s.Status.ToLower().Contains(searchValue) ||
-                            s.TransactionDate.ToString("MMM dd, yyyy").ToLower().Contains(searchValue) ||
-                            s.Quantity.ToString(CultureInfo.InvariantCulture).Contains(searchValue) ||
-                            s.UnitPrice.ToString(CultureInfo.InvariantCulture).Contains(searchValue) ||
-                            s.Amount.ToString(CultureInfo.InvariantCulture).Contains(searchValue) ||
-                            s.Remarks.ToLower().Contains(searchValue) ||
-                            s.CreatedBy!.ToLower().Contains(searchValue)
-                            )
-                        .ToList();
-                }
 
                 return Json(new
                 {
