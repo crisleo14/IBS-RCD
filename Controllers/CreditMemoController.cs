@@ -1084,6 +1084,25 @@ namespace Accounting_System.Controllers
             return Json(null);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> GetCreditMemoList(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var creditMemos = await _creditMemoRepo.GetCreditMemosAsync(cancellationToken);
+
+                return Json(new
+                {
+                    data = creditMemos
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
         //Download as .xlsx file.(Export)
         #region -- export xlsx record --
 
