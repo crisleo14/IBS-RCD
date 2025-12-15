@@ -40,7 +40,7 @@ namespace Accounting_System.Controllers
 
             if (view == nameof(DynamicView.BankAccount))
             {
-                return View("ImportExportIndex", ba);
+                return View("ImportExportIndex");
             }
 
             return View(ba);
@@ -170,7 +170,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetBankAccountSaveToExcelIndex(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetBankAccountList(CancellationToken cancellationToken)
         {
             try
             {

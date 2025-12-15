@@ -95,7 +95,7 @@
                 serverSide: false,
                 stateSave: true,
                 ajax: {
-                    url: '@Url.Action("GetChartOfAccountSaveToExcelIndex", "ChartOfAccount")',
+                    url: '@Url.Action("GetChartOfAccountList", "ChartOfAccount")',
                     type: 'POST',
                     data: function (d) {
                         return $.extend({}, d, {

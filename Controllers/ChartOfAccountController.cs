@@ -41,13 +41,13 @@ namespace Accounting_System.Controllers
 
             if (view == nameof(DynamicView.ChartOfAccount))
             {
-                return View("ImportExportIndex", chartOfAccounts);
+                return View("ImportExportIndex");
             }
             return View(chartOfAccounts);
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetChartOfAccountSaveToExcelIndex(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetChartOfAccountList(CancellationToken cancellationToken)
         {
             try
             {

@@ -94,7 +94,7 @@
                 serverSide: false,
                 stateSave: true,
                 ajax: {
-                    url: '@Url.Action("GetBankAccountSaveToExcelIndex", "BankAccount")',
+                    url: '@Url.Action("GetBankAccountList", "BankAccount")',
                     type: 'POST',
                     data: function (d) {
                         return $.extend({}, d, {

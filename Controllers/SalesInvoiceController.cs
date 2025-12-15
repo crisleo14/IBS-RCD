@@ -48,11 +48,9 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
         {
-            var salesInvoices = await _salesInvoiceRepo.GetSalesInvoicesAsync(cancellationToken);
-
             if (view == nameof(DynamicView.SalesInvoice))
             {
-                return View("ImportExportIndex", salesInvoices);
+                return View("ImportExportIndex");
             }
 
             return View();
@@ -800,7 +798,7 @@ namespace Accounting_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetSalesInvoicesSaveToExcelIndex(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetSalesInvoiceList(CancellationToken cancellationToken)
         {
             try
             {

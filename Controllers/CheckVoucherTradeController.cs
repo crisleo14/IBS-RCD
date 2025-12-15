@@ -61,11 +61,7 @@ namespace Accounting_System.Controllers
         {
             if (view == nameof(DynamicView.CheckVoucher))
             {
-                var checkVoucherHeaders = await _dbContext.CheckVoucherHeaders
-                    .Where(cv => cv.CvType != "Payment")
-                    .ToListAsync(cancellationToken);
-
-                return View("ImportExportIndex", checkVoucherHeaders);
+                return View("ImportExportIndex");
             }
 
             return View();
@@ -1197,6 +1193,26 @@ namespace Accounting_System.Controllers
                                      .ToList();
 
             return Json(cvIds);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetCheckVoucherHeaderList(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var checkVoucherHeaders = (await _checkVoucherRepo.GetCheckVouchersAsync(cancellationToken))
+                    .Where(x => x.CvType != "Payment");
+
+                return Json(new
+                {
+                    data = checkVoucherHeaders
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         //Download as .xlsx file.(Export)
