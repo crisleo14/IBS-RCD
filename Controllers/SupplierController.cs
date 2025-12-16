@@ -40,7 +40,7 @@ namespace Accounting_System.Controllers
 
             if (view == nameof(DynamicView.Supplier))
             {
-                return View("ImportExportIndex", data);
+                return View("ImportExportIndex");
             }
 
             return View(data);
@@ -384,6 +384,25 @@ namespace Accounting_System.Controllers
         private bool SupplierExists(int id)
         {
             return _context.Suppliers != null! && _context.Suppliers.Any(e => e.SupplierId == id);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetSupplierList(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var suppliers = await _context.Suppliers.ToListAsync(cancellationToken);
+
+                return Json(new
+                {
+                    data = suppliers
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         //Download as .xlsx file.(Export)
