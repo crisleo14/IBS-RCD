@@ -50,7 +50,7 @@ namespace Accounting_System.Controllers
 
             if (view == nameof(DynamicView.DebitMemo))
             {
-                return View("ImportExportIndex", await _debitMemoRepo.GetDebitMemosAsync(cancellationToken));
+                return View("ImportExportIndex");
             }
 
             return View();
@@ -1044,6 +1044,27 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
             return View(existingDm);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetDebitMemoList(CancellationToken cancellationToken)
+        {
+            var debitMemos = await _debitMemoRepo.GetDebitMemosAsync(cancellationToken);
+            try
+            {
+                return Json(new
+                {
+                    data = debitMemos
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return Json(new
+                {
+                    data = debitMemos
+                });
+            }
         }
 
         //Download as .xlsx file.(Export)

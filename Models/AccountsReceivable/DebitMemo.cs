@@ -29,6 +29,7 @@ namespace Accounting_System.Models.AccountsReceivable
         public List<SelectListItem>? ServiceInvoices { get; set; }
 
         [StringLength(13)]
+        [Display(Name = "Debit Memo No")]
         public string? DebitMemoNo { get; set; }
 
         [Column(TypeName = "date")]
