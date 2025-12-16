@@ -51,9 +51,7 @@ namespace Accounting_System.Controllers
         {
             if (view == nameof(DynamicView.JournalVoucher))
             {
-                var journalVouchers = await _journalVoucherRepo.GetJournalVouchersAsync(cancellationToken);
-
-                return View("ImportExportIndex", journalVouchers);
+                return View("ImportExportIndex");
             }
 
             return View();
@@ -816,6 +814,27 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
             return View(viewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetJournalVoucherList(CancellationToken cancellationToken)
+        {
+            var journalVouchers = await _journalVoucherRepo.GetJournalVouchersAsync(cancellationToken);
+            try
+            {
+                return Json(new
+                {
+                    data = journalVouchers
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return Json(new
+                {
+                    data = journalVouchers
+                });
+            }
         }
 
         //Download as .xlsx file.(Export)

@@ -800,10 +800,9 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> GetSalesInvoiceList(CancellationToken cancellationToken)
         {
+            var salesInvoices = await _salesInvoiceRepo.GetSalesInvoicesAsync(cancellationToken);
             try
             {
-                var salesInvoices = await _salesInvoiceRepo.GetSalesInvoicesAsync(cancellationToken);
-
                 return Json(new
                 {
                     data = salesInvoices
@@ -812,7 +811,10 @@ namespace Accounting_System.Controllers
             catch (Exception ex)
             {
                 TempData["error"] = ex.Message;
-                return RedirectToAction(nameof(Index));
+                return Json(new
+                {
+                    data = salesInvoices
+                });
             }
         }
 
