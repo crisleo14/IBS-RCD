@@ -36,7 +36,7 @@ namespace Accounting_System.Controllers
 
             if (view == nameof(DynamicView.Product))
             {
-                return View("ImportExportIndex", data);
+                return View("ImportExportIndex");
             }
 
             return View(data);
@@ -193,6 +193,27 @@ namespace Accounting_System.Controllers
         private bool ProductExists(int id)
         {
             return _dbContext.Products != null! && _dbContext.Products.Any(e => e.ProductId == id);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetProductList(CancellationToken cancellationToken)
+        {
+            var products = await _dbContext.Products.ToListAsync(cancellationToken);
+            try
+            {
+                return Json(new
+                {
+                    data = products
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return Json(new
+                {
+                    data = products
+                });
+            }
         }
 
         //Download as .xlsx file.(Export)
