@@ -42,7 +42,7 @@ namespace Accounting_System.Controllers
             _generalRepo = generalRepo;
         }
 
-        public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
+        public IActionResult Index(string? view)
         {
             if (view == nameof(DynamicView.PurchaseOrder))
             {

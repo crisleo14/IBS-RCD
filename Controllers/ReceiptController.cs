@@ -47,13 +47,11 @@ namespace Accounting_System.Controllers
             _aasDbContext = aasDbContext;
         }
 
-        public async Task<IActionResult> CollectionIndex(string? view, CancellationToken cancellationToken)
+        public IActionResult CollectionIndex(string? view)
         {
-            var collectionReceipts = await _receiptRepo.GetCollectionReceiptsAsync(cancellationToken);
-
             if (view == nameof(DynamicView.CollectionReceipt))
             {
-                return View("ImportExportIndex", collectionReceipts);
+                return View("ImportExportIndex");
             }
 
             return View();
@@ -1893,6 +1891,27 @@ namespace Accounting_System.Controllers
             }
 
             return NotFound();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetCollectionReceiptList(CancellationToken cancellationToken)
+        {
+            var collectionReceipts = await _receiptRepo.GetCollectionReceiptsAsync(cancellationToken);
+            try
+            {
+                return Json(new
+                {
+                    data = collectionReceipts
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return Json(new
+                {
+                    data = collectionReceipts
+                });
+            }
         }
 
         //Download as .xlsx file.(Export)

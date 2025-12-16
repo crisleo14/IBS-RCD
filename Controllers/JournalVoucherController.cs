@@ -47,7 +47,7 @@ namespace Accounting_System.Controllers
             _aasDbContext = aasDbContext;
         }
 
-        public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
+        public IActionResult Index(string? view)
         {
             if (view == nameof(DynamicView.JournalVoucher))
             {
