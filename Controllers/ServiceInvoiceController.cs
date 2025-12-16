@@ -38,13 +38,11 @@ namespace Accounting_System.Controllers
             _aasDbContext = aasDbContext;
         }
 
-        public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
+        public IActionResult Index(string? view)
         {
-            var serviceInvoices = await _serviceInvoiceRepo.GetServiceInvoicesAsync(cancellationToken);
-
             if (view == nameof(DynamicView.ServiceInvoice))
             {
-                return View("ImportExportIndex", serviceInvoices);
+                return View("ImportExportIndex");
             }
 
             return View();
@@ -742,6 +740,25 @@ namespace Accounting_System.Controllers
                 })
                 .ToListAsync(cancellationToken);
             return View(existingModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetServiceInvoiceList(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var serviceInvoices = await _serviceInvoiceRepo.GetServiceInvoicesAsync(cancellationToken);
+
+                return Json(new
+                {
+                    data = serviceInvoices
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         //Download as .xlsx file.(Export)
