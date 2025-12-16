@@ -37,7 +37,7 @@ namespace Accounting_System.Controllers
 
             if (view == nameof(DynamicView.Service))
             {
-                return View("ImportExportIndex", data);
+                return View("ImportExportIndex");
             }
 
             return View(data);
@@ -251,6 +251,25 @@ namespace Accounting_System.Controllers
         private bool ServicesExists(int id)
         {
             return _dbContext.Services != null! && _dbContext.Services.Any(e => e.ServiceId == id);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetServiceList(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var services = await _dbContext.Services.ToListAsync(cancellationToken);
+
+                return Json(new
+                {
+                    data = services
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         //Download as .xlsx file.(Export)
