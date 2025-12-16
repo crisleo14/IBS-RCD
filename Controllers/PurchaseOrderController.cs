@@ -44,11 +44,9 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
         {
-            var purchaseOrders = await _purchaseOrderRepo.GetPurchaseOrderAsync(cancellationToken);
-
             if (view == nameof(DynamicView.PurchaseOrder))
             {
-                return View("ImportExportIndex", purchaseOrders);
+                return View("ImportExportIndex");
             }
 
             return View();
@@ -665,6 +663,27 @@ namespace Accounting_System.Controllers
             }
 
             return NotFound();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetPurchaseOrderList(CancellationToken cancellationToken)
+        {
+            var purchaseOrders = await _purchaseOrderRepo.GetPurchaseOrderAsync(cancellationToken);
+            try
+            {
+                return Json(new
+                {
+                    data = purchaseOrders
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return Json(new
+                {
+                    data = purchaseOrders
+                });
+            }
         }
 
         //Download as .xlsx file.(Export)
