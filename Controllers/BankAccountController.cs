@@ -172,9 +172,10 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> GetBankAccountList(CancellationToken cancellationToken)
         {
-            var bankAccounts = await _bankAccountRepo.GetBankAccountAsync(cancellationToken);
             try
             {
+                var bankAccounts = await _bankAccountRepo.GetBankAccountAsync(cancellationToken);
+
                 return Json(new
                 {
                     data = bankAccounts
@@ -183,10 +184,7 @@ namespace Accounting_System.Controllers
             catch (Exception ex)
             {
                 TempData["error"] = ex.Message;
-                return Json(new
-                {
-                    data = bankAccounts
-                });
+                return RedirectToAction(nameof(Index));
             }
         }
 

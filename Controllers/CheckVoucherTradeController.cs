@@ -1198,10 +1198,11 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> GetCheckVoucherHeaderList(CancellationToken cancellationToken)
         {
-            var checkVoucherHeaders = (await _checkVoucherRepo.GetCheckVouchersAsync(cancellationToken))
-                .Where(x => x.CvType != "Payment");
             try
             {
+                var checkVoucherHeaders = (await _checkVoucherRepo.GetCheckVouchersAsync(cancellationToken))
+                    .Where(x => x.CvType != "Payment");
+
                 return Json(new
                 {
                     data = checkVoucherHeaders
@@ -1210,10 +1211,7 @@ namespace Accounting_System.Controllers
             catch (Exception ex)
             {
                 TempData["error"] = ex.Message;
-                return Json(new
-                {
-                    data = checkVoucherHeaders
-                });
+                return RedirectToAction(nameof(Index));
             }
         }
 

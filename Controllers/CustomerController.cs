@@ -195,9 +195,10 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> GetCustomerList(CancellationToken cancellationToken)
         {
-            var customer = await _customerRepo.GetCustomersAsync(cancellationToken);
             try
             {
+                var customer = await _customerRepo.GetCustomersAsync(cancellationToken);
+
                 return Json(new
                 {
                     data = customer
@@ -206,10 +207,7 @@ namespace Accounting_System.Controllers
             catch (Exception ex)
             {
                 TempData["error"] = ex.Message;
-                return Json(new
-                {
-                    data = customer
-                });
+                return RedirectToAction(nameof(Index));
             }
         }
 

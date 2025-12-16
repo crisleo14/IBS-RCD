@@ -668,9 +668,10 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> GetPurchaseOrderList(CancellationToken cancellationToken)
         {
-            var purchaseOrders = await _purchaseOrderRepo.GetPurchaseOrderAsync(cancellationToken);
             try
             {
+                var purchaseOrders = await _purchaseOrderRepo.GetPurchaseOrderAsync(cancellationToken);
+
                 return Json(new
                 {
                     data = purchaseOrders
@@ -679,10 +680,7 @@ namespace Accounting_System.Controllers
             catch (Exception ex)
             {
                 TempData["error"] = ex.Message;
-                return Json(new
-                {
-                    data = purchaseOrders
-                });
+                return RedirectToAction(nameof(Index));
             }
         }
 

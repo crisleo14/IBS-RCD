@@ -819,9 +819,10 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> GetJournalVoucherList(CancellationToken cancellationToken)
         {
-            var journalVouchers = await _journalVoucherRepo.GetJournalVouchersAsync(cancellationToken);
             try
             {
+                var journalVouchers = await _journalVoucherRepo.GetJournalVouchersAsync(cancellationToken);
+
                 return Json(new
                 {
                     data = journalVouchers
@@ -830,10 +831,7 @@ namespace Accounting_System.Controllers
             catch (Exception ex)
             {
                 TempData["error"] = ex.Message;
-                return Json(new
-                {
-                    data = journalVouchers
-                });
+                return RedirectToAction(nameof(Index));
             }
         }
 

@@ -49,9 +49,10 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> GetChartOfAccountList(CancellationToken cancellationToken)
         {
-            var chartOfAccounts = await _coaRepo.GetChartOfAccountAsync(cancellationToken);
             try
             {
+                var chartOfAccounts = await _coaRepo.GetChartOfAccountAsync(cancellationToken);
+
                 foreach (var item in chartOfAccounts)
                 {
                     item.ParentAccount = null;
@@ -65,10 +66,7 @@ namespace Accounting_System.Controllers
             catch (Exception ex)
             {
                 TempData["error"] = ex.Message;
-                return Json(new
-                {
-                    data = chartOfAccounts
-                });
+                return RedirectToAction(nameof(Index));
             }
         }
 

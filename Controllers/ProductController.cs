@@ -198,9 +198,10 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> GetProductList(CancellationToken cancellationToken)
         {
-            var products = await _dbContext.Products.ToListAsync(cancellationToken);
             try
             {
+                var products = await _dbContext.Products.ToListAsync(cancellationToken);
+
                 return Json(new
                 {
                     data = products
@@ -209,10 +210,7 @@ namespace Accounting_System.Controllers
             catch (Exception ex)
             {
                 TempData["error"] = ex.Message;
-                return Json(new
-                {
-                    data = products
-                });
+                return RedirectToAction(nameof(Index));
             }
         }
 

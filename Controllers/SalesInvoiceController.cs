@@ -46,7 +46,7 @@ namespace Accounting_System.Controllers
             _aasDbContext = aasDbContext;
         }
 
-        public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
+        public IActionResult Index(string? view)
         {
             if (view == nameof(DynamicView.SalesInvoice))
             {
@@ -800,9 +800,10 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> GetSalesInvoiceList(CancellationToken cancellationToken)
         {
-            var salesInvoices = await _salesInvoiceRepo.GetSalesInvoicesAsync(cancellationToken);
             try
             {
+                var salesInvoices = await _salesInvoiceRepo.GetSalesInvoicesAsync(cancellationToken);
+
                 return Json(new
                 {
                     data = salesInvoices
@@ -811,13 +812,9 @@ namespace Accounting_System.Controllers
             catch (Exception ex)
             {
                 TempData["error"] = ex.Message;
-                return Json(new
-                {
-                    data = salesInvoices
-                });
+                return RedirectToAction(nameof(Index));
             }
         }
-
 
         //Download as .xlsx file.(Export)
         #region -- export xlsx record --

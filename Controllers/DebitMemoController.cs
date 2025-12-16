@@ -1049,9 +1049,10 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> GetDebitMemoList(CancellationToken cancellationToken)
         {
-            var debitMemos = await _debitMemoRepo.GetDebitMemosAsync(cancellationToken);
             try
             {
+                var debitMemos = await _debitMemoRepo.GetDebitMemosAsync(cancellationToken);
+
                 return Json(new
                 {
                     data = debitMemos
@@ -1060,10 +1061,7 @@ namespace Accounting_System.Controllers
             catch (Exception ex)
             {
                 TempData["error"] = ex.Message;
-                return Json(new
-                {
-                    data = debitMemos
-                });
+                return RedirectToAction(nameof(Index));
             }
         }
 

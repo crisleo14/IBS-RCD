@@ -1896,9 +1896,10 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> GetCollectionReceiptList(CancellationToken cancellationToken)
         {
-            var collectionReceipts = await _receiptRepo.GetCollectionReceiptsAsync(cancellationToken);
             try
             {
+                var collectionReceipts = await _receiptRepo.GetCollectionReceiptsAsync(cancellationToken);
+
                 return Json(new
                 {
                     data = collectionReceipts
@@ -1907,10 +1908,7 @@ namespace Accounting_System.Controllers
             catch (Exception ex)
             {
                 TempData["error"] = ex.Message;
-                return Json(new
-                {
-                    data = collectionReceipts
-                });
+                return RedirectToAction(nameof(Index));
             }
         }
 

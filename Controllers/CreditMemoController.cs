@@ -1087,9 +1087,10 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> GetCreditMemoList(CancellationToken cancellationToken)
         {
-            var creditMemos = await _creditMemoRepo.GetCreditMemosAsync(cancellationToken);
             try
             {
+                var creditMemos = await _creditMemoRepo.GetCreditMemosAsync(cancellationToken);
+
                 return Json(new
                 {
                     data = creditMemos
@@ -1098,10 +1099,7 @@ namespace Accounting_System.Controllers
             catch (Exception ex)
             {
                 TempData["error"] = ex.Message;
-                return Json(new
-                {
-                    data = creditMemos
-                });
+                return RedirectToAction(nameof(Index));
             }
         }
 
