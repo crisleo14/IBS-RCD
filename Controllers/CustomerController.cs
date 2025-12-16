@@ -39,7 +39,7 @@ namespace Accounting_System.Controllers
 
             if (view == nameof(DynamicView.Customer))
             {
-                return View("ImportExportIndex", customer);
+                return View("ImportExportIndex");
             }
 
             return View(customer);
@@ -190,6 +190,27 @@ namespace Accounting_System.Controllers
 
             }
             return View(existingModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetCustomerList(CancellationToken cancellationToken)
+        {
+            var customer = await _customerRepo.GetCustomersAsync(cancellationToken);
+            try
+            {
+                return Json(new
+                {
+                    data = customer
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return Json(new
+                {
+                    data = customer
+                });
+            }
         }
 
         //Download as .xlsx file.(Export)

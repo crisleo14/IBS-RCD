@@ -20,6 +20,8 @@ namespace Accounting_System.Controllers
     [Authorize]
     public class CreditMemoController : Controller
     {
+        private static int _throwOnce = 0;
+
         private readonly ApplicationDbContext _dbContext;
 
         private readonly AasDbContext _aasDbContext;
@@ -47,11 +49,9 @@ namespace Accounting_System.Controllers
 
         public async Task<IActionResult> Index(string? view, CancellationToken cancellationToken)
         {
-            var creditMemos = await _creditMemoRepo.GetCreditMemosAsync(cancellationToken);
-
             if (view == nameof(DynamicView.CreditMemo))
             {
-                return View("ImportExportIndex", creditMemos);
+                return View("ImportExportIndex");
             }
 
             return View();
@@ -1087,10 +1087,9 @@ namespace Accounting_System.Controllers
         [HttpPost]
         public async Task<IActionResult> GetCreditMemoList(CancellationToken cancellationToken)
         {
+            var creditMemos = await _creditMemoRepo.GetCreditMemosAsync(cancellationToken);
             try
             {
-                var creditMemos = await _creditMemoRepo.GetCreditMemosAsync(cancellationToken);
-
                 return Json(new
                 {
                     data = creditMemos
@@ -1099,7 +1098,10 @@ namespace Accounting_System.Controllers
             catch (Exception ex)
             {
                 TempData["error"] = ex.Message;
-                return RedirectToAction(nameof(Index));
+                return Json(new
+                {
+                    data = creditMemos
+                });
             }
         }
 
