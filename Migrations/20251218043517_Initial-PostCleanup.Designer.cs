@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accounting_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250804045201_ImplementStringLengthInModels")]
-    partial class ImplementStringLengthInModels
+    [Migration("20251218043517_Initial-PostCleanup")]
+    partial class InitialPostCleanup
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -176,7 +176,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("canceled_by");
 
                     b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("canceled_date");
 
                     b.Property<string>("CancellationRemarks")
@@ -213,7 +213,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<string>("CvType")
@@ -224,6 +224,15 @@ namespace Accounting_System.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date")
                         .HasColumnName("date");
+
+                    b.Property<string>("EditedBy")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("edited_by");
+
+                    b.Property<DateTime?>("EditedDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("edited_date");
 
                     b.Property<DateOnly?>("EndDate")
                         .HasColumnType("date")
@@ -258,7 +267,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("is_voided");
 
                     b.Property<DateTime?>("LastCreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("last_created_date");
 
                     b.Property<int>("NumberOfMonths")
@@ -305,7 +314,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("posted_by");
 
                     b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("posted_date");
 
                     b.Property<string[]>("RRNo")
@@ -313,8 +322,8 @@ namespace Accounting_System.Migrations
                         .HasColumnName("rr_no");
 
                     b.Property<string>("Reference")
-                        .HasMaxLength(13)
-                        .HasColumnType("character varying(13)")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
                         .HasColumnName("reference");
 
                     b.Property<string[]>("SINo")
@@ -339,7 +348,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("voided_by");
 
                     b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("voided_date");
 
                     b.HasKey("CheckVoucherHeaderId")
@@ -456,7 +465,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("canceled_by");
 
                     b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("canceled_date");
 
                     b.Property<string>("CancellationRemarks")
@@ -469,12 +478,21 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date")
                         .HasColumnName("date");
+
+                    b.Property<string>("EditedBy")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("edited_by");
+
+                    b.Property<DateTime?>("EditedDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("edited_date");
 
                     b.Property<decimal?>("FinalPrice")
                         .HasColumnType("numeric(18,4)")
@@ -526,7 +544,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("posted_by");
 
                     b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("posted_date");
 
                     b.Property<decimal>("Price")
@@ -557,7 +575,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("quantity_received");
 
                     b.Property<DateTime>("ReceivedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("received_date");
 
                     b.Property<string>("Remarks")
@@ -587,7 +605,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("voided_by");
 
                     b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("voided_date");
 
                     b.HasKey("PurchaseOrderId")
@@ -625,7 +643,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("canceled_by");
 
                     b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("canceled_date");
 
                     b.Property<decimal>("CanceledQuantity")
@@ -642,7 +660,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<DateOnly>("Date")
@@ -652,6 +670,15 @@ namespace Accounting_System.Migrations
                     b.Property<DateOnly>("DueDate")
                         .HasColumnType("date")
                         .HasColumnName("due_date");
+
+                    b.Property<string>("EditedBy")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("edited_by");
+
+                    b.Property<DateTime?>("EditedDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("edited_date");
 
                     b.Property<decimal>("GainOrLoss")
                         .HasColumnType("numeric(18,4)")
@@ -714,7 +741,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("posted_by");
 
                     b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("posted_date");
 
                     b.Property<decimal>("QuantityDelivered")
@@ -761,7 +788,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("voided_by");
 
                     b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("voided_date");
 
                     b.HasKey("ReceivingReportId")
@@ -782,18 +809,13 @@ namespace Accounting_System.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CollectionReceiptId"));
 
-                    b.Property<string>("CRNo")
-                        .HasMaxLength(13)
-                        .HasColumnType("character varying(13)")
-                        .HasColumnName("cr_no");
-
                     b.Property<string>("CanceledBy")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("canceled_by");
 
                     b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("canceled_date");
 
                     b.Property<string>("CancellationRemarks")
@@ -818,8 +840,8 @@ namespace Accounting_System.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("check_branch");
 
-                    b.Property<string>("CheckDate")
-                        .HasColumnType("text")
+                    b.Property<DateOnly?>("CheckDate")
+                        .HasColumnType("date")
                         .HasColumnName("check_date");
 
                     b.Property<string>("CheckNo")
@@ -827,13 +849,18 @@ namespace Accounting_System.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("check_no");
 
+                    b.Property<string>("CollectionReceiptNo")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("collection_receipt_no");
+
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<int?>("CustomerId")
@@ -844,6 +871,15 @@ namespace Accounting_System.Migrations
                     b.Property<decimal>("EWT")
                         .HasColumnType("numeric(18,4)")
                         .HasColumnName("ewt");
+
+                    b.Property<string>("EditedBy")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("edited_by");
+
+                    b.Property<DateTime?>("EditedDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("edited_date");
 
                     b.Property<string>("F2306FilePath")
                         .HasMaxLength(200)
@@ -936,7 +972,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("posted_by");
 
                     b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("posted_date");
 
                     b.Property<string>("ReferenceNo")
@@ -986,7 +1022,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("voided_by");
 
                     b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("voided_date");
 
                     b.Property<decimal>("WVAT")
@@ -1031,7 +1067,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("canceled_by");
 
                     b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("canceled_date");
 
                     b.Property<string>("CancellationRemarks")
@@ -1044,7 +1080,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("CreditAmount")
@@ -1065,6 +1101,15 @@ namespace Accounting_System.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
                         .HasColumnName("description");
+
+                    b.Property<string>("EditedBy")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("edited_by");
+
+                    b.Property<DateTime?>("EditedDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("edited_date");
 
                     b.Property<bool>("IsCanceled")
                         .HasColumnType("boolean")
@@ -1108,7 +1153,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("posted_by");
 
                     b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("posted_date");
 
                     b.Property<decimal?>("Quantity")
@@ -1152,7 +1197,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("voided_by");
 
                     b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("voided_date");
 
                     b.HasKey("CreditMemoId")
@@ -1190,7 +1235,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("canceled_by");
 
                     b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("canceled_date");
 
                     b.Property<string>("CancellationRemarks")
@@ -1203,7 +1248,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("CurrentAndPreviousAmount")
@@ -1224,6 +1269,15 @@ namespace Accounting_System.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
                         .HasColumnName("description");
+
+                    b.Property<string>("EditedBy")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("edited_by");
+
+                    b.Property<DateTime?>("EditedDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("edited_date");
 
                     b.Property<bool>("IsCanceled")
                         .HasColumnType("boolean")
@@ -1267,7 +1321,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("posted_by");
 
                     b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("posted_date");
 
                     b.Property<decimal?>("Quantity")
@@ -1312,7 +1366,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("voided_by");
 
                     b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("voided_date");
 
                     b.HasKey("DebitMemoId")
@@ -1354,7 +1408,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("canceled_by");
 
                     b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("canceled_date");
 
                     b.Property<string>("CancellationRemarks")
@@ -1367,7 +1421,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<int?>("CustomerId")
@@ -1382,6 +1436,15 @@ namespace Accounting_System.Migrations
                     b.Property<DateOnly>("DueDate")
                         .HasColumnType("date")
                         .HasColumnName("due_date");
+
+                    b.Property<string>("EditedBy")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("edited_by");
+
+                    b.Property<DateTime?>("EditedDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("edited_date");
 
                     b.Property<bool>("IsCanceled")
                         .HasColumnType("boolean")
@@ -1435,7 +1498,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("posted_by");
 
                     b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("posted_date");
 
                     b.Property<int?>("ProductId")
@@ -1478,7 +1541,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("voided_by");
 
                     b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("voided_date");
 
                     b.HasKey("SalesInvoiceId")
@@ -1520,7 +1583,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("canceled_by");
 
                     b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("canceled_date");
 
                     b.Property<string>("CancellationRemarks")
@@ -1533,7 +1596,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("CurrentAndPreviousAmount")
@@ -1552,6 +1615,15 @@ namespace Accounting_System.Migrations
                     b.Property<DateOnly>("DueDate")
                         .HasColumnType("date")
                         .HasColumnName("due_date");
+
+                    b.Property<string>("EditedBy")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("edited_by");
+
+                    b.Property<DateTime?>("EditedDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("edited_date");
 
                     b.Property<string>("Instructions")
                         .HasMaxLength(1000)
@@ -1604,7 +1676,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("posted_by");
 
                     b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("posted_date");
 
                     b.Property<string>("ServiceInvoiceNo")
@@ -1641,7 +1713,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("voided_by");
 
                     b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("voided_date");
 
                     b.HasKey("ServiceInvoiceId")
@@ -1687,7 +1759,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<string>("EditedBy")
@@ -1696,7 +1768,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("edited_by");
 
                     b.Property<DateTime>("EditedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("edited_date");
 
                     b.Property<bool>("HasChildren")
@@ -1759,7 +1831,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<string>("CustomerAddress")
@@ -1849,6 +1921,18 @@ namespace Accounting_System.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("column_name");
 
+                    b.Property<string>("DatabaseName")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("database_name");
+
+                    b.Property<string>("DocumentNo")
+                        .IsRequired()
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("document_no");
+
                     b.Property<int>("DocumentRecordId")
                         .HasColumnType("integer")
                         .HasColumnName("document_record_id");
@@ -1875,7 +1959,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("table_name");
 
                     b.Property<DateTime>("TimeStamp")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("time_stamp");
 
                     b.Property<string>("UploadedBy")
@@ -1961,7 +2045,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("validated_by");
 
                     b.Property<DateTime?>("ValidatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("validated_date");
 
                     b.HasKey("Id")
@@ -1997,7 +2081,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("canceled_by");
 
                     b.Property<DateTime?>("CanceledDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("canceled_date");
 
                     b.Property<string>("CancellationRemarks")
@@ -2010,12 +2094,21 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date")
                         .HasColumnName("date");
+
+                    b.Property<string>("EditedBy")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("edited_by");
+
+                    b.Property<DateTime?>("EditedDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("edited_date");
 
                     b.Property<bool>("IsCanceled")
                         .HasColumnType("boolean")
@@ -2068,7 +2161,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("posted_by");
 
                     b.Property<DateTime?>("PostedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("posted_date");
 
                     b.Property<string>("References")
@@ -2082,7 +2175,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("voided_by");
 
                     b.Property<DateTime?>("VoidedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("voided_date");
 
                     b.HasKey("JournalVoucherHeaderId")
@@ -2121,7 +2214,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<int?>("OriginalBankId")
@@ -2149,7 +2242,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<int>("OriginalProductId")
@@ -2278,7 +2371,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("validity");
 
                     b.Property<DateTime?>("ValidityDate")
-                        .HasColumnType("date")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("validity_date");
 
                     b.Property<string>("VatType")
@@ -2339,7 +2432,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<bool>("IsRemoved")
@@ -2377,7 +2470,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("activity");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("date");
 
                     b.Property<string>("DocumentType")
@@ -2435,7 +2528,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("Credit")
@@ -2522,7 +2615,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("Credit")
@@ -2582,7 +2675,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("Credit")
@@ -2640,7 +2733,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<decimal>("Credit")
@@ -2692,7 +2785,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<DateOnly>("Date")
@@ -2786,7 +2879,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<string>("Description")
@@ -2870,7 +2963,7 @@ namespace Accounting_System.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
                     b.Property<string>("CurrentAndPreviousNo")
