@@ -948,7 +948,6 @@ namespace Accounting_System.Controllers
                 var invoice = new List<SalesInvoice>();
                 var auditTrails = new List<AuditTrail>();
                 var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                var siChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
 
                 var listOfOriginalDocumentId = worksheet.Cells[2, 22, rowCount, 22]
                     .Select(c => int.TryParse(c.Text, out var v) ? (int?)v : null)
@@ -990,9 +989,9 @@ namespace Accounting_System.Controllers
                     .Select(g => g.Key)
                     .ToList();
 
-                var existingSiInLogsDictionary = await _dbContext.ImportExportLogs
+                var existingSiInLogsList = await _dbContext.ImportExportLogs
                     .Where(x => listOfOriginalSeriesNumber.Contains(x.DocumentNo))
-                    .ToDictionaryAsync(c => c.DocumentNo, cancellationToken);
+                    .ToListAsync(cancellationToken);
 
                 for (int row = 2; row <= rowCount; row++) // Assuming the first row is the header
                 {
@@ -1098,14 +1097,17 @@ namespace Accounting_System.Controllers
                     else
                     {
                         salesInvoiceDictionary.TryGetValue(int.Parse(worksheet.Cells[row, 22].Text), out var existingSi);
-                        existingSiInLogsDictionary.TryGetValue(existingSi!.SalesInvoiceNo, out var existingSiInLogs);
+                        var existingSiInLogs = existingSiInLogsList.Where(x => x.DocumentNo == existingSi?.SalesInvoiceNo);
+                        var siChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
 
                         if (existingSi.SalesInvoiceNo.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 21].Text.Trim().ReplaceLineEndings(" "))
                         {
                             var originalValue = existingSi.SalesInvoiceNo.Trim().ReplaceLineEndings(" ");
                             var adjustedValue = worksheet.Cells[row, 21].Text.Trim().ReplaceLineEndings(" ");
+                            var find  = existingSiInLogs
+                                .Where(x => x.ColumnName == "SiNo" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
 
-                            if (existingSiInLogs!.ColumnName != "SiNo" && existingSiInLogs.OriginalValue != originalValue && existingSiInLogs.AdjustedValue != adjustedValue)
+                            if (!find.Any())
                             {
                                 siChanges["SiNo"] = (originalValue, adjustedValue);
                             }
@@ -1115,8 +1117,10 @@ namespace Accounting_System.Controllers
                         {
                             var originalValue = existingSi.OriginalCustomerId.ToString()!.Trim().ReplaceLineEndings(" ");
                             var adjustedValue = worksheet.Cells[row, 18].Text.Trim().ReplaceLineEndings(" ");
+                            var find  = existingSiInLogs
+                                .Where(x => x.ColumnName == "OriginalCustomerId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
 
-                            if (existingSiInLogs!.ColumnName != "OriginalCustomerId" && existingSiInLogs.OriginalValue != originalValue && existingSiInLogs.AdjustedValue != adjustedValue)
+                            if (!find.Any())
                             {
                                 siChanges["OriginalCustomerId"] = (originalValue, adjustedValue);
                             }
@@ -1126,8 +1130,10 @@ namespace Accounting_System.Controllers
                         {
                             var originalValue = existingSi.OriginalProductId.ToString()!.Trim().ReplaceLineEndings(" ");
                             var adjustedValue = worksheet.Cells[row, 20].Text.Trim().ReplaceLineEndings(" ");
+                            var find  = existingSiInLogs
+                                .Where(x => x.ColumnName == "OriginalProductId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
 
-                            if (existingSiInLogs!.ColumnName != "OriginalProductId" && existingSiInLogs.OriginalValue != originalValue && existingSiInLogs.AdjustedValue != adjustedValue)
+                            if (!find.Any())
                             {
                                 siChanges["OriginalProductId"] = (originalValue, adjustedValue);
                             }
@@ -1137,8 +1143,10 @@ namespace Accounting_System.Controllers
                         {
                             var originalValue = existingSi.OtherRefNo.Trim().ReplaceLineEndings(" ");
                             var adjustedValue = worksheet.Cells[row, 1].Text.Trim().ReplaceLineEndings(" ");
+                            var find  = existingSiInLogs
+                                .Where(x => x.ColumnName == "OtherRefNo" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
 
-                            if (existingSiInLogs!.ColumnName != "OtherRefNo" && existingSiInLogs.OriginalValue != originalValue && existingSiInLogs.AdjustedValue != adjustedValue)
+                            if (!find.Any())
                             {
                                 siChanges["OtherRefNo"] = (originalValue, adjustedValue);
                             }
@@ -1148,8 +1156,10 @@ namespace Accounting_System.Controllers
                         {
                             var originalValue = existingSi.Quantity.ToString("F2").Trim().ReplaceLineEndings(" ");
                             var adjustedValue = decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
+                            var find  = existingSiInLogs
+                                .Where(x => x.ColumnName == "Quantity" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
 
-                            if (existingSiInLogs!.ColumnName != "Quantity" && existingSiInLogs.OriginalValue != originalValue && existingSiInLogs.AdjustedValue != adjustedValue)
+                            if (!find.Any())
                             {
                                 siChanges["Quantity"] = (originalValue, adjustedValue);
                             }
@@ -1159,8 +1169,10 @@ namespace Accounting_System.Controllers
                         {
                             var originalValue = existingSi.UnitPrice.ToString("F2").Trim().ReplaceLineEndings(" ");
                             var adjustedValue = decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
+                            var find  = existingSiInLogs
+                                .Where(x => x.ColumnName == "UnitPrice" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
 
-                            if (existingSiInLogs!.ColumnName != "UnitPrice" && existingSiInLogs.OriginalValue != originalValue && existingSiInLogs.AdjustedValue != adjustedValue)
+                            if (!find.Any())
                             {
                                 siChanges["UnitPrice"] = (originalValue, adjustedValue);
                             }
@@ -1170,8 +1182,10 @@ namespace Accounting_System.Controllers
                         {
                             var originalValue = existingSi.Amount.ToString("F2").Trim().ReplaceLineEndings(" ");
                             var adjustedValue = decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
+                            var find  = existingSiInLogs
+                                .Where(x => x.ColumnName == "Amount" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
 
-                            if (existingSiInLogs!.ColumnName != "Amount" && existingSiInLogs.OriginalValue != originalValue && existingSiInLogs.AdjustedValue != adjustedValue)
+                            if (!find.Any())
                             {
                                 siChanges["Amount"] = (originalValue, adjustedValue);
                             }
@@ -1181,8 +1195,10 @@ namespace Accounting_System.Controllers
                         {
                             var originalValue = existingSi.Remarks.Trim().ReplaceLineEndings(" ");
                             var adjustedValue = worksheet.Cells[row, 5].Text.Trim().ReplaceLineEndings(" ");
+                            var find  = existingSiInLogs
+                                .Where(x => x.ColumnName == "Remarks" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
 
-                            if (existingSiInLogs!.ColumnName != "Remarks" && existingSiInLogs.OriginalValue != originalValue && existingSiInLogs.AdjustedValue != adjustedValue)
+                            if (!find.Any())
                             {
                                 siChanges["Remarks"] = (originalValue, adjustedValue);
                             }
@@ -1192,8 +1208,10 @@ namespace Accounting_System.Controllers
                         {
                             var originalValue = existingSi.Status.Trim().ReplaceLineEndings(" ");
                             var adjustedValue = worksheet.Cells[row, 6].Text.Trim().ReplaceLineEndings(" ");
+                            var find  = existingSiInLogs
+                                .Where(x => x.ColumnName == "Status" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
 
-                            if (existingSiInLogs!.ColumnName != "Status" && existingSiInLogs.OriginalValue != originalValue && existingSiInLogs.AdjustedValue != adjustedValue)
+                            if (!find.Any())
                             {
                                 siChanges["Status"] = (originalValue, adjustedValue);
                             }
@@ -1203,8 +1221,10 @@ namespace Accounting_System.Controllers
                         {
                             var originalValue = existingSi.TransactionDate.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ");
                             var adjustedValue = worksheet.Cells[row, 7].Text.Trim().ReplaceLineEndings(" ");
+                            var find  = existingSiInLogs
+                                .Where(x => x.ColumnName == "TransactionDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
 
-                            if (existingSiInLogs!.ColumnName != "TransactionDate" && existingSiInLogs.OriginalValue != originalValue && existingSiInLogs.AdjustedValue != adjustedValue)
+                            if (!find.Any())
                             {
                                 siChanges["TransactionDate"] = (originalValue, adjustedValue);
                             }
@@ -1214,8 +1234,10 @@ namespace Accounting_System.Controllers
                         {
                             var originalValue = existingSi.Discount.ToString("F2").Trim().ReplaceLineEndings(" ");
                             var adjustedValue = decimal.Parse(worksheet.Cells[row, 8].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
+                            var find  = existingSiInLogs
+                                .Where(x => x.ColumnName == "Discount" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
 
-                            if (existingSiInLogs!.ColumnName != "Discount" && existingSiInLogs.OriginalValue != originalValue && existingSiInLogs.AdjustedValue != adjustedValue)
+                            if (!find.Any())
                             {
                                 siChanges["Discount"] = (originalValue, adjustedValue);
                             }
@@ -1225,8 +1247,10 @@ namespace Accounting_System.Controllers
                         {
                             var originalValue = existingSi.DueDate.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ");
                             var adjustedValue = worksheet.Cells[row, 13].Text.Trim().ReplaceLineEndings(" ");
+                            var find  = existingSiInLogs
+                                .Where(x => x.ColumnName == "DueDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
 
-                            if (existingSiInLogs!.ColumnName != "DueDate" && existingSiInLogs.OriginalValue != originalValue && existingSiInLogs.AdjustedValue != adjustedValue)
+                            if (!find.Any())
                             {
                                 siChanges["DueDate"] = (originalValue, adjustedValue);
                             }
@@ -1236,8 +1260,10 @@ namespace Accounting_System.Controllers
                         {
                             var originalValue = existingSi.CreatedBy.Trim().ReplaceLineEndings(" ");
                             var adjustedValue = worksheet.Cells[row, 14].Text.Trim().ReplaceLineEndings(" ");
+                            var find  = existingSiInLogs
+                                .Where(x => x.ColumnName == "CreatedBy" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
 
-                            if (existingSiInLogs!.ColumnName != "CreatedBy" && existingSiInLogs.OriginalValue != originalValue && existingSiInLogs.AdjustedValue != adjustedValue)
+                            if (!find.Any())
                             {
                                 siChanges["CreatedBy"] = (originalValue, adjustedValue);
                             }
@@ -1247,8 +1273,10 @@ namespace Accounting_System.Controllers
                         {
                             var originalValue = existingSi.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").Trim().ReplaceLineEndings(" ");
                             var adjustedValue = worksheet.Cells[row, 15].Text.Trim().ReplaceLineEndings(" ");
+                            var find  = existingSiInLogs
+                                .Where(x => x.ColumnName == "CreatedDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
 
-                            if (existingSiInLogs!.ColumnName != "CreatedDate" && existingSiInLogs.OriginalValue != originalValue && existingSiInLogs.AdjustedValue != adjustedValue)
+                            if (!find.Any())
                             {
                                 siChanges["CreatedDate"] = (originalValue, adjustedValue);
                             }
@@ -1258,8 +1286,10 @@ namespace Accounting_System.Controllers
                         {
                             var originalValue = existingSi.CancellationRemarks?.Trim().ReplaceLineEndings(" ") ?? String.Empty;
                             var adjustedValue = worksheet.Cells[row, 16].Text.Trim().ReplaceLineEndings(" ");
+                            var find  = existingSiInLogs
+                                .Where(x => x.ColumnName == "CancellationRemarks" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
 
-                            if (existingSiInLogs!.ColumnName != "CancellationRemarks" && existingSiInLogs.OriginalValue != originalValue && existingSiInLogs.AdjustedValue != adjustedValue)
+                            if (!find.Any())
                             {
                                 siChanges["CancellationRemarks"] = (originalValue, adjustedValue);
                             }
@@ -1269,8 +1299,10 @@ namespace Accounting_System.Controllers
                         {
                             var originalValue = existingSi.OriginalSeriesNumber.Trim().ReplaceLineEndings(" ");
                             var adjustedValue = worksheet.Cells[row, 21].Text.Trim().ReplaceLineEndings(" ");
+                            var find  = existingSiInLogs
+                                .Where(x => x.ColumnName == "OriginalSeriesNumber" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
 
-                            if (existingSiInLogs!.ColumnName != "OriginalSeriesNumber" && existingSiInLogs.OriginalValue != originalValue && existingSiInLogs.AdjustedValue != adjustedValue)
+                            if (!find.Any())
                             {
                                 siChanges["OriginalSeriesNumber"] = (originalValue, adjustedValue);
                             }
@@ -1280,8 +1312,10 @@ namespace Accounting_System.Controllers
                         {
                             var originalValue = existingSi.OriginalDocumentId.ToString().Trim().ReplaceLineEndings(" ");
                             var adjustedValue = worksheet.Cells[row, 22].Text.Trim().ReplaceLineEndings(" ");
+                            var find  = existingSiInLogs
+                                .Where(x => x.ColumnName == "OriginalDocumentId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
 
-                            if (existingSiInLogs!.ColumnName != "OriginalDocumentId" && existingSiInLogs.OriginalValue != originalValue && existingSiInLogs.AdjustedValue != adjustedValue)
+                            if (!find.Any())
                             {
                                 siChanges["OriginalDocumentId"] = (originalValue, adjustedValue);
                             }

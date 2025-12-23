@@ -97,10 +97,13 @@ namespace Accounting_System.Repository
 
         public async Task LogChangesAsync(int id, Dictionary<string, (string OriginalValue, string NewValue)> changes, string? modifiedBy, string seriesNumber, string databaseName)
         {
+            var logReport = new List<ImportExportLog>();
+
             foreach (var change in changes)
             {
-                var logReport = new ImportExportLog()
-                {
+                logReport.Add(
+                    new ImportExportLog
+                    {
                     Id = Guid.NewGuid(),
                     TableName = nameof(DynamicView.ServiceInvoice),
                     DocumentRecordId = id,
@@ -114,9 +117,9 @@ namespace Accounting_System.Repository
                     Executed = false,
                     DocumentNo = seriesNumber,
                     DatabaseName = databaseName
-                };
-                await _dbContext.AddAsync(logReport);
+                });
             }
+            await _dbContext.AddRangeAsync(logReport);
         }
     }
 }
