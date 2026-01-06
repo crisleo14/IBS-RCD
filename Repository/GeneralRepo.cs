@@ -223,5 +223,28 @@ namespace Accounting_System.Repository
                 throw new ArgumentException(ex.Message);
             }
         }
+
+        public void Compare(
+            IDictionary<string, (string, string)> changes,
+            IEnumerable<ImportExportLog> logs,
+            string column,
+            string original,
+            string adjusted)
+        {
+            if (original == adjusted)
+            {
+                return;
+            }
+
+            if (logs.Any(l =>
+                    l.ColumnName == column &&
+                    l.OriginalValue == original &&
+                    l.AdjustedValue == adjusted))
+            {
+                return;
+            }
+
+            changes[column] = (original, adjusted);
+        }
     }
 }

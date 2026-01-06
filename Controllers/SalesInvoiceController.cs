@@ -927,6 +927,7 @@ namespace Accounting_System.Controllers
             }
 
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+
             try
             {
                 await using var stream = file.OpenReadStream();
@@ -944,394 +945,37 @@ namespace Accounting_System.Controllers
                     return RedirectToAction(nameof(Index), new { view = DynamicView.SalesInvoice });
                 }
 
-                var rowCount = worksheet.Dimension.Rows;
-                var invoice = new List<SalesInvoice>();
+                var rows = _salesInvoiceRepo.ParseWorksheet(worksheet);
+                var lookup = await _salesInvoiceRepo.BuildLookupSalesInvoiceContextAsync(rows, cancellationToken);
+
+                var salesInvoices = new List<SalesInvoice>();
                 var auditTrails = new List<AuditTrail>();
                 var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
 
-                var listOfOriginalDocumentId = worksheet.Cells[2, 22, rowCount, 22]
-                    .Select(c => int.TryParse(c.Text, out var v) ? (int?)v : null)
-                    .Where(v => v.HasValue)
-                    .GroupBy(v => v.Value)
-                    .Select(g => g.Key)
-                    .ToList();
-
-                var salesInvoiceDictionary = await _dbContext.SalesInvoices
-                    .Where(x => listOfOriginalDocumentId.Contains(x.OriginalDocumentId))
-                    .ToDictionaryAsync(c => c.OriginalDocumentId, cancellationToken);
-
-                var listOfCustomerId = worksheet.Cells[2, 18, rowCount, 18]
-                    .Select(c => int.TryParse(c.Text, out var v) ? (int?)v : null)
-                    .Where(v => v.HasValue)
-                    .GroupBy(v => v.Value)
-                    .Select(g => g.Key)
-                    .ToList();
-
-                var customerDictionary = await _dbContext.Customers
-                    .Where(x => listOfCustomerId.Contains(x.OriginalCustomerId))
-                    .ToDictionaryAsync(c => c.OriginalCustomerId, c => c.CustomerId, cancellationToken);
-
-                var listOfProductId = worksheet.Cells[2, 20, rowCount, 20]
-                    .Select(c => int.TryParse(c.Text, out var v) ? (int?)v : null)
-                    .Where(v => v.HasValue)
-                    .GroupBy(v => v.Value)
-                    .Select(g => g.Key)
-                    .ToList();
-
-                var productDictionary = await _dbContext.Products
-                    .Where(x => listOfProductId.Contains(x.OriginalProductId))
-                    .ToDictionaryAsync(p => p.OriginalProductId, p => p.ProductId, cancellationToken);
-
-                var listOfOriginalSeriesNumber = worksheet.Cells[2, 21, rowCount, 21]
-                    .Select(c => c.Text)
-                    .Where(v => !string.IsNullOrWhiteSpace(v))
-                    .GroupBy(v => v)
-                    .Select(g => g.Key)
-                    .ToList();
-
-                var existingSiInLogsList = await _dbContext.ImportExportLogs
-                    .Where(x => listOfOriginalSeriesNumber.Contains(x.DocumentNo))
-                    .ToListAsync(cancellationToken);
-
-                for (int row = 2; row <= rowCount; row++) // Assuming the first row is the header
+                foreach (var row in rows)
                 {
-                    var customerId = worksheet.Cells[row, 18].GetValue<int>();
-
-                    var productId = worksheet.Cells[row, 20].GetValue<int>();
-
-                    if (!salesInvoiceDictionary.TryGetValue(int.Parse(worksheet.Cells[row, 22].Text),
-                            out var originalDocumentIdDictionary))
+                    if (!lookup.ExistingInvoices.TryGetValue(row.OriginalDocumentId, out var existing))
                     {
-                        invoice.Add(
-                            new SalesInvoice
-                            {
-                                SalesInvoiceNo = worksheet.Cells[row, 21].Text,
-                                OtherRefNo = worksheet.Cells[row, 1].Text,
-                                Quantity = decimal.TryParse(worksheet.Cells[row, 2].Text, out decimal quantity)
-                                    ? quantity
-                                    : 0,
-                                UnitPrice = decimal.TryParse(worksheet.Cells[row, 3].Text, out decimal unitPrice)
-                                    ? unitPrice
-                                    : 0,
-                                Amount =
-                                    decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal amount) ? amount : 0,
-                                Remarks = worksheet.Cells[row, 5].Text,
-                                Status = worksheet.Cells[row, 6].Text,
-                                TransactionDate =
-                                    DateOnly.TryParse(worksheet.Cells[row, 7].Text, out DateOnly transactionDate)
-                                        ? transactionDate
-                                        : default,
-                                Discount = decimal.TryParse(worksheet.Cells[row, 8].Text, out decimal discount)
-                                    ? discount
-                                    : 0,
-                                // AmountPaid = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amountPaid)
-                                //     ? amountPaid
-                                //     : 0,
-                                // Balance = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal balance)
-                                //     ? balance
-                                //     : 0,
-                                // IsPaid = bool.TryParse(worksheet.Cells[row, 11].Text, out bool isPaid) ? isPaid : false,
-                                // IsTaxAndVatPaid = bool.TryParse(worksheet.Cells[row, 12].Text, out bool isTaxAndVatPaid)
-                                //     ? isTaxAndVatPaid
-                                //     : false,
-                                DueDate = DateOnly.TryParse(worksheet.Cells[row, 13].Text, out DateOnly dueDate)
-                                    ? dueDate
-                                    : default,
-                                CreatedBy = worksheet.Cells[row, 14].Text,
-                                CreatedDate = DateTime.TryParse(worksheet.Cells[row, 15].Text, out DateTime createdDate)
-                                    ? createdDate
-                                    : default,
-                                PostedBy = worksheet.Cells[row, 23].Text,
-                                PostedDate = DateTime.TryParse(worksheet.Cells[row, 24].Text, out DateTime postedDate)
-                                    ? postedDate
-                                    : default,
-                                CancellationRemarks = worksheet.Cells[row, 16].Text != ""
-                                    ? worksheet.Cells[row, 16].Text
-                                    : null,
-                                OriginalCustomerId = customerId,
-                                OriginalProductId = productId,
-                                OriginalSeriesNumber = worksheet.Cells[row, 21].Text,
-                                OriginalDocumentId =
-                                    int.TryParse(worksheet.Cells[row, 22].Text, out int originalDocumentId)
-                                        ? originalDocumentId
-                                        : 0,
-
-                                CustomerId = customerDictionary.TryGetValue(customerId, out var customerDictionaryId)
-                                    ? customerDictionaryId
-                                    : throw new InvalidOperationException(
-                                        "Please upload the Excel file for the customer master file first."),
-
-                                ProductId = productDictionary.TryGetValue(productId, out var productDictionaryId)
-                                    ? productDictionaryId
-                                    : throw new InvalidOperationException(
-                                        "Please upload the Excel file for the product master file first.")
-                            });
-
-                        #region --Audit Trail Recording
-
-                        if (!worksheet.Cells[row, 14].Text.IsNullOrEmpty())
-                        {
-                            auditTrails.Add(new AuditTrail
-                            {
-                                Username = worksheet.Cells[row, 14].Text,
-                                Activity = $"Create new invoice# {worksheet.Cells[row, 21].Text}",
-                                DocumentType = "Sales Invoice",
-                                MachineName = ipAddress ?? String.Empty,
-                                Date = worksheet.Cells[row, 15].GetValue<DateTime>()
-                            });
-                        }
-                        if (!worksheet.Cells[row, 23].Text.IsNullOrEmpty())
-                        {
-                            auditTrails.Add(new AuditTrail
-                            {
-                                Username = worksheet.Cells[row, 23].Text,
-                                Activity = $"Posted invoice# {worksheet.Cells[row, 21].Text}",
-                                DocumentType = "Sales Invoice",
-                                MachineName = ipAddress ?? String.Empty,
-                                Date = worksheet.Cells[row, 24].GetValue<DateTime>()
-                            });
-                        }
-
-                        #endregion --Audit Trail Recording
+                        salesInvoices.Add(_salesInvoiceRepo.MapToSalesInvoiceEntity(row, lookup));
+                        auditTrails.AddRange(_salesInvoiceRepo.AuditTrails(row, ipAddress ?? string.Empty));
                     }
                     else
                     {
-                        salesInvoiceDictionary.TryGetValue(int.Parse(worksheet.Cells[row, 22].Text), out var existingSi);
-                        var existingSiInLogs = existingSiInLogsList.Where(x => x.DocumentNo == existingSi?.SalesInvoiceNo);
-                        var siChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
-
-                        if (existingSi.SalesInvoiceNo.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 21].Text.Trim().ReplaceLineEndings(" "))
+                        var changes = _salesInvoiceRepo.Detect(existing, row, lookup.ExistingLogs);
+                        if (changes.Any())
                         {
-                            var originalValue = existingSi.SalesInvoiceNo.Trim().ReplaceLineEndings(" ");
-                            var adjustedValue = worksheet.Cells[row, 21].Text.Trim().ReplaceLineEndings(" ");
-                            var find  = existingSiInLogs
-                                .Where(x => x.ColumnName == "SiNo" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-
-                            if (!find.Any())
-                            {
-                                siChanges["SiNo"] = (originalValue, adjustedValue);
-                            }
+                            await _salesInvoiceRepo.LogChangesAsync(
+                                existing.OriginalDocumentId,
+                                changes,
+                                await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!),
+                                existing.SalesInvoiceNo,
+                                "IBS-RCD");
                         }
-
-                        if (existingSi.OriginalCustomerId.ToString()!.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 18].Text.Trim().ReplaceLineEndings(" "))
-                        {
-                            var originalValue = existingSi.OriginalCustomerId.ToString()!.Trim().ReplaceLineEndings(" ");
-                            var adjustedValue = worksheet.Cells[row, 18].Text.Trim().ReplaceLineEndings(" ");
-                            var find  = existingSiInLogs
-                                .Where(x => x.ColumnName == "OriginalCustomerId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-
-                            if (!find.Any())
-                            {
-                                siChanges["OriginalCustomerId"] = (originalValue, adjustedValue);
-                            }
-                        }
-
-                        if (existingSi.OriginalProductId.ToString()!.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 20].Text.Trim().ReplaceLineEndings(" "))
-                        {
-                            var originalValue = existingSi.OriginalProductId.ToString()!.Trim().ReplaceLineEndings(" ");
-                            var adjustedValue = worksheet.Cells[row, 20].Text.Trim().ReplaceLineEndings(" ");
-                            var find  = existingSiInLogs
-                                .Where(x => x.ColumnName == "OriginalProductId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-
-                            if (!find.Any())
-                            {
-                                siChanges["OriginalProductId"] = (originalValue, adjustedValue);
-                            }
-                        }
-
-                        if (existingSi.OtherRefNo.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 1].Text.Trim().ReplaceLineEndings(" "))
-                        {
-                            var originalValue = existingSi.OtherRefNo.Trim().ReplaceLineEndings(" ");
-                            var adjustedValue = worksheet.Cells[row, 1].Text.Trim().ReplaceLineEndings(" ");
-                            var find  = existingSiInLogs
-                                .Where(x => x.ColumnName == "OtherRefNo" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-
-                            if (!find.Any())
-                            {
-                                siChanges["OtherRefNo"] = (originalValue, adjustedValue);
-                            }
-                        }
-
-                        if (existingSi.Quantity.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
-                        {
-                            var originalValue = existingSi.Quantity.ToString("F2").Trim().ReplaceLineEndings(" ");
-                            var adjustedValue = decimal.Parse(worksheet.Cells[row, 2].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
-                            var find  = existingSiInLogs
-                                .Where(x => x.ColumnName == "Quantity" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-
-                            if (!find.Any())
-                            {
-                                siChanges["Quantity"] = (originalValue, adjustedValue);
-                            }
-                        }
-
-                        if (existingSi.UnitPrice.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
-                        {
-                            var originalValue = existingSi.UnitPrice.ToString("F2").Trim().ReplaceLineEndings(" ");
-                            var adjustedValue = decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
-                            var find  = existingSiInLogs
-                                .Where(x => x.ColumnName == "UnitPrice" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-
-                            if (!find.Any())
-                            {
-                                siChanges["UnitPrice"] = (originalValue, adjustedValue);
-                            }
-                        }
-
-                        if (existingSi.Amount.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
-                        {
-                            var originalValue = existingSi.Amount.ToString("F2").Trim().ReplaceLineEndings(" ");
-                            var adjustedValue = decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
-                            var find  = existingSiInLogs
-                                .Where(x => x.ColumnName == "Amount" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-
-                            if (!find.Any())
-                            {
-                                siChanges["Amount"] = (originalValue, adjustedValue);
-                            }
-                        }
-
-                        if (existingSi.Remarks.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 5].Text.Trim().ReplaceLineEndings(" "))
-                        {
-                            var originalValue = existingSi.Remarks.Trim().ReplaceLineEndings(" ");
-                            var adjustedValue = worksheet.Cells[row, 5].Text.Trim().ReplaceLineEndings(" ");
-                            var find  = existingSiInLogs
-                                .Where(x => x.ColumnName == "Remarks" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-
-                            if (!find.Any())
-                            {
-                                siChanges["Remarks"] = (originalValue, adjustedValue);
-                            }
-                        }
-
-                        if (existingSi.Status.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 6].Text.Trim().ReplaceLineEndings(" "))
-                        {
-                            var originalValue = existingSi.Status.Trim().ReplaceLineEndings(" ");
-                            var adjustedValue = worksheet.Cells[row, 6].Text.Trim().ReplaceLineEndings(" ");
-                            var find  = existingSiInLogs
-                                .Where(x => x.ColumnName == "Status" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-
-                            if (!find.Any())
-                            {
-                                siChanges["Status"] = (originalValue, adjustedValue);
-                            }
-                        }
-
-                        if (existingSi.TransactionDate.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 7].Text.Trim().ReplaceLineEndings(" "))
-                        {
-                            var originalValue = existingSi.TransactionDate.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ");
-                            var adjustedValue = worksheet.Cells[row, 7].Text.Trim().ReplaceLineEndings(" ");
-                            var find  = existingSiInLogs
-                                .Where(x => x.ColumnName == "TransactionDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-
-                            if (!find.Any())
-                            {
-                                siChanges["TransactionDate"] = (originalValue, adjustedValue);
-                            }
-                        }
-
-                        if (existingSi.Discount.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet.Cells[row, 8].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
-                        {
-                            var originalValue = existingSi.Discount.ToString("F2").Trim().ReplaceLineEndings(" ");
-                            var adjustedValue = decimal.Parse(worksheet.Cells[row, 8].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
-                            var find  = existingSiInLogs
-                                .Where(x => x.ColumnName == "Discount" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-
-                            if (!find.Any())
-                            {
-                                siChanges["Discount"] = (originalValue, adjustedValue);
-                            }
-                        }
-
-                        if (existingSi.DueDate.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 13].Text.Trim().ReplaceLineEndings(" "))
-                        {
-                            var originalValue = existingSi.DueDate.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ");
-                            var adjustedValue = worksheet.Cells[row, 13].Text.Trim().ReplaceLineEndings(" ");
-                            var find  = existingSiInLogs
-                                .Where(x => x.ColumnName == "DueDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-
-                            if (!find.Any())
-                            {
-                                siChanges["DueDate"] = (originalValue, adjustedValue);
-                            }
-                        }
-
-                        if (existingSi.CreatedBy!.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 14].Text.Trim().ReplaceLineEndings(" "))
-                        {
-                            var originalValue = existingSi.CreatedBy.Trim().ReplaceLineEndings(" ");
-                            var adjustedValue = worksheet.Cells[row, 14].Text.Trim().ReplaceLineEndings(" ");
-                            var find  = existingSiInLogs
-                                .Where(x => x.ColumnName == "CreatedBy" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-
-                            if (!find.Any())
-                            {
-                                siChanges["CreatedBy"] = (originalValue, adjustedValue);
-                            }
-                        }
-
-                        if (existingSi.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 15].Text.Trim().ReplaceLineEndings(" "))
-                        {
-                            var originalValue = existingSi.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").Trim().ReplaceLineEndings(" ");
-                            var adjustedValue = worksheet.Cells[row, 15].Text.Trim().ReplaceLineEndings(" ");
-                            var find  = existingSiInLogs
-                                .Where(x => x.ColumnName == "CreatedDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-
-                            if (!find.Any())
-                            {
-                                siChanges["CreatedDate"] = (originalValue, adjustedValue);
-                            }
-                        }
-
-                        if ((string.IsNullOrWhiteSpace(existingSi.CancellationRemarks?.Trim().ReplaceLineEndings(" ")) ? "" : existingSi.CancellationRemarks.Trim().ReplaceLineEndings(" ")) != worksheet.Cells[row, 16].Text.Trim().ReplaceLineEndings(" "))
-                        {
-                            var originalValue = existingSi.CancellationRemarks?.Trim().ReplaceLineEndings(" ") ?? String.Empty;
-                            var adjustedValue = worksheet.Cells[row, 16].Text.Trim().ReplaceLineEndings(" ");
-                            var find  = existingSiInLogs
-                                .Where(x => x.ColumnName == "CancellationRemarks" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-
-                            if (!find.Any())
-                            {
-                                siChanges["CancellationRemarks"] = (originalValue, adjustedValue);
-                            }
-                        }
-
-                        if (existingSi.OriginalSeriesNumber!.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 21].Text.Trim().ReplaceLineEndings(" "))
-                        {
-                            var originalValue = existingSi.OriginalSeriesNumber.Trim().ReplaceLineEndings(" ");
-                            var adjustedValue = worksheet.Cells[row, 21].Text.Trim().ReplaceLineEndings(" ");
-                            var find  = existingSiInLogs
-                                .Where(x => x.ColumnName == "OriginalSeriesNumber" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-
-                            if (!find.Any())
-                            {
-                                siChanges["OriginalSeriesNumber"] = (originalValue, adjustedValue);
-                            }
-                        }
-
-                        if (existingSi.OriginalDocumentId.ToString().Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 22].Text.Trim().ReplaceLineEndings(" "))
-                        {
-                            var originalValue = existingSi.OriginalDocumentId.ToString().Trim().ReplaceLineEndings(" ");
-                            var adjustedValue = worksheet.Cells[row, 22].Text.Trim().ReplaceLineEndings(" ");
-                            var find  = existingSiInLogs
-                                .Where(x => x.ColumnName == "OriginalDocumentId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-
-                            if (!find.Any())
-                            {
-                                siChanges["OriginalDocumentId"] = (originalValue, adjustedValue);
-                            }
-                        }
-
-                        if (siChanges.Any())
-                        {
-                            await _salesInvoiceRepo.LogChangesAsync(existingSi.OriginalDocumentId, siChanges, await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!), existingSi.SalesInvoiceNo, "IBS-RCD");
-                        }
-
-                        continue;
                     }
                 }
 
-                await _dbContext.AddRangeAsync(auditTrails, cancellationToken);
-                await _dbContext.SalesInvoices.AddRangeAsync(invoice, cancellationToken);
+                _dbContext.SalesInvoices.AddRange(salesInvoices);
+                _dbContext.AuditTrails.AddRange(auditTrails);
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
 
