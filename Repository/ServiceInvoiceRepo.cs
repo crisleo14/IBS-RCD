@@ -1,18 +1,24 @@
 ﻿using Accounting_System.Data;
+using Accounting_System.DTOs;
 using Accounting_System.Models;
 using Accounting_System.Models.AccountsReceivable;
+using Accounting_System.Models.Reports;
+using Accounting_System.Models.ViewModels;
 using Accounting_System.Utility;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 
 namespace Accounting_System.Repository
 {
     public class ServiceInvoiceRepo
     {
         private readonly ApplicationDbContext _dbContext;
+        private readonly GeneralRepo _generalRepo;
 
-        public ServiceInvoiceRepo(ApplicationDbContext dbContext)
+        public ServiceInvoiceRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo)
         {
             _dbContext = dbContext;
+            _generalRepo = generalRepo;
         }
 
         public async Task<List<ServiceInvoice>> GetServiceInvoicesAsync(CancellationToken cancellationToken = default)
@@ -120,6 +126,226 @@ namespace Accounting_System.Repository
                 });
             }
             await _dbContext.AddRangeAsync(logReport);
+        }
+
+        public IReadOnlyList<ServiceInvoiceUploadExcelFileViewModel> ParseWorksheet(
+            ExcelWorksheet worksheet)
+        {
+            var rows = new List<ServiceInvoiceUploadExcelFileViewModel>();
+            var rowCount = worksheet.Dimension.Rows;
+
+            for (var row = 2; row <= rowCount; row++)
+            {
+                rows.Add(new ServiceInvoiceUploadExcelFileViewModel
+                {
+                    ServiceInvoiceNo = StringHelper.NormalizeString(worksheet.Cells[row, 17].GetValue<string>()),
+                    DueDate = DateOnly.FromDateTime(worksheet.Cells[row, 1].GetValue<DateTime>()),
+                    Period = DateOnly.FromDateTime(worksheet.Cells[row, 2].GetValue<DateTime>()),
+                    Amount = worksheet.Cells[row, 3].GetValue<decimal>(),
+                    Total = worksheet.Cells[row, 4].GetValue<decimal>(),
+                    Discount = worksheet.Cells[row, 5].GetValue<decimal>(),
+                    CurrentAndPreviousAmount = worksheet.Cells[row, 6].GetValue<decimal>(),
+                    UnearnedAmount = worksheet.Cells[row, 7].GetValue<decimal>(),
+                    Status = StringHelper.NormalizeString(worksheet.Cells[row, 8].GetValue<string>()),
+                    Instructions = StringHelper.NormalizeString(worksheet.Cells[row, 11].GetValue<string>()),
+                    CreatedBy = StringHelper.NormalizeString(worksheet.Cells[row, 13].GetValue<string>()),
+                    CreatedDate = worksheet.Cells[row, 14].GetValue<DateTime>(),
+                    PostedBy = StringHelper.NormalizeString(worksheet.Cells[row, 20].GetValue<string>()),
+                    PostedDate = worksheet.Cells[row, 21].GetValue<DateTime>(),
+                    CancellationRemarks = StringHelper.NormalizeString(worksheet.Cells[row, 15].GetValue<string>()),
+                    OriginalCustomerId = worksheet.Cells[row, 16].GetValue<int>(),
+                    OriginalSeriesNumber = StringHelper.NormalizeString(worksheet.Cells[row, 17].GetValue<string>()),
+                    OriginalServicesId = worksheet.Cells[row, 18].GetValue<int>(),
+                    OriginalDocumentId = worksheet.Cells[row, 19].GetValue<int>(),
+                });
+            }
+
+            return rows;
+        }
+
+        public async Task<FindServiceInvoiceInDbContextDto> BuildLookupServiceInvoiceContextAsync(
+            IEnumerable<ServiceInvoiceUploadExcelFileViewModel> rows,
+            CancellationToken cancellationToken)
+        {
+            var originalDocumentIds = rows.Select(r => r.OriginalDocumentId).Distinct().ToList();
+            var originalCustomerIds = rows.Select(r => r.OriginalCustomerId).Distinct().ToList();
+            var originalServicesIds = rows.Select(r => r.OriginalServicesId).Distinct().ToList();
+            var originalSeriesNumbers = rows.Select(r => r.OriginalSeriesNumber).Distinct().ToList();
+
+            return new FindServiceInvoiceInDbContextDto
+            {
+                ExistingInvoices = await _dbContext.ServiceInvoices
+                    .Where(x => originalDocumentIds.Contains(x.OriginalDocumentId))
+                    .ToDictionaryAsync(x => x.OriginalDocumentId, cancellationToken),
+
+                CustomerId = await _dbContext.Customers
+                    .Where(x => originalCustomerIds.Contains(x.OriginalCustomerId))
+                    .ToDictionaryAsync(x => x.OriginalCustomerId, x => x.CustomerId, cancellationToken),
+
+                ServicesId = await _dbContext.Services
+                    .Where(x => x.OriginalServiceId.HasValue
+                                && originalServicesIds.Contains(x.OriginalServiceId.Value))
+                    .ToDictionaryAsync(x => x.OriginalServiceId!.Value, x => x.ServiceId, cancellationToken),
+
+                ExistingLogs = await _dbContext.ImportExportLogs
+                    .Where(x => originalSeriesNumbers.Contains(x.DocumentNo))
+                    .ToListAsync(cancellationToken)
+            };
+        }
+
+        public ServiceInvoice MapToServiceInvoiceEntity(
+            ServiceInvoiceUploadExcelFileViewModel row,
+            FindServiceInvoiceInDbContextDto context)
+        {
+            return new ServiceInvoice
+            {
+                ServiceInvoiceNo = row.ServiceInvoiceNo,
+                DueDate = row.DueDate,
+                Period = row.Period,
+                Amount = row.Amount,
+                Total = row.Total,
+                Discount = row.Discount,
+                CurrentAndPreviousAmount = row.CurrentAndPreviousAmount,
+                UnearnedAmount = row.UnearnedAmount,
+                Status = row.Status,
+                Instructions = row.Instructions,
+                CreatedBy = row.CreatedBy,
+                CreatedDate = row.CreatedDate,
+                PostedBy = row.PostedBy,
+                PostedDate = row.PostedDate,
+                CancellationRemarks = row.CancellationRemarks,
+                OriginalCustomerId = row.OriginalCustomerId,
+                OriginalSeriesNumber = row.OriginalSeriesNumber,
+                OriginalServicesId = row.OriginalServicesId,
+                OriginalDocumentId = row.OriginalDocumentId,
+
+                CustomerId = context.CustomerId.TryGetValue(row.OriginalCustomerId, out var cId)
+                    ? cId
+                    : throw new InvalidOperationException($"Customer id missing for SV#{row.ServiceInvoiceNo}."),
+
+                ServicesId = context.ServicesId.TryGetValue(row.OriginalServicesId, out var pId)
+                    ? pId
+                    : throw new InvalidOperationException($"Service id missing for SV#{row.ServiceInvoiceNo}.")
+            };
+        }
+
+        public IEnumerable<AuditTrail> AuditTrails(
+            ServiceInvoiceUploadExcelFileViewModel row,
+            string machineName)
+        {
+            var audits = new List<AuditTrail>();
+
+            if (!string.IsNullOrWhiteSpace(row.CreatedBy))
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.CreatedBy,
+                    Activity = $"Create new service invoice# {row.ServiceInvoiceNo}",
+                    DocumentType = "Service Invoice",
+                    MachineName = machineName,
+                    Date = row.CreatedDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.PostedBy) && row.PostedDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.PostedBy,
+                    Activity = $"Posted service invoice# {row.ServiceInvoiceNo}",
+                    DocumentType = "Service Invoice",
+                    MachineName = machineName,
+                    Date = row.PostedDate
+                });
+            }
+
+            return audits;
+        }
+
+        public Dictionary<string, (string Original, string New)> Detect(
+            ServiceInvoice entity,
+            ServiceInvoiceUploadExcelFileViewModel row,
+            IReadOnlyList<ImportExportLog> logs)
+        {
+            var changes = new Dictionary<string, (string, string)>();
+
+            _generalRepo.Compare(changes, logs, "ServiceInvoiceNo",
+                StringHelper.NormalizeString(entity.ServiceInvoiceNo),
+                row.ServiceInvoiceNo);
+
+            _generalRepo.Compare(changes, logs, "DueDate",
+                entity.DueDate.ToString(CS.DateOnly_Format_For_Validation),
+                row.DueDate.ToString(CS.DateOnly_Format_For_Validation));
+
+            _generalRepo.Compare(changes, logs, "Period",
+                entity.Period.ToString(CS.DateOnly_Format_For_Validation),
+                row.Period.ToString(CS.DateOnly_Format_For_Validation));
+
+            _generalRepo.Compare(changes, logs, "Amount",
+                entity.Amount.ToString(CS.Four_Decimal_Format),
+                row.Amount.ToString(CS.Four_Decimal_Format));
+
+            _generalRepo.Compare(changes, logs, "Total",
+                entity.Total.ToString(CS.Four_Decimal_Format),
+                row.Total.ToString(CS.Four_Decimal_Format));
+
+            _generalRepo.Compare(changes, logs, "Discount",
+                entity.Discount.ToString(CS.Four_Decimal_Format),
+                row.Discount.ToString(CS.Four_Decimal_Format));
+
+            _generalRepo.Compare(changes, logs, "CurrentAndPreviousAmount",
+                entity.CurrentAndPreviousAmount.ToString(CS.Four_Decimal_Format),
+                row.CurrentAndPreviousAmount.ToString(CS.Four_Decimal_Format));
+
+            _generalRepo.Compare(changes, logs, "UnearnedAmount",
+                entity.UnearnedAmount.ToString(CS.Four_Decimal_Format),
+                row.UnearnedAmount.ToString(CS.Four_Decimal_Format));
+
+            _generalRepo.Compare(changes, logs, "Status",
+                StringHelper.NormalizeString(entity.Status),
+                row.Status);
+
+            _generalRepo.Compare(changes, logs, "Instructions",
+                StringHelper.NormalizeString(entity.Instructions),
+                row.Instructions);
+
+            _generalRepo.Compare(changes, logs, "CreatedBy",
+                StringHelper.NormalizeString(entity.CreatedBy),
+                row.CreatedBy);
+
+            _generalRepo.Compare(changes, logs, "CreatedDate",
+                entity.CreatedDate.ToString(CS.DateTime_Format_For_Validation),
+                row.CreatedDate.ToString(CS.DateTime_Format_For_Validation));
+
+            _generalRepo.Compare(changes, logs, "PostedBy",
+                StringHelper.NormalizeString(entity.PostedBy),
+                row.PostedBy);
+
+            _generalRepo.Compare(changes, logs, "PostedDate",
+                StringHelper.NormalizeString(entity.PostedDate?.ToString(CS.DateTime_Format_For_Validation)),
+                row.PostedDate.ToString(CS.DateTime_Format_For_Validation));
+
+            _generalRepo.Compare(changes, logs, "CancellationRemarks",
+                StringHelper.NormalizeString(entity.CancellationRemarks),
+                row.CancellationRemarks);
+
+            _generalRepo.Compare(changes, logs, "OriginalCustomerId",
+                StringHelper.NormalizeString(entity.OriginalCustomerId.ToString()),
+                StringHelper.NormalizeString(row.OriginalCustomerId.ToString()));
+
+            _generalRepo.Compare(changes, logs, "OriginalSeriesNumber",
+                StringHelper.NormalizeString(entity.OriginalSeriesNumber),
+                row.OriginalSeriesNumber);
+
+            _generalRepo.Compare(changes, logs, "OriginalServicesId",
+                StringHelper.NormalizeString(entity.OriginalServicesId.ToString()),
+                StringHelper.NormalizeString(row.OriginalServicesId.ToString()));
+
+            _generalRepo.Compare(changes, logs, "OriginalDocumentId",
+                StringHelper.NormalizeString(entity.OriginalDocumentId.ToString()),
+                StringHelper.NormalizeString(row.OriginalDocumentId.ToString()));
+
+            return changes;
         }
     }
 }
