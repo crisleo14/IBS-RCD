@@ -1,10 +1,13 @@
 ﻿using Accounting_System.Data;
+using Accounting_System.DTOs;
 using Accounting_System.Models;
 using Accounting_System.Models.AccountsReceivable;
 using Accounting_System.Models.Reports;
+using Accounting_System.Models.ViewModels;
 using Accounting_System.Utility;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OfficeOpenXml;
 
 namespace Accounting_System.Repository
 {
@@ -605,6 +608,501 @@ namespace Accounting_System.Repository
 
             #endregion
 
+        }
+
+        public IReadOnlyList<CollectionReceiptUploadExcelFileViewModel> ParseWorksheet(
+            ExcelWorksheet worksheet)
+        {
+            var rows = new List<CollectionReceiptUploadExcelFileViewModel>();
+            var rowCount = worksheet.Dimension.Rows;
+
+            for (var row = 2; row <= rowCount; row++)
+            {
+                rows.Add(new CollectionReceiptUploadExcelFileViewModel
+                {
+                    CollectionReceiptNo = StringHelper.NormalizeString(worksheet.Cells[row, 30].GetValue<string>()),
+                    TransactionDate = DateOnly.FromDateTime(worksheet.Cells[row, 1].GetValue<DateTime>()),
+                    ReferenceNo = StringHelper.NormalizeString(worksheet.Cells[row, 2].GetValue<string>()),
+                    Remarks = StringHelper.NormalizeString(worksheet.Cells[row, 3].GetValue<string>()),
+                    CashAmount = worksheet.Cells[row, 4].GetValue<decimal>(),
+                    CheckDate = string.IsNullOrWhiteSpace(worksheet.Cells[row, 5].Text)
+                        ? null
+                        : DateOnly.FromDateTime(worksheet.Cells[row, 5].GetValue<DateTime>()),
+                    CheckNo = string.IsNullOrWhiteSpace(worksheet.Cells[row, 6].Text)
+                        ? null
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 6].GetValue<string>()),
+                    CheckBank = string.IsNullOrWhiteSpace(worksheet.Cells[row, 7].Text)
+                        ? null
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 7].GetValue<string>()),
+                    CheckBranch = string.IsNullOrWhiteSpace(worksheet.Cells[row, 8].Text)
+                        ? null
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 8].GetValue<string>()),
+                    CheckAmount = worksheet.Cells[row, 9].GetValue<decimal>(),
+                    ManagerCheckDate = string.IsNullOrWhiteSpace(worksheet.Cells[row, 10].Text)
+                        ? null
+                        : DateOnly.FromDateTime(worksheet.Cells[row, 10].GetValue<DateTime>()),
+                    ManagerCheckNo = string.IsNullOrWhiteSpace(worksheet.Cells[row, 11].Text)
+                        ? null
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 11].GetValue<string>()),
+                    ManagerCheckBank = string.IsNullOrWhiteSpace(worksheet.Cells[row, 12].Text)
+                        ? null
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 12].GetValue<string>()),
+                    ManagerCheckBranch = string.IsNullOrWhiteSpace(worksheet.Cells[row, 13].Text)
+                        ? null
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 13].GetValue<string>()),
+                    ManagerCheckAmount = worksheet.Cells[row, 14].GetValue<decimal>(),
+                    EWT = worksheet.Cells[row, 15].GetValue<decimal>(),
+                    WVAT = worksheet.Cells[row, 16].GetValue<decimal>(),
+                    Total = worksheet.Cells[row, 17].GetValue<decimal>(),
+                    IsCertificateUpload = worksheet.Cells[row, 18].GetValue<bool>(),
+                    F2306FilePath = string.IsNullOrWhiteSpace(worksheet.Cells[row, 19].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 19].GetValue<string>()),
+                    F2307FilePath = string.IsNullOrWhiteSpace(worksheet.Cells[row, 20].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 20].GetValue<string>()),
+                    CreatedBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 21].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 21].GetValue<string>()),
+                    CreatedDate = worksheet.Cells[row, 22].GetValue<DateTime>(),
+                    PostedBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 33].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 33].GetValue<string>()),
+                    PostedDate = worksheet.Cells[row, 34].GetValue<DateTime>(),
+                    CancellationRemarks = string.IsNullOrWhiteSpace(worksheet.Cells[row, 23].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 23].GetValue<string>()),
+                    MultipleSI = string.IsNullOrWhiteSpace(worksheet.Cells[row, 24].Text)
+                        ? null
+                        : worksheet.Cells[row, 24].Text
+                            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(si => si.Trim())
+                            .ToArray(),
+
+                    MultipleSIId = string.IsNullOrWhiteSpace(worksheet.Cells[row, 25].Text)
+                        ? null
+                        : worksheet.Cells[row, 25].Text
+                            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(x => int.TryParse(x.Trim(), out var id) ? id : 0)
+                            .ToArray(),
+
+                    SIMultipleAmount = string.IsNullOrWhiteSpace(worksheet.Cells[row, 26].Text)
+                        ? null
+                        : worksheet.Cells[row, 26].Text
+                            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(x => decimal.TryParse(x.Trim(), out var amt) ? amt : 0m)
+                            .ToArray(),
+
+                    MultipleTransactionDate = string.IsNullOrWhiteSpace(worksheet.Cells[row, 27].Text)
+                        ? null
+                        : worksheet.Cells[row, 27].Text
+                            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(x => DateOnly.TryParse(x.Trim(), out var d) ? d : default)
+                            .ToArray(),
+                    OriginalCustomerId = worksheet.Cells[row, 28].GetValue<int>(),
+                    OriginalSalesInvoiceId = worksheet.Cells[row, 29].GetValue<int>(),
+                    OriginalSeriesNumber = StringHelper.NormalizeString(worksheet.Cells[row, 30].GetValue<string>()),
+                    OriginalServiceInvoiceId = worksheet.Cells[row, 31].GetValue<int>(),
+                    OriginalDocumentId = worksheet.Cells[row, 32].GetValue<int>(),
+                });
+            }
+
+            return rows;
+        }
+
+        public async Task<FindCollectionReceiptInDbContextDto> BuildLookupCollectionReceiptContextAsync(
+            IEnumerable<CollectionReceiptUploadExcelFileViewModel> rows,
+            CancellationToken cancellationToken)
+        {
+
+            var originalCustomerIds = rows
+                .Select(r => r.OriginalCustomerId)
+                .Where(x => x != 0)
+                .Distinct()
+                .ToList();
+
+            var originalSalesInvoiceIds = rows
+                .Select(r => r.OriginalSalesInvoiceId)
+                .Where(x => x != 0)
+                .Distinct()
+                .ToList();
+
+            var originalServiceInvoiceIds = rows
+                .Select(r => r.OriginalServiceInvoiceId)
+                .Where(x => x != 0)
+                .Distinct()
+                .ToList();
+
+            var originalSeriesNumbers = rows
+                .Select(r => r.OriginalSeriesNumber)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct()
+                .ToList();
+
+            return new FindCollectionReceiptInDbContextDto
+            {
+                ExistingCollectionReceipt = await _dbContext.CollectionReceipts
+                    .Where(x => originalSeriesNumbers.Contains(x.OriginalSeriesNumber))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalDocumentId, cancellationToken),
+
+                CustomerId = await _dbContext.Customers
+                    .Where(x => originalCustomerIds.Contains(x.OriginalCustomerId))
+                    .GroupBy(x => x.OriginalCustomerId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalCustomerId, x => x.CustomerId, cancellationToken),
+
+                ExistingSalesInvoice = await _dbContext.SalesInvoices
+                    .Where(x => originalSalesInvoiceIds.Contains(x.OriginalDocumentId))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(
+                        x => x.OriginalDocumentId,
+                        x => (x.SalesInvoiceId, x.SalesInvoiceNo),
+                        cancellationToken),
+
+                ExistingServiceInvoice = await _dbContext.ServiceInvoices
+                    .Where(x => originalServiceInvoiceIds.Contains(x.OriginalDocumentId))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(
+                        x => x.OriginalDocumentId,
+                        x => (x.ServiceInvoiceId, x.ServiceInvoiceNo),
+                        cancellationToken),
+
+                ExistingLogs = await _dbContext.ImportExportLogs
+                    .Where(x => originalSeriesNumbers.Contains(x.DocumentNo))
+                    .ToListAsync(cancellationToken)
+            };
+        }
+
+        public CollectionReceipt MapToCollectionReceiptEntity(
+            CollectionReceiptUploadExcelFileViewModel row,
+            FindCollectionReceiptInDbContextDto context)
+        {
+            if (!context.CustomerId.TryGetValue(row.OriginalCustomerId, out var customerId))
+                throw new InvalidOperationException($"Customer id missing for CR#{row.CollectionReceiptNo}.");
+
+            if (!context.ExistingSalesInvoice.TryGetValue(row.OriginalSalesInvoiceId, out var salesInvoiceData) && salesInvoiceData.SalesInvoiceId != 0)
+                throw new InvalidOperationException($"Sales invoice id missing for CR#{row.CollectionReceiptNo}.");
+
+            if (!context.ExistingServiceInvoice.TryGetValue(row.OriginalServiceInvoiceId, out var serviceInvoiceData) && serviceInvoiceData.ServiceInvoiceId != 0)
+                throw new InvalidOperationException($"Service invoice id missing for CR#{row.CollectionReceiptNo}.");
+
+            return new CollectionReceipt
+            {
+                CollectionReceiptNo = row.CollectionReceiptNo,
+                TransactionDate = row.TransactionDate,
+                ReferenceNo = row.ReferenceNo,
+                Remarks = row.Remarks,
+                CashAmount = row.CashAmount,
+                CheckDate = row.CheckDate,
+                CheckNo = row.CheckNo,
+                CheckBank = row.CheckBank,
+                CheckBranch = row.CheckBranch,
+                CheckAmount = row.CheckAmount,
+                ManagerCheckDate = row.ManagerCheckDate,
+                ManagerCheckNo = row.ManagerCheckNo,
+                ManagerCheckBank = row.ManagerCheckBank,
+                ManagerCheckBranch = row.ManagerCheckBranch,
+                ManagerCheckAmount = row.ManagerCheckAmount,
+                EWT = row.EWT,
+                WVAT = row.WVAT,
+                Total = row.Total,
+                IsCertificateUpload = row.IsCertificateUpload,
+                F2306FilePath = row.F2306FilePath,
+                F2307FilePath = row.F2307FilePath,
+                CreatedBy = row.CreatedBy,
+                CreatedDate = row.CreatedDate,
+                PostedBy = row.PostedBy,
+                PostedDate = row.PostedDate,
+                CancellationRemarks = row.CancellationRemarks,
+                MultipleSI = row.MultipleSI,
+                MultipleSIId = row.MultipleSIId,
+                SIMultipleAmount = row.SIMultipleAmount,
+                MultipleTransactionDate = row.MultipleTransactionDate,
+                OriginalCustomerId = row.OriginalCustomerId,
+                OriginalSalesInvoiceId = row.OriginalSalesInvoiceId,
+                OriginalSeriesNumber = row.OriginalSeriesNumber,
+                OriginalServiceInvoiceId = row.OriginalServiceInvoiceId,
+                OriginalDocumentId = row.OriginalDocumentId,
+
+                CustomerId = customerId,
+                SalesInvoiceId = salesInvoiceData.SalesInvoiceId == 0 ? null : salesInvoiceData.SalesInvoiceId,
+                SINo = salesInvoiceData.SalesInvoiceNo == string.Empty ? null : salesInvoiceData.SalesInvoiceNo,
+                ServiceInvoiceId = serviceInvoiceData.ServiceInvoiceId == 0 ? null : serviceInvoiceData.ServiceInvoiceId,
+                SVNo = serviceInvoiceData.ServiceInvoiceNo == string.Empty ? null : serviceInvoiceData.ServiceInvoiceNo
+            };
+        }
+
+        public IEnumerable<AuditTrail> AuditTrails(
+            CollectionReceiptUploadExcelFileViewModel row,
+            string machineName)
+        {
+            var audits = new List<AuditTrail>();
+
+            if (!string.IsNullOrWhiteSpace(row.CreatedBy))
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.CreatedBy,
+                    Activity = $"Create new invoice# {row.CollectionReceiptNo}",
+                    DocumentType = "Collection Receipt",
+                    MachineName = machineName,
+                    Date = row.CreatedDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.PostedBy) && row.PostedDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.PostedBy,
+                    Activity = $"Posted invoice# {row.CollectionReceiptNo}",
+                    DocumentType = "Collection Receipt",
+                    MachineName = machineName,
+                    Date = row.PostedDate
+                });
+            }
+
+            return audits;
+        }
+
+        public Dictionary<string, (string Original, string New)> Detect(
+            CollectionReceipt entity,
+            CollectionReceiptUploadExcelFileViewModel row,
+            IReadOnlyList<ImportExportLog> logs)
+        {
+            var changes = new Dictionary<string, (string, string)>();
+
+            _generalRepo.Compare(changes, logs, "CollectionReceiptNo",
+                StringHelper.NormalizeString(entity.CollectionReceiptNo),
+                row.CollectionReceiptNo);
+
+            _generalRepo.Compare(changes, logs, "TransactionDate",
+                entity.TransactionDate.ToString(CS.DateOnly_Format_For_Validation),
+                row.TransactionDate.ToString(CS.DateOnly_Format_For_Validation));
+
+            _generalRepo.Compare(changes, logs, "ReferenceNo",
+                StringHelper.NormalizeString(entity.ReferenceNo),
+                row.ReferenceNo);
+
+            _generalRepo.Compare(changes, logs, "Remarks",
+                StringHelper.NormalizeString(entity.Remarks),
+                row.Remarks);
+
+            _generalRepo.Compare(changes, logs, "CashAmount",
+                entity.CashAmount.ToString(CS.Four_Decimal_Format),
+                row.CashAmount.ToString(CS.Four_Decimal_Format));
+
+            _generalRepo.Compare(changes, logs, "CheckDate",
+                entity.CheckDate?.ToString(CS.DateOnly_Format_For_Validation)  ?? string.Empty,
+                row.CheckDate?.ToString(CS.DateOnly_Format_For_Validation)  ?? string.Empty);
+
+            _generalRepo.Compare(changes, logs, "CheckNo",
+                StringHelper.NormalizeString(entity.CheckNo),
+                row.CheckNo);
+
+            _generalRepo.Compare(changes, logs, "CheckBank",
+                StringHelper.NormalizeString(entity.CheckBank),
+                row.CheckBank);
+
+            _generalRepo.Compare(changes, logs, "CheckBranch",
+                StringHelper.NormalizeString(entity.CheckBranch),
+                row.CheckBranch);
+
+            _generalRepo.Compare(changes, logs, "CheckAmount",
+                entity.CheckAmount.ToString(CS.Four_Decimal_Format),
+                row.CheckAmount.ToString(CS.Four_Decimal_Format));
+
+            _generalRepo.Compare(changes, logs, "ManagerCheckDate",
+                entity.ManagerCheckDate?.ToString(CS.DateOnly_Format_For_Validation) ?? string.Empty,
+                row.ManagerCheckDate?.ToString(CS.DateOnly_Format_For_Validation)  ?? string.Empty);
+
+            _generalRepo.Compare(changes, logs, "ManagerCheckNo",
+                StringHelper.NormalizeString(entity.ManagerCheckNo),
+                row.ManagerCheckNo);
+
+            _generalRepo.Compare(changes, logs, "ManagerCheckBank",
+                StringHelper.NormalizeString(entity.ManagerCheckBank),
+                row.ManagerCheckBank);
+
+            _generalRepo.Compare(changes, logs, "ManagerCheckBranch",
+                StringHelper.NormalizeString(entity.ManagerCheckBranch),
+                row.ManagerCheckBranch);
+
+            _generalRepo.Compare(changes, logs, "ManagerCheckAmount",
+                entity.ManagerCheckAmount.ToString(CS.Four_Decimal_Format),
+                row.ManagerCheckAmount.ToString(CS.Four_Decimal_Format));
+
+            _generalRepo.Compare(changes, logs, "EWT",
+                entity.EWT.ToString(CS.Four_Decimal_Format),
+                row.EWT.ToString(CS.Four_Decimal_Format));
+
+            _generalRepo.Compare(changes, logs, "WVAT",
+                entity.WVAT.ToString(CS.Four_Decimal_Format),
+                row.WVAT.ToString(CS.Four_Decimal_Format));
+
+            _generalRepo.Compare(changes, logs, "Total",
+                entity.Total.ToString(CS.Four_Decimal_Format),
+                row.Total.ToString(CS.Four_Decimal_Format));
+
+            _generalRepo.Compare(changes, logs, "IsCertificateUpload",
+                StringHelper.NormalizeString(entity.IsCertificateUpload.ToString()),
+                StringHelper.NormalizeString(row.IsCertificateUpload.ToString()));
+
+            _generalRepo.Compare(changes, logs, "F2306FilePath",
+                StringHelper.NormalizeString(entity.F2306FilePath),
+                row.F2306FilePath);
+
+            _generalRepo.Compare(changes, logs, "F2307FilePath",
+                StringHelper.NormalizeString(entity.F2307FilePath),
+                row.F2307FilePath);
+
+            _generalRepo.Compare(changes, logs, "CreatedBy",
+                StringHelper.NormalizeString(entity.CreatedBy),
+                row.CreatedBy);
+
+            _generalRepo.Compare(changes, logs, "CreatedDate",
+                entity.CreatedDate.ToString(CS.DateTime_Format_For_Validation),
+                row.CreatedDate.ToString(CS.DateTime_Format_For_Validation));
+
+            _generalRepo.Compare(changes, logs, "PostedBy",
+                StringHelper.NormalizeString(entity.PostedBy),
+                row.PostedBy);
+
+            _generalRepo.Compare(changes, logs, "PostedDate",
+                entity.PostedDate?.ToString(CS.DateTime_Format_For_Validation)  ?? string.Empty,
+                row.PostedDate.ToString(CS.DateTime_Format_For_Validation));
+
+            _generalRepo.Compare(changes, logs, "CancellationRemarks",
+                StringHelper.NormalizeString(entity.CancellationRemarks),
+                row.CancellationRemarks);
+
+            _generalRepo.Compare(changes, logs, "MultipleSI",
+                StringHelper.NormalizeString(entity.MultipleSI?.ToString()),
+                StringHelper.NormalizeString(row.MultipleSI?.ToString()));
+
+            _generalRepo.Compare(changes, logs, "MultipleSIId",
+                StringHelper.NormalizeString(entity.MultipleSIId?.ToString()),
+                StringHelper.NormalizeString(row.MultipleSIId?.ToString()));
+
+            _generalRepo.Compare(changes, logs, "SIMultipleAmount",
+                StringHelper.NormalizeString(entity.SIMultipleAmount?.ToString()),
+                StringHelper.NormalizeString(row.SIMultipleAmount?.ToString()));
+
+            _generalRepo.Compare(changes, logs, "MultipleTransactionDate",
+                StringHelper.NormalizeString(entity.MultipleTransactionDate?.ToString()),
+                StringHelper.NormalizeString(row.MultipleTransactionDate?.ToString()));
+
+            _generalRepo.Compare(changes, logs, "OriginalCustomerId",
+                StringHelper.NormalizeString(entity.OriginalCustomerId.ToString()),
+                StringHelper.NormalizeString(row.OriginalCustomerId.ToString()));
+
+            _generalRepo.Compare(changes, logs, "OriginalSalesInvoiceId",
+                StringHelper.NormalizeString(entity.OriginalSalesInvoiceId.ToString()),
+                StringHelper.NormalizeString(row.OriginalSalesInvoiceId.ToString()));
+
+            _generalRepo.Compare(changes, logs, "OriginalSeriesNumber",
+                StringHelper.NormalizeString(entity.OriginalSeriesNumber),
+                row.OriginalSeriesNumber);
+
+            _generalRepo.Compare(changes, logs, "OriginalServiceInvoiceId",
+                StringHelper.NormalizeString(entity.OriginalServiceInvoiceId.ToString()),
+                StringHelper.NormalizeString(row.OriginalServiceInvoiceId.ToString()));
+
+            _generalRepo.Compare(changes, logs, "OriginalDocumentId",
+                StringHelper.NormalizeString(entity.OriginalDocumentId.ToString()),
+                StringHelper.NormalizeString(row.OriginalDocumentId.ToString()));
+
+            return changes;
+        }
+
+        public async Task CheckSalesInvoiceAmountsAsync(
+            CollectionReceiptUploadExcelFileViewModel row,
+            IReadOnlyList<ImportExportLog> logs,
+            CancellationToken cancellationToken)
+        {
+            var changes = new Dictionary<string, (string, string)>();
+
+            // ===== MULTIPLE SI CHECK =====
+            if (row.MultipleSI?.Length > 0 &&
+                row.SIMultipleAmount?.Length > 0 &&
+                row.MultipleSI != null &&
+                row.SIMultipleAmount != null)
+            {
+                var max = Math.Min(row.MultipleSI.Length, row.SIMultipleAmount.Length);
+
+                for (int i = 0; i < max; i++)
+                {
+                    var salesInvoiceNo = row.MultipleSI[i];
+
+                    if (string.IsNullOrWhiteSpace(salesInvoiceNo))
+                    {
+                        continue;
+                    }
+
+                    var originalDecimal = row.SIMultipleAmount[i];
+
+                    var salesInvoice = await _dbContext.SalesInvoices
+                        .FirstOrDefaultAsync(x => x.OriginalSeriesNumber == salesInvoiceNo, cancellationToken);
+
+                    if (salesInvoice == null)
+                    {
+                        continue;
+                    }
+
+                    var salesInvoiceAmount = salesInvoice.Amount;
+
+                    if (Math.Round(originalDecimal, 2) > Math.Round(salesInvoiceAmount, 2))
+                    {
+                        _generalRepo.Compare(
+                            changes,
+                            logs,
+                            $"MultipleSalesInvoiceAmount({salesInvoice.SalesInvoiceNo})",
+                            originalDecimal.ToString(CS.Two_Decimal_Format),
+                            salesInvoiceAmount.ToString(CS.Two_Decimal_Format));
+                    }
+                }
+            }
+
+            // ===== SINGLE SI CHECK =====
+            if (row.OriginalSalesInvoiceId != 0)
+            {
+                var originalValue =
+                    row.CashAmount != 0 ? row.CashAmount :
+                    row.CheckAmount != 0 ? row.CheckAmount :
+                    row.ManagerCheckAmount;
+
+                var salesInvoice = await _dbContext.SalesInvoices
+                    .FirstOrDefaultAsync(x => x.OriginalDocumentId == row.OriginalSalesInvoiceId, cancellationToken);
+
+                if (salesInvoice != null)
+                {
+                    var salesInvoiceAmount = salesInvoice.Amount;
+
+                    if (Math.Round(originalValue, 2) > Math.Round(salesInvoiceAmount, 2))
+                    {
+                        _generalRepo.Compare(
+                            changes,
+                            logs,
+                            $"SingleSalesInvoiceAmount({salesInvoice.SalesInvoiceNo})",
+                            originalValue.ToString(CS.Two_Decimal_Format),
+                            salesInvoiceAmount.ToString(CS.Two_Decimal_Format));
+                    }
+                }
+            }
+
+            if (changes.Any())
+            {
+                await LogChangesAsync(
+                    row.OriginalDocumentId,
+                    changes,
+                    row.CreatedBy,
+                    row.OriginalSeriesNumber,
+                    "IBS-RCD");
+            }
         }
     }
 }

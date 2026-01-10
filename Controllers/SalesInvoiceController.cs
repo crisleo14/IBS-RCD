@@ -951,11 +951,17 @@ namespace Accounting_System.Controllers
                 var salesInvoices = new List<SalesInvoice>();
                 var auditTrails = new List<AuditTrail>();
                 var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                var checkingDuplicateSeriesNo = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
                 foreach (var row in rows)
                 {
                     if (!lookup.ExistingInvoices.TryGetValue(row.OriginalDocumentId, out var existing))
                     {
+                        if (!checkingDuplicateSeriesNo.Add(row.OriginalSeriesNumber))
+                        {
+                            continue;
+                        }
+
                         salesInvoices.Add(_salesInvoiceRepo.MapToSalesInvoiceEntity(row, lookup));
                         auditTrails.AddRange(_salesInvoiceRepo.AuditTrails(row, ipAddress ?? string.Empty));
                     }

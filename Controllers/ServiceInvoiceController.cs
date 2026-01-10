@@ -887,11 +887,17 @@ namespace Accounting_System.Controllers
                 var serviceInvoices = new List<ServiceInvoice>();
                 var auditTrails = new List<AuditTrail>();
                 var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                var checkingDuplicateSeriesNo = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
                 foreach (var row in rows)
                 {
                     if (!lookup.ExistingInvoices.TryGetValue(row.OriginalDocumentId, out var existing))
                     {
+                        if (!checkingDuplicateSeriesNo.Add(row.OriginalSeriesNumber))
+                        {
+                            continue;
+                        }
+
                         serviceInvoices.Add(_serviceInvoiceRepo.MapToServiceInvoiceEntity(row, lookup));
                         auditTrails.AddRange(_serviceInvoiceRepo.AuditTrails(row, ipAddress ?? string.Empty));
                     }

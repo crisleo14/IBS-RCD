@@ -226,14 +226,20 @@ namespace Accounting_System.Repository
             {
                 ExistingInvoices = await _dbContext.SalesInvoices
                     .Where(x => originalDocumentIds.Contains(x.OriginalDocumentId))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
                     .ToDictionaryAsync(x => x.OriginalDocumentId, cancellationToken),
 
                 CustomerId = await _dbContext.Customers
                     .Where(x => originalCustomerIds.Contains(x.OriginalCustomerId))
+                    .GroupBy(x => x.OriginalCustomerId)
+                    .Select(x => x.First())
                     .ToDictionaryAsync(x => x.OriginalCustomerId, x => x.CustomerId, cancellationToken),
 
                 ProductId = await _dbContext.Products
                     .Where(x => originalProductIds.Contains(x.OriginalProductId))
+                    .GroupBy(x => x.OriginalProductId)
+                    .Select(x => x.First())
                     .ToDictionaryAsync(x => x.OriginalProductId, x => x.ProductId, cancellationToken),
 
                 ExistingLogs = await _dbContext.ImportExportLogs
