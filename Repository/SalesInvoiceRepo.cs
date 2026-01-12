@@ -196,13 +196,19 @@ namespace Accounting_System.Repository
                     TransactionDate = DateOnly.FromDateTime(worksheet.Cells[row, 7].GetValue<DateTime>()),
                     DueDate = DateOnly.FromDateTime(worksheet.Cells[row, 13].GetValue<DateTime>()),
 
-                    CreatedBy = StringHelper.NormalizeString(worksheet.Cells[row, 14].GetValue<string>()),
+                    CreatedBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 14].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 14].GetValue<string>()),
                     CreatedDate = worksheet.Cells[row, 15].GetValue<DateTime>(),
 
-                    PostedBy = StringHelper.NormalizeString(worksheet.Cells[row, 23].GetValue<string>()),
+                    PostedBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 23].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 23].GetValue<string>()),
                     PostedDate = worksheet.Cells[row, 24].GetValue<DateTime>(),
 
-                    CancellationRemarks = StringHelper.NormalizeString(worksheet.Cells[row, 16].GetValue<string?>()),
+                    CancellationRemarks = string.IsNullOrWhiteSpace(worksheet.Cells[row, 16].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 16].GetValue<string?>()),
                     OriginalCustomerId = worksheet.Cells[row, 18].GetValue<int>(),
                     OriginalProductId = worksheet.Cells[row, 20].GetValue<int>(),
                     OriginalDocumentId = worksheet.Cells[row, 22].GetValue<int>(),
@@ -217,7 +223,6 @@ namespace Accounting_System.Repository
             IEnumerable<SalesInvoiceUploadExcelFileViewModel> rows,
             CancellationToken cancellationToken)
         {
-            var originalDocumentIds = rows.Select(r => r.OriginalDocumentId).Distinct().ToList();
             var originalCustomerIds = rows.Select(r => r.OriginalCustomerId).Distinct().ToList();
             var originalProductIds = rows.Select(r => r.OriginalProductId).Distinct().ToList();
             var originalSeriesNumbers = rows.Select(r => r.OriginalSeriesNumber).Distinct().ToList();
@@ -225,10 +230,10 @@ namespace Accounting_System.Repository
             return new FindSalesInvoiceInDbContextDto
             {
                 ExistingInvoices = await _dbContext.SalesInvoices
-                    .Where(x => originalDocumentIds.Contains(x.OriginalDocumentId))
-                    .GroupBy(x => x.OriginalDocumentId)
+                    .Where(x => originalSeriesNumbers.Contains(x.OriginalSeriesNumber))
+                    .GroupBy(x => x.OriginalSeriesNumber)
                     .Select(x => x.First())
-                    .ToDictionaryAsync(x => x.OriginalDocumentId, cancellationToken),
+                    .ToDictionaryAsync(x => x.OriginalSeriesNumber, cancellationToken),
 
                 CustomerId = await _dbContext.Customers
                     .Where(x => originalCustomerIds.Contains(x.OriginalCustomerId))
@@ -387,7 +392,7 @@ namespace Accounting_System.Repository
 
             _generalRepo.Compare(changes, logs, "CancellationRemarks",
                 StringHelper.NormalizeString(entity.CancellationRemarks),
-                StringHelper.NormalizeString(row.CancellationRemarks));
+                row.CancellationRemarks);
 
             _generalRepo.Compare(changes, logs, "OriginalCustomerId",
                 StringHelper.NormalizeString(entity.OriginalCustomerId.ToString()),

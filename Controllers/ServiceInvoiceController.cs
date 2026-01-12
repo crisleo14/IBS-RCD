@@ -891,7 +891,7 @@ namespace Accounting_System.Controllers
 
                 foreach (var row in rows)
                 {
-                    if (!lookup.ExistingInvoices.TryGetValue(row.OriginalDocumentId, out var existing))
+                    if (!lookup.ExistingInvoices.TryGetValue(row.OriginalSeriesNumber, out var existing))
                     {
                         if (!checkingDuplicateSeriesNo.Add(row.OriginalSeriesNumber))
                         {

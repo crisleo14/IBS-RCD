@@ -2258,7 +2258,7 @@ namespace Accounting_System.Controllers
             }
 
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-            var stopWatch = Stopwatch.StartNew();
+
             try
             {
 
@@ -2293,7 +2293,7 @@ namespace Accounting_System.Controllers
 
                     foreach (var row in rows)
                     {
-                        if (!lookup.ExistingInvoices.TryGetValue(row.OriginalDocumentId, out var existing))
+                        if (!lookup.ExistingInvoices.TryGetValue(row.OriginalSeriesNumber, out var existing))
                         {
                             if (!checkingDuplicateSeriesNo.Add(row.OriginalSeriesNumber))
                             {
@@ -2335,7 +2335,7 @@ namespace Accounting_System.Controllers
 
                     foreach (var row in rows)
                     {
-                        if (!lookup.ExistingInvoices.TryGetValue(row.OriginalDocumentId, out var existing))
+                        if (!lookup.ExistingInvoices.TryGetValue(row.OriginalSeriesNumber, out var existing))
                         {
                             if (!checkingDuplicateSeriesNo.Add(row.OriginalSeriesNumber))
                             {
@@ -2377,7 +2377,7 @@ namespace Accounting_System.Controllers
 
                     foreach (var row in rows)
                     {
-                        if (!lookup.ExistingCollectionReceipt.TryGetValue(row.OriginalDocumentId, out var existing))
+                        if (!lookup.ExistingCollectionReceipt.TryGetValue(row.OriginalSeriesNumber, out var existing))
                         {
                             if (!checkingDuplicateSeriesNo.Add(row.OriginalSeriesNumber))
                             {
@@ -2435,8 +2435,8 @@ namespace Accounting_System.Controllers
                 TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(CollectionIndex), new { view = DynamicView.CollectionReceipt });
             }
-            stopWatch.Stop();
-            TempData["success"] = $"Uploading Success! {stopWatch.Elapsed}";
+
+            TempData["success"] = "Uploading Success!";
             return RedirectToAction(nameof(CollectionIndex), new { view = DynamicView.CollectionReceipt });
         }
 

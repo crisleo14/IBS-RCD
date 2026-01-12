@@ -623,7 +623,9 @@ namespace Accounting_System.Repository
                     CollectionReceiptNo = StringHelper.NormalizeString(worksheet.Cells[row, 30].GetValue<string>()),
                     TransactionDate = DateOnly.FromDateTime(worksheet.Cells[row, 1].GetValue<DateTime>()),
                     ReferenceNo = StringHelper.NormalizeString(worksheet.Cells[row, 2].GetValue<string>()),
-                    Remarks = StringHelper.NormalizeString(worksheet.Cells[row, 3].GetValue<string>()),
+                    Remarks = string.IsNullOrWhiteSpace(worksheet.Cells[row, 3].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 3].GetValue<string>()),
                     CashAmount = worksheet.Cells[row, 4].GetValue<decimal>(),
                     CheckDate = string.IsNullOrWhiteSpace(worksheet.Cells[row, 5].Text)
                         ? null
@@ -743,9 +745,9 @@ namespace Accounting_System.Repository
             {
                 ExistingCollectionReceipt = await _dbContext.CollectionReceipts
                     .Where(x => originalSeriesNumbers.Contains(x.OriginalSeriesNumber))
-                    .GroupBy(x => x.OriginalDocumentId)
+                    .GroupBy(x => x.OriginalSeriesNumber)
                     .Select(x => x.First())
-                    .ToDictionaryAsync(x => x.OriginalDocumentId, cancellationToken),
+                    .ToDictionaryAsync(x => x.OriginalSeriesNumber, cancellationToken),
 
                 CustomerId = await _dbContext.Customers
                     .Where(x => originalCustomerIds.Contains(x.OriginalCustomerId))
@@ -782,13 +784,20 @@ namespace Accounting_System.Repository
             FindCollectionReceiptInDbContextDto context)
         {
             if (!context.CustomerId.TryGetValue(row.OriginalCustomerId, out var customerId))
+            {
                 throw new InvalidOperationException($"Customer id missing for CR#{row.CollectionReceiptNo}.");
+            }
 
-            if (!context.ExistingSalesInvoice.TryGetValue(row.OriginalSalesInvoiceId, out var salesInvoiceData) && salesInvoiceData.SalesInvoiceId != 0)
-                throw new InvalidOperationException($"Sales invoice id missing for CR#{row.CollectionReceiptNo}.");
+            context.ExistingSalesInvoice.TryGetValue(row.OriginalSalesInvoiceId, out var salesInvoiceData);
+            context.ExistingServiceInvoice.TryGetValue(row.OriginalServiceInvoiceId, out var serviceInvoiceData);
 
-            if (!context.ExistingServiceInvoice.TryGetValue(row.OriginalServiceInvoiceId, out var serviceInvoiceData) && serviceInvoiceData.ServiceInvoiceId != 0)
-                throw new InvalidOperationException($"Service invoice id missing for CR#{row.CollectionReceiptNo}.");
+            var hasSalesInvoice = salesInvoiceData.SalesInvoiceId > 0;
+            var hasServiceInvoice = serviceInvoiceData.ServiceInvoiceId > 0;
+
+            if (!hasSalesInvoice && !hasServiceInvoice && row.MultipleSIId?.Length < 0)
+            {
+                throw new InvalidOperationException($"Id is missing for CR#{row.CollectionReceiptNo}. No selected services, single or multiple invoices.");
+            }
 
             return new CollectionReceipt
             {
@@ -902,15 +911,15 @@ namespace Accounting_System.Repository
 
             _generalRepo.Compare(changes, logs, "CheckNo",
                 StringHelper.NormalizeString(entity.CheckNo),
-                row.CheckNo);
+                StringHelper.NormalizeString(row.CheckNo));
 
             _generalRepo.Compare(changes, logs, "CheckBank",
                 StringHelper.NormalizeString(entity.CheckBank),
-                row.CheckBank);
+                StringHelper.NormalizeString(row.CheckBank));
 
             _generalRepo.Compare(changes, logs, "CheckBranch",
                 StringHelper.NormalizeString(entity.CheckBranch),
-                row.CheckBranch);
+                StringHelper.NormalizeString(row.CheckBranch));
 
             _generalRepo.Compare(changes, logs, "CheckAmount",
                 entity.CheckAmount.ToString(CS.Four_Decimal_Format),
@@ -922,15 +931,15 @@ namespace Accounting_System.Repository
 
             _generalRepo.Compare(changes, logs, "ManagerCheckNo",
                 StringHelper.NormalizeString(entity.ManagerCheckNo),
-                row.ManagerCheckNo);
+                StringHelper.NormalizeString(row.ManagerCheckNo));
 
             _generalRepo.Compare(changes, logs, "ManagerCheckBank",
                 StringHelper.NormalizeString(entity.ManagerCheckBank),
-                row.ManagerCheckBank);
+                StringHelper.NormalizeString(row.ManagerCheckBank));
 
             _generalRepo.Compare(changes, logs, "ManagerCheckBranch",
                 StringHelper.NormalizeString(entity.ManagerCheckBranch),
-                row.ManagerCheckBranch);
+                StringHelper.NormalizeString(row.ManagerCheckBranch));
 
             _generalRepo.Compare(changes, logs, "ManagerCheckAmount",
                 entity.ManagerCheckAmount.ToString(CS.Four_Decimal_Format),

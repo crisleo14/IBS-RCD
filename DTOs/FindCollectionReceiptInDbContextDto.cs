@@ -5,8 +5,8 @@ namespace Accounting_System.DTOs
 {
     public class FindCollectionReceiptInDbContextDto
     {
-        public IReadOnlyDictionary<int, CollectionReceipt> ExistingCollectionReceipt { get; init; }
-            = new Dictionary<int, CollectionReceipt>();
+        public IReadOnlyDictionary<string, CollectionReceipt> ExistingCollectionReceipt { get; init; }
+            = new Dictionary<string, CollectionReceipt>();
 
         public IReadOnlyDictionary<int, int> CustomerId { get; init; }
             = new Dictionary<int, int>();

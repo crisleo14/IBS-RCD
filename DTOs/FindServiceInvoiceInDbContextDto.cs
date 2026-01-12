@@ -5,8 +5,8 @@ namespace Accounting_System.DTOs
 {
     public class FindServiceInvoiceInDbContextDto
     {
-        public IReadOnlyDictionary<int, ServiceInvoice> ExistingInvoices { get; init; }
-            = new Dictionary<int, ServiceInvoice>();
+        public IReadOnlyDictionary<string, ServiceInvoice> ExistingInvoices { get; init; }
+            = new Dictionary<string, ServiceInvoice>();
 
         public IReadOnlyDictionary<int, int> CustomerId { get; init; }
             = new Dictionary<int, int>();

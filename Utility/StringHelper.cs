@@ -4,7 +4,7 @@ namespace Accounting_System.Utility
     {
         public static string NormalizeString(string? value)
         {
-            return value?.Trim().ReplaceLineEndings(" ") ?? "NULL";
+            return value?.Trim().ReplaceLineEndings(" ") ?? string.Empty;
         }
     }
 }

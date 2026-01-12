@@ -148,11 +148,17 @@ namespace Accounting_System.Repository
                     UnearnedAmount = worksheet.Cells[row, 7].GetValue<decimal>(),
                     Status = StringHelper.NormalizeString(worksheet.Cells[row, 8].GetValue<string>()),
                     Instructions = StringHelper.NormalizeString(worksheet.Cells[row, 11].GetValue<string>()),
-                    CreatedBy = StringHelper.NormalizeString(worksheet.Cells[row, 13].GetValue<string>()),
+                    CreatedBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 13].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 13].GetValue<string>()),
                     CreatedDate = worksheet.Cells[row, 14].GetValue<DateTime>(),
-                    PostedBy = StringHelper.NormalizeString(worksheet.Cells[row, 20].GetValue<string>()),
+                    PostedBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 20].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 20].GetValue<string>()),
                     PostedDate = worksheet.Cells[row, 21].GetValue<DateTime>(),
-                    CancellationRemarks = StringHelper.NormalizeString(worksheet.Cells[row, 15].GetValue<string>()),
+                    CancellationRemarks = string.IsNullOrWhiteSpace(worksheet.Cells[row, 20].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 15].GetValue<string>()),
                     OriginalCustomerId = worksheet.Cells[row, 16].GetValue<int>(),
                     OriginalSeriesNumber = StringHelper.NormalizeString(worksheet.Cells[row, 17].GetValue<string>()),
                     OriginalServicesId = worksheet.Cells[row, 18].GetValue<int>(),
@@ -167,7 +173,6 @@ namespace Accounting_System.Repository
             IEnumerable<ServiceInvoiceUploadExcelFileViewModel> rows,
             CancellationToken cancellationToken)
         {
-            var originalDocumentIds = rows.Select(r => r.OriginalDocumentId).Distinct().ToList();
             var originalCustomerIds = rows.Select(r => r.OriginalCustomerId).Distinct().ToList();
             var originalServicesIds = rows.Select(r => r.OriginalServicesId).Distinct().ToList();
             var originalSeriesNumbers = rows.Select(r => r.OriginalSeriesNumber).Distinct().ToList();
@@ -175,10 +180,10 @@ namespace Accounting_System.Repository
             return new FindServiceInvoiceInDbContextDto
             {
                 ExistingInvoices = await _dbContext.ServiceInvoices
-                    .Where(x => originalDocumentIds.Contains(x.OriginalDocumentId))
-                    .GroupBy(x => x.OriginalDocumentId)
+                    .Where(x => originalSeriesNumbers.Contains(x.OriginalSeriesNumber))
+                    .GroupBy(x => x.OriginalSeriesNumber)
                     .Select(x => x.First())
-                    .ToDictionaryAsync(x => x.OriginalDocumentId, cancellationToken),
+                    .ToDictionaryAsync(x => x.OriginalSeriesNumber, cancellationToken),
 
                 CustomerId = await _dbContext.Customers
                     .Where(x => originalCustomerIds.Contains(x.OriginalCustomerId))
