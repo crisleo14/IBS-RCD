@@ -1,10 +1,13 @@
 ﻿using System.Security.Claims;
 using Accounting_System.Data;
+using Accounting_System.DTOs;
 using Accounting_System.Models;
 using Accounting_System.Models.AccountsPayable;
 using Accounting_System.Models.Reports;
+using Accounting_System.Models.ViewModels;
 using Accounting_System.Utility;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 
 namespace Accounting_System.Repository
 {
@@ -411,6 +414,248 @@ namespace Accounting_System.Repository
             #endregion --Purchase Book Recording
 
             await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        public IReadOnlyList<ReceivingReportUploadExcelFileViewModel> ParseWorksheet(
+            ExcelWorksheet worksheet)
+        {
+            var rows = new List<ReceivingReportUploadExcelFileViewModel>();
+            var rowCount = worksheet.Dimension.Rows;
+
+            for (var row = 2; row <= rowCount; row++)
+            {
+                rows.Add(new ReceivingReportUploadExcelFileViewModel
+                {
+                    ReceivingReportNo = StringHelper.NormalizeString(worksheet.Cells[row, 21].GetValue<string>()),
+                    Date = DateOnly.FromDateTime(worksheet.Cells[row, 1].GetValue<DateTime>()),
+                    DueDate = DateOnly.FromDateTime(worksheet.Cells[row, 2].GetValue<DateTime>()),
+                    SupplierInvoiceNumber = string.IsNullOrWhiteSpace(worksheet.Cells[row, 3].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 3].GetValue<string?>()),
+                    SupplierInvoiceDate = StringHelper.NormalizeString(worksheet.Cells[row, 4].GetValue<string>()),
+                    TruckOrVessels = StringHelper.NormalizeString(worksheet.Cells[row, 5].GetValue<string>()),
+                    QuantityDelivered = worksheet.Cells[row, 6].GetValue<decimal>(),
+                    QuantityReceived = worksheet.Cells[row, 7].GetValue<decimal>(),
+                    GainOrLoss = worksheet.Cells[row, 8].GetValue<decimal>(),
+                    Amount = worksheet.Cells[row, 9].GetValue<decimal>(),
+                    OtherRef = string.IsNullOrWhiteSpace(worksheet.Cells[row, 10].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 10].GetValue<string?>()),
+                    Remarks = StringHelper.NormalizeString(worksheet.Cells[row, 11].GetValue<string>()),
+                    CreatedBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 16].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 16].GetValue<string?>()),
+                    CreatedDate = worksheet.Cells[row, 17].GetValue<DateTime>(),
+                    PostedBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 23].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 23].GetValue<string?>()),
+                    PostedDate = worksheet.Cells[row, 24].GetValue<DateTime>(),
+                    CancellationRemarks = string.IsNullOrWhiteSpace(worksheet.Cells[row, 18].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 18].GetValue<string?>()),
+                    ReceivedDate = DateOnly.FromDateTime(worksheet.Cells[row, 19].GetValue<DateTime>()),
+                    OriginalPOId = worksheet.Cells[row, 20].GetValue<int>(),
+                    OriginalSeriesNumber = StringHelper.NormalizeString(worksheet.Cells[row, 21].GetValue<string>()),
+                    OriginalDocumentId = worksheet.Cells[row, 22].GetValue<int>(),
+                });
+            }
+
+            return rows;
+        }
+
+        public async Task<FindReceivingReportInDbContextDto> BuildLookupReceivingReportContextAsync(
+            IEnumerable<ReceivingReportUploadExcelFileViewModel> rows,
+            CancellationToken cancellationToken)
+        {
+            var originalPurchaseOrders = rows.Select(r => r.OriginalPOId).Distinct().ToList();
+            var originalSeriesNumbers = rows.Select(r => r.OriginalSeriesNumber).Distinct().ToList();
+
+            return new FindReceivingReportInDbContextDto
+            {
+                ExistingReceivingReport = await _dbContext.ReceivingReports
+                    .Where(x => originalSeriesNumbers.Contains(x.OriginalSeriesNumber))
+                    .GroupBy(x => x.OriginalSeriesNumber)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalSeriesNumber, cancellationToken),
+
+                ExistingPurchaseOrder = await _dbContext.PurchaseOrders
+                    .Where(x => originalPurchaseOrders.Contains(x.OriginalDocumentId))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(
+                        x => x.OriginalDocumentId,
+                        x => (x.PurchaseOrderId, x.PurchaseOrderNo),
+                        cancellationToken),
+
+                ExistingLogs = await _dbContext.ImportExportLogs
+                    .Where(x => originalSeriesNumbers.Contains(x.DocumentNo))
+                    .ToListAsync(cancellationToken)
+            };
+        }
+
+        public ReceivingReport MapToReceivingReportEntity(
+            ReceivingReportUploadExcelFileViewModel row,
+            FindReceivingReportInDbContextDto context)
+        {
+            if (!context.ExistingPurchaseOrder.TryGetValue(row.OriginalPOId, out var purchaseOrderData))
+            {
+                throw new InvalidOperationException($"Purchase Order id missing for RR#{row.ReceivingReportNo}.");
+            }
+
+            return new ReceivingReport
+            {
+                ReceivingReportNo = row.ReceivingReportNo,
+                Date = row.Date,
+                DueDate = row.DueDate,
+                SupplierInvoiceNumber = row.SupplierInvoiceNumber,
+                SupplierInvoiceDate = row.SupplierInvoiceDate,
+                TruckOrVessels = row.TruckOrVessels,
+                QuantityDelivered = row.QuantityDelivered,
+                QuantityReceived = row.QuantityReceived,
+                GainOrLoss = row.GainOrLoss,
+                Amount = row.Amount,
+                OtherRef = row.OtherRef,
+                Remarks = row.Remarks,
+                CreatedBy = row.CreatedBy,
+                CreatedDate = row.CreatedDate,
+                PostedBy = row.PostedBy,
+                PostedDate = row.PostedDate,
+                CancellationRemarks = row.CancellationRemarks,
+                ReceivedDate = row.ReceivedDate,
+                OriginalPOId = row.OriginalPOId,
+                OriginalSeriesNumber = row.OriginalSeriesNumber,
+                OriginalDocumentId = row.OriginalDocumentId,
+
+                POId = purchaseOrderData.PurchaseOrderId,
+                PONo = purchaseOrderData.PurchaseOrderNo
+            };
+        }
+
+        public IEnumerable<AuditTrail> AuditTrails(
+            ReceivingReportUploadExcelFileViewModel row,
+            string machineName)
+        {
+            var audits = new List<AuditTrail>();
+
+            if (!string.IsNullOrWhiteSpace(row.CreatedBy))
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.CreatedBy,
+                    Activity = $"Create new receiving report# {row.ReceivingReportNo}",
+                    DocumentType = "Receiving Report",
+                    MachineName = machineName,
+                    Date = row.CreatedDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.PostedBy) && row.PostedDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.PostedBy,
+                    Activity = $"Posted receiving report# {row.ReceivingReportNo}",
+                    DocumentType = "Receiving Report",
+                    MachineName = machineName,
+                    Date = row.PostedDate
+                });
+            }
+
+            return audits;
+        }
+
+        public Dictionary<string, (string Original, string New)> Detect(
+            ReceivingReport entity,
+            ReceivingReportUploadExcelFileViewModel row,
+            IReadOnlyList<ImportExportLog> logs)
+        {
+            var changes = new Dictionary<string, (string, string)>();
+
+            _generalRepo.Compare(changes, logs, "ReceivingReportNo",
+                StringHelper.NormalizeString(entity.ReceivingReportNo),
+                row.ReceivingReportNo);
+
+            _generalRepo.Compare(changes, logs, "Date",
+                entity.Date.ToString(CS.DateOnly_Format_For_Validation),
+                row.Date.ToString(CS.DateOnly_Format_For_Validation));
+
+            _generalRepo.Compare(changes, logs, "DueDate",
+                entity.DueDate.ToString(CS.DateOnly_Format_For_Validation),
+                row.DueDate.ToString(CS.DateOnly_Format_For_Validation));
+
+            _generalRepo.Compare(changes, logs, "SupplierInvoiceNumber",
+                StringHelper.NormalizeString(entity.SupplierInvoiceNumber),
+                row.SupplierInvoiceNumber);
+
+            _generalRepo.Compare(changes, logs, "SupplierInvoiceDate",
+                StringHelper.NormalizeString(entity.SupplierInvoiceDate),
+                row.SupplierInvoiceDate);
+
+            _generalRepo.Compare(changes, logs, "TruckOrVessels",
+                StringHelper.NormalizeString(entity.TruckOrVessels),
+                row.TruckOrVessels);
+
+            _generalRepo.Compare(changes, logs, "QuantityDelivered",
+                entity.QuantityDelivered.ToString(CS.Four_Decimal_Format),
+                row.QuantityDelivered.ToString(CS.Four_Decimal_Format));
+
+            _generalRepo.Compare(changes, logs, "QuantityReceived",
+                entity.QuantityReceived.ToString(CS.Four_Decimal_Format),
+                row.QuantityReceived.ToString(CS.Four_Decimal_Format));
+
+            _generalRepo.Compare(changes, logs, "GainOrLoss",
+                entity.GainOrLoss.ToString(CS.Four_Decimal_Format),
+                row.GainOrLoss.ToString(CS.Four_Decimal_Format));
+
+            _generalRepo.Compare(changes, logs, "Amount",
+                entity.Amount.ToString(CS.Four_Decimal_Format),
+                row.Amount.ToString(CS.Four_Decimal_Format));
+
+            _generalRepo.Compare(changes, logs, "OtherRef",
+                StringHelper.NormalizeString(entity.OtherRef),
+                row.OtherRef);
+
+            _generalRepo.Compare(changes, logs, "Remarks",
+                StringHelper.NormalizeString(entity.Remarks),
+                row.Remarks);
+
+            _generalRepo.Compare(changes, logs, "CreatedBy",
+                StringHelper.NormalizeString(entity.CreatedBy),
+                row.CreatedBy);
+
+            _generalRepo.Compare(changes, logs, "CreatedDate",
+                entity.CreatedDate.ToString(CS.DateTime_Format_For_Validation),
+                row.CreatedDate.ToString(CS.DateTime_Format_For_Validation));
+
+            _generalRepo.Compare(changes, logs, "PostedBy",
+                StringHelper.NormalizeString(entity.PostedBy),
+                row.PostedBy);
+
+            _generalRepo.Compare(changes, logs, "PostedDate",
+                (entity.PostedDate ?? DateTime.MinValue).ToString(CS.DateTime_Format_For_Validation),
+                row.PostedDate.ToString(CS.DateTime_Format_For_Validation));
+
+            _generalRepo.Compare(changes, logs, "CancellationRemarks",
+                StringHelper.NormalizeString(entity.CancellationRemarks),
+                row.CancellationRemarks);
+
+            _generalRepo.Compare(changes, logs, "ReceivedDate",
+                (entity.ReceivedDate ?? DateOnly.MinValue).ToString(CS.DateOnly_Format_For_Validation),
+                row.ReceivedDate.ToString(CS.DateOnly_Format_For_Validation));
+
+            _generalRepo.Compare(changes, logs, "OriginalPOId",
+                entity.OriginalPOId.ToString() ?? "0",
+                row.OriginalPOId.ToString());
+
+            _generalRepo.Compare(changes, logs, "OriginalSeriesNumber",
+                StringHelper.NormalizeString(entity.OriginalSeriesNumber),
+                row.OriginalSeriesNumber);
+
+            _generalRepo.Compare(changes, logs, "OriginalDocumentId",
+                entity.OriginalDocumentId.ToString(),
+                row.OriginalDocumentId.ToString());
+
+            return changes;
         }
     }
 }
