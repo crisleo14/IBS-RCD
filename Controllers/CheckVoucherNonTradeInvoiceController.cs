@@ -1118,8 +1118,6 @@ namespace Accounting_System.Controllers
                 {
                     if (!modelHeader.IsPosted)
                     {
-                        modelHeader.PostedBy = createdBy;
-                        modelHeader.PostedDate = DateTime.Now;
                         modelHeader.IsPosted = true;
                         //modelHeader.Status = nameof(CheckVoucherInvoiceStatus.ForPayment);
 
@@ -1159,6 +1157,9 @@ namespace Accounting_System.Controllers
 
                         if (modelHeader.OriginalSeriesNumber.IsNullOrEmpty() && modelHeader.OriginalDocumentId == 0)
                         {
+                            modelHeader.PostedBy = createdBy;
+                            modelHeader.PostedDate = DateTime.Now;
+
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(createdBy,
                                 $"Posted check voucher# {modelHeader.CheckVoucherHeaderNo}", "Check Voucher Non Trade Invoice", ipAddress!);
