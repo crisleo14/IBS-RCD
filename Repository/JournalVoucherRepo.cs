@@ -1,6 +1,12 @@
 ﻿using Accounting_System.Data;
+using Accounting_System.DTOs;
 using Accounting_System.Models;
+using Accounting_System.Models.AccountsPayable;
+using Accounting_System.Models.Reports;
+using Accounting_System.Models.ViewModels;
+using Accounting_System.Utility;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 
 namespace Accounting_System.Repository
 {
@@ -8,9 +14,12 @@ namespace Accounting_System.Repository
     {
         private readonly ApplicationDbContext _dbContext;
 
-        public JournalVoucherRepo(ApplicationDbContext dbContext)
+        private readonly GeneralRepo _generalRepo;
+
+        public JournalVoucherRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo)
         {
             _dbContext = dbContext;
+            _generalRepo = generalRepo;
         }
 
         public async Task<List<JournalVoucherHeader>> GetJournalVouchersAsync(CancellationToken cancellationToken = default)
@@ -88,6 +97,286 @@ namespace Accounting_System.Repository
                 };
                 await _dbContext.AddAsync(logReport);
             }
+        }
+
+        public IReadOnlyList<JournalVoucherUploadExcelFileViewModel> ParseWorksheet(
+            ExcelWorksheet worksheet)
+        {
+            var rows = new List<JournalVoucherUploadExcelFileViewModel>();
+            var rowCount = worksheet.Dimension.Rows;
+
+            for (var row = 2; row <= rowCount; row++)
+            {
+                rows.Add(new JournalVoucherUploadExcelFileViewModel
+                {
+                    JournalVoucherHeaderNo = StringHelper.NormalizeString(worksheet.Cells[row, 10].GetValue<string>()),
+                    Date = DateOnly.FromDateTime(worksheet.Cells[row, 1].GetValue<DateTime>()),
+                    References = StringHelper.NormalizeString(worksheet.Cells[row, 2].GetValue<string>()),
+                    Particulars = StringHelper.NormalizeString(worksheet.Cells[row, 3].GetValue<string>()),
+                    CRNo = StringHelper.NormalizeString(worksheet.Cells[row, 4].GetValue<string>()),
+                    JVReason = StringHelper.NormalizeString(worksheet.Cells[row, 5].GetValue<string>()),
+                    CreatedBy = StringHelper.NormalizeString(worksheet.Cells[row, 6].GetValue<string>()),
+                    CreatedDate = worksheet.Cells[row, 7].GetValue<DateTime>(),
+                    PostedBy = StringHelper.NormalizeString(worksheet.Cells[row, 12].GetValue<string>()),
+                    PostedDate = worksheet.Cells[row, 13].GetValue<DateTime>(),
+                    CancellationRemarks = StringHelper.NormalizeString(worksheet.Cells[row, 8].GetValue<string>()),
+                    OriginalCVId = worksheet.Cells[row, 9].GetValue<int>(),
+                    OriginalSeriesNumber = StringHelper.NormalizeString(worksheet.Cells[row, 10].GetValue<string>()),
+                    OriginalDocumentId = worksheet.Cells[row, 11].GetValue<int>()
+                });
+            }
+
+            return rows;
+        }
+
+        public async Task<FindJournalVoucherInDbContextDto> BuildLookupCheckVoucherHeaderContextAsync(
+            IEnumerable<JournalVoucherUploadExcelFileViewModel> rows,
+            CancellationToken cancellationToken)
+        {
+            var originalCheckVoucherIds = rows.Select(r => r.OriginalCVId).Distinct().ToList();
+            var originalSeriesNumbers = rows.Select(r => r.OriginalSeriesNumber).Distinct().ToList();
+
+            return new FindJournalVoucherInDbContextDto
+            {
+                ExistingJournalVoucherHeader = await _dbContext.JournalVoucherHeaders
+                    .Where(x => originalSeriesNumbers.Contains(x.OriginalSeriesNumber!))
+                    .GroupBy(x => x.OriginalSeriesNumber)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalSeriesNumber!, cancellationToken),
+
+                CvId = await _dbContext.CheckVoucherHeaders
+                    .Where(x => originalCheckVoucherIds.Contains(x.OriginalDocumentId))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalDocumentId, x => x.CheckVoucherHeaderId, cancellationToken),
+
+                ExistingLogs = await _dbContext.ImportExportLogs
+                    .Where(x => originalSeriesNumbers.Contains(x.DocumentNo))
+                    .ToListAsync(cancellationToken)
+            };
+        }
+
+        public JournalVoucherHeader MapToJournalVoucherEntity(
+            JournalVoucherUploadExcelFileViewModel row,
+            FindJournalVoucherInDbContextDto context)
+        {
+            return new JournalVoucherHeader
+            {
+                JournalVoucherHeaderNo = row.JournalVoucherHeaderNo,
+                Date = row.Date,
+                References = row.References,
+                Particulars = row.Particulars,
+                CRNo = row.CRNo,
+                JVReason = row.JVReason,
+                CreatedBy = row.CreatedBy,
+                CreatedDate = row.CreatedDate,
+                PostedBy = row.PostedBy,
+                PostedDate = row.PostedDate,
+                CancellationRemarks = row.CancellationRemarks,
+                OriginalCVId = row.OriginalCVId,
+                OriginalSeriesNumber = row.OriginalSeriesNumber,
+                OriginalDocumentId = row.OriginalDocumentId,
+
+                CVId = context.CvId.TryGetValue(row.OriginalCVId, out var cvId)
+                    ? cvId
+                    : throw new InvalidOperationException(
+                        "Please upload the Excel file for the check voucher first.")
+            };
+        }
+
+        public IEnumerable<AuditTrail> AuditTrails(
+            JournalVoucherUploadExcelFileViewModel row,
+            string machineName)
+        {
+            var audits = new List<AuditTrail>();
+
+            if (!string.IsNullOrWhiteSpace(row.CreatedBy))
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.CreatedBy,
+                    Activity = $"Create new journal vouchcer# {row.JournalVoucherHeaderNo}",
+                    DocumentType = "Journal Voucher",
+                    MachineName = machineName,
+                    Date = row.CreatedDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.PostedBy) && row.PostedDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.PostedBy,
+                    Activity = $"Posted journal voucher# {row.JournalVoucherHeaderNo}",
+                    DocumentType = "Journal Voucher",
+                    MachineName = machineName,
+                    Date = row.PostedDate
+                });
+            }
+
+            return audits;
+        }
+
+        public Dictionary<string, (string Original, string New)> Detect(
+            JournalVoucherHeader entity,
+            JournalVoucherUploadExcelFileViewModel row,
+            IReadOnlyList<ImportExportLog> logs)
+        {
+            var changes = new Dictionary<string, (string, string)>();
+
+            _generalRepo.Compare(changes, logs, "JournalVoucherHeaderNo",
+                StringHelper.NormalizeString(entity.JournalVoucherHeaderNo),
+                row.JournalVoucherHeaderNo);
+
+            _generalRepo.Compare(changes, logs, "Date",
+                entity.Date.ToString(CS.DateOnly_Format_For_Validation),
+                row.Date.ToString(CS.DateOnly_Format_For_Validation));
+
+            _generalRepo.Compare(changes, logs, "References",
+                StringHelper.NormalizeString(entity.References),
+                row.References);
+
+            _generalRepo.Compare(changes, logs, "Particulars",
+                StringHelper.NormalizeString(entity.Particulars),
+                row.Particulars);
+
+            _generalRepo.Compare(changes, logs, "CRNo",
+                StringHelper.NormalizeString(entity.CRNo),
+                row.CRNo);
+
+            _generalRepo.Compare(changes, logs, "JVReason",
+                StringHelper.NormalizeString(entity.JVReason),
+                row.JVReason);
+
+            _generalRepo.Compare(changes, logs, "CreatedBy",
+                StringHelper.NormalizeString(entity.CreatedBy),
+                row.CreatedBy);
+
+            _generalRepo.Compare(changes, logs, "CreatedDate",
+                entity.CreatedDate.ToString(CS.DateTime_Format_For_Validation),
+                row.CreatedDate.ToString(CS.DateTime_Format_For_Validation));
+
+            _generalRepo.Compare(changes, logs, "PostedBy",
+                StringHelper.NormalizeString(entity.PostedBy),
+                row.PostedBy);
+
+            _generalRepo.Compare(changes, logs, "PostedDate",
+                entity.PostedDate?.ToString(CS.DateTime_Format_For_Validation) ?? "null",
+                row.PostedDate.ToString(CS.DateTime_Format_For_Validation));
+
+            _generalRepo.Compare(changes, logs, "CancellationRemarks",
+                StringHelper.NormalizeString(entity.CancellationRemarks),
+                row.CancellationRemarks);
+
+            _generalRepo.Compare(changes, logs, "OriginalCVId",
+                entity.OriginalCVId?.ToString() ?? "null",
+                row.OriginalCVId.ToString());
+
+            _generalRepo.Compare(changes, logs, "OriginalSeriesNumber",
+                StringHelper.NormalizeString(entity.OriginalSeriesNumber),
+                row.OriginalSeriesNumber);
+
+            _generalRepo.Compare(changes, logs, "OriginalDocumentId",
+                entity.OriginalDocumentId.ToString(),
+                row.OriginalDocumentId.ToString());
+
+            return changes;
+        }
+
+        public IReadOnlyList<JournalVoucherDetailsUploadExcelFileViewModel> ParseWorksheetJournalVoucherDetails(
+            ExcelWorksheet worksheet)
+        {
+            var rows = new List<JournalVoucherDetailsUploadExcelFileViewModel>();
+            var rowCount = worksheet.Dimension.Rows;
+
+            for (var row = 2; row <= rowCount; row++)
+            {
+                rows.Add(new JournalVoucherDetailsUploadExcelFileViewModel
+                {
+                    AccountNo = StringHelper.NormalizeString(worksheet.Cells[row, 1].GetValue<string>()),
+                    AccountName = StringHelper.NormalizeString(worksheet.Cells[row, 2].GetValue<string>()),
+                    TransactionNo = StringHelper.NormalizeString(worksheet.Cells[row, 3].GetValue<string>()),
+                    Debit = worksheet.Cells[row, 4].GetValue<decimal>(),
+                    Credit = worksheet.Cells[row, 5].GetValue<decimal>(),
+                    JournalVoucherHeaderId = worksheet.Cells[row, 6].GetValue<int>(),
+                    OriginalDocumentId = worksheet.Cells[row, 7].GetValue<int>(),
+                });
+            }
+
+            return rows;
+        }
+
+        public async Task<FindJournalVoucherDetailsInDbContextDto> BuildLookupJournalVoucherDetailsContextAsync(
+            IEnumerable<JournalVoucherDetailsUploadExcelFileViewModel> rows,
+            CancellationToken cancellationToken)
+        {
+            var jvHeaderIds = rows.Select(r => r.JournalVoucherHeaderId).Distinct().ToList();
+            var originalDocumentId = rows.Select(r => r.OriginalDocumentId).Distinct().ToList();
+
+            return new FindJournalVoucherDetailsInDbContextDto
+            {
+                ExistingJournalVoucherDetail = await _dbContext.JournalVoucherDetails
+                    .Where(x => x.OriginalDocumentId.HasValue && originalDocumentId.Contains(x.OriginalDocumentId!.Value))
+                    .GroupBy(x => x.OriginalDocumentId!.Value)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalDocumentId!.Value, cancellationToken),
+
+                JournalVoucherHeader = await _dbContext.JournalVoucherHeaders
+                    .Where(x => jvHeaderIds.Contains(x.OriginalDocumentId))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalDocumentId, cancellationToken)
+            };
+        }
+
+        public JournalVoucherDetail MapToJournalVoucherDetailsEntity(
+            JournalVoucherDetailsUploadExcelFileViewModel row,
+            FindJournalVoucherDetailsInDbContextDto context)
+        {
+            if (!context.JournalVoucherHeader.TryGetValue(row.JournalVoucherHeaderId, out var journalVoucherHeader))
+            {
+                throw new InvalidOperationException($"Journal voucher header id missing for JournalVoucherHeaderId #{row.JournalVoucherHeaderId}.");
+            }
+            return new JournalVoucherDetail
+            {
+                AccountNo = row.AccountNo,
+                AccountName = row.AccountName,
+                TransactionNo = journalVoucherHeader.JournalVoucherHeaderNo!,
+                Debit = row.Debit,
+                Credit = row.Credit,
+                OriginalDocumentId = row.OriginalDocumentId,
+                JournalVoucherHeaderId = journalVoucherHeader.JournalVoucherHeaderId
+            };
+        }
+
+        public Dictionary<string, (string Original, string New)> DetectJvDetails(
+            JournalVoucherDetail entity,
+            JournalVoucherDetailsUploadExcelFileViewModel row,
+            IReadOnlyList<ImportExportLog> logs)
+        {
+            var changes = new Dictionary<string, (string, string)>();
+
+            _generalRepo.Compare(changes, logs, "AccountNo",
+                StringHelper.NormalizeString(entity.AccountNo),
+                row.AccountNo);
+
+            _generalRepo.Compare(changes, logs, "AccountName",
+                StringHelper.NormalizeString(entity.AccountName),
+                row.AccountName);
+
+            _generalRepo.Compare(changes, logs, "Debit",
+                entity.Debit.ToString(CS.Four_Decimal_Format),
+                row.Debit.ToString(CS.Four_Decimal_Format));
+
+            _generalRepo.Compare(changes, logs, "Credit",
+                entity.Credit.ToString(CS.Four_Decimal_Format),
+                row.Credit.ToString(CS.Four_Decimal_Format));
+
+            _generalRepo.Compare(changes, logs, "OriginalDocumentId",
+                entity.OriginalDocumentId?.ToString() ?? "null",
+                row.OriginalDocumentId.ToString());
+
+            return changes;
         }
     }
 }
