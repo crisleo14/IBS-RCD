@@ -1302,7 +1302,7 @@ namespace Accounting_System.Controllers
             if (file.Length == 0)
             {
                 TempData["error"] = "The Excel file length is zero!.";
-                return RedirectToAction(nameof(Index), new { view = DynamicView.SalesInvoice });
+                return RedirectToAction(nameof(Index), new { view = DynamicView.DebitMemo });
             }
 
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
@@ -1417,7 +1417,7 @@ namespace Accounting_System.Controllers
                 if (worksheet != null)
                 {
                     var rows = _debitMemoRepo.ParseWorksheet(worksheet);
-                    var lookup = await _debitMemoRepo.BuildLookupSalesInvoiceContextAsync(rows, cancellationToken);
+                    var lookup = await _debitMemoRepo.BuildLookupDebitMemoContextAsync(rows, cancellationToken);
 
                     var debitMemos = new List<DebitMemo>();
                     var auditTrails = new List<AuditTrail>();
@@ -1433,7 +1433,7 @@ namespace Accounting_System.Controllers
                                 continue;
                             }
 
-                            debitMemos.Add(_debitMemoRepo.MapToSalesInvoiceEntity(row, lookup));
+                            debitMemos.Add(_debitMemoRepo.MapToDebitMemoEntity(row, lookup));
                             auditTrails.AddRange(_debitMemoRepo.AuditTrails(row, ipAddress ?? string.Empty));
                         }
                         else

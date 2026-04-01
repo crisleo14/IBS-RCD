@@ -159,7 +159,7 @@ namespace Accounting_System.Repository
             return rows;
         }
 
-        public async Task<FindDebitMemoInDbContextDto> BuildLookupSalesInvoiceContextAsync(
+        public async Task<FindDebitMemoInDbContextDto> BuildLookupDebitMemoContextAsync(
             IEnumerable<DebitMemoUploadExcelFileViewModel> rows,
             CancellationToken cancellationToken)
         {
@@ -193,7 +193,7 @@ namespace Accounting_System.Repository
             };
         }
 
-        public DebitMemo MapToSalesInvoiceEntity(
+        public DebitMemo MapToDebitMemoEntity(
             DebitMemoUploadExcelFileViewModel row,
             FindDebitMemoInDbContextDto context)
         {
