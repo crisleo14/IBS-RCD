@@ -16,10 +16,13 @@ namespace Accounting_System.Repository
 
         private readonly GeneralRepo _generalRepo;
 
-        public PurchaseOrderRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo)
+        private readonly AasDbContext _aasDbContext;
+
+        public PurchaseOrderRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo, AasDbContext aasDbContext)
         {
             _dbContext = dbContext;
             _generalRepo = generalRepo;
+            _aasDbContext = aasDbContext;
         }
 
         public async Task<List<PurchaseOrder>> GetPurchaseOrderAsync(CancellationToken cancellationToken = default)
@@ -363,6 +366,46 @@ namespace Accounting_System.Repository
                 row.OriginalDocumentId.ToString());
 
             return changes;
+        }
+
+        public async Task<FindPurchaseOrderInDbContextDto> BuildLookupPurchaseOrderContextForAasAsync(
+            IEnumerable<PurchaseOrderUploadExcelFileViewModel> rows,
+            CancellationToken cancellationToken)
+        {
+            var originalProductIds = rows.Select(r => r.OriginalProductId).Distinct().ToList();
+            var originalSupplierIds = rows.Select(r => r.OriginalSupplierId).Distinct().ToList();
+            var originalSeriesNumbers = rows.Select(r => r.OriginalSeriesNumber).Distinct().ToList();
+
+            return new FindPurchaseOrderInDbContextDto
+            {
+                ExistingPurchaseOrder = await _aasDbContext.PurchaseOrders
+                    .Where(x => originalSeriesNumbers.Contains(x.OriginalSeriesNumber))
+                    .GroupBy(x => x.OriginalSeriesNumber)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalSeriesNumber, cancellationToken),
+
+                ExistingProduct = await _aasDbContext.Products
+                    .Where(x => originalProductIds.Contains(x.OriginalProductId))
+                    .GroupBy(x => x.OriginalProductId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(
+                        x => x.OriginalProductId,
+                        x => (x.ProductId, x.ProductCode),
+                        cancellationToken),
+
+                ExistingSuppliers = await _aasDbContext.Suppliers
+                    .Where(x => originalSupplierIds.Contains(x.OriginalSupplierId!.Value))
+                    .GroupBy(x => x.OriginalSupplierId!.Value)
+                    .Select(g => g.First())
+                    .ToDictionaryAsync(
+                        x => x.OriginalSupplierId!.Value,
+                        x => (x.SupplierId, x.Number),
+                        cancellationToken),
+
+                ExistingLogs = await _dbContext.ImportExportLogs
+                    .Where(x => originalSeriesNumbers.Contains(x.DocumentNo))
+                    .ToListAsync(cancellationToken)
+            };
         }
     }
 }

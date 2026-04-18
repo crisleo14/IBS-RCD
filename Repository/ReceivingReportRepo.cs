@@ -19,11 +19,14 @@ namespace Accounting_System.Repository
 
         private readonly InventoryRepo _inventoryRepo;
 
-        public ReceivingReportRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo, InventoryRepo inventoryRepo)
+        private readonly AasDbContext _aasDbContext;
+
+        public ReceivingReportRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo, InventoryRepo inventoryRepo, AasDbContext aasDbContext)
         {
             _dbContext = dbContext;
             _generalRepo = generalRepo;
             _inventoryRepo = inventoryRepo;
+            _aasDbContext = aasDbContext;
         }
 
         public async Task<string> GenerateRRNo(CancellationToken cancellationToken = default)
@@ -656,6 +659,36 @@ namespace Accounting_System.Repository
                 row.OriginalDocumentId.ToString());
 
             return changes;
+        }
+
+        public async Task<FindReceivingReportInDbContextDto> BuildLookupReceivingReportContextForAasAsync(
+            IEnumerable<ReceivingReportUploadExcelFileViewModel> rows,
+            CancellationToken cancellationToken)
+        {
+            var originalPurchaseOrders = rows.Select(r => r.OriginalPOId).Distinct().ToList();
+            var originalSeriesNumbers = rows.Select(r => r.OriginalSeriesNumber).Distinct().ToList();
+
+            return new FindReceivingReportInDbContextDto
+            {
+                ExistingReceivingReport = await _aasDbContext.ReceivingReports
+                    .Where(x => originalSeriesNumbers.Contains(x.OriginalSeriesNumber))
+                    .GroupBy(x => x.OriginalSeriesNumber)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalSeriesNumber, cancellationToken),
+
+                ExistingPurchaseOrder = await _aasDbContext.PurchaseOrders
+                    .Where(x => originalPurchaseOrders.Contains(x.OriginalDocumentId))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(
+                        x => x.OriginalDocumentId,
+                        x => (x.PurchaseOrderId, x.PurchaseOrderNo),
+                        cancellationToken),
+
+                ExistingLogs = await _dbContext.ImportExportLogs
+                    .Where(x => originalSeriesNumbers.Contains(x.DocumentNo))
+                    .ToListAsync(cancellationToken)
+            };
         }
     }
 }

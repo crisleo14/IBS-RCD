@@ -553,7 +553,7 @@ namespace Accounting_System.Controllers
                                 chartOfAccountList.FirstOrDefault(c =>
                                     c.OriginalChartOfAccountId == int.Parse(worksheet.Cells[rows, 12].Text));
 
-                            existingRecord!.ParentAccountId = findAccountIdForParentAccountId?.AccountId ?? null;
+                            existingRecord?.ParentAccountId = findAccountIdForParentAccountId?.AccountId ?? null;
                         }
                     }
 

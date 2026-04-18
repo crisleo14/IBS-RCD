@@ -728,5 +728,116 @@ namespace Accounting_System.Repository
 
             return changes;
         }
+
+        public async Task<FindCheckVoucherInDbContextDto> BuildLookupCheckVoucherHeaderContextForAasAsync(
+            IEnumerable<CheckVoucherUploadExcelFileViewModel> rows,
+            CancellationToken cancellationToken)
+        {
+            var originalSupplierIds = rows.Select(r => r.OriginalSupplierId).Distinct().ToList();
+            var originalBankIds = rows.Select(r => r.OriginalBankId).Distinct().ToList();
+            var originalSeriesNumbers = rows.Select(r => r.OriginalSeriesNumber).Distinct().ToList();
+
+            return new FindCheckVoucherInDbContextDto
+            {
+                ExistingCheckVoucherHeader = await _aasDbContext.CheckVoucherHeaders
+                    .Where(x => originalSeriesNumbers.Contains(x.OriginalSeriesNumber!))
+                    .GroupBy(x => x.OriginalSeriesNumber)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalSeriesNumber!, cancellationToken),
+
+                SupplierId = await _aasDbContext.Suppliers
+                    .Where(x => originalSupplierIds.Contains(x.OriginalSupplierId!.Value))
+                    .GroupBy(x => x.OriginalSupplierId!.Value)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalSupplierId!.Value, x => x.SupplierId, cancellationToken),
+
+                BankId = await _aasDbContext.BankAccounts
+                    .Where(x => originalBankIds.Contains(x.OriginalBankId!.Value))
+                    .GroupBy(x => x.OriginalBankId!.Value)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalBankId!.Value, x => x.BankAccountId, cancellationToken),
+
+                ExistingLogs = await _dbContext.ImportExportLogs
+                    .Where(x => originalSeriesNumbers.Contains(x.DocumentNo))
+                    .ToListAsync(cancellationToken)
+            };
+        }
+
+        public async Task<FindCvTradePaymentInDbContextDto> BuildLookupCvTradePaymentContextForAasAsync(
+            IEnumerable<CvTradePaymentUploadExcelFileViewModel> rows,
+            CancellationToken cancellationToken)
+        {
+            var receivingReportIds = rows.Select(r => r.DocumentId).Distinct().ToList();
+            var checkVoucherIds = rows.Select(r => r.CheckVoucherId).Distinct().ToList();
+
+            return new FindCvTradePaymentInDbContextDto
+            {
+                ReceivingReportId = await _aasDbContext.ReceivingReports
+                    .Where(x => receivingReportIds.Contains(x.OriginalDocumentId!))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalDocumentId!, x => x.ReceivingReportId, cancellationToken),
+
+                CheckVoucherHeaderId = await _aasDbContext.CheckVoucherHeaders
+                    .Where(x => checkVoucherIds.Contains(x.OriginalDocumentId))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalDocumentId, x => x.CheckVoucherHeaderId, cancellationToken)
+            };
+        }
+
+        public async Task<FindCvMultiplePaymentInDbContextDto> BuildLookupCvMultiplePaymentContextForAasAsync(
+            IEnumerable<CvMultiplePaymentUploadExcelFileViewModel> rows,
+            CancellationToken cancellationToken)
+        {
+            var checkVoucherHeaderPaymentIds = rows.Select(r => r.CheckVoucherHeaderPaymentId).Distinct().ToList();
+            var checkVoucherHeaderInvoiceIds = rows.Select(r => r.CheckVoucherHeaderInvoiceId).Distinct().ToList();
+
+            return new FindCvMultiplePaymentInDbContextDto
+            {
+
+                CheckVoucherHeaderPaymentId =  await _aasDbContext.CheckVoucherHeaders
+                    .Where(x => checkVoucherHeaderPaymentIds.Contains(x.OriginalDocumentId!))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalDocumentId, x => x.CheckVoucherHeaderId, cancellationToken),
+
+                CheckVoucherHeaderInvoiceId = await _aasDbContext.CheckVoucherHeaders
+                    .Where(x => checkVoucherHeaderInvoiceIds.Contains(x.OriginalDocumentId))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalDocumentId, x => x.CheckVoucherHeaderId, cancellationToken)
+            };
+        }
+
+        public async Task<FindCheckVoucherDetailsInDbContextDto> BuildLookupCheckVoucherDetailsContextForAasAsync(
+            IEnumerable<CheckVoucherDetailsUploadExcelFileViewModel> rows,
+            CancellationToken cancellationToken)
+        {
+            var cvHeaderIds = rows.Select(r => r.CvHeaderId).Distinct().ToList();
+            var supplierIds = rows.Select(r => r.SupplierId).Distinct().ToList();
+            var originalDocumentId = rows.Select(r => r.OriginalDocumentId).Distinct().ToList();
+
+            return new FindCheckVoucherDetailsInDbContextDto
+            {
+                ExistingCheckVoucherDetail = await _aasDbContext.CheckVoucherDetails
+                    .Where(x => x.OriginalDocumentId.HasValue && originalDocumentId.Contains(x.OriginalDocumentId!.Value))
+                    .GroupBy(x => x.OriginalDocumentId!.Value)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalDocumentId!.Value, cancellationToken),
+
+                SupplierId =  await _aasDbContext.Suppliers
+                    .Where(x => x.OriginalSupplierId.HasValue && supplierIds.Contains(x.OriginalSupplierId.Value))
+                    .GroupBy(x => x.OriginalSupplierId!.Value)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalSupplierId!.Value, x => x.SupplierId, cancellationToken),
+
+                CheckVoucherHeader = await _aasDbContext.CheckVoucherHeaders
+                    .Where(x => cvHeaderIds.Contains(x.OriginalDocumentId))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalDocumentId, cancellationToken)
+            };
+        }
     }
 }
