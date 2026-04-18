@@ -2078,6 +2078,7 @@ namespace Accounting_System.Controllers
                     _aasDbContext.PurchaseOrders.AddRange(purchaseOrders);
                     _aasDbContext.AuditTrails.AddRange(auditTrails);
                     await _aasDbContext.SaveChangesAsync(cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                 }
 
                 #endregion
@@ -2124,6 +2125,7 @@ namespace Accounting_System.Controllers
                     _aasDbContext.ReceivingReports.AddRange(receivingReports);
                     _aasDbContext.AuditTrails.AddRange(auditTrails);
                     await _aasDbContext.SaveChangesAsync(cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                 }
 
                 #endregion
@@ -2175,6 +2177,7 @@ namespace Accounting_System.Controllers
                     _aasDbContext.CheckVoucherHeaders.AddRange(checkVoucherHeaders);
                     _aasDbContext.AuditTrails.AddRange(auditTrails);
                     await _aasDbContext.SaveChangesAsync(cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                 }
 
                 #endregion
@@ -2257,6 +2260,7 @@ namespace Accounting_System.Controllers
 
                     _aasDbContext.CheckVoucherDetails.AddRange(checkVoucherDetails);
                     await _aasDbContext.SaveChangesAsync(cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                 }
 
                 #endregion -- Check Voucher Details Import --
