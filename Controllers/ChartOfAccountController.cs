@@ -57,10 +57,20 @@ namespace Accounting_System.Controllers
                 {
                     item.ParentAccount = null;
                 }
+                var data = chartOfAccounts.Select(x => new
+                {
+                    x.AccountId,
+                    x.AccountNumber,
+                    x.AccountName,
+                    x.AccountType,
+                    x.NormalBalance,
+                    x.Level,
+                    x.CreatedDate,
+                });
 
                 return Json(new
                 {
-                    data = chartOfAccounts
+                    data
                 });
             }
             catch (Exception ex)
@@ -387,9 +397,9 @@ namespace Accounting_System.Controllers
                     for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
                     {
                         ChartOfAccount? getParent = null;
-                        if (!worksheet.Cells[row, 12].Text.IsNullOrEmpty())
+                        if (!worksheet.Cells[row, 13].Text.IsNullOrEmpty())
                         {
-                             getParent = await _dbContext.ChartOfAccounts.FirstOrDefaultAsync(x => x.ParentAccountId == int.Parse(worksheet.Cells[row, 12].Text), cancellationToken);
+                             getParent = await _dbContext.ChartOfAccounts.FirstOrDefaultAsync(x => x.ParentAccountId == int.Parse(worksheet.Cells[row, 13].Text), cancellationToken);
                         }
                         var coa = new ChartOfAccount
                         {
@@ -426,7 +436,7 @@ namespace Accounting_System.Controllers
 
                     for (int rows = 2; rows <= excelRowCount; rows++)  // Assuming the first row is the header
                     {
-                        string cellValue = worksheet.Cells[rows, 12].Text;
+                        string cellValue = worksheet.Cells[rows, 13].Text;
 
                         if (!string.IsNullOrEmpty(cellValue) || int.TryParse(cellValue, out int result) && result != 0)
                         {
@@ -434,7 +444,7 @@ namespace Accounting_System.Controllers
                                 chartOfAccountList.FirstOrDefault(c=> c.AccountNumber == worksheet.Cells[rows, 2].Text);
                             var findAccountIdForParentAccountId =
                                 chartOfAccountList.FirstOrDefault(c =>
-                                    c.OriginalChartOfAccountId == int.Parse(worksheet.Cells[rows, 12].Text));
+                                    c.OriginalChartOfAccountId == int.Parse(worksheet.Cells[rows, 13].Text));
 
                             existingRecord!.ParentAccountId = findAccountIdForParentAccountId?.AccountId ?? null;
                         }

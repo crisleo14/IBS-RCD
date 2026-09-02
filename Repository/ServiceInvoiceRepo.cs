@@ -14,11 +14,13 @@ namespace Accounting_System.Repository
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly GeneralRepo _generalRepo;
+        private readonly AasDbContext _aasDbContext;
 
-        public ServiceInvoiceRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo)
+        public ServiceInvoiceRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo, AasDbContext aasDbContext)
         {
             _dbContext = dbContext;
             _generalRepo = generalRepo;
+            _aasDbContext = aasDbContext;
         }
 
         public async Task<List<ServiceInvoice>> GetServiceInvoicesAsync(CancellationToken cancellationToken = default)
@@ -356,6 +358,40 @@ namespace Accounting_System.Repository
                 StringHelper.NormalizeString(row.OriginalDocumentId.ToString()));
 
             return changes;
+        }
+
+        public async Task<FindServiceInvoiceInDbContextDto> BuildLookupServiceInvoiceContextForAasAsync(
+            IEnumerable<ServiceInvoiceUploadExcelFileViewModel> rows,
+            CancellationToken cancellationToken)
+        {
+            var originalCustomerIds = rows.Select(r => r.OriginalCustomerId).Distinct().ToList();
+            var originalServicesIds = rows.Select(r => r.OriginalServicesId).Distinct().ToList();
+            var originalSeriesNumbers = rows.Select(r => r.OriginalSeriesNumber).Distinct().ToList();
+
+            return new FindServiceInvoiceInDbContextDto
+            {
+                ExistingInvoices = await _aasDbContext.ServiceInvoices
+                    .Where(x => originalSeriesNumbers.Contains(x.OriginalSeriesNumber))
+                    .GroupBy(x => x.OriginalSeriesNumber)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalSeriesNumber, cancellationToken),
+
+                CustomerId = await _aasDbContext.Customers
+                    .Where(x => originalCustomerIds.Contains(x.OriginalCustomerId))
+                    .GroupBy(x => x.OriginalCustomerId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalCustomerId, x => x.CustomerId, cancellationToken),
+
+                ServicesId = await _aasDbContext.Services
+                    .Where(x => x.OriginalServiceId.HasValue && originalServicesIds.Contains(x.OriginalServiceId.Value))
+                    .GroupBy(x => x.OriginalServiceId!.Value)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalServiceId!.Value, x => x.ServiceId, cancellationToken),
+
+                ExistingLogs = await _dbContext.ImportExportLogs
+                    .Where(x => originalSeriesNumbers.Contains(x.DocumentNo))
+                    .ToListAsync(cancellationToken)
+            };
         }
     }
 }

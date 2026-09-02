@@ -13,13 +13,14 @@ namespace Accounting_System.Repository
     public class CreditMemoRepo
     {
         private readonly ApplicationDbContext _dbContext;
-
         private readonly GeneralRepo _generalRepo;
+        private readonly AasDbContext _aasDbContext;
 
-        public CreditMemoRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo)
+        public CreditMemoRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo, AasDbContext aasDbContext)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _generalRepo = generalRepo;
+            _aasDbContext = aasDbContext;
         }
 
         public async Task<string> GenerateCMNo(CancellationToken cancellationToken = default)
@@ -386,6 +387,40 @@ namespace Accounting_System.Repository
                 StringHelper.NormalizeString(row.OriginalDocumentId.ToString()));
 
             return changes;
+        }
+
+        public async Task<FindCreditMemoInDbContextDto> BuildLookupCreditMemoContextForAasAsync(
+            IEnumerable<CreditMemoUploadExcelFileViewModel> rows,
+            CancellationToken cancellationToken)
+        {
+            var originalSalesInvoiceIds = rows.Select(r => r.OriginalSalesInvoiceId).Distinct().ToList();
+            var originalServiceInvoicess = rows.Select(r => r.OriginalServiceInvoiceId).Distinct().ToList();
+            var originalSeriesNumbers = rows.Select(r => r.OriginalSeriesNumber).Distinct().ToList();
+
+            return new FindCreditMemoInDbContextDto
+            {
+                ExistingCreditMemo = await _aasDbContext.CreditMemos
+                    .Where(x => originalSeriesNumbers.Contains(x.OriginalSeriesNumber))
+                    .GroupBy(x => x.OriginalSeriesNumber)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalSeriesNumber, cancellationToken),
+
+                SalesInvoiceId = await _aasDbContext.SalesInvoices
+                    .Where(x => originalSalesInvoiceIds.Contains(x.OriginalDocumentId))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalDocumentId, x => x.SalesInvoiceId, cancellationToken),
+
+                ServiceInvoiceId = await _aasDbContext.ServiceInvoices
+                    .Where(x => originalServiceInvoicess.Contains(x.OriginalDocumentId))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalDocumentId, x => x.ServiceInvoiceId, cancellationToken),
+
+                ExistingLogs = await _dbContext.ImportExportLogs
+                    .Where(x => originalSeriesNumbers.Contains(x.DocumentNo))
+                    .ToListAsync(cancellationToken)
+            };
         }
     }
 }
