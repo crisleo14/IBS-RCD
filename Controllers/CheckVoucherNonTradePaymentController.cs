@@ -172,7 +172,8 @@ namespace Accounting_System.Controllers
         {
             var modelHeader = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(cv => cv.CheckVoucherHeaderId == id, cancellationToken);
             var modelDetails = await _dbContext.CheckVoucherDetails.Where(cvd => cvd.CheckVoucherHeaderId == modelHeader!.CheckVoucherHeaderId).ToListAsync(cancellationToken: cancellationToken);
-            var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
+            var createdBy = !modelHeader.OriginalSeriesNumber.IsNullOrEmpty() && modelHeader.OriginalDocumentId != 0 ? modelHeader.PostedBy : await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
+            var date = !modelHeader.OriginalSeriesNumber.IsNullOrEmpty() && modelHeader.OriginalDocumentId != 0 ? modelHeader.PostedDate : DateTime.Now;
 
             if (modelHeader != null)
             {
@@ -252,7 +253,7 @@ namespace Accounting_System.Controllers
                         if (modelHeader.OriginalSeriesNumber.IsNullOrEmpty() && modelHeader.OriginalDocumentId == 0)
                         {
                             modelHeader.PostedBy = createdBy;
-                            modelHeader.PostedDate = DateTime.Now;
+                            modelHeader.PostedDate = date;
 
                             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                             AuditTrail auditTrailBook = new(createdBy,
@@ -298,7 +299,8 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Cancel(int id, string? cancellationRemarks, CancellationToken cancellationToken)
         {
             var existingHeaderModel = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(x => x.CheckVoucherHeaderId == id, cancellationToken);
-            var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
+            var createdBy = !existingHeaderModel.OriginalSeriesNumber.IsNullOrEmpty() && existingHeaderModel.OriginalDocumentId != 0 ? existingHeaderModel.CanceledBy : await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
+            var date = !existingHeaderModel.OriginalSeriesNumber.IsNullOrEmpty() && existingHeaderModel.OriginalDocumentId != 0 ? existingHeaderModel.CanceledDate : DateTime.Now;
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             try
@@ -306,7 +308,7 @@ namespace Accounting_System.Controllers
                 if (existingHeaderModel != null)
                 {
                     existingHeaderModel.CanceledBy = createdBy;
-                    existingHeaderModel.CanceledDate = DateTime.Now;
+                    existingHeaderModel.CanceledDate = date;
                     existingHeaderModel.IsCanceled = true;
                     //existingHeaderModel.Status = nameof(CheckVoucherPaymentStatus.Canceled);
                     existingHeaderModel.CancellationRemarks = cancellationRemarks;
@@ -381,7 +383,8 @@ namespace Accounting_System.Controllers
         public async Task<IActionResult> Void(int id, CancellationToken cancellationToken)
         {
             var existingHeaderModel = await _dbContext.CheckVoucherHeaders.FirstOrDefaultAsync(x => x.CheckVoucherHeaderId == id, cancellationToken);
-            var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
+            var createdBy = !existingHeaderModel.OriginalSeriesNumber.IsNullOrEmpty() && existingHeaderModel.OriginalDocumentId != 0 ? existingHeaderModel.VoidedBy : await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
+            var date = !existingHeaderModel.OriginalSeriesNumber.IsNullOrEmpty() && existingHeaderModel.OriginalDocumentId != 0 ? existingHeaderModel.VoidedDate : DateTime.Now;
 
             if (existingHeaderModel != null)
             {
@@ -428,7 +431,7 @@ namespace Accounting_System.Controllers
 
                     existingHeaderModel.IsPosted = false;
                     existingHeaderModel.VoidedBy = createdBy;
-                    existingHeaderModel.VoidedDate = DateTime.Now;
+                    existingHeaderModel.VoidedDate = date;
                     existingHeaderModel.IsVoided = true;
                     //existingHeaderModel.Status = nameof(CheckVoucherPaymentStatus.Voided);
 
