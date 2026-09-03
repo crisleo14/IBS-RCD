@@ -16,10 +16,13 @@ namespace Accounting_System.Repository
 
         private readonly GeneralRepo _generalRepo;
 
-        public DebitMemoRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo)
+        private readonly AasDbContext _aasDbContext;
+
+        public DebitMemoRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo, AasDbContext aasDbContext)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _generalRepo = generalRepo;
+            _aasDbContext = aasDbContext;
         }
 
         public async Task<List<DebitMemo>> GetDebitMemosAsync(CancellationToken cancellationToken = default)
@@ -182,6 +185,40 @@ namespace Accounting_System.Repository
                     .ToDictionaryAsync(x => x.OriginalDocumentId, x => x.SalesInvoiceId, cancellationToken),
 
                 ServiceInvoiceId = await _dbContext.ServiceInvoices
+                    .Where(x => originalServiceInvoicess.Contains(x.OriginalDocumentId))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalDocumentId, x => x.ServiceInvoiceId, cancellationToken),
+
+                ExistingLogs = await _dbContext.ImportExportLogs
+                    .Where(x => originalSeriesNumbers.Contains(x.DocumentNo))
+                    .ToListAsync(cancellationToken)
+            };
+        }
+
+        public async Task<FindDebitMemoInDbContextDto> BuildLookupDebitMemoContextForAasAsync(
+            IEnumerable<DebitMemoUploadExcelFileViewModel> rows,
+            CancellationToken cancellationToken)
+        {
+            var originalSalesInvoiceIds = rows.Select(r => r.OriginalSalesInvoiceId).Distinct().ToList();
+            var originalServiceInvoicess = rows.Select(r => r.OriginalServiceInvoiceId).Distinct().ToList();
+            var originalSeriesNumbers = rows.Select(r => r.OriginalSeriesNumber).Distinct().ToList();
+
+            return new FindDebitMemoInDbContextDto
+            {
+                ExistingDebitMemo = await _aasDbContext.DebitMemos
+                    .Where(x => originalSeriesNumbers.Contains(x.OriginalSeriesNumber))
+                    .GroupBy(x => x.OriginalSeriesNumber)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalSeriesNumber, cancellationToken),
+
+                SalesInvoiceId = await _aasDbContext.SalesInvoices
+                    .Where(x => originalSalesInvoiceIds.Contains(x.OriginalDocumentId))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalDocumentId, x => x.SalesInvoiceId, cancellationToken),
+
+                ServiceInvoiceId = await _aasDbContext.ServiceInvoices
                     .Where(x => originalServiceInvoicess.Contains(x.OriginalDocumentId))
                     .GroupBy(x => x.OriginalDocumentId)
                     .Select(x => x.First())

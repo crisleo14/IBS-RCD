@@ -961,361 +961,100 @@ namespace Accounting_System.Controllers
         {
             if (file.Length == 0)
             {
-                return RedirectToAction(nameof(Index));
+                TempData["error"] = "The Excel file length is zero!.";
+                return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
             }
 
-            using (var stream = new MemoryStream())
+            await using var transaction = await _aasDbContext.Database.BeginTransactionAsync(cancellationToken);
+
+            try
             {
-                await file.CopyToAsync(stream, cancellationToken);
-                stream.Position = 0;
-                await using var transaction = await _aasDbContext.Database.BeginTransactionAsync(cancellationToken);
-                var createdBy = await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!);
-                try
+                await using var stream = file.OpenReadStream();
+                using var package = new ExcelPackage(stream);
+                var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                if (worksheet == null)
                 {
-                    if (file.FileName.Contains(CS.Name))
-                    {
-                        using var package = new ExcelPackage(stream);
-                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                    if (worksheet == null)
-                    {
-                        TempData["error"] = "The Excel file contains no worksheets.";
-                        return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
-                    }
-                    if (worksheet.ToString() != "ServiceInvoice")
-                    {
-                        TempData["error"] = "The Excel file is not related to service invoice.";
-                        return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
-                    }
+                    TempData["error"] = "The Excel file contains no worksheets.";
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
+                }
 
-                    var rowCount = worksheet.Dimension.Rows;
-                    var svDictionary = new Dictionary<string, bool>();
-                    var serviceInvoiceList = await _aasDbContext
-                        .ServiceInvoices
-                        .ToListAsync(cancellationToken);
+                if (worksheet.ToString() != nameof(DynamicView.ServiceInvoice))
+                {
+                    TempData["error"] = "The Excel file is not related to service invoice.";
+                    return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
+                }
 
-                    for (int row = 2; row <= rowCount; row++)  // Assuming the first row is the header
+                var rows = _serviceInvoiceRepo.ParseWorksheet(worksheet);
+                var lookup = await _serviceInvoiceRepo.BuildLookupServiceInvoiceContextForAasAsync(rows, cancellationToken);
+
+                var serviceInvoices = new List<ServiceInvoice>();
+                var auditTrails = new List<AuditTrail>();
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                var checkingDuplicateSeriesNo = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var row in rows)
+                {
+                    if (!lookup.ExistingInvoices.TryGetValue(row.OriginalSeriesNumber, out var existing))
                     {
-                        var serviceInvoice = new ServiceInvoice
-                        {
-                            ServiceInvoiceNo = worksheet.Cells[row, 17].Text,
-                            DueDate = DateOnly.TryParse(worksheet.Cells[row, 1].Text, out DateOnly dueDate) ? dueDate : default,
-                            Period = DateOnly.TryParse(worksheet.Cells[row, 2].Text, out DateOnly period) ? period : default,
-                            Amount = decimal.TryParse(worksheet.Cells[row, 3].Text, out decimal amount) ? amount : 0,
-                            Total = decimal.TryParse(worksheet.Cells[row, 4].Text, out decimal total) ? total : 0,
-                            Discount = decimal.TryParse(worksheet.Cells[row, 5].Text, out decimal discount) ? discount : 0,
-                            CurrentAndPreviousAmount = decimal.TryParse(worksheet.Cells[row, 6].Text, out decimal currentAndPreviousAmount) ? currentAndPreviousAmount : 0,
-                            UnearnedAmount = decimal.TryParse(worksheet.Cells[row, 7].Text, out decimal unearnedAmount) ? unearnedAmount : 0,
-                            Status = worksheet.Cells[row, 8].Text,
-                            // AmountPaid = decimal.TryParse(worksheet.Cells[row, 9].Text, out decimal amountPaid) ? amountPaid : 0,
-                            // Balance = decimal.TryParse(worksheet.Cells[row, 10].Text, out decimal balance) ? balance : 0,
-                            Instructions = worksheet.Cells[row, 11].Text,
-                            // IsPaid = bool.TryParse(worksheet.Cells[row, 12].Text, out bool isPaid) ? isPaid : false,
-                            CreatedBy = worksheet.Cells[row, 13].Text,
-                            CreatedDate = DateTime.TryParse(worksheet.Cells[row, 14].Text, out DateTime createdDate) ? createdDate : default,
-                            PostedBy = worksheet.Cells[row, 20].Text,
-                            PostedDate = DateTime.TryParse(worksheet.Cells[row, 21].Text, out DateTime postedDate) ? postedDate : default,
-                            CancellationRemarks = worksheet.Cells[row, 15].Text,
-                            OriginalCustomerId = int.TryParse(worksheet.Cells[row, 16].Text, out int originalCustomerId) ? originalCustomerId : 0,
-                            OriginalSeriesNumber = worksheet.Cells[row, 17].Text,
-                            OriginalServicesId = int.TryParse(worksheet.Cells[row, 18].Text, out int originalServicesId) ? originalServicesId : 0,
-                            OriginalDocumentId = int.TryParse(worksheet.Cells[row, 19].Text, out int originalDocumentId) ? originalDocumentId : 0,
-                        };
-
-                        if (!svDictionary.TryAdd(serviceInvoice.OriginalSeriesNumber, true))
+                        if (!checkingDuplicateSeriesNo.Add(row.OriginalSeriesNumber))
                         {
                             continue;
                         }
 
-                        if (serviceInvoiceList.Any(sv => sv.OriginalDocumentId == serviceInvoice.OriginalDocumentId))
-                        {
-                            var svChanges = new Dictionary<string, (string OriginalValue, string NewValue)>();
-                            var existingSv = await _aasDbContext.ServiceInvoices.FirstOrDefaultAsync(si => si.OriginalDocumentId == serviceInvoice.OriginalDocumentId, cancellationToken);
-                            var existingSvInLogs = await _dbContext.ImportExportLogs
-                                .Where(x => x.DocumentNo == existingSv.ServiceInvoiceNo)
-                                .ToListAsync(cancellationToken);
-
-                            if (existingSv!.ServiceInvoiceNo!.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 17].Text.Trim().ReplaceLineEndings(" "))
-                            {
-                                var originalValue = existingSv.ServiceInvoiceNo.Trim().ReplaceLineEndings(" ");
-                                var adjustedValue = worksheet.Cells[row, 17].Text.Trim().ReplaceLineEndings(" ");
-                                var find  = existingSvInLogs
-                                    .Where(x => x.ColumnName == "SvNo" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-                                if (!find.Any())
-                                {
-                                    svChanges["SvNo"] = (originalValue, adjustedValue);
-                                }
-                            }
-
-                            if (existingSv.DueDate.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 1].Text.Trim().ReplaceLineEndings(" "))
-                            {
-                                var originalValue = existingSv.DueDate.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ");
-                                var adjustedValue = worksheet.Cells[row, 1].Text.Trim().ReplaceLineEndings(" ");
-                                var find  = existingSvInLogs
-                                    .Where(x => x.ColumnName == "DueDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-                                if (!find.Any())
-                                {
-                                    svChanges["DueDate"] = (originalValue, adjustedValue);
-                                }
-                            }
-
-                            if (existingSv.Period.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 2].Text.Trim().ReplaceLineEndings(" "))
-                            {
-                                var originalValue = existingSv.Period.ToString("yyyy-MM-dd").Trim().ReplaceLineEndings(" ");
-                                var adjustedValue = worksheet.Cells[row, 2].Text.Trim().ReplaceLineEndings(" ");
-                                var find  = existingSvInLogs
-                                    .Where(x => x.ColumnName == "Period" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-                                if (!find.Any())
-                                {
-                                    svChanges["Period"] = (originalValue, adjustedValue);
-                                }
-                            }
-
-                            if (existingSv.Amount.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
-                            {
-                                var originalValue = existingSv.Amount.ToString("F2").Trim().ReplaceLineEndings(" ");
-                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 3].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
-                                var find  = existingSvInLogs
-                                    .Where(x => x.ColumnName == "Amount" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-                                if (!find.Any())
-                                {
-                                    svChanges["Amount"] = (originalValue, adjustedValue);
-                                }
-                            }
-
-                            if (existingSv.Total.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
-                            {
-                                var originalValue = existingSv.Total.ToString("F2").Trim().ReplaceLineEndings(" ");
-                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 4].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
-                                var find  = existingSvInLogs
-                                    .Where(x => x.ColumnName == "Total" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-                                if (!find.Any())
-                                {
-                                    svChanges["Total"] = (originalValue, adjustedValue);
-                                }
-                            }
-
-                            if (existingSv.Discount.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet.Cells[row, 5].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
-                            {
-                                var originalValue = existingSv.Discount.ToString("F2").Trim().ReplaceLineEndings(" ");
-                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 5].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
-                                var find  = existingSvInLogs
-                                    .Where(x => x.ColumnName == "Discount" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-                                if (!find.Any())
-                                {
-                                    svChanges["Discount"] = (originalValue, adjustedValue);
-                                }
-                            }
-
-                            if (existingSv.CurrentAndPreviousAmount.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
-                            {
-                                var originalValue = existingSv.CurrentAndPreviousAmount.ToString("F2").Trim().ReplaceLineEndings(" ");
-                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 6].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
-                                var find  = existingSvInLogs
-                                    .Where(x => x.ColumnName == "CurrentAndPreviousAmount" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-                                if (!find.Any())
-                                {
-                                    svChanges["CurrentAndPreviousAmount"] = (originalValue, adjustedValue);
-                                }
-                            }
-
-                            if (existingSv.UnearnedAmount.ToString("F2").Trim().ReplaceLineEndings(" ") != decimal.Parse(worksheet.Cells[row, 7].Text).ToString("F2").Trim().ReplaceLineEndings(" "))
-                            {
-                                var originalValue = existingSv.UnearnedAmount.ToString("F2").Trim().ReplaceLineEndings(" ");
-                                var adjustedValue = decimal.Parse(worksheet.Cells[row, 7].Text).ToString("F2").Trim().ReplaceLineEndings(" ");
-                                var find  = existingSvInLogs
-                                    .Where(x => x.ColumnName == "UnearnedAmount" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-                                if (!find.Any())
-                                {
-                                    svChanges["UnearnedAmount"] = (originalValue, adjustedValue);
-                                }
-                            }
-
-                            if (existingSv.Status.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 8].Text.Trim().ReplaceLineEndings(" "))
-                            {
-                                var originalValue = existingSv.Status.Trim().ReplaceLineEndings(" ");
-                                var adjustedValue = worksheet.Cells[row, 8].Text.Trim().ReplaceLineEndings(" ");
-                                var find  = existingSvInLogs
-                                    .Where(x => x.ColumnName == "Status" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-                                if (!find.Any())
-                                {
-                                    svChanges["Status"] = (originalValue, adjustedValue);
-                                }
-                            }
-
-                            if (existingSv.Instructions!.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 11].Text.Trim().ReplaceLineEndings(" "))
-                            {
-                                var originalValue = existingSv.Instructions.Trim().ReplaceLineEndings(" ");
-                                var adjustedValue = worksheet.Cells[row, 11].Text.Trim().ReplaceLineEndings(" ");
-                                var find  = existingSvInLogs
-                                    .Where(x => x.ColumnName == "Instructions" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-                                if (!find.Any())
-                                {
-                                    svChanges["Instructions"] = (originalValue, adjustedValue);
-                                }
-                            }
-
-                            if (existingSv.CreatedBy!.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 13].Text.Trim().ReplaceLineEndings(" "))
-                            {
-                                var originalValue = existingSv.CreatedBy.Trim().ReplaceLineEndings(" ");
-                                var adjustedValue = worksheet.Cells[row, 13].Text.Trim().ReplaceLineEndings(" ");
-                                var find  = existingSvInLogs
-                                    .Where(x => x.ColumnName == "CreatedBy" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-                                if (!find.Any())
-                                {
-                                    svChanges["CreatedBy"] = (originalValue, adjustedValue);
-                                }
-                            }
-
-                            if (existingSv.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 14].Text.Trim().ReplaceLineEndings(" "))
-                            {
-                                var originalValue = existingSv.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss.ffffff").Trim().ReplaceLineEndings(" ");
-                                var adjustedValue = worksheet.Cells[row, 14].Text.Trim().ReplaceLineEndings(" ");
-                                var find  = existingSvInLogs
-                                    .Where(x => x.ColumnName == "CreatedDate" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-                                if (!find.Any())
-                                {
-                                    svChanges["CreatedDate"] = (originalValue, adjustedValue);
-                                }
-                            }
-
-                            if ((string.IsNullOrWhiteSpace(existingSv.CancellationRemarks?.Trim().ReplaceLineEndings(" ")) ? "" : existingSv.CancellationRemarks.Trim().ReplaceLineEndings(" ")) != worksheet.Cells[row, 15].Text.Trim().ReplaceLineEndings(" "))
-                            {
-                                var originalValue = existingSv.CancellationRemarks?.Trim().ReplaceLineEndings(" ");
-                                var adjustedValue = worksheet.Cells[row, 15].Text.Trim().ReplaceLineEndings(" ");
-                                var find  = existingSvInLogs
-                                    .Where(x => x.ColumnName == "CancellationRemarks" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-                                if (!find.Any())
-                                {
-                                    svChanges["CancellationRemarks"] = (originalValue, adjustedValue)!;
-                                }
-                            }
-
-                            if (existingSv.OriginalCustomerId.ToString()!.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 16].Text.Trim().ReplaceLineEndings(" "))
-                            {
-                                var originalValue = existingSv.OriginalCustomerId.ToString()!.Trim().ReplaceLineEndings(" ");
-                                var adjustedValue = worksheet.Cells[row, 16].Text.Trim().ReplaceLineEndings(" ");
-                                var find  = existingSvInLogs
-                                    .Where(x => x.ColumnName == "OriginalCustomerId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-                                if (!find.Any())
-                                {
-                                    svChanges["OriginalCustomerId"] = (originalValue, adjustedValue);
-                                }
-                            }
-
-                            if (existingSv.OriginalSeriesNumber!.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 17].Text.Trim().ReplaceLineEndings(" "))
-                            {
-                                var originalValue = existingSv.OriginalSeriesNumber.Trim().ReplaceLineEndings(" ");
-                                var adjustedValue = worksheet.Cells[row, 17].Text.Trim().ReplaceLineEndings(" ");
-                                var find  = existingSvInLogs
-                                    .Where(x => x.ColumnName == "OriginalSeriesNumber" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-                                if (!find.Any())
-                                {
-                                    svChanges["OriginalSeriesNumber"] = (originalValue, adjustedValue);
-                                }
-                            }
-
-                            if (existingSv.OriginalServicesId.ToString()!.Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 18].Text.Trim().ReplaceLineEndings(" "))
-                            {
-                                var originalValue = existingSv.OriginalServicesId.ToString()!.Trim().ReplaceLineEndings(" ");
-                                var adjustedValue = worksheet.Cells[row, 18].Text.Trim().ReplaceLineEndings(" ");
-                                var find  = existingSvInLogs
-                                    .Where(x => x.ColumnName == "OriginalServicesId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-                                if (!find.Any())
-                                {
-                                    svChanges["OriginalServicesId"] = (originalValue, adjustedValue);
-                                }
-                            }
-
-                            if (existingSv.OriginalDocumentId.ToString().Trim().ReplaceLineEndings(" ") != worksheet.Cells[row, 19].Text.Trim().ReplaceLineEndings(" "))
-                            {
-                                var originalValue = existingSv.OriginalDocumentId.ToString().Trim().ReplaceLineEndings(" ");
-                                var adjustedValue = worksheet.Cells[row, 19].Text.Trim().ReplaceLineEndings(" ");
-                                var find  = existingSvInLogs
-                                    .Where(x => x.ColumnName == "OriginalDocumentId" && x.OriginalValue == originalValue && x.AdjustedValue == adjustedValue);
-                                if (!find.Any())
-                                {
-                                    svChanges["OriginalDocumentId"] = (originalValue, adjustedValue);
-                                }
-                            }
-
-                            if (svChanges.Any())
-                            {
-                                await _serviceInvoiceRepo.LogChangesAsync(existingSv.OriginalDocumentId, svChanges, createdBy, existingSv.ServiceInvoiceNo, "AAS");
-                            }
-
-                            continue;
-                        }
-                        else
-                        {
-                            #region --Audit Trail Recording
-
-                            if (!serviceInvoice.CreatedBy.IsNullOrEmpty())
-                            {
-                                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                AuditTrail auditTrailBook = new(serviceInvoice.CreatedBy, $"Create new service invoice# {serviceInvoice.ServiceInvoiceNo}", "Service Invoice", ipAddress!, serviceInvoice.CreatedDate);
-                                await _aasDbContext.AddAsync(auditTrailBook, cancellationToken);
-                            }
-                            if (!serviceInvoice.PostedBy.IsNullOrEmpty())
-                            {
-                                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                                AuditTrail auditTrailBook = new(serviceInvoice.PostedBy, $"Posted service invoice# {serviceInvoice.ServiceInvoiceNo}", "Service Invoice", ipAddress!, serviceInvoice.PostedDate);
-                                await _aasDbContext.AddAsync(auditTrailBook, cancellationToken);
-                            }
-
-                            #endregion --Audit Trail Recording
-                        }
-
-                        serviceInvoice.CustomerId = await _aasDbContext.Customers
-                            .Where(sv => sv.OriginalCustomerId == serviceInvoice.OriginalCustomerId)
-                            .Select(sv => (int?)sv.CustomerId)
-                            .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the customer master file first.");
-
-                        serviceInvoice.ServicesId = await _aasDbContext.Services
-                            .Where(sv => sv.OriginalServiceId == serviceInvoice.OriginalServicesId)
-                            .Select(sv => (int?)sv.ServiceId)
-                            .FirstOrDefaultAsync(cancellationToken) ?? throw new InvalidOperationException("Please upload the Excel file for the service master file first.");
-
-                        await _aasDbContext.ServiceInvoices.AddAsync(serviceInvoice, cancellationToken);
-                    }
-                    await _aasDbContext.SaveChangesAsync(cancellationToken);
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    await transaction.CommitAsync(cancellationToken);
-
-                    var checkChangesOfRecord = await _dbContext.ImportExportLogs
-                        .Where(iel => iel.Action == string.Empty).ToListAsync(cancellationToken);
-                    if (checkChangesOfRecord.Any())
-                    {
-                        TempData["importChanges"] = "";
-                    }
+                        serviceInvoices.Add(_serviceInvoiceRepo.MapToServiceInvoiceEntity(row, lookup));
+                        auditTrails.AddRange(_serviceInvoiceRepo.AuditTrails(row, ipAddress ?? string.Empty));
                     }
                     else
                     {
-                        TempData["warning"] = "The Uploaded Excel file is not related to AAS.";
+                        var changes = _serviceInvoiceRepo.Detect(existing, row, lookup.ExistingLogs);
+                        if (changes.Any())
+                        {
+                            await _serviceInvoiceRepo.LogChangesAsync(
+                                existing.OriginalDocumentId,
+                                changes,
+                                await _generalRepo.GetUserFullNameAsync(User.Identity!.Name!),
+                                existing.ServiceInvoiceNo,
+                                "AAS");
+                        }
                     }
                 }
-                catch (OperationCanceledException oce)
+
+                _aasDbContext.ServiceInvoices.AddRange(serviceInvoices);
+                _aasDbContext.AuditTrails.AddRange(auditTrails);
+                await _aasDbContext.SaveChangesAsync(cancellationToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+
+                var checkChangesOfRecord = await _dbContext.ImportExportLogs
+                    .Where(iel => iel.Action == string.Empty).ToListAsync(cancellationToken);
+                if (checkChangesOfRecord.Any())
                 {
-                    await transaction.RollbackAsync(cancellationToken);
-                    TempData["error"] = oce.Message;
-                    return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
+                    TempData["importChanges"] = "";
                 }
-                catch (InvalidOperationException ioe)
-                {
-                    await transaction.RollbackAsync(cancellationToken);
-                    TempData["warning"] = ioe.Message;
-                    return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
-                }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync(cancellationToken);
-                    TempData["error"] = ex.Message;
-                    return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
-                }
+
+                await transaction.CommitAsync(cancellationToken);
             }
+            catch (OperationCanceledException oce)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = oce.Message;
+                return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
+            }
+            catch (InvalidOperationException ioe)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["warning"] = ioe.Message;
+                return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
+            }
+
             TempData["success"] = "Uploading Success!";
             return RedirectToAction(nameof(Index), new { view = DynamicView.ServiceInvoice });
         }
-
         #endregion
     }
 }

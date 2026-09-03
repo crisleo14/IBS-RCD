@@ -17,10 +17,13 @@ namespace Accounting_System.Repository
 
         private readonly GeneralRepo _generalRepo;
 
-        public ReceiptRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo)
+        private readonly AasDbContext _aasDbContext;
+
+        public ReceiptRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo, AasDbContext aasDbContext)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _generalRepo = generalRepo;
+            _aasDbContext = aasDbContext;
         }
 
         public async Task<string> GenerateCRNo(CancellationToken cancellationToken = default)
@@ -765,6 +768,72 @@ namespace Accounting_System.Repository
                         cancellationToken),
 
                 ExistingServiceInvoice = await _dbContext.ServiceInvoices
+                    .Where(x => originalServiceInvoiceIds.Contains(x.OriginalDocumentId))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(
+                        x => x.OriginalDocumentId,
+                        x => (x.ServiceInvoiceId, x.ServiceInvoiceNo),
+                        cancellationToken),
+
+                ExistingLogs = await _dbContext.ImportExportLogs
+                    .Where(x => originalSeriesNumbers.Contains(x.DocumentNo))
+                    .ToListAsync(cancellationToken)
+            };
+        }
+
+        public async Task<FindCollectionReceiptInDbContextDto> BuildLookupCollectionReceiptContextForAasAsync(
+            IEnumerable<CollectionReceiptUploadExcelFileViewModel> rows,
+            CancellationToken cancellationToken)
+        {
+            var originalCustomerIds = rows
+                .Select(r => r.OriginalCustomerId)
+                .Where(x => x != 0)
+                .Distinct()
+                .ToList();
+
+            var originalSalesInvoiceIds = rows
+                .Select(r => r.OriginalSalesInvoiceId)
+                .Where(x => x != 0)
+                .Distinct()
+                .ToList();
+
+            var originalServiceInvoiceIds = rows
+                .Select(r => r.OriginalServiceInvoiceId)
+                .Where(x => x != 0)
+                .Distinct()
+                .ToList();
+
+            var originalSeriesNumbers = rows
+                .Select(r => r.OriginalSeriesNumber)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct()
+                .ToList();
+
+            return new FindCollectionReceiptInDbContextDto
+            {
+                ExistingCollectionReceipt = await _aasDbContext.CollectionReceipts
+                    .Where(x => originalSeriesNumbers.Contains(x.OriginalSeriesNumber))
+                    .GroupBy(x => x.OriginalSeriesNumber)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalSeriesNumber, cancellationToken),
+
+                CustomerId = await _aasDbContext.Customers
+                    .Where(x => originalCustomerIds.Contains(x.OriginalCustomerId))
+                    .GroupBy(x => x.OriginalCustomerId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalCustomerId, x => x.CustomerId, cancellationToken),
+
+                ExistingSalesInvoice = await _aasDbContext.SalesInvoices
+                    .Where(x => originalSalesInvoiceIds.Contains(x.OriginalDocumentId))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(
+                        x => x.OriginalDocumentId,
+                        x => (x.SalesInvoiceId, x.SalesInvoiceNo),
+                        cancellationToken),
+
+                ExistingServiceInvoice = await _aasDbContext.ServiceInvoices
                     .Where(x => originalServiceInvoiceIds.Contains(x.OriginalDocumentId))
                     .GroupBy(x => x.OriginalDocumentId)
                     .Select(x => x.First())

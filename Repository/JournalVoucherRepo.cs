@@ -16,10 +16,13 @@ namespace Accounting_System.Repository
 
         private readonly GeneralRepo _generalRepo;
 
-        public JournalVoucherRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo)
+        private readonly AasDbContext _aasDbContext;
+
+        public JournalVoucherRepo(ApplicationDbContext dbContext, GeneralRepo generalRepo, AasDbContext aasDbContext)
         {
             _dbContext = dbContext;
             _generalRepo = generalRepo;
+            _aasDbContext = aasDbContext;
         }
 
         public async Task<List<JournalVoucherHeader>> GetJournalVouchersAsync(CancellationToken cancellationToken = default)
@@ -145,6 +148,33 @@ namespace Accounting_System.Repository
                     .ToDictionaryAsync(x => x.OriginalSeriesNumber!, cancellationToken),
 
                 CvId = await _dbContext.CheckVoucherHeaders
+                    .Where(x => originalCheckVoucherIds.Contains(x.OriginalDocumentId))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalDocumentId, x => x.CheckVoucherHeaderId, cancellationToken),
+
+                ExistingLogs = await _dbContext.ImportExportLogs
+                    .Where(x => originalSeriesNumbers.Contains(x.DocumentNo))
+                    .ToListAsync(cancellationToken)
+            };
+        }
+
+        public async Task<FindJournalVoucherInDbContextDto> BuildLookupJournalVoucherHeaderContextForAasAsync(
+            IEnumerable<JournalVoucherUploadExcelFileViewModel> rows,
+            CancellationToken cancellationToken)
+        {
+            var originalCheckVoucherIds = rows.Select(r => r.OriginalCVId).Distinct().ToList();
+            var originalSeriesNumbers = rows.Select(r => r.OriginalSeriesNumber).Distinct().ToList();
+
+            return new FindJournalVoucherInDbContextDto
+            {
+                ExistingJournalVoucherHeader = await _aasDbContext.JournalVoucherHeaders
+                    .Where(x => originalSeriesNumbers.Contains(x.OriginalSeriesNumber!))
+                    .GroupBy(x => x.OriginalSeriesNumber)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalSeriesNumber!, cancellationToken),
+
+                CvId = await _aasDbContext.CheckVoucherHeaders
                     .Where(x => originalCheckVoucherIds.Contains(x.OriginalDocumentId))
                     .GroupBy(x => x.OriginalDocumentId)
                     .Select(x => x.First())
@@ -326,6 +356,33 @@ namespace Accounting_System.Repository
                     .GroupBy(x => x.OriginalDocumentId)
                     .Select(x => x.First())
                     .ToDictionaryAsync(x => x.OriginalDocumentId, cancellationToken)
+            };
+        }
+
+        public async Task<FindJournalVoucherDetailsInDbContextDto> BuildLookupJournalVoucherDetailsContextForAasAsync(
+            IEnumerable<JournalVoucherDetailsUploadExcelFileViewModel> rows,
+            CancellationToken cancellationToken)
+        {
+            var jvHeaderIds = rows.Select(r => r.JournalVoucherHeaderId).Distinct().ToList();
+            var originalDocumentId = rows.Select(r => r.OriginalDocumentId).Distinct().ToList();
+
+            return new FindJournalVoucherDetailsInDbContextDto
+            {
+                ExistingJournalVoucherDetail = await _aasDbContext.JournalVoucherDetails
+                    .Where(x => x.OriginalDocumentId.HasValue && originalDocumentId.Contains(x.OriginalDocumentId!.Value))
+                    .GroupBy(x => x.OriginalDocumentId!.Value)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalDocumentId!.Value, cancellationToken),
+
+                JournalVoucherHeader = await _aasDbContext.JournalVoucherHeaders
+                    .Where(x => jvHeaderIds.Contains(x.OriginalDocumentId))
+                    .GroupBy(x => x.OriginalDocumentId)
+                    .Select(x => x.First())
+                    .ToDictionaryAsync(x => x.OriginalDocumentId, cancellationToken),
+
+                ExistingLogs = await _dbContext.ImportExportLogs
+                    .Where(x => originalDocumentId.Contains(x.DocumentRecordId))
+                    .ToListAsync(cancellationToken)
             };
         }
 

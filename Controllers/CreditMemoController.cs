@@ -1513,23 +1513,23 @@ namespace Accounting_System.Controllers
             {
                 await transaction.RollbackAsync(cancellationToken);
                 TempData["error"] = oce.Message;
-                return RedirectToAction(nameof(Index), new { view = DynamicView.DebitMemo });
+                return RedirectToAction(nameof(Index), new { view = DynamicView.CreditMemo });
             }
             catch (InvalidOperationException ioe)
             {
                 await transaction.RollbackAsync(cancellationToken);
                 TempData["warning"] = ioe.Message;
-                return RedirectToAction(nameof(Index), new { view = DynamicView.DebitMemo });
+                return RedirectToAction(nameof(Index), new { view = DynamicView.CreditMemo });
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync(cancellationToken);
                 TempData["error"] = ex.Message;
-                return RedirectToAction(nameof(Index), new { view = DynamicView.DebitMemo });
+                return RedirectToAction(nameof(Index), new { view = DynamicView.CreditMemo });
             }
 
             TempData["success"] = "Uploading Success!";
-            return RedirectToAction(nameof(Index), new { view = DynamicView.DebitMemo });
+            return RedirectToAction(nameof(Index), new { view = DynamicView.CreditMemo });
         }
 
         #endregion
@@ -1725,23 +1725,23 @@ namespace Accounting_System.Controllers
             {
                 await transaction.RollbackAsync(cancellationToken);
                 TempData["error"] = oce.Message;
-                return RedirectToAction(nameof(Index), new { view = DynamicView.DebitMemo });
+                return RedirectToAction(nameof(Index), new { view = DynamicView.CreditMemo });
             }
             catch (InvalidOperationException ioe)
             {
                 await transaction.RollbackAsync(cancellationToken);
                 TempData["warning"] = ioe.Message;
-                return RedirectToAction(nameof(Index), new { view = DynamicView.DebitMemo });
+                return RedirectToAction(nameof(Index), new { view = DynamicView.CreditMemo });
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync(cancellationToken);
                 TempData["error"] = ex.Message;
-                return RedirectToAction(nameof(Index), new { view = DynamicView.DebitMemo });
+                return RedirectToAction(nameof(Index), new { view = DynamicView.CreditMemo });
             }
 
             TempData["success"] = "Uploading Success!";
-            return RedirectToAction(nameof(Index), new { view = DynamicView.DebitMemo });
+            return RedirectToAction(nameof(Index), new { view = DynamicView.CreditMemo });
         }
 
         #endregion -- import xlsx record --
