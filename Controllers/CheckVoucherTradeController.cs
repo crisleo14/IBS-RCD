@@ -1268,12 +1268,14 @@ namespace Accounting_System.Controllers
                 worksheet4.Cells["P1"].Value = "OriginalJVNo";
                 worksheet4.Cells["Q1"].Value = "OriginalSupplierId";
                 worksheet4.Cells["R1"].Value = "OriginalDocumentId";
-                worksheet4.Cells["S1"].Value = "EditedBy";
-                worksheet4.Cells["T1"].Value = "EditedDate";
-                worksheet4.Cells["U1"].Value = "CanceledBy";
-                worksheet4.Cells["V1"].Value = "CanceledDate";
-                worksheet4.Cells["W1"].Value = "VoidedBy";
-                worksheet4.Cells["X1"].Value = "VoidedDate";
+                worksheet4.Cells["S1"].Value = "PostedBy";
+                worksheet4.Cells["T1"].Value = "PostedDate";
+                worksheet4.Cells["U1"].Value = "EditedBy";
+                worksheet4.Cells["V1"].Value = "EditedDate";
+                worksheet4.Cells["W1"].Value = "CanceledBy";
+                worksheet4.Cells["X1"].Value = "CanceledDate";
+                worksheet4.Cells["Y1"].Value = "VoidedBy";
+                worksheet4.Cells["Z1"].Value = "VoidedDate";
 
                 #endregion -- Purchase Order Table Header --
 
@@ -1303,12 +1305,14 @@ namespace Accounting_System.Controllers
                 worksheet3.Cells["T1"].Value = "OriginalPOId";
                 worksheet3.Cells["U1"].Value = "OriginalRRNo";
                 worksheet3.Cells["V1"].Value = "OriginalDocumentId";
-                worksheet3.Cells["W1"].Value = "EditedBy";
-                worksheet3.Cells["X1"].Value = "EditedDate";
-                worksheet3.Cells["Y1"].Value = "CanceledBy";
-                worksheet3.Cells["Z1"].Value = "CanceledDate";
-                worksheet3.Cells["AA1"].Value = "VoidedBy";
-                worksheet3.Cells["AB1"].Value = "VoidedDate";
+                worksheet3.Cells["W1"].Value = "PostedBy";
+                worksheet3.Cells["X1"].Value = "PostedDate";
+                worksheet3.Cells["Y1"].Value = "EditedBy";
+                worksheet3.Cells["Z1"].Value = "EditedDate";
+                worksheet3.Cells["AA1"].Value = "CanceledBy";
+                worksheet3.Cells["AB1"].Value = "CanceledDate";
+                worksheet3.Cells["AC1"].Value = "VoidedBy";
+                worksheet3.Cells["AD1"].Value = "VoidedDate";
 
                 #endregion -- Receiving Report Table Header --
 
@@ -1347,12 +1351,14 @@ namespace Accounting_System.Controllers
                 worksheet.Cells["AC1"].Value = "OriginalCVNo";
                 worksheet.Cells["AD1"].Value = "OriginalSupplierId";
                 worksheet.Cells["AE1"].Value = "OriginalDocumentId";
-                worksheet.Cells["AF1"].Value = "EditedBy";
-                worksheet.Cells["AG1"].Value = "EditedDate";
-                worksheet.Cells["AH1"].Value = "CanceledBy";
-                worksheet.Cells["AI1"].Value = "CanceledDate";
-                worksheet.Cells["AJ1"].Value = "VoidedBy";
-                worksheet.Cells["AK1"].Value = "VoidedDate";
+                worksheet.Cells["AF1"].Value = "PostedBy";
+                worksheet.Cells["AG1"].Value = "PostedDate";
+                worksheet.Cells["AH1"].Value = "EditedBy";
+                worksheet.Cells["AI1"].Value = "EditedDate";
+                worksheet.Cells["AJ1"].Value = "CanceledBy";
+                worksheet.Cells["AK1"].Value = "CanceledDate";
+                worksheet.Cells["AL1"].Value = "VoidedBy";
+                worksheet.Cells["AM1"].Value = "VoidedDate";
 
                 #endregion -- Check Voucher Header Table Header --
 
