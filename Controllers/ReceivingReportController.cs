@@ -659,6 +659,12 @@ namespace Accounting_System.Controllers
                 worksheet2.Cells["P1"].Value = "OriginalPONo";
                 worksheet2.Cells["Q1"].Value = "OriginalSupplierId";
                 worksheet2.Cells["R1"].Value = "OriginalDocumentId";
+                worksheet2.Cells["S1"].Value = "EditedBy";
+                worksheet2.Cells["T1"].Value = "EditedDate";
+                worksheet2.Cells["U1"].Value = "CanceledBy";
+                worksheet2.Cells["V1"].Value = "CanceledDate";
+                worksheet2.Cells["W1"].Value = "VoidedBy";
+                worksheet2.Cells["X1"].Value = "VoidedDate";
 
                 #endregion -- Purchase Order Table Header --
 
@@ -688,6 +694,12 @@ namespace Accounting_System.Controllers
                 worksheet.Cells["T1"].Value = "OriginalPOId";
                 worksheet.Cells["U1"].Value = "OriginalRRNo";
                 worksheet.Cells["V1"].Value = "OriginalDocumentId";
+                worksheet.Cells["W1"].Value = "EditedBy";
+                worksheet.Cells["X1"].Value = "EditedDate";
+                worksheet.Cells["Y1"].Value = "CanceledBy";
+                worksheet.Cells["Z1"].Value = "CanceledDate";
+                worksheet.Cells["AA1"].Value = "VoidedBy";
+                worksheet.Cells["AB1"].Value = "VoidedDate";
 
                 #endregion -- Receving Report Table Header --
 
@@ -719,6 +731,12 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 20].Value = item.POId;
                     worksheet.Cells[row, 21].Value = item.ReceivingReportNo;
                     worksheet.Cells[row, 22].Value = item.ReceivingReportId;
+                    worksheet.Cells[row, 23].Value = item.EditedBy;
+                    worksheet.Cells[row, 24].Value = item.EditedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 25].Value = item.CanceledBy;
+                    worksheet.Cells[row, 26].Value = item.CanceledDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 27].Value = item.VoidedBy;
+                    worksheet.Cells[row, 28].Value = item.VoidedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
 
                     row++;
                 }
@@ -756,6 +774,12 @@ namespace Accounting_System.Controllers
                     worksheet2.Cells[poRow, 16].Value = item.PurchaseOrder.PurchaseOrderNo;
                     worksheet2.Cells[poRow, 17].Value = item.PurchaseOrder.SupplierId;
                     worksheet2.Cells[poRow, 18].Value = item.PurchaseOrder.PurchaseOrderId;
+                    worksheet2.Cells[poRow, 19].Value = item.PurchaseOrder.EditedBy;
+                    worksheet2.Cells[poRow, 20].Value = item.PurchaseOrder.EditedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet2.Cells[poRow, 21].Value = item.PurchaseOrder.CanceledBy;
+                    worksheet2.Cells[poRow, 22].Value = item.PurchaseOrder.CanceledDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet2.Cells[poRow, 23].Value = item.PurchaseOrder.VoidedBy;
+                    worksheet2.Cells[poRow, 24].Value = item.PurchaseOrder.VoidedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
 
                     poRow++;
                 }

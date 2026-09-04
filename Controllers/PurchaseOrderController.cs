@@ -733,6 +733,12 @@ namespace Accounting_System.Controllers
                 worksheet.Cells["P1"].Value = "OriginalPONo";
                 worksheet.Cells["Q1"].Value = "OriginalSupplierId";
                 worksheet.Cells["R1"].Value = "OriginalDocumentId";
+                worksheet.Cells["S1"].Value = "EditedBy";
+                worksheet.Cells["T1"].Value = "EditedDate";
+                worksheet.Cells["U1"].Value = "CanceledBy";
+                worksheet.Cells["V1"].Value = "CanceledDate";
+                worksheet.Cells["W1"].Value = "VoidedBy";
+                worksheet.Cells["X1"].Value = "VoidedDate";
 
                 int row = 2;
 
@@ -756,6 +762,12 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 16].Value = item.PurchaseOrderNo;
                     worksheet.Cells[row, 17].Value = item.SupplierId;
                     worksheet.Cells[row, 18].Value = item.PurchaseOrderId;
+                    worksheet.Cells[row, 19].Value = item.EditedBy;
+                    worksheet.Cells[row, 20].Value = item.EditedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 21].Value = item.CanceledBy;
+                    worksheet.Cells[row, 22].Value = item.CanceledDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 23].Value = item.VoidedBy;
+                    worksheet.Cells[row, 24].Value = item.VoidedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
 
                     row++;
                 }

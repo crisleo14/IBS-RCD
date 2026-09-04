@@ -460,6 +460,18 @@ namespace Accounting_System.Repository
                     OriginalPOId = worksheet.Cells[row, 20].GetValue<int>(),
                     OriginalSeriesNumber = StringHelper.NormalizeString(worksheet.Cells[row, 21].GetValue<string>()),
                     OriginalDocumentId = worksheet.Cells[row, 22].GetValue<int>(),
+                    CanceledBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 27].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 27].GetValue<string>()),
+                    CanceledDate = worksheet.Cells[row, 28].GetValue<DateTime>(),
+                    VoidedBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 29].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 29].GetValue<string>()),
+                    VoidedDate = worksheet.Cells[row, 30].GetValue<DateTime>(),
+                    EditedBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 25].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 25].GetValue<string>()),
+                    EditedDate = worksheet.Cells[row, 26].GetValue<DateTime>()
                 });
             }
 
@@ -524,6 +536,12 @@ namespace Accounting_System.Repository
                 PostedBy = row.PostedBy,
                 PostedDate = row.PostedDate,
                 CancellationRemarks = row.CancellationRemarks,
+                CanceledBy = row.CanceledBy,
+                CanceledDate = row.CanceledDate,
+                VoidedBy = row.VoidedBy,
+                VoidedDate = row.VoidedDate,
+                EditedBy = row.EditedBy,
+                EditedDate = row.EditedDate,
                 ReceivedDate = row.ReceivedDate,
                 OriginalPOId = row.OriginalPOId,
                 OriginalSeriesNumber = row.OriginalSeriesNumber,
@@ -561,6 +579,42 @@ namespace Accounting_System.Repository
                     DocumentType = "Receiving Report",
                     MachineName = machineName,
                     Date = row.PostedDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.CanceledBy) && row.CanceledDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.CanceledBy,
+                    Activity = $"Cancelled receiving report# {row.ReceivingReportNo}",
+                    DocumentType = "Receiving Report",
+                    MachineName = machineName,
+                    Date = row.CanceledDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.VoidedBy) && row.VoidedDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.VoidedBy,
+                    Activity = $"Voided receiving report# {row.ReceivingReportNo}",
+                    DocumentType = "Receiving Report",
+                    MachineName = machineName,
+                    Date = row.VoidedDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.EditedBy) && row.EditedDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.EditedBy,
+                    Activity = $"Edited receiving report# {row.ReceivingReportNo}",
+                    DocumentType = "Receiving Report",
+                    MachineName = machineName,
+                    Date = row.EditedDate
                 });
             }
 

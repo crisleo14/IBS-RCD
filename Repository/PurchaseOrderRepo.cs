@@ -163,7 +163,19 @@ namespace Accounting_System.Repository
                         ? string.Empty
                         : StringHelper.NormalizeString(worksheet.Cells[row, 16].GetValue<string?>()),
                     OriginalSupplierId = worksheet.Cells[row, 17].GetValue<int>(),
-                    OriginalDocumentId = worksheet.Cells[row, 18].GetValue<int>()
+                    OriginalDocumentId = worksheet.Cells[row, 18].GetValue<int>(),
+                    CanceledBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 23].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 23].GetValue<string>()),
+                    CanceledDate = worksheet.Cells[row, 24].GetValue<DateTime>(),
+                    VoidedBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 25].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 25].GetValue<string>()),
+                    VoidedDate = worksheet.Cells[row, 26].GetValue<DateTime>(),
+                    EditedBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 21].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 21].GetValue<string>()),
+                    EditedDate = worksheet.Cells[row, 22].GetValue<DateTime>()
                 });
             }
 
@@ -240,6 +252,12 @@ namespace Accounting_System.Repository
                 PostedDate = row.PostedDate,
                 IsClosed = row.IsClosed,
                 CancellationRemarks = row.CancellationRemarks,
+                CanceledBy = row.CanceledBy,
+                CanceledDate = row.CanceledDate,
+                VoidedBy = row.VoidedBy,
+                VoidedDate = row.VoidedDate,
+                EditedBy = row.EditedBy,
+                EditedDate = row.EditedDate,
                 OriginalProductId = row.OriginalProductId,
                 OriginalSeriesNumber = row.OriginalSeriesNumber,
                 OriginalSupplierId = row.OriginalSupplierId,
@@ -279,6 +297,42 @@ namespace Accounting_System.Repository
                     DocumentType = "Purchase Order",
                     MachineName = machineName,
                     Date = row.PostedDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.CanceledBy) && row.CanceledDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.CanceledBy,
+                    Activity = $"Cancelled purchase order# {row.PurchaseOrderNo}",
+                    DocumentType = "Purchase Order",
+                    MachineName = machineName,
+                    Date = row.CanceledDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.VoidedBy) && row.VoidedDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.VoidedBy,
+                    Activity = $"Voided purchase order# {row.PurchaseOrderNo}",
+                    DocumentType = "Purchase Order",
+                    MachineName = machineName,
+                    Date = row.VoidedDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.EditedBy) && row.EditedDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.EditedBy,
+                    Activity = $"Edited purchase order# {row.PurchaseOrderNo}",
+                    DocumentType = "Purchase Order",
+                    MachineName = machineName,
+                    Date = row.EditedDate
                 });
             }
 

@@ -125,7 +125,19 @@ namespace Accounting_System.Repository
                     CancellationRemarks = StringHelper.NormalizeString(worksheet.Cells[row, 8].GetValue<string>()),
                     OriginalCVId = worksheet.Cells[row, 9].GetValue<int>(),
                     OriginalSeriesNumber = StringHelper.NormalizeString(worksheet.Cells[row, 10].GetValue<string>()),
-                    OriginalDocumentId = worksheet.Cells[row, 11].GetValue<int>()
+                    OriginalDocumentId = worksheet.Cells[row, 11].GetValue<int>(),
+                    CanceledBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 16].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 16].GetValue<string>()),
+                    CanceledDate = worksheet.Cells[row, 17].GetValue<DateTime>(),
+                    VoidedBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 18].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 18].GetValue<string>()),
+                    VoidedDate = worksheet.Cells[row, 19].GetValue<DateTime>(),
+                    EditedBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 14].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 14].GetValue<string>()),
+                    EditedDate = worksheet.Cells[row, 15].GetValue<DateTime>()
                 });
             }
 
@@ -203,6 +215,12 @@ namespace Accounting_System.Repository
                 PostedBy = row.PostedBy,
                 PostedDate = row.PostedDate,
                 CancellationRemarks = row.CancellationRemarks,
+                CanceledBy = row.CanceledBy,
+                CanceledDate = row.CanceledDate,
+                VoidedBy = row.VoidedBy,
+                VoidedDate = row.VoidedDate,
+                EditedBy = row.EditedBy,
+                EditedDate = row.EditedDate,
                 OriginalCVId = row.OriginalCVId,
                 OriginalSeriesNumber = row.OriginalSeriesNumber,
                 OriginalDocumentId = row.OriginalDocumentId,
@@ -241,6 +259,42 @@ namespace Accounting_System.Repository
                     DocumentType = "Journal Voucher",
                     MachineName = machineName,
                     Date = row.PostedDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.CanceledBy) && row.CanceledDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.CanceledBy,
+                    Activity = $"Cancelled journal voucher# {row.JournalVoucherHeaderNo}",
+                    DocumentType = "Journal Voucher",
+                    MachineName = machineName,
+                    Date = row.CanceledDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.VoidedBy) && row.VoidedDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.VoidedBy,
+                    Activity = $"Voided journal voucher# {row.JournalVoucherHeaderNo}",
+                    DocumentType = "Journal Voucher",
+                    MachineName = machineName,
+                    Date = row.VoidedDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.EditedBy) && row.EditedDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.EditedBy,
+                    Activity = $"Edited journal voucher# {row.JournalVoucherHeaderNo}",
+                    DocumentType = "Journal Voucher",
+                    MachineName = machineName,
+                    Date = row.EditedDate
                 });
             }
 

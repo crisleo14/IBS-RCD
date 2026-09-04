@@ -156,6 +156,18 @@ namespace Accounting_System.Repository
                     OriginalSeriesNumber = StringHelper.NormalizeString(worksheet.Cells[row, 17].GetValue<string>()),
                     OriginalServiceInvoiceId = worksheet.Cells[row, 18].GetValue<int>(),
                     OriginalDocumentId = worksheet.Cells[row, 19].GetValue<int>(),
+                    CanceledBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 24].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 24].GetValue<string>()),
+                    CanceledDate = worksheet.Cells[row, 25].GetValue<DateTime>(),
+                    VoidedBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 26].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 26].GetValue<string>()),
+                    VoidedDate = worksheet.Cells[row, 27].GetValue<DateTime>(),
+                    EditedBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 22].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 22].GetValue<string>()),
+                    EditedDate = worksheet.Cells[row, 23].GetValue<DateTime>()
                 });
             }
 
@@ -254,6 +266,12 @@ namespace Accounting_System.Repository
                 PostedBy = row.PostedBy,
                 PostedDate = row.PostedDate,
                 CancellationRemarks = row.CancellationRemarks,
+                CanceledBy = row.CanceledBy,
+                CanceledDate = row.CanceledDate,
+                VoidedBy = row.VoidedBy,
+                VoidedDate = row.VoidedDate,
+                EditedBy = row.EditedBy,
+                EditedDate = row.EditedDate,
                 OriginalSalesInvoiceId = row.OriginalSalesInvoiceId,
                 OriginalSeriesNumber = row.OriginalSeriesNumber,
                 OriginalServiceInvoiceId = row.OriginalServiceInvoiceId,
@@ -296,6 +314,42 @@ namespace Accounting_System.Repository
                     DocumentType = "Debit Memo",
                     MachineName = machineName,
                     Date = row.PostedDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.CanceledBy) && row.CanceledDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.CanceledBy,
+                    Activity = $"Cancelled debit memo# {row.DebitMemoNo}",
+                    DocumentType = "Debit Memo",
+                    MachineName = machineName,
+                    Date = row.CanceledDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.VoidedBy) && row.VoidedDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.VoidedBy,
+                    Activity = $"Voided debit memo# {row.DebitMemoNo}",
+                    DocumentType = "Debit Memo",
+                    MachineName = machineName,
+                    Date = row.VoidedDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.EditedBy) && row.EditedDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.EditedBy,
+                    Activity = $"Edited debit memo# {row.DebitMemoNo}",
+                    DocumentType = "Debit Memo",
+                    MachineName = machineName,
+                    Date = row.EditedDate
                 });
             }
 

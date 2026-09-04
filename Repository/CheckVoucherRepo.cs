@@ -187,7 +187,19 @@ namespace Accounting_System.Repository
                     OriginalBankId = worksheet.Cells[row, 28].GetValue<int>(),
                     OriginalSeriesNumber = StringHelper.NormalizeString(worksheet.Cells[row, 29].GetValue<string>()),
                     OriginalSupplierId = worksheet.Cells[row, 30].GetValue<int>(),
-                    OriginalDocumentId = worksheet.Cells[row, 31].GetValue<int>()
+                    OriginalDocumentId = worksheet.Cells[row, 31].GetValue<int>(),
+                    CanceledBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 36].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 36].GetValue<string>()),
+                    CanceledDate = worksheet.Cells[row, 37].GetValue<DateTime>(),
+                    VoidedBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 38].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 38].GetValue<string>()),
+                    VoidedDate = worksheet.Cells[row, 39].GetValue<DateTime>(),
+                    EditedBy = string.IsNullOrWhiteSpace(worksheet.Cells[row, 34].Text)
+                        ? string.Empty
+                        : StringHelper.NormalizeString(worksheet.Cells[row, 34].GetValue<string>()),
+                    EditedDate = worksheet.Cells[row, 35].GetValue<DateTime>()
                 });
             }
 
@@ -269,6 +281,12 @@ namespace Accounting_System.Repository
                 AmountPaid = row.AmountPaid,
                 IsPaid = row.IsPaid,
                 CancellationRemarks = row.CancellationRemarks,
+                CanceledBy = row.CanceledBy,
+                CanceledDate = row.CanceledDate,
+                VoidedBy = row.VoidedBy,
+                VoidedDate = row.VoidedDate,
+                EditedBy = row.EditedBy,
+                EditedDate = row.EditedDate,
                 OriginalBankId = row.OriginalBankId,
                 OriginalSeriesNumber = row.OriginalSeriesNumber,
                 OriginalSupplierId = row.OriginalSupplierId,
@@ -313,6 +331,42 @@ namespace Accounting_System.Repository
                     DocumentType = "Check Voucher",
                     MachineName = machineName,
                     Date = row.PostedDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.CanceledBy) && row.CanceledDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.CanceledBy,
+                    Activity = $"Cancelled check voucher# {row.CheckVoucherHeaderNo}",
+                    DocumentType = "Check Voucher",
+                    MachineName = machineName,
+                    Date = row.CanceledDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.VoidedBy) && row.VoidedDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.VoidedBy,
+                    Activity = $"Voided check voucher# {row.CheckVoucherHeaderNo}",
+                    DocumentType = "Check Voucher",
+                    MachineName = machineName,
+                    Date = row.VoidedDate
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(row.EditedBy) && row.EditedDate != default)
+            {
+                audits.Add(new AuditTrail
+                {
+                    Username = row.EditedBy,
+                    Activity = $"Edited check voucher# {row.CheckVoucherHeaderNo}",
+                    DocumentType = "Check Voucher",
+                    MachineName = machineName,
+                    Date = row.EditedDate
                 });
             }
 

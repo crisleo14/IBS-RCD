@@ -38,6 +38,18 @@ namespace Accounting_System.Models.ViewModels
 
         public string CancellationRemarks { get; set; }
 
+        public string CanceledBy { get; set; }
+
+        public DateTime CanceledDate { get; set; }
+
+        public string VoidedBy { get; set; }
+
+        public DateTime VoidedDate { get; set; }
+
+        public string EditedBy { get; set; }
+
+        public DateTime EditedDate { get; set; }
+
         public int OriginalSalesInvoiceId { get; set; }
 
         public string OriginalSeriesNumber { get; set; }
