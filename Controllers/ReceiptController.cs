@@ -1969,12 +1969,14 @@ namespace Accounting_System.Controllers
                 worksheet3.Cells["T1"].Value = "OriginalProductId";
                 worksheet3.Cells["U1"].Value = "OriginalSINo";
                 worksheet3.Cells["V1"].Value = "OriginalDocumentId";
-                worksheet3.Cells["W1"].Value = "EditedBy";
-                worksheet3.Cells["X1"].Value = "EditedDate";
-                worksheet3.Cells["Y1"].Value = "CanceledBy";
-                worksheet3.Cells["Z1"].Value = "CanceledDate";
-                worksheet3.Cells["AA1"].Value = "VoidedBy";
-                worksheet3.Cells["AB1"].Value = "VoidedDate";
+                worksheet3.Cells["W1"].Value = "PostedBy";
+                worksheet3.Cells["X1"].Value = "PostedDate";
+                worksheet3.Cells["Y1"].Value = "EditedBy";
+                worksheet3.Cells["Z1"].Value = "EditedDate";
+                worksheet3.Cells["AA1"].Value = "CanceledBy";
+                worksheet3.Cells["AB1"].Value = "CanceledDate";
+                worksheet3.Cells["AC1"].Value = "VoidedBy";
+                worksheet3.Cells["AD1"].Value = "VoidedDate";
 
                 #endregion -- Sales Invoice Table Header --
 
@@ -2001,12 +2003,14 @@ namespace Accounting_System.Controllers
                 worksheet4.Cells["Q1"].Value = "OriginalSVNo";
                 worksheet4.Cells["R1"].Value = "OriginalServicesId";
                 worksheet4.Cells["S1"].Value = "OriginalDocumentId";
-                worksheet4.Cells["T1"].Value = "EditedBy";
-                worksheet4.Cells["U1"].Value = "EditedDate";
-                worksheet4.Cells["V1"].Value = "CanceledBy";
-                worksheet4.Cells["W1"].Value = "CanceledDate";
-                worksheet4.Cells["X1"].Value = "VoidedBy";
-                worksheet4.Cells["Y1"].Value = "VoidedDate";
+                worksheet4.Cells["T1"].Value = "PostedBy";
+                worksheet4.Cells["U1"].Value = "PostedDate";
+                worksheet4.Cells["V1"].Value = "EditedBy";
+                worksheet4.Cells["W1"].Value = "EditedDate";
+                worksheet4.Cells["X1"].Value = "CanceledBy";
+                worksheet4.Cells["Y1"].Value = "CanceledDate";
+                worksheet4.Cells["Z1"].Value = "VoidedBy";
+                worksheet4.Cells["AA1"].Value = "VoidedDate";
 
                 #endregion -- Service Invoice Table Header --
 
@@ -2046,12 +2050,14 @@ namespace Accounting_System.Controllers
                 worksheet.Cells["AD1"].Value = "OriginalCRNo";
                 worksheet.Cells["AE1"].Value = "OriginalServiceInvoiceId";
                 worksheet.Cells["AF1"].Value = "OriginalDocumentId";
-                worksheet.Cells["AG1"].Value = "EditedBy";
-                worksheet.Cells["AH1"].Value = "EditedDate";
-                worksheet.Cells["AI1"].Value = "CanceledBy";
-                worksheet.Cells["AJ1"].Value = "CanceledDate";
-                worksheet.Cells["AK1"].Value = "VoidedBy";
-                worksheet.Cells["AL1"].Value = "VoidedDate";
+                worksheet.Cells["AG1"].Value = "PostedBy";
+                worksheet.Cells["AH1"].Value = "PostedDate";
+                worksheet.Cells["AI1"].Value = "EditedBy";
+                worksheet.Cells["AJ1"].Value = "EditedDate";
+                worksheet.Cells["AK1"].Value = "CanceledBy";
+                worksheet.Cells["AL1"].Value = "CanceledDate";
+                worksheet.Cells["AM1"].Value = "VoidedBy";
+                worksheet.Cells["AN1"].Value = "VoidedDate";
 
                 #endregion -- Collection Receipt Table Header --
 
@@ -2110,12 +2116,14 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 30].Value = item.CollectionReceiptNo;
                     worksheet.Cells[row, 31].Value = item.ServiceInvoiceId;
                     worksheet.Cells[row, 32].Value = item.CollectionReceiptId;
-                    worksheet.Cells[row, 33].Value = item.EditedBy;
-                    worksheet.Cells[row, 34].Value = item.EditedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet.Cells[row, 35].Value = item.CanceledBy;
-                    worksheet.Cells[row, 36].Value = item.CanceledDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet.Cells[row, 37].Value = item.VoidedBy;
-                    worksheet.Cells[row, 38].Value = item.VoidedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 33].Value = item.PostedBy;
+                    worksheet.Cells[row, 34].Value = item.PostedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 35].Value = item.EditedBy;
+                    worksheet.Cells[row, 36].Value = item.EditedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 37].Value = item.CanceledBy;
+                    worksheet.Cells[row, 38].Value = item.CanceledDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 39].Value = item.VoidedBy;
+                    worksheet.Cells[row, 40].Value = item.VoidedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
 
                     row++;
                 }
@@ -2152,12 +2160,14 @@ namespace Accounting_System.Controllers
                     worksheet3.Cells[siRow, 20].Value = item.SalesInvoice.ProductId;
                     worksheet3.Cells[siRow, 21].Value = item.SalesInvoice.SalesInvoiceNo;
                     worksheet3.Cells[siRow, 22].Value = item.SalesInvoice.SalesInvoiceId;
-                    worksheet3.Cells[siRow, 23].Value = item.SalesInvoice.EditedBy;
-                    worksheet3.Cells[siRow, 24].Value = item.SalesInvoice.EditedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet3.Cells[siRow, 25].Value = item.SalesInvoice.CanceledBy;
-                    worksheet3.Cells[siRow, 26].Value = item.SalesInvoice.CanceledDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet3.Cells[siRow, 27].Value = item.SalesInvoice.VoidedBy;
-                    worksheet3.Cells[siRow, 28].Value = item.SalesInvoice.VoidedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet3.Cells[siRow, 23].Value = item.SalesInvoice.PostedBy;
+                    worksheet3.Cells[siRow, 24].Value = item.SalesInvoice.PostedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet3.Cells[siRow, 25].Value = item.SalesInvoice.EditedBy;
+                    worksheet3.Cells[siRow, 26].Value = item.SalesInvoice.EditedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet3.Cells[siRow, 27].Value = item.SalesInvoice.CanceledBy;
+                    worksheet3.Cells[siRow, 28].Value = item.SalesInvoice.CanceledDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet3.Cells[siRow, 29].Value = item.SalesInvoice.VoidedBy;
+                    worksheet3.Cells[siRow, 30].Value = item.SalesInvoice.VoidedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
 
                     siRow++;
                 }
@@ -2193,12 +2203,14 @@ namespace Accounting_System.Controllers
                     worksheet4.Cells[svRow, 17].Value = item.ServiceInvoice.ServiceInvoiceNo;
                     worksheet4.Cells[svRow, 18].Value = item.ServiceInvoice.ServicesId;
                     worksheet4.Cells[svRow, 19].Value = item.ServiceInvoice.ServiceInvoiceId;
-                    worksheet4.Cells[svRow, 20].Value = item.ServiceInvoice.EditedBy;
-                    worksheet4.Cells[svRow, 21].Value = item.ServiceInvoice.EditedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet4.Cells[svRow, 22].Value = item.ServiceInvoice.CanceledBy;
-                    worksheet4.Cells[svRow, 23].Value = item.ServiceInvoice.CanceledDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet4.Cells[svRow, 24].Value = item.ServiceInvoice.VoidedBy;
-                    worksheet4.Cells[svRow, 25].Value = item.ServiceInvoice.VoidedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet4.Cells[svRow, 20].Value = item.ServiceInvoice.PostedBy;
+                    worksheet4.Cells[svRow, 21].Value = item.ServiceInvoice.PostedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet4.Cells[svRow, 22].Value = item.ServiceInvoice.EditedBy;
+                    worksheet4.Cells[svRow, 23].Value = item.ServiceInvoice.EditedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet4.Cells[svRow, 24].Value = item.ServiceInvoice.CanceledBy;
+                    worksheet4.Cells[svRow, 25].Value = item.ServiceInvoice.CanceledDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet4.Cells[svRow, 26].Value = item.ServiceInvoice.VoidedBy;
+                    worksheet4.Cells[svRow, 27].Value = item.ServiceInvoice.VoidedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
 
                     svRow++;
                 }
@@ -2235,12 +2247,14 @@ namespace Accounting_System.Controllers
                     worksheet3.Cells[siRow, 20].Value = item.ProductId;
                     worksheet3.Cells[siRow, 21].Value = item.SalesInvoiceNo;
                     worksheet3.Cells[siRow, 22].Value = item.SalesInvoiceId;
-                    worksheet3.Cells[siRow, 23].Value = item.EditedBy;
-                    worksheet3.Cells[siRow, 24].Value = item.EditedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet3.Cells[siRow, 25].Value = item.CanceledBy;
-                    worksheet3.Cells[siRow, 26].Value = item.CanceledDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet3.Cells[siRow, 27].Value = item.VoidedBy;
-                    worksheet3.Cells[siRow, 28].Value = item.VoidedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet3.Cells[siRow, 23].Value = item.PostedBy;
+                    worksheet3.Cells[siRow, 24].Value = item.PostedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet3.Cells[siRow, 25].Value = item.EditedBy;
+                    worksheet3.Cells[siRow, 26].Value = item.EditedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet3.Cells[siRow, 27].Value = item.CanceledBy;
+                    worksheet3.Cells[siRow, 28].Value = item.CanceledDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet3.Cells[siRow, 29].Value = item.VoidedBy;
+                    worksheet3.Cells[siRow, 30].Value = item.VoidedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
 
                     siRow++;
                 }

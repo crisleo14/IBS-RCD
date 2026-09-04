@@ -872,12 +872,14 @@ namespace Accounting_System.Controllers
                 worksheet.Cells["T1"].Value = "OriginalProductId";
                 worksheet.Cells["U1"].Value = "OriginalSINo";
                 worksheet.Cells["V1"].Value = "OriginalDocumentId";
-                worksheet.Cells["W1"].Value = "EditedBy";
-                worksheet.Cells["X1"].Value = "EditedDate";
-                worksheet.Cells["Y1"].Value = "CanceledBy";
-                worksheet.Cells["Z1"].Value = "CanceledDate";
-                worksheet.Cells["AA1"].Value = "VoidedBy";
-                worksheet.Cells["AB1"].Value = "VoidedDate";
+                worksheet.Cells["W1"].Value = "PostedBy";
+                worksheet.Cells["X1"].Value = "PostedDate";
+                worksheet.Cells["Y1"].Value = "EditedBy";
+                worksheet.Cells["Z1"].Value = "EditedDate";
+                worksheet.Cells["AA1"].Value = "CanceledBy";
+                worksheet.Cells["AB1"].Value = "CanceledDate";
+                worksheet.Cells["AC1"].Value = "VoidedBy";
+                worksheet.Cells["AD1"].Value = "VoidedDate";
 
                 int row = 2;
 
@@ -903,12 +905,14 @@ namespace Accounting_System.Controllers
                     worksheet.Cells[row, 20].Value = item.ProductId;
                     worksheet.Cells[row, 21].Value = item.SalesInvoiceNo;
                     worksheet.Cells[row, 22].Value = item.SalesInvoiceId;
-                    worksheet.Cells[row, 23].Value = item.EditedBy;
-                    worksheet.Cells[row, 24].Value = item.EditedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet.Cells[row, 25].Value = item.CanceledBy;
-                    worksheet.Cells[row, 26].Value = item.CanceledDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
-                    worksheet.Cells[row, 27].Value = item.VoidedBy;
-                    worksheet.Cells[row, 28].Value = item.VoidedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 23].Value = item.PostedBy;
+                    worksheet.Cells[row, 24].Value = item.PostedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 25].Value = item.EditedBy;
+                    worksheet.Cells[row, 26].Value = item.EditedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 27].Value = item.CanceledBy;
+                    worksheet.Cells[row, 28].Value = item.CanceledDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
+                    worksheet.Cells[row, 29].Value = item.VoidedBy;
+                    worksheet.Cells[row, 30].Value = item.VoidedDate?.ToString("yyyy-MM-dd hh:mm:ss.ffffff");
 
                     row++;
                 }
